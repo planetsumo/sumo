@@ -20,11 +20,27 @@
 //
 //---------------------------------------------------------------------------//
 // $Log$
+// Revision 1.10.2.1  2004/12/21 09:33:07  dkrajzew
+// debugging and version patching
+//
+// Revision 1.14  2004/12/20 15:00:37  dkrajzew
+// version patched
+//
+// Revision 1.13  2004/12/20 14:05:16  dkrajzew
+// version patched
+//
+// Revision 1.12  2004/12/20 13:15:58  dkrajzew
+// options output corrected
+//
+// Revision 1.11  2004/12/20 10:48:35  dkrajzew
+// net-files changed to net-file
+//
 // Revision 1.10  2004/07/02 09:51:38  dkrajzew
 // emissions and trip-file included in the options list
 //
 // Revision 1.9  2004/01/26 07:13:51  dkrajzew
-// added the possibility to place lsa-detectors at a default position/using a default length
+// added the possibility to place lsa-detectors at a default position/using a
+//  default length
 //
 // Revision 1.8  2003/12/12 12:32:13  dkrajzew
 // continuing on accidents is now meant to be the default behaviour
@@ -36,7 +52,10 @@
 // included new options into the help-screens
 //
 // Revision 1.5  2003/06/18 11:26:15  dkrajzew
-// new message and error processing: output to user may be a message, warning or an error now; it is reported to a Singleton (MsgHandler); this handler puts it further to output instances. changes: no verbose-parameter needed; messages are exported to singleton
+// new message and error processing: output to user may be a message, warning
+//  or an error now; it is reported to a Singleton (MsgHandler);
+//  this handler puts it further to output instances.
+//  changes: no verbose-parameter needed; messages are exported to singleton
 //
 // Revision 1.4  2003/03/31 06:18:18  dkrajzew
 // help screen corrected
@@ -59,16 +78,18 @@
  * The list of help strings for the sumo (simulation) module
  */
 char *help[] = {
-    "Usage: sumo [OPTION]+",
-    "Simulation of Urban MObility v0.8 - Simulation Module",
+    "Simulation of Urban MObility v0.8.2 - sumo application",
+    "  The command line version of the simulation.",
     "  http://sumo.sourceforge.net",
+    "Usage: sumo [OPTION]+",
+    " ",
     "Examples: ",
-    "sumo -b 0 -e 1000 -n net.xml -r routes.xml -C",
-    "sumo -c munich_config.cfg",
+    "  sumo -b 0 -e 1000 -n net.xml -r routes.xml -C",
+    "  sumo -c munich_config.cfg",
     " ",
     "Options:",
     " Input files:",
-    "   -n, --net-files FILE[;FILE]*    FILE is a network file",
+    "   -n, --net-file FILE[;FILE]*    FILE is a network file",
     "   -r, --route-files FILE[;FILE]*  FILE is a route file",
     "   -a, --additional-files FILE...  FILE is a detector file",
     "   -c, --configuration FILE        FILE will be used as configuration",
@@ -111,4 +132,11 @@ char *help[] = {
     0
 };
 
+
+/**************** DO NOT DECLARE ANYTHING AFTER THE INCLUDE ****************/
+
 #endif
+
+// Local Variables:
+// mode:C++
+//

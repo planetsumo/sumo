@@ -7,8 +7,13 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "math.h"
+#include <string>
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 using namespace std;
+
 //////////////////////////////////////////////////////////////////////
 // Konstruktion/Destruktion
 //////////////////////////////////////////////////////////////////////
@@ -337,7 +342,7 @@ Graph::Reduce_plus()
             {
                 DelVertex(paktuell->GetX(),paktuell->GetY());
                 n--;
-            } 
+            }
 		}
         n++;
 	}
@@ -388,15 +393,13 @@ Graph::DelDoubleEdge(Vertex* v, Vertex* w)
 {
     Edge* ptemp;
 	unsigned int i;
-	
+
 	for(i=0; i<eArray.size();i++)
 	{
 			ptemp=eArray[i];
 			if((ptemp->GetStartingVertex()==v)&&(ptemp->GetEndingVertex()==w))
 			{
-				eArray.erase(eArray.begin()+i);
-				v->DekrementOutDegree();
-				w->DekrementInDegree();
+				DelEdge(v,w);
 				i--;
 			}
 	}
@@ -416,7 +419,7 @@ Graph::Reduce_Edges()
 			break;
         }
     }
-    
+
 }
 /////////////////////////ENDE NEU!!!!!!!!!!!!!!////////////////////
 
@@ -432,9 +435,9 @@ Graph::Export_Vertexes_XML()
     char buffer [100];
 	int Vertices= vArray.size();
 	Vertex* temp;
-    
+
 	FILE* vfile= fopen("export.nod.xml","w");
-    
+
 	fputs(app,vfile);
     for(long i=0 ; i<Vertices; i++)
     {
@@ -465,7 +468,7 @@ Graph::Export_Edges_XML()
 	char buffer [100];
 
 	FILE* efile= fopen("export.edg.xml","w");
-    
+
     fputs(app,efile);
 
     for(long i=0; i<eArray.size(); i++)
@@ -488,16 +491,21 @@ Graph::Export_Edges_XML()
 char* Graph::inttostr(int i)
 {
     char pch[10]="";
+    /*
     return itoa(i,pch,10);
+    */
+    return 0;
 }
 
 char* Graph::doubletostr(double i,int count)
 {
 	int dec;
 	int sig;
+	/*
 	char* buffer = _ecvt(i,count,&dec,&sig);
-		
 	return (buffer);
+	*/
+	return 0;
 }
 
 /*Liefert den Index eines Knotenobjekts*/
@@ -513,7 +521,7 @@ int Graph::GetIndex(Vertex* v)
     return index;
 }
 
-Graph::GetTraces(int cars, int fuel)
+void Graph::GetTraces(int cars, int fuel)
 {
 	char buffer1 [100];
 	char buffer2 [100];
@@ -555,11 +563,11 @@ Graph::GetTraces(int cars, int fuel)
 			fputs(buffer3,Traces);
 		}
 		fclose(Traces);
-		
+
 	}
 }
 
-Graph::MergeVertex()
+void Graph::MergeVertex()
 {
 	/*Toleranzwert für den Abstand zweier zu verschmelzender Knoten*/
 	int tolerance=10;
@@ -567,13 +575,13 @@ Graph::MergeVertex()
 	int length;
 	/*Hilfszeiger*/
 	Edge* aktuell;
-	Edge* aktuell2;
+	//Edge* aktuell2;
 	/*Für den Start- und Endknoten einer Kante*/
 	Vertex* start;
 	Vertex* end;
 	Vertex* start2;
 	Vertex* end2;
-		
+
 	/*Nacheinander holen jeder Kante*/
 	for(unsigned i=0; i<eArray.size(); i++)
 	{
@@ -584,12 +592,12 @@ Graph::MergeVertex()
 		{
 			start=aktuell->GetStartingVertex();
 			end=aktuell->GetEndingVertex();
-			
+
 			//Koordinaten der aktuellen Start- und Endknoten
 		    //werden gemittelt zu den Koordinaten des neuen Knotens
 			int(xneu)=(start->GetX()+end->GetX())/2;
 			int(yneu)=(start->GetY()+end->GetY())/2;
-		
+
 			/*Löschen der zu kurzen Kanten*/
 			DelEdge(start,end);
 			DelEdge(end,start);
@@ -598,29 +606,28 @@ Graph::MergeVertex()
 			AddVertexByXY(xneu,yneu);
 			/*Zeiger auf den neu hinzugefügten Knoten*/
 			Vertex* neu = SearchVertex(xneu,yneu);
-			
-			/*Hole jede Kante*/
-			for(unsigned int j=0; j<eArray.size(); j++)
-			{
-				aktuell2 = eArray[j];
-				start2 = aktuell2->GetStartingVertex();
-				end2   = aktuell2->GetEndingVertex();
-				
-				/*Es folgt eine Überprüfung, ob von der aktuell2 Kante der Start oder Endknoten
-				mit einem Knoten der aktuell-Kante übereinstimmt
-				So bekommt man die nachfolger von Start und EndKnoten*/
 
-				if(((start2==start)||(end2==start))||((start2==end)||(end2==end)))
-				{
-					DelEdge(start2,end2);
-					DelEdge(end2,start2);
-					if((start2==start)||(start2==end)) mArray.push_back(end2);
-					else mArray.push_back(start2);
-					j-=2;
-					if (j<-1) j=-1;
-				}
+			//Neu
+			int startnachfolger=start->GetNachfolger();
+			while (startnachfolger>0)
+			{
+				start2=start->GetNachfolgeVertex(startnachfolger-1);
+				mArray.push_back(start2);
+				DelEdge(start,start2);
+				DelEdge(start2,start);
+				startnachfolger--;
 			}
-			
+
+			int endnachfolger=end->GetNachfolger();
+			while (endnachfolger>0)
+			{
+				end2=end->GetNachfolgeVertex(endnachfolger-1);
+				mArray.push_back(end2);
+				DelEdge(end,end2);
+				DelEdge(end2,end);
+				endnachfolger--;
+			}
+
 			/*Löschen der Start- und Endknoten der zu kurzen Kante*/
 			DelVertex4Merge(start);
 			DelVertex4Merge(end);
@@ -635,12 +642,13 @@ Graph::MergeVertex()
 			//Da vorne im EdgeArray Kanten gelöscht werden, muß die Laufvariable zurückgesetzt werden
 			i-=2;
 			if (i<-1) i=-1;
+
 		}
 	}
 }
 
 /*Löschmethode für einen Knoten für den Merger*/
-Graph::DelVertex4Merge(Vertex* v)
+void Graph::DelVertex4Merge(Vertex* v)
 {
 	if(GetIndex(v)!=-1)
 	{
@@ -650,7 +658,7 @@ Graph::DelVertex4Merge(Vertex* v)
 }
 
 /*Löscht alle Nachfolgenden Kanten eines Knotens*/
-Graph::DelNachfolger4Merge(Vertex* v)
+void Graph::DelNachfolger4Merge(Vertex* v)
 {
 	for(int i=0; i<v->GetNachfolger(); i++)
 	{
