@@ -6,7 +6,7 @@ dnl create an config-header
 AM_CONFIG_HEADER(config.h)
 
 dnl enabel automake-support
-AM_INIT_AUTOMAKE(sumo,0.6.3)
+AM_INIT_AUTOMAKE(sumo,0.7.2)
 
 AC_PREFIX_DEFAULT(/usr/local)
 if test "x$prefix" = "xNONE"; then
@@ -15,9 +15,11 @@ if test "x$prefix" = "xNONE"; then
 fi
 
 dnl Checks for programs.
-AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
+
+dnl enable libtool-support
+AC_PROG_LIBTOOL
 
 dnl don't create shared libtool-libraries
 dnl AC_DISABLE_SHARED
@@ -25,8 +27,42 @@ dnl AC_DISABLE_SHARED
 dnl create static libtool-libraries instead
 dnl AC_ENABLE_STATIC(yes)
 
-dnl enable libtool-support
-AM_PROG_LIBTOOL
+
+dnl Check for enable-features that shall go into config.h
+AC_ARG_ENABLE(debug,
+              [  --enable-debug          enable sumo debugging code [default=no].],
+              [AC_DEFINE(_DEBUG, 1,
+                         [Define to 1 in order to enable sumo debugging code.])
+	      ])
+
+AC_ARG_ENABLE(assert,
+              [  --disable-assert        disable assertions [default=no].],
+              [AC_DEFINE(NDEBUG, 1,
+                         [Define to 1 in order to disable assertions.])
+	      ])
+
+AC_ARG_ENABLE(inline,
+              [  --disable-inline        disable inlining [default=no].],
+              [AC_DEFINE(DISABLE_INLINE, 1,
+                         [Define to 1 in order to disable inlining.])
+	      ])
+
+AC_ARG_ENABLE(speedcheck,
+              [  --enable-speedcheck     enable sumo speedchecking code [default=no].],
+              [AC_DEFINE(_SPEEDCHECK, 1,
+                         [Define to 1 in order to enable simulation-speed checking.])
+	      ])
+
+AC_ARG_ENABLE(cfront,
+              [  --enable-cfront         enable external template definitions. [default=no].],
+              [cfront_model=true],[cfront_model=false])
+
+if test x$cfront_model = xtrue; then
+	AC_DEFINE(EXTERNAL_TEMPLATE_DEFINITION, 1,
+		[Define to 1 in order to enable external template definitions (cfront-model).])
+fi
+
+AM_CONDITIONAL(CFRONT, test x$cfront_model = xtrue)
 
 
 dnl Checks for libraries.
@@ -38,33 +74,56 @@ AC_ARG_WITH(xerces-libraries,
 
 AC_MSG_CHECKING([for xerces-lib])
 if test x"$ac_xerces_libraries" = x; then
-   if test -e /usr/lib/libxerces.so; then
+   if test -f /usr/lib/libxerces.so; then
       AC_MSG_RESULT([yes])
-      ac_xerces_libraries=/usr/lib
-   elif test -e /usr/local/lib/libxerces.so; then
+      ac_xerces_lib_path=/usr/lib
+      ac_xerceslib=xerces
+   elif test -f /usr/lib/libxerces-c.so; then
       AC_MSG_RESULT([yes])
-      ac_xerces_libraries=/usr/local/lib
-   elif test -e /usr/local/xerces/lib/libxerces.so; then
+      ac_xerces_lib_path=/usr/lib
+      ac_xerceslib=xerces-c
+   elif test -f /usr/local/lib/libxerces.so; then
       AC_MSG_RESULT([yes])
-      ac_xerces_libraries=/usr/local/xerces/lib/
+      ac_xerces_lib_path=/usr/local/lib
+      ac_xerceslib=xerces
+   elif test -f /usr/local/lib/libxerces-c.so; then
+      AC_MSG_RESULT([yes])
+      ac_xerces_lib_path=/usr/local/lib
+      ac_xerceslib=xerces-c
+   elif test -f /usr/local/xerces/lib/libxerces.so; then
+      AC_MSG_RESULT([yes])
+      ac_xerces_lib_path=/usr/local/xerces/lib/
+      ac_xerceslib=xerces
+   elif test -f /usr/local/xerces/lib/libxerces-c.so; then
+      AC_MSG_RESULT([yes])
+      ac_xerces_lib_path=/usr/local/xerces/lib/
+      ac_xerceslib=xerces-c
    else
       AC_MSG_RESULT([no])
       AC_MSG_ERROR([xerces-lib not found. Specify path with option --with-xerces-libraries=DIR.])
    fi
 else
-   if test -e "$ac_xerces_libraries/libxerces.so"; then
+   if test -f "$ac_xerces_libraries/libxerces.so"; then
       AC_MSG_RESULT([yes])
+      ac_xerces_lib_path="$ac_xerces_libraries"
+      ac_xerceslib=xerces
+   elif test -f "$ac_xerces_libraries/libxerces-c.so"; then
+      AC_MSG_RESULT([yes])
+      ac_xerces_lib_path="$ac_xerces_libraries"
+      ac_xerceslib=xerces-c
    else
       AC_MSG_RESULT([no])
       AC_MSG_ERROR([xerces-lib not found in "$ac_xerces_libraries".])
    fi
 fi
-XERCESLIBPATH="$ac_xerces_libraries"
+XERCESLIBPATH="$ac_xerces_lib_path"
 AC_SUBST(XERCESLIBPATH)
+XERCESLIB="$ac_xerceslib"
+AC_SUBST(XERCESLIB)
 
 
 dnl Checks for header files.
-dnl Chechs for Xerces-includes.
+dnl Checks for Xerces-includes.
 AC_ARG_WITH(xerces-includes,
     [  --with-xerces-includes=DIR  where the Xerces includes are. ],
     [
@@ -73,21 +132,18 @@ AC_ARG_WITH(xerces-includes,
 
 AC_MSG_CHECKING([for xerces-includes])
 if test x"$ac_xerces_includes" = x; then
-   if test -e /usr/include/xerces; then
+   if test -d /usr/include/xercesc; then
       AC_MSG_RESULT([yes])
-      ac_xerces_includes=/usr/include/xerces
-   elif test -e /usr/local/include/xerces; then
+      ac_xerces_includes=/usr/include
+   elif test -d /usr/local/include/xercesc; then
       AC_MSG_RESULT([yes])
-      ac_xerces_includes=/usr/local/include/xerces
-   elif test -e /usr/local/xerces/include; then
-      AC_MSG_RESULT([yes])
-      ac_xerces_includes=/usr/local/xerces/include
+      ac_xerces_includes=/usr/local/include
    else
       AC_MSG_RESULT([no])
       AC_MSG_ERROR([xerces-includes not found. Specify path with option --with-xerces-includes=DIR.])
    fi
 else
-   if test -e "$ac_xerces_includes"; then
+   if test -f "$ac_xerces_includes/xercesc/sax2/SAX2XMLReader.hpp"; then
       AC_MSG_RESULT([yes])
    else
       AC_MSG_RESULT([no])
@@ -95,33 +151,31 @@ else
    fi
 fi
 XERCESINCLUDE="$ac_xerces_includes"
+XERCESINCLUDE_PRIOR_1_7="$ac_xerces_includes/xercesc"
 AC_SUBST(XERCESINCLUDE)
+AC_SUBST(XERCESINCLUDE_PRIOR_1_7)
 
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-AC_TYPE_SIZE_T
-
-
-dnl Checks for library functions.
-
-
-dnl XERCES, just set it
-XERCESLIB="xerces"
-AC_SUBST(XERCESLIB)
 
 
 dnl perform program name transformation
 AC_ARG_PROGRAM
 
 dnl add here all your Makefiles. These will be created by configure
-AC_OUTPUT(sumo/data/config/Makefile sumo/data/nets/Makefile
-sumo/data/routes/Makefile sumo/data/junctions/Makefile
-sumo/data/Makefile 
+AC_OUTPUT(
+sumo/data/config/Makefile
+sumo/data/detectors/Makefile
+sumo/data/nets/Makefile
+sumo/data/routes/Makefile
+sumo/data/routedefs/Makefile
+sumo/data/tools/Makefile
+sumo/data/Makefile
 sumo/helpers/Makefile
-sumo/microsim/Makefile 
-sumo/netload/Makefile 
+sumo/microsim/Makefile
+sumo/netload/Makefile
 sumo/utils/Makefile
-sumo/Makefile 
+sumo/Makefile
 Makefile)
 
 
