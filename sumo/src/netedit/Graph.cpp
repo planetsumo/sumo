@@ -7,13 +7,8 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "math.h"
-#include <string>
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 using namespace std;
-
 //////////////////////////////////////////////////////////////////////
 // Konstruktion/Destruktion
 //////////////////////////////////////////////////////////////////////
@@ -491,21 +486,16 @@ Graph::Export_Edges_XML()
 char* Graph::inttostr(int i)
 {
     char pch[10]="";
-    /*
     return itoa(i,pch,10);
-    */
-    return 0;
 }
 
 char* Graph::doubletostr(double i,int count)
 {
 	int dec;
 	int sig;
-	/*
 	char* buffer = _ecvt(i,count,&dec,&sig);
+
 	return (buffer);
-	*/
-	return 0;
 }
 
 /*Liefert den Index eines Knotenobjekts*/

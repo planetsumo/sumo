@@ -502,7 +502,7 @@
       <xsl:with-param name="object" select="$context"/>
     </xsl:call-template>
   </xsl:variable>
-  
+
   <!--
   <xsl:message>href.to.uri: <xsl:value-of select="$href.to.uri"/></xsl:message>
   <xsl:message>href.from.uri: <xsl:value-of select="$href.from.uri"/></xsl:message>
@@ -701,7 +701,7 @@
 
   <xsl:variable name="row1" select="$navig.showtitles != 0"/>
   <xsl:variable name="row2" select="count($prev) &gt; 0
-                                    or (count($up) &gt; 0 
+                                    or (count($up) &gt; 0
 					and generate-id($up) != generate-id($home)
                                         and $navig.showtitles != 0)
                                     or count($next) &gt; 0"/>
@@ -996,7 +996,7 @@
 			<a href="../../index.html" class="SUMOMainLink">Home</a><br/>
 			<a href="../../overview.html" class="SUMOMainLink">Overview</a><br/>
 			<a href="../../documentation.html" class="SUMOMainLink">Documentation</a><br/>
-			
+
    			<a href="../userdocs.html" class="SUMOSubLink">User Docs</a><br/>
 			<a href="user_index.html" class="SUMOSubSubLink">Index</a><br/>
 			<a href="user_chp01.html" class="SUMOSubSubLink">1. Introduction</a><br/>
@@ -1010,13 +1010,15 @@
 			<a href="user_apa.html" class="SUMOSubSubLink">A. Conventions</a><br/>
 			<a href="user_apb.html" class="SUMOSubSubLink">B. Included</a><br/>
 			<a href="user_apc.html" class="SUMOSubSubLink">C. Errors</a><br/>
-			
+
 			<a href="../devdocs.html" class="SUMOSubLink">Developer Docs</a><br/>
-			
+
 			<a href="../bibliography.html" class="SUMOSubLink">Bibliography</a><br/>
-			
+
 			<a href="faq.html" class="SUMOSubLink">FAQ</a><br/>
-			
+
+			<a href="../manpages.html" class="SUMOSubLink">ManPages</a><br/>
+
 			<a href="../../screenshots.html" class="SUMOMainLink">Screenshots</a><br/>
 			<a href="../../downloads.html" class="SUMOMainLink">Downloads</a><br/>
 			<a href="../../participants.html" class="SUMOMainLink">Participants</a><br/>
