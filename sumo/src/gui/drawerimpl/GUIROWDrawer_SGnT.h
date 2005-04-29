@@ -20,6 +20,9 @@
 //
 //---------------------------------------------------------------------------//
 // $Log$
+// Revision 1.3.2.1  2005/04/29 11:11:32  dkrajzew
+// codestyle adapted
+//
 // Revision 1.3  2004/03/19 12:34:30  dkrajzew
 // porting to FOX
 //
@@ -82,9 +85,6 @@ private:
 
 
 /**************** DO NOT DEFINE ANYTHING AFTER THE INCLUDE *****************/
-//#ifndef DISABLE_INLINE
-//#include "GUIROWDrawer_SGnT.icc"
-//#endif
 
 #endif
 
