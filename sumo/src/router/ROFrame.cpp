@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.1.2.2  2005/05/10 08:53:19  dkrajzew
+// missing -R-option within the jtr-router patched
+//
 // Revision 1.1.2.1  2004/12/21 09:33:12  dkrajzew
 // debugging and version patching
 //
@@ -104,6 +107,8 @@ ROFrame::fillOptions(OptionsCont &oc)
     oc.doRegister("move-on-short", new Option_Bool(false));
     oc.doRegister("stats-period", new Option_Integer(-1));
     oc.doRegister("max-alternatives", new Option_Integer(5));
+    // add possibility to insert random vehicles
+    oc.doRegister("random-per-second", 'R', new Option_Float());
 }
 
 

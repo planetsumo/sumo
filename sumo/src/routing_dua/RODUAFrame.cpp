@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.1.2.1  2005/05/10 08:53:19  dkrajzew
+// missing -R-option within the jtr-router patched
+//
 // Revision 1.1  2004/11/23 10:26:27  dkrajzew
 // debugging
 //
@@ -83,7 +86,6 @@ RODUAFrame::addImportOptions(OptionsCont &oc)
     oc.doRegister("flow-definition", 'f', new Option_FileName());
     oc.doRegister("sumo-input", 's', new Option_FileName());
     oc.doRegister("trip-defs", 't', new Option_FileName());
-    oc.doRegister("random-per-second", 'R', new Option_Float());
     oc.addSynonyme("flow-definition", "flows");
     oc.addSynonyme("artemis", "artemis-input");
     oc.addSynonyme("cell", "cell-input");
