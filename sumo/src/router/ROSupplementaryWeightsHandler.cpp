@@ -232,7 +232,14 @@ ROSupplementaryWeightsHandler::stopParseSupplementaryWeights( void )
         FloatValueTimeLine* mult = getFloatValueTimeLine( multMapM, edgeId );
         FloatValueTimeLine* add = getFloatValueTimeLine( addMapM, edgeId );
 
-        netM.getEdge( edgeId )->setSupplementaryWeights( absolut, add, mult );
+        ROEdge *e = netM.getEdge( edgeId );
+        if(e!=0) {
+            e->setSupplementaryWeights( absolut, add, mult );
+        } else {
+            MsgHandler::getErrorInstance()->inform(
+                "Could not add weight to the unknown edge '" + edgeId + "'.");
+
+        }
     }
 }
 

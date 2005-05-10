@@ -20,6 +20,9 @@
 //
 //---------------------------------------------------------------------------//
 // $Log$
+// Revision 1.3.2.1  2005/05/10 09:23:57  dkrajzew
+// trying to debug false costs and probabilities in dua-routing
+//
 // Revision 1.3  2004/11/23 10:25:52  dkrajzew
 // debugging
 //
@@ -109,6 +112,8 @@ protected:
     /// Parses a vehicle type
     void startVehType(const Attributes &attrs);
 
+    MsgHandler *getErrorHandlerMarkInvalid();
+
 protected:
     /// The type of the parsed file to allow a distinction
     std::string myDataName;
@@ -118,6 +123,10 @@ protected:
 
     /// The time step read as last
     size_t myDepartureTime;
+
+    /** @brief Information whether the current route shall not be processed
+        This may occure on errors */
+    bool mySkipCurrent;
 
 };
 

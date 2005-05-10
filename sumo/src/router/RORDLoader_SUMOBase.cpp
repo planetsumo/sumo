@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.3.2.1  2005/05/10 09:23:57  dkrajzew
+// trying to debug false costs and probabilities in dua-routing
+//
 // Revision 1.3  2004/12/16 12:26:52  dkrajzew
 // debugging
 //
@@ -46,6 +49,8 @@ namespace
 #include <utils/gfx/GfxConvHelper.h>
 #include "ROVehicleType_Krauss.h"
 #include "ROVehicleBuilder.h"
+#include <utils/options/OptionsSubSys.h>
+#include <utils/options/OptionsCont.h>
 
 
 /* =========================================================================
@@ -102,12 +107,12 @@ RORDLoader_SUMOBase::getVehicleType(const Attributes &attrs,
         string name = getString(attrs, SUMO_ATTR_TYPE);
         type = _net.getVehicleType(name);
         if(type==0) {
-            MsgHandler::getErrorInstance()->inform(string(
+            getErrorHandlerMarkInvalid()->inform(string(
                 "The type of the vehicle '")
                 + name + string("' is not known."));
         }
     } catch (EmptyData) {
-        MsgHandler::getErrorInstance()->inform(
+        getErrorHandlerMarkInvalid()->inform(
             string("Missing type in vehicle '")
             + id + string("'."));
     }
@@ -123,11 +128,11 @@ RORDLoader_SUMOBase::getVehicleDepartureTime(const Attributes &attrs,
     try {
         myDepartureTime = getLong(attrs, SUMO_ATTR_DEPART);
     } catch (EmptyData) {
-        MsgHandler::getErrorInstance()->inform(
+        getErrorHandlerMarkInvalid()->inform(
             string("Missing departure time in vehicle '")
             + id + string("'."));
     } catch (NumberFormatException) {
-        MsgHandler::getErrorInstance()->inform(
+        getErrorHandlerMarkInvalid()->inform(
             string("Non-numerical departure time in vehicle '")
             + id + string("'."));
     }
@@ -143,13 +148,13 @@ RORDLoader_SUMOBase::getVehicleRoute(const Attributes &attrs,
         string name = getString(attrs, SUMO_ATTR_ROUTE);
         route = _net.getRouteDef(name);
         if(route==0) {
-            MsgHandler::getErrorInstance()->inform(
+            getErrorHandlerMarkInvalid()->inform(
                 string("The route of the vehicle '")
                 + name + string("' is not known."));
             return 0;
         }
     } catch (EmptyData) {
-        MsgHandler::getErrorInstance()->inform(
+        getErrorHandlerMarkInvalid()->inform(
             string("Missing route in vehicle '")
             + id + string("'."));
     }
@@ -167,7 +172,7 @@ RORDLoader_SUMOBase::parseColor(const Attributes &attrs,
         col = GfxConvHelper::parseColor(getString(attrs, SUMO_ATTR_COLOR));
     } catch (EmptyData) {
     } catch (NumberFormatException) {
-        MsgHandler::getErrorInstance()->inform(
+        getErrorHandlerMarkInvalid()->inform(
             string("The color definition for ") + type + (" '") +
             id + string("' is malicious."));
     }
@@ -190,7 +195,7 @@ RORDLoader_SUMOBase::startVehicle(const Attributes &attrs)
     try {
         id = getString(attrs, SUMO_ATTR_ID);
     } catch (EmptyData) {
-        MsgHandler::getErrorInstance()->inform("Missing id in vehicle.");
+        getErrorHandlerMarkInvalid()->inform("Missing id in vehicle.");
         return;
     }
     // get vehicle type
@@ -199,6 +204,12 @@ RORDLoader_SUMOBase::startVehicle(const Attributes &attrs)
     getVehicleDepartureTime(attrs, id);
     // get the route id
     RORouteDef *route = getVehicleRoute(attrs, id);
+    if(route==0) {
+        getErrorHandlerMarkInvalid()->inform(
+            string("The route of the vehicle '")
+            + id + string("' is not known."));
+        return;
+    }
     // get the vehicle color
     RGBColor color = parseColor(attrs, "vehicle", id);
     // build the vehicle
@@ -226,7 +237,7 @@ RORDLoader_SUMOBase::startVehType(const Attributes &attrs)
     try {
         id = getString(attrs, SUMO_ATTR_ID);
     } catch (EmptyData) {
-        MsgHandler::getErrorInstance()->inform("Missing id in vtype.");
+        getErrorHandlerMarkInvalid()->inform("Missing id in vtype.");
         return;
     }
     // get the other values
@@ -255,6 +266,17 @@ unsigned int
 RORDLoader_SUMOBase::getCurrentTimeStep() const
 {
     return myDepartureTime;
+}
+
+
+MsgHandler *
+RORDLoader_SUMOBase::getErrorHandlerMarkInvalid()
+{
+    mySkipCurrent = true;
+    return
+        OptionsSubSys::getOptions().getBool("continue-on-unbuild")
+        ? MsgHandler::getWarningInstance()
+        : MsgHandler::getErrorInstance();
 }
 
 
