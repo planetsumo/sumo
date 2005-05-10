@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.24.2.2  2005/05/10 09:19:13  dkrajzew
+// usage of time-to-teleport option debugged
+//
 // Revision 1.24.2.1  2004/12/21 09:33:12  dkrajzew
 // debugging and version patching
 //
@@ -298,7 +301,9 @@ SUMOFrame::setMSGlobals(OptionsCont &oc)
         oc.getBool("use-internal-links");
     // set the grid lock time
     MSGlobals::gTimeToGridlock =
-        oc.getInt("time-to-teleport");
+        oc.getInt("time-to-teleport")<0
+        ? 0
+        : oc.getInt("time-to-teleport");
     // set the vehicle teleport on false lane options
     MSGlobals::gMinLaneVMax4FalseLaneTeleport =
         oc.getFloat("lc-teleport.lane-min-vmax");
