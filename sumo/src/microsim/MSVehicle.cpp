@@ -22,6 +22,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.58.2.2  2005/07/13 06:25:12  dkrajzew
+// debugging
+//
 // Revision 1.58.2.1  2005/05/10 08:52:41  dkrajzew
 // problems on lane change continuation computation debugged
 //
@@ -2330,19 +2333,6 @@ MSVehicle::countAllowedContinuations(const MSLane *lane) const
         ++ce;
         dist += ((*al)[0])->length();
     } while(dist<MIN_DIST&&ce!=myRoute->end()-1);
-
-    /*
-    double dist = -myState.pos();
-    while(dist<MIN_DIST&&ce!=myRoute->end()-2/!*ce!=myRoute->getLastEdge()*!/) {
-        const MSEdge::LaneCont *al = ( *ce )->allowedLanes( **( ce + 1 ) );
-        if(al==0) {
-            return ret;
-        }
-        MSEdge::LaneCont::const_iterator i =
-            find(al->begin(), al->end(), lane);
-        if(i==al->end()) {
-            return ret;
-        }
     return ret;
 }
 
@@ -2372,16 +2362,6 @@ MSVehicle::allowedContinuationsLength(const MSLane *lane) const
         ++ce;
         dist += ((*al)[0])->length();
     } while(dist<MIN_DIST&&ce!=myRoute->end()-1);
-    /*
-    double dist = lane->length()-myState.pos();
-    MSRouteIterator ce = myCurrEdge;
-        }
-        lane = (*(lane->succLinkOneLane(*( ce + 1 ), *lane)))->getLane();
-        assert(al!=0);
-        ++ce;
-//        dist += ((*al)[0])->length();
-    }
-    */
     return dist;
 }
 
