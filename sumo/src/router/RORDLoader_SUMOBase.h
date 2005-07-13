@@ -20,6 +20,9 @@
 //
 //---------------------------------------------------------------------------//
 // $Log$
+// Revision 1.3.2.2  2005/07/13 06:17:13  dkrajzew
+// trying to debug nans and infs while routing
+//
 // Revision 1.3.2.1  2005/05/10 09:23:57  dkrajzew
 // trying to debug false costs and probabilities in dua-routing
 //
@@ -56,6 +59,7 @@ using namespace XERCES_CPP_NAMESPACE;
  * ======================================================================= */
 class ROVehicleType;
 class RORouteDef;
+class MsgHandler;
 
 
 /* =========================================================================

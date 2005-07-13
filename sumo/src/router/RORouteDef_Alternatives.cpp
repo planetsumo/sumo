@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.4.2.2  2005/07/13 06:17:13  dkrajzew
+// trying to debug nans and infs while routing
+//
 // Revision 1.4.2.1  2005/05/10 09:23:57  dkrajzew
 // trying to debug false costs and probabilities in dua-routing
 //
@@ -80,6 +83,12 @@ namespace
 // updated
 //
 /* =========================================================================
+ * compiler pragmas
+ * ======================================================================= */
+#pragma warning(disable: 4786)
+
+
+/* =========================================================================
  * included modules
  * ======================================================================= */
 #ifdef HAVE_CONFIG_H
@@ -99,7 +108,7 @@ namespace
 #include "RORoute.h"
 #include "ROAbstractRouter.h"
 #include "RORouteDef_Alternatives.h"
-
+#include <utils/common/StdDefs.h>
 
 #ifndef WIN32
 #define ISNAN isnan
@@ -260,8 +269,8 @@ RORouteDef_Alternatives::addAlternative(RORoute *current, long begin)
                 newPS = pS->getCosts() > pR->getCosts()
                     ? 0 : 1;
             }
-            newPR = MIN2(MAX2(newPR, 0), 1);
-            newPS = MIN2(MAX2(newPS, 0), 1);
+            newPR = MIN(MAX(newPR, 0), 1);
+            newPS = MIN(MAX(newPS, 0), 1);
             pR->setProbability(newPR);
             pS->setProbability(newPS);
         }
