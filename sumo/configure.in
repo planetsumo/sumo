@@ -382,6 +382,7 @@ docs/internet/downloads/Makefile
 docs/internet/images/Makefile
 docs/internet/links/Makefile
 docs/internet/screens/Makefile
+docs/man/Makefile
 src/Makefile
 src/gui/Makefile
 src/gui/dialogs/Makefile
