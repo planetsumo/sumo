@@ -478,6 +478,9 @@ void Image::RarifySkeleton()
                     }
                     if(black_neighbours==5)
                     {
+						//Setze ein weißes Pixel in die Mitte, wenn die Anordnung ein "Plus" ist
+						if ((CountTransitions(i,j)==4)&&(m_img->getPixel(i-1,j)==FXRGB(0,0,0)))
+						m_img->setPixel(i,j,FXRGB(255,255,255));
 
                         if
                         (
@@ -638,7 +641,7 @@ Graph Image::Pixel_Counter(int i,int j,int i_pre, int j_pre,int count,Graph gr, 
     list<Point> n_List;
     list<Point>::iterator iter;
     n_List.clear();
-    
+
 	/*Solange der aktuelle Pixel
 	  genau einen Nachbarn hat
 	  (ohne Vorgänger), wird die
@@ -650,7 +653,7 @@ Graph Image::Pixel_Counter(int i,int j,int i_pre, int j_pre,int count,Graph gr, 
         neighbour_counter=0;
         //Zähle die schwarzen Nachbarpixel des aktuellen Pixels
         //Zähle dabei aber nicht den Vorgängerpixel mit...(k!=i_pre)&&(l!=j_pre)
-        
+
 		for (int k=i-1 ; k<=i+1 ; ++k)
             for (int l=j-1 ; l<=j+1 ; ++l)
                 if      (
@@ -663,7 +666,7 @@ Graph Image::Pixel_Counter(int i,int j,int i_pre, int j_pre,int count,Graph gr, 
                         Point *pt=new Point(k,l);
                         n_List.push_back(*pt);
                     }
-        
+
 		////////////////// 0 Sekunden ///////////////////////////
 		//Der Pixel ist ein Endpunkt.. erzeuge Knoten
         if(neighbour_counter==0)
@@ -698,7 +701,7 @@ Graph Image::Pixel_Counter(int i,int j,int i_pre, int j_pre,int count,Graph gr, 
                     }
         }
 		////////////////////// 0 Sekunden Ende ////////////////////////////
-		
+
         //Der Pixel liegt auf einer ´Linie´..
         if(neighbour_counter==1)
         {
@@ -724,7 +727,7 @@ Graph Image::Pixel_Counter(int i,int j,int i_pre, int j_pre,int count,Graph gr, 
                 temp=gr.SearchVertex(i,j);
             }
         }
-        
+
 		if(n_List.size()==1)
         {
             i_pre=i;
@@ -744,7 +747,7 @@ Graph Image::Pixel_Counter(int i,int j,int i_pre, int j_pre,int count,Graph gr, 
         changed=true;
 	}
     while(neighbour_counter==1);
-	
+
     if(!(n_List.empty()))
     {
         //gelb
@@ -765,7 +768,7 @@ Graph Image::Pixel_Counter(int i,int j,int i_pre, int j_pre,int count,Graph gr, 
         }
     }
     n_List.clear();
-	
+
     return gr;
 }
 
@@ -939,7 +942,7 @@ Image::DrawVArray(Graph gr)
     //Hole Breite und Höhe des Image
 	int wid = m_img->getWidth();
 	int hei = m_img->getHeight();
-	
+
 	unsigned int l=0;
     //Hole das Knotenarray
     vector<Vertex*> testarray=gr.GetVArray();

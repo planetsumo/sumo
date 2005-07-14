@@ -81,13 +81,13 @@ public:
     void Reduce_plus();
 
     int GetIndex(Vertex* v);
-	
+
 	//Entfernt überflüssige Kanten
     void Reduce_Edges();
 
 	//Exportiert eine Knotendatei in XML-Format
     void Export_Vertexes_XML();
-	
+
 	//Exportiert eine Kantendatei in XML-Format
     void Export_Edges_XML();
 
@@ -96,16 +96,16 @@ public:
 
 	//Wandelt einen Double-Wert in einen String um
 	char* doubletostr(double i,int count);
-	
+
 	//Exportiert Traces
-	GetTraces(int cars,int fuel);
-	
+	void GetTraces(int cars,int fuel);
+
 	//Vereinigt zwei nahe Knoten zu einem
-	MergeVertex();
+	void MergeVertex();
 
 	//Zwei Hilfmethoden für MergeVertex
-	DelVertex4Merge(Vertex* v);
-	DelNachfolger4Merge(Vertex* v);
+	void DelVertex4Merge(Vertex* v);
+	void DelNachfolger4Merge(Vertex* v);
 
 };
 

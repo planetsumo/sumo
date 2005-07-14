@@ -438,7 +438,7 @@ NBNetBuilder::insertNetBuildOptions(OptionsCont &oc)
     oc.doRegister("edges-min-speed", new Option_Float());
     oc.doRegister("keep-edges", new Option_String());
     oc.doRegister("keep-edges.input-file", new Option_FileName());
-    oc.doRegister("keep-edges.postload", new Option_Bool());
+    oc.doRegister("keep-edges.postload", new Option_Bool(false));
 
     oc.doRegister("plain-output", new Option_FileName());
 

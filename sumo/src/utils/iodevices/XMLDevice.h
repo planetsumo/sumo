@@ -1,6 +1,8 @@
 #ifndef XMLDevice_h
 #define XMLDevice_h
 
+#include <string>
+
 class XMLDevice {
 public:
     XMLDevice() { }

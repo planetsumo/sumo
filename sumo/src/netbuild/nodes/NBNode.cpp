@@ -24,6 +24,12 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.8.2.2  2005/01/28 08:23:11  dkrajzew
+// turning direction computation patched
+//
+// Revision 1.8.2.1  2004/12/21 12:51:54  dkrajzew
+// post-release clean-up
+//
 // Revision 1.8  2004/11/23 10:21:41  dkrajzew
 // debugging
 //
@@ -518,7 +524,7 @@ NBNode::swapWhenReversed(const vector<NBEdge*>::iterator &i1,
 {
     NBEdge *e1 = *i1;
     NBEdge *e2 = *i2;
-    if(e2->isTurningDirection(e1) && e2->getToNode()==this) {
+    if(e2->getToNode()==this && e2->isTurningDirectionAt(this, e1)) {
         swap(*i1, *i2);
         return true;
     }
@@ -886,10 +892,6 @@ NBNode::writeXMLInternalEdgePos(ostream &into)
                 into << "   <edgepos id=\"" << id
                     << "\" from=\"" << _id << "\" to=\"" << _id << "\" "
                     << "lane=\"" << 0 << "\" function=\"internal\"/>"
-//                    << shape
-/*                    << myPosition.x() << "," << myPosition.y() << " "
-                    << myPosition.x() << "," << myPosition.y()*/
-//                    << "</edgepos>"
                     << endl;
                 lno++;
             }
@@ -1062,10 +1064,7 @@ writeinternal(EdgeVector *_incomingEdges, ostream &into, const std::string &id)
                     into << ' ';
                 }
                 into << ':' << id << '_' << l << "_0";
-/*                string lid = string(":") + id + string("_")
-                    + toString<size_t>(l) ;*/
                 l++;
-//                into << lid;
             }
         }
     }
@@ -1387,7 +1386,10 @@ NBNode::setTurningDefinition(NBNode *from, NBNode *to)
     // check both
     if(src==0) {
         // maybe it was removed due to something
-        if(OptionsSubSys::getOptions().isSet("edges-min-speed")) {
+        if( OptionsSubSys::getOptions().isSet("edges-min-speed")
+            ||
+            OptionsSubSys::getOptions().isSet("keep-edges")) {
+
             MsgHandler::getWarningInstance()->inform(
                 string("Could not set connection from node '") + from->getID()
                 + string("' to node '") + getID() + string("'."));
@@ -1399,7 +1401,10 @@ NBNode::setTurningDefinition(NBNode *from, NBNode *to)
         return;
     }
     if(dest==0) {
-        if(OptionsSubSys::getOptions().isSet("edges-min-speed")) {
+        if( OptionsSubSys::getOptions().isSet("edges-min-speed")
+            ||
+            OptionsSubSys::getOptions().isSet("keep-edges")) {
+
             MsgHandler::getWarningInstance()->inform(
                 string("Could not set connection from node '") + getID()
                 + string("' to node '") + to->getID() + string("'."));
@@ -1988,7 +1993,7 @@ NBNode::getMMLDirection(NBEdge *incoming, NBEdge *outgoing) const
     if(outgoing==0) {
         return MMLDIR_NODIR;
     }
-    if(incoming->isTurningDirection(outgoing)) {
+    if(incoming->isTurningDirectionAt(this, outgoing)) {
         return MMLDIR_TURN;
     }
     double angle =
@@ -2019,7 +2024,7 @@ NBNode::getMMLDirection(NBEdge *incoming, NBEdge *outgoing) const
             find(_allEdges.begin(), _allEdges.end(), outgoing);
         NBContHelper::nextCCW(&_allEdges, i);
         while((*i)!=incoming) {
-            if((*i)->getFromNode()==this&&!incoming->isTurningDirection(*i)) {
+            if((*i)->getFromNode()==this&&!incoming->isTurningDirectionAt(this, *i)) {
                 return MMLDIR_PARTLEFT;
             }
             NBContHelper::nextCCW(&_allEdges, i);

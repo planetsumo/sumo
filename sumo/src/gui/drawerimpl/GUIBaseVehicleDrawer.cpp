@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.8.2.1  2005/04/29 11:00:19  dkrajzew
+// debugging
+//
 // Revision 1.8  2004/11/23 10:05:21  dkrajzew
 // removed some warnings and adapted the new class hierarchy
 //
@@ -253,8 +256,9 @@ GUIBaseVehicleDrawer::getVehicleColor(const GUIVehicle &vehicle,
             break;
         }
     default:
-        throw 1;
+        break;
     }
+    return RGBColor(1, 1, 1);
 }
 
 

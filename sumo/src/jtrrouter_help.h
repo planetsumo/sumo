@@ -21,6 +21,21 @@
 //
 //---------------------------------------------------------------------------//
 // $Log$
+// Revision 1.1.2.1  2004/12/21 09:33:07  dkrajzew
+// debugging and version patching
+//
+// Revision 1.5  2004/12/20 15:00:36  dkrajzew
+// version patched
+//
+// Revision 1.4  2004/12/20 14:05:15  dkrajzew
+// version patched
+//
+// Revision 1.3  2004/12/20 13:15:58  dkrajzew
+// options output corrected
+//
+// Revision 1.2  2004/12/20 10:48:35  dkrajzew
+// net-files changed to net-file
+//
 // Revision 1.1  2004/08/02 13:03:19  dkrajzew
 // applied better names
 //
@@ -29,7 +44,6 @@
 //
 // Revision 1.1  2004/01/26 07:12:12  dkrajzew
 // now two routers are available - the dua- and the jp-router
-//
 //
 /* =========================================================================
  * included modules
@@ -46,11 +60,13 @@
  * The list of help strings for the sumo-junction percentage router module
  */
 char *help[] = {
-    "Usage: sumo-router [OPTION]*",
-    "Simulation of Urban MObility v0.7 - Routing Module",
+    "Simulation of Urban MObility v0.8.2 - jtrrouter application",
+    "  Routes vehicles by turning ratios.",
     "  http://sumo.sourceforge.net",
+    "Usage: sumo-jtrrouter [OPTION]*",
+    " ",
     "Examples: ",
-    " sumo-router -c routes_munich.cfg",
+    "  sumo-jtrrouter -c routes_munich.cfg",
     " ",
     "Options:",
     " Input files:",
@@ -58,13 +74,13 @@ char *help[] = {
     "   -c, --configuration FILE       FILE will be used as configuration",
     "                                    1. Default: ./sumo-netcovert.cfg",
     "  Network description:",
-    "   -n, --net-files FILE           FILE containing the SUMO-net",
-    "   -w, --weights FILE             FILE containing the weights of the net",
+    "   -n, --net-file FILE           FILE containing the SUMO-net",
     " ",
     "  Route descriptions:",
     "   -s, --sumo-input FILE          FILE containing SUMO-routes",
     "   -t, --trip-defs FILE           FILE containing trip definitions",
     "   -a, --alternatives FILE        FILE containing route alternatives",
+    "   -f, --flow-definitions FILE    FILE containing flow definitions",
     "   --cell-input FILE              FILE containing cell routes",
     "   --artemis-input FILE           FILE containing cell routes",
     " ",
@@ -74,9 +90,16 @@ char *help[] = {
     "                                   alternatives will be generated as",
     "                                   'FILE.alt'",
     " ",
+    " Deafults:",
+    "   -V, --krauss-vmax FLOAT    Default value for krauss' vmax",
+    "   -A, --krauss-a FLOAT       Default value for krauss' max. accel",
+    "   -B, --krauss-b FLOAT       Default value for krauss' max. decel",
+    "   -L, --krauss-length FLOAT  Default value for krauss' vehicle length",
+    "   -E, --krauss-eps FLOAT     Default value for krauss' driver imperf.",
+    " ",
     " Process Options:",
-    "   -b, --begin LONG               The begin time of routing",
-    "   -e, --end LONG                 The end time of routing",
+    "   -b, --begin INT                The begin time of routing",
+    "   -e, --end INT                  The end time of routing",
     "   -R, --random-per-second FLOAT  Builds (additional) random routes",
     "   --gBeta FLOAT                  Gawron-Beta for DUE",
     "   --gA FLOAT                     Gawron-A for DUE",
@@ -86,9 +109,13 @@ char *help[] = {
     "                                   on an Intel-machine",
     "   --no-last-cell                 Use best, not the last cell-route",
     "   --continue-on-unbuild          Continue if a route could not be build",
-    "   --srand <INT>                  Initialises the random number generator",
+    "   --move-on-short                Moves vehicles edges further if the edge",
+    "                                   is too short for vehicle emission",
+    " ",
+    " Random Number Options:",
+    "  --srand INT                     Initialises the random number generator",
     "                                   with the given value",
-    "   --abs-rand                     Set this when the current time shall be",
+    "  --abs-rand                      Set this when the current time shall be",
     "                                   used for random number initialisation",
     " ",
     " Report options:",
@@ -97,7 +124,15 @@ char *help[] = {
     "   -l, --log-file FILE             Writes all messages to the file",
     "   -p, --print-options             Prints option values before processing",
     "   -?, --help                      This screen",
+    "   --stats-period INT          Step number to pass between status output",
     0
 };
 
+
+/**************** DO NOT DECLARE ANYTHING AFTER THE INCLUDE ****************/
+
 #endif
+
+// Local Variables:
+// mode:C++
+//
