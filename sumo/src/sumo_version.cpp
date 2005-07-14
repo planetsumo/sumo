@@ -25,6 +25,9 @@ namespace
 }
 */
 // $Log$
+// Revision 1.2.2.2  2005/07/14 08:08:45  dkrajzew
+// version patched to current reelease
+//
 // Revision 1.2.2.1  2004/12/21 09:33:07  dkrajzew
 // debugging and version patching
 //
@@ -57,7 +60,7 @@ namespace
 /* =========================================================================
  * definitions
  * ======================================================================= */
-const char *version = "0.8.2";
+const char *version = "0.8.2.2";
 
 
 /**************** DO NOT DEFINE ANYTHING AFTER THE INCLUDE *****************/
