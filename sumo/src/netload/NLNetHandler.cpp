@@ -22,6 +22,9 @@ namespace
      const char rcsid[] = "$Id$";
 }
 // $Log$
+// Revision 1.50.2.1  2005/09/20 10:35:58  dkrajzew
+// patched the bugs reported by Weixing
+//
 // Revision 1.50  2004/12/16 12:23:36  dkrajzew
 // first steps towards a better parametrisation of traffic lights
 //
@@ -546,8 +549,8 @@ NLNetHandler::addPhase(const Attributes &attrs)
     }
     // if the traffic light is an actuated traffic light, try to get
     //  the minimum and maximum durations
-    size_t min = duration;
-    size_t max = duration;
+    int min = duration;
+    int max = duration;
     try {
         if(m_Type=="actuated"||m_Type=="agentbased") {
             min = getIntSecure(attrs, SUMO_ATTR_MINDURATION, -1);
@@ -555,7 +558,7 @@ NLNetHandler::addPhase(const Attributes &attrs)
         }
     } catch (NumberFormatException) {
         MsgHandler::getErrorInstance()->inform(
-            "The phase minimum or masimum duration is not numeric.");
+            "The phase minimum or maximum duration is not numeric.");
         return;
     }
     // build the brake mask
