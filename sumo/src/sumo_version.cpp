@@ -25,6 +25,9 @@ namespace
 }
 */
 // $Log$
+// Revision 1.2.2.3  2005/10/06 09:49:26  dkrajzew
+// version set to 0.8.3
+//
 // Revision 1.2.2.2  2005/07/14 08:08:45  dkrajzew
 // version patched to current reelease
 //
@@ -44,7 +47,8 @@ namespace
 // all 0.8.0.2 changes
 //
 // Revision 1.1  2003/06/18 10:57:09  dkrajzew
-// quite unsane specification within a cpp file only is now split on a cpp and a h file
+// quite unsane specification within a cpp file only is now split
+//  on a cpp and a h file
 //
 // Revision 1.2  2003/06/05 14:45:28  dkrajzew
 // class templates applied; documentation added
@@ -60,7 +64,7 @@ namespace
 /* =========================================================================
  * definitions
  * ======================================================================= */
-const char *version = "0.8.2.2";
+const char *version = "0.8.3";
 
 
 /**************** DO NOT DEFINE ANYTHING AFTER THE INCLUDE *****************/
