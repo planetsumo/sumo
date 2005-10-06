@@ -23,6 +23,12 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.4.2.2  2005/07/13 06:17:13  dkrajzew
+// trying to debug nans and infs while routing
+//
+// Revision 1.4.2.1  2005/05/10 09:23:57  dkrajzew
+// trying to debug false costs and probabilities in dua-routing
+//
 // Revision 1.4  2004/12/16 12:26:52  dkrajzew
 // debugging
 //
@@ -77,6 +83,12 @@ namespace
 // updated
 //
 /* =========================================================================
+ * compiler pragmas
+ * ======================================================================= */
+#pragma warning(disable: 4786)
+
+
+/* =========================================================================
  * included modules
  * ======================================================================= */
 #ifdef HAVE_CONFIG_H
@@ -87,14 +99,23 @@ namespace
 #include <string>
 #include <vector>
 #include <cmath>
+#include <math.h>
 #include <cassert>
+#include <limits>
 #include <iostream>
 #include "ROEdge.h"
 #include "RORouteDef.h"
 #include "RORoute.h"
 #include "ROAbstractRouter.h"
 #include "RORouteDef_Alternatives.h"
+#include <utils/common/StdDefs.h>
 
+#ifndef WIN32
+#define ISNAN isnan
+#endif
+#ifdef WIN32
+#define ISNAN _isnan
+#endif
 
 /* =========================================================================
  * used namespaces
@@ -217,6 +238,7 @@ RORouteDef_Alternatives::addAlternative(RORoute *current, long begin)
             double newCosts = alt->recomputeCosts(begin);
             alt->setCosts(_gawronBeta * newCosts + (1.0-_gawronBeta) * oldCosts);
         }
+        assert(_alternatives.size()!=0);
         if(_newRoute) {
             if((*i)!=current) {
                 alt->setProbability(
@@ -241,12 +263,14 @@ RORouteDef_Alternatives::addAlternative(RORoute *current, long begin)
             // see [Gawron, 1998] (4.3a, 4.3b)
             double newPR = gawronF(pR->getProbability(), pS->getProbability(), delta);
             double newPS = pR->getProbability() + pS->getProbability() - newPR;
-            if(newPR<0.0001) {
-                newPR = 0.0001;
+            if(ISNAN(newPR)||ISNAN(newPS)) {
+                newPR = pS->getCosts() > pR->getCosts()
+                    ? 1 : 0;
+                newPS = pS->getCosts() > pR->getCosts()
+                    ? 0 : 1;
             }
-            if(newPS<0.0001) {
-                newPS = 0.0001;
-            }
+            newPR = MIN(MAX(newPR, 0), 1);
+            newPS = MIN(MAX(newPS, 0), 1);
             pR->setProbability(newPR);
             pS->setProbability(newPS);
         }
@@ -277,6 +301,9 @@ RORouteDef_Alternatives::addAlternative(RORoute *current, long begin)
 double
 RORouteDef_Alternatives::gawronF(double pdr, double pds, double x)
 {
+    if(((pdr*gawronG(_gawronA, x)+pds)==0)) {
+        return std::numeric_limits<double>::max();
+    }
     return (pdr*(pdr+pds)*gawronG(_gawronA, x)) /
         (pdr*gawronG(_gawronA, x)+pds);
 }
@@ -285,6 +312,9 @@ RORouteDef_Alternatives::gawronF(double pdr, double pds, double x)
 double
 RORouteDef_Alternatives::gawronG(double a, double x)
 {
+    if(((1.0-(x*x))==0)) {
+        return std::numeric_limits<double>::max();
+    }
     return exp((a*x)/(1.0-(x*x))); // !!! ??
 }
 

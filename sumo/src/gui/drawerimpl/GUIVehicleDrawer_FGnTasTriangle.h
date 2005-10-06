@@ -20,6 +20,9 @@
 //
 //---------------------------------------------------------------------------//
 // $Log$
+// Revision 1.2.2.1  2005/04/29 11:11:32  dkrajzew
+// codestyle adapted
+//
 // Revision 1.2  2003/09/17 06:45:11  dkrajzew
 // some documentation added/patched
 //
@@ -71,9 +74,6 @@ private:
 
 
 /**************** DO NOT DEFINE ANYTHING AFTER THE INCLUDE *****************/
-//#ifndef DISABLE_INLINE
-//#include "GUIVehicleDrawer_FGnTasTriangle.icc"
-//#endif
 
 #endif
 

@@ -65,13 +65,14 @@
 			<a href="../../overview.html" class="SUMOMainLink">Overview</a><br/>
 			<a href="../../documentation.html" class="SUMOMainLink">Documentation</a><br/>
    			<a href="../userdocs.html" class="SUMOSubLink">User Docs</a><br/>
-			
+
 			<a href="../devdocs.html" class="SUMOSubLink">Developer Docs</a><br/>
-			
+
 			<a href="../bibliography.html" class="SUMOSubLink">Bibliography</a><br/>
-			
+
 			<a href="faq.html" class="SUMOSubLink">FAQ</a><br/>
-			
+			<a href="../manpages.html" class="SUMOSubLink">ManPages</a><br/>
+
 			<a href="../../screenshots.html" class="SUMOMainLink">Screenshots</a><br/>
 			<a href="../../downloads.html" class="SUMOMainLink">Downloads</a><br/>
 			<a href="../../participants.html" class="SUMOMainLink">Participants</a><br/>

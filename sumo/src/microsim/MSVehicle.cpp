@@ -22,6 +22,12 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.58.2.2  2005/07/13 06:25:12  dkrajzew
+// debugging
+//
+// Revision 1.58.2.1  2005/05/10 08:52:41  dkrajzew
+// problems on lane change continuation computation debugged
+//
 // Revision 1.58  2004/12/16 12:24:45  dkrajzew
 // debugging
 //
@@ -551,7 +557,7 @@ MSVehicle::~MSVehicle()
     if(myDoubleCORNMap.find(MSCORN::CORN_VEH_NUMBERROUTE)!=myDoubleCORNMap.end()) {
         int noReroutes = (int) myDoubleCORNMap[MSCORN::CORN_VEH_NUMBERROUTE];
         for(int i=0; i<noReroutes; ++i) {
-            delete myPointerCORNMap[(MSCORN::Pointer) (i+noReroutes)];
+      delete (MSRoute*) myPointerCORNMap[(MSCORN::Pointer) (i+noReroutes)];
         }
     }
     /*
@@ -2307,7 +2313,11 @@ MSVehicle::countAllowedContinuations(const MSLane *lane) const
     double MIN_DIST = 3000;
     MSRouteIterator ce = myCurrEdge;
     double dist = -myState.pos();
-    while(dist<MIN_DIST&&ce!=myRoute->end()-2/**ce!=myRoute->getLastEdge()*/) {
+    do {
+        if(ce==myRoute->end()-1) {
+            ret += 1;
+            return ret;
+        }
         const MSEdge::LaneCont *al = ( *ce )->allowedLanes( **( ce + 1 ) );
         if(al==0) {
             return ret;
@@ -2322,7 +2332,7 @@ MSVehicle::countAllowedContinuations(const MSLane *lane) const
         assert(al!=0);
         ++ce;
         dist += ((*al)[0])->length();
-    }
+    } while(dist<MIN_DIST&&ce!=myRoute->end()-1);
     return ret;
 }
 
@@ -2330,9 +2340,14 @@ MSVehicle::countAllowedContinuations(const MSLane *lane) const
 double
 MSVehicle::allowedContinuationsLength(const MSLane *lane) const
 {
-    double dist = lane->length()-myState.pos();
+    double MIN_DIST = 3000;
     MSRouteIterator ce = myCurrEdge;
-    while(ce!=myRoute->end()-2/**ce!=myRoute->getLastEdge()*/) {
+    double dist = -myState.pos();
+    do {
+        if(ce==myRoute->end()-1) {
+            dist += lane->length();
+            return dist;
+        }
         const MSEdge::LaneCont *al = ( *ce )->allowedLanes( **( ce + 1 ) );
         if(al==0) {
             return dist;
@@ -2342,14 +2357,11 @@ MSVehicle::allowedContinuationsLength(const MSLane *lane) const
         if(i==al->end()) {
             return dist;
         }
-        if(ce!=myCurrEdge) {
-            dist += ((*al)[0])->length();
-        }
         lane = (*(lane->succLinkOneLane(*( ce + 1 ), *lane)))->getLane();
         assert(al!=0);
         ++ce;
-//        dist += ((*al)[0])->length();
-    }
+        dist += ((*al)[0])->length();
+    } while(dist<MIN_DIST&&ce!=myRoute->end()-1);
     return dist;
 }
 

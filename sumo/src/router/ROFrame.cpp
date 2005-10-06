@@ -23,6 +23,15 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.1.2.2  2005/05/10 08:53:19  dkrajzew
+// missing -R-option within the jtr-router patched
+//
+// Revision 1.1.2.1  2004/12/21 09:33:12  dkrajzew
+// debugging and version patching
+//
+// Revision 1.2  2004/12/20 10:48:36  dkrajzew
+// net-files changed to net-file
+//
 // Revision 1.1  2004/11/23 10:25:52  dkrajzew
 // debugging
 //
@@ -69,11 +78,11 @@ ROFrame::fillOptions(OptionsCont &oc)
     RandHelper::insertRandOptions(oc);
     // register the file i/o options
     oc.doRegister("output", 'o', new Option_FileName());
-    oc.doRegister("net-files", 'n', new Option_FileName());
+    oc.doRegister("net-file", 'n', new Option_FileName());
     oc.doRegister("weights", 'w', new Option_FileName());
     oc.doRegister("alternatives", 'a', new Option_FileName());
     oc.doRegister("configuration-file", 'c', new Option_FileName());
-    oc.addSynonyme("net-files", "net");
+    oc.addSynonyme("net-file", "net");
     oc.addSynonyme("output-file", "output");
     oc.addSynonyme("configuration-file", "configuration");
     oc.addSynonyme("weights", "weight-files");
@@ -98,6 +107,8 @@ ROFrame::fillOptions(OptionsCont &oc)
     oc.doRegister("move-on-short", new Option_Bool(false));
     oc.doRegister("stats-period", new Option_Integer(-1));
     oc.doRegister("max-alternatives", new Option_Integer(5));
+    // add possibility to insert random vehicles
+    oc.doRegister("random-per-second", 'R', new Option_Float());
 }
 
 

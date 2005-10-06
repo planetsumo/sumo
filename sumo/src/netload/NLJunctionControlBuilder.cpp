@@ -23,6 +23,9 @@ namespace
      const char rcsid[] = "$Id$";
 }
 // $Log$
+// Revision 1.13.2.1  2005/09/20 10:35:58  dkrajzew
+// patched the bugs reported by Weixing
+//
 // Revision 1.13  2004/12/16 12:23:37  dkrajzew
 // first steps towards a better parametrisation of traffic lights
 //
@@ -39,10 +42,14 @@ namespace
 // debugged and completed lane merging detectors
 //
 // Revision 1.8  2003/07/07 08:35:10  dkrajzew
-// changes due to loading of geometry applied from the gui-version (no major drawbacks in loading speed)
+// changes due to loading of geometry applied from the gui-version
+//  (no major drawbacks in loading speed)
 //
 // Revision 1.7  2003/06/18 11:18:05  dkrajzew
-// new message and error processing: output to user may be a message, warning or an error now; it is reported to a Singleton (MsgHandler); this handler puts it further to output instances. changes: no verbose-parameter needed; messages are exported to singleton
+// new message and error processing: output to user may be a message,
+//  warning or an error now; it is reported to a Singleton (MsgHandler);
+//  this handler puts it further to output instances.
+//  changes: no verbose-parameter needed; messages are exported to singleton
 //
 // Revision 1.6  2003/06/05 11:52:27  dkrajzew
 // class templates applied; documentation added
@@ -60,7 +67,8 @@ namespace
 // updated
 //
 // Revision 1.1  2002/10/16 15:36:50  dkrajzew
-// moved from ROOT/sumo/netload to ROOT/src/netload; new format definition parseable in one step
+// moved from ROOT/sumo/netload to ROOT/src/netload; new format definition
+//  parseable in one step
 //
 // Revision 1.6  2002/06/11 14:39:27  dkrajzew
 // windows eol removed
@@ -69,7 +77,8 @@ namespace
 // Windows eol removed
 //
 // Revision 1.4  2002/06/07 14:39:58  dkrajzew
-// errors occured while building larger nets and adaption of new netconverting methods debugged
+// errors occured while building larger nets and adaption of new
+//  netconverting methods debugged
 //
 // Revision 1.3  2002/04/17 11:18:47  dkrajzew
 // windows-newlines removed
@@ -89,7 +98,12 @@ namespace
 // Revision 1.1  2001/12/06 13:36:09  traffic
 // moved from netbuild
 //
-//
+/* =========================================================================
+ * compiler pragmas
+ * ======================================================================= */
+#pragma warning(disable: 4786)
+
+
 /* =========================================================================
  * included modules
  * ======================================================================= */

@@ -23,6 +23,9 @@ namespace
 }
 
 // $Log$
+// Revision 1.15.2.1  2005/07/13 06:16:16  dkrajzew
+// debugging vehicle emission on source edges
+//
 // Revision 1.15  2004/11/23 10:20:09  dkrajzew
 // new detectors and tls usage applied; debugging
 //
@@ -400,9 +403,25 @@ MSEdge::emit(MSVehicle &v)
         return myDepartLane->emit(v);
     } else {
         const LaneCont &lanes =  v.departLanes();
-        for(LaneCont::const_iterator i=lanes.begin(); i!=lanes.end(); i++) {
-            if(myDepartLane->emit(v)) {
-                return true;
+        int minI = 0;
+        int ir = 0;
+        int noCars = (*getLanes())[0]->length();
+        {
+            for(LaneCont::const_iterator i=lanes.begin(); i!=lanes.end(); i++, ir++) {
+                if((*i)->getVehicleNumber()<noCars) {
+                    minI = ir;
+                    noCars = (*i)->getVehicleNumber();
+                }
+            }
+        }
+        if(lanes[minI]->emit(v)) {
+            return true;
+        } else {
+            ir = 0;
+            for(LaneCont::const_iterator i=lanes.begin(); i!=lanes.end(); i++, ir++) {
+                if(ir!=minI&&(*i)->emit(v)) {
+                    return true;
+                }
             }
         }
         return false;

@@ -3,10 +3,10 @@
 sub writeRouteConf($)
 {
     my $step = $_[0];
-    open(OUTDAT, "> due2s.rou.cfg");
+    open(OUTDAT, "> due2s.dua.cfg");
     print OUTDAT "<configuration>\n";
     print OUTDAT "  <files>\n";
-    print OUTDAT "      <net-files>due2s.net.xml</net-files>\n";
+    print OUTDAT "      <net-file>due2s.net.xml</net-file>\n";
     print OUTDAT "      <weights></weights>\n";
     if($step==0) {
         print OUTDAT "      <trip-defs>due2s.trips.xml</trip-defs>\n";
@@ -30,7 +30,7 @@ sub writeSumoConf($)
     open(OUTDAT, "> due2s.sumo.cfg");
     print OUTDAT "<configuration>\n";
     print OUTDAT "  <files>\n";
-    print OUTDAT "      <net-files>due2s.net.xml</net-files>\n";
+    print OUTDAT "      <net-file>due2s.net.xml</net-file>\n";
     print OUTDAT "      <route-files>due2s.rou.xml</route-files>\n";
     print OUTDAT "      <dump-intervals>300</dump-intervals>\n";
     print OUTDAT "      <dump-basename>aggregated/due2s</dump-basename>\n";
@@ -58,7 +58,7 @@ if(defined($ARGV[2])) {
 }
 for(; $step<$end+1; $step++) {
     writeRouteConf($step);
-    system("$ARGV[0]/duarouter.exe -c due2s.rou.cfg --gBeta=0.9 --gA=0.5");
+    system("$ARGV[0]/duarouter.exe -c due2s.dua.cfg --gBeta=0.9 --gA=0.5");
     system("copy due2s_new.rou.xml due2s.rou.xml");
     system("copy due2s_new.rou.xml.alt due2s.rou.xml.alt");
     unlink("due2s_new.rou.xml");

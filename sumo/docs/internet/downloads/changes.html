@@ -68,6 +68,77 @@
 	<h2>Recent Changes</h2>
 </center>
 
+<b>Changes from 0.8.0.2 to 0.8.2.1</b>
+<p>
+</p>
+<b>Please remind that several option names have changed!</b> The most important: "net-files" (router, simulation) is now "net-file"...<br>
+Check user documentation and man-pages for this.<br>
+<p>
+User-relevant changes:
+<ul>
+	<li>GUI
+	<ul>
+		<li>"Clear Message Window" menu added
+		<li>the icons now allow loading instantly after the previous loading has failed
+		<li>Renamed to "guisim"
+		<li>using gradients instead of pure interpolation
+		<li>windows-icons patched
+		<li>added ability to take snapshots
+		<li>using popups instead of comboboxes for finding structures and switching between coloring schemes in order to save place
+		<li>speeded up handling of errors
+		<li>Locators hidden behind a popup
+		<li>ToolTips do now not hide dialog windows
+		<li>Configuration errors are now reported to the window
+		<li>Added the possibility to display a vehicle's route
+		<li>added the possibility to save timelines
+	</ul>
+    <li>Simulation
+    <ul>
+		<li>building dump-files now reports about failures
+		<li>Patched some of the lane-changing bugs
+		<li>time-to-teleport -option added
+		<li>replace "treshhold" by "treshold"
+	</ul>
+	<li>Netconvert
+	<ul>
+		<li>Plain output of node and edges added (--plain-output)
+		<li>got rid of the arcview/shapelib-import chaos
+		<li>--explicite-junctions -> --explicite-tls
+		<li>--explicite-no-junctions -> --explicite-no-tls
+		<li>--keep-edges.input-file
+		<li>--keep-edges - option added
+		<li>--keep-edges.input-file
+		<li>Geometry computation bug patched
+    </ul>
+    <li>Router
+    <ul>
+		<li>Bug on processing all time steps patched
+		<li>Route output reformatted
+		<li>max-alternatives
+    </ul>
+    <li>Documentation
+    <ul>
+		<li>Man-pages added
+    </ul>
+</ul>
+
+Developer-relevant changes:
+<ul>
+	<li>GUI
+	<ul>
+		<li>Have reworked the class dependencies completely in order to make derivation more easy
+	</ul>
+	<li>Simulation
+	<ul>
+		<li>output moved to "output"
+		<li>outputs write to OutputDevices, not ostreams
+		<li>reworked lanechanging
+	</ul>
+</ul>
+</p>
+
+<hr/>
+
 <b>Changes from 0.8.0.1 to 0.8.0.2</b>
 <p>
 </p>

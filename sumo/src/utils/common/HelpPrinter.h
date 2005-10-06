@@ -19,6 +19,12 @@
  *                                                                         *
  ***************************************************************************/
 // $Log$
+// Revision 1.3.2.1  2004/12/21 09:33:13  dkrajzew
+// debugging and version patching
+//
+// Revision 1.4  2004/12/20 13:15:59  dkrajzew
+// options output corrected
+//
 // Revision 1.3  2004/11/23 10:27:45  dkrajzew
 // debugging
 //
@@ -42,7 +48,6 @@
 //
 // Revision 1.2  2002/04/16 06:52:01  dkrajzew
 // documentation added; coding standard attachements added
-//
 //
 /* =========================================================================
  * included modules

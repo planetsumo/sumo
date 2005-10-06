@@ -25,11 +25,30 @@ namespace
 }
 */
 // $Log$
+// Revision 1.2.2.3  2005/10/06 09:49:26  dkrajzew
+// version set to 0.8.3
+//
+// Revision 1.2.2.2  2005/07/14 08:08:45  dkrajzew
+// version patched to current reelease
+//
+// Revision 1.2.2.1  2004/12/21 09:33:07  dkrajzew
+// debugging and version patching
+//
+// Revision 1.5  2004/12/20 15:00:36  dkrajzew
+// version patched
+//
+// Revision 1.4  2004/12/20 14:54:32  dkrajzew
+// version patched
+//
+// Revision 1.3  2004/12/20 13:17:02  dkrajzew
+// version number patched
+//
 // Revision 1.2  2004/07/02 09:52:38  dkrajzew
 // all 0.8.0.2 changes
 //
 // Revision 1.1  2003/06/18 10:57:09  dkrajzew
-// quite unsane specification within a cpp file only is now split on a cpp and a h file
+// quite unsane specification within a cpp file only is now split
+//  on a cpp and a h file
 //
 // Revision 1.2  2003/06/05 14:45:28  dkrajzew
 // class templates applied; documentation added
@@ -45,7 +64,7 @@ namespace
 /* =========================================================================
  * definitions
  * ======================================================================= */
-const char *version = "0.8.0.2";
+const char *version = "0.8.3";
 
 
 /**************** DO NOT DEFINE ANYTHING AFTER THE INCLUDE *****************/

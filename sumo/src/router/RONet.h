@@ -20,6 +20,9 @@
 //
 //---------------------------------------------------------------------------//
 // $Log$
+// Revision 1.11.2.1  2005/05/10 09:23:57  dkrajzew
+// trying to debug false costs and probabilities in dua-routing
+//
 // Revision 1.11  2004/12/16 12:26:52  dkrajzew
 // debugging
 //
@@ -133,14 +136,14 @@ public:
     bool isKnownVehicleID(const std::string &id) const;
 
     /// Returns the named route definition
-    RORouteDef *getRouteDef(const std::string &name) const;
+    virtual RORouteDef *getRouteDef(const std::string &name) const;
 
     /// Adds a read route definition to the network
-    void addRouteDef(RORouteDef *def);
+    virtual void addRouteDef(RORouteDef *def);
 
 
     /// Adds a complete, read vehicle type to the network
-    void addVehicleType(ROVehicleType *type);
+    virtual void addVehicleType(ROVehicleType *type);
 
     /// Retrieves the default vehicle type
     ROVehicleType *getDefaultVehicleType() const;
@@ -176,7 +179,7 @@ public:
         ROAbstractRouter &router, long time);
 
     /// Returns the information whether further vehicles are stored
-    bool furtherStored();
+    virtual bool furtherStored();
 
     /// Returns a random edge which may be used as a starting point
     ROEdge *getRandomSource();
@@ -218,7 +221,7 @@ protected:
     static RONet* myInstance;
 
     /// Container for known vehicle ids
-    typedef std::set<std::string> VehIDCont;
+    typedef std::vector<std::string> VehIDCont; // should be something else
 
     /// Known vehicle ids
     VehIDCont _vehIDs;

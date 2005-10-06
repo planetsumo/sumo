@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.21.2.1  2005/05/10 09:23:57  dkrajzew
+// trying to debug false costs and probabilities in dua-routing
+//
 // Revision 1.21  2004/12/16 12:26:52  dkrajzew
 // debugging
 //
@@ -183,9 +186,11 @@ RONet::addNode(const std::string &name, RONode *node)
 bool
 RONet::isKnownVehicleID(const std::string &id) const
 {
-    VehIDCont::const_iterator i=_vehIDs.find(id);
-    if(i==_vehIDs.end())
+    VehIDCont::const_iterator i =
+        find(_vehIDs.begin(), _vehIDs.end(), id);
+    if(i==_vehIDs.end()) {
         return false;
+    }
     return true;
 }
 
@@ -193,7 +198,7 @@ RONet::isKnownVehicleID(const std::string &id) const
 void
 RONet::addVehicleID(const std::string &id)
 {
-    _vehIDs.insert(id);
+    _vehIDs.push_back(id);
 }
 
 

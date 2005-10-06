@@ -23,6 +23,18 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.24.2.2  2005/05/10 09:19:13  dkrajzew
+// usage of time-to-teleport option debugged
+//
+// Revision 1.24.2.1  2004/12/21 09:33:12  dkrajzew
+// debugging and version patching
+//
+// Revision 1.26  2004/12/20 13:15:59  dkrajzew
+// options output corrected
+//
+// Revision 1.25  2004/12/20 10:48:36  dkrajzew
+// net-files changed to net-file
+//
 // Revision 1.24  2004/12/16 12:23:30  dkrajzew
 // first steps towards a better parametrisation of traffic lights
 //
@@ -137,11 +149,11 @@ void
 SUMOFrame::fillOptions(OptionsCont &oc)
 {
     // register input options
-    oc.doRegister("net-files", 'n', new Option_FileName());
+    oc.doRegister("net-file", 'n', new Option_FileName());
     oc.doRegister("route-files", 'r', new Option_FileName());
     oc.doRegister("additional-files", 'a', new Option_FileName());
     oc.doRegister("configuration-file", 'c', new Option_FileName());
-    oc.addSynonyme("net-files", "net");
+    oc.addSynonyme("net-file", "net");
     oc.addSynonyme("route-files", "routes");
     oc.addSynonyme("additional-files", "additional");
     oc.addSynonyme("configuration-file", "configuration");
@@ -191,9 +203,9 @@ SUMOFrame::fillOptions(OptionsCont &oc)
     oc.doRegister("agent-tl.min-diff", new Option_Float((float) .1));
     oc.doRegister("agent-tl.tcycle", new Option_Integer(90));
 
-    oc.doRegister("actuated-tl.max-gap", new Option_Float(3.1));
-    oc.doRegister("actuated-tl.detector-gap", new Option_Float(3.0));
-    oc.doRegister("actuated-tl.passing-time", new Option_Float(1.9));
+    oc.doRegister("actuated-tl.max-gap", new Option_Float(3.1f));
+    oc.doRegister("actuated-tl.detector-gap", new Option_Float(3.0f));
+    oc.doRegister("actuated-tl.passing-time", new Option_Float(1.9f));
 
     // device
     oc.doRegister("device", new Option_Float(0.5));
@@ -289,7 +301,9 @@ SUMOFrame::setMSGlobals(OptionsCont &oc)
         oc.getBool("use-internal-links");
     // set the grid lock time
     MSGlobals::gTimeToGridlock =
-        oc.getInt("time-to-teleport");
+        oc.getInt("time-to-teleport")<0
+        ? 0
+        : oc.getInt("time-to-teleport");
     // set the vehicle teleport on false lane options
     MSGlobals::gMinLaneVMax4FalseLaneTeleport =
         oc.getFloat("lc-teleport.lane-min-vmax");
