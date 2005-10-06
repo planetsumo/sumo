@@ -20,6 +20,9 @@
  *                                                                         *
  ***************************************************************************/
 // $Log$
+// Revision 1.1.2.1  2005/10/06 06:56:38  dkrajzew
+// debugging
+//
 // Revision 1.1  2004/11/23 10:45:07  dkrajzew
 // netedit by A. Gaubatz added
 //
@@ -138,7 +141,7 @@ main(int argc, char **argv)
         application.create();
         // Run
         ret = application.run();
-    } catch(GUIThreadFactory) {
+    } catch(...) {
         WRITE_MESSAGE("Quitting (on error).");
         ret = 1;
     }

@@ -22,6 +22,9 @@ namespace
      const char rcsid[] = "$Id$";
 }
 // $Log$
+// Revision 1.50.2.2  2005/10/06 06:56:38  dkrajzew
+// debugging
+//
 // Revision 1.50.2.1  2005/09/20 10:35:58  dkrajzew
 // patched the bugs reported by Weixing
 //
@@ -1401,6 +1404,7 @@ NLNetHandler::computeInitTLSStep()  const
         }
         step++;
         offset -= (*i)->duration;
+        ++i;
     }
 }
 
@@ -1414,9 +1418,10 @@ NLNetHandler::computeInitTLSEventOffset()  const
         = m_ActivePhases.begin();
     while(true) {
         if(offset<(*i)->duration) {
-            return (*i)->duration-offset;
+            return offset;
         }
         offset -= (*i)->duration;
+        ++i;
     }
 }
 

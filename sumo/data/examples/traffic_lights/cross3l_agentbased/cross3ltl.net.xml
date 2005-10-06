@@ -206,7 +206,7 @@
    </row-logic>
 
 
-   <tl-logic type="static">
+   <tl-logic type="agentbased">
       <key>0</key>
       <logicno>0</logicno>
       <phaseno>8</phaseno>
@@ -222,7 +222,7 @@
       <phase duration="4" phase="0000000000000000" brake="1111111111111111" yellow="1100000011000000"/>
    </tl-logic>
 
-   <tl-logic type="static">
+   <tl-logic type="agentbased">
       <key>0</key>
       <logicno>1</logicno>
       <phaseno>18</phaseno>
