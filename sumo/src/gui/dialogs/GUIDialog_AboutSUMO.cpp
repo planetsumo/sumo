@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.3.2.1  2005/11/15 10:24:39  dkrajzew
+// version information in gui patched
+//
 // Revision 1.3  2004/11/23 10:00:08  dkrajzew
 // new class hierarchy for windows applied
 //
@@ -212,7 +215,7 @@ GUIDialog_AboutSUMO::GUIDialog_AboutSUMO(FXWindow* parent,  const char* name,
 
     new FXLabel(f3, "(c) Institute of Transportation Research/DLR and ZAIK",
         0, LAYOUT_CENTER_X|JUSTIFY_CENTER_X|LABEL_NORMAL, 0,0,0,0, 0,0,5,0);
-    new FXLabel(f3, "2000-2004",
+    new FXLabel(f3, "2000-2005",
         0, LAYOUT_CENTER_X|JUSTIFY_CENTER_X|LABEL_NORMAL, 0,0,0,0, 0,0,0,0);
 
     new FXLabel(f3, "http://sumo.sourceforge.net",
