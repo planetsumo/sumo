@@ -20,6 +20,9 @@
 //
 //---------------------------------------------------------------------------//
 // $Log$
+// Revision 1.25.2.1  2005/11/15 10:27:59  dkrajzew
+// catching opening a second file using recent files added
+//
 // Revision 1.25  2004/12/16 12:12:58  dkrajzew
 // first steps towards loading of selections between different applications
 //
@@ -213,6 +216,7 @@ public:
 
     long onUpdOpen(FXObject*,FXSelector,void*);
     long onUpdReload(FXObject*,FXSelector,void*);
+    long onUpdOpenRecent(FXObject*,FXSelector,void*);
     long onUpdAddMicro(FXObject*,FXSelector,void*);
     long onUpdAddALane(FXObject*,FXSelector,void*);
     long onUpdStart(FXObject*,FXSelector,void*);

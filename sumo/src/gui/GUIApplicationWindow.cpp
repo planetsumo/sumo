@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.38.2.1  2005/11/15 10:27:59  dkrajzew
+// catching opening a second file using recent files added
+//
 // Revision 1.38  2004/12/16 12:12:58  dkrajzew
 // first steps towards loading of selections between different applications
 //
@@ -228,6 +231,7 @@ FXDEFMAP(GUIApplicationWindow) GUIApplicationWindowMap[]=
 
     FXMAPFUNC(SEL_UPDATE,   MID_OPEN,              GUIApplicationWindow::onUpdOpen),
     FXMAPFUNC(SEL_UPDATE,   MID_RELOAD,            GUIApplicationWindow::onUpdReload),
+    FXMAPFUNC(SEL_UPDATE,   MID_RECENTFILE,        GUIApplicationWindow::onUpdOpenRecent),
     FXMAPFUNC(SEL_UPDATE,   MID_NEW_MICROVIEW,     GUIApplicationWindow::onUpdAddMicro),
     FXMAPFUNC(SEL_UPDATE,   MID_NEW_LANEAVIEW,     GUIApplicationWindow::onUpdAddALane),
     FXMAPFUNC(SEL_UPDATE,   MID_START,             GUIApplicationWindow::onUpdStart),
@@ -650,6 +654,10 @@ GUIApplicationWindow::onCmdReload(FXObject*,FXSelector,void*)
 long
 GUIApplicationWindow::onCmdOpenRecent(FXObject*,FXSelector,void *data)
 {
+    if(myAmLoading) {
+        myStatusbar->getStatusLine()->setText("Already loading!");
+        return 1;
+    }
     string file = string((const char*)data);
     load(file);
     return 1;
@@ -680,6 +688,16 @@ GUIApplicationWindow::onUpdReload(FXObject*sender,FXSelector,void*ptr)
     sender->handle(this,
         myAmLoading||myLoadThread->getFileName()==""
         ? FXSEL(SEL_COMMAND,ID_DISABLE) : FXSEL(SEL_COMMAND,ID_ENABLE),
+        ptr);
+    return 1;
+}
+
+
+long
+GUIApplicationWindow::onUpdOpenRecent(FXObject*sender,FXSelector,void*ptr)
+{
+    sender->handle(this,
+        myAmLoading?FXSEL(SEL_COMMAND,ID_DISABLE):FXSEL(SEL_COMMAND,ID_ENABLE),
         ptr);
     return 1;
 }
