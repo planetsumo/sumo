@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.5.2.1  2005/11/15 10:31:27  dkrajzew
+// subwindows are now deleted on (re)loading the simulation
+//
 // Revision 1.5  2004/11/23 10:00:08  dkrajzew
 // new class hierarchy for windows applied
 //
@@ -68,6 +71,7 @@ namespace
 #include <utils/gui/globjects/GUIGlObject.h>
 #include <utils/gui/globjects/GUIGlObjectStorage.h>
 #include <utils/gui/images/GUIIconSubSys.h>
+#include <utils/gui/windows/GUIMainWindow.h>
 #include <microsim/MSJunction.h>
 #include <guisim/GUIVehicle.h>
 #include <guisim/GUIEdge.h>
@@ -169,11 +173,13 @@ GUIDialog_GLObjChooser::GUIDialog_GLObjChooser(GUISUMOViewParent *parent,
         this, MID_CANCEL,
         ICON_BEFORE_TEXT|LAYOUT_FILL_X|FRAME_THICK|FRAME_RAISED,
         0, 0, 0, 0, 4, 4, 4, 4);
+    myParent->getParent()->addChild(this);
 }
 
 
 GUIDialog_GLObjChooser::~GUIDialog_GLObjChooser()
 {
+    myParent->getParent()->removeChild(this);
 }
 
 

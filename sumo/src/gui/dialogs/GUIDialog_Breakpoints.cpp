@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.3.2.1  2005/11/15 10:31:27  dkrajzew
+// subwindows are now deleted on (re)loading the simulation
+//
 // Revision 1.3  2004/11/23 10:00:08  dkrajzew
 // new class hierarchy for windows applied
 //
@@ -153,11 +156,13 @@ GUIDialog_Breakpoints::GUIDialog_Breakpoints(GUIMainWindow *parent)
     new FXButton(layout, "Close\t\t", 0, this, MID_CANCEL,
         ICON_BEFORE_TEXT|LAYOUT_FILL_X|FRAME_THICK|FRAME_RAISED,
         0, 0, 0, 0, 4, 4, 3, 3);
+    myParent->addChild(this);
 }
 
 
 GUIDialog_Breakpoints::~GUIDialog_Breakpoints()
 {
+    myParent->removeChild(this);
 }
 
 
