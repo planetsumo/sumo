@@ -23,6 +23,9 @@ namespace
     "$Id$";
 }
 // $Log$
+// Revision 1.38.2.2  2005/11/15 10:33:31  dkrajzew
+// list of selected items is now cleared on closing/reloading (was buggy before)
+//
 // Revision 1.38.2.1  2005/11/15 10:27:59  dkrajzew
 // catching opening a second file using recent files added
 //
@@ -1132,6 +1135,8 @@ GUIApplicationWindow::closeAllWindows()
         delete myTrackerWindows[0];
     }
     mySubWindows.clear();
+    // clear selected items
+    gSelected.clear();
     // add a separator to the log
     myMessageWindow->addSeparator();
     myTrackerLock.unlock();
