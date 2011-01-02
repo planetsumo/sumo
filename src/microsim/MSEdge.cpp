@@ -286,12 +286,6 @@ MSEdge::change2left(MSVehicle *vehicle, Supi &source, Supi &destination, const s
 
 void
 MSEdge::move1(SUMOTime t) {
-    if (t==180000&&myID=="17") {
-        int bla = 0;
-    }
-    if (myID=="85") {
-        int bla = 0;
-    }
     // init
     int vehicleNumber = 0;
     for (std::vector<Supi>::iterator i=mySupis.begin(); i!=mySupis.end(); ++i) {
@@ -309,16 +303,6 @@ MSEdge::move1(SUMOTime t) {
             continue;
         }
         (*i).veh = vehicles.begin();
-    }
-    for (std::vector<Supi>::iterator i=mySupis.begin(); i!=mySupis.end(); ++i) {
-        for (MSLane::VehCont::const_iterator j=(*i).lane->myVehicles.begin(); j!=(*i).lane->myVehicles.end(); ++j) {
-            if ((*j)->myLane!=(*i).lane) {
-                int bla = 0;
-            }
-        }
-    }
-    if (vehicleNumber>1) {
-        int bla = 0;
     }
     // go along
     while (--vehicleNumber>=0) {
@@ -359,16 +343,7 @@ MSEdge::move1(SUMOTime t) {
             int bla = 0;
         }
 #endif
-
-        if (t>=186000&&currentVeh->getID()=="Borgo_20_22") {
-            int bla = 0;
-        }
-
-
         std::vector<Supi>::iterator finalSupi = current;
-
-        // move forward
-
 
         // lane changing
         bool madeLaneChange = false;
@@ -407,9 +382,6 @@ MSEdge::move1(SUMOTime t) {
                 // inform lane change model about this change
                 lcModel.fulfillChangeRequest(REQUEST_RIGHT);
 #endif
-                if (rLead.first!=0&&rFollow.first!=0) {
-                    int bla = 0;
-                }
                 Supi &rightSupi = *(current - 1);
                 finalSupi = current - 1;
                 //rightSupi.vehicleBuffer.push_back(currentVeh);
@@ -420,18 +392,12 @@ MSEdge::move1(SUMOTime t) {
                 currentVeh->myLastLaneChangeOffset = 0;
                 currentVeh->getLaneChangeModel().changed();
                 madeLaneChange = true;
-                if (rightSupi.lane!=currentVeh->myLane) {
-                    int bla = 0;
-                }
             }
         }
 
         // check whether the vehicle wants and is able to change to left lane
         int state2 = 0;
         if (!madeLaneChange&&current+1!=mySupis.end()&&(current+1)->lane->allowsVehicleClass(currentVeh->getVehicleType().getVehicleClass())) {
-			if(currentVeh->getID()=="bus_1_480"&&t>=950000) {
-				int bla = 0;
-			}
             std::pair<MSVehicle * const, SUMOReal> lLead = getRealLeader(*(current+1), currentVeh, current->lane);
             std::pair<MSVehicle * const, SUMOReal> lFollow = getRealFollower(*(current+1), currentVeh, current->lane);
             state2 = change2left(currentVeh, *current, *(current+1), leader, lLead, lFollow);
@@ -455,9 +421,6 @@ MSEdge::move1(SUMOTime t) {
                 currentVeh->myLastLaneChangeOffset = 0;
                 lcModel.changed();
                 madeLaneChange = true;
-                if (leftSupi.lane!=currentVeh->myLane) {
-                    int bla = 0;
-                }
             }
         }
         lcModel.setOwnState(state2|state1);
@@ -484,9 +447,6 @@ MSEdge::move1(SUMOTime t) {
                 dir = 1;
             }
 			MSVehicle *prohibitor = target->veh!=target->vehEnd ? *target->veh : 0;//target->vehicleBuffer.size()!=0 ? target->vehicleBuffer.back() : 0;
-        if (prohibitor!=0&&t>=409000&&prohibitor->getID()=="1000066_1000000_1__10") {
-            int bla = 0;
-        }
             if (prohibitor!=0
                     &&
                     ((prohibitor->getLaneChangeModel().getOwnState()&(LCA_URGENT/*|LCA_SPEEDGAIN*/))!=0
@@ -563,9 +523,6 @@ MSEdge::move1(SUMOTime t) {
 					}
 				}
                 //currentSupi.vehicleBuffer.push_back(currentVeh);
-                if (currentSupi.lane!=currentVeh->myLane) {
-                    int bla = 0;
-                }
                 currentVeh->myLastLaneChangeOffset += DELTA_T;
             }
 		//}
@@ -580,18 +537,6 @@ MSEdge::move1(SUMOTime t) {
 			(*i).lane->moveCritical(t);
 		}
 		(*i).wantedChanges = (*i).nextWantedChanges;
-		/*
-        for (MSLane::VehCont::const_iterator j=(*i).lane->myVehicles.begin(); j!=(*i).lane->myVehicles.end(); ++j) {
-            if ((*j)->myLane!=(*i).lane) {
-                int bla = 0;
-            }
-            if (j+1!=(*i).lane->myVehicles.end()) {
-                if ((*j)->getPositionOnLane()>(*(j+1))->getPositionOnLane()-(*(j+1))->getVehicleType().getLength()) {
-                    int bla = 0;
-                }
-            }
-        }
-		*/
     }
 }
 
