@@ -95,13 +95,12 @@ GUIInternalLane::releaseVehicles() const throw() {
 }
 
 
-bool
+void
 GUIInternalLane::moveCritical(SUMOTime t) {
     myLock.lock();
     try {
-        bool ret = MSInternalLane::moveCritical(t);
+        MSInternalLane::moveCritical(t);
         myLock.unlock();
-        return ret;
     } catch (ProcessError &) {
         myLock.unlock();
         throw;
@@ -109,13 +108,12 @@ GUIInternalLane::moveCritical(SUMOTime t) {
 }
 
 
-bool
+void
 GUIInternalLane::setCritical(SUMOTime t, std::vector<MSLane*> &into) {
     myLock.lock();
     try {
-        bool ret = MSInternalLane::setCritical(t, into);
+        MSInternalLane::setCritical(t, into);
         myLock.unlock();
-        return ret;
     } catch (ProcessError &) {
         myLock.unlock();
         throw;
@@ -167,13 +165,12 @@ GUIInternalLane::swapAfterLaneChange(SUMOTime t) {
 }
 
 
-bool
+void
 GUIInternalLane::integrateNewVehicle(SUMOTime t) {
     myLock.lock();
     try {
-        bool ret = MSLane::integrateNewVehicle(t);
+        MSLane::integrateNewVehicle(t);
         myLock.unlock();
-        return ret;
     } catch (ProcessError &) {
         myLock.unlock();
         throw;

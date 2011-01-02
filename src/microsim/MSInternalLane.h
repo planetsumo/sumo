@@ -123,7 +123,7 @@ public:
     /// @name Vehicle movement (longitudinal)
     /// @{
 
-    virtual bool moveCritical(SUMOTime t);
+    virtual void moveCritical(SUMOTime t);
     /// @}
 
 

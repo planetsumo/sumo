@@ -42,34 +42,7 @@
 // member method definitions
 // ===========================================================================
 MSEdgeControl::MSEdgeControl(const std::vector< MSEdge* > &edges) throw()
-        : myEdges(edges),
-        myLanes(MSLane::dictSize()) {
-    // build the usage definitions for lanes
-    for (std::vector< MSEdge* >::const_iterator i=myEdges.begin(); i!=myEdges.end(); ++i) {
-        const std::vector<MSLane*> &lanes = (*i)->getLanes();
-        if (lanes.size()==1) {
-            size_t pos = (*lanes.begin())->getNumericalID();
-            myLanes[pos].lane = *(lanes.begin());
-            myLanes[pos].firstNeigh = lanes.end();
-            myLanes[pos].lastNeigh = lanes.end();
-            myLanes[pos].amActive = false;
-            myLanes[pos].haveNeighbors = false;
-        } else {
-            for (std::vector<MSLane*>::const_iterator j=lanes.begin(); j!=lanes.end(); ++j) {
-                size_t pos = (*j)->getNumericalID();
-                myLanes[pos].lane = *j;
-                myLanes[pos].firstNeigh = (j+1);
-                myLanes[pos].lastNeigh = lanes.end();
-                myLanes[pos].amActive = false;
-                myLanes[pos].haveNeighbors = true;
-            }
-        }
-        size_t pos = (*i)->getNumericalID();
-    }
-    // assign lane usage definitions to lanes
-    for (size_t j=0; j<myLanes.size(); j++) {
-        myLanes[j].lane->init(*this, myLanes[j].firstNeigh, myLanes[j].lastNeigh);
-    }
+        : myEdges(edges) {
 }
 
 
@@ -95,12 +68,7 @@ MSEdgeControl::moveFirst(SUMOTime t) throw() {
         }
     }
     for (std::vector<MSLane*>::iterator i=myWithVehicles2Integrate.begin(); i!=myWithVehicles2Integrate.end(); ++i) {
-        if ((*i)->integrateNewVehicle(t)) {
-            LaneUsage &lu = myLanes[(*i)->getNumericalID()];
-            if (!lu.amActive) {
-                lu.amActive = true;
-            }
-        }
+        (*i)->integrateNewVehicle(t);
     }
 }
 

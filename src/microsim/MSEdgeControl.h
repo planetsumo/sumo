@@ -60,8 +60,6 @@ public:
 public:
     /** @brief Constructor
      *
-     * Builds LaneUsage information for each lane and assigns them to lanes.
-     *
      * @param[in] edges The loaded edges
      * @todo Assure both containers are not 0
      */
@@ -96,13 +94,11 @@ public:
      *  all first vehicles.
      *
      * At first, this method goes through all active lanes calling their
-     *  "setCritical" implementation. If this call returns true, the lane is removed
-     *  from the list of active lanes. During this call, "myWithVehicles2Integrate"
+     *  "setCritical" implementation. During this call, "myWithVehicles2Integrate"
      *  is filled with lanes that obtain new vehicles.
      *
      * Then, myWithVehicles2Integrate is gone through, calling "integrateNewVehicle"
-     *  of each of the stored instances. If this call returns true and the lane
-     *  was not active before, it is added to the list of active lanes.
+     *  of each of the stored instances. 
      *
      * @see MSLane::setCritical
      * @see MSLane::integrateNewVehicle
@@ -140,40 +136,9 @@ public:
     std::vector<std::string> getEdgeNames() const throw();
 
 
-public:
-    /**
-     * @struct LaneUsage
-     * @brief A structure holding some basic information about a simulated lane
-     *
-     * To fasten up speed, this structure holds the number of vehicles using
-     *  a lane and the lane's neighbours. Only lanes that are occupied are
-     *  forced to compute the vehicles longitunidal movement.
-     *
-     * The information about a lane's neighbours speed up the computation
-     *  of the lane changing.
-     */
-    struct LaneUsage {
-        /// @brief The described lane
-        MSLane *lane;
-        /// @brief The lane left to the described lane (==lastNeigh if none)
-        std::vector<MSLane*>::const_iterator firstNeigh;
-        /// @brief The end of this lane's edge's lane container
-        std::vector<MSLane*>::const_iterator lastNeigh;
-        /// @brief Information whether this lane is active
-        bool amActive;
-        /// @brief Information whether this lane belongs to a multi-lane edge
-        bool haveNeighbors;
-    };
-
 private:
     /// @brief Loaded edges
     std::vector<MSEdge*> myEdges;
-
-    /// @brief Definition of a container about a lane's number of vehicles and neighbors
-    typedef std::vector<LaneUsage> LaneUsageVector;
-
-    /// @brief Information about lanes' number of vehicles and neighbors
-    LaneUsageVector myLanes;
 
     /// @brief A storage for lanes which shall be integrated because vehicles have moved onto them
     std::vector<MSLane*> myWithVehicles2Integrate;

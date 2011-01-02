@@ -132,15 +132,15 @@ public:
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
-    bool moveCritical(SUMOTime t);
+    void moveCritical(SUMOTime t);
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
-    bool setCritical(SUMOTime t, std::vector<MSLane*> &into);
+    void setCritical(SUMOTime t, std::vector<MSLane*> &into);
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
-    bool integrateNewVehicle(SUMOTime t);
+    void integrateNewVehicle(SUMOTime t);
     ///@}
 
     GUILaneWrapper *buildLaneWrapper(GUIGlObjectStorage &idStorage);

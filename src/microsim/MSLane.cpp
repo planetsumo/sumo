@@ -487,7 +487,7 @@ MSLane::getLastVehicleInformation() const throw() {
 
 
 // ------  ------
-bool
+void
 MSLane::moveCritical(SUMOTime t) {
     myLeftVehLength = myVehicleLengthSum;
     assert(myVehicles.size()!=0);
@@ -516,7 +516,6 @@ MSLane::moveCritical(SUMOTime t) {
         myVehicles.erase(find(myVehicles.begin(), myVehicles.end(), *i));
         MSVehicleTransfer::getInstance()->addVeh(t, *i);
     }
-    return myVehicles.size()==0;
 }
 
 
@@ -566,7 +565,7 @@ getMaxSpeedRegardingNextLanes(MSVehicle& veh, SUMOReal speed, SUMOReal pos) {
 }
 
 
-bool
+void
 MSLane::setCritical(SUMOTime t, std::vector<MSLane*> &into) {
     // move critical vehicles
     int first2pop = -1;
@@ -645,7 +644,6 @@ MSLane::setCritical(SUMOTime t, std::vector<MSLane*> &into) {
             ++veh;
         }
     }
-    return myVehicles.size()==0;
 }
 
 
@@ -730,9 +728,8 @@ MSLane::appropriate(const MSVehicle *veh) {
 }
 
 
-bool
+void
 MSLane::integrateNewVehicle(SUMOTime) {
-    bool wasInactive = myVehicles.size()==0;
     sort(myVehBuffer.begin(), myVehBuffer.end(), vehicle_position_sorter());
     for (std::vector<MSVehicle*>::const_iterator i=myVehBuffer.begin(); i!=myVehBuffer.end(); ++i) {
         MSVehicle *veh = *i;
@@ -740,7 +737,6 @@ MSLane::integrateNewVehicle(SUMOTime) {
         myVehicleLengthSum += veh->getVehicleType().getLength();
     }
     myVehBuffer.clear();
-    return wasInactive&&myVehicles.size()!=0;
 }
 
 
@@ -858,13 +854,6 @@ MSLane::swapAfterLaneChange(SUMOTime) {
 GUILaneWrapper *
 MSLane::buildLaneWrapper(GUIGlObjectStorage &) {
     throw "Only within the gui-version";
-}
-
-
-void
-MSLane::init(MSEdgeControl &, std::vector<MSLane*>::const_iterator firstNeigh, std::vector<MSLane*>::const_iterator lastNeigh) {
-    myFirstNeigh = firstNeigh;
-    myLastNeigh = lastNeigh;
 }
 
 

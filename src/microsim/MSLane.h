@@ -361,14 +361,14 @@ public:
     /// @name Vehicle movement (longitudinal)
     /// @{
 
-    virtual bool moveCritical(SUMOTime t);
+    virtual void moveCritical(SUMOTime t);
 
     /** Moves the critical vehicles
         This step is done after the responds have been set */
-    virtual bool setCritical(SUMOTime t, std::vector<MSLane*> &into);
+    virtual void setCritical(SUMOTime t, std::vector<MSLane*> &into);
 
     /// Insert buffered vehicle into the real lane.
-    virtual bool integrateNewVehicle(SUMOTime t);
+    virtual void integrateNewVehicle(SUMOTime t);
     ///@}
 
 
@@ -451,7 +451,6 @@ public:
     virtual MSVehicle* getLastVehicle() const;
     virtual const MSVehicle* getFirstVehicle() const;
 
-    void init(MSEdgeControl &, std::vector<MSLane*>::const_iterator firstNeigh, std::vector<MSLane*>::const_iterator lastNeigh);
 
 
 
@@ -648,12 +647,6 @@ protected:
     /// @brief The vehicle which laps into this lane
     MSVehicle *myInlappingVehicle;
 
-
-    /// @brief The lane left to the described lane (==lastNeigh if none)
-    std::vector<MSLane*>::const_iterator myFirstNeigh;
-
-    /// @brief The end of this lane's edge's lane container
-    std::vector<MSLane*>::const_iterator myLastNeigh;
 
     /// @brief Not yet seen vehicle lengths
     SUMOReal myLeftVehLength;

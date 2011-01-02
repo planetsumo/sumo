@@ -80,13 +80,13 @@ MSInternalLane::setPassPosition(SUMOReal passPos) throw() {
 }
 
 
-bool
+void
 MSInternalLane::moveCritical(SUMOTime t) {
     assert(myVehicles.size()>0);
     if (myFoesIndex>=0) {
         (*myFoesCont)[myFoesIndex] = true;
     }
-    return MSLane::moveCritical(t);
+    MSLane::moveCritical(t);
 }
 
 
