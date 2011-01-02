@@ -55,6 +55,7 @@
 // class declarations
 // ===========================================================================
 class MSLane;
+class MSEdge;
 class MSLink;
 class MSMoveReminder;
 class MSLaneChanger;
@@ -84,6 +85,7 @@ public:
 
     /// the lane changer sets myLastLaneChangeOffset
     friend class MSLaneChanger;
+    friend class MSEdge;
 
     /** @class State
      * @brief Container that holds the vehicles driving state (position+speed).
@@ -92,6 +94,7 @@ public:
         /// @brief vehicle sets states directly
         friend class MSVehicle;
         friend class MSLaneChanger;
+        friend class MSEdge;
 
     public:
         /// Constructor.

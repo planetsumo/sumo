@@ -1017,6 +1017,14 @@ GUIVehicle::Colorer::Colorer() {
     mySchemes.push_back(GUIColorScheme("by reroute number", RGBColor(1,0,0)));
     mySchemes.back().addColor(RGBColor(1,1,0), (SUMOReal)1.);
     mySchemes.back().addColor(RGBColor(1,1,1), (SUMOReal)10.);
+    mySchemes.push_back(GUIColorScheme("by correct lane#1", RGBColor(1,0,0)));
+    mySchemes.push_back(GUIColorScheme("by lane change urgency#1", RGBColor(1,0,0)));
+    mySchemes.push_back(GUIColorScheme("by lane change distance#1", RGBColor(1,0,0)));
+    mySchemes.push_back(GUIColorScheme("LCA_AMBLOCKINGFOLLOWER#1", RGBColor(1,0,0)));
+    mySchemes.push_back(GUIColorScheme("LCA_AMBACKBLOCKER#1", RGBColor(1,0,0)));
+    mySchemes.push_back(GUIColorScheme("LCA_AMBACKBLOCKER_STANDING#1", RGBColor(1,0,0)));
+    mySchemes.push_back(GUIColorScheme("LCA_AMBLOCKINGFOLLOWER_DONTBRAKE#1", RGBColor(1,0,0)));
+    mySchemes.push_back(GUIColorScheme("LCA_AMBLOCKINGLEADER#1", RGBColor(1,0,0)));
 }
 
 
@@ -1062,6 +1070,84 @@ GUIVehicle::Colorer::setFunctionalColor(const GUIVehicle& vehicle) const {
         SUMOReal sat = pb.distanceTo(pe) / minp.distanceTo(maxp);
         RGBColor c = RGBColor::fromHSV(hue, sat, 1.);
         glColor3d(c.red(), c.green(), c.blue());
+        return true;
+    }
+    case 19: {
+        const std::vector<MSVehicle::LaneQ> &bl = vehicle.getBestLanes();
+        for (std::vector<MSVehicle::LaneQ>::const_iterator i=bl.begin(); i!=bl.end(); ++i) {
+            if ((*i).lane==&vehicle.getLane()) {
+                if ((*i).length<200&&bl.size()!=1) {
+                    glColor3d(1, 0, 0);
+                    return true;
+                }
+            }
+        }
+        glColor3d(0, 1, 0);
+        return true;
+    }
+    case 20: {
+        if ((vehicle.getLaneChangeModel().getOwnState()&LCA_URGENT)!=0) {
+            glColor3d(0, 1, 0);
+        } else {
+            glColor3d(1, 0, 0);
+        }
+        return true;
+    }
+    case 21: {
+        SUMOReal distance = 500.;
+        const std::vector<MSVehicle::LaneQ> &bl = vehicle.getBestLanes();
+        for (std::vector<MSVehicle::LaneQ>::const_iterator i=bl.begin(); i!=bl.end(); ++i) {
+            if ((*i).lane==&vehicle.getLane()) {
+                if ((*i).bestLaneOffset==0) {
+                    glColor3d(0,1,0);
+                } else {
+                    SUMOReal v = (*i).length / 500.;
+                    glColor3d(1.-v, v, 0);
+                }
+                return true;
+            }
+        }
+        glColor3d(1,0,0);
+        return true;
+    }
+    case 22: {
+        if ((vehicle.getLaneChangeModel().getOwnState()&(LCA_AMBLOCKINGFOLLOWER|LCA_EXT_AMBLOCKINGFOLLOWER))!=0) {
+            glColor3d(0, 1, 0);
+        } else {
+            glColor3d(1, 0, 0);
+        }
+        return true;
+    }
+    case 23: {
+        if ((vehicle.getLaneChangeModel().getOwnState()&LCA_AMBACKBLOCKER)!=0) {
+            glColor3d(0, 1, 0);
+        } else {
+            glColor3d(1, 0, 0);
+        }
+        return true;
+    }
+    case 24: {
+        if ((vehicle.getLaneChangeModel().getOwnState()&LCA_AMBACKBLOCKER_STANDING)!=0) {
+            glColor3d(0, 1, 0);
+        } else {
+            glColor3d(1, 0, 0);
+        }
+        return true;
+    }
+    case 25: {
+        if ((vehicle.getLaneChangeModel().getOwnState()&(LCA_AMBLOCKINGFOLLOWER_DONTBRAKE|LCA_EXT_AMBLOCKINGFOLLOWER_DONTBRAKE))!=0) {
+            glColor3d(0, 1, 0);
+        } else {
+            glColor3d(1, 0, 0);
+        }
+        return true;
+    }
+    case 26: {
+        if ((vehicle.getLaneChangeModel().getOwnState()&(LCA_AMBLOCKINGLEADER | LCA_EXT_AMBLOCKINGLEADER))!=0) {
+            glColor3d(0, 1, 0);
+        } else {
+            glColor3d(1, 0, 0);
+        }
         return true;
     }
     }

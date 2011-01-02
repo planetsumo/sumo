@@ -46,7 +46,15 @@ enum MyLCAEnum {
     // !!! never read LCA_KEEP1 = 65536,// 8
     // !!! never used LCA_KEEP2 = 131072,// 9
     LCA_AMBACKBLOCKER = 262144,// 10
-    LCA_AMBACKBLOCKER_STANDING = 524288// 11
+    LCA_AMBACKBLOCKER_STANDING = 524288,// 11
+
+
+    LCA_TLS_CONTROLLED = 1048576,// 11
+    LCA_EXT_AMBLOCKINGFOLLOWER = 2097152,
+    LCA_EXT_AMBLOCKINGFOLLOWER_DONTBRAKE = 4194304,
+    LCA_EXT_AMBLOCKINGLEADER = 8388608,
+
+    LCA_POSTSET = /*LCA_AMBLOCKINGLEADER | */LCA_EXT_AMBLOCKINGFOLLOWER | LCA_EXT_AMBLOCKINGFOLLOWER_DONTBRAKE | LCA_EXT_AMBLOCKINGLEADER
 
 };
 
@@ -73,7 +81,7 @@ public:
         const std::pair<MSVehicle*, SUMOReal> &neighFollow,
         const MSLane &neighLane,
         const std::vector<MSVehicle::LaneQ> &preb,
-        MSVehicle **lastBlocked);
+        std::vector< MSEdge::KeptVehInfo > &wantedChanges, std::vector< MSEdge::KeptVehInfo >::iterator &wantedChangesIt);
 
     /** @brief Called to examine whether the vehicle wants to change to left
         This method gets the information about the surrounding vehicles
@@ -85,7 +93,7 @@ public:
         const std::pair<MSVehicle*, SUMOReal> &neighFollow,
         const MSLane &neighLane,
         const std::vector<MSVehicle::LaneQ> &preb,
-        MSVehicle **lastBlocked);
+        std::vector< MSEdge::KeptVehInfo > &wantedChanges, std::vector< MSEdge::KeptVehInfo >::iterator &wantedChangesIt);
 
     virtual void *inform(void *info, MSVehicle *sender);
 

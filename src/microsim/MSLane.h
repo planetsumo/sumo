@@ -73,6 +73,7 @@ class OutputDevice;
 class MSLane {
 public:
     /// needs access to myTmpVehicles (this maybe should be done via SUMOReal-buffering!!!)
+    friend class MSEdge;
     friend class MSLaneChanger;
 
     friend class GUILaneWrapper;

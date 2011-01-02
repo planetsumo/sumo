@@ -99,20 +99,32 @@ MSEdgeControl::patchActiveLanes() throw() {
 
 void
 MSEdgeControl::moveCritical(SUMOTime t) throw() {
-    for (std::list<MSLane*>::iterator i=myActiveLanes.begin(); i!=myActiveLanes.end();) {
-        if ((*i)->getVehicleNumber()==0 || (*i)->moveCritical(t)) {
-            myLanes[(*i)->getNumericalID()].amActive = false;
-            i = myActiveLanes.erase(i);
-        } else {
-            ++i;
-        }
+    for (std::vector<MSEdge*>::iterator i=myEdges.begin(); i!=myEdges.end(); ++i) {
+        (*i)->move1(t);
     }
+    /*
+        for (std::list<MSLane*>::iterator i=myActiveLanes.begin(); i!=myActiveLanes.end();) {
+            if ((*i)->getVehicleNumber()==0 || (*i)->moveCritical(t)) {
+                myLanes[(*i)->getNumericalID()].amActive = false;
+                i = myActiveLanes.erase(i);
+            } else {
+                ++i;
+            }
+        }
+    */
 }
 
 
 void
 MSEdgeControl::moveFirst(SUMOTime t) throw() {
     myWithVehicles2Integrate.clear();
+    for (std::vector<MSEdge*>::iterator i=myEdges.begin(); i!=myEdges.end(); ++i) {
+        const std::vector<MSLane*> &lanes = (*i)->getLanes();
+        for (std::vector<MSLane*>::const_iterator j=lanes.begin(); j!=lanes.end(); ++j) {
+            (*j)->setCritical(t, myWithVehicles2Integrate);
+        }
+    }
+    /*
     for (std::list<MSLane*>::iterator i=myActiveLanes.begin(); i!=myActiveLanes.end();) {
         if ((*i)->getVehicleNumber()==0 || (*i)->setCritical(t, myWithVehicles2Integrate)) {
             myLanes[(*i)->getNumericalID()].amActive = false;
@@ -121,6 +133,7 @@ MSEdgeControl::moveFirst(SUMOTime t) throw() {
             ++i;
         }
     }
+    */
     for (std::vector<MSLane*>::iterator i=myWithVehicles2Integrate.begin(); i!=myWithVehicles2Integrate.end(); ++i) {
         if ((*i)->integrateNewVehicle(t)) {
             LaneUsage &lu = myLanes[(*i)->getNumericalID()];
@@ -139,6 +152,7 @@ MSEdgeControl::moveFirst(SUMOTime t) throw() {
 
 void
 MSEdgeControl::changeLanes(SUMOTime t) throw() {
+    /*
     std::vector<MSLane*> toAdd;
     for (std::list<MSLane*>::iterator i=myActiveLanes.begin(); i!=myActiveLanes.end();) {
         LaneUsage &lu = myLanes[(*i)->getNumericalID()];
@@ -164,6 +178,7 @@ MSEdgeControl::changeLanes(SUMOTime t) throw() {
     for (std::vector<MSLane*>::iterator i=toAdd.begin(); i!=toAdd.end(); ++i) {
         myActiveLanes.push_front(*i);
     }
+    */
 }
 
 

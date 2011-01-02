@@ -238,6 +238,10 @@ public:
         return MAX2((SUMOReal) 0, (speed * speed / getMaxDecel()) + speed * getTau() - (leaderSpeed * leaderSpeed / leaderMaxDecel));
     }
 
+    SUMOReal getSecureGap3(const SUMOReal speed, const SUMOReal leaderSpeed, const SUMOReal leaderMaxDecel) const throw() {
+        return MAX2((SUMOReal) 0, (speed * speed / getMaxDecel()) - (leaderSpeed * leaderSpeed / leaderMaxDecel));
+    }
+
 
     /** @brief Returns the velocity after maximum deceleration
      * @param[in] v The velocity

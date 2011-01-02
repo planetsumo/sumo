@@ -33,6 +33,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <deque>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/ValueTimeLine.h>
@@ -106,6 +107,38 @@ public:
     /// @brief Destructor.
     virtual ~MSEdge() throw();
 
+	class KeptVehInfo {
+	public:
+		KeptVehInfo(SUMOReal pos_, SUMOReal speed_, SUMOReal decel_, SUMOReal length_)
+			: pos(pos_), speed(speed_), decel(decel_), length(length_) {}
+		SUMOReal pos;
+		SUMOReal speed;
+		SUMOReal decel;
+		SUMOReal length;
+	};
+
+
+    struct Supi {
+        /// the vehicle following the current vehicle
+        MSVehicle*                follower;
+        /// the lane the vehicle is on
+        MSLane*                   lane;
+        /// the regarded vehicle
+        std::deque< MSVehicle* >::iterator veh;
+        std::deque< MSVehicle* >::iterator vehEnd;
+        SUMOReal leftVehicleLength;
+        std::vector<MSVehicle*> collisions;
+        std::deque< MSVehicle* > vehicleBuffer;
+		std::vector< KeptVehInfo > wantedChanges;
+		std::vector< KeptVehInfo >::iterator wantedChangesIt;
+		std::vector< KeptVehInfo > nextWantedChanges;
+    };
+
+    std::vector<Supi> mySupis;
+    bool myAllowsSwap;
+
+
+    void move1(SUMOTime t);
 
     /** @brief Initialize the edge.
      *
@@ -372,7 +405,16 @@ public:
 
     void rebuildAllowedLanes() throw();
 
-
+    std::pair<MSVehicle * const, SUMOReal> getRealLeader(const Supi &target, MSVehicle *vehicle, MSLane *lane) const throw();
+    std::pair<MSVehicle * const, SUMOReal> getRealFollower(const Supi &target, MSVehicle *vehicle, MSLane *lane) const throw();
+    int change2right(MSVehicle *vehicle, Supi &source, Supi &destination,
+                     const std::pair<MSVehicle * const, SUMOReal> &leader,
+                     const std::pair<MSVehicle * const, SUMOReal> &rLead,
+                     const std::pair<MSVehicle * const, SUMOReal> &rFollow) const throw();
+    int change2left(MSVehicle *vehicle, Supi &source, Supi &destination,
+                    const std::pair<MSVehicle * const, SUMOReal> &leader,
+                    const std::pair<MSVehicle * const, SUMOReal> &rLead,
+                    const std::pair<MSVehicle * const, SUMOReal> &rFollow) const throw();
 
     /** @brief Inserts edge into the static dictionary
         Returns true if the key id isn't already in the dictionary. Otherwise

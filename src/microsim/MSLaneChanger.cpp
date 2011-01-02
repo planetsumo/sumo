@@ -497,8 +497,8 @@ MSLaneChanger::change2right(const std::pair<MSVehicle * const, SUMOReal> &leader
     }
 
     MSAbstractLaneChangeModel::MSLCMessager msg(leader.first, rLead.first, rFollow.first);
-    return blocked | veh(myCandi)->getLaneChangeModel().wantsChangeToRight(
-               msg, blocked, leader, rLead, rFollow, *(myCandi-1)->lane, preb, &(myCandi->lastBlocked));
+    return blocked/* | veh(myCandi)->getLaneChangeModel().wantsChangeToRight(
+               msg, blocked, leader, rLead, rFollow, *(myCandi-1)->lane, preb, &(myCandi->lastBlocked))*/;
 }
 
 
@@ -537,8 +537,8 @@ MSLaneChanger::change2left(const std::pair<MSVehicle * const, SUMOReal> &leader,
         }
     }
     MSAbstractLaneChangeModel::MSLCMessager msg(leader.first, rLead.first, rFollow.first);
-    return blocked | veh(myCandi)->getLaneChangeModel().wantsChangeToLeft(
-               msg, blocked, leader, rLead, rFollow, *(myCandi+1)->lane, preb, &(myCandi->lastBlocked));
+    return blocked /*| veh(myCandi)->getLaneChangeModel().wantsChangeToLeft(
+               msg, blocked, leader, rLead, rFollow, *(myCandi+1)->lane, preb, &(myCandi->lastBlocked))*/;
 }
 
 

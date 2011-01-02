@@ -744,7 +744,7 @@ MSVehicle::moveFirstChecked() {
         }
     }
     assert(myTarget==0||myTarget->getLength()>=myState.myPos);
-    setBlinkerInformation();
+    //setBlinkerInformation();
     return false;
 }
 
