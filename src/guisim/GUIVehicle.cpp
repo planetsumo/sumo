@@ -49,6 +49,7 @@
 #include <utils/gui/div/GLHelper.h>
 #include <foreign/polyfonts/polyfonts.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
+#include <microsim/MSLCM_DK2004.h>
 
 
 #ifdef CHECK_MEMORY_LEAKS
