@@ -151,38 +151,6 @@ MSEdgeControl::moveFirst(SUMOTime t) throw() {
 
 
 void
-MSEdgeControl::changeLanes(SUMOTime t) throw() {
-    /*
-    std::vector<MSLane*> toAdd;
-    for (std::list<MSLane*>::iterator i=myActiveLanes.begin(); i!=myActiveLanes.end();) {
-        LaneUsage &lu = myLanes[(*i)->getNumericalID()];
-        if (lu.haveNeighbors) {
-            MSEdge &edge = (*i)->getEdge();
-            if (myLastLaneChange[edge.getNumericalID()]!=t) {
-                myLastLaneChange[edge.getNumericalID()] = t;
-                edge.changeLanes(t);
-                const std::vector<MSLane*> &lanes = edge.getLanes();
-                for (std::vector<MSLane*>::const_iterator i=lanes.begin(); i!=lanes.end(); ++i) {
-                    LaneUsage &lu = myLanes[(*i)->getNumericalID()];
-                    if ((*i)->getVehicleNumber()>0 && !lu.amActive) {
-                        toAdd.push_back(*i);
-                        lu.amActive = true;
-                    }
-                }
-            }
-            ++i;
-        } else {
-            i = myActiveLanes.end();
-        }
-    }
-    for (std::vector<MSLane*>::iterator i=toAdd.begin(); i!=toAdd.end(); ++i) {
-        myActiveLanes.push_front(*i);
-    }
-    */
-}
-
-
-void
 MSEdgeControl::detectCollisions(SUMOTime timestep) throw() {
     // Detections is made by the edge's lanes, therefore hand over.
     for (std::list<MSLane*>::iterator i = myActiveLanes.begin(); i != myActiveLanes.end(); ++i) {

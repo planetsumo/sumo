@@ -33,7 +33,6 @@
 #include <algorithm>
 #include <microsim/MSEdge.h>
 #include <microsim/MSJunction.h>
-#include <microsim/MSLaneChanger.h>
 #include <microsim/MSGlobals.h>
 #include <utils/gui/globjects/GUIGlObjectStorage.h>
 #include <utils/gui/globjects/GUIGLObjectPopupMenu.h>

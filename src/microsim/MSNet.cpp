@@ -355,9 +355,6 @@ MSNet::simulationStep() {
             myEdges->detectCollisions(myStep);
         }
 
-        // Vehicles change Lanes (maybe)
-        myEdges->changeLanes(myStep);
-
         if (MSGlobals::gCheck4Accidents) {
             myEdges->detectCollisions(myStep);
         }

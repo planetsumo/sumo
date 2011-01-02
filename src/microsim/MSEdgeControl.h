@@ -131,17 +131,6 @@ public:
     /// @}
 
 
-    /** @brief Moves (precomputes) critical vehicles
-     *
-     * Calls "changeLanes" of each of the multi-lane edges. Check then for this
-     *  edge whether a lane got active, adding it to "myActiveLanes" and marking
-     *  it as active in such cases.
-     *
-     * @see MSEdge::changeLanes
-     */
-    void changeLanes(SUMOTime t) throw();
-
-
     /** @brief Detect collisions
      *
      * Calls "detectCollisions" of each lane.

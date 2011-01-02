@@ -44,7 +44,6 @@
 // class declarations
 // ===========================================================================
 class MSLane;
-class MSLaneChanger;
 class OutputDevice;
 class SUMOVehicle;
 class SUMOVehicleParameter;
@@ -391,9 +390,6 @@ public:
     /// @}
 
 
-    /** @brief Performs lane changing on this edge */
-    virtual void changeLanes(SUMOTime t) throw();
-
 
 #ifdef HAVE_INTERNAL_LANES
     /// @extension: inner junctions are not filled
@@ -504,9 +500,6 @@ protected:
 
     /// @brief Lane from which vehicles will depart, usually the rightmost
     MSLane* myDepartLane;
-
-    /// @brief This member will do the lane-change
-    MSLaneChanger* myLaneChanger;
 
     /// @brief the purpose of the edge
     EdgeBasicFunction myFunction;

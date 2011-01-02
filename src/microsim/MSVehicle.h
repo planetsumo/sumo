@@ -58,7 +58,6 @@ class MSLane;
 class MSEdge;
 class MSLink;
 class MSMoveReminder;
-class MSLaneChanger;
 class MSVehicleTransfer;
 class MSAbstractLaneChangeModel;
 class MSBusStop;
@@ -84,7 +83,6 @@ class MSVehicle : public MSBaseVehicle {
 public:
 
     /// the lane changer sets myLastLaneChangeOffset
-    friend class MSLaneChanger;
     friend class MSEdge;
 
     /** @class State
@@ -93,7 +91,6 @@ public:
     class State {
         /// @brief vehicle sets states directly
         friend class MSVehicle;
-        friend class MSLaneChanger;
         friend class MSEdge;
 
     public:

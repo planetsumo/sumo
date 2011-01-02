@@ -29,7 +29,6 @@
 
 #include "MSEdge.h"
 #include "MSLane.h"
-#include "MSLaneChanger.h"
 #include "MSGlobals.h"
 #include <algorithm>
 #include <iostream>
@@ -69,12 +68,11 @@ std::vector<MSEdge*> MSEdge::myEdges;
 // ===========================================================================
 MSEdge::MSEdge(const std::string &id, unsigned int numericalID) throw()
         : myID(id), myNumericalID(numericalID), myLanes(0),
-        myLaneChanger(0), myVaporizationRequests(0), myLastFailedEmissionTime(-1) {
+        myVaporizationRequests(0), myLastFailedEmissionTime(-1) {
 }
 
 
 MSEdge::~MSEdge() throw() {
-    delete myLaneChanger;
     for (AllowedLanesCont::iterator i1=myAllowed.begin(); i1!=myAllowed.end(); i1++) {
         delete(*i1).second;
     }
@@ -100,9 +98,6 @@ MSEdge::initialize(MSLane* departLane,
         supi.lane = *i;
         supi.veh = (*i)->myVehicles.end();
         mySupis.push_back(supi);
-    }
-    if (myLanes && myLanes->size() > 1 && function!=EDGEFUNCTION_INTERNAL) {
-        myLaneChanger = new MSLaneChanger(myLanes, OptionsCont::getOptions().getBool("lanechange.allow-swap"));
     }
 }
 
@@ -786,17 +781,6 @@ MSEdge::emit(SUMOVehicle &v, SUMOTime time) const throw(ProcessError) {
     MSLane* emitLane = getDepartLane(static_cast<MSVehicle&>(v));
     return emitLane != 0 && emitLane->emit(static_cast<MSVehicle&>(v));
 }
-
-
-void
-MSEdge::changeLanes(SUMOTime t) throw() {
-    if (myFunction==EDGEFUNCTION_INTERNAL) {
-        return;
-    }
-    assert(myLaneChanger != 0);
-    myLaneChanger->laneChange(t);
-}
-
 
 
 #ifdef HAVE_INTERNAL_LANES

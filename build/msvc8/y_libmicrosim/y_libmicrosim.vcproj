@@ -856,10 +856,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\MSLaneChanger.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\src\microsim\MSLCM_DK2004.h"
 				>
 			</File>
