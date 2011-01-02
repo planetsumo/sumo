@@ -51,16 +51,6 @@ class BinaryInputDevice;
 /**
  * @class MSEdgeControl
  * @brief Stores edges and lanes, performs moving of vehicle
- *
- * In order to avoid touching all lanes, even the empty ones, this class stores
- *  and updates the information about "active" lanes, those that have at least
- *  one vehicle on them. During longitudinal movement, this can be simply
- *  achieved through return values of the MSLane-methods, signalling either
- *  that the lane got active or inactive. This is but not possible when
- *  changing lanes, we have to go through the lanes, here. Also, we have to
- *  add lanes on which a vehicle was emitted, separately, doing this into
- *  ("myChangedStateLanes") which entries are integrated at the begin of is step
- *  in "patchActiveLanes".
  */
 class MSEdgeControl {
 public:
@@ -80,15 +70,6 @@ public:
 
     /// @brief Destructor.
     ~MSEdgeControl() throw();
-
-
-    /** @brief Resets information whether a lane is active for all lanes
-     *
-     * For each lane in "myChangedStateLanes": if the lane has at least one vehicle
-     *  and is not marked as being active, it is added to the list og active lanes
-     *  and marked as being active.
-     */
-    void patchActiveLanes() throw();
 
 
     /// @name Interfaces for longitudinal vehicle movement
@@ -159,14 +140,6 @@ public:
     std::vector<std::string> getEdgeNames() const throw();
 
 
-    /** @brief Informs the control that the given lane got active
-     *
-     * @param[in] l The activated lane
-     * @todo Check for l==0?
-     */
-    void gotActive(MSLane *l) throw();
-
-
 public:
     /**
      * @struct LaneUsage
@@ -202,17 +175,8 @@ private:
     /// @brief Information about lanes' number of vehicles and neighbors
     LaneUsageVector myLanes;
 
-    /// @brief The list of active (not empty) lanes
-    std::list<MSLane*> myActiveLanes;
-
     /// @brief A storage for lanes which shall be integrated because vehicles have moved onto them
     std::vector<MSLane*> myWithVehicles2Integrate;
-
-    /// @brief Lanes which changed the state without informing the control
-    std::set<MSLane*> myChangedStateLanes;
-
-    /// @brief The list of active (not empty) lanes
-    std::vector<SUMOTime> myLastLaneChange;
 
 private:
     /// @brief Copy constructor.

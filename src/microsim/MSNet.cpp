@@ -340,9 +340,6 @@ MSNet::simulationStep() {
     } else {
 #endif
 
-        // assure all lanes with vehicles are 'active'
-        myEdges->patchActiveLanes();
-
         // move vehicles
         //  precompute possible positions for vehicles that do interact with
         //   their lane's end

@@ -424,7 +424,6 @@ MSLane::isEmissionSuccess(MSVehicle* aVehicle,
     }
     // enter
     aVehicle->enterLaneAtEmit(this, pos, speed);
-    bool wasInactive = myVehicles.size()==0;
     if (predIt==myVehicles.end()) {
         // vehicle will be the first on the lane
         myVehicles.push_back(aVehicle);
@@ -432,9 +431,6 @@ MSLane::isEmissionSuccess(MSVehicle* aVehicle,
         myVehicles.insert(predIt, aVehicle);
     }
     myVehicleLengthSum += aVehicle->getVehicleType().getLength();
-    if (wasInactive) {
-        MSNet::getInstance()->getEdgeControl().gotActive(this);
-    }
     return true;
 }
 
@@ -442,7 +438,6 @@ MSLane::isEmissionSuccess(MSVehicle* aVehicle,
 void
 MSLane::forceVehicleInsertion(MSVehicle *veh, SUMOReal pos) throw() {
     veh->enterLaneAtEmit(this, pos, veh->getSpeed());
-    bool wasInactive = myVehicles.size()==0;
     MSLane::VehCont::iterator predIt = find_if(myVehicles.begin(), myVehicles.end(), bind2nd(VehPosition(), pos));
     if (predIt==myVehicles.end()) {
         myVehicles.push_back(veh);
@@ -450,9 +445,6 @@ MSLane::forceVehicleInsertion(MSVehicle *veh, SUMOReal pos) throw() {
         myVehicles.insert(predIt, veh);
     }
     myVehicleLengthSum += veh->getVehicleType().getLength();
-    if (wasInactive) {
-        MSNet::getInstance()->getEdgeControl().gotActive(this);
-    }
 }
 
 
