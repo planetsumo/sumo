@@ -106,6 +106,94 @@ MSLane::addMoveReminder(MSMoveReminder* rem) throw() {
 
 
 // ------ Vehicle emission ------
+void
+MSLane::incorporateVehicle(MSVehicle *veh, SUMOReal pos, SUMOReal speed, const MSLane::VehCont::iterator &at) {
+    veh->enterLaneAtEmit(this, pos, speed);
+    if (at==myVehicles.end()) {
+        // vehicle will be the first on the lane
+        myVehicles.push_back(veh);
+    } else {
+        myVehicles.insert(at, veh);
+    }
+    myVehicleLengthSum += veh->getVehicleType().getLength();
+}
+
+
+bool
+MSLane::pWagEmitGeneric(MSVehicle& veh, SUMOReal mspeed, SUMOReal maxPos, SUMOReal minPos) throw() {
+	SUMOReal xIn = maxPos;
+	SUMOReal vIn = veh.getVehicleType().getMaxSpeed();
+	if (myVehicles.size()!=0) {
+		MSVehicle *leader = *myVehicles.begin();
+		xIn = leader->getPositionOnLane() - leader->getVehicleType().getLength();
+		vIn = leader->getSpeed();
+	} else {
+		// nobody in here, then proceed immediately
+		incorporateVehicle(&veh, maxPos/*0.0*/, mspeed/*veh.getVehicleType().getMaxSpeed()*/, myVehicles.end());
+		return true;
+	}
+	if (xIn<0.0||xIn<minPos) {
+		// NO: one vehicle is already waiting, skip
+		// BUT: there is no place left
+		return false;
+	}
+	int nIter = 10;
+	//xHlp = 0.0;
+	//vHlp = skCar::vMax;
+	// use a / the test vehicle. 
+	MSVehicle *leader = *myVehicles.begin();
+	SUMOReal vHlp = 0.5*(vIn + veh.getVehicleType().getMaxSpeed());
+	SUMOReal x2 = xIn;// have seen leader length already - skCar::lCar;
+	SUMOReal x1 = x2 - 100.0;
+	SUMOReal v = vIn;
+	SUMOReal x = 0;
+	for (int i=0; i<=nIter; i++) {
+		x = 0.5*(x1 + x2);
+		SUMOReal vSafe = veh.getCarFollowModel().ffeV(&veh, v, leader->getPositionOnLane() - leader->getVehicleType().getLength() - x, leader->getSpeed());
+		if (vSafe<vHlp) {
+			x2 = x;
+		} else {
+			x1 = x;
+		}
+	}
+	if(x<=maxPos&&x>=minPos) {
+		incorporateVehicle(&veh, x/*0.0*/, v/*veh.getVehicleType().getMaxSpeed()*/, myVehicles.end());
+		return true;
+	}
+	/*
+	if (xHlp>0.0)
+		xHlp = 0.0;
+	*/
+	return false;
+}
+
+
+bool
+MSLane::pWagEmitSimple(MSVehicle& veh, SUMOReal mspeed, SUMOReal maxPos, SUMOReal minPos) throw() {
+	SUMOReal xIn = maxPos;
+	SUMOReal vIn = veh.getVehicleType().getMaxSpeed();
+	//SUMOReal xHlp = 0.0;
+	//SUMOReal vHlp = veh.getVehicleType().getMaxSpeed();
+	if (myVehicles.size()!=0) {
+		MSVehicle *leader = *myVehicles.begin();
+		xIn = leader->getPositionOnLane() - leader->getVehicleType().getLength();
+		vIn = leader->getSpeed();
+	} else {
+		incorporateVehicle(&veh, maxPos/*0.0*/, mspeed/*veh.getVehicleType().getMaxSpeed()*/, myVehicles.end());
+		return true;
+	}
+	if (xIn<0.0) {
+		return false;
+	}
+	SUMOReal vHlp = 0.5*(veh.getVehicleType().getMaxSpeed() + mspeed);
+	SUMOReal xHlp = xIn - vHlp;// - skCar::lCar;
+	if (xHlp>0.0) {
+		xHlp = 0.0;
+	}
+	incorporateVehicle(&veh, xHlp, vHlp, myVehicles.end());
+	return true;
+}
+
 bool
 MSLane::freeEmit(MSVehicle& veh, SUMOReal mspeed) throw() {
     bool adaptableSpeed = true;
@@ -366,8 +454,7 @@ MSLane::isEmissionSuccess(MSVehicle* aVehicle,
     }
 
     // get the pointer to the vehicle next in front of the given position
-    MSLane::VehCont::iterator predIt =
-        find_if(myVehicles.begin(), myVehicles.end(), bind2nd(VehPosition(), pos));
+    MSLane::VehCont::iterator predIt = find_if(myVehicles.begin(), myVehicles.end(), bind2nd(VehPosition(), pos));
     if (predIt != myVehicles.end()) {
         // ok, there is one (a leader)
         MSVehicle* leader = *predIt;
@@ -423,6 +510,7 @@ MSLane::isEmissionSuccess(MSVehicle* aVehicle,
         return false;
     }
     // enter
+	incorporateVehicle(aVehicle, pos, speed, predIt);
     aVehicle->enterLaneAtEmit(this, pos, speed);
     if (predIt==myVehicles.end()) {
         // vehicle will be the first on the lane
@@ -437,14 +525,7 @@ MSLane::isEmissionSuccess(MSVehicle* aVehicle,
 
 void
 MSLane::forceVehicleInsertion(MSVehicle *veh, SUMOReal pos) throw() {
-    veh->enterLaneAtEmit(this, pos, veh->getSpeed());
-    MSLane::VehCont::iterator predIt = find_if(myVehicles.begin(), myVehicles.end(), bind2nd(VehPosition(), pos));
-    if (predIt==myVehicles.end()) {
-        myVehicles.push_back(veh);
-    } else {
-        myVehicles.insert(predIt, veh);
-    }
-    myVehicleLengthSum += veh->getVehicleType().getLength();
+	incorporateVehicle(veh, pos, veh->getSpeed(), find_if(myVehicles.begin(), myVehicles.end(), bind2nd(VehPosition(), pos)));
 }
 
 

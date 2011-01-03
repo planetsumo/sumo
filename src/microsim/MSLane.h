@@ -194,6 +194,8 @@ public:
     virtual bool isEmissionSuccess(MSVehicle* vehicle, SUMOReal speed, SUMOReal pos,
                                    bool recheckNextLanes) throw(ProcessError);
 
+    bool pWagEmitGeneric(MSVehicle& veh, SUMOReal speed, SUMOReal maxPos, SUMOReal minPos) throw();
+    bool pWagEmitSimple(MSVehicle& veh, SUMOReal speed, SUMOReal maxPos, SUMOReal minPos) throw();
 
     /** @brief Tries to emit the given vehicle on any place
      *
@@ -588,6 +590,7 @@ protected:
     /// moves myTmpVehicles int myVehicles after a lane change procedure
     virtual void swapAfterLaneChange(SUMOTime t);
 
+	void incorporateVehicle(MSVehicle *veh, SUMOReal pos, SUMOReal speed, const MSLane::VehCont::iterator &at);
 
 
 protected:
