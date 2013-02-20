@@ -64,7 +64,8 @@ class RORouteHandler : public SUMORouteHandler {
 public:
     /// standard constructor
     RORouteHandler(RONet& net, const std::string& file,
-                   const bool tryRepair);
+                   const bool tryRepair,
+                   const bool emptyDestinationsAllowed);
 
     /// standard destructor
     virtual ~RORouteHandler();
@@ -94,6 +95,16 @@ protected:
     //@}
 
 
+    /** @brief Called for parsing from and to and the corresponding taz attributes
+     *
+     * @param[in] element description of the currently opened element
+     * @param[in] attrs Attributes within the currently opened element
+     * @exception ProcessError If something fails
+     */
+    void parseFromTo(std::string element,
+                     const SUMOSAXAttributes& attrs);
+
+
     /** opens a type distribution for reading */
     void openVehicleTypeDistribution(const SUMOSAXAttributes& attrs);
 
@@ -108,7 +119,7 @@ protected:
         this method may throw exceptions when
         a) the route is empty or
         b) another route with the same id already exists */
-    void closeRoute();
+    void closeRoute(const bool mayBeDisconnected=false);
 
     /** opens a route distribution for reading */
     void openRouteDistribution(const SUMOSAXAttributes& attrs);
@@ -139,9 +150,6 @@ protected:
     /// @brief The current route
     std::vector<const ROEdge*> myActiveRoute;
 
-    /// @brief The parser used
-    SUMOSAXReader* myParser;
-
     /// @brief The plan of the current person
     OutputDevice_String* myActivePlan;
 
@@ -150,6 +158,9 @@ protected:
 
     /// @brief Information whether routes shall be repaired
     const bool myTryRepair;
+
+    /// @brief Information whether the "to" attribute is mandatory
+    const bool myEmptyDestinationsAllowed;
 
     /// @brief The currently parsed distribution of vehicle types (probability->vehicle type)
     RandomDistributor<SUMOVTypeParameter*>* myCurrentVTypeDistribution;

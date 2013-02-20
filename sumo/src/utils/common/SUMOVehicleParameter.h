@@ -45,25 +45,26 @@
 class OutputDevice;
 class OptionsCont;
 
+
 // ===========================================================================
 // value definitions
 // ===========================================================================
 const int VEHPARS_COLOR_SET = 1;
 const int VEHPARS_VTYPE_SET = 2;
-const int VEHPARS_DEPARTLANE_SET = 2 << 2;
-const int VEHPARS_DEPARTPOS_SET = 2 << 3;
-const int VEHPARS_DEPARTSPEED_SET = 2 << 4;
-const int VEHPARS_PERIODNUM_SET = 2 << 5;
-const int VEHPARS_PERIODFREQ_SET = 2 << 6;
-const int VEHPARS_ROUTE_SET = 2 << 7;
-const int VEHPARS_ARRIVALLANE_SET = 2 << 8;
-const int VEHPARS_ARRIVALPOS_SET = 2 << 9;
-const int VEHPARS_ARRIVALSPEED_SET = 2 << 10;
-const int VEHPARS_LINE_SET = 2 << 11;
-const int VEHPARS_TAZ_SET = 2 << 12;
-const int VEHPARS_FORCE_REROUTE = 2 << 13;
-const int VEHPARS_PERSON_CAPACITY_SET = 2 << 14;
-const int VEHPARS_PERSON_NUMBER_SET = 2 << 15;
+const int VEHPARS_DEPARTLANE_SET = 2 << 1;
+const int VEHPARS_DEPARTPOS_SET = 2 << 2;
+const int VEHPARS_DEPARTSPEED_SET = 2 << 3;
+const int VEHPARS_PERIODNUM_SET = 2 << 4;
+const int VEHPARS_PERIODFREQ_SET = 2 << 5;
+const int VEHPARS_ROUTE_SET = 2 << 6;
+const int VEHPARS_ARRIVALLANE_SET = 2 << 7;
+const int VEHPARS_ARRIVALPOS_SET = 2 << 8;
+const int VEHPARS_ARRIVALSPEED_SET = 2 << 9;
+const int VEHPARS_LINE_SET = 2 << 10;
+const int VEHPARS_TAZ_SET = 2 << 11;
+const int VEHPARS_FORCE_REROUTE = 2 << 12;
+const int VEHPARS_PERSON_CAPACITY_SET = 2 << 13;
+const int VEHPARS_PERSON_NUMBER_SET = 2 << 14;
 
 const int STOP_INDEX_END = -1;
 const int STOP_INDEX_FIT = -2;
@@ -239,13 +240,11 @@ public:
 
     /** @brief Writes the parameters as a beginning element
      *
-     * @param[in] xmlElem The name of the element to write
      * @param[in, out] dev The device to write into
      * @param[in] oc The options to get defaults from
      * @exception IOError not yet implemented
      */
-    void writeAs(const std::string& xmlElem, OutputDevice& dev,
-                 const OptionsCont& oc) const;
+    void write(OutputDevice& dev, const OptionsCont& oc) const;
 
 
     /** @brief Returns whether the defaults shall be used

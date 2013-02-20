@@ -66,9 +66,8 @@ SUMOVehicleParameter::defaultOptionOverrides(const OptionsCont& oc, const std::s
 
 
 void
-SUMOVehicleParameter::writeAs(const std::string& xmlElem, OutputDevice& dev,
-                              const OptionsCont& oc) const {
-    dev.openTag(xmlElem).writeAttr(SUMO_ATTR_ID, id);
+SUMOVehicleParameter::write(OutputDevice& dev, const OptionsCont& oc) const {
+    dev.openTag(SUMO_TAG_VEHICLE).writeAttr(SUMO_ATTR_ID, id);
     if (wasSet(VEHPARS_VTYPE_SET)) {
         dev.writeAttr(SUMO_ATTR_TYPE, vtypeid);
     }
@@ -221,17 +220,6 @@ SUMOVehicleParameter::writeAs(const std::string& xmlElem, OutputDevice& dev,
     // color
     if (wasSet(VEHPARS_COLOR_SET)) {
         dev.writeAttr(SUMO_ATTR_COLOR, color);
-    }
-    // repetition values
-    if (wasSet(VEHPARS_PERIODNUM_SET)) {
-        dev.writeAttr(SUMO_ATTR_REPNUMBER, repetitionNumber);
-    }
-    if (wasSet(VEHPARS_PERIODFREQ_SET)) {
-#ifdef HAVE_SUBSECOND_TIMESTEPS
-        dev.writeAttr(SUMO_ATTR_PERIOD, time2string(repetitionOffset));
-#else
-        dev.writeAttr(SUMO_ATTR_PERIOD, repetitionOffset);
-#endif
     }
     if (wasSet(VEHPARS_LINE_SET)) {
         dev.writeAttr(SUMO_ATTR_LINE, line);
@@ -417,5 +405,5 @@ SUMOVehicleParameter::interpretEdgePos(SUMOReal pos, SUMOReal maximumValue, Sumo
     return pos;
 }
 
-/****************************************************************************/
 
+/****************************************************************************/

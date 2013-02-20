@@ -77,9 +77,9 @@ ROVehicle::saveAllAsXML(OutputDevice& os, OutputDevice* const altos,
     }
 
     // write the vehicle (new style, with included routes)
-    myParameter.writeAs("vehicle", os, OptionsCont::getOptions());
+    myParameter.write(os, OptionsCont::getOptions());
     if (altos != 0) {
-        myParameter.writeAs("vehicle", *altos, OptionsCont::getOptions());
+        myParameter.write(*altos, OptionsCont::getOptions());
     }
 
     // check whether the route shall be saved

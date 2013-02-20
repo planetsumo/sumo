@@ -31,10 +31,6 @@
 #include <config.h>
 #endif
 
-#include <string>
-#include <set>
-#include <fstream>
-#include <deque>
 #include <vector>
 #include "ROEdge.h"
 #include "RONode.h"
@@ -235,11 +231,8 @@ public:
      * @param[in] flow The parameter of the flow to add
      * @return Whether the flow could be added
      */
-    bool addFlow(SUMOVehicleParameter* flow) {
-        return myFlows.add(flow->id, flow);
-    }
+    bool addFlow(SUMOVehicleParameter* flow, const bool randomize);
     // @}
-
 
 
     /// @name Processing stored vehicle definitions
@@ -286,44 +279,6 @@ public:
     void closeOutput();
 
 
-
-
-    /** @brief Returns a random edge which may be used as a starting point
-     *
-     * If the list of possible source (roads with no predecessor, "mySourceEdges") is empty,
-     *  it is tried to be built, first.
-     * @return A random edge from the list of edges with no predecessor
-     */
-    ROEdge* getRandomSource();
-
-
-    /** @brief Returns a random edge which may be used as a starting point
-     *
-     * If the list of possible sources (roads with no predecessor, "mySourceEdges") is empty,
-     *  it is tried to be built, first.
-     * @return A random edge from the list of edges with no predecessor
-     */
-    const ROEdge* getRandomSource() const;
-
-
-    /** @brief Returns a random edge which may be used as an ending point
-     *
-     * If the list of possible destinations (roads with no successor, "myDestinationEdges") is empty,
-     *  it is tried to be built, first.
-     * @return A random edge from the list of edges with no successor
-     */
-    ROEdge* getRandomDestination();
-
-
-    /** @brief Returns a random edge which may be used as an ending point
-     *
-     * If the list of possible destinations (roads with no successor, "myDestinationEdges") is empty,
-     *  it is tried to be built, first.
-     * @return A random edge from the list of edges with no successor
-     */
-    const ROEdge* getRandomDestination() const;
-
-
     /// Returns the number of edges thenetwork contains
     unsigned int getEdgeNo() const;
 
@@ -337,14 +292,13 @@ protected:
     bool computeRoute(OptionsCont& options,
                       SUMOAbstractRouter<ROEdge, ROVehicle>& router, const ROVehicle* const veh);
 
-    /// Initialises the lists of source and destination edges
-    void checkSourceAndDestinations() const;
-
-
     /// @brief return vehicles for use by RouteAggregator
     ROVehicleCont& getVehicles() {
         return myVehicles;
     }
+
+
+    void checkFlows(SUMOTime time);
 
 
 protected:
@@ -377,11 +331,8 @@ protected:
     /// @brief Known flows
     NamedObjectCont<SUMOVehicleParameter*> myFlows;
 
-    /// @brief List of source edges
-    mutable std::vector<ROEdge*> mySourceEdges;
-
-    /// @brief List of destination edges
-    mutable std::vector<ROEdge*> myDestinationEdges;
+    /// @brief Departure times for randomized flows
+    std::map<std::string, std::vector<SUMOTime> > myDepartures;
 
     /// @brief The file to write the computed routes into
     OutputDevice* myRoutesOutput;
