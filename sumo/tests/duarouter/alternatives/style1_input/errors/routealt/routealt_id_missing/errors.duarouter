@@ -1,2 +1,4 @@
 Error: Attribute 'id' is missing in definition of a routeDistribution.
+Error: Attribute 'id' is missing in definition of a route.
+Error: Route '' has no edges.
 Quitting (on error).

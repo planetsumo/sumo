@@ -1,2 +1,4 @@
 Error: Negative index of a route alternative (id='1').
+Error: Attribute 'id' is missing in definition of a route.
+Error: Route '' has no edges.
 Quitting (on error).

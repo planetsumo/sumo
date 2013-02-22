@@ -205,7 +205,7 @@ RORouteHandler::openRoute(const SUMOSAXAttributes& attrs) {
         }
     } else {
         bool ok = true;
-        myActiveRouteID = attrs.get<std::string>(SUMO_ATTR_ID, 0, ok, false);
+        myActiveRouteID = attrs.get<std::string>(SUMO_ATTR_ID, 0, ok);
         if (!ok) {
             return;
         }
@@ -221,6 +221,9 @@ RORouteHandler::openRoute(const SUMOSAXAttributes& attrs) {
     myActiveRouteRefID = attrs.getOpt<std::string>(SUMO_ATTR_REFID, myActiveRouteID.c_str(), ok, "");
     if (myActiveRouteRefID != "" && myNet.getRouteDef(myActiveRouteRefID) == 0) {
         throw ProcessError("Invalid reference to route '" + myActiveRouteRefID + "' in route " + rid + ".");
+    }
+    if (myCurrentAlternatives != 0 && !attrs.hasAttribute(SUMO_ATTR_PROB)) {
+        WRITE_WARNING("No probability for a route in '" + rid + "', using default.");
     }
     myActiveRouteProbability = attrs.getOpt<SUMOReal>(SUMO_ATTR_PROB, myActiveRouteID.c_str(), ok, DEFAULT_VEH_PROB);
     if (ok && myActiveRouteProbability < 0) {
