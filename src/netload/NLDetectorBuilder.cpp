@@ -369,7 +369,7 @@ NLDetectorBuilder::buildRouteProbe(const std::string& id, const std::string& edg
 
 
 // -------------------
-MSDetectorFileOutput*
+MSE2Collector*
 NLDetectorBuilder::buildSingleLaneE2Det(const std::string& id,
                                         DetectorUsage usage,
                                         MSLane* lane, SUMOReal pos, SUMOReal length,
@@ -419,7 +419,7 @@ NLDetectorBuilder::createMEInductLoop(const std::string& id,
 #endif
 
 
-MSDetectorFileOutput*
+MSE2Collector*
 NLDetectorBuilder::createSingleLaneE2Detector(const std::string& id,
         DetectorUsage usage, MSLane* lane, SUMOReal pos, SUMOReal length,
         SUMOTime haltingTimeThreshold, SUMOReal haltingSpeedThreshold, SUMOReal jamDistThreshold) {

@@ -85,7 +85,7 @@ GUIDetectorBuilder::createMEInductLoop(const std::string& id,
 #endif
 
 
-MSDetectorFileOutput*
+MSE2Collector*
 GUIDetectorBuilder::createSingleLaneE2Detector(const std::string& id,
         DetectorUsage usage, MSLane* lane, SUMOReal pos, SUMOReal length,
         SUMOTime haltingTimeThreshold,

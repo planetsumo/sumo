@@ -37,7 +37,8 @@
 #include <map>
 #include <microsim/MSEventControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
-#include "MSSimpleTrafficLightLogic.h"
+// #include "MSSimpleTrafficLightLogic.h"
+#include "MSPhasedTrafficLightLogic.h"
 #include <microsim/output/MSInductLoop.h>
 
 
@@ -54,7 +55,8 @@ class NLDetectorBuilder;
  * @class MSActuatedTrafficLightLogic
  * @brief An actuated (adaptive) traffic light logic
  */
-class MSActuatedTrafficLightLogic : public MSSimpleTrafficLightLogic {
+// class MSActuatedTrafficLightLogic : public MSSimpleTrafficLightLogic {
+class MSActuatedTrafficLightLogic : public MSPhasedTrafficLightLogic {
 public:
     /// @brief Definition of a map from lanes to induct loops lying on them
     typedef std::map<MSLane*, MSInductLoop*> InductLoopMap;
@@ -71,7 +73,8 @@ public:
      */
     MSActuatedTrafficLightLogic(MSTLLogicControl& tlcontrol,
                                 const std::string& id, const std::string& programID,
-                                const MSSimpleTrafficLightLogic::Phases& phases,
+                                //const MSSimpleTrafficLightLogic::Phases& phases,
+								const MSPhasedTrafficLightLogic::Phases& phases,
                                 unsigned int step, SUMOTime delay,
                                 const ParameterMap& parameter);
 

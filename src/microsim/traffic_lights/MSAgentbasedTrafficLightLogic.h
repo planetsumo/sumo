@@ -37,7 +37,8 @@
 #include <bitset>
 #include <map>
 #include "MSTrafficLightLogic.h"
-#include "MSSimpleTrafficLightLogic.h"
+//#include "MSSimpleTrafficLightLogic.h"
+#include "MSPhasedTrafficLightLogic.h"
 #include <microsim/output/MS_E2_ZS_CollectorOverLanes.h>
 
 
@@ -57,7 +58,7 @@ class NLDetectorBuilder;
  * @brief An agentbased traffic light logic
  */
 class MSAgentbasedTrafficLightLogic :
-    public MSSimpleTrafficLightLogic {
+    public MSPhasedTrafficLightLogic {
 public:
     /// @brief Definition of a map from lanes to lane state detectors lying on them
     typedef std::map<MSLane*, MS_E2_ZS_CollectorOverLanes*> E2DetectorMap;
@@ -83,7 +84,7 @@ public:
      */
     MSAgentbasedTrafficLightLogic(MSTLLogicControl& tlcontrol,
                                   const std::string& id, const std::string& programID,
-                                  const MSSimpleTrafficLightLogic::Phases& phases,
+                                  const MSPhasedTrafficLightLogic::Phases& phases,
                                   unsigned int step, SUMOTime delay,
                                   const ParameterMap& parameter);
 

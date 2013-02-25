@@ -58,7 +58,7 @@ MSActuatedTrafficLightLogic::MSActuatedTrafficLightLogic(MSTLLogicControl& tlcon
         const Phases& phases,
         unsigned int step, SUMOTime delay, 
         const ParameterMap& parameter) : 
-    MSSimpleTrafficLightLogic(tlcontrol, id, programID, phases, step, delay, parameter),
+    MSPhasedTrafficLightLogic(tlcontrol, id, programID, phases, step, delay, parameter),
     myContinue(false) 
 {
     myMaxGap = SUMOReal(3.1);

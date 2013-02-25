@@ -4,6 +4,8 @@
 /// @author  Jakob Erdmann
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
+/// @author  Gianfilippo Slager
+/// @author  Anna Chiara Bellini
 /// @date    Mon, 9 Jul 2001
 /// @version $Id$
 ///
@@ -43,6 +45,10 @@
 #include <microsim/MSJunctionControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSSimpleTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSSOTLRequestTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSSOTLPhaseTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSSOTLPlatoonTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSSwarmTrafficLightLogic.h>
 #include <microsim/MSEventControl.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/traffic_lights/MSAgentbasedTrafficLightLogic.h>
@@ -241,6 +247,18 @@ NLJunctionControlBuilder::closeTrafficLightLogic() throw(InvalidArgument, Proces
     MSTrafficLightLogic* tlLogic = 0;
     // build the tls-logic in dependance to its type
     switch (myLogicType) {
+		case TLTYPE_SWARM_BASED:
+			tlLogic = new MSSwarmTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			break;
+		case TLTYPE_SOTL_REQUEST:
+			tlLogic = new MSSOTLRequestTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			break;
+		case TLTYPE_SOTL_PLATOON:
+			tlLogic = new MSSOTLPlatoonTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			break;
+		case TLYPE_SOTL_PHASE:
+			tlLogic = new MSSOTLPhaseTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			break;
         case TLTYPE_ACTUATED:
             tlLogic = new MSActuatedTrafficLightLogic(getTLLogicControlToUse(),
                     myActiveKey, myActiveProgram,
@@ -343,6 +361,23 @@ NLJunctionControlBuilder::initTrafficLightLogic(const std::string& id, const std
     myLogicType = type;
     myOffset = offset;
     myAdditionalParameter.clear();
+}
+
+
+void
+NLJunctionControlBuilder::addPhase(SUMOTime duration, const std::string &state, int minDuration, int maxDuration, bool transient_notdecisional, bool commit) throw () {
+	// build and add the phase definition to the list
+	myActivePhases.push_back(new MSPhaseDefinition(duration, minDuration, maxDuration, state, transient_notdecisional, commit));
+    // add phase duration to the absolute duration
+    myAbsDuration += duration;
+}
+
+void
+NLJunctionControlBuilder::addPhase(SUMOTime duration, const std::string &state, int minDuration, int maxDuration, bool transient_notdecisional, bool commit, MSPhaseDefinition::LaneIdVector &targetLanes) throw () {
+	// build and add the phase definition to the list
+	myActivePhases.push_back(new MSPhaseDefinition(duration, minDuration, maxDuration, state, transient_notdecisional, commit, targetLanes));
+    // add phase duration to the absolute duration
+    myAbsDuration += duration;
 }
 
 

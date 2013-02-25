@@ -56,7 +56,7 @@ MSAgentbasedTrafficLightLogic::MSAgentbasedTrafficLightLogic(
     const std::string& id, const std::string& programID,
     const Phases& phases, unsigned int step, SUMOTime delay,
     const ParameterMap& parameter) : 
-    MSSimpleTrafficLightLogic(tlcontrol, id, programID, phases, step, delay, parameter),
+    MSPhasedTrafficLightLogic(tlcontrol, id, programID, phases, step, delay, parameter),
       tSinceLastDecision(0), stepOfLastDecision(0) {
 
     tDecide = 1;
