@@ -1034,6 +1034,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                                           lane->getShape().nearest_position_on_line_to_point2D(pos, false));
             lane->forceVehicleInsertion(v, position);
             //v->getInfluencer().setPosition(position);
+			v->getInfluencer().setVTDControlled(true);
             v->getBestLanes(true, lane);
         }
         break;

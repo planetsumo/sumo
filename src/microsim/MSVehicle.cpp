@@ -145,7 +145,8 @@ MSVehicle::State::State(SUMOReal pos, SUMOReal speed) :
 #ifndef NO_TRACI
 MSVehicle::Influencer::Influencer()
     : mySpeedAdaptationStarted(true), myConsiderSafeVelocity(true),
-      myConsiderMaxAcceleration(true), myConsiderMaxDeceleration(true) {}
+      myConsiderMaxAcceleration(true), myConsiderMaxDeceleration(true),
+myAmVTDControlled(true) {}
 
 
 MSVehicle::Influencer::~Influencer() {}
@@ -953,6 +954,9 @@ MSVehicle::moveChecked() {
         SUMOReal vMin = MAX2(SUMOReal(0), getVehicleType().getCarFollowModel().getSpeedAfterMaxDecel(myState.mySpeed));
         SUMOReal vMax = getVehicleType().getCarFollowModel().maxNextSpeed(myState.mySpeed, this);
         vNext = myInfluencer->influenceSpeed(MSNet::getInstance()->getCurrentTimeStep(), vNext, vSafe, vMin, vMax);
+		if(myInfluencer->isVTDControlled()) {
+			vNext = 0;
+		}
     }
 #endif
     // visit waiting time
@@ -1048,7 +1052,14 @@ MSVehicle::moveChecked() {
         (*i)->resetPartialOccupation(this);
     }
     myFurtherLanes.clear();
-    if (!hasArrived() && !myLane->getEdge().isVaporizing()) {
+
+    if (myInfluencer != 0 && myInfluencer->isVTDControlled()) {
+		myWaitingTime = 0;
+		myInfluencer->setVTDControlled(false);
+		return false;
+	}
+
+	if (!hasArrived() && !myLane->getEdge().isVaporizing()) {
         if (myState.myPos > myLane->getLength()) {
             WRITE_WARNING("Vehicle '" + getID() + "' performs emergency stop one lane '" + myLane->getID() + " at position " +
                           toString(myState.myPos) + " (decel=" + toString(myAcceleration - myState.mySpeed) + "), time="
@@ -1285,7 +1296,6 @@ MSVehicle::enterLaneAtMove(MSLane* enteredLane, bool onTeleporting) {
 
     // internal edges are not a part of the route...
     if (enteredLane->getEdge().getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
-        assert(&enteredLane->getEdge() == *(myCurrEdge + 1));
         ++myCurrEdge;
     }
     if (!onTeleporting) {
@@ -1662,8 +1672,6 @@ MSVehicle::getBestLanesContinuation() const {
     if (myBestLanes.empty() || myBestLanes[0].empty()) {
         return myEmptyLaneVector;
     }
-    assert((*myCurrentLaneInBestLanes).lane == myLane 
-            || myLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL);
     return (*myCurrentLaneInBestLanes).bestContinuations;
 }
 

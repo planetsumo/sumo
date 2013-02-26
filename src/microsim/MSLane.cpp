@@ -889,8 +889,6 @@ MSLane::succLinkSec(const SUMOVehicle& veh, unsigned int nRouteSuccs,
         return succLinkSource.myLinks.end();
     }
     // the only case where this should happen is for a disconnected route (deliberately ignored)
-    assert(!MSGlobals::gCheckRoutes);
-    assert(succLinkSource.getEdge().allowedLanes(*nRouteEdge) == 0);
     return succLinkSource.myLinks.end();
 }
 

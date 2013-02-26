@@ -854,6 +854,14 @@ public:
             return myOriginalSpeed;
         }
 
+		void setVTDControlled(bool c) {
+			myAmVTDControlled = c;
+		}
+
+		bool isVTDControlled() const {
+			return myAmVTDControlled;
+		}
+
     private:
         /// @brief The velocity time line to apply
         std::vector<std::pair<SUMOTime, SUMOReal> > mySpeedTimeLine;
@@ -875,6 +883,8 @@ public:
 
         /// @brief Whether the maximum deceleration shall be regarded
         bool myConsiderMaxDeceleration;
+
+		bool myAmVTDControlled;
     };
 
 

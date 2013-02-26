@@ -79,6 +79,13 @@ public:
     typedef bool(*CmdExecutor)(traci::TraCIServer& server, tcpip::Storage& inputStorage, tcpip::Storage& outputStorage);
 
 
+	SUMOTime getTargetTime() {
+		return myTargetTime;
+	}
+	static TraCIServer *getInstance() {
+		return myInstance;
+	}
+
     /// @name Initialisation and Shutdown
     /// @{
 
