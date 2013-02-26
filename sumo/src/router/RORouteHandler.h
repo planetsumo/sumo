@@ -153,9 +153,6 @@ protected:
     /// @brief The plan of the current person
     OutputDevice_String* myActivePlan;
 
-    /// @brief Buffered person descriptions (with plans)
-    std::map<const SUMOTime, std::string> myPersonBuffer;
-
     /// @brief Information whether routes shall be repaired
     const bool myTryRepair;
 

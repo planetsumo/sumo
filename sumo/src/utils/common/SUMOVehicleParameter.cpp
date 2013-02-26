@@ -71,7 +71,11 @@ SUMOVehicleParameter::write(OutputDevice& dev, const OptionsCont& oc) const {
     if (wasSet(VEHPARS_VTYPE_SET)) {
         dev.writeAttr(SUMO_ATTR_TYPE, vtypeid);
     }
-    dev.writeAttr(SUMO_ATTR_DEPART, time2string(depart));
+    if (departProcedure == DEPART_TRIGGERED) {
+        dev.writeAttr(SUMO_ATTR_DEPART, "triggered");
+    } else {
+        dev.writeAttr(SUMO_ATTR_DEPART, time2string(depart));
+    }
 
     // optional parameter
     //  departlane

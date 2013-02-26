@@ -124,6 +124,8 @@ RORouteHandler::myStartElement(int element,
     switch (element) {
         case SUMO_TAG_PERSON:
             myActivePlan = new OutputDevice_String(false, 1);
+            myActivePlan->openTag(SUMO_TAG_PERSON);
+            (*myActivePlan) << attrs;
             break;
         case SUMO_TAG_RIDE: {
             myActivePlan->openTag(SUMO_TAG_RIDE);
@@ -356,7 +358,7 @@ RORouteHandler::closeRouteDistribution() {
 void
 RORouteHandler::closeVehicle() {
     // get the vehicle id
-    if (myVehicleParameter->depart < string2time(OptionsCont::getOptions().getString("begin"))) {
+    if (myVehicleParameter->departProcedure == DEPART_GIVEN && myVehicleParameter->depart < string2time(OptionsCont::getOptions().getString("begin"))) {
         return;
     }
     // get vehicle type
@@ -381,7 +383,8 @@ RORouteHandler::closeVehicle() {
 
 void
 RORouteHandler::closePerson() {
-    myPersonBuffer[myVehicleParameter->depart] = myActivePlan->getString();
+    myActivePlan->closeTag();
+    myNet.addPerson(myVehicleParameter->depart, myActivePlan->getString());
     registerLastDepart();
     delete myVehicleParameter;
     myVehicleParameter = 0;

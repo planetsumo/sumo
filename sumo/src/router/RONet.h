@@ -232,6 +232,14 @@ public:
      * @return Whether the flow could be added
      */
     bool addFlow(SUMOVehicleParameter* flow, const bool randomize);
+
+
+    /* @brief Adds a person to the network
+     *
+     * @param[in] depart The departure time of the person
+     * @param[in] desc   The xml description of the person
+     */
+    void addPerson(const SUMOTime depart, const std::string desc);
     // @}
 
 
@@ -330,6 +338,10 @@ protected:
 
     /// @brief Known flows
     NamedObjectCont<SUMOVehicleParameter*> myFlows;
+
+    /// @brief Known persons
+    typedef std::multimap<const SUMOTime, const std::string> PersonMap;
+    PersonMap myPersons;
 
     /// @brief Departure times for randomized flows
     std::map<std::string, std::vector<SUMOTime> > myDepartures;

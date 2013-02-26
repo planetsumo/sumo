@@ -244,7 +244,13 @@ RONet::addFlow(SUMOVehicleParameter* flow, const bool randomize) {
     return myFlows.add(flow->id, flow);
 }
 
-    
+
+void
+RONet::addPerson(const SUMOTime depart, const std::string desc) {
+    myPersons.insert(std::pair<const SUMOTime, const std::string>(depart, desc));
+}
+
+
 bool
 RONet::computeRoute(OptionsCont& options, SUMOAbstractRouter<ROEdge, ROVehicle>& router,
                     const ROVehicle* const veh) {
@@ -328,39 +334,49 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
     checkFlows(time);
     SUMOTime lastTime = -1;
     // write all vehicles (and additional structures)
-    while (myVehicles.size() != 0) {
-        // get the next vehicle
+    while (myVehicles.size() != 0 || myPersons.size() != 0) {
+        // get the next vehicle and person
         const ROVehicle* const veh = myVehicles.getTopVehicle();
-        SUMOTime currentTime = veh->getDepartureTime();
+        const SUMOTime vehicleTime = veh == 0 ? SUMOTime_MAX : veh->getDepartureTime();
+        PersonMap::iterator person = myPersons.begin();
+        const SUMOTime personTime = person == myPersons.end() ? SUMOTime_MAX : person->first;
         // check whether it shall not yet be computed
-        if (currentTime > time) {
-            lastTime = currentTime;
+        if (vehicleTime > time && personTime > time) {
+            lastTime = MIN2(vehicleTime, personTime);
             break;
         }
-        // check whether to print the output
-        if (lastTime != currentTime && lastTime != -1) {
-            // report writing progress
-            if (options.getInt("stats-period") >= 0 && ((int) currentTime % options.getInt("stats-period")) == 0) {
-                WRITE_MESSAGE("Read: " + toString(myReadRouteNo) + ",  Discarded: " + toString(myDiscardedRouteNo) + ",  Written: " + toString(myWrittenRouteNo));
+        if (vehicleTime < personTime) {
+            // check whether to print the output
+            if (lastTime != vehicleTime && lastTime != -1) {
+                // report writing progress
+                if (options.getInt("stats-period") >= 0 && ((int) vehicleTime % options.getInt("stats-period")) == 0) {
+                    WRITE_MESSAGE("Read: " + toString(myReadRouteNo) + ",  Discarded: " + toString(myDiscardedRouteNo) + ",  Written: " + toString(myWrittenRouteNo));
+                }
             }
-        }
-        lastTime = currentTime;
+            lastTime = vehicleTime;
 
-        // ok, compute the route (try it)
-        if (computeRoute(options, router, veh)) {
-            // write the route
-            veh->saveAllAsXML(*myRoutesOutput, myRouteAlternativesOutput, myTypesOutput, options.getBool("exit-times"));
-            myWrittenRouteNo++;
-        } else {
-            myDiscardedRouteNo++;
-        }
-        // delete routes and the vehicle
-        if (veh->getRouteDefinition()->getID()[0] == '!') {
-            if (!myRoutes.erase(veh->getRouteDefinition()->getID())) {
-                delete veh->getRouteDefinition();
+            // ok, compute the route (try it)
+            if (computeRoute(options, router, veh)) {
+                // write the route
+                veh->saveAllAsXML(*myRoutesOutput, myRouteAlternativesOutput, myTypesOutput, options.getBool("exit-times"));
+                myWrittenRouteNo++;
+            } else {
+                myDiscardedRouteNo++;
             }
+            // delete routes and the vehicle
+            if (veh->getRouteDefinition()->getID()[0] == '!') {
+                if (!myRoutes.erase(veh->getRouteDefinition()->getID())) {
+                    delete veh->getRouteDefinition();
+                }
+            }
+            myVehicles.erase(veh->getID());
+        } else {
+            (*myRoutesOutput) << person->second;
+            if (myRouteAlternativesOutput != 0) {
+                (*myRouteAlternativesOutput) << person->second;
+            }
+            myPersons.erase(person);
         }
-        myVehicles.erase(veh->getID());
     }
     return lastTime;
 }

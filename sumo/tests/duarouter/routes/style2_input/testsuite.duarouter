@@ -37,5 +37,8 @@ exit_times
 # Tests whether processing vehicle parameter works
 vtypecheck
 
+# same as one_time but with new style definition (no id in routes)
+with_persons
+
 # Tests for false user input
 errors
