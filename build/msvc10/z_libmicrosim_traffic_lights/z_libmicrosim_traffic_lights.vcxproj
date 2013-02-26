@@ -142,7 +142,16 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSActuatedTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSAgentbasedTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSOffTrafficLightLogic.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSPhaseDefinition.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSPhasedTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSimpleTrafficLightLogic.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLE2Sensors.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPhaseTrafficLightLogic.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonTrafficLightLogic.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestTrafficLightLogic.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLSensors.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLTrafficLightLogic.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSwarmTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTLLogicControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.cpp" />
   </ItemGroup>
@@ -151,7 +160,16 @@
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSAgentbasedTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSOffTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSPhaseDefinition.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSPhasedTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSimpleTrafficLightLogic.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLDefinitions.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLE2Sensors.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPhaseTrafficLightLogic.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonTrafficLightLogic.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestTrafficLightLogic.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLSensors.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLTrafficLightLogic.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSwarmTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSTLLogicControl.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.h" />
   </ItemGroup>

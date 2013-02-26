@@ -29,6 +29,33 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSPhaseDefinition.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSPhasedTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLE2Sensors.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPhaseTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLSensors.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSwarmTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSActuatedTrafficLightLogic.h">
@@ -50,6 +77,33 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSPhasedTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLDefinitions.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLE2Sensors.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPhaseTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLSensors.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSwarmTrafficLightLogic.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>
