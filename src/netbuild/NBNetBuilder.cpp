@@ -204,8 +204,7 @@ NBNetBuilder::compute(OptionsCont& oc,
     }
     geoConvHelper.computeFinal(); // information needed for location element fixed at this point
 
-    // @todo Why?
-    myEdgeCont.recomputeLaneShapes();
+    myEdgeCont.computeLaneShapes();
 
     // APPLY SPEED MODIFICATIONS
     if (oc.exists("speed.offset")) {
