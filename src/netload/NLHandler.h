@@ -37,7 +37,6 @@
 #include <xercesc/sax/SAXException.hpp>
 #include <xercesc/sax/AttributeList.hpp>
 #include <utils/common/SUMOTime.h>
-#include <utils/xml/SUMOSOTL_TagAttrDefinitions.h>
 #include <utils/common/Parameterised.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
 #include <microsim/MSLink.h>

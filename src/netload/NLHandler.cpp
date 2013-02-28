@@ -704,37 +704,40 @@ NLHandler::addPhase(const SUMOSAXAttributes& attrs) {
 	//If the type attribute is not present, the parsed phase is of type "undefined" (MSPhaseDefinition constructor),
 	//in this way SOTL traffic light logic can recognize the phase as unsuitable or decides other
 	//behaviors. See SOTL traffic light logic implementations.
-	if (attrs.hasAttribute("type")) {
+	if (attrs.hasAttribute(SUMO_ATTR_TYPE)) {
+        bool ok = true;
 		std::string phaseTypeString;
 		bool transient_notdecisional_bit;
 		bool commit_bit;
 		MSPhaseDefinition::LaneIdVector laneIdVector;
 		try {
-            phaseTypeString = attrs.getStringSecure(SOTL_ATTR_TYPE, "");
+            phaseTypeString = attrs.get<std::string>(SUMO_ATTR_TYPE, "phase", ok, false);
         } catch (EmptyData &) {
 			MsgHandler::getWarningInstance()->inform("Empty type definition. Assuming phase type as SUMOSOTL_TagAttrDefinitions::SOTL_ATTL_TYPE_TRANSIENT");
             transient_notdecisional_bit = false;
         }
-		if (phaseTypeString.find(SOTL_ATTR_TYPE_DECISIONAL) != std::string::npos)
+		if (phaseTypeString.find("decisional") != std::string::npos) {
 			transient_notdecisional_bit = false;
-		else if (phaseTypeString.find(SOTL_ATTR_TYPE_TRANSIENT) != std::string::npos)
+        } else if (phaseTypeString.find("transient") != std::string::npos) {
 			transient_notdecisional_bit = true;
-		else {
+        } else {
 			MsgHandler::getWarningInstance()->inform("SOTL_ATTL_TYPE_DECISIONAL nor SOTL_ATTL_TYPE_TRANSIENT. Assuming phase type as SUMOSOTL_TagAttrDefinitions::SOTL_ATTL_TYPE_TRANSIENT");
             transient_notdecisional_bit = false;
 		}
-		commit_bit = (phaseTypeString.find(SOTL_ATTR_TYPE_COMMIT) != std::string::npos);
+		commit_bit = (phaseTypeString.find("commit") != std::string::npos);
 		
-		if (phaseTypeString.find(SOTL_ATTR_TYPE_TARGET) != std::string::npos) {
+		if (phaseTypeString.find("target") != std::string::npos) {
+            std::string delimiter(" ,;");
 			//Phase declared as target, getting targetLanes attribute
 			try {
-				std::string targetLanesString = attrs.getStringSecure(SOTL_ATTR_TARGETLANES, "");
+                /// @todo: the following should be moved to StringTok
+				std::string targetLanesString = attrs.getStringSecure(SUMO_ATTR_TARGETLANE, "");
 				//TOKENIZING
 				MSPhaseDefinition::LaneIdVector targetLanesVector;
 				//Skip delimiters at the beginning
-				std::string::size_type firstPos = targetLanesString.find_first_not_of(SOTL_ATTR_TYPE_DELIMITERS, 0);
+				std::string::size_type firstPos = targetLanesString.find_first_not_of(delimiter, 0);
 				//Find first "non-delimiter".
-				std::string::size_type pos = targetLanesString.find_first_of(SOTL_ATTR_TYPE_DELIMITERS, firstPos);
+				std::string::size_type pos = targetLanesString.find_first_of(delimiter, firstPos);
 
 				while (std::string::npos != pos || std::string::npos != firstPos)
 				{
@@ -742,16 +745,16 @@ NLHandler::addPhase(const SUMOSAXAttributes& attrs) {
 					targetLanesVector.push_back(targetLanesString.substr(firstPos, pos - firstPos));
 
 					//Skip delimiters
-					firstPos = targetLanesString.find_first_not_of(SOTL_ATTR_TYPE_DELIMITERS, pos);
+					firstPos = targetLanesString.find_first_not_of(delimiter, pos);
 
 					//Find next "non-delimiter"
-					pos = targetLanesString.find_first_of(SOTL_ATTR_TYPE_DELIMITERS, firstPos);
+					pos = targetLanesString.find_first_of(delimiter, firstPos);
 				}
 				//Adding the SOTL parsed phase to have a new MSPhaseDefinition that is SOTL compliant for target phases
 				myJunctionControlBuilder.addPhase(duration, state, minDuration, maxDuration, transient_notdecisional_bit, commit_bit, targetLanesVector);
 			}
 			catch (EmptyData &) {
-				MsgHandler::getErrorInstance()->inform("Missing SOTL_ATTR_TARGETLANES definition for the target phase.");
+				MsgHandler::getErrorInstance()->inform("Missing targetLane definition for the target phase.");
 				return;
 			}
 		}

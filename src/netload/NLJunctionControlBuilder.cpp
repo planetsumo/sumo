@@ -256,7 +256,7 @@ NLJunctionControlBuilder::closeTrafficLightLogic() throw(InvalidArgument, Proces
 		case TLTYPE_SOTL_PLATOON:
 			tlLogic = new MSSOTLPlatoonTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
 			break;
-		case TLYPE_SOTL_PHASE:
+		case TLTYPE_SOTL_PHASE:
 			tlLogic = new MSSOTLPhaseTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
 			break;
         case TLTYPE_ACTUATED:

@@ -110,7 +110,7 @@ private:
 		this->minDuration = minDurationArg<0 ? durationArg : minDurationArg;
 		this->maxDuration = (maxDurationArg<0 || maxDurationArg<minDurationArg) ? durationArg : maxDurationArg;
 		this->state = stateArg;
-		this->myLastSwitch = OptionsCont::getOptions().getInt("begin"); // SUMOTime-option
+		this->myLastSwitch = string2time(OptionsCont::getOptions().getString("begin")); // SUMOTime-option
 		//For SOTL phases
 		//this->phaseType = phaseTypeArg;
 	}

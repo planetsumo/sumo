@@ -533,8 +533,10 @@ enum SumoXMLAttr {
     /* first coordinate of edge shape */
     GNE_ATTR_SHAPE_START,
     /* last coordinate of edge shape */
-    GNE_ATTR_SHAPE_END
+    GNE_ATTR_SHAPE_END,
     //@}
+
+    SUMO_ATTR_TARGETLANE
 };
 
 /*
@@ -658,10 +660,11 @@ enum TrafficLightType {
     TLTYPE_STATIC,
     TLTYPE_ACTUATED,
     TLTYPE_AGENT,
-	TLYPE_SOTL_PHASE,
+	TLTYPE_SOTL_PHASE,
 	TLTYPE_SOTL_PLATOON,
 	TLTYPE_SOTL_REQUEST,
-	TLTYPE_SWARM_BASED
+	TLTYPE_SWARM_BASED,
+    TLTYPE_INVALID //< must be the last one
 };
 
 
