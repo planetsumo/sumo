@@ -146,7 +146,7 @@ MSVehicle::State::State(SUMOReal pos, SUMOReal speed) :
 MSVehicle::Influencer::Influencer()
     : mySpeedAdaptationStarted(true), myConsiderSafeVelocity(true),
       myConsiderMaxAcceleration(true), myConsiderMaxDeceleration(true),
-myAmVTDControlled(true) {}
+myAmVTDControlled(false) {}
 
 
 MSVehicle::Influencer::~Influencer() {}
@@ -1055,7 +1055,7 @@ MSVehicle::moveChecked() {
 
     if (myInfluencer != 0 && myInfluencer->isVTDControlled()) {
 		myWaitingTime = 0;
-		myInfluencer->setVTDControlled(false);
+//		myInfluencer->setVTDControlled(false);
 		return false;
 	}
 

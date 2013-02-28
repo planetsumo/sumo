@@ -111,6 +111,17 @@ public:
     /// @brief process all commands until a simulation step is wanted
     static void processCommandsUntilSimStep(SUMOTime step);
 
+    void setVTDControlled(MSVehicle *v) {
+        myVTDControlledVehicles.insert(v);
+    	v->getInfluencer().setVTDControlled(true);
+    }
+
+    void clearVTDControlled() {
+        for(std::set<MSVehicle*>::const_iterator i=myVTDControlledVehicles.begin(); i!=myVTDControlledVehicles.end(); ++i) {
+            (*i)->getInfluencer().setVTDControlled(false);
+        }
+    }
+
 
 
 
@@ -336,6 +347,8 @@ private:
 
     /// @brief Map of commandIds -> their executors; applicable if the executor applies to the method footprint
     std::map<int, CmdExecutor> myExecutors;
+
+    std::set<MSVehicle*> myVTDControlledVehicles;
 
 
     /** @class Subscription

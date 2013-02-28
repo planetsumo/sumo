@@ -119,9 +119,11 @@ MSVehicleControl::scheduleVehicleRemoval(SUMOVehicle* veh) {
     if (OptionsCont::getOptions().isSet("tripinfo-output")) {
         OutputDevice::getDeviceByOption("tripinfo-output").closeTag();
     }
-    myTotalTravelTime += STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep() - veh->getDeparture());
-    myRunningVehNo--;
-    MSNet::getInstance()->informVehicleStateListener(veh, MSNet::VEHICLE_STATE_ARRIVED);
+	if(veh->hasDeparted()) {
+		myTotalTravelTime += STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep() - veh->getDeparture());
+		myRunningVehNo--;
+		MSNet::getInstance()->informVehicleStateListener(veh, MSNet::VEHICLE_STATE_ARRIVED);
+	}
     deleteVehicle(veh);
 }
 

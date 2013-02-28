@@ -895,6 +895,10 @@ public:
      */
     Influencer& getInfluencer();
 
+    bool hasInfluencer() const {
+        return myInfluencer!=0;
+    }
+
 
 #endif
 

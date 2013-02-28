@@ -892,9 +892,13 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 default:
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Unknown removal status.", outputStorage);
             }
-            v->onRemovalFromNet(n);
-            v->getLane()->removeVehicle(v);
-            MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(v);
+			if(v->hasDeparted()) {
+				v->onRemovalFromNet(n);
+				if(v->getLane()!=0) {
+					v->getLane()->removeVehicle(v);
+				}
+				MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(v);
+			}
         }
         break;
         case VAR_MOVE_TO_VTD: {
@@ -1034,7 +1038,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                                           lane->getShape().nearest_position_on_line_to_point2D(pos, false));
             lane->forceVehicleInsertion(v, position);
             //v->getInfluencer().setPosition(position);
-			v->getInfluencer().setVTDControlled(true);
+            server.setVTDControlled(v);
             v->getBestLanes(true, lane);
         }
         break;

@@ -678,6 +678,12 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
     VehCont::iterator lastVeh = myVehicles.end() - 1;
     for (VehCont::iterator veh = myVehicles.begin(); veh != lastVeh;) {
         VehCont::iterator pred = veh + 1;
+        if((*veh)->hasInfluencer() && (*veh)->getInfluencer().isVTDControlled()) {
+            continue;
+        }
+        if((*pred)->hasInfluencer() && (*pred)->getInfluencer().isVTDControlled()) {
+            continue;
+        }
         SUMOReal gap = (*pred)->getPositionOnLane() - (*pred)->getVehicleType().getLength() - (*veh)->getPositionOnLane() - (*veh)->getVehicleType().getMinGap();
         if (gap < -0.001) {
             MSVehicle* vehV = *veh;
