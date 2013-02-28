@@ -143,8 +143,8 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     myImportAllTypes = oc.getBool("opendrive.import-all-lanes");
     myLaneTypes2Import.insert("driving");
     myLaneTypes2Import.insert("stop");
-    //myLaneTypes2Import.insert("mwyEntry");
-    //myLaneTypes2Import.insert("mwyExit");
+    myLaneTypes2Import.insert("mwyEntry");
+    myLaneTypes2Import.insert("mwyExit");
     myLaneTypes2Import.insert("special1");
     myLaneTypes2Import.insert("parking");
     // build the handler
