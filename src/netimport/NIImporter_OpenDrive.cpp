@@ -495,9 +495,13 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 
         }
 	}
+    // clean up
 	if(oc.exists("geometry.min-dist")&&oc.isSet("geometry.min-dist")) {
 		oc.unSet("geometry.min-dist");
 	}
+    for (std::map<std::string, OpenDriveEdge*>::iterator i = edges.begin(); i != edges.end(); ++i) {
+		delete (*i).second;
+    }
 }
 
 
