@@ -35,7 +35,6 @@
 #define DIST_THRS 20.0
 
 ////For MSSOTLTrafficLightLogic
-#define EVALUATION_INTERVAL 1
 #define THRESHOLD 10
 #define SENSORS_TYPE "e2"
 

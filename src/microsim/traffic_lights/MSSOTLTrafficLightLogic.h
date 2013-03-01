@@ -37,6 +37,7 @@
 #include "MSPhaseDefinition.h"
 */
 
+#include <utils/common/SUMOTime.h>
 #include "MSSOTLDefinitions.h"
 #include "MSPhasedTrafficLightLogic.h"
 #include "MSSOTLE2Sensors.h"
@@ -160,10 +161,10 @@ protected:
 	* Computes how many time will pass after decideNextPhase will be executed again
 	*/
 	SUMOTime computeReturnTime() {
-		if (myPhases[myStep]->isTransient())
+		if (myPhases[myStep]->isTransient()) {
 			return myPhases[myStep]->duration;
-		else
-			return EVALUATION_INTERVAL;
+        }
+        return DELTA_T;
 	}
 
 private:
