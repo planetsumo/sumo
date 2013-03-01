@@ -431,6 +431,11 @@ MSNet::simulationStep() {
         myVehiclesMoved += myVehicleControl->getRunningVehicleNo();
     }
     myStep += DELTA_T;
+#ifndef NO_TRACI
+    if(traci::TraCIServer::getInstance()!=0) {
+        traci::TraCIServer::getInstance()->clearVTDControlled();
+    }
+#endif
 }
 
 
