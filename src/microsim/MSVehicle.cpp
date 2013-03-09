@@ -238,6 +238,17 @@ void
 MSVehicle::Influencer::setConsiderMaxDeceleration(bool value) {
     myConsiderMaxDeceleration = value;
 }
+
+
+void 
+MSVehicle::Influencer::postProcessVTD(MSVehicle *v) {
+	v->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
+    v->getLane()->removeVehicle(v);
+	v->myCurrEdge += myVTDEdgeOffset;
+	myVTDLane->forceVehicleInsertion(v, myVTDPos);
+	v->getBestLanes();
+}
+
 #endif
 
 
@@ -672,6 +683,9 @@ MSVehicle::move(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal lengthsI
         SUMOReal vMax = getVehicleType().getCarFollowModel().maxNextSpeed(myState.mySpeed, this);
         v = myInfluencer->influenceSpeed(MSNet::getInstance()->getCurrentTimeStep(), v, v, vMin, vMax);
         // !!! recheck - why is it done, here?
+		if(myInfluencer->isVTDControlled()) {
+			return; // !!! temporary
+		}
     }
 #endif
 
@@ -886,8 +900,15 @@ MSVehicle::moveChecked() {
     // get vsafe
     SUMOReal vSafe = 0;
     myHaveToWaitOnNextLink = false;
+#ifndef NO_TRACI
+    if (myInfluencer != 0) {
+		if(myInfluencer->isVTDControlled()) {
+			return false;
+		}
+    }
+#endif
 
-    assert(myLFLinkLanes.size() != 0);
+	assert(myLFLinkLanes.size() != 0 || (myInfluencer!=0&&myInfluencer->isVTDControlled()));
     DriveItemVector::iterator i;
     bool braking = false;
     bool lastWasGreenCont = false;

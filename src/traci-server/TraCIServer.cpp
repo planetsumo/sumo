@@ -203,6 +203,21 @@ TraCIServer::wasClosed() {
 }
 
 
+void 
+TraCIServer::postProcessVTD() {
+	for(std::set<MSVehicle*>::const_iterator i=myVTDControlledVehicles.begin(); i!=myVTDControlledVehicles.end(); ++i) {
+		(*i)->getInfluencer().postProcessVTD(*i);
+	}
+	myVTDControlledVehicles.clear();
+}
+
+
+bool 
+TraCIServer::vtdDebug() const {
+	return true;
+}
+
+
 // ---------- Initialisation and Shutdown
 
 

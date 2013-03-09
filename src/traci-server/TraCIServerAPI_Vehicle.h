@@ -82,6 +82,10 @@ private:
 
     static MSVehicleType& getSingularType(SUMOVehicle* const veh);
 
+	static const std::map<std::string, MSLane*> &getOrBuildVTDMap();
+
+	static std::map<std::string, MSLane*> gVTDMap;
+
 
 private:
     /// @brief invalidated copy constructor

@@ -854,9 +854,14 @@ public:
             return myOriginalSpeed;
         }
 
-		void setVTDControlled(bool c) {
+		void setVTDControlled(bool c, MSLane *l, SUMOReal pos, int edgeOffset) {
 			myAmVTDControlled = c;
+			myVTDLane = l;
+			myVTDPos = pos;
+			myVTDEdgeOffset = edgeOffset;
 		}
+
+		void postProcessVTD(MSVehicle *v);
 
 		bool isVTDControlled() const {
 			return myAmVTDControlled;
@@ -885,6 +890,10 @@ public:
         bool myConsiderMaxDeceleration;
 
 		bool myAmVTDControlled;
+		MSLane *myVTDLane;
+		SUMOReal myVTDPos;
+		int myVTDEdgeOffset;
+
     };
 
 

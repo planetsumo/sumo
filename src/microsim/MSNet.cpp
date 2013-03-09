@@ -433,7 +433,7 @@ MSNet::simulationStep() {
     myStep += DELTA_T;
 #ifndef NO_TRACI
     if(traci::TraCIServer::getInstance()!=0) {
-        traci::TraCIServer::getInstance()->clearVTDControlled();
+        traci::TraCIServer::getInstance()->postProcessVTD();
     }
 #endif
 }

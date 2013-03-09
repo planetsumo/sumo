@@ -111,17 +111,14 @@ public:
     /// @brief process all commands until a simulation step is wanted
     static void processCommandsUntilSimStep(SUMOTime step);
 
-    void setVTDControlled(MSVehicle *v) {
+    void setVTDControlled(MSVehicle *v, MSLane *l, SUMOReal pos, int edgeOffset) {
         myVTDControlledVehicles.insert(v);
-    	v->getInfluencer().setVTDControlled(true);
+    	v->getInfluencer().setVTDControlled(true, l, pos, edgeOffset);
     }
 
-    void clearVTDControlled() {
-        for(std::set<MSVehicle*>::const_iterator i=myVTDControlledVehicles.begin(); i!=myVTDControlledVehicles.end(); ++i) {
-            (*i)->getInfluencer().setVTDControlled(false);
-        }
-    }
+    void postProcessVTD();
 
+	bool vtdDebug() const;
 
 
 
