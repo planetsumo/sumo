@@ -422,6 +422,11 @@ MSNet::simulationStep() {
     // execute endOfTimestepEvents
     myEndOfTimestepEvents->execute(myStep);
 
+#ifndef NO_TRACI
+    if(traci::TraCIServer::getInstance()!=0) {
+        traci::TraCIServer::getInstance()->postProcessVTD();
+    }
+#endif
     // update and write (if needed) detector values
     writeOutput();
 
@@ -431,11 +436,6 @@ MSNet::simulationStep() {
         myVehiclesMoved += myVehicleControl->getRunningVehicleNo();
     }
     myStep += DELTA_T;
-#ifndef NO_TRACI
-    if(traci::TraCIServer::getInstance()!=0) {
-        traci::TraCIServer::getInstance()->postProcessVTD();
-    }
-#endif
 }
 
 
