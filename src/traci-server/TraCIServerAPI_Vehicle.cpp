@@ -955,9 +955,6 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
 			bestDistanceA = bestDistanceB = bestDistanceC = 1000.;//pos.distanceSquaredTo2D(vehPos);
 			int routeOffsetA, routeOffsetB, routeOffsetC;
 			routeOffsetA = routeOffsetB = routeOffsetC = 0;
-			if(MSNet::getInstance()->getCurrentTimeStep()==64000&&v->getID()=="129") {
-				int bla = 0;
-			}
 			// case a): edge/lane is known and matches route
 			bool aFound = vtdMap_matchingEdgeLane(pos, origID, *v, server.vtdDebug(), bestDistanceA, &laneA, lanePosA, routeOffsetA, edgesA);
 			// case b): position is at route, should be somewhere near to it
@@ -1027,7 +1024,7 @@ TraCIServerAPI_Vehicle::vtdMap_matchingEdgeLane(const Position &pos, const std::
 	}
 	const MSEdgeVector &tedges = v.getRoute().getEdges();
 	MSEdgeVector::const_iterator p = std::find(tedges.begin() + v.getRoutePosition(), tedges.end(), &pni->getEdge());
-	if(p!=edges.end()) {
+	if(p!=tedges.end()) {
 		lanePos = MAX2(SUMOReal(0), MIN2((*lane)->getLength()-POSITION_EPS, (*lane)->getShape().nearest_position_on_line_to_point2D(pos, false)));
 		routeOffset = std::distance(tedges.begin(), p) - v.getRoutePosition();
 		if(report) std::cout << "  a ok lane:" << (*lane)->getID() << " lanePos:" << lanePos << " routeOffset:" << routeOffset << std::endl;
