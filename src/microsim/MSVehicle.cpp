@@ -244,6 +244,9 @@ void
 MSVehicle::Influencer::postProcessVTD(MSVehicle *v) {
 	v->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
     v->getLane()->removeVehicle(v);
+	if(myVTDRoute.size()!=0) {
+		v->replaceRouteEdges(myVTDRoute, true);
+	}
 	v->myCurrEdge += myVTDEdgeOffset;
 	myVTDLane->forceVehicleInsertion(v, myVTDPos);
 	v->getBestLanes();

@@ -854,11 +854,12 @@ public:
             return myOriginalSpeed;
         }
 
-		void setVTDControlled(bool c, MSLane *l, SUMOReal pos, int edgeOffset) {
+		void setVTDControlled(bool c, MSLane *l, SUMOReal pos, int edgeOffset, const MSEdgeVector &route) {
 			myAmVTDControlled = c;
 			myVTDLane = l;
 			myVTDPos = pos;
 			myVTDEdgeOffset = edgeOffset;
+			myVTDRoute = route;
 		}
 
 		void postProcessVTD(MSVehicle *v);
@@ -893,6 +894,7 @@ public:
 		MSLane *myVTDLane;
 		SUMOReal myVTDPos;
 		int myVTDEdgeOffset;
+		MSEdgeVector myVTDRoute;
 
     };
 

@@ -715,7 +715,12 @@ MSLane::setCritical(SUMOTime t, std::vector<MSLane*>& into) {
         bool moved = veh->moveChecked();
         MSLane* target = veh->getLane();
         SUMOReal length = veh->getVehicleType().getLengthWithGap();
+#ifndef NO_TRACI
+		bool vtdControlled = veh->hasInfluencer()&&veh->getInfluencer().isVTDControlled();
+        if (veh->hasArrived()&&!vtdControlled) {
+#else
         if (veh->hasArrived()) {
+#endif
             // vehicle has reached its arrival position
             veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_ARRIVED);
             MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
