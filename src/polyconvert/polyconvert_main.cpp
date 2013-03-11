@@ -180,6 +180,9 @@ fillOptions() {
     oc.doRegister("all-attributes", new Option_Bool(false));
     oc.addDescription("all-attributes", "Processing", "Imports all attributes as key/value pairs");
 
+    oc.doRegister("ignore-errors", new Option_Bool(false));
+    oc.addDescription("ignore-errors", "Processing", "Continue on broken input");
+
 
     // building defaults options
     oc.doRegister("color", new Option_String("0.2,0.5,1."));
@@ -265,7 +268,7 @@ main(int argc, char** argv) {
         PCPolyContainer toFill(prune, pruningBoundary, oc.getStringVector("remove"));
 
         // read in the type defaults
-        PCTypeMap tm;
+        PCTypeMap tm(oc);
         if (oc.isSet("type-file")) {
             PCTypeDefHandler handler(oc, tm);
             if (!XMLSubSys::runParser(handler, oc.getString("type-file"))) {
@@ -280,7 +283,10 @@ main(int argc, char** argv) {
         PCLoaderDlrNavteq::loadIfSet(oc, toFill, tm); // Elmar-files
         PCLoaderVisum::loadIfSet(oc, toFill, tm); // VISUM
         PCLoaderArcView::loadIfSet(oc, toFill, tm); // shape-files
-        // check whether any errors occured
+        // error processing
+        if (MsgHandler::getErrorInstance()->wasInformed() && oc.getBool("ignore-errors")) {
+            MsgHandler::getErrorInstance()->clear();
+        }
         if (!MsgHandler::getErrorInstance()->wasInformed()) {
             // no? ok, save
             toFill.save(oc.getString("output-file"));
