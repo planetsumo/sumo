@@ -59,7 +59,7 @@ traci.vehicle.subscribe(vehID)
 print traci.vehicle.getSubscriptionResults(vehID)
 for step in range(3,6):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep(0)
     print traci.vehicle.getSubscriptionResults(vehID)
 traci.vehicle.setLength(vehID, 1.0)
 traci.vehicle.setMaxSpeed(vehID, 1.0)

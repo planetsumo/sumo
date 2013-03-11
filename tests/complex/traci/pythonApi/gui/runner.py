@@ -24,6 +24,6 @@ traci.gui.subscribe(viewID)
 print traci.gui.getSubscriptionResults(viewID)
 for step in range(3,6):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep(0)
     print traci.gui.getSubscriptionResults(viewID)
 traci.close()

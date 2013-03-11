@@ -25,6 +25,6 @@ traci.polygon.subscribe(polygonID)
 print traci.polygon.getSubscriptionResults(polygonID)
 for step in range(3,6):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep(0)
     print traci.polygon.getSubscriptionResults(polygonID)
 traci.close()

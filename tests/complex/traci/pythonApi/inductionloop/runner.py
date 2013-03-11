@@ -26,6 +26,6 @@ traci.inductionloop.subscribe(loopID)
 print traci.inductionloop.getSubscriptionResults(loopID)
 for step in range(3,6):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep(0)
     print traci.inductionloop.getSubscriptionResults(loopID)
 traci.close()

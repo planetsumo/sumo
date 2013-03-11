@@ -22,6 +22,6 @@ traci.multientryexit.subscribe(detID)
 print traci.multientryexit.getSubscriptionResults(detID)
 for step in range(3,6):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep(0)
     print traci.multientryexit.getSubscriptionResults(detID)
 traci.close()
