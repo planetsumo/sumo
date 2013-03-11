@@ -30,6 +30,7 @@
 #include <config.h>
 #endif
 #include <cmath>
+#include <algorithm>
 #include <utils/options/OptionsCont.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/geom/GeoConvHelper.h>
@@ -144,8 +145,8 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     }
 
     // write roundabout information
-    const std::vector<std::set<NBEdge*> >& roundabouts = nb.getRoundabouts();
-    for (std::vector<std::set<NBEdge*> >::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
+    const std::vector<EdgeVector>& roundabouts = nb.getRoundabouts();
+    for (std::vector<EdgeVector>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
         writeRoundabout(device, *i);
     }
     if (roundabouts.size() != 0) {
@@ -456,19 +457,20 @@ NWWriter_SUMO::writeInternalConnection(OutputDevice& into,
 
 
 void
-NWWriter_SUMO::writeRoundabout(OutputDevice& into, const std::set<NBEdge*>& r) {
-    std::set<std::string> nodes;
-    for (std::set<NBEdge*>::const_iterator j = r.begin(); j != r.end(); ++j) {
-        nodes.insert((*j)->getToNode()->getID());
+NWWriter_SUMO::writeRoundabout(OutputDevice& into, const EdgeVector& r) {
+    std::vector<std::string> edgeIDs;
+    std::vector<std::string> nodeIDs;
+    for (EdgeVector::const_iterator j = r.begin(); j != r.end(); ++j) {
+        edgeIDs.push_back((*j)->getID());
+        nodeIDs.push_back((*j)->getToNode()->getID());
     }
-    std::string nodeString;
-    for (std::set<std::string>::const_iterator j = nodes.begin(); j != nodes.end(); ++j) {
-        if (j != nodes.begin()) {
-            nodeString += " ";
-        }
-        nodeString += *j;
-    }
-    into.openTag(SUMO_TAG_ROUNDABOUT).writeAttr(SUMO_ATTR_NODES, nodeString).closeTag();
+    // make output deterministic
+    std::sort(edgeIDs.begin(), edgeIDs.end());
+    std::sort(nodeIDs.begin(), nodeIDs.end());
+    into.openTag(SUMO_TAG_ROUNDABOUT);
+    into.writeAttr(SUMO_ATTR_NODES, joinToString(nodeIDs, " "));
+    into.writeAttr(SUMO_ATTR_EDGES, joinToString(edgeIDs, " "));
+    into.closeTag();
 }
 
 

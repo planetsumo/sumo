@@ -63,7 +63,7 @@ public:
      * @param[in] to The node the edge ends at
      * @param[in] index The numeric id of the edge
      */
-    ROJTREdge(const std::string& id, RONode* from, RONode* to, unsigned int index);
+    ROJTREdge(const std::string& id, RONode* from, RONode* to, unsigned int index, const int priority);
 
 
     /// @brief Destructor
@@ -110,7 +110,7 @@ public:
 
 private:
     /// @brief Definition of a map that stores the probabilities of using a certain follower over time
-    typedef std::map<ROJTREdge*, ValueTimeLine<SUMOReal>*> FollowerUsageCont;
+    typedef std::map<ROJTREdge*, ValueTimeLine<SUMOReal>*, Named::ComparatorIdLess> FollowerUsageCont;
 
     /// @brief Storage for the probabilities of using a certain follower over time
     FollowerUsageCont myFollowingDefs;
