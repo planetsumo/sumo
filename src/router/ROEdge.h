@@ -37,6 +37,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <utils/common/Named.h>
 #include <utils/common/ValueTimeLine.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/SUMOVTypeParameter.h>
@@ -63,7 +64,7 @@ class ROVehicle;
  *  the weights, it is needed to call "buildTimeLines" in order to initialise
  *  these time lines.
  */
-class ROEdge {
+class ROEdge : public Named {
 public:
     /**
      * @enum EdgeType
@@ -88,7 +89,7 @@ public:
      * @param[in] to The node the edge ends at
      * @param[in] index The numeric id of the edge
      */
-    ROEdge(const std::string& id, RONode* from, RONode* to, unsigned int index);
+    ROEdge(const std::string& id, RONode* from, RONode* to, unsigned int index, const int priority);
 
 
     /// Destructor
@@ -141,14 +142,6 @@ public:
 
     /// @name Getter methods
     //@{
-
-    /** @brief Returns the id of the edge
-     * @return This edge's id
-     */
-    const std::string& getID() const {
-        return myID;
-    }
-
 
     /** @brief Returns the type of the edge
      * @return This edge's type
@@ -367,6 +360,10 @@ public:
         myInterpolate = interpolate;
     }
 
+	/// @brief get edge priority (road class)
+	int getPriority() const {
+        return myPriority;
+    }
 
 protected:
     /** @brief Retrieves the stored effort
@@ -380,9 +377,6 @@ protected:
 
 
 protected:
-    /// @brief The id of the edge
-    std::string myID;
-
     /// @brief The maximum speed allowed on this edge
     SUMOReal mySpeed;
 
@@ -417,6 +411,9 @@ protected:
 
     /// @brief List of edges that may be approached from this edge
     std::vector<ROEdge*> myFollowingEdges;
+	
+	/// @brief The edge priority (road class)
+    const int myPriority;
 
 #ifdef HAVE_INTERNAL // catchall for internal stuff
     /// @brief List of edges that approached this edge

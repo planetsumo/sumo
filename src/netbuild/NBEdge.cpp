@@ -602,7 +602,11 @@ NBEdge::setConnection(unsigned int lane, NBEdge* destEdge,
         return;
     }
     if (myLanes.size() <= lane) {
-        WRITE_ERROR("Could not set connection from '" + getLaneID(lane) + "' to '" + destEdge->getLaneID(destLane) + "'.");
+        WRITE_ERROR("Could not set connection from '" + getLaneIDInsecure(lane) + "' to '" + destEdge->getLaneIDInsecure(destLane) + "'.");
+        return;
+    }
+    if (destEdge->getNumLanes() <= destLane) {
+        WRITE_ERROR("Could not set connection from '" + getLaneIDInsecure(lane) + "' to '" + destEdge->getLaneIDInsecure(destLane) + "'.");
         return;
     }
     for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end();) {
@@ -1769,9 +1773,9 @@ NBEdge::expandableBy(NBEdge* possContinuation) const {
 void
 NBEdge::append(NBEdge* e) {
     // append geometry
-    myGeom.appendWithCrossingPoint(e->myGeom);
+    myGeom.append(e->myGeom);
     for (unsigned int i = 0; i < myLanes.size(); i++) {
-        myLanes[i].shape.appendWithCrossingPoint(e->myLanes[i].shape);
+        myLanes[i].shape.append(e->myLanes[i].shape);
     }
     // recompute length
     myLength += e->myLength;
@@ -1807,6 +1811,12 @@ NBEdge::getTurnDestination() const {
 std::string
 NBEdge::getLaneID(unsigned int lane) const {
     assert(lane < myLanes.size());
+    return myID + "_" + toString(lane);
+}
+
+
+std::string
+NBEdge::getLaneIDInsecure(unsigned int lane) const {
     return myID + "_" + toString(lane);
 }
 
