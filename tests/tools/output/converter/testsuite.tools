@@ -1,2 +1,6 @@
-communication
 phem
+omnet
+ns2
+
+# Whether setting time constaints works
+time
