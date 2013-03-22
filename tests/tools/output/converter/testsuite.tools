@@ -1,6 +1,8 @@
 phem
 omnet
+shawn
 ns2
+gpsdat
 
 # Whether setting time constaints works
 time
