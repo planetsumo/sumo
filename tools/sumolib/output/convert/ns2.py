@@ -17,12 +17,12 @@ import math, datetime
 
 def fcd2ns2mobility(inpFCD, outSTRM, ignored):
   vIDm = sumolib._Running()
-  begin = None
+  begin = -1
   end = None
   area = [None, None, None, None]
   vehInfo = {}
   for timestep in inpFCD:
-    if not begin: begin = timestep.time
+    if begin<0: begin = timestep.time
     end = timestep.time
     seen = set()
     if not timestep.vehicle:

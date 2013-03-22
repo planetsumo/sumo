@@ -21,6 +21,30 @@ import sumolib.output.convert.omnet as omnet
 import sumolib.output.convert.shawn as shawn
 import sumolib.output.convert.ns2 as ns2
 import sumolib.output.convert.gpsdat as gpsdat
+from random import gauss
+
+class FCDVehicleEntry:
+  def __init__(self, id, x, y, speed, typev, lane, slope):
+    self.id = id
+    self.x = x
+    self.y = y
+    self.speed = speed
+    self.type = typev
+    self.lane = lane
+    self.slope = slope
+
+
+class FCDTimeEntry:
+  def __init__(self, t):
+    self.time = t
+    self.vehicle = []
+    
+def disturb_gps(x, y, deviation):
+    if deviation == 0:
+        return x, y
+    x += gauss(0, deviation)
+    y += gauss(0, deviation)
+    return x, y
 
 def _getOutputStream(name):
   if not name:
@@ -29,6 +53,7 @@ def _getOutputStream(name):
 
 def _closeOutputStream(strm):
   if strm: strm.close()
+  
 
 def procFCDStream(fcdstream, options):
   pt = -1 # "prior" time step
@@ -48,10 +73,15 @@ def procFCDStream(fcdstream, options):
     if lastExported>=0 and (options.delta and options.delta+lastExported>lt):
       continue # do not export between delta-t, if set
     lastExported = lt
-    yield q
+    e = FCDTimeEntry(lt)
+    if q.vehicle:
+      for v in q.vehicle:
+        x, y = disturb_gps(float(v.x), float(v.y), options.blur)
+        e.vehicle.append(FCDVehicleEntry(v.id, x, y, v.speed, v.type, v.lane, v.slope))
+    yield e
   t = lt-pt+lt
   o = sumolib.output.compound_object("timestep", ["time"])([t], {})
-  yield o
+  yield FCDTimeEntry(t)
 
 def runMethod(inputFile, outputFile, writer, options, further={}):
     o = _getOutputStream(outputFile)
@@ -78,6 +108,8 @@ def main(args=None):
                          type="float", help="Defines the first step not longer to export")
   optParser.add_option("-d", "--delta-t", dest="delta", 
                          type="float", help="Defines the export step length")
+  optParser.add_option("--gps-blur", dest="blur", default=0,
+                         type="float", help="Defines the GPS blur")
   # PHEM
   optParser.add_option("--dri-output", dest="dri", metavar="FILE",
                          help="Defines the name of the PHEM .dri-file to generate")

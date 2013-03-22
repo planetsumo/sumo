@@ -36,7 +36,7 @@ def fcd2omnet(inpFCD, outSTRM, ignored):
       else:
         nid = vIDm.g(v.id)        
         print >> outSTRM, """  <waypoint><nodeid>%s</nodeid><time>%s</time>\
-<destination><xpos>%s</xpos><ypos>%s</ypos></destination>speed>%s</speed></waypoint>""" % (nid, timestep.time, v.x, v.y, v.speed) 
+<destination><xpos>%s</xpos><ypos>%s</ypos></destination><speed>%s</speed></waypoint>""" % (nid, timestep.time, v.x, v.y, v.speed) 
     _writeMissing(outSTRM, timestep.time, vIDm, seen)
   print >> outSTRM, '</mobility_trace>'
 
