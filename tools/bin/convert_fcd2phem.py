@@ -21,7 +21,7 @@ import sumolib.output.convert.omnet as omnet
 import sumolib.output.convert.shawn as shawn
 import sumolib.output.convert.ns2 as ns2
 import sumolib.output.convert.gpsdat as gpsdat
-from random import gauss
+from random import gauss, random
 
 class FCDVehicleEntry:
   def __init__(self, id, x, y, speed, typev, lane, slope):
@@ -60,6 +60,7 @@ def procFCDStream(fcdstream, options):
   lt = -1 # "last" time step
   ft = -1 # "first" time step
   lastExported = -1
+  chosen = {}
   for i,q in enumerate(fcdstream):
     pt = lt
     lt = float(q.time.encode("latin1"))
@@ -76,11 +77,12 @@ def procFCDStream(fcdstream, options):
     e = FCDTimeEntry(lt)
     if q.vehicle:
       for v in q.vehicle:
-        x, y = disturb_gps(float(v.x), float(v.y), options.blur)
-        e.vehicle.append(FCDVehicleEntry(v.id, x, y, v.speed, v.type, v.lane, v.slope))
+        if v not in chosen: chosen[v] = random()<options.penetration
+        if chosen[v]:
+          x, y = disturb_gps(float(v.x), float(v.y), options.blur)
+          e.vehicle.append(FCDVehicleEntry(v.id, x, y, v.speed, v.type, v.lane, v.slope))
     yield e
   t = lt-pt+lt
-  o = sumolib.output.compound_object("timestep", ["time"])([t], {})
   yield FCDTimeEntry(t)
 
 def runMethod(inputFile, outputFile, writer, options, further={}):
@@ -101,7 +103,7 @@ def main(args=None):
   optParser.add_option("-n", "--net-input", dest="net", metavar="FILE",
                          help="Defines the network file to use as input")
   optParser.add_option("-p", "--penetration", dest="penetration", 
-                         help="Defines the percentage (0-1) of vehicles to export")
+                         default=1., help="Defines the percentage (0-1) of vehicles to export")
   optParser.add_option("-b", "--begin", dest="begin", 
                          type="float", help="Defines the first step to export")
   optParser.add_option("-e", "--end", dest="end", 
