@@ -22,12 +22,14 @@ import sumolib.output.convert.shawn as shawn
 import sumolib.output.convert.ns2 as ns2
 import sumolib.output.convert.gpsdat as gpsdat
 from random import gauss, random
+from datetime import datetime, timedelta
 
 class FCDVehicleEntry:
-  def __init__(self, id, x, y, speed, typev, lane, slope):
+  def __init__(self, id, x, y, z, speed, typev, lane, slope):
     self.id = id
     self.x = x
     self.y = y
+    self.z = z
     self.speed = speed
     self.type = typev
     self.lane = lane
@@ -80,12 +82,17 @@ def procFCDStream(fcdstream, options):
         if v not in chosen: chosen[v] = random()<options.penetration
         if chosen[v]:
           x, y = disturb_gps(float(v.x), float(v.y), options.blur)
-          e.vehicle.append(FCDVehicleEntry(v.id, x, y, v.speed, v.type, v.lane, v.slope))
+          if v.z: z = v.z
+          else: z = 0
+          e.vehicle.append(FCDVehicleEntry(v.id, x, y, z, v.speed, v.type, v.lane, v.slope))
     yield e
   t = lt-pt+lt
   yield FCDTimeEntry(t)
 
 def runMethod(inputFile, outputFile, writer, options, further={}):
+    further["app"] = os.path.split(__file__)[1]
+    if options.base>=0: further["base-date"] = datetime.fromtimestamp(options.base)
+    else: further["base-date"] = datetime.now()
     o = _getOutputStream(outputFile)
     fcdStream = sumolib.output.parse(inputFile, "timestep")
     ret = writer(procFCDStream(fcdStream, options), o, further)
@@ -112,6 +119,7 @@ def main(args=None):
                          type="float", help="Defines the export step length")
   optParser.add_option("--gps-blur", dest="blur", default=0,
                          type="float", help="Defines the GPS blur")
+  optParser.add_option("--base-date", dest="base", default=-1, type="int", help="Defines the base date")
   # PHEM
   optParser.add_option("--dri-output", dest="dri", metavar="FILE",
                          help="Defines the name of the PHEM .dri-file to generate")

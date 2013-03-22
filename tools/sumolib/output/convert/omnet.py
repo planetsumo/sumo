@@ -15,10 +15,10 @@ import sumolib.output
 import sumolib.net
 import datetime
 
-def fcd2omnet(inpFCD, outSTRM, ignored):
+def fcd2omnet(inpFCD, outSTRM, further):
   print >> outSTRM, '<?xml version="1.0" encoding="utf-8"?>'
   print >> outSTRM, '<xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="mobility_trace.xsd">'
-  print >> outSTRM, '<!-- generated on %s by !!! -->\n' % datetime.datetime.now()
+  print >> outSTRM, '<!-- generated on %s by %s -->\n' % (datetime.datetime.now(), further["app"])
   print >> outSTRM, '<mobility_trace>'
   vIDm = sumolib._Running()
   for timestep in inpFCD:

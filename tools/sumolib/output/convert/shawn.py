@@ -15,9 +15,9 @@ import sumolib.output
 import sumolib.net
 import datetime
 
-def fcd2shawn(inpFCD, outSTRM, ignored):
+def fcd2shawn(inpFCD, outSTRM, further):
   print >> outSTRM, '<?xml version="1.0" encoding="utf-8"?>'
-  print >> outSTRM, '<!-- generated on %s by !!! -->\n' % datetime.datetime.now()
+  print >> outSTRM, '<!-- generated on %s by %s -->\n' % (datetime.datetime.now(), further["app"])
   print >> outSTRM, '<scenario>'
   vIDm = sumolib._Running() # is it necessary to convert the ids?
   for timestep in inpFCD:
@@ -25,7 +25,7 @@ def fcd2shawn(inpFCD, outSTRM, ignored):
     if timestep.vehicle:
       for v in timestep.vehicle:
         nid = vIDm.g(v.id)        
-        print >> outSTRM, '     <node id="%s"> <location x="%s" y="%s"/> </node>' % (nid, v.x, v.y)
+        print >> outSTRM, '     <node id="%s"> <location x="%s" y="%s" z="%s"/> </node>' % (nid, v.x, v.y, v.z)
     print >> outSTRM, '   </snapshot>'
   print >> outSTRM, '</scenario>'
 

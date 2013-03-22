@@ -16,8 +16,8 @@ import sumolib.net
 from datetime import datetime, timedelta
 TAXI_STATUS_FREE_FLOW = "70"
 
-def fcd2gpsdat(inpFCD, outSTRM, ignored):
-  date=datetime.now()
+def fcd2gpsdat(inpFCD, outSTRM, further):
+  date = further["base-date"]
   for timestep in inpFCD:
     if timestep.vehicle:
       mtime = str(date + timedelta(seconds=int(float(timestep.time)))) # does not work with subseconds
