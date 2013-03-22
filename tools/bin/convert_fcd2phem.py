@@ -18,7 +18,9 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.di
 import sumolib.net
 import sumolib.output.convert.phem as phem
 import sumolib.output.convert.omnet as omnet
+import sumolib.output.convert.shawn as shawn
 import sumolib.output.convert.ns2 as ns2
+import sumolib.output.convert.gpsdat as gpsdat
 
 def _getOutputStream(name):
   if not name:
@@ -88,6 +90,9 @@ def main(args=None):
   # OMNET
   optParser.add_option("--omnet-output", dest="omnet", metavar="FILE",
                          help="Defines the name of the OMNET file to generate")
+  # Shawn
+  optParser.add_option("--shawn-output", dest="shawn", metavar="FILE",
+                         help="Defines the name of the Shawn file to generate")
   # ns2
   optParser.add_option("--ns2activity-output", dest="ns2activity", metavar="FILE",
                          help="Defines the name of the ns2 file to generate")
@@ -95,6 +100,9 @@ def main(args=None):
                          help="Defines the name of the ns2 file to generate")
   optParser.add_option("--ns2mobility-output", dest="ns2mobility", metavar="FILE",
                          help="Defines the name of the ns2 file to generate")
+  # GPSDAT
+  optParser.add_option("--gpsdat-output", dest="gpsdat", metavar="FILE",
+                         help="Defines the name of the gpsdat file to generate")
   # parse
   options, remaining_args = optParser.parse_args(args=args)
   
@@ -120,6 +128,14 @@ def main(args=None):
   ## ----- OMNET
   if options.omnet: runMethod(options.fcd, options.omnet, omnet.fcd2omnet, options)
   ## ----- OMNET
+
+  ## ----- Shawn
+  if options.shawn: runMethod(options.fcd, options.shawn, shawn.fcd2shawn, options)
+  ## ----- Shawn
+
+  ## ----- GPSDAT
+  if options.gpsdat: runMethod(options.fcd, options.gpsdat, gpsdat.fcd2gpsdat, options)
+  ## ----- GPSDAT
 
   ## ----- ns2
   if options.ns2mobility or options.ns2config or options.ns2activity: 

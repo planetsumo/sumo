@@ -13,7 +13,7 @@ All rights reserved
 """
 import sumolib.output
 import sumolib.net
-import math, datetime
+import datetime
 
 def fcd2omnet(inpFCD, outSTRM, ignored):
   print >> outSTRM, '<?xml version="1.0" encoding="utf-8"?>'
