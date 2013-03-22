@@ -2,7 +2,7 @@
 @file    convert_fcd2phem.py
 @author  Daniel Krajzewicz
 @date    2013-01-15
-@version $Id:$
+@version $Id$
 
 A script for converting SUMO's fcd-output into files readable by PHEM.
 
@@ -17,60 +17,147 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.di
 
 import sumolib.net
 import sumolib.output.convert.phem as phem
+import sumolib.output.convert.omnet as omnet
+import sumolib.output.convert.ns2 as ns2
 
+def _getOutputStream(name):
+  if not name:
+    return None
+  return open(name, "w")
+
+def _closeOutputStream(strm):
+  if strm: strm.close()
+
+def procFCDStream(fcdstream, options):
+  pt = -1 # "prior" time step
+  lt = -1 # "last" time step
+  ft = -1 # "first" time step
+  lastExported = -1
+  for i,q in enumerate(fcdstream):
+    pt = lt
+    lt = float(q.time.encode("latin1"))
+    if ft<0:
+      # this is the first step contained in the simulation
+      ft = lt # save it for later purposes
+    if options.begin and options.begin>lt:
+      continue # do not export steps before a set begin
+    if options.end and options.end<=lt:
+      continue # do not export steps after a set end
+    if lastExported>=0 and (options.delta and options.delta+lastExported>lt):
+      continue # do not export between delta-t, if set
+    lastExported = lt
+    yield q
+  t = lt-pt+lt
+  o = sumolib.output.compound_object("timestep", ["time"])([t], {})
+  yield o
+
+def runMethod(inputFile, outputFile, writer, options, further={}):
+    o = _getOutputStream(outputFile)
+    fcdStream = sumolib.output.parse(inputFile, "timestep")
+    ret = writer(procFCDStream(fcdStream, options), o, further)
+    _closeOutputStream(o)
+    return ret
 
 
 def main(args=None):
   """The main function; parses options and converts..."""
+  ## ---------- build and read options ----------
   from optparse import OptionParser
   optParser = OptionParser()
   optParser.add_option("-i", "--fcd-input", dest="fcd", metavar="FILE",
                          help="Defines the FCD-output file to use as input")
   optParser.add_option("-n", "--net-input", dest="net", metavar="FILE",
                          help="Defines the network file to use as input")
+  optParser.add_option("-p", "--penetration", dest="penetration", 
+                         help="Defines the percentage (0-1) of vehicles to export")
+  optParser.add_option("-b", "--begin", dest="begin", 
+                         type="float", help="Defines the first step to export")
+  optParser.add_option("-e", "--end", dest="end", 
+                         type="float", help="Defines the first step not longer to export")
+  optParser.add_option("-d", "--delta-t", dest="delta", 
+                         type="float", help="Defines the export step length")
+  # PHEM
   optParser.add_option("--dri-output", dest="dri", metavar="FILE",
-                         help="Defines the name of the .dri-file to generate")
+                         help="Defines the name of the PHEM .dri-file to generate")
   optParser.add_option("--str-output", dest="str", metavar="FILE",
-                         help="Defines the name of the .str-file to generate")
+                         help="Defines the name of the PHEM .str-file to generate")
   optParser.add_option("--fzp-output", dest="fzp", metavar="FILE",
-                         help="Defines the name of the .fzp-file to generate")
+                         help="Defines the name of the PHEM .fzp-file to generate")
   optParser.add_option("--flt-output", dest="flt", metavar="FILE",
-                         help="Defines the name of the .flt-file to generate")
+                         help="Defines the name of the PHEM .flt-file to generate")
+  # OMNET
+  optParser.add_option("--omnet-output", dest="omnet", metavar="FILE",
+                         help="Defines the name of the OMNET file to generate")
+  # ns2
+  optParser.add_option("--ns2activity-output", dest="ns2activity", metavar="FILE",
+                         help="Defines the name of the ns2 file to generate")
+  optParser.add_option("--ns2config-output", dest="ns2config", metavar="FILE",
+                         help="Defines the name of the ns2 file to generate")
+  optParser.add_option("--ns2mobility-output", dest="ns2mobility", metavar="FILE",
+                         help="Defines the name of the ns2 file to generate")
+  # parse
   options, remaining_args = optParser.parse_args(args=args)
   
-  # check needed values
-  if options.dri or options.fzp or options.flt:
-    if not options.fcd:
-      print "A fcd-output must be given"
-      return 1
+  ## ---------- process ----------
+  net = None
+  ## ----- check needed values
+  if options.delta and options.delta<=0:
+    print "delta-t must be a positive value."
+    return 1
+  # phem
+  if (options.dri or options.fzp or options.flt) and not options.fcd:
+    print "A fcd-output from SUMO must be given using the --fcd-input."
+    return 1
+  if (options.str or options.fzp or options.flt) and not options.net:
+    print "A SUMO network must be given using the --net-input option."
+    return 1
+  # omnet
+  if options.omnet and not options.fcd:
+    print "A fcd-output from SUMO must be given using the --fcd-input."
+    return 1
+  ## ----- check needed values
   
+  ## ----- OMNET
+  if options.omnet: runMethod(options.fcd, options.omnet, omnet.fcd2omnet, options)
+  ## ----- OMNET
+
+  ## ----- ns2
+  if options.ns2mobility or options.ns2config or options.ns2activity: 
+    vIDm, vehInfo, begin, end, area = runMethod(options.fcd, options.ns2mobility, ns2.fcd2ns2mobility, options)
+  if options.ns2activity: 
+    o = _getOutputStream(options.ns2activity)
+    ns2.writeNS2activity(o, vehInfo)
+    _closeOutputStream(o)
+  if options.ns2config: 
+    o = _getOutputStream(options.ns2config)
+    ns2.writeNS2config(o, vehInfo, options.ns2activity, options.ns2mobility, begin, end, area)
+    _closeOutputStream(o)
+  ## ----- ns2
+
+  ## ----- PHEM
   # .dri
-  if options.dri:
-    o = phem._getOutputStream(options.dri)
-    phem.toDRI(options.fcd, o)
-    phem._closeOutputStream(o)
-  # .str
+  if options.dri: runMethod(options.fcd, options.dri, phem.fcd2dri, options)
+  # .str (we need the net for other outputs, too)
   if options.str or options.fzp or options.flt:
     if not options.net:
-      print "A network must be given"
+      print "A SUMO network must be given using the --net-input option."
       return 1
-    net = sumolib.net.readNet(options.net)
-    o = phem._getOutputStream(options.str)
-    sIDm = phem.toSTR(net, o)
-    phem._closeOutputStream(o)
+    if not net: net = sumolib.net.readNet(options.net)
+    o = _getOutputStream(options.str)
+    sIDm = phem.net2str(net, o)
+    _closeOutputStream(o)
   # .fzp
-  if options.flt or options.fzp:
-    o = phem._getOutputStream(options.fzp)
-    vIDm, vtIDm = phem.toFZP(options.fcd, o, sIDm)
-    phem._closeOutputStream(o)
+  if options.flt or options.fzp: 
+    vIDm, vtIDm = runMethod(options.fcd, options.fzp, phem.fcd2fzp, options, {"phemStreetMap":sIDm})
   # .flt    
   if options.flt:
-    o = phem._getOutputStream(options.flt)
-    phem.toFLT(None, o, vtIDm)
-    phem._closeOutputStream(o)
-  # exit    
+    o = _getOutputStream(options.flt)
+    phem.vehicleTypes2flt(o, vtIDm)
+    _closeOutputStream(o)
+  ## ----- PHEM
   return 0
 
 
 if __name__ == "__main__":
-  main(sys.argv)
+  sys.exit(main(sys.argv))
+  
