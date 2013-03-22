@@ -288,12 +288,12 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         OpenDriveEdge* e = (*i).second;
         if (e->from == 0) {
             std::string nid = e->id + ".begin";
-            Position pos(e->geometries[0].x, e->geometries[0].y);
+            Position pos(e->geom[0].x(), e->geom[0].y());
             e->from = getOrBuildNode(nid, pos, nb.getNodeCont());
         }
         if (e->to == 0) {
             std::string nid = e->id + ".end";
-            Position pos(e->geometries.back().x, e->geometries.back().y);
+            Position pos(e->geom[-1].x(), e->geom[-1].y());
             e->to = getOrBuildNode(nid, pos, nb.getNodeCont());
         }
     }
