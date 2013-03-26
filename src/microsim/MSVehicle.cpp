@@ -248,6 +248,9 @@ MSVehicle::Influencer::postProcessVTD(MSVehicle *v) {
 		v->replaceRouteEdges(myVTDRoute, true);
 	}
 	v->myCurrEdge += myVTDEdgeOffset;
+	if(myVTDPos>myVTDLane->getLength()) {
+		myVTDPos = myVTDLane->getLength();
+	}
 	myVTDLane->forceVehicleInsertion(v, myVTDPos);
 	v->getBestLanes();
 }
