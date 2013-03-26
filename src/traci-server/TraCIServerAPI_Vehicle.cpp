@@ -1071,7 +1071,7 @@ TraCIServerAPI_Vehicle::vtdMap_matchingRoutePosition(const Position &pos, const 
 	}
 	lanePos = MAX2(SUMOReal(0), MIN2(bestRouteLane->getLength()-POSITION_EPS, bestRouteLane->getShape().nearest_position_on_line_to_point2D(pos, false)));
 	routeOffset = lastBestRouteEdge;
-	if(report) std::cout << "  b ok lane " << bestRouteLane->getID() << " dist:" << lanePos << " best:" << lastBestRouteEdge << std::endl;
+	if(report) std::cout << "  b ok lane " << bestRouteLane->getID() << " lanePos:" << lanePos << " best:" << lastBestRouteEdge << std::endl;
 	return true;
 }
 
@@ -1112,13 +1112,13 @@ TraCIServerAPI_Vehicle::vtdMap_matchingNearest(const Position &pos, const std::s
 	}
     *lane = nameMatchingLane != 0 ? nameMatchingLane : minDistLane;
 	if(lane==0) {
-		if(report) std::cout << " c failed - no matching lane" << std::endl;
+		if(report) std::cout << "  c failed - no matching lane" << std::endl;
 		return false;
 	}
 	lanePos = (*lane)->interpolateGeometryPosToLanePos((*lane)->getShape().nearest_position_on_line_to_point2D(pos, false));
 	if (*lane == v.getLane()) {
 		routeOffset = 0;
-		if(report) std::cout << " c ok, on same lane" << std::endl;
+		if(report) std::cout << "  c ok, on same lane" << std::endl;
 		return true;
 	}
 	MSEdge& destinationEdge = (*lane)->getEdge();
@@ -1146,7 +1146,7 @@ TraCIServerAPI_Vehicle::vtdMap_matchingNearest(const Position &pos, const std::s
 	if(found) {
 		// the matching lane is part of the route
 		routeOffset = rindex - v.getRoutePosition();
-		if(report) std::cout << " c ok, on a different edge of same route" << std::endl;
+		if(report) std::cout << "  c ok, on a different edge of same route" << std::endl;
 		return true;
 	}
 	// build new route
@@ -1161,7 +1161,7 @@ TraCIServerAPI_Vehicle::vtdMap_matchingNearest(const Position &pos, const std::s
     if (lc.size() != 0 && lc[0]->getLane() != 0) {
 		edges.push_back(&lc[0]->getLane()->getEdge());
 	}
-	if(report) std::cout << " c ok, on a different route" << std::endl;
+	if(report) std::cout << "  c ok, on a different route" << std::endl;
 	return true;
 }
 
