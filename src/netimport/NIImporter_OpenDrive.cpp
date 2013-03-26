@@ -88,6 +88,7 @@ StringBijection<int>::Entry NIImporter_OpenDrive::openDriveTags[] = {
 	{ "connection",       NIImporter_OpenDrive::OPENDRIVE_TAG_CONNECTION },
 	{ "laneLink",         NIImporter_OpenDrive::OPENDRIVE_TAG_LANELINK },
 	{ "width",			  NIImporter_OpenDrive::OPENDRIVE_TAG_WIDTH },
+	{ "speed",			  NIImporter_OpenDrive::OPENDRIVE_TAG_SPEED },
 
     { "",                 NIImporter_OpenDrive::OPENDRIVE_TAG_NOTHING }
 };
@@ -384,6 +385,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 						OpenDriveLane &odLane = (*j).lanesByDir[OPENDRIVE_TAG_RIGHT][k-1]; 
 
 						sumoLane.origID = e->id + " -" + toString(k);
+						sumoLane.speed = odLane.speed!=0 ? odLane.speed : defaultSpeed;
 						
 						if(myImportWidths) {
 							SUMOReal width = odLane.width;
@@ -420,6 +422,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 						OpenDriveLane &odLane = (*j).lanesByDir[OPENDRIVE_TAG_LEFT][k-1]; 
 
 						sumoLane.origID = e->id + " " + toString(k);
+						sumoLane.speed = odLane.speed!=0 ? odLane.speed : defaultSpeed;
 
 						if(myImportWidths) {
 							SUMOReal width = odLane.width;
@@ -1187,6 +1190,13 @@ NIImporter_OpenDrive::myStartElement(int element,
                 SUMOReal width = attrs.get<SUMOReal>(OPENDRIVE_ATTR_A, myCurrentEdge.id.c_str(), ok);
                 OpenDriveLane& l = myCurrentEdge.laneSections.back().lanesByDir[myCurrentLaneDirection].back();
                 l.width = MAX2(l.width, width);
+            }
+        }
+        break;
+        case OPENDRIVE_TAG_SPEED: {
+            if (myElementStack.size() >= 2 && myElementStack[myElementStack.size() - 1] == OPENDRIVE_TAG_LANE) {
+                SUMOReal speed = attrs.get<SUMOReal>(OPENDRIVE_ATTR_MAX, myCurrentEdge.id.c_str(), ok);
+				myCurrentEdge.laneSections.back().lanesByDir[myCurrentLaneDirection].back().speed = speed;
             }
         }
         break;

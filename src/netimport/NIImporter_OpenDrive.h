@@ -107,7 +107,8 @@ protected:
 		OPENDRIVE_TAG_JUNCTION,
 		OPENDRIVE_TAG_CONNECTION,
 		OPENDRIVE_TAG_LANELINK,
-		OPENDRIVE_TAG_WIDTH
+		OPENDRIVE_TAG_WIDTH,
+		OPENDRIVE_TAG_SPEED
     };
 
 
@@ -244,13 +245,14 @@ protected:
 		 */
         OpenDriveLane(int idArg, const std::string& levelArg, const std::string& typeArg)
             : id(idArg), level(levelArg), type(typeArg), successor(UNSET_CONNECTION), predecessor(UNSET_CONNECTION),
-		width(0) { }
+		width(0), speed(0) { }
 
         int id;
         std::string level;
         std::string type;
         int successor;
         int predecessor;
+		SUMOReal speed;
 		SUMOReal width; ///< @todo: this is the maximum width only
     };
 
