@@ -106,7 +106,8 @@ protected:
         OPENDRIVE_TAG_SIGNAL,
 		OPENDRIVE_TAG_JUNCTION,
 		OPENDRIVE_TAG_CONNECTION,
-		OPENDRIVE_TAG_LANELINK
+		OPENDRIVE_TAG_LANELINK,
+		OPENDRIVE_TAG_WIDTH
     };
 
 
@@ -143,7 +144,8 @@ protected:
 		OPENDRIVE_ATTR_INCOMINGROAD,
 		OPENDRIVE_ATTR_CONNECTINGROAD,
 		OPENDRIVE_ATTR_FROM,
-		OPENDRIVE_ATTR_TO
+		OPENDRIVE_ATTR_TO,
+		OPENDRIVE_ATTR_MAX
     };
 
 
@@ -241,13 +243,15 @@ protected:
 		 * @param[in] typeArg type of the lane
 		 */
         OpenDriveLane(int idArg, const std::string& levelArg, const std::string& typeArg)
-            : id(idArg), level(levelArg), type(typeArg), successor(UNSET_CONNECTION), predecessor(UNSET_CONNECTION) { }
+            : id(idArg), level(levelArg), type(typeArg), successor(UNSET_CONNECTION), predecessor(UNSET_CONNECTION),
+		width(0) { }
 
         int id;
         std::string level;
         std::string type;
         int successor;
         int predecessor;
+		SUMOReal width; ///< @todo: this is the maximum width only
     };
 
 
@@ -426,6 +430,7 @@ static std::string revertID(const std::string &id);
 
     static std::set<std::string> myLaneTypes2Import;
     static bool myImportAllTypes;
+	static bool myImportWidths;
 
 
 protected:
