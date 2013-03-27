@@ -253,6 +253,7 @@ MSVehicle::Influencer::postProcessVTD(MSVehicle *v) {
 	}
 	myVTDLane->forceVehicleInsertion(v, myVTDPos);
 	v->getBestLanes();
+    myAmVTDControlled = false;
 }
 
 #endif
