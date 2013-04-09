@@ -20,3 +20,6 @@ long_tail
 # (important for big junction shapes)
 edge_length
 preserve_permissions
+
+# do not join junctions in a roundabout
+roundabout
