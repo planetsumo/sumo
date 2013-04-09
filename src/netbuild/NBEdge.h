@@ -947,7 +947,7 @@ public:
     void setOffset(int lane, SUMOReal offset);
 
     /// @brief set lane specific speed (negative lane implies set for all lanes)
-    void setSpeed(int lane, SUMOReal offset);
+    void setSpeed(int lane, SUMOReal speed);
 
     /// @brief get the union of allowed classes over all lanes or for a specific lane
     SVCPermissions getPermissions(int lane = -1) const;
@@ -1121,7 +1121,7 @@ private:
      * startNode. laneShape may be shorted or extended
      * @note see [wiki:Developer/Network_Building_Process]
      */
-    PositionVector startShapeAt(const PositionVector& laneShape, const NBNode* startNode, unsigned int laneIndex) const;
+    PositionVector startShapeAt(const PositionVector& laneShape, const NBNode* startNode) const;
 
 private:
     /** @brief The building step

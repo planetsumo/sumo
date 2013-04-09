@@ -66,7 +66,7 @@ public:
     /** @brief Constructor
      */
     GeoConvHelper(const std::string& proj, const Position& offset,
-                  const Boundary& orig, const Boundary& conv, int shift = 0, bool inverse = false, bool baseFound = false);
+                  const Boundary& orig, const Boundary& conv, int shift = 0, bool inverse = false);
 
 
     /// @brief Destructor
@@ -147,6 +147,11 @@ public:
 
     /// Returns the converted boundary
     const Boundary& getConvBoundary() const;
+
+    /// sets the converted boundary
+    void setConvBoundary(const Boundary& boundary) {
+        myConvBoundary = boundary;
+    }
 
     /// Returns the network offset
     const Position getOffset() const;

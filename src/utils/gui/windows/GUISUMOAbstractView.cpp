@@ -130,7 +130,6 @@ GUISUMOAbstractView::GUISUMOAbstractView(FXComposite* p,
     myChanger = new GUIDanielPerspectiveChanger(*this, *myGrid);
     myVisualizationSettings = &gSchemeStorage.getDefault();
     myVisualizationSettings->gaming = myApp->isGaming();
-    myVisualizationSettings->currentView = this;
     gSchemeStorage.setViewport(this);
 }
 
@@ -211,10 +210,10 @@ GUISUMOAbstractView::paintGL() {
 
     // draw
     glClearColor(
-        myVisualizationSettings->backgroundColor.red(),
-        myVisualizationSettings->backgroundColor.green(),
-        myVisualizationSettings->backgroundColor.blue(),
-        1);
+        myVisualizationSettings->backgroundColor.red() / 255.,
+        myVisualizationSettings->backgroundColor.green() / 255.,
+        myVisualizationSettings->backgroundColor.blue() / 255.,
+        myVisualizationSettings->backgroundColor.alpha() / 255.);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -332,7 +331,7 @@ GUISUMOAbstractView::showToolTipFor(unsigned int id) {
         if (object != 0) {
             Position pos = getPositionInformation();
             pos.add(0, p2m(15));
-            GLHelper::drawTextBox(object->getFullName(), pos, GLO_MAX - 1, p2m(20), RGBColor(0, 0, 0), RGBColor(1, 0.7, 0));
+            GLHelper::drawTextBox(object->getFullName(), pos, GLO_MAX - 1, p2m(20), RGBColor::BLACK, RGBColor(255, 179, 0, 255));
             GUIGlObjectStorage::gIDStorage.unblockObject(id);
         }
     }
@@ -506,10 +505,10 @@ GUISUMOAbstractView::onConfigure(FXObject*, FXSelector, void*) {
     if (makeCurrent()) {
         glViewport(0, 0, getWidth() - 1, getHeight() - 1);
         glClearColor(
-            myVisualizationSettings->backgroundColor.red(),
-            myVisualizationSettings->backgroundColor.green(),
-            myVisualizationSettings->backgroundColor.blue(),
-            1);
+            myVisualizationSettings->backgroundColor.red() / 255.,
+            myVisualizationSettings->backgroundColor.green() / 255.,
+            myVisualizationSettings->backgroundColor.blue() / 255.,
+            myVisualizationSettings->backgroundColor.alpha() / 255.);
         doInit();
         myAmInitialised = true;
         makeNonCurrent();
@@ -614,10 +613,8 @@ GUISUMOAbstractView::onMouseMove(FXObject*, FXSelector , void* data) {
     }
     if (myViewportChooser != 0 &&
             (xpos != myChanger->getXPos() || ypos != myChanger->getYPos() || zoom != myChanger->getZoom())) {
-
         myViewportChooser->setValues(
-            myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos());
-
+            myChanger->getXPos(), myChanger->getYPos(), myChanger->getZoom());
     }
     updatePositionInformation();
     return 1;
@@ -720,10 +717,10 @@ GUISUMOAbstractView::makeSnapshot(const std::string& destFile) {
     }
     // draw
     glClearColor(
-        myVisualizationSettings->backgroundColor.red(),
-        myVisualizationSettings->backgroundColor.green(),
-        myVisualizationSettings->backgroundColor.blue(),
-        1);
+        myVisualizationSettings->backgroundColor.red() / 255.,
+        myVisualizationSettings->backgroundColor.green() / 255.,
+        myVisualizationSettings->backgroundColor.blue() / 255.,
+        myVisualizationSettings->backgroundColor.alpha() / 255.);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -866,22 +863,20 @@ GUISUMOAbstractView::checkSnapshots() {
 
 void
 GUISUMOAbstractView::showViewportEditor() {
+    Position p(myChanger->getXPos(), myChanger->getYPos(), myChanger->getZoom()), p1;
     if (myViewportChooser == 0) {
         myViewportChooser =
-            new GUIDialog_EditViewport(this, "Edit Viewport...",
-                                       myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos(),
-                                       0, 0);
+            new GUIDialog_EditViewport(this, "Edit Viewport...", p, 0, 0);
         myViewportChooser->create();
     }
-    myViewportChooser->setOldValues(
-        myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos());
+    myViewportChooser->setOldValues(p, p1);
     myViewportChooser->show();
 }
 
 
 void
-GUISUMOAbstractView::setViewport(SUMOReal zoom, SUMOReal xPos, SUMOReal yPos) {
-    myChanger->setViewport(zoom, xPos, yPos);
+GUISUMOAbstractView::setViewport(const Position& lookFrom, const Position& /* lookAt */) {
+    myChanger->setViewport(lookFrom.z(), lookFrom.x(), lookFrom.y());
     update();
 }
 

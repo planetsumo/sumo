@@ -407,8 +407,8 @@ GUIVehicle::drawPoly(double* poses, SUMOReal offset) {
 void
 GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) const {
     RGBColor current = GLHelper::getColor();
-    RGBColor lighter = current.changedBrightness(.2);
-    RGBColor darker = current.changedBrightness(-.2);
+    RGBColor lighter = current.changedBrightness(51);
+    RGBColor darker = current.changedBrightness(-51);
 
     const SUMOReal length = getVehicleType().getLength();
     const SUMOReal width = getVehicleType().getWidth();
@@ -1035,24 +1035,21 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
             person->drawGL(s);
         }
     }
-    if (myAdditionalVisualizations.size() > 0) {
-        drawGLAdditional(s);
-    }
 }
 
 
 void
-GUIVehicle::drawGLAdditional(const GUIVisualizationSettings& s) const {
+GUIVehicle::drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisualizationSettings& s) const {
     glPushName(getGlID());
     glPushMatrix();
     glTranslated(0, 0, getType() - .1); // don't draw on top of other cars
-    if (hasActiveAddVisualisation(s.currentView, VO_SHOW_BEST_LANES)) {
+    if (hasActiveAddVisualisation(parent, VO_SHOW_BEST_LANES)) {
         drawBestLanes();
     }
-    if (hasActiveAddVisualisation(s.currentView, VO_SHOW_ROUTE)) {
+    if (hasActiveAddVisualisation(parent, VO_SHOW_ROUTE)) {
         drawRoute(s, 0, 0.25);
     }
-    if (hasActiveAddVisualisation(s.currentView, VO_SHOW_ALL_ROUTES)) {
+    if (hasActiveAddVisualisation(parent, VO_SHOW_ALL_ROUTES)) {
         if (getNumberReroutes() > 0) {
             const int noReroutePlus1 = getNumberReroutes() + 1;
             for (int i = noReroutePlus1 - 1; i >= 0; i--) {
@@ -1063,7 +1060,7 @@ GUIVehicle::drawGLAdditional(const GUIVisualizationSettings& s) const {
             drawRoute(s, 0, 0.25);
         }
     }
-    if (hasActiveAddVisualisation(s.currentView, VO_SHOW_LFLINKITEMS)) {
+    if (hasActiveAddVisualisation(parent, VO_SHOW_LFLINKITEMS)) {
         for (DriveItemVector::const_iterator i = myLFLinkLanes.begin(); i != myLFLinkLanes.end(); ++i) {
             if ((*i).myLink == 0) {
                 continue;
@@ -1100,7 +1097,7 @@ GUIVehicle::drawLinkItem(const Position& pos, SUMOTime arrivalTime, SUMOTime lea
     glTranslated(pos.x(), pos.y(), -.1);
     GLHelper::drawFilledCircle(1);
     std::string times = toString(STEPS2TIME(arrivalTime)) + "/" + toString(STEPS2TIME(leaveTime));
-    GLHelper::drawText(times.c_str(), Position(), .1, 1.6 * exagerate, RGBColor(0, 1, 0), 0);
+    GLHelper::drawText(times.c_str(), Position(), .1, 1.6 * exagerate, RGBColor::GREEN, 0);
     glTranslated(-pos.x(), -pos.y(), .1);
 }
 
@@ -1243,15 +1240,14 @@ GUIVehicle::addActiveAddVisualisation(GUISUMOAbstractView* const parent, int whi
         myAdditionalVisualizations[parent] = 0;
     }
     myAdditionalVisualizations[parent] |= which;
+    parent->addAdditionalGLVisualisation(this);
 }
 
 
 void
 GUIVehicle::removeActiveAddVisualisation(GUISUMOAbstractView* const parent, int which) {
     myAdditionalVisualizations[parent] &= ~which;
-    if (myAdditionalVisualizations[parent] == 0) {
-        myAdditionalVisualizations.erase(parent);
-    }
+    parent->removeAdditionalGLVisualisation(this);
 }
 
 
@@ -1374,7 +1370,7 @@ GUIVehicle::getPreviousLane(MSLane* current, int& routeIndex) const {
 void
 GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, int firstPassengerCarriage, bool asImage) const {
     RGBColor current = GLHelper::getColor();
-    RGBColor darker = current.changedBrightness(-.2);
+    RGBColor darker = current.changedBrightness(-51);
     const SUMOReal length = getVehicleType().getLength() * s.vehicleExaggeration;
     const SUMOReal halfWidth = getVehicleType().getWidth() / 2.0 * s.vehicleExaggeration;
     glPopMatrix(); // undo scaling and 90 degree rotation

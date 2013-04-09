@@ -188,7 +188,7 @@ GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
 
 
 void
-GUIPerson::drawGLAdditional(const GUIVisualizationSettings& /* s */) const {
+GUIPerson::drawGLAdditional(GUISUMOAbstractView* const /* parent */, const GUIVisualizationSettings& /* s */) const {
     glPushName(getGlID());
     glPushMatrix();
     /*
@@ -330,7 +330,7 @@ GUIPerson::drawAction_drawAsPoly(const GUIVisualizationSettings& /* s */) const 
     // draw pedestrian shape
     const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
     glRotated(getAngle(now), 0, 0, 1);
-    RGBColor lighter = GLHelper::getColor().changedBrightness(.2);
+    RGBColor lighter = GLHelper::getColor().changedBrightness(51);
     glTranslated(0, 0, .045);
     GLHelper::drawFilledCircle(0.3);
     glTranslated(0, 0, -.045);
