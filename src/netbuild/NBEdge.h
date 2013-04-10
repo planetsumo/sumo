@@ -744,6 +744,7 @@ public:
     void replaceInConnections(NBEdge* which, NBEdge* by, unsigned int laneOff);
     void replaceInConnections(NBEdge* which, const std::vector<NBEdge::Connection>& origConns);
     void copyConnectionsFrom(NBEdge* src);
+    void setAsUnconnected(NBEdge *e);
     /// @}
 
 
@@ -908,6 +909,10 @@ public:
     SUMOReal getLaneSpeed(unsigned int lane) const;
 
     bool isNearEnough2BeJoined2(NBEdge* e, SUMOReal threshold) const;
+
+    void setPriority(int prio) {
+        myPriority = prio;
+    }
 
 
     /** @brief Returns the angle of the edge's geometry at the given node
@@ -1151,6 +1156,7 @@ private:
      * @see Connection
      */
     std::vector<Connection> myConnections;
+    std::set<NBEdge*> myUnconnected;
 
     /** @brief List of connections marked for delayed removal
      */

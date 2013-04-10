@@ -193,7 +193,7 @@ NBNode::ApproachingDivider::spread(const std::vector<int>& approachingLanes,
  * ----------------------------------------------------------------------- */
 NBNode::NBNode(const std::string& id, const Position& position) :
     Named(StringUtils::convertUmlaute(id)),
-    myPosition(position),
+    myTopologyType(NTT_UNKNOWN), myPosition(position),
     myType(NODETYPE_UNKNOWN), myDistrict(0), myRequest(0)
 { }
 
@@ -201,14 +201,14 @@ NBNode::NBNode(const std::string& id, const Position& position) :
 NBNode::NBNode(const std::string& id, const Position& position,
                SumoXMLNodeType type) :
     Named(StringUtils::convertUmlaute(id)),
-    myPosition(position),
+    myTopologyType(NTT_UNKNOWN), myPosition(position),
     myType(type), myDistrict(0), myRequest(0)
 { }
 
 
 NBNode::NBNode(const std::string& id, const Position& position, NBDistrict* district) :
     Named(StringUtils::convertUmlaute(id)),
-    myPosition(position),
+    myTopologyType(NTT_UNKNOWN), myPosition(position),
     myType(NODETYPE_DISTRICT), myDistrict(district), myRequest(0)
 { }
 

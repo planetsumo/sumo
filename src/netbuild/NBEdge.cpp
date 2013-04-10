@@ -869,6 +869,11 @@ NBEdge::copyConnectionsFrom(NBEdge* src) {
 }
 
 
+void 
+NBEdge::setAsUnconnected(NBEdge *e) {
+    myUnconnected.insert(e);
+}
+
 void
 NBEdge::moveConnectionToLeft(unsigned int lane) {
     unsigned int index = 0;
@@ -1262,6 +1267,9 @@ NBEdge::computeEdge2Edges(bool noLeftMovers) {
         const EdgeVector& o = myTo->getOutgoingEdges();
         for (EdgeVector::const_iterator i = o.begin(); i != o.end(); ++i) {
             if (noLeftMovers && myTo->isLeftMover(this, *i)) {
+                continue;
+            }
+            if(myUnconnected.find(*i)!=myUnconnected.end()) {
                 continue;
             }
             myConnections.push_back(Connection(-1, *i, -1));

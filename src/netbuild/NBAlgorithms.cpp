@@ -32,7 +32,10 @@
 #include <iostream>
 #include <cassert>
 #include <algorithm>
+#include <fstream>
 #include <utils/common/MsgHandler.h>
+#include <utils/geom/GeomHelper.h> 
+#include <utils/options/OptionsCont.h> 
 #include "NBEdge.h"
 #include "NBNodeCont.h"
 #include "NBTypeCont.h"
@@ -377,6 +380,188 @@ NBEdgePriorityComputer::samePriority(const NBEdge* const e1, const NBEdge* const
     return (int) e1->getNumLanes() == (int) e2->getNumLanes();
 }
 
+ 
+// --------------------------------------------------------------------------- 
+// NBEdgePriorityComputer 
+// --------------------------------------------------------------------------- 
+
+int 
+ct(std::map<NBNode*, int> &typed, NBNode *n) {
+    if(typed.find(n)==typed.end()) {
+        typed[n] = 0;
+        return 0;
+    }
+    typed[n] = typed[n] + 1;
+    return typed[n];
+}
+
+void 
+NBNodeTopologyTypeComputer::computeTopologyType(NBNodeCont &nc, OptionsCont &oc) { 
+    //SUMOReal minHighwaySpeed = oc.getFloat("ramps.min-highway-speed");
+    //SUMOReal maxRampSpeed = oc.getFloat("ramps.max-ramp-speed");
+    bool wantsRightAccelerators = oc.getBool("right-accel.guess");
+
+    std::map<NBNode*, int> typed;
+    std::ofstream strm("d:\\types.xml");
+    strm << "<pois>" << std::endl;
+
+    std::set<NBNode*> inMultiJoin;
+
+    for(std::map<std::string, NBNode*>::const_iterator i=nc.begin(); i!=nc.end(); ++i) {
+        NBNode *c = (*i).second;
+
+        //std::cout << c->getID() << std::endl;
+        if(c->getID()=="54525266") {
+            int bla = 0;
+        }
+
+        const std::vector<NBEdge*> &incoming = c->getIncomingEdges();
+        const std::vector<NBEdge*> &outgoing = c->getOutgoingEdges();
+        const std::vector<NBEdge*> &all = c->getEdges();
+        // source (no incoming)
+        if(incoming.size()==0) {
+            c->setTopologyType(NBNode::NTT_SOURCE);
+            strm << "   <poi id=\"" << c->getID() << '_'  << ct(typed, c) << "\" type=\"source\" x=\"" << c->getPosition().x() << "\" y=\"" << c->getPosition().y() << "\" color=\".5,.5,.5\" layer=\"10\"/>" << std::endl;
+        }
+        // dead end (no outgoing)
+        if(outgoing.size()==0) {
+            c->setTopologyType(NBNode::NTT_DEAD_END);
+            strm << "   <poi id=\"" << c->getID() << '_'  << ct(typed, c) << "\" type=\"dead_end\" x=\"" << c->getPosition().x() << "\" y=\"" << c->getPosition().y() << "\" color=\".5,.5,.5\" layer=\"10\"/>" << std::endl;
+        }
+
+        // acceleration
+        if(outgoing.size()>1 && wantsRightAccelerators) {
+            checkRightAccelerators(c);
+        }
+
+        // to join
+        if(outgoing.size()>1&&incoming.size()>1&&inMultiJoin.find(c)==inMultiJoin.end()) {
+            for(std::vector<NBEdge*>::const_iterator j=all.begin(); j!=all.end(); ++j) {
+                if((*j)->getFromNode()!=c) {
+                    continue;
+                }
+                if((*j)->getLength()>20) {
+                    continue;
+                }
+                NBEdge *first = *j;
+                NBEdge *currEdge = *j;
+                NBNode *currNode = c;
+                bool loopContinue = true;
+                std::set<NBNode*> seen;
+                while(true) {
+                    seen.insert(currNode);
+                    currNode = currEdge->getToNode();
+                    const std::vector<NBEdge*> &ce = currNode->getEdges();
+                    std::vector<NBEdge*>::const_iterator k = std::find(ce.begin(), ce.end(), currEdge);
+                    NBContHelper::nextCW(ce, k);
+                    if((*k)->getFromNode()!=currNode) {
+                        break;
+                    }
+                    currEdge = *k;
+                    if(currEdge==first) {
+                        break;
+                    }
+                    if(currEdge->getLength()>20) {
+                        break;
+                    }
+                }
+                if(currEdge!=first || seen.size()<2) {
+                    continue;
+                }
+                for(std::set<NBNode*>::const_iterator k=seen.begin(); k!=seen.end(); ++k) {
+                    inMultiJoin.insert(*k);
+                    (*k)->setTopologyType(NBNode::NTT_MULTI_TO_JOIN);
+                    strm << "   <poi id=\"" << (*k)->getID() << '_'  << ct(typed, (*k)) << "\" type=\"NTT_MULTI_TO_JOIN\" x=\"" << (*k)->getPosition().x() << "\" y=\"" << (*k)->getPosition().y() << "\" color=\"1,1,.5\" layer=\"10\"/>" << std::endl;
+                }
+            }
+        }
+
+        /*
+        // highway on-ramp
+        if(outgoing.size()==1 && incoming.size()==2 /*&& fulfillsRampConstraints(potHighway, potRamp, cont, minHighwaySpeed, maxRampSpeed)/) {
+            c->setTopologyType(NBNode::NTT_HIGHWAY_ON_RAMP);
+            strm << "   <poi id=\"" << c->getID() << "\" type=\"highway_on_ramp\" x=\"" << c->getPosition().x() << "\" y=\"" << c->getPosition().y() << "\" color=\"\" layer=\"10\"/>" << std::endl;
+            continue;
+        }
+        // highway off-ramp
+        if(outgoing.size()==2 && incoming.size()==1 /*&& fulfillsRampConstraints(potHighway, potRamp, cont, minHighwaySpeed, maxRampSpeed)/) {
+            c->setTopologyType(NBNode::NTT_HIGHWAY_OFF_RAMP);
+            strm << "   <poi id=\"" << c->getID() << "\" type=\"highway_off_ramp\" x=\"" << c->getPosition().x() << "\" y=\"" << c->getPosition().y() << "\" color=\"\" layer=\"10\"/>" << std::endl;
+            continue;
+        }
+        */
+    }
+    strm << "</pois>" << std::endl;
+} 
+
+
+void 
+NBNodeTopologyTypeComputer::checkRightAccelerators(NBNode *c) {
+    const std::vector<NBEdge*> &all = c->getEdges();
+    for(std::vector<NBEdge*>::const_iterator j=all.begin(); j!=all.end(); ++j) {
+        if((*j)->getFromNode()!=c) {
+            continue;
+        }
+        NBEdge *out = *j;
+        std::vector<NBEdge*>::const_iterator k = j;
+        NBContHelper::nextCW(all, k);
+        if((*k)->getToNode()!=c) {
+            continue;
+        }
+        NBEdge *in = *k;
+        if(in->getFromNode()->getConnectionTo(out->getToNode())==0 || out->getToNode()->getConnectionTo(in->getFromNode())!=0) {
+            continue;
+        }
+        if(out->getLength()>50 || (*k)->getLength()>50) {
+            continue;
+        }
+        NBEdge *connection = in->getFromNode()->getConnectionTo(out->getToNode());
+        if(in->getFromNode()->getIncomingEdges().size()>3) {
+            continue;
+        }
+        if(out->getToNode()->getOutgoingEdges().size()>3) {
+            continue;
+        }
+
+        /*
+        c->setTopologyType(NBNode::NTT_ACCELERATED);
+        strm << "   <poi id=\"" << c->getID() << '_'  << ct(typed, c)<< "\" type=\"NTT_ACCELERATED\" x=\"" << c->getPosition().x() << "\" y=\"" << c->getPosition().y() << "\" color=\"1,1,0\" layer=\"10\"/>" << std::endl;
+        in->getFromNode()->setTopologyType(NBNode::NTT_ACCEL_BEGIN);
+        strm << "   <poi id=\"" << in->getFromNode()->getID() << '_'  << ct(typed, in->getFromNode()) << "\" type=\"NTT_ACCEL_BEGIN\" x=\"" << in->getFromNode()->getPosition().x() << "\" y=\"" << in->getFromNode()->getPosition().y() << "\" color=\"1,.5,0\" layer=\"10\"/>" << std::endl;
+        c->setTopologyType(NBNode::NTT_ACCEL_END);
+        strm << "   <poi id=\"" << out->getToNode()->getID() << '_'  << ct(typed, out->getToNode()) << "\" type=\"NTT_ACCEL_END\" x=\"" << out->getToNode()->getPosition().x() << "\" y=\"" << out->getToNode()->getPosition().y() << "\" color=\".5,1,0\" layer=\"10\"/>" << std::endl;
+        */  
+
+        // set connections
+        in->setAsUnconnected(out);
+        NBNode *d = connection->getToNode();
+        const std::vector<NBEdge*> &connEdges = d->getEdges();
+        SUMOReal maxSpeed = connEdges.front()->getSpeed();
+        int minPrio = connEdges.front()->getPriority();
+        for(k=connEdges.begin(); k!=connEdges.end(); ++k) {
+            maxSpeed = MAX2(maxSpeed, (*k)->getSpeed());
+            minPrio = MIN2(minPrio, (*k)->getPriority());
+        }
+        connection->setPriority(minPrio-1);
+        if(maxSpeed<=50./3.6) {
+            break;
+        }
+        k = std::find(connEdges.begin(), connEdges.end(), connection);
+        bool first = true;
+        do {
+            NBContHelper::nextCCW(connEdges, k);
+            if((*k)->getFromNode()==d) {
+                if(!first) {
+                    connection->setAsUnconnected(*k);
+                }
+                first = false;
+            }
+        } while(connection!=*k);
+
+                /*
+                */
+    }
+}
 
 /****************************************************************************/
 

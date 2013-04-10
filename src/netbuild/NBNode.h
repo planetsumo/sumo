@@ -456,6 +456,29 @@ public:
 
     };
 
+
+
+    enum NodeTopologyType {
+        // unknown type
+        NTT_UNKNOWN = 0,
+        // is a source (has outgoing only)
+        NTT_SOURCE = 1,
+        // is a sink/dead end (has incoming only)
+        NTT_DEAD_END = 2,
+
+        NTT_ACCEL_BEGIN = 4,
+        NTT_ACCEL_END = 8,
+        NTT_ACCELERATED = 16,
+
+        NTT_HIGHWAY_ON_RAMP = 32,
+        NTT_HIGHWAY_OFF_RAMP = 64,
+
+        NTT_MULTI_TO_JOIN = 128
+    };
+    void setTopologyType(NodeTopologyType t) {
+        myTopologyType = myTopologyType|t;
+    }
+
 private:
     bool isSimpleContinuation() const;
 
@@ -505,6 +528,8 @@ private:
     NBRequest* myRequest;
 
     std::set<NBTrafficLightDefinition*> myTrafficLights;
+
+    int myTopologyType;
 
 private:
     /// @brief invalidated copy constructor

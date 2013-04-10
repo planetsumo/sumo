@@ -272,6 +272,10 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.addDescription("keep-nodes-unregulated.district-nodes", "Unregulated Nodes", "Do not regulate district nodes");
 
 
+    oc.doRegister("right-accel.guess", new Option_Bool(false));
+    oc.addDescription("right-accel.guess", "Processing", "Enable guessing of right-turn accelerators");
+    
+
     // ramp guessing options
     if (!forNetgen) {
         oc.doRegister("ramps.guess", new Option_Bool(false));

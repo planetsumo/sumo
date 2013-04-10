@@ -214,6 +214,25 @@ private:
 
 };
 
+
+// --------------------------------------------------------------------------- 
+// NBNodeTopologyTypeComputer 
+// --------------------------------------------------------------------------- 
+/* @class NBNodeTopologyEvaluator 
+ * @brief Computes edge priorities within a node 
+ */ 
+class NBNodeTopologyTypeComputer { 
+public: 
+    /** @brief Computes node topology type 
+     * @param[in] nc The container of nodes to loop along 
+     */ 
+    static void computeTopologyType(NBNodeCont &nc, OptionsCont &oc); 
+
+private: 
+    static void checkRightAccelerators(NBNode *c);
+}; 
+
+
 #endif
 
 /****************************************************************************/

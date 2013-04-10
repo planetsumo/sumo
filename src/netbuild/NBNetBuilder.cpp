@@ -209,6 +209,8 @@ NBNetBuilder::compute(OptionsCont& oc,
 
     // @todo Why?
     myEdgeCont.recomputeLaneShapes();
+    NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"));
+    NBNodeTopologyTypeComputer::computeTopologyType(myNodeCont, oc);
 
     // APPLY SPEED MODIFICATIONS
     if (oc.exists("speed.offset")) {
