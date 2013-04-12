@@ -67,7 +67,10 @@ MSInstantInductLoop::~MSInstantInductLoop() {
 bool
 MSInstantInductLoop::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
                                 SUMOReal newPos, SUMOReal newSpeed) {
-    if (newPos < myPosition) {
+    if(getID()=="4o_0") {
+        int bla = 0;
+    }
+                                    if (newPos < myPosition) {
         // detector not reached yet
         return true;
     }
@@ -135,11 +138,6 @@ MSInstantInductLoop::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/, MSMoveR
 
 bool
 MSInstantInductLoop::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification) {
-    if (veh.getPositionOnLane() - veh.getVehicleType().getLength() > myPosition) {
-        // vehicle-front is beyond detector. Ignore
-        return false;
-    }
-    // vehicle is in front of detector
     return true;
 }
 
