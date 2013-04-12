@@ -593,8 +593,8 @@ MSNet::writeOutput() {
 							<< "v=\"" << (*l).vehicle->getID() << "\" "
 							<< "arrivalTime=\"" << STEPS2TIME((*l).arrivalTime) << "\" "
 							<< "leaveTime=\"" << STEPS2TIME((*l).leavingTime) << "\" "
-							<< "arrivalSpeed=\"" << STEPS2TIME((*l).arrivalSpeed) << "\" "
-							<< "leaveSpeed=\"" << STEPS2TIME((*l).leaveSpeed) << "\" "
+							<< "arrivalSpeed=\"" << (*l).arrivalSpeed << "\" "
+							<< "leaveSpeed=\"" << (*l).leaveSpeed << "\" "
 							<< "willPass=\"" << (*l).willPass << "\"/>\n";
 					}
 					od << "        </link>\n";
