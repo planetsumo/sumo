@@ -572,38 +572,39 @@ MSNet::writeOutput() {
     // write detector values
     myDetectorControl->writeOutput(myStep + DELTA_T, false);
 
-	OutputDevice& od = OutputDevice::getDeviceByOption("link-output");
-	od << "    <timestep id=\"" << STEPS2TIME(myStep) << "\">\n";
-	const std::vector<MSEdge*> &edges = myEdges->getEdges();
-	for(std::vector<MSEdge*>::const_iterator i=edges.begin(); i!=edges.end(); ++i) {
-		const std::vector<MSLane*> &lanes = (*i)->getLanes();
-		for(std::vector<MSLane*>::const_iterator j=lanes.begin(); j!=lanes.end(); ++j) {
-			const std::vector<MSLink*> &links = (*j)->getLinkCont();
-			for(std::vector<MSLink*>::const_iterator k=links.begin(); k!=links.end(); ++k) {
-				std::string toID = (*k)->getLane()==0 ? "" : (*k)->getLane()->getID();
-				std::string viaID = (*k)->getViaLane()==0 ? "" : (*k)->getViaLane()->getID();
-				const std::vector<MSLink::ApproachingVehicleInformation>&a = (*k)->getApproaching();
-				od << "        <link fromID=\"" << (*j)->getID() << "\" viaID=\"" << viaID << "\" toID=\"" << toID << "\"";
-				if(a.size()==0) {
-					od << "/>\n";
-				} else {
-					od << ">\n";
-					for(std::vector<MSLink::ApproachingVehicleInformation>::const_iterator l=a.begin(); l!=a.end(); ++l) {
-						od << "            <approaching "
-							<< "v=\"" << (*l).vehicle->getID() << "\" "
-							<< "arrivalTime=\"" << STEPS2TIME((*l).arrivalTime) << "\" "
-							<< "leaveTime=\"" << STEPS2TIME((*l).leavingTime) << "\" "
-							<< "arrivalSpeed=\"" << (*l).arrivalSpeed << "\" "
-							<< "leaveSpeed=\"" << (*l).leaveSpeed << "\" "
-							<< "willPass=\"" << (*l).willPass << "\"/>\n";
-					}
-					od << "        </link>\n";
-				}
-			}
-		}
-	}
-	od << "    </timestep>\n";
-
+    if (OptionsCont::getOptions().isSet("link-output")) {
+    	OutputDevice& od = OutputDevice::getDeviceByOption("link-output");
+    	od << "    <timestep id=\"" << STEPS2TIME(myStep) << "\">\n";
+	    const std::vector<MSEdge*> &edges = myEdges->getEdges();
+	    for(std::vector<MSEdge*>::const_iterator i=edges.begin(); i!=edges.end(); ++i) {
+		    const std::vector<MSLane*> &lanes = (*i)->getLanes();
+		    for(std::vector<MSLane*>::const_iterator j=lanes.begin(); j!=lanes.end(); ++j) {
+			    const std::vector<MSLink*> &links = (*j)->getLinkCont();
+			    for(std::vector<MSLink*>::const_iterator k=links.begin(); k!=links.end(); ++k) {
+    				std::string toID = (*k)->getLane()==0 ? "" : (*k)->getLane()->getID();
+	    			std::string viaID = (*k)->getViaLane()==0 ? "" : (*k)->getViaLane()->getID();
+		    		const std::vector<MSLink::ApproachingVehicleInformation>&a = (*k)->getApproaching();
+			    	od << "        <link fromID=\"" << (*j)->getID() << "\" viaID=\"" << viaID << "\" toID=\"" << toID << "\"";
+				    if(a.size()==0) {
+    					od << "/>\n";
+	    			} else {
+		    			od << ">\n";
+			    		for(std::vector<MSLink::ApproachingVehicleInformation>::const_iterator l=a.begin(); l!=a.end(); ++l) {
+				    		od << "            <approaching "
+							    << "v=\"" << (*l).vehicle->getID() << "\" "
+    							<< "arrivalTime=\"" << STEPS2TIME((*l).arrivalTime) << "\" "
+	    						<< "leaveTime=\"" << STEPS2TIME((*l).leavingTime) << "\" "
+		    					<< "arrivalSpeed=\"" << (*l).arrivalSpeed << "\" "
+			    				<< "leaveSpeed=\"" << (*l).leaveSpeed << "\" "
+				    			<< "willPass=\"" << (*l).willPass << "\"/>\n";
+					    }
+    					od << "        </link>\n";
+	    			}
+		    	}
+    		}   
+	    }
+	    od << "    </timestep>\n";
+    }
 }
 
 
