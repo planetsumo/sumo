@@ -162,6 +162,10 @@ MSFrame::fillOptions() {
     oc.doRegister("vehroute-output.write-unfinished", new Option_Bool(false));
     oc.addDescription("vehroute-output.write-unfinished", "Output", "Write vehroute output for vehicles which have not arrived at simulation end");
 
+    oc.doRegister("link-output", new Option_FileName());
+    oc.addDescription("link-output", "Output", "Save links states into FILE");
+	
+
 
 
 #ifdef HAVE_INTERNAL
@@ -324,6 +328,9 @@ MSFrame::buildStreams() {
     OutputDevice::createDeviceByOption("full-output", "full-export");
     OutputDevice::createDeviceByOption("queue-output", "queue-export");
     OutputDevice::createDeviceByOption("vtk-output", "vtk-export");
+
+	OutputDevice::createDeviceByOption("link-output", "link-output");
+	
 
     MSDevice_Vehroutes::init();
 }
