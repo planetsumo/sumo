@@ -69,6 +69,11 @@ const int VEHPARS_PERSON_NUMBER_SET = 2 << 14;
 const int STOP_INDEX_END = -1;
 const int STOP_INDEX_FIT = -2;
 
+const int STOP_END_SET = 1;
+const int STOP_START_SET = 2;
+const int STOP_TRIGGER_SET = 2 << 1;
+const int STOP_PARKING_SET = 2 << 2;
+
 
 // ===========================================================================
 // enum definitions
@@ -243,6 +248,14 @@ public:
      * @exception IOError not yet implemented
      */
     void write(OutputDevice& dev, const OptionsCont& oc) const;
+
+
+    /** @brief Writes the enclosed stops
+     *
+     * @param[in, out] dev The device to write into
+     * @exception IOError not yet implemented
+     */
+    void writeStops(OutputDevice& dev) const;
 
 
     /** @brief Returns whether the defaults shall be used
@@ -443,6 +456,8 @@ public:
         bool parking;
         /// @brief at which position in the stops list
         int index;
+        /// @brief Information for the output which parameter were set
+        int setParameter;
     };
 
     /// @brief List of the stops the vehicle will make

@@ -436,6 +436,7 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         errorSuffix = " in vehicle '" + myVehicleParameter->id + "'.";
     }
     SUMOVehicleParameter::Stop stop;
+    SUMOVehicleParserHelper::parseStop(stop, attrs);
     // try to parse the assigned bus stop
     stop.busstop = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
     if (stop.busstop == "") {
@@ -490,10 +491,10 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
             return;
         }
     }
-    if (myActiveRouteID != "") {
-        myActiveRouteStops.push_back(stop);
-    } else {
+    if (myVehicleParameter != 0) {
         myVehicleParameter->stops.push_back(stop);
+    } else {
+        myActiveRouteStops.push_back(stop);
     }
 }
 

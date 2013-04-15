@@ -89,6 +89,10 @@ ROVehicle::saveAllAsXML(OutputDevice& os, OutputDevice* const altos,
             myRoute->writeXMLDefinition(*altos, this, true, withExitTimes);
         }
     }
+    myParameter.writeStops(os);
+    if (altos != 0) {
+        myParameter.writeStops(*altos);
+    }
     os.closeTag();
     if (altos != 0) {
         altos->closeTag();

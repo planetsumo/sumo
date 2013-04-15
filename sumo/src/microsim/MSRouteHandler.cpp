@@ -593,6 +593,7 @@ MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         errorSuffix = " in vehicle '" + myVehicleParameter->id + "'.";
     }
     SUMOVehicleParameter::Stop stop;
+    SUMOVehicleParserHelper::parseStop(stop, attrs);
     // try to parse the assigned bus stop
     stop.busstop = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
     if (stop.busstop != "") {

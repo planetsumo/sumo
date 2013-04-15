@@ -240,6 +240,37 @@ SUMOVehicleParameter::write(OutputDevice& dev, const OptionsCont& oc) const {
 }
 
 
+void
+SUMOVehicleParameter::writeStops(OutputDevice& dev) const {
+    for (std::vector<Stop>::const_iterator stop = stops.begin(); stop != stops.end(); ++stop) {
+        if (stop->busstop != "") {
+            dev.writeAttr(SUMO_ATTR_BUS_STOP, stop->busstop);
+        } else {
+            dev.openTag(SUMO_TAG_STOP).writeAttr(SUMO_ATTR_LANE, stop->lane);
+            if ((stop->setParameter & STOP_START_SET) != 0) {
+                dev.writeAttr(SUMO_ATTR_STARTPOS, stop->startPos);
+            }
+            if ((stop->setParameter & STOP_END_SET) != 0) {
+                dev.writeAttr(SUMO_ATTR_ENDPOS, stop->endPos);
+            }
+        }
+        if (stop->duration >= 0) {
+            dev.writeAttr(SUMO_ATTR_DURATION, stop->duration);
+        }
+        if (stop->until >= 0) {
+            dev.writeAttr(SUMO_ATTR_UNTIL, stop->until);
+        }
+        if ((stop->setParameter & STOP_TRIGGER_SET) != 0) {
+            dev.writeAttr(SUMO_ATTR_TRIGGERED, stop->triggered);
+        }
+        if ((stop->setParameter & STOP_PARKING_SET) != 0) {
+            dev.writeAttr(SUMO_ATTR_PARKING, stop->parking);
+        }
+        dev.closeTag();
+    }
+}
+
+
 bool
 SUMOVehicleParameter::parseDepartLane(const std::string& val, const std::string& element, const std::string& id,
                                       int& lane, DepartLaneDefinition& dld, std::string& error) {
