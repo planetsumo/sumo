@@ -150,9 +150,6 @@ public:
     /// Returns the slope at the given length
     SUMOReal slopeDegreeAtLengthPosition(SUMOReal pos) const;
 
-    /// Returns the tilt at the given length
-    SUMOReal tiltDegreeAtLengthPosition(SUMOReal pos) const;
-
     /// Returns the position between the two given point at the specified position */
     static Position positionAtLengthPosition(const Position& p1,
             const Position& p2, SUMOReal pos);
@@ -210,6 +207,9 @@ public:
     PositionVector convexHull() const;
 
     int appendWithCrossingPoint(const PositionVector& v);
+
+    // @brief append the given vector to this one
+    void append(const PositionVector& v);
 
     ContType::const_iterator begin() const {
         return myCont.begin();

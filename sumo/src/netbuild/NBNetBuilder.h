@@ -52,6 +52,7 @@
 // ===========================================================================
 class OptionsCont;
 class OutputDevice;
+class GeoConvHelper;
 
 
 // ===========================================================================
@@ -190,7 +191,7 @@ public:
     /** @brief Returns the determined roundabouts
      * @return The list of roundabout edges
      */
-    const std::vector<std::set<NBEdge*> >& getRoundabouts() const {
+    const std::vector<EdgeVector>& getRoundabouts() const {
         return myRoundabouts;
     }
 
@@ -202,6 +203,12 @@ public:
         return myJoinedEdges;
     }
     /// @}
+
+
+    /// @brief declare that roundabouts have been seen during loading
+    void haveSeenRoundabouts() {
+        myHaveSeenRoundabouts = true;
+    }
 
 
 protected:
@@ -236,12 +243,18 @@ protected:
     /// @brief The used container for districts
     NBDistrictCont myDistrictCont;
 
-    /// @brief Edges marked as belonging to a roundabout (each set is a roundabout)
-    std::vector<std::set<NBEdge*> > myRoundabouts;
+    /// @brief whether a sumo network with roundabout information was loaded
+    bool myHaveSeenRoundabouts;
+
+    /// @brief Edges marked as belonging to a roundabout (each EdgeVector is a roundabout)
+    std::vector<EdgeVector> myRoundabouts;
 
     /// @brief Map of joined edges
     NBJoinedEdgesMap myJoinedEdges;
 
+private:
+    /// @brief shift network so its lower left corner is at 0,0
+    void moveToOrigin(GeoConvHelper& geoConvHelper);
 
 private:
     /// @brief invalidated copy constructor

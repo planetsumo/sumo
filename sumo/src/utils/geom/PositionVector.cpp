@@ -276,23 +276,6 @@ PositionVector::slopeDegreeAtLengthPosition(SUMOReal pos) const {
     return l.atan2DegreeSlope();
 }
 
-SUMOReal
-PositionVector::tiltDegreeAtLengthPosition(SUMOReal pos) const {
-    ContType::const_iterator i = myCont.begin();
-    SUMOReal seenLength = 0;
-    do {
-        SUMOReal nextLength = (*i).distanceTo(*(i + 1));
-        if (seenLength + nextLength > pos) {
-            Line l(*i, *(i + 1));
-            return l.atan2TiltDegree();
-        }
-        seenLength += nextLength;
-    } while (++i != myCont.end() - 1);
-    Line l(*(myCont.end() - 2), *(myCont.end() - 1));
-    return l.atan2TiltDegree();
-}
-
-
 Position
 PositionVector::positionAtLengthPosition(const Position& p1,
         const Position& p2,
@@ -611,6 +594,16 @@ PositionVector::appendWithCrossingPoint(const PositionVector& v) {
     } else {
         copy(v.myCont.begin(), v.myCont.end(), back_inserter(myCont));
         return 3;
+    }
+}
+
+
+void
+PositionVector::append(const PositionVector& v) {
+    if (myCont.back().distanceTo(v.myCont[0]) < 2) { 
+        copy(v.myCont.begin() + 1, v.myCont.end(), back_inserter(myCont));
+    } else {
+        copy(v.myCont.begin(), v.myCont.end(), back_inserter(myCont));
     }
 }
 

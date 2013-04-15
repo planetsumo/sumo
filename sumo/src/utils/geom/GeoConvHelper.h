@@ -66,7 +66,7 @@ public:
     /** @brief Constructor
      */
     GeoConvHelper(const std::string& proj, const Position& offset,
-                  const Boundary& orig, const Boundary& conv, int shift = 0, bool inverse = false, bool baseFound = false);
+                  const Boundary& orig, const Boundary& conv, int shift = 0, bool inverse = false);
 
 
     /// @brief Destructor
@@ -148,6 +148,11 @@ public:
     /// Returns the converted boundary
     const Boundary& getConvBoundary() const;
 
+    /// sets the converted boundary
+    void setConvBoundary(const Boundary& boundary) {
+        myConvBoundary = boundary;
+    }
+
     /// Returns the network offset
     const Position getOffset() const;
 
@@ -185,12 +190,6 @@ private:
 
     /// Information whether inverse projection shall be used
     bool myUseInverseProjection;
-
-    /// Information whether the first node conversion was done
-    bool myBaseFound;
-
-    /// The initial x/y-coordinates for a very simple geocoordinates conversion
-    double myBaseX, myBaseY;
 
     /// The boundary before conversion (x2cartesian)
     Boundary myOrigBoundary;

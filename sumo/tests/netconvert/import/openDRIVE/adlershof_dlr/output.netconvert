@@ -10,8 +10,8 @@ Proj projection parameters used: '+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +
 Removing self-loops... done.
 Removing empty nodes... done.
    4 nodes removed.
-Joining similar edges... done.
 Moving network to origin... done.
+Joining similar edges... done.
 Computing turning directions... done.
 Sorting nodes' edges... done.
 Computing node types... done.
@@ -22,10 +22,7 @@ Dividing of lanes on approached lanes... done.
 Processing turnarounds... done.
 Rechecking of lane endings... done.
 Computing node shapes... done.
-Computing edge shapes... 
-Lane '-7727483#0' has calculated shape length near zero. Revert it back to old shape.
-Lane '5784950#2' has calculated shape length near zero. Revert it back to old shape.
-done.
+Computing edge shapes... done.
 Assigning nodes to traffic lights... done.
 Computing traffic light control information... done.
 Computing node logics... done.
@@ -41,6 +38,6 @@ Summary:
  Network boundaries:
   Original boundary  : 13.52,52.43,13.55,52.43
   Applied offset     : -399345.66,-5809365.64
-  Converted boundary : 0.00,0.00,1737.68,1000.80
+  Converted boundary : 0.00,0.00,1737.68,767.39
 -----------------------------------------------------
 Success.

@@ -326,6 +326,11 @@ public:
     }
 
 
+    /* @brief discards traffic lights
+     * @param[in] geometryLike Whether only tls at geometry-like nodes shall be discarded 
+     */
+    void discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike);
+
 private:
     /// @name Helper methods for for joining nodes
     /// @{

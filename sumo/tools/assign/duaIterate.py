@@ -22,8 +22,9 @@ from datetime import datetime
 from optparse import OptionParser
 from costMemory import CostMemory
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from sumolib.options import get_long_option_names
+
 
 def addGenericOptions(optParser):
     # add options which are used by duaIterate and cadytsIterate
@@ -64,6 +65,9 @@ def addGenericOptions(optParser):
                          default=False, help="sloppy insertion tests (may speed up the sim considerably)")
     optParser.add_option("--time-to-teleport", dest="timetoteleport", type="int", default=300,
                          help="Delay before blocked vehicles are teleported where -1 means no teleporting")
+    optParser.add_option("--cost-modifier", dest="costmodifier", type="choice",
+                         choices=('grohnde', 'isar', 'None'), 
+                         default='None', help="Whether to modify link travel costs of the given routes")
 
 def initOptions():
     optParser = OptionParser()
@@ -228,13 +232,14 @@ def get_dumpfilename(options, step, prefix):
 def get_weightfilename(options, step, prefix):
     # the file from which edge costs are loaded
     # this defaults to the dumpfile writen by the simulation but may be
-    # different if one of the options --addweights or --memory-weights are used
+    # different if one of the options --addweights, --memory-weights or --cost-modifier is used
     if options.addweights:
         prefix = "%s,%s" % (options.addweights, prefix)
     if options.weightmemory:
         prefix = "memory_" + prefix
+    if options.costmodifier != 'None':
+        prefix = options.costmodifier + "_" + prefix
     return get_dumpfilename(options, step, prefix)
-
 
 def writeSUMOConf(sumoBinary, step, options, additional_args, files):
     detectorfile = "dua_dump_%03i.add.xml" % step
@@ -294,12 +299,15 @@ def writeSUMOConf(sumoBinary, step, options, additional_args, files):
     with open(detectorfile, 'w') as fd:
         suffix = "_%03i_%s" % (step, options.aggregation)
         print >> fd, "<a>"
-        print >> fd, '    <edgeData id="dump%s" freq="%s" file="%s" excludeEmpty="true" minSamples="1"/>' % (
-                suffix, options.aggregation, get_dumpfilename(options, step, "dump"))
+        if options.costmodifier !='None':
+            print >> fd, '    <edgeData id="dump%s" freq="%s" file="%s" excludeEmpty="defaults" minSamples="1"/>' % (
+                    suffix, options.aggregation, get_dumpfilename(options, step, "dump"))
+        else:
+            print >> fd, '    <edgeData id="dump%s" freq="%s" file="%s" excludeEmpty="true" minSamples="1"/>' % (
+                    suffix, options.aggregation, get_dumpfilename(options, step, "dump"))
         if options.ecomeasure:
             print >> fd, '    <edgeData id="eco%s" type="hbefa" freq="%s" file="dump%s.xml" excludeEmpty="true" minSamples="1"/>' % (suffix, options.aggregation, suffix)
         print >> fd, "</a>"
-
 
 def filterTripinfo(step, attrs):
     attrs.add("id")
@@ -366,7 +374,6 @@ def assign_remaining_args(application, prefix, args):
 
     return assigned
 
-
 def main(args=None):
     optParser = initOptions()
     
@@ -416,7 +423,11 @@ def main(args=None):
     routesSuffix = ".xml"
     if options.binary:
         routesSuffix = ".sbx"
-        
+    if options.costmodifier != 'None':
+        pyPath = os.path.abspath(os.path.dirname(sys.argv[0]))
+        sys.path.append(os.path.join(pyPath, "..", "..", "..", "..","..", "tools", "kkwSim"))
+        from kkwCostModifier import costModifier
+        print 'Use the cost modifier for KKW simulation'
     for step in range(options.firstStep, options.lastStep):
         btimeA = datetime.now()
         print "> Executing step %s" % step
@@ -498,6 +509,11 @@ def main(args=None):
             print ">>> Decayed %s unseen edges" % costmemory.decayed()
             print ">>> Error avg:%s mean:%s" % (costmemory.avg_error(), costmemory.mean_error())
             print ">>> Absolute Error avg:%s mean:%s" % (costmemory.avg_abs_error(), costmemory.mean_abs_error())
+
+        if options.costmodifier != 'None':
+            currentDir = os.getcwd()
+            costModifier(get_weightfilename(options, step, "dump"), step, "dump", options.aggregation, currentDir, options.costmodifier, 'dua-iterate')
+
     
         print "< Step %s ended (duration: %s)" % (step, datetime.now() - btimeA)
         print "------------------\n"

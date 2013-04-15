@@ -153,7 +153,6 @@ GUIViewTraffic::setColorScheme(const std::string& name) {
     }
     myVisualizationSettings = &gSchemeStorage.get(name.c_str());
     myVisualizationSettings->gaming = myApp->isGaming();
-    myVisualizationSettings->currentView = this;
     update();
     return true;
 }
@@ -191,11 +190,15 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
     glEnable(GL_POLYGON_OFFSET_LINE);
     int hits2 = myGrid->Search(minB, maxB, *myVisualizationSettings);
     //
-    glTranslated(0, 0, -.01);
-    for (std::map<GUIGlObject*, int>::iterator i = myAdditionallyDrawn.begin(); i != myAdditionallyDrawn.end(); ++i) {
-        (i->first)->drawGLAdditional(*myVisualizationSettings);
+    if (myAdditionallyDrawn.size() > 0) {
+        glTranslated(0, 0, -.01);
+        GUINet::getGUIInstance()->lock();
+        for (std::map<GUIGlObject*, int>::iterator i = myAdditionallyDrawn.begin(); i != myAdditionallyDrawn.end(); ++i) {
+            (i->first)->drawGLAdditional(this, *myVisualizationSettings);
+        }
+        GUINet::getGUIInstance()->unlock();
+        glTranslated(0, 0, .01);
     }
-    glTranslated(0, 0, .01);
     glPopMatrix();
     /*
     // draw legends
@@ -229,21 +232,6 @@ GUIViewTraffic::getTrackedID() const {
 
 
 void
-GUIViewTraffic::showViewschemeEditor() {
-    if (myVisualizationChanger == 0) {
-        myVisualizationChanger =
-            new GUIDialog_ViewSettings(
-            this, myVisualizationSettings,
-            &myDecals, &myDecalsLock);
-        myVisualizationChanger->create();
-    } else {
-        myVisualizationChanger->setCurrent(myVisualizationSettings);
-    }
-    myVisualizationChanger->show();
-}
-
-
-void
 GUIViewTraffic::onGamingClick(Position pos) {
     MSTLLogicControl& tlsControl = MSNet::getInstance()->getTLSControl();
     const std::vector<MSTrafficLightLogic*>& logics = tlsControl.getAllLogics();
@@ -269,7 +257,7 @@ GUIViewTraffic::onGamingClick(Position pos) {
         const std::vector<MSTrafficLightLogic*> logics = vars.getAllLogics();
         if (logics.size() > 1) {
             MSSimpleTrafficLightLogic* l = (MSSimpleTrafficLightLogic*) logics[0];
-            for (unsigned int i = 0; i < logics.size() - 1; i++) {
+            for (unsigned int i = 0; i < logics.size() - 1; ++i) {
                 if (minTll->getProgramID() == logics[i]->getProgramID()) {
                     l = (MSSimpleTrafficLightLogic*) logics[i + 1];
                     tlsControl.switchTo(minTll->getID(), l->getProgramID());

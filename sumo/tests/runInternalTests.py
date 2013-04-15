@@ -17,7 +17,11 @@ def runInternal(suffix, args, out=sys.stdout):
     env["SUMO_BINARY"] = os.path.join(root, "..", "bin", "meso" + suffix)
     env["POLYCONVERT_BINARY"] = os.path.join(root, "..", "bin", "polyconvertInt" + suffix)
     env["GUISIM_BINARY"] = os.path.join(root, "..", "bin", "meso-gui" + suffix)
-    subprocess.call("texttest.py %s -a sumo.internal,sumo.meso,complex.meso,duarouter.astar,duarouter.chrouter,netconvert.internal" % args,
+    env["MAROUTER_BINARY"] = os.path.join(root, "..", "bin", "marouter" + suffix)
+    ttBin = "/usr/bin/texttest"
+    if os.name != "posix" or not os.path.exists(ttBin):
+        ttBin = "texttest.py"
+    subprocess.call("%s %s -a sumo.internal,sumo.meso,complex.meso,duarouter.astar,duarouter.chrouter,netconvert.internal,marouter" % (ttBin, args),
                     stdout=out, stderr=out, shell=True)
 
 if __name__ == "__main__":

@@ -32,9 +32,14 @@
 #include <config.h>
 #endif
 
-#include <utils/gui/windows/GUISUMOAbstractView.h>
 #include <utils/xml/SUMOSAXHandler.h>
-#include <utils/xml/XMLSubSys.h>
+
+
+// ===========================================================================
+// class declarations
+// ===========================================================================
+class GUISUMOAbstractView;
+class Position;
 
 
 // ===========================================================================
@@ -87,7 +92,7 @@ public:
      * @param[out] xoff Variable to store the loaded x-offset into
      * @param[out] yoff Variable to store the loaded y-offset into
      */
-    void setViewport(SUMOReal& zoom, SUMOReal& xoff, SUMOReal& yoff) const;
+    void setViewport(Position& lookFrom, Position& lookAt) const;
 
 
     /** @brief Makes a snapshot if it has been parsed
@@ -127,15 +132,29 @@ public:
     static std::vector<SUMOTime> loadBreakpoints(const std::string& file);
 
 
+    /** @brief Returns the parsed view type
+     * @return the parsed view type
+     */
+    const std::string& getViewType() const {
+        return myViewType;
+    }
+
+
 private:
     /// @brief The settings to fill
     GUIVisualizationSettings mySettings;
 
+    /// @brief The view type (osg, opengl, default) loaded
+    std::string myViewType;
+
     /// @brief The delay loaded
     SUMOReal myDelay;
 
-    /// @brief The viewport loaded
-    SUMOReal myZoom, myXPos, myYPos;
+    /// @brief The viewport loaded, zoom is stored in z coordinate
+    Position myLookFrom;
+
+    /// @brief The point to look at, only needed for osg view
+    Position myLookAt;
 
     /// @brief mappig of time steps to filenames for potential snapshots
     std::map<SUMOTime, std::string> mySnapshots;

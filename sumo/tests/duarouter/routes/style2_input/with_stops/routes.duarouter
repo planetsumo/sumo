@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!-- generated on 02/27/13 13:44:06 by SUMO duarouter Version dev-SVN-r13400
+<!-- generated on 04/15/13 13:26:18 by SUMO duarouter Version dev-SVN-r13400
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/duarouterConfiguration.xsd">
@@ -24,6 +24,6 @@
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/routes_file.xsd">
     <vehicle id="0" depart="0.00">
         <route edges="beg middle end rend"/>
-        <stop lane="middle_0" startPos="990.30" endPos="990.50" triggered="1" parking="1"/>
+        <stop lane="middle_0" parking="1"/>
     </vehicle>
 </routes>

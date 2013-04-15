@@ -40,6 +40,7 @@
 #include <microsim/MSGlobals.h>
 #include <microsim/trigger/MSLaneSpeedTrigger.h>
 #include <microsim/trigger/MSTriggeredRerouter.h>
+#include <microsim/trigger/MSCalibrator.h>
 #include <microsim/trigger/MSBusStop.h>
 #include <utils/common/StringTokenizer.h>
 #include <utils/common/FileHelpers.h>
@@ -164,18 +165,17 @@ NLTriggerBuilder::parseAndBuildBusStop(MSNet& net, const SUMOSAXAttributes& attr
     SUMOReal frompos = attrs.getOpt<SUMOReal>(SUMO_ATTR_STARTPOS, id.c_str(), ok, 0);
     SUMOReal topos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ENDPOS, id.c_str(), ok, lane->getLength());
     const bool friendlyPos = attrs.getOpt<bool>(SUMO_ATTR_FRIENDLY_POS, id.c_str(), ok, false);
-    if (!ok || !myHandler->checkStopPos(frompos, topos, lane->getLength(), 10., friendlyPos)) {
+    if (!ok || !myHandler->checkStopPos(frompos, topos, lane->getLength(), POSITION_EPS, friendlyPos)) {
         throw InvalidArgument("Invalid position for bus stop '" + id + "'.");
     }
     // get the lines
     std::vector<std::string> lines;
-    SUMOSAXAttributes::parseStringVector(attrs.getOpt<std::string>(SUMO_ATTR_LINES, id.c_str(), ok, ""), lines);
+    SUMOSAXAttributes::parseStringVector(attrs.getOpt<std::string>(SUMO_ATTR_LINES, id.c_str(), ok, "", false), lines);
     // build the bus stop
     buildBusStop(net, id, lines, lane, frompos, topos);
 }
 
 
-#ifdef HAVE_INTERNAL
 void
 NLTriggerBuilder::parseAndBuildCalibrator(MSNet& net, const SUMOSAXAttributes& attrs,
         const std::string& base) throw(InvalidArgument) {
@@ -188,18 +188,23 @@ NLTriggerBuilder::parseAndBuildCalibrator(MSNet& net, const SUMOSAXAttributes& a
     // get the file name to read further definitions from
     MSLane* lane = getLane(attrs, "calibrator", id);
     const SUMOReal pos = getPosition(attrs, lane, "calibrator", id);
+    const SUMOTime freq = attrs.getOptSUMOTimeReporting(SUMO_ATTR_FREQUENCY, id.c_str(), ok, DELTA_T); // !!! no error handling
+    std::string file = getFileName(attrs, base, true);
+    std::string outfile = attrs.getOpt<std::string>(SUMO_ATTR_OUTPUT, 0, ok, "");
     if (MSGlobals::gUseMesoSim) {
-        const SUMOTime freq = attrs.getOptSUMOTimeReporting(SUMO_ATTR_FREQUENCY, id.c_str(), ok, DELTA_T); // !!! no error handling
-        std::string file = getFileName(attrs, base, true);
-        bool ok = true;
-        std::string outfile = attrs.getOpt<std::string>(SUMO_ATTR_OUTPUT, 0, ok, "");
-        METriggeredCalibrator* trigger = buildCalibrator(net, id, &lane->getEdge(), pos, file, outfile, freq);
+#ifdef HAVE_INTERNAL
+        METriggeredCalibrator* trigger = buildMECalibrator(net, id, &lane->getEdge(), pos, file, outfile, freq);
+        if (file == "") {
+            trigger->registerParent(SUMO_TAG_CALIBRATOR, myHandler);
+        }
+#endif
+    } else {
+        MSCalibrator* trigger = buildCalibrator(net, id, &lane->getEdge(), pos, file, outfile, freq);
         if (file == "") {
             trigger->registerParent(SUMO_TAG_CALIBRATOR, myHandler);
         }
     }
 }
-#endif
 
 
 void
@@ -255,7 +260,7 @@ NLTriggerBuilder::buildLaneSpeedTrigger(MSNet& /*net*/, const std::string& id,
 
 #ifdef HAVE_INTERNAL
 METriggeredCalibrator*
-NLTriggerBuilder::buildCalibrator(MSNet& /*net*/, const std::string& id,
+NLTriggerBuilder::buildMECalibrator(MSNet& /*net*/, const std::string& id,
                                   const MSEdge* edge, SUMOReal pos,
                                   const std::string& file,
                                   const std::string& outfile,
@@ -263,6 +268,16 @@ NLTriggerBuilder::buildCalibrator(MSNet& /*net*/, const std::string& id,
     return new METriggeredCalibrator(id, edge, pos, file, outfile, freq);
 }
 #endif
+
+
+MSCalibrator*
+NLTriggerBuilder::buildCalibrator(MSNet& /*net*/, const std::string& id,
+                                  MSEdge* edge, SUMOReal pos,
+                                  const std::string& file,
+                                  const std::string& outfile,
+                                  const SUMOTime freq) {
+    return new MSCalibrator(id, edge, pos, file, outfile, freq);
+}
 
 
 MSTriggeredRerouter*

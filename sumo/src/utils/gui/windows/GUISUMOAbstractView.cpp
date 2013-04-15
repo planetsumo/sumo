@@ -130,7 +130,6 @@ GUISUMOAbstractView::GUISUMOAbstractView(FXComposite* p,
     myChanger = new GUIDanielPerspectiveChanger(*this, *myGrid);
     myVisualizationSettings = &gSchemeStorage.getDefault();
     myVisualizationSettings->gaming = myApp->isGaming();
-    myVisualizationSettings->currentView = this;
     gSchemeStorage.setViewport(this);
 }
 
@@ -211,10 +210,10 @@ GUISUMOAbstractView::paintGL() {
 
     // draw
     glClearColor(
-        myVisualizationSettings->backgroundColor.red(),
-        myVisualizationSettings->backgroundColor.green(),
-        myVisualizationSettings->backgroundColor.blue(),
-        1);
+        myVisualizationSettings->backgroundColor.red() / 255.,
+        myVisualizationSettings->backgroundColor.green() / 255.,
+        myVisualizationSettings->backgroundColor.blue() / 255.,
+        myVisualizationSettings->backgroundColor.alpha() / 255.);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -262,7 +261,7 @@ GUISUMOAbstractView::getObjectAtPosition(Position pos) {
     const std::vector<GUIGlID> ids = getObjectsInBoundary(selection);
     // Interpret results
     unsigned int idMax = 0;
-    SUMOReal maxLayer = std::numeric_limits<SUMOReal>::min();
+    SUMOReal maxLayer = -std::numeric_limits<SUMOReal>::max();
     for (std::vector<GUIGlID>::const_iterator it = ids.begin(); it != ids.end(); it++) {
         GUIGlID id = *it;
         GUIGlObject* o = GUIGlObjectStorage::gIDStorage.getObjectBlocking(id);
@@ -332,7 +331,7 @@ GUISUMOAbstractView::showToolTipFor(unsigned int id) {
         if (object != 0) {
             Position pos = getPositionInformation();
             pos.add(0, p2m(15));
-            GLHelper::drawTextBox(object->getFullName(), pos, GLO_MAX - 1, p2m(20), RGBColor(0, 0, 0), RGBColor(1, 0.7, 0));
+            GLHelper::drawTextBox(object->getFullName(), pos, GLO_MAX - 1, p2m(20), RGBColor::BLACK, RGBColor(255, 179, 0, 255));
             GUIGlObjectStorage::gIDStorage.unblockObject(id);
         }
     }
@@ -506,10 +505,10 @@ GUISUMOAbstractView::onConfigure(FXObject*, FXSelector, void*) {
     if (makeCurrent()) {
         glViewport(0, 0, getWidth() - 1, getHeight() - 1);
         glClearColor(
-            myVisualizationSettings->backgroundColor.red(),
-            myVisualizationSettings->backgroundColor.green(),
-            myVisualizationSettings->backgroundColor.blue(),
-            1);
+            myVisualizationSettings->backgroundColor.red() / 255.,
+            myVisualizationSettings->backgroundColor.green() / 255.,
+            myVisualizationSettings->backgroundColor.blue() / 255.,
+            myVisualizationSettings->backgroundColor.alpha() / 255.);
         doInit();
         myAmInitialised = true;
         makeNonCurrent();
@@ -614,10 +613,8 @@ GUISUMOAbstractView::onMouseMove(FXObject*, FXSelector , void* data) {
     }
     if (myViewportChooser != 0 &&
             (xpos != myChanger->getXPos() || ypos != myChanger->getYPos() || zoom != myChanger->getZoom())) {
-
         myViewportChooser->setValues(
-            myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos());
-
+            myChanger->getXPos(), myChanger->getYPos(), myChanger->getZoom());
     }
     updatePositionInformation();
     return 1;
@@ -720,10 +717,10 @@ GUISUMOAbstractView::makeSnapshot(const std::string& destFile) {
     }
     // draw
     glClearColor(
-        myVisualizationSettings->backgroundColor.red(),
-        myVisualizationSettings->backgroundColor.green(),
-        myVisualizationSettings->backgroundColor.blue(),
-        1);
+        myVisualizationSettings->backgroundColor.red() / 255.,
+        myVisualizationSettings->backgroundColor.green() / 255.,
+        myVisualizationSettings->backgroundColor.blue() / 255.,
+        myVisualizationSettings->backgroundColor.alpha() / 255.);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -865,23 +862,36 @@ GUISUMOAbstractView::checkSnapshots() {
 
 
 void
+GUISUMOAbstractView::showViewschemeEditor() {
+    if (myVisualizationChanger==0) {
+        myVisualizationChanger =
+            new GUIDialog_ViewSettings(
+            this, myVisualizationSettings,
+            &myDecals, &myDecalsLock);
+        myVisualizationChanger->create();
+    } else {
+        myVisualizationChanger->setCurrent(myVisualizationSettings);
+    }
+    myVisualizationChanger->show();
+}
+
+
+void
 GUISUMOAbstractView::showViewportEditor() {
     if (myViewportChooser == 0) {
         myViewportChooser =
-            new GUIDialog_EditViewport(this, "Edit Viewport...",
-                                       myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos(),
-                                       0, 0);
+            new GUIDialog_EditViewport(this, "Edit Viewport...", 0, 0);
         myViewportChooser->create();
     }
-    myViewportChooser->setOldValues(
-        myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos());
+    Position p(myChanger->getXPos(), myChanger->getYPos(), myChanger->getZoom()), p1;
+    myViewportChooser->setOldValues(p, p1);
     myViewportChooser->show();
 }
 
 
 void
-GUISUMOAbstractView::setViewport(SUMOReal zoom, SUMOReal xPos, SUMOReal yPos) {
-    myChanger->setViewport(zoom, xPos, yPos);
+GUISUMOAbstractView::setViewport(const Position& lookFrom, const Position& /* lookAt */) {
+    myChanger->setViewport(lookFrom.z(), lookFrom.x(), lookFrom.y());
     update();
 }
 
@@ -915,8 +925,11 @@ void
 GUISUMOAbstractView::drawDecals() {
     glPushName(0);
     myDecalsLock.lock();
-    for (std::vector<GUISUMOAbstractView::Decal>::iterator l = myDecals.begin(); l != myDecals.end();) {
+    for (std::vector<GUISUMOAbstractView::Decal>::iterator l = myDecals.begin(); l != myDecals.end(); ++l) {
         GUISUMOAbstractView::Decal& d = *l;
+        if (d.skip2D) {
+            continue;
+        }
         if (!d.initialised) {
             try {
                 FXImage* i = MFXImageHelper::loadImage(getApp(), d.filename);
@@ -928,8 +941,7 @@ GUISUMOAbstractView::drawDecals() {
                 d.image = i;
             } catch (InvalidArgument& e) {
                 WRITE_ERROR("Could not load '" + d.filename + "'.\n" + e.what());
-                l = myDecals.erase(l);
-                continue;
+                d.skip2D = true;
             }
         }
         glPushMatrix();
@@ -940,7 +952,6 @@ GUISUMOAbstractView::drawDecals() {
         SUMOReal halfHeight((d.height / 2.));
         GUITexturesHelper::drawTexturedBox(d.glID, -halfWidth, -halfHeight, halfWidth, halfHeight);
         glPopMatrix();
-        ++l;
     }
     myDecalsLock.unlock();
     glPopName();

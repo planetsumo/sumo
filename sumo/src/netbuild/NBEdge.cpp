@@ -375,21 +375,29 @@ NBEdge::computeEdgeShape() {
     for (unsigned int i = 0; i < myLanes.size(); i++) {
         PositionVector& shape = myLanes[i].shape;
         PositionVector old = shape;
-        shape = startShapeAt(shape, myFrom, i);
+        shape = startShapeAt(shape, myFrom);
         if (shape.size() >= 2) {
-            shape = startShapeAt(shape.reverse(), myTo, i).reverse();
+            shape = startShapeAt(shape.reverse(), myTo).reverse();
         }
         // sanity checks
         if (shape.length() < POSITION_EPS) {
-            WRITE_MESSAGE("Lane '" + myID + "' has calculated shape length near zero. Revert it back to old shape.");
-            // @note old shape may still be shorter than POSITION_EPS
-            shape = old;
+            if (old.length() < 2 * POSITION_EPS) {
+                shape = old;
+            } else {
+                const SUMOReal midpoint = old.length() / 2;
+                // EPS*2 because otherwhise shape has only a single point
+                shape = old.getSubpart(midpoint - POSITION_EPS, midpoint + POSITION_EPS); 
+                assert(shape.size() >= 2);
+                assert(shape.length() > 0);
+            }
         } else {
             // @note If the node shapes are overlapping we may get a shape which goes in the wrong direction
+            // in this case the result shape should shortened
             Line lc(shape[0], shape[-1]);
             Line lo(old[0], old[-1]);
             if (135 < GeomHelper::getMinAngleDiff(lc.atan2DegreeAngle(), lo.atan2DegreeAngle())) {
                 shape = shape.reverse();
+                shape = shape.getSubpart(0, 2*POSITION_EPS); // *2 because otherwhise shape has only a single point
             }
         }
     }
@@ -404,8 +412,7 @@ NBEdge::computeEdgeShape() {
 
 
 PositionVector
-NBEdge::startShapeAt(const PositionVector& laneShape, const NBNode* startNode, unsigned int laneIndex) const {
-    // const std::string error = "Could not find a way to attach lane '" + getLaneID(laneIndex) + "' at node shape of '" + startNode->getID() + "'.";
+NBEdge::startShapeAt(const PositionVector& laneShape, const NBNode* startNode) const {
     const PositionVector& nodeShape = startNode->getShape();
     Line lb = laneShape.getBegLine();
     // this doesn't look reasonable @todo use lb.extrapolateFirstBy(100.0);
@@ -602,7 +609,11 @@ NBEdge::setConnection(unsigned int lane, NBEdge* destEdge,
         return;
     }
     if (myLanes.size() <= lane) {
-        WRITE_ERROR("Could not set connection from '" + getLaneID(lane) + "' to '" + destEdge->getLaneID(destLane) + "'.");
+        WRITE_ERROR("Could not set connection from '" + getLaneIDInsecure(lane) + "' to '" + destEdge->getLaneIDInsecure(destLane) + "'.");
+        return;
+    }
+    if (destEdge->getNumLanes() <= destLane) {
+        WRITE_ERROR("Could not set connection from '" + getLaneIDInsecure(lane) + "' to '" + destEdge->getLaneIDInsecure(destLane) + "'.");
         return;
     }
     for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end();) {
@@ -1769,9 +1780,9 @@ NBEdge::expandableBy(NBEdge* possContinuation) const {
 void
 NBEdge::append(NBEdge* e) {
     // append geometry
-    myGeom.appendWithCrossingPoint(e->myGeom);
+    myGeom.append(e->myGeom);
     for (unsigned int i = 0; i < myLanes.size(); i++) {
-        myLanes[i].shape.appendWithCrossingPoint(e->myLanes[i].shape);
+        myLanes[i].shape.append(e->myLanes[i].shape);
     }
     // recompute length
     myLength += e->myLength;
@@ -1807,6 +1818,12 @@ NBEdge::getTurnDestination() const {
 std::string
 NBEdge::getLaneID(unsigned int lane) const {
     assert(lane < myLanes.size());
+    return myID + "_" + toString(lane);
+}
+
+
+std::string
+NBEdge::getLaneIDInsecure(unsigned int lane) const {
     return myID + "_" + toString(lane);
 }
 

@@ -31,7 +31,7 @@ Input Options:
                                      attribute.
   --shapefile-prefixes FILE        Reads shapes from shapefiles FILE+
   --shapefile.guess-projection     Guesses the shapefile's projection
-  --shapefile.id-column FILE       Defines in which column the id can be found
+  --shapefile.id-column STR        Defines in which column the id can be found
   --shapefile.use-running-id       A running number will be used as id.
   --type-file FILE                 Reads types from FILE
 
@@ -64,6 +64,7 @@ Processing Options:
   --offset.x FLOAT                 Adds FLOAT to net x-positions
   --offset.y FLOAT                 Adds FLOAT to net y-positions
   --all-attributes                 Imports all attributes as key/value pairs
+  --ignore-errors                  Continue on broken input
 
 Building Defaults Options:
   --color STR                      Sets STR as default color
