@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!-- generated on 04/15/13 13:26:18 by SUMO duarouter Version dev-SVN-r13400
+<!-- generated on 04/17/13 10:29:43 by SUMO duarouter Version dev-SVN-r13650
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/duarouterConfiguration.xsd">
@@ -26,6 +26,6 @@
         <routeDistribution last="0">
             <route cost="125.11" probability="1.00000000" edges="beg middle end rend"/>
         </routeDistribution>
-        <stop lane="middle_0" parking="1"/>
+        <stop lane="middle_0"/>
     </vehicle>
 </routes>
