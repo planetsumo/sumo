@@ -112,11 +112,11 @@ ROLoader::EdgeFloatTimeLineRetriever_EdgeWeight::addEdgeWeight(const std::string
 // ---------------------------------------------------------------------------
 // ROLoader - methods
 // ---------------------------------------------------------------------------
-ROLoader::ROLoader(OptionsCont& oc, bool emptyDestinationsAllowed) :
+ROLoader::ROLoader(OptionsCont& oc, const bool emptyDestinationsAllowed, const bool logSteps) :
     myOptions(oc),
     myEmptyDestinationsAllowed(emptyDestinationsAllowed),
     myLoaders(oc.exists("unsorted-input") && oc.getBool("unsorted-input") ? 0 : DELTA_T),
-    myLogSteps(!oc.getBool("no-step-log"))
+    myLogSteps(logSteps)
 {}
 
 
