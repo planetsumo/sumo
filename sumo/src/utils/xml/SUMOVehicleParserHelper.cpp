@@ -562,7 +562,8 @@ SUMOVehicleParserHelper::parseGuiShape(const SUMOSAXAttributes& attrs, const std
 
 
 void
-SUMOVehicleParserHelper::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs){
+SUMOVehicleParserHelper::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs) {
+    stop.setParameter = 0;
     if (attrs.hasAttribute(SUMO_ATTR_ENDPOS)) {
         stop.setParameter |= STOP_END_SET;
     }
