@@ -237,7 +237,7 @@ ROLoader::openTypedRoutes(const std::string& optionName,
     for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
         // build the instance when everything's all right
         try {
-            myLoaders.add(new SUMORouteLoader(new RORouteHandler(net, *fileIt, myOptions.getBool("repair"), myEmptyDestinationsAllowed)));
+            myLoaders.add(new SUMORouteLoader(new RORouteHandler(net, *fileIt, myOptions.getBool("repair"), myEmptyDestinationsAllowed, myOptions.getBool("ignore-errors"))));
         } catch (ProcessError& e) {
             std::string msg = "The loader for " + optionName + " from file '" + *fileIt + "' could not be initialised;";
             std::string reason = e.what();

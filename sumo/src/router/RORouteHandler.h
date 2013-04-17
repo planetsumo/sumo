@@ -65,7 +65,8 @@ public:
     /// standard constructor
     RORouteHandler(RONet& net, const std::string& file,
                    const bool tryRepair,
-                   const bool emptyDestinationsAllowed);
+                   const bool emptyDestinationsAllowed,
+                   const bool ignoreErrors);
 
     /// standard destructor
     virtual ~RORouteHandler();
@@ -158,6 +159,9 @@ protected:
 
     /// @brief Information whether the "to" attribute is mandatory
     const bool myEmptyDestinationsAllowed;
+
+    /// @brief Depending on the "ignore-errors" option different outputs are used
+    MsgHandler* const myErrorOutput;
 
     /// @brief The currently parsed distribution of vehicle types (probability->vehicle type)
     RandomDistributor<SUMOVTypeParameter*>* myCurrentVTypeDistribution;
