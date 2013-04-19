@@ -137,7 +137,7 @@ RORouteDef::repairCurrentRoute(SUMOAbstractRouter<ROEdge, ROVehicle>& router,
     std::vector<const ROEdge*> newEdges;
     if (oldEdges.size() == 1) {
         /// should happen with jtrrouter only
-        router.compute(oldEdges.front(), 0, &veh, begin, newEdges);
+        router.compute(oldEdges.front(), oldEdges.front(), &veh, begin, newEdges);
     } else {
         newEdges.push_back(*(oldEdges.begin()));
         for (std::vector<const ROEdge*>::const_iterator i = oldEdges.begin() + 1; i != oldEdges.end(); ++i) {
