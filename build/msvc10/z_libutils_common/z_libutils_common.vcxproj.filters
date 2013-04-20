@@ -20,6 +20,9 @@
     <ClCompile Include="..\..\..\src\utils\common\HelpersHBEFA.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\utils\common\HelpersPHEMlight.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\utils\common\IDSupplier.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
@@ -80,6 +83,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\utils\common\HelpersHBEFA.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\utils\common\HelpersPHEMlight.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\utils\common\IDSupplier.h">

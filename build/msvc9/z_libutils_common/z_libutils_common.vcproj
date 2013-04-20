@@ -466,6 +466,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\utils\common\HelpersPHEMlight.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\utils\common\IDSupplier.cpp"
 				>
 			</File>
@@ -552,6 +556,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\utils\common\HelpersHBEFA.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\utils\common\HelpersPHEMlight.h"
 				>
 			</File>
 			<File

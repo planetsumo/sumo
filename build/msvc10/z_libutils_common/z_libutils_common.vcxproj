@@ -141,6 +141,7 @@
     <ClCompile Include="..\..\..\src\utils\common\FileHelpers.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\HelpersHarmonoise.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\HelpersHBEFA.cpp" />
+    <ClCompile Include="..\..\..\src\utils\common\HelpersPHEMlight.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\IDSupplier.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\MsgHandler.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\Parameterised.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="..\..\..\src\utils\common\FileHelpers.h" />
     <ClInclude Include="..\..\..\src\utils\common\HelpersHarmonoise.h" />
     <ClInclude Include="..\..\..\src\utils\common\HelpersHBEFA.h" />
+    <ClInclude Include="..\..\..\src\utils\common\HelpersPHEMlight.h" />
     <ClInclude Include="..\..\..\src\utils\common\IDSupplier.h" />
     <ClInclude Include="..\..\..\src\utils\common\InstancePool.h" />
     <ClInclude Include="..\..\..\src\utils\common\MsgHandler.h" />

@@ -599,6 +599,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_PHEMlight.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\devices\MSDevice_Routing.cpp"
 				>
 			</File>
@@ -779,6 +783,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\cfmodels\MSCFModel_PWag2009.h"
 				>
 			</File>
@@ -800,6 +808,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\devices\MSDevice_Person.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_PHEMlight.h"
 				>
 			</File>
 			<File
@@ -939,10 +951,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.h"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -231,6 +231,7 @@
     <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_Harmonoise.cpp" />
     <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_HBEFA.cpp" />
     <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_Net.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_PHEMlight.cpp" />
     <ClCompile Include="..\..\..\src\microsim\output\MSRouteProbe.cpp" />
     <ClCompile Include="..\..\..\src\microsim\output\MSVTypeProbe.cpp" />
     <ClCompile Include="..\..\..\src\microsim\output\MSXMLRawOut.cpp" />
@@ -253,6 +254,7 @@
     <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_Harmonoise.h" />
     <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_HBEFA.h" />
     <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_Net.h" />
+    <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_PHEMlight.h" />
     <ClInclude Include="..\..\..\src\microsim\output\MSRouteProbe.h" />
     <ClInclude Include="..\..\..\src\microsim\output\MSVTypeProbe.h" />
     <ClInclude Include="..\..\..\src\microsim\output\MSXMLRawOut.h" />

@@ -603,6 +603,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_PHEMlight.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\output\MSQueueExport.cpp"
 				>
 			</File>
@@ -685,6 +689,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\output\MSMeanData_Net.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_PHEMlight.h"
 				>
 			</File>
 			<File
