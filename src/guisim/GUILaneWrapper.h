@@ -187,7 +187,44 @@ public:
      * @return Fuel comsumption of vehicles on this lane during the last step, normed by the lane length
      */
     SUMOReal getNormedHBEFA_FuelConsumption() const;
-    /// @}
+
+	
+
+    /** @brief Returns the sum of last step CO2 emissions normed by the lane's length
+     * @return CO2 emissions of vehicles on this lane during the last step, normed by the lane length
+     */
+    SUMOReal getNormedPHEMlight_CO2Emissions() const;
+
+
+    /** @brief Returns the sum of last step CO emissions normed by the lane's length
+     * @return CO emissions of vehicles on this lane during the last step, normed by the lane length
+     */
+    SUMOReal getNormedPHEMlight_COEmissions() const;
+
+
+    /** @brief Returns the sum of last step PMx emissions normed by the lane's length
+     * @return PMx emissions of vehicles on this lane during the last step, normed by the lane length
+     */
+    SUMOReal getNormedPHEMlight_PMxEmissions() const;
+
+
+    /** @brief Returns the sum of last step NOx emissions normed by the lane's length
+     * @return NOx emissions of vehicles on this lane during the last step, normed by the lane length
+     */
+    SUMOReal getNormedPHEMlight_NOxEmissions() const;
+
+
+    /** @brief Returns the sum of last step HC emissions normed by the lane's length
+     * @return HC emissions of vehicles on this lane during the last step, normed by the lane length
+     */
+    SUMOReal getNormedPHEMlight_HCEmissions() const;
+
+
+    /** @brief Returns the sum of last step fuel comsumption normed by the lane's length
+     * @return Fuel comsumption of vehicles on this lane during the last step, normed by the lane length
+     */
+    SUMOReal getNormedPHEMlight_FuelConsumption() const;
+	/// @}
 
 
     SUMOReal getEdgeLaneNumber() const;

@@ -44,6 +44,7 @@
 #include <microsim/output/MSRouteProbe.h>
 #include <microsim/output/MSMeanData_Net.h>
 #include <microsim/output/MSMeanData_HBEFA.h>
+#include <microsim/output/MSMeanData_PHEMlight.h>
 #include <microsim/output/MSMeanData_Harmonoise.h>
 #include <microsim/output/MSInstantInductLoop.h>
 #include <microsim/MSGlobals.h>
@@ -496,16 +497,16 @@ NLDetectorBuilder::createEdgeLaneMeanData(const std::string& id, SUMOTime freque
     MSMeanData* det = 0;
     if (type == "" || type == "performance" || type == "traffic") {
         det = new MSMeanData_Net(id, begin, end, useLanes, withEmpty,
-                                 printDefaults, withInternal, trackVehicles,
-                                 maxTravelTime, minSamples, haltSpeed, vt);
+			printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, haltSpeed, vt);
     } else if (type == "hbefa") {
         det = new MSMeanData_HBEFA(id, begin, end, useLanes, withEmpty,
-                                   printDefaults, withInternal, trackVehicles,
-                                   maxTravelTime, minSamples, vt);
+			printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vt);
+    } else if (type == "phem") {
+        det = new MSMeanData_PHEMlight(id, begin, end, useLanes, withEmpty,
+			printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vt);
     } else if (type == "harmonoise") {
         det = new MSMeanData_Harmonoise(id, begin, end, useLanes, withEmpty,
-                                        printDefaults, withInternal, trackVehicles,
-                                        maxTravelTime, minSamples, vt);
+			printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vt);
     } else {
         throw InvalidArgument("Invalid type '" + type + "' for meandata dump '" + id + "'.");
     }

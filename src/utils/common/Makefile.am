@@ -12,6 +12,7 @@ libcommon_a_SOURCES = AbstractMutex.h \
 FileHelpers.cpp FileHelpers.h \
 HelpersHarmonoise.cpp HelpersHarmonoise.h \
 HelpersHBEFA.cpp HelpersHBEFA.h \
+HelpersPHEMlight.cpp HelpersPHEMlight.h \
 InstancePool.h \
 IDSupplier.h IDSupplier.cpp \
 Named.h Parameterised.cpp Parameterised.h \

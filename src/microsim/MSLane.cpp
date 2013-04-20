@@ -1274,6 +1274,78 @@ MSLane::getHBEFA_FuelConsumption() const {
 
 
 SUMOReal
+MSLane::getPHEMlight_CO2Emissions() const {
+    SUMOReal ret = 0;
+    const MSLane::VehCont& vehs = getVehiclesSecure();
+    for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
+        ret += (*i)->getPHEMlight_CO2Emissions();
+    }
+    releaseVehicles();
+    return ret;
+}
+
+
+SUMOReal
+MSLane::getPHEMlight_COEmissions() const {
+    SUMOReal ret = 0;
+    const MSLane::VehCont& vehs = getVehiclesSecure();
+    for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
+        ret += (*i)->getPHEMlight_COEmissions();
+    }
+    releaseVehicles();
+    return ret;
+}
+
+
+SUMOReal
+MSLane::getPHEMlight_PMxEmissions() const {
+    SUMOReal ret = 0;
+    const MSLane::VehCont& vehs = getVehiclesSecure();
+    for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
+        ret += (*i)->getPHEMlight_PMxEmissions();
+    }
+    releaseVehicles();
+    return ret;
+}
+
+
+SUMOReal
+MSLane::getPHEMlight_NOxEmissions() const {
+    SUMOReal ret = 0;
+    const MSLane::VehCont& vehs = getVehiclesSecure();
+    for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
+        ret += (*i)->getPHEMlight_NOxEmissions();
+    }
+    releaseVehicles();
+    return ret;
+}
+
+
+SUMOReal
+MSLane::getPHEMlight_HCEmissions() const {
+    SUMOReal ret = 0;
+    const MSLane::VehCont& vehs = getVehiclesSecure();
+    for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
+        ret += (*i)->getPHEMlight_HCEmissions();
+    }
+    releaseVehicles();
+    return ret;
+}
+
+
+SUMOReal
+MSLane::getPHEMlight_FuelConsumption() const {
+    SUMOReal ret = 0;
+    const MSLane::VehCont& vehs = getVehiclesSecure();
+    for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
+        ret += (*i)->getPHEMlight_FuelConsumption();
+    }
+    releaseVehicles();
+    return ret;
+}
+
+
+SUMOReal
 MSLane::getHarmonoise_NoiseEmissions() const {
     SUMOReal ret = 0;
     const MSLane::VehCont& vehs = getVehiclesSecure();

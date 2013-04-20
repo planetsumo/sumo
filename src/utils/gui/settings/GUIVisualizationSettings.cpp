@@ -117,7 +117,25 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme = GUIColorScheme("by noise emissions (Harmonoise)", RGBColor(0, 1, 0));
     scheme.addColor(RGBColor(1, 0, 0), (SUMOReal)100);
     laneColorer.addScheme(scheme);
-    // ... weights (experimental) ...
+    scheme = GUIColorScheme("by CO2 emissions (PHEMlight)", RGBColor(0, 1, 0));
+    scheme.addColor(RGBColor(1, 0, 0), (SUMOReal)(10. / 7.5 / 5.));
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by CO emissions (PHEMlight)", RGBColor(0, 1, 0));
+    scheme.addColor(RGBColor(1, 0, 0), (SUMOReal)(0.05 / 7.5 / 2.));
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by PMx emissions (PHEMlight)", RGBColor(0, 1, 0));
+    scheme.addColor(RGBColor(1, 0, 0), (SUMOReal)(.005 / 7.5 / 5.));
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by NOx emissions (PHEMlight)", RGBColor(0, 1, 0));
+    scheme.addColor(RGBColor(1, 0, 0), (SUMOReal)(.125 / 7.5 / 5.));
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by HC emissions (PHEMlight)", RGBColor(0, 1, 0));
+    scheme.addColor(RGBColor(1, 0, 0), (SUMOReal)(.02 / 7.5 / 4.));
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by fuel consumption (PHEMlight)", RGBColor(0, 1, 0));
+    scheme.addColor(RGBColor(1, 0, 0), (SUMOReal)(.005 / 7.5 * 100.));
+    laneColorer.addScheme(scheme);
+	// ... weights (experimental) ...
     scheme = GUIColorScheme("by global travel time", RGBColor(0, 1, 0));
     scheme.addColor(RGBColor(1, 0, 0), (SUMOReal)100);
     scheme.setAllowsNegativeValues(true);

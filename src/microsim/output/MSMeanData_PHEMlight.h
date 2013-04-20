@@ -1,11 +1,10 @@
 /****************************************************************************/
-/// @file    MSMeanData_HBEFA.h
+/// @file    MSMeanData_PHEMlight.h
 /// @author  Daniel Krajzewicz
-/// @author  Michael Behrisch
-/// @date    Mon, 10.05.2004
-/// @version $Id$
+/// @date    Sat, 20.04.2013
+/// @version $Id: MSMeanData_PHEMlight.h 12381 2012-06-08 09:28:48Z dkrajzew $
 ///
-// Emission data collector for edges/lanes that uses HBEFA-reformulation
+// Emission data collector for edges/lanes that uses PHEMlight
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
 // Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
@@ -18,8 +17,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef MSMeanData_HBEFA_h
-#define MSMeanData_HBEFA_h
+#ifndef MSMeanData_PHEMlight_h
+#define MSMeanData_PHEMlight_h
 
 
 // ===========================================================================
@@ -48,18 +47,18 @@ class MSLane;
 // class definitions
 // ===========================================================================
 /**
- * @class MSMeanData_HBEFA
- * @brief Emission data collector for edges/lanes that uses HBEFA-reformulation
+ * @class MSMeanData_PHEMlight
+ * @brief Emission data collector for edges/lanes that uses PHEMlight
  *
  * This structure does not contain the data itself, it is stored within
  *  MSLaneMeanDataValues-MoveReminder objects.
- * 
+ *
  * This class is used to build the output, optionally, in the case
  *  of edge-based dump, aggregated over the edge's lanes.
  *
  * @todo consider error-handling on write (using IOError)
  */
-class MSMeanData_HBEFA : public MSMeanData {
+class MSMeanData_PHEMlight : public MSMeanData {
 public:
     /**
      * @class MSLaneMeanDataValues
@@ -73,7 +72,7 @@ public:
         /** @brief Constructor */
         MSLaneMeanDataValues(MSLane* const lane, const SUMOReal length, const bool doAdd,
                              const std::set<std::string>* const vTypes = 0,
-                             const MSMeanData_HBEFA* parent = 0);
+                             const MSMeanData_PHEMlight* parent = 0);
 
         /** @brief Destructor */
         virtual ~MSLaneMeanDataValues();
@@ -83,13 +82,11 @@ public:
          */
         void reset(bool afterWrite = false);
 
-
         /** @brief Add the values of this to the given one and store them there
          *
          * @param[in] val The meandata to add to
          */
         void addTo(MSMeanData::MeanDataValues& val) const;
-
 
         /** @brief Writes output values into the given stream
          *
@@ -102,7 +99,6 @@ public:
         void write(OutputDevice& dev, const SUMOTime period,
                    const SUMOReal numLanes, const SUMOReal defaultTravelTime,
                    const int numVehicles = -1) const;
-
 
     protected:
         /** @brief Internal notification about the vehicle moves
@@ -117,7 +113,6 @@ public:
          */
         void notifyMoveInternal(SUMOVehicle& veh, SUMOReal timeOnLane,
                                 SUMOReal speed);
-
 
     private:
         /// @name Collected values
@@ -136,7 +131,7 @@ public:
         SUMOReal fuel;
         //@}
         /// @brief The meandata parent
-        const MSMeanData_HBEFA* myParent;
+        const MSMeanData_PHEMlight* myParent;
 
     };
 
@@ -156,7 +151,7 @@ public:
      * @param[in] minSamples the minimum number of sample seconds before the values are valid
      * @param[in] vTypes the set of vehicle types to consider
      */
-    MSMeanData_HBEFA(const std::string& id,
+    MSMeanData_PHEMlight(const std::string& id,
                      const SUMOTime dumpBegin, const SUMOTime dumpEnd,
                      const bool useLanes, const bool withEmpty,
                      const bool printDefaults, const bool withInternal,
@@ -166,7 +161,7 @@ public:
 
 
     /// @brief Destructor
-    virtual ~MSMeanData_HBEFA();
+    virtual ~MSMeanData_PHEMlight();
 
 
 
@@ -182,10 +177,10 @@ protected:
 
 private:
     /// @brief Invalidated copy constructor.
-    MSMeanData_HBEFA(const MSMeanData_HBEFA&);
+    MSMeanData_PHEMlight(const MSMeanData_PHEMlight&);
 
     /// @brief Invalidated assignment operator.
-    MSMeanData_HBEFA& operator=(const MSMeanData_HBEFA&);
+    MSMeanData_PHEMlight& operator=(const MSMeanData_PHEMlight&);
 
 };
 

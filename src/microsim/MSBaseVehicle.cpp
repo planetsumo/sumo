@@ -43,6 +43,7 @@
 #include <microsim/devices/MSDevice_Routing.h>
 #include <microsim/devices/MSDevice_Person.h>
 #include <microsim/devices/MSDevice_HBEFA.h>
+#include <microsim/devices/MSDevice_PHEMlight.h>
 #include "MSBaseVehicle.h"
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -72,6 +73,7 @@ MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, c
     MSDevice_Tripinfo::buildVehicleDevices(*this, myDevices);
     MSDevice_Routing::buildVehicleDevices(*this, myDevices);
     MSDevice_HBEFA::buildVehicleDevices(*this, myDevices);
+    MSDevice_PHEMlight::buildVehicleDevices(*this, myDevices);
     //
     for (std::vector< MSDevice* >::iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {
         myMoveReminders.push_back(std::make_pair(*dev, 0.));
@@ -185,6 +187,12 @@ MSBaseVehicle::replaceRouteEdges(const MSEdgeVector& edges, bool onInit) {
 
 SUMOReal
 MSBaseVehicle::getAcceleration() const {
+    return 0;
+}
+
+
+SUMOReal
+MSBaseVehicle::getSlope() const {
     return 0;
 }
 

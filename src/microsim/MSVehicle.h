@@ -286,6 +286,8 @@ public:
      */
     void move(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal lengthsInFront);
 
+
+
     /// @name state setter/getter
     //@{
 
@@ -317,6 +319,12 @@ public:
 
     /// @name Other getter methods
     //@{
+
+    /** @brief Returns the slope of the road at vehicle's position
+     * @return The slope
+     */
+    SUMOReal getSlope() const;
+
 
     /** @brief Return current position (x/y, cartesian)
      *
@@ -615,43 +623,79 @@ public:
     /// @name Emission retrieval
     //@{
 
-    /** @brief Returns CO2 emission of the current state
+    /** @brief Returns CO2 emission of the current state, computed using HelpersHBEFA
      * @return The current CO2 emission
      */
     SUMOReal getHBEFA_CO2Emissions() const;
 
 
-    /** @brief Returns CO emission of the current state
+    /** @brief Returns CO emission of the current state, computed using HelpersHBEFA
      * @return The current CO emission
      */
     SUMOReal getHBEFA_COEmissions() const;
 
 
-    /** @brief Returns HC emission of the current state
+    /** @brief Returns HC emission of the current state, computed using HelpersHBEFA
      * @return The current HC emission
      */
     SUMOReal getHBEFA_HCEmissions() const;
 
 
-    /** @brief Returns NOx emission of the current state
+    /** @brief Returns NOx emission of the current state, computed using HelpersHBEFA
      * @return The current NOx emission
      */
     SUMOReal getHBEFA_NOxEmissions() const;
 
 
-    /** @brief Returns PMx emission of the current state
+    /** @brief Returns PMx emission of the current state, computed using HelpersHBEFA
      * @return The current PMx emission
      */
     SUMOReal getHBEFA_PMxEmissions() const;
 
 
-    /** @brief Returns fuel consumption of the current state
+    /** @brief Returns fuel consumption of the current state, computed using HelpersHBEFA
      * @return The current fuel consumption
      */
     SUMOReal getHBEFA_FuelConsumption() const;
 
 
-    /** @brief Returns noise emissions of the current state
+    /** @brief Returns CO2 emission of the current state, computed using HelpersPHEMlight
+     * @return The current CO2 emission
+     */
+    SUMOReal getPHEMlight_CO2Emissions() const;
+
+
+    /** @brief Returns CO emission of the current state, computed using HelpersPHEMlight
+     * @return The current CO emission
+     */
+    SUMOReal getPHEMlight_COEmissions() const;
+
+
+    /** @brief Returns HC emission of the current state, computed using HelpersPHEMlight
+     * @return The current HC emission
+     */
+    SUMOReal getPHEMlight_HCEmissions() const;
+
+
+    /** @brief Returns NOx emission of the current state, computed using HelpersPHEMlight
+     * @return The current NOx emission
+     */
+    SUMOReal getPHEMlight_NOxEmissions() const;
+
+
+    /** @brief Returns PMx emission of the current state, computed using HelpersPHEMlight
+     * @return The current PMx emission
+     */
+    SUMOReal getPHEMlight_PMxEmissions() const;
+
+
+    /** @brief Returns fuel consumption of the current state, computed using HelpersPHEMlight
+     * @return The current fuel consumption
+     */
+    SUMOReal getPHEMlight_FuelConsumption() const;
+
+	
+	/** @brief Returns noise emissions of the current state
      * @return The noise produced
      */
     SUMOReal getHarmonoise_NoiseEmissions() const;

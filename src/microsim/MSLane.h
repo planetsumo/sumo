@@ -574,40 +574,76 @@ public:
     SUMOReal getVehLenSum() const;
 
 
-    /** @brief Returns the sum of last step CO2 emissions
+    /** @brief Returns the sum of last step CO2 emissions, computed using HelpersHBEFA
      * @return CO2 emissions of vehicles on this lane during the last step
      */
     SUMOReal getHBEFA_CO2Emissions() const;
 
 
-    /** @brief Returns the sum of last step CO emissions
+    /** @brief Returns the sum of last step CO emissions, computed using HelpersHBEFA
      * @return CO emissions of vehicles on this lane during the last step
      */
     SUMOReal getHBEFA_COEmissions() const;
 
 
-    /** @brief Returns the sum of last step PMx emissions
+    /** @brief Returns the sum of last step PMx emissions, computed using HelpersHBEFA
      * @return PMx emissions of vehicles on this lane during the last step
      */
     SUMOReal getHBEFA_PMxEmissions() const;
 
 
-    /** @brief Returns the sum of last step NOx emissions
+    /** @brief Returns the sum of last step NOx emissions, computed using HelpersHBEFA
      * @return NOx emissions of vehicles on this lane during the last step
      */
     SUMOReal getHBEFA_NOxEmissions() const;
 
 
-    /** @brief Returns the sum of last step HC emissions
+    /** @brief Returns the sum of last step HC emissions, computed using HelpersHBEFA
      * @return HC emissions of vehicles on this lane during the last step
      */
     SUMOReal getHBEFA_HCEmissions() const;
 
 
-    /** @brief Returns the sum of last step fuel consumption
+    /** @brief Returns the sum of last step fuel consumption, computed using HelpersHBEFA
      * @return fuel consumption of vehicles on this lane during the last step
      */
     SUMOReal getHBEFA_FuelConsumption() const;
+
+
+    /** @brief Returns the sum of last step CO2 emissions, computed using HelpersPHEMlight
+     * @return CO2 emissions of vehicles on this lane during the last step
+     */
+    SUMOReal getPHEMlight_CO2Emissions() const;
+
+
+    /** @brief Returns the sum of last step CO emissions, computed using HelpersPHEMlight
+     * @return CO emissions of vehicles on this lane during the last step
+     */
+    SUMOReal getPHEMlight_COEmissions() const;
+
+
+    /** @brief Returns the sum of last step PMx emissions, computed using HelpersPHEMlight
+     * @return PMx emissions of vehicles on this lane during the last step
+     */
+    SUMOReal getPHEMlight_PMxEmissions() const;
+
+
+    /** @brief Returns the sum of last step NOx emissions, computed using HelpersPHEMlight
+     * @return NOx emissions of vehicles on this lane during the last step
+     */
+    SUMOReal getPHEMlight_NOxEmissions() const;
+
+
+    /** @brief Returns the sum of last step HC emissions, computed using HelpersPHEMlight
+     * @return HC emissions of vehicles on this lane during the last step
+     */
+    SUMOReal getPHEMlight_HCEmissions() const;
+
+
+    /** @brief Returns the sum of last step fuel consumption, computed using HelpersPHEMlight
+     * @return fuel consumption of vehicles on this lane during the last step
+     */
+    SUMOReal getPHEMlight_FuelConsumption() const;
 
 
     /** @brief Returns the sum of last step noise emissions

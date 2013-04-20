@@ -340,6 +340,18 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getHBEFA_FuelConsumption));
     ret->mkItem("noise (Harmonoise) [dB]", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getHarmonoise_NoiseEmissions));
+    ret->mkItem("CO2 (PHEMlight) [mg/s]", true,
+                new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getPHEMlight_CO2Emissions));
+    ret->mkItem("CO (PHEMlight) [mg/s]", true,
+                new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getPHEMlight_COEmissions));
+    ret->mkItem("HC (PHEMlight) [mg/s]", true,
+                new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getPHEMlight_HCEmissions));
+    ret->mkItem("NOx (PHEMlight) [mg/s]", true,
+                new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getPHEMlight_NOxEmissions));
+    ret->mkItem("PMx (PHEMlight) [mg/s]", true,
+                new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getPHEMlight_PMxEmissions));
+    ret->mkItem("fuel (PHEMlight) [ml/s]", true,
+                new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getPHEMlight_FuelConsumption));
     // close building
     ret->closeBuilding();
     return ret;
@@ -1221,6 +1233,18 @@ GUIVehicle::getColorValue(size_t activeScheme) const {
         case 18:
             return getHarmonoise_NoiseEmissions();
         case 19:
+            return getPHEMlight_CO2Emissions();
+        case 20:
+            return getPHEMlight_COEmissions();
+        case 21:
+            return getPHEMlight_PMxEmissions();
+        case 22:
+            return getPHEMlight_NOxEmissions();
+        case 23:
+            return getPHEMlight_HCEmissions();
+        case 24:
+            return getPHEMlight_FuelConsumption();
+        case 25: // !!! unused!?
             if (getNumberReroutes() == 0) {
                 return -1;
             }

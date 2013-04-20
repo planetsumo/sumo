@@ -1,11 +1,10 @@
 /****************************************************************************/
-/// @file    MSMeanData_HBEFA.cpp
+/// @file    MSMeanData_PHEMlight.cpp
 /// @author  Daniel Krajzewicz
-/// @author  Michael Behrisch
-/// @date    Mon, 10.05.2004
-/// @version $Id$
+/// @date    Sat, 20.04.2013
+/// @version $Id: MSMeanData_PHEMlight.cpp 13171 2012-12-18 11:12:01Z behrisch $
 ///
-// Emission data collector for edges/lanesthat uses HBEFA-reformulation
+// Emission data collector for edges/lanes that uses PHEMlight
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
 // Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
@@ -35,8 +34,8 @@
 #include <utils/common/SUMOTime.h>
 #include <utils/common/ToString.h>
 #include <utils/iodevices/OutputDevice.h>
-#include "MSMeanData_HBEFA.h"
-#include <utils/common/HelpersHBEFA.h>
+#include "MSMeanData_PHEMlight.h"
+#include <utils/common/HelpersPHEMlight.h>
 #include <limits>
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -48,22 +47,22 @@
 // method definitions
 // ===========================================================================
 // ---------------------------------------------------------------------------
-// MSMeanData_HBEFA::MSLaneMeanDataValues - methods
+// MSMeanData_PHEMlight::MSLaneMeanDataValues - methods
 // ---------------------------------------------------------------------------
-MSMeanData_HBEFA::MSLaneMeanDataValues::MSLaneMeanDataValues(MSLane* const lane,
+MSMeanData_PHEMlight::MSLaneMeanDataValues::MSLaneMeanDataValues(MSLane* const lane,
         const SUMOReal length, const bool doAdd,
         const std::set<std::string>* const vTypes,
-        const MSMeanData_HBEFA* parent)
+        const MSMeanData_PHEMlight* parent)
     : MSMeanData::MeanDataValues(lane, length, doAdd, vTypes),
       CO2(0), CO(0), HC(0), NOx(0), PMx(0), fuel(0), myParent(parent) {}
 
 
-MSMeanData_HBEFA::MSLaneMeanDataValues::~MSLaneMeanDataValues() {
+MSMeanData_PHEMlight::MSLaneMeanDataValues::~MSLaneMeanDataValues() {
 }
 
 
 void
-MSMeanData_HBEFA::MSLaneMeanDataValues::reset(bool) {
+MSMeanData_PHEMlight::MSLaneMeanDataValues::reset(bool) {
     sampleSeconds = 0.;
     travelledDistance = 0.;
     CO2 = 0;
@@ -76,7 +75,7 @@ MSMeanData_HBEFA::MSLaneMeanDataValues::reset(bool) {
 
 
 void
-MSMeanData_HBEFA::MSLaneMeanDataValues::addTo(MSMeanData::MeanDataValues& val) const {
+MSMeanData_PHEMlight::MSLaneMeanDataValues::addTo(MSMeanData::MeanDataValues& val) const {
     MSLaneMeanDataValues& v = (MSLaneMeanDataValues&) val;
     v.sampleSeconds += sampleSeconds;
     v.travelledDistance += travelledDistance;
@@ -90,21 +89,22 @@ MSMeanData_HBEFA::MSLaneMeanDataValues::addTo(MSMeanData::MeanDataValues& val) c
 
 
 void
-MSMeanData_HBEFA::MSLaneMeanDataValues::notifyMoveInternal(SUMOVehicle& veh, SUMOReal timeOnLane, SUMOReal speed) {
+MSMeanData_PHEMlight::MSLaneMeanDataValues::notifyMoveInternal(SUMOVehicle& veh, SUMOReal timeOnLane, SUMOReal speed) {
     sampleSeconds += timeOnLane;
     travelledDistance += speed * timeOnLane;
     const double a = veh.getAcceleration();
-    CO += (timeOnLane * HelpersHBEFA::computeCO(veh.getVehicleType().getEmissionClass(), (double) speed, a));
-    CO2 += (timeOnLane * HelpersHBEFA::computeCO2(veh.getVehicleType().getEmissionClass(), (double) speed, a));
-    HC += (timeOnLane * HelpersHBEFA::computeHC(veh.getVehicleType().getEmissionClass(), (double) speed, a));
-    NOx += (timeOnLane * HelpersHBEFA::computeNOx(veh.getVehicleType().getEmissionClass(), (double) speed, a));
-    PMx += (timeOnLane * HelpersHBEFA::computePMx(veh.getVehicleType().getEmissionClass(), (double) speed, a));
-    fuel += (timeOnLane * HelpersHBEFA::computeFuel(veh.getVehicleType().getEmissionClass(), (double) speed, a));
+	const double slope = veh.getSlope();
+    CO += (timeOnLane * HelpersPHEMlight::computeCO(veh.getVehicleType().getEmissionClass(), (double) speed, a, slope));
+    CO2 += (timeOnLane * HelpersPHEMlight::computeCO2(veh.getVehicleType().getEmissionClass(), (double) speed, a, slope));
+    HC += (timeOnLane * HelpersPHEMlight::computeHC(veh.getVehicleType().getEmissionClass(), (double) speed, a, slope));
+    NOx += (timeOnLane * HelpersPHEMlight::computeNOx(veh.getVehicleType().getEmissionClass(), (double) speed, a, slope));
+    PMx += (timeOnLane * HelpersPHEMlight::computePMx(veh.getVehicleType().getEmissionClass(), (double) speed, a, slope));
+    fuel += (timeOnLane * HelpersPHEMlight::computeFuel(veh.getVehicleType().getEmissionClass(), (double) speed, a, slope));
 }
 
 
 void
-MSMeanData_HBEFA::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime period,
+MSMeanData_PHEMlight::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime period,
         const SUMOReal /*numLanes*/, const SUMOReal defaultTravelTime, const int /*numVehicles*/) const {
     const SUMOReal normFactor = SUMOReal(3600. / STEPS2TIME(period) / myLaneLength);
     dev << "\" CO_abs=\"" << OutputDevice::realString(CO, 6) <<
@@ -136,13 +136,14 @@ MSMeanData_HBEFA::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime 
     } else if (defaultTravelTime >= 0.) {
         const MSVehicleType* t = MSNet::getInstance()->getVehicleControl().getVType();
         const SUMOReal speed = MIN2(myLaneLength / defaultTravelTime, t->getMaxSpeed());
+		const SUMOReal slope = 0; // !!! discuss/check
         dev << "\"\n            traveltime=\"" << OutputDevice::realString(defaultTravelTime) <<
-            "\" CO_perVeh=\"" << OutputDevice::realString(HelpersHBEFA::computeDefaultCO(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), defaultTravelTime), 6) <<
-            "\" CO2_perVeh=\"" << OutputDevice::realString(HelpersHBEFA::computeDefaultCO2(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), defaultTravelTime), 6) <<
-            "\" HC_perVeh=\"" << OutputDevice::realString(HelpersHBEFA::computeDefaultHC(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), defaultTravelTime), 6) <<
-            "\" PMx_perVeh=\"" << OutputDevice::realString(HelpersHBEFA::computeDefaultPMx(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), defaultTravelTime), 6) <<
-            "\" NOx_perVeh=\"" << OutputDevice::realString(HelpersHBEFA::computeDefaultNOx(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), defaultTravelTime), 6) <<
-            "\" fuel_perVeh=\"" << OutputDevice::realString(HelpersHBEFA::computeDefaultFuel(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), defaultTravelTime), 6);
+            "\" CO_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultCO(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" CO2_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultCO2(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" HC_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultHC(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" PMx_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultPMx(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" NOx_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultNOx(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" fuel_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultFuel(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6);
     }
     dev << "\"";
     dev.closeTag();
@@ -151,9 +152,9 @@ MSMeanData_HBEFA::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime 
 
 
 // ---------------------------------------------------------------------------
-// MSMeanData_HBEFA - methods
+// MSMeanData_PHEMlight - methods
 // ---------------------------------------------------------------------------
-MSMeanData_HBEFA::MSMeanData_HBEFA(const std::string& id,
+MSMeanData_PHEMlight::MSMeanData_PHEMlight(const std::string& id,
                                    const SUMOTime dumpBegin,
                                    const SUMOTime dumpEnd,
                                    const bool useLanes, const bool withEmpty,
@@ -168,11 +169,11 @@ MSMeanData_HBEFA::MSMeanData_HBEFA(const std::string& id,
 }
 
 
-MSMeanData_HBEFA::~MSMeanData_HBEFA() {}
+MSMeanData_PHEMlight::~MSMeanData_PHEMlight() {}
 
 
 MSMeanData::MeanDataValues*
-MSMeanData_HBEFA::createValues(MSLane* const lane, const SUMOReal length, const bool doAdd) const {
+MSMeanData_PHEMlight::createValues(MSLane* const lane, const SUMOReal length, const bool doAdd) const {
     return new MSLaneMeanDataValues(lane, length, doAdd, &myVehicleTypes, this);
 }
 

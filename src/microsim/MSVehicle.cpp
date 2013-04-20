@@ -69,6 +69,7 @@
 #include "devices/MSDevice_Person.h"
 #include "MSEdgeWeightsStorage.h"
 #include <utils/common/HelpersHBEFA.h>
+#include <utils/common/HelpersPHEMlight.h>
 #include <utils/common/HelpersHarmonoise.h>
 
 #ifdef _MESSAGES
@@ -454,6 +455,17 @@ MSVehicle::adaptLaneEntering2MoveReminder(const MSLane& enteredLane) {
 
 
 // ------------ Other getter methods
+SUMOReal 
+MSVehicle::getSlope() const {
+    if (myLane == 0) {
+        return 0;
+    }
+    const SUMOReal lp = getPositionOnLane();
+    const SUMOReal gp = myLane->interpolateLanePosToGeometryPos(lp);
+    return myLane->getShape().slopeDegreeAtLengthPosition(gp);
+}
+
+
 Position
 MSVehicle::getPosition() const {
     if (myLane == 0) {
@@ -1737,6 +1749,42 @@ MSVehicle::getHBEFA_PMxEmissions() const {
 SUMOReal
 MSVehicle::getHBEFA_FuelConsumption() const {
     return HelpersHBEFA::computeFuel(myType->getEmissionClass(), myState.speed(), myAcceleration);
+}
+
+
+SUMOReal
+MSVehicle::getPHEMlight_CO2Emissions() const {
+    return HelpersPHEMlight::computeCO2(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
+}
+
+
+SUMOReal
+MSVehicle::getPHEMlight_COEmissions() const {
+    return HelpersPHEMlight::computeCO(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
+}
+
+
+SUMOReal
+MSVehicle::getPHEMlight_HCEmissions() const {
+    return HelpersPHEMlight::computeHC(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
+}
+
+
+SUMOReal
+MSVehicle::getPHEMlight_NOxEmissions() const {
+    return HelpersPHEMlight::computeNOx(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
+}
+
+
+SUMOReal
+MSVehicle::getPHEMlight_PMxEmissions() const {
+    return HelpersPHEMlight::computePMx(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
+}
+
+
+SUMOReal
+MSVehicle::getPHEMlight_FuelConsumption() const {
+    return HelpersPHEMlight::computeFuel(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
 }
 
 

@@ -653,6 +653,43 @@ GUILaneWrapper::getNormedHBEFA_FuelConsumption() const {
 }
 
 
+SUMOReal
+GUILaneWrapper::getNormedPHEMlight_CO2Emissions() const {
+    return myLane.getPHEMlight_CO2Emissions() / myLane.getLength();
+}
+
+
+SUMOReal
+GUILaneWrapper::getNormedPHEMlight_COEmissions() const {
+    return myLane.getPHEMlight_COEmissions() / myLane.getLength();
+}
+
+
+SUMOReal
+GUILaneWrapper::getNormedPHEMlight_PMxEmissions() const {
+    return myLane.getPHEMlight_PMxEmissions() / myLane.getLength();
+}
+
+
+SUMOReal
+GUILaneWrapper::getNormedPHEMlight_NOxEmissions() const {
+    return myLane.getPHEMlight_NOxEmissions() / myLane.getLength();
+}
+
+
+SUMOReal
+GUILaneWrapper::getNormedPHEMlight_HCEmissions() const {
+    return myLane.getPHEMlight_HCEmissions() / myLane.getLength();
+}
+
+
+SUMOReal
+GUILaneWrapper::getNormedPHEMlight_FuelConsumption() const {
+    return myLane.getPHEMlight_FuelConsumption() / myLane.getLength();
+}
+
+
+// ------------ 
 void
 GUILaneWrapper::setColor(const GUIVisualizationSettings& s) const {
     GLHelper::setColor(s.laneColorer.getScheme().getColor(getColorValue(s.laneColorer.getActive())));
@@ -707,10 +744,22 @@ GUILaneWrapper::getColorValue(size_t activeScheme) const {
             return getNormedHBEFA_FuelConsumption();
         case 13:
             return getLane().getHarmonoise_NoiseEmissions();
-        case 14: {
+        case 14:
+            return getNormedPHEMlight_CO2Emissions();
+        case 15:
+            return getNormedPHEMlight_COEmissions();
+        case 16:
+            return getNormedPHEMlight_PMxEmissions();
+        case 17:
+            return getNormedPHEMlight_NOxEmissions();
+        case 18:
+            return getNormedPHEMlight_HCEmissions();
+        case 19:
+            return getNormedPHEMlight_FuelConsumption();
+        case 20: {
             return getStoredEdgeTravelTime();
         }
-        case 15: {
+        case 21: {
             MSEdgeWeightsStorage& ews = MSNet::getInstance()->getWeightsStorage();
             MSEdge& e = getLane().getEdge();
             if (!ews.knowsTravelTime(&e)) {
