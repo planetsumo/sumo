@@ -46,6 +46,16 @@
  */
 class HelpersPHEMlight {
 public:
+    /** @brief Returns the maximum possible acceleration
+     * @param[in] c The vehicle emission class
+     * @param[in] v The vehicle's current velocity
+     * @param[in] a The vehicle's current acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+     * @return The maximum possible acceleration
+     */
+    static SUMOReal getMaxAccel(SUMOEmissionClass c, double v, double a, double slope);
+
+
     /** @brief Returns the amount of emitted CO given the vehicle type and state (in mg/s)
      * @param[in] c The vehicle emission class
      * @param[in] v The vehicle's current velocity

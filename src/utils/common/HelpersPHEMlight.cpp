@@ -41,6 +41,12 @@
 // method definitions
 // ===========================================================================
 SUMOReal
+HelpersPHEMlight::getMaxAccel(SUMOEmissionClass c, double v, double a, double slope) {
+    return -1;
+}
+
+
+SUMOReal
 HelpersPHEMlight::computeCO(SUMOEmissionClass c, double v, double a, double slope) {
     return -1;
 }
