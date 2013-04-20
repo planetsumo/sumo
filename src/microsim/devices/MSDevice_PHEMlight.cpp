@@ -49,7 +49,6 @@
 void
 MSDevice_PHEMlight::insertOptions() {
     OptionsCont& oc = OptionsCont::getOptions();
-    oc.addOptionSubTopic("Emissions");
 
     oc.doRegister("device.phem.probability", new Option_Float(0.));//!!! describe
     oc.addDescription("device.phem.probability", "Emissions", "The probability for a vehicle to have an emission logging device");

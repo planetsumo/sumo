@@ -235,6 +235,7 @@ MSFrame::fillOptions() {
 
     // devices
     MSDevice_Routing::insertOptions();
+    oc.addOptionSubTopic("Emissions");
     MSDevice_HBEFA::insertOptions();
     MSDevice_PHEMlight::insertOptions();
 
