@@ -152,6 +152,8 @@ protected:
         const std::vector<MSVehicle::LaneQ>& preb) const;
 
 
+    ///  @brief start the lane change maneuver (and finish it instantly if gLaneChangeDuration == 0)
+    void startChange(MSVehicle* vehicle, ChangerIt& from, int direction);
 
 
     /** Returns true if candidate overlaps with a vehicle, that

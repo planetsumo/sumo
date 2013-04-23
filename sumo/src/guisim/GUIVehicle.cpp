@@ -886,8 +886,7 @@ void
 GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     glPushName(getGlID());
     glPushMatrix();
-    Position p1 = myLane->getShape().positionAtLengthPosition(
-                      myLane->interpolateLanePosToGeometryPos(myState.pos()));
+    Position p1 = getPosition();
     // one seat in the center of the vehicle by default
     mySeatPositions[0] = myLane->getShape().positionAtLengthPosition(
                              myLane->interpolateLanePosToGeometryPos(

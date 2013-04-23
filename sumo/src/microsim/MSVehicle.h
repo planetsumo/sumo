@@ -438,11 +438,17 @@ public:
     void enterLaneAtLaneChange(MSLane* enteredLane);
 
 
+    /// @brief start the lane change maneuver (and finish it instantly if gLaneChangeDuration == 0)
+    void startLaneChangeManeuver(MSLane* source, MSLane* target, int direction);
+
+    /// @brief return true if the vehicle currently performs a lane change maneuver
+    bool isChangingLanes() const {
+        return myLaneChangeCompletion < 1;
+    }
+
+
     /** @brief Update of members if vehicle leaves a new lane in the lane change step or at arrival. */
     void leaveLane(const MSMoveReminder::Notification reason);
-
-
-
 
 
     MSAbstractLaneChangeModel& getLaneChangeModel();
@@ -974,6 +980,12 @@ protected:
     bool myAmRegisteredAsWaitingForPerson;
 
     bool myHaveToWaitOnNextLink;
+
+    /// @brief progress of the lane change maneuver 0:started, 1:complete
+    SUMOReal myLaneChangeCompletion;
+
+    /// @brief direction of the lane change -1 means right, 1 means left
+    int myLaneChangeDirection;
 
 protected:
     struct DriveProcessItem {

@@ -137,6 +137,13 @@ MSLaneChanger::change() {
         int bla = 0;
     }
 #endif
+    if (vehicle->isChangingLanes()) {
+        // XXX duplicates code at the end of this function
+        myCandi->lane->myTmpVehicles.push_front(veh(myCandi));
+        vehicle->myLastLaneChangeOffset += DELTA_T;
+        (myCandi)->dens += vehicle->getVehicleType().getLengthWithGap();
+        return false;
+    }
     const std::vector<MSVehicle::LaneQ>& preb = vehicle->getBestLanes();
     assert(preb.size() == myChanger.size());
     for (int i = 0; i < (int) myChanger.size(); ++i) {
@@ -161,15 +168,7 @@ MSLaneChanger::change() {
             // inform lane change model about this change
             vehicle->getLaneChangeModel().fulfillChangeRequest(MSVehicle::REQUEST_RIGHT);
 #endif
-            (myCandi - 1)->hoppedVeh = vehicle;
-            (myCandi - 1)->lane->myTmpVehicles.push_front(vehicle);
-            vehicle->leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-            myCandi->lane->leftByLaneChange(vehicle);
-            vehicle->enterLaneAtLaneChange((myCandi - 1)->lane);
-            (myCandi - 1)->lane->enteredByLaneChange(vehicle);
-            vehicle->myLastLaneChangeOffset = 0;
-            vehicle->getLaneChangeModel().changed();
-            (myCandi - 1)->dens += (myCandi - 1)->hoppedVeh->getVehicleType().getLengthWithGap();
+            startChange(vehicle, myCandi, -1);
             return true;
         }
         if ((state1 & LCA_RIGHT) != 0 && (state1 & LCA_URGENT) != 0) {
@@ -196,15 +195,7 @@ MSLaneChanger::change() {
             // inform lane change model about this change
             vehicle->getLaneChangeModel().fulfillChangeRequest(MSVehicle::REQUEST_LEFT);
 #endif
-            (myCandi + 1)->hoppedVeh = veh(myCandi);
-            (myCandi + 1)->lane->myTmpVehicles.push_front(veh(myCandi));
-            vehicle->leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-            myCandi->lane->leftByLaneChange(vehicle);
-            vehicle->enterLaneAtLaneChange((myCandi + 1)->lane);
-            (myCandi + 1)->lane->enteredByLaneChange(vehicle);
-            vehicle->myLastLaneChangeOffset = 0;
-            vehicle->getLaneChangeModel().changed();
-            (myCandi + 1)->dens += (myCandi + 1)->hoppedVeh->getVehicleType().getLengthWithGap();
+            startChange(vehicle, myCandi, 1);
             return true;
         }
         if ((state2 & LCA_LEFT) != 0 && (state2 & LCA_URGENT) != 0) {
@@ -293,6 +284,22 @@ MSLaneChanger::change() {
     vehicle->myLastLaneChangeOffset += DELTA_T;
     (myCandi)->dens += vehicle->getVehicleType().getLengthWithGap();
     return false;
+}
+
+
+void 
+MSLaneChanger::startChange(MSVehicle* vehicle, ChangerIt& from, int direction) {
+    ChangerIt to = from + direction;
+    to->hoppedVeh = vehicle;
+    to->lane->myTmpVehicles.push_front(vehicle);
+    vehicle->leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
+    vehicle->startLaneChangeManeuver(from->lane, to->lane, direction);
+    from->lane->leftByLaneChange(vehicle);
+    vehicle->enterLaneAtLaneChange(to->lane);
+    to->lane->enteredByLaneChange(vehicle);
+    vehicle->myLastLaneChangeOffset = 0;
+    vehicle->getLaneChangeModel().changed();
+    to->dens += to->hoppedVeh->getVehicleType().getLengthWithGap();
 }
 
 

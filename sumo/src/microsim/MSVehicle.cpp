@@ -37,6 +37,33 @@
 #include <config.h>
 #endif
 
+#include <iostream>
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
+#include <algorithm>
+#include <map>
+#include <utils/options/OptionsCont.h>
+#include <utils/common/ToString.h>
+#include <utils/common/FileHelpers.h>
+#include <utils/common/DijkstraRouterTT.h>
+#include <utils/common/RandHelper.h>
+#include <utils/common/HelpersHBEFA.h>
+#include <utils/common/HelpersHarmonoise.h>
+#include <utils/common/StringUtils.h>
+#include <utils/common/StdDefs.h>
+#include <utils/geom/Line.h>
+#include <utils/iodevices/OutputDevice.h>
+#include <utils/iodevices/BinaryInputDevice.h>
+#include <microsim/MSVehicleControl.h>
+#include <microsim/MSGlobals.h>
+#include "trigger/MSBusStop.h"
+#include "devices/MSDevice_Person.h"
+#include "MSEdgeWeightsStorage.h"
+#include "MSLCM_DK2004.h"
+#include "MSMoveReminder.h"
+#include "MSPerson.h"
+#include "MSPersonControl.h"
 #include "MSLane.h"
 #include "MSVehicle.h"
 #include "MSEdge.h"
@@ -44,32 +71,6 @@
 #include "MSNet.h"
 #include "MSRoute.h"
 #include "MSLinkCont.h"
-#include <utils/common/StringUtils.h>
-#include <utils/common/StdDefs.h>
-#include <microsim/MSVehicleControl.h>
-#include <microsim/MSGlobals.h>
-#include <iostream>
-#include <cassert>
-#include <cmath>
-#include <cstdlib>
-#include <algorithm>
-#include <map>
-#include "MSMoveReminder.h"
-#include <utils/options/OptionsCont.h>
-#include "MSLCM_DK2004.h"
-#include <utils/common/ToString.h>
-#include <utils/common/FileHelpers.h>
-#include <utils/iodevices/OutputDevice.h>
-#include <utils/iodevices/BinaryInputDevice.h>
-#include "trigger/MSBusStop.h"
-#include <utils/common/DijkstraRouterTT.h>
-#include "MSPerson.h"
-#include "MSPersonControl.h"
-#include <utils/common/RandHelper.h>
-#include "devices/MSDevice_Person.h"
-#include "MSEdgeWeightsStorage.h"
-#include <utils/common/HelpersHBEFA.h>
-#include <utils/common/HelpersHarmonoise.h>
 
 #ifdef _MESSAGES
 #include "MSMessageEmitter.h"
@@ -283,6 +284,8 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
     myAmOnNet(false),
     myAmRegisteredAsWaitingForPerson(false),
     myHaveToWaitOnNextLink(false),
+    myLaneChangeCompletion(1.0),
+    myLaneChangeDirection(0),
     myEdgeWeights(0)
 #ifndef NO_TRACI
     , myInfluencer(0)
@@ -459,7 +462,19 @@ MSVehicle::getPosition() const {
     if (myLane == 0) {
         return Position(-1000, -1000);
     }
-    return myLane->getShape().positionAtLengthPosition(myState.pos());
+    Position result = myLane->getShape().positionAtLengthPosition(
+            myLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
+    if (isChangingLanes()) {
+        // vehicle has not yet reached myLane
+        MSLane* oldLane = myLaneChangeDirection > 0 ? myLane->getRightLane() : myLane->getLeftLane();
+        if (oldLane != 0) {
+            const Position oldPos = oldLane->getShape().positionAtLengthPosition(
+                    oldLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
+            const Line line(oldPos, result);
+            return line.getPositionAtDistance(myLaneChangeCompletion * line.length());
+        }
+    } 
+    return result;
 }
 
 
@@ -1063,6 +1078,12 @@ MSVehicle::executeMove() {
                 leftLength -= (*i)->setPartialOccupation(this, leftLength);
                 ++i;
             }
+        }
+        if (isChangingLanes()) {
+            myLaneChangeCompletion = MIN2(SUMOReal(1), myLaneChangeCompletion + (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration);
+            //std::cout 
+            //    << "time=" << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
+            //    << " myLaneChangeCompletion=" << myLaneChangeCompletion << "\n";
         }
         setBlinkerInformation();
     }
@@ -1813,6 +1834,15 @@ unsigned int
 MSVehicle::getLaneIndex() const {
     std::vector<MSLane*>::const_iterator laneP = std::find((*myCurrEdge)->getLanes().begin(), (*myCurrEdge)->getLanes().end(), myLane);
     return (unsigned int) std::distance((*myCurrEdge)->getLanes().begin(), laneP);
+}
+
+
+void 
+MSVehicle::startLaneChangeManeuver(MSLane* source, MSLane* target, int direction) {
+    if (MSGlobals::gLaneChangeDuration > 0) {
+        myLaneChangeDirection = direction;
+        myLaneChangeCompletion = (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration;
+    }
 }
 
 
