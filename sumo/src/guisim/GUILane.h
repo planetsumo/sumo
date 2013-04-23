@@ -1,12 +1,12 @@
 /****************************************************************************/
-/// @file    GUIInternalLane.h
+/// @file    GUILane.h
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
-/// @date    Thu, 04.09.2003
+/// @date    Sept 2002
 /// @version $Id$
 ///
-// Representation of a lane over a junction
+// Representation of a lane in the micro simulation (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
 // Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
@@ -19,8 +19,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef GUIInternalLane_h
-#define GUIInternalLane_h
+#ifndef GUILane_h
+#define GUILane_h
 
 
 // ===========================================================================
@@ -32,12 +32,14 @@
 #include <config.h>
 #endif
 
+#include <fx.h>
 #include <string>
 #include <utility>
-#include <microsim/MSInternalLane.h>
+#include <microsim/MSLane.h>
 #include <microsim/MSEdge.h>
 #include <utils/geom/Position.h>
 #include <utils/geom/PositionVector.h>
+#include "GUILaneWrapper.h"
 
 
 // ===========================================================================
@@ -52,12 +54,14 @@ class MFXMutex;
 // class definitions
 // ===========================================================================
 /**
- * @class GUIInternalLane
- * An extended MSInternalLane. A mechanism to avoid concurrent
+ * @class GUILane
+ * @brief Representation of a lane in the micro simulation (gui-version)
+ *
+ * An extended MSLane. A mechanism to avoid concurrent
  * visualisation and simulation what may cause problems when vehicles
- * disappear is implemented using a mutex
+ * disappear is implemented using a mutex.
  */
-class GUIInternalLane : public MSInternalLane {
+class GUILane : public MSLane {
 public:
     /** @brief Constructor
      *
@@ -71,16 +75,15 @@ public:
      * @param[in] permissions Encoding of vehicle classes that may drive on this lane
      * @see SUMOVehicleClass
      * @see MSLane
-     * @see MSInternalLane
      */
-    GUIInternalLane(const std::string& id, SUMOReal maxSpeed,
-                    SUMOReal length, MSEdge* const edge, unsigned int numericalID,
-                    const PositionVector& shape, SUMOReal width,
-                    SVCPermissions permissions);
+    GUILane(const std::string& id, SUMOReal maxSpeed,
+            SUMOReal length, MSEdge* const edge, unsigned int numericalID,
+            const PositionVector& shape, SUMOReal width,
+            SVCPermissions permissions);
 
 
     /// @brief Destructor
-    ~GUIInternalLane();
+    ~GUILane();
 
 
 
@@ -114,20 +117,23 @@ public:
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
-    bool moveCritical(SUMOTime t);
+    bool planMovements(SUMOTime t);
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
-    bool setCritical(SUMOTime t, std::vector<MSLane*>& into);
+    bool executeMovements(SUMOTime t, std::vector<MSLane*>& into);
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
     bool integrateNewVehicle(SUMOTime t);
     ///@}
 
-    GUILaneWrapper* buildLaneWrapper(unsigned int index);
+
 
     void detectCollisions(SUMOTime timestep, int stage);
+
+
+    GUILaneWrapper* buildLaneWrapper(unsigned int index);
     MSVehicle* removeVehicle(MSVehicle* remVehicle);
 
 protected:
@@ -153,6 +159,7 @@ protected:
 private:
     /// The mutex used to avoid concurrent updates of the vehicle buffer
     mutable MFXMutex myLock;
+
 
 };
 

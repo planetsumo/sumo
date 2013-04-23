@@ -1,12 +1,12 @@
 /****************************************************************************/
-/// @file    GUILane.cpp
+/// @file    GUIInternalLane.cpp
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
-/// @date    Sept 2002
+/// @date    Thu, 04.09.2003
 /// @version $Id$
 ///
-// Representation of a lane in the micro simulation (gui-version)
+// Lane within junctions, derived from the normal lane
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
 // Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
@@ -32,16 +32,16 @@
 
 #include <string>
 #include <utility>
-#include <utils/foxtools/MFXMutex.h>
-#include <utils/geom/Position.h>
 #include <utils/common/MsgHandler.h>
+#include <utils/geom/Position.h>
 #include <microsim/MSLane.h>
 #include <microsim/MSVehicleControl.h>
 #include <microsim/MSVehicleTransfer.h>
 #include <microsim/MSNet.h>
-#include "GUILane.h"
-#include "GUIVehicle.h"
 #include "GUINet.h"
+#include "GUIVehicle.h"
+#include "GUILaneWrapper.h"
+#include "GUIInternalLane.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -51,14 +51,15 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-GUILane::GUILane(const std::string& id, SUMOReal maxSpeed, SUMOReal length,
-                 MSEdge* const edge, unsigned int numericalID,
-                 const PositionVector& shape, SUMOReal width,
-                 SVCPermissions permissions) :
-    MSLane(id, maxSpeed, length, edge, numericalID, shape, width, permissions) {}
+GUIInternalLane::GUIInternalLane(const std::string& id,
+                                 SUMOReal maxSpeed, SUMOReal length,
+                                 MSEdge* const edge, unsigned int numericalID,
+                                 const PositionVector& shape, SUMOReal width,
+                                 SVCPermissions permissions) :
+    MSInternalLane(id, maxSpeed, length, edge, numericalID, shape, width, permissions) {}
 
 
-GUILane::~GUILane() {
+GUIInternalLane::~GUIInternalLane() {
     // just to quit cleanly on a failure
     if (myLock.locked()) {
         myLock.unlock();
@@ -68,71 +69,71 @@ GUILane::~GUILane() {
 
 // ------ Vehicle insertion ------
 void
-GUILane::incorporateVehicle(MSVehicle* veh, SUMOReal pos, SUMOReal speed,
-                            const MSLane::VehCont::iterator& at,
-                            MSMoveReminder::Notification notification) {
+GUIInternalLane::incorporateVehicle(MSVehicle* veh, SUMOReal pos, SUMOReal speed,
+                                    const MSLane::VehCont::iterator& at,
+                                    MSMoveReminder::Notification notification) {
     AbstractMutex::ScopedLocker locker(myLock);
-    MSLane::incorporateVehicle(veh, pos, speed, at, notification);
+    MSInternalLane::incorporateVehicle(veh, pos, speed, at, notification);
 }
 
 
 // ------ Access to vehicles ------
 const MSLane::VehCont&
-GUILane::getVehiclesSecure() const {
+GUIInternalLane::getVehiclesSecure() const {
     myLock.lock();
     return myVehicles;
 }
 
 
 void
-GUILane::releaseVehicles() const {
+GUIInternalLane::releaseVehicles() const {
     myLock.unlock();
 }
 
 
 bool
-GUILane::moveCritical(SUMOTime t) {
+GUIInternalLane::planMovements(SUMOTime t) {
     AbstractMutex::ScopedLocker locker(myLock);
-    return MSLane::moveCritical(t);
+    return MSInternalLane::planMovements(t);
 }
 
 
 bool
-GUILane::setCritical(SUMOTime t, std::vector<MSLane*>& into) {
+GUIInternalLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
     AbstractMutex::ScopedLocker locker(myLock);
-    return MSLane::setCritical(t, into);
+    return MSInternalLane::executeMovements(t, into);
 }
 
 
 MSVehicle*
-GUILane::removeVehicle(MSVehicle* remVehicle) {
+GUIInternalLane::removeVehicle(MSVehicle* remVehicle) {
     AbstractMutex::ScopedLocker locker(myLock);
     return MSLane::removeVehicle(remVehicle);
 }
 
 
 void
-GUILane::swapAfterLaneChange(SUMOTime t) {
+GUIInternalLane::swapAfterLaneChange(SUMOTime t) {
     AbstractMutex::ScopedLocker locker(myLock);
     MSLane::swapAfterLaneChange(t);
 }
 
 
 bool
-GUILane::integrateNewVehicle(SUMOTime t) {
+GUIInternalLane::integrateNewVehicle(SUMOTime t) {
     AbstractMutex::ScopedLocker locker(myLock);
     return MSLane::integrateNewVehicle(t);
 }
 
 
 GUILaneWrapper*
-GUILane::buildLaneWrapper(unsigned int index) {
+GUIInternalLane::buildLaneWrapper(unsigned int index) {
     return new GUILaneWrapper(*this, myShape, index);
 }
 
 
 void
-GUILane::detectCollisions(SUMOTime timestep, int stage) {
+GUIInternalLane::detectCollisions(SUMOTime timestep, int stage) {
     AbstractMutex::ScopedLocker locker(myLock);
     MSLane::detectCollisions(timestep, stage);
 }
