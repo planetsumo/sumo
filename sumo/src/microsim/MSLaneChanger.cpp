@@ -292,13 +292,11 @@ MSLaneChanger::startChange(MSVehicle* vehicle, ChangerIt& from, int direction) {
     ChangerIt to = from + direction;
     to->hoppedVeh = vehicle;
     to->lane->myTmpVehicles.push_front(vehicle);
-    vehicle->leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-    vehicle->startLaneChangeManeuver(from->lane, to->lane, direction);
-    from->lane->leftByLaneChange(vehicle);
-    vehicle->enterLaneAtLaneChange(to->lane);
-    to->lane->enteredByLaneChange(vehicle);
-    vehicle->myLastLaneChangeOffset = 0;
-    vehicle->getLaneChangeModel().changed();
+    const bool continuous = vehicle->startLaneChangeManeuver(from->lane, to->lane, direction);
+    if (continuous) {
+        from->lane->myTmpVehicles.push_front(veh(myCandi));
+        from->dens += vehicle->getVehicleType().getLengthWithGap();
+    }
     to->dens += to->hoppedVeh->getVehicleType().getLengthWithGap();
 }
 

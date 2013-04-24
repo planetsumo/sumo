@@ -485,7 +485,8 @@ public:
     // valid for gui-version only
     virtual GUILaneWrapper* buildLaneWrapper(unsigned int index);
 
-    virtual MSVehicle* removeVehicle(MSVehicle* remVehicle);
+    /// @brief remove the vehicle from this lane
+    virtual MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification);
 
     /// The shape of the lane
     PositionVector myShape;

@@ -657,14 +657,15 @@ MSLane::planMovements(SUMOTime t) {
     for (veh = myVehicles.begin(); veh != lastBeforeEnd; ++veh) {
         myLeftVehLength -= (*veh)->getVehicleType().getLengthWithGap();
         VehCont::const_iterator pred(veh + 1);
-        assert((*veh)->getLane() == this);
-        (*veh)->planMove(t, *pred, 0, myLeftVehLength);
+        if ((*veh)->getLane() == this) {
+            (*veh)->planMove(t, *pred, 0, myLeftVehLength);
+        } // else: this is the shadow during a continuous lane change
     }
     myLeftVehLength -= (*veh)->getVehicleType().getLengthWithGap();
-    assert((*veh)->getLane() == this);
-    (*veh)->planMove(t, 0, 0, myLeftVehLength);
-    assert((*veh)->getPositionOnLane() <= myLength);
-    assert((*veh)->getLane() == this);
+    if ((*veh)->getLane() == this) {
+        (*veh)->planMove(t, 0, 0, myLeftVehLength);
+        assert((*veh)->getPositionOnLane() <= myLength);
+    } // else: this is the shadow during a continuous lane change
     return myVehicles.size() == 0;
 }
 
@@ -701,9 +702,13 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
 
 bool
 MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
-    // move critical vehicles
     for (VehCont::iterator i = myVehicles.begin(); i != myVehicles.end();) {
         MSVehicle* veh = *i;
+        if (veh->getLane() != this) {
+            // this is the shadow during a continuous lane change
+            ++i;
+            continue;
+        }
         bool moved = veh->executeMove();
         MSLane* target = veh->getLane();
         SUMOReal length = veh->getVehicleType().getLengthWithGap();
@@ -918,10 +923,10 @@ MSLane::buildLaneWrapper(unsigned int) {
 
 
 MSVehicle*
-MSLane::removeVehicle(MSVehicle* remVehicle) {
+MSLane::removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification) {
     for (MSLane::VehCont::iterator it = myVehicles.begin(); it < myVehicles.end(); it++) {
         if (remVehicle == *it) {
-            remVehicle->leaveLane(MSMoveReminder::NOTIFICATION_ARRIVED);
+            remVehicle->leaveLane(notification);
             myVehicles.erase(it);
             myVehicleLengthSum -= remVehicle->getVehicleType().getLengthWithGap();
             break;

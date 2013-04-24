@@ -286,6 +286,7 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
     myHaveToWaitOnNextLink(false),
     myLaneChangeCompletion(1.0),
     myLaneChangeDirection(0),
+    myLaneChangeMidpointPassed(false),
     myEdgeWeights(0)
 #ifndef NO_TRACI
     , myInfluencer(0)
@@ -465,16 +466,43 @@ MSVehicle::getPosition() const {
     Position result = myLane->getShape().positionAtLengthPosition(
             myLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
     if (isChangingLanes()) {
-        // vehicle has not yet reached myLane
-        MSLane* oldLane = myLaneChangeDirection > 0 ? myLane->getRightLane() : myLane->getLeftLane();
-        if (oldLane != 0) {
-            const Position oldPos = oldLane->getShape().positionAtLengthPosition(
-                    oldLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
-            const Line line(oldPos, result);
-            return line.getPositionAtDistance(myLaneChangeCompletion * line.length());
-        }
+        const MSLane* otherLane = getLaneChangeOtherLane();
+        const Position other = otherLane->getShape().positionAtLengthPosition(
+                otherLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
+        Line line = myLaneChangeMidpointPassed ?  Line(other, result) : Line(result, other);
+        return line.getPositionAtDistance(myLaneChangeCompletion * line.length());
     } 
     return result;
+}
+
+
+MSLane* 
+MSVehicle::getLaneChangeOtherLane() const {
+    if (isChangingLanes()) {
+        if (myLaneChangeMidpointPassed) {
+            // vehicle is already on the new lane
+            MSLane* oldLane = myLaneChangeDirection > 0 ? myLane->getRightLane() : myLane->getLeftLane();
+            if (oldLane != 0) {
+                return oldLane;
+            } else {
+                // could not determine source lane
+                throw ProcessError("Vehicle '" + getID() + "' could not determine target lane when changing in direction " + 
+                        toString(myLaneChangeDirection) + " from '" + myLane->getID());
+            }
+        } else {
+            // vehicle is still on the old lane
+            MSLane* newLane = myLaneChangeDirection < 0 ? myLane->getRightLane() : myLane->getLeftLane();
+            if (newLane != 0) {
+                return newLane;
+            } else {
+                // could not determine target lane. something is very wrong here
+                throw ProcessError("Vehicle '" + getID() + "' could not determine target lane when changing in direction " + 
+                        toString(myLaneChangeDirection) + " from '" + myLane->getID());
+            }
+        }
+    } else {
+        return 0;
+    }
 }
 
 
@@ -1080,10 +1108,7 @@ MSVehicle::executeMove() {
             }
         }
         if (isChangingLanes()) {
-            myLaneChangeCompletion = MIN2(SUMOReal(1), myLaneChangeCompletion + (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration);
-            //std::cout 
-            //    << "time=" << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
-            //    << " myLaneChangeCompletion=" << myLaneChangeCompletion << "\n";
+            continueLaneChangeManeuver();
         }
         setBlinkerInformation();
     }
@@ -1837,11 +1862,46 @@ MSVehicle::getLaneIndex() const {
 }
 
 
-void 
+bool 
 MSVehicle::startLaneChangeManeuver(MSLane* source, MSLane* target, int direction) {
-    if (MSGlobals::gLaneChangeDuration > 0) {
+    target->enteredByLaneChange(this);
+    if (MSGlobals::gLaneChangeDuration > DELTA_T) {
+        //std::cout << getID() << " started continuous lane change\n";
+        myLaneChangeCompletion = 0;
+        myLaneChangeMidpointPassed = false;
         myLaneChangeDirection = direction;
-        myLaneChangeCompletion = (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration;
+        continueLaneChangeManeuver();
+        return true;
+    } else {
+        //std::cout << getID() << " performed instant lane change\n";
+        leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
+        source->leftByLaneChange(this);
+        enterLaneAtLaneChange(target);
+        myLastLaneChangeOffset = 0;
+        getLaneChangeModel().changed();
+        return false;
+    }
+}
+
+
+void 
+MSVehicle::continueLaneChangeManeuver() {
+    myLaneChangeCompletion = MIN2(SUMOReal(1), myLaneChangeCompletion + (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration);
+    //std::cout << getID() << " continues lane change (completion=" << myLaneChangeCompletion << ")\n";
+    if (myLaneChangeCompletion >= 0.5 and !myLaneChangeMidpointPassed) {
+        //std::cout << "     midpoint reached\n";
+        // maneuver midpoint reached, myLane changes now
+        myLaneChangeMidpointPassed = true;
+        MSLane* target = myLaneChangeDirection < 0 ? myLane->getRightLane() : myLane->getLeftLane();
+        enterLaneAtLaneChange(target);
+        leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
+        myLastLaneChangeOffset = 0;
+        getLaneChangeModel().changed();
+    } else if (!isChangingLanes()) {
+        //std::cout << "     finished\n";
+        assert(myLaneChangeMidpointPassed);
+        MSLane* source = myLaneChangeDirection > 0 ? myLane->getRightLane() : myLane->getLeftLane();
+        source->removeVehicle(this, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
     }
 }
 

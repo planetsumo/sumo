@@ -726,7 +726,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Vehicle '" + laneID + "' may be set onto an edge to pass only.", outputStorage);
             }
             v->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
-            v->getLane()->removeVehicle(v);
+            v->getLane()->removeVehicle(v, MSMoveReminder::NOTIFICATION_TELEPORT);
             while (v->getEdge() != &destinationEdge) {
                 const MSEdge* nextEdge = v->succEdge(1);
                 // let the vehicle move to the next edge
@@ -893,7 +893,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Unknown removal status.", outputStorage);
             }
             v->onRemovalFromNet(n);
-            v->getLane()->removeVehicle(v);
+            v->getLane()->removeVehicle(v, n);
             MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(v);
         }
         break;
@@ -997,7 +997,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                     ++r;
                 }
                 if (v->isOnRoad()) {
-                    v->getLane()->removeVehicle(v);
+                    v->getLane()->removeVehicle(v, MSMoveReminder::NOTIFICATION_TELEPORT);
                     v->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
                 }
                 if (!found) {
@@ -1019,7 +1019,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 }
             } else {
                 v->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
-                v->getLane()->removeVehicle(v);
+                v->getLane()->removeVehicle(v, MSMoveReminder::NOTIFICATION_TELEPORT);
             }
             /*
             std::vector<std::pair<SUMOTime, SUMOReal> > speedTimeLine;
