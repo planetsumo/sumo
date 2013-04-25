@@ -2,3 +2,6 @@ basic
 
 # verify that both lanes are blocked during a lane change maneuver
 block_both_lanes
+
+# consider remainig space to complete a lane change maneuver
+check_remaining_space
