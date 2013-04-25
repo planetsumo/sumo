@@ -497,8 +497,11 @@ public:
     void enteredByLaneChange(MSVehicle* v);
 
 
-    MSLane* getLeftLane() const;
-    MSLane* getRightLane() const;
+    /** @brief Returns the lane with the given offset parallel to this one or 0 if it does not exist
+     * @param[in] offset The offset of the result lane
+     */
+    MSLane* getParallelLane(int offset) const;
+
 
     inline void setPermissions(SVCPermissions permissions) {
         myPermissions = permissions;

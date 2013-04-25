@@ -484,7 +484,7 @@ MSVehicle::getLaneChangeOtherLane(MSLane* lane) const {
     if (isChangingLanes()) {
         if (myLaneChangeMidpointPassed) {
             // vehicle is already on the new lane
-            MSLane* oldLane = myLaneChangeDirection > 0 ? lane->getRightLane() : lane->getLeftLane();
+            MSLane* oldLane = lane->getParallelLane(-myLaneChangeDirection);
             if (oldLane != 0) {
                 return oldLane;
             } else {
@@ -494,7 +494,7 @@ MSVehicle::getLaneChangeOtherLane(MSLane* lane) const {
             }
         } else {
             // vehicle is still on the old lane
-            MSLane* newLane = myLaneChangeDirection < 0 ? lane->getRightLane() : lane->getLeftLane();
+            MSLane* newLane = lane->getParallelLane(myLaneChangeDirection);
             if (newLane != 0) {
                 return newLane;
             } else {
@@ -801,6 +801,11 @@ MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal leng
             }
             myLFLinkLanes.push_back(DriveProcessItem(0, v, v, false, 0, 0, seen));
             break;
+        }
+        // check whether we need to slow down in order to finish a continuous lane change
+        if (isChangingLanes() and myLaneChangeMidpointPassed) {
+            // shadow is on the old lane. can it continue?
+            // XXX
         }
 
         const bool yellow = (*link)->getState() == LINKSTATE_TL_YELLOW_MAJOR || (*link)->getState() == LINKSTATE_TL_YELLOW_MINOR;
@@ -1895,9 +1900,18 @@ MSVehicle::continueLaneChangeManeuver() {
         //std::cout << "     midpoint reached\n";
         // maneuver midpoint reached, myLane changes now
         myLaneChangeMidpointPassed = true;
-        MSLane* target = myLaneChangeDirection < 0 ? myLane->getRightLane() : myLane->getLeftLane();
+        MSLane* target = myLane->getParallelLane(myLaneChangeDirection);
+        //std::cout << "before myLane=" << myLane->getID() << " myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
         enterLaneAtLaneChange(target);
+        //std::cout << "after enterLaneAtLaneChange myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
+        if (target->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
+            // internal lanes do not appear in bestLanes so we need to update
+            // myCurrentLaneInBestLanes explicityly
+            getBestLanes(false, target->getLogicalPredecessorLane());
+            //std::cout << "after manual update myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
+        }
         leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
+        //std::cout << "after leaveLane myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
         myLastLaneChangeOffset = 0;
         getLaneChangeModel().changed();
     } else if (!isChangingLanes()) {
@@ -1905,7 +1919,7 @@ MSVehicle::continueLaneChangeManeuver() {
         assert(myLaneChangeMidpointPassed);
         // @todo leave the source lane as soon as the vehicle no longer intersects it
         //       physically (considering lane width and vehicle width)
-        MSLane* source = myLaneChangeDirection > 0 ? myLane->getRightLane() : myLane->getLeftLane();
+        MSLane* source = myLane->getParallelLane(-myLaneChangeDirection);
         source->removeVehicle(this, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
     }
 }

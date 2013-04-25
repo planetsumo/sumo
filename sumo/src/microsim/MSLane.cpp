@@ -728,6 +728,7 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
                 MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
             } else {
                 // vehicle has entered a new lane (leaveLane was already called in MSVehicle::executeMove)
+                veh->removeLaneChangeShadow(this);
                 target->myVehBuffer.push_back(veh);
                 SUMOReal pspeed = veh->getSpeed();
                 SUMOReal oldPos = veh->getPositionOnLane() - SPEED2DIST(veh->getSpeed());
@@ -958,15 +959,9 @@ MSLane::removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notifi
 }
 
 
-MSLane*
-MSLane::getLeftLane() const {
-    return myEdge->leftLane(this);
-}
-
-
-MSLane*
-MSLane::getRightLane() const {
-    return myEdge->rightLane(this);
+MSLane* 
+MSLane::getParallelLane(int offset) const {
+    return myEdge->parallelLane(this, offset);
 }
 
 

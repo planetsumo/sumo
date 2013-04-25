@@ -137,7 +137,8 @@ MSLaneChanger::change() {
         int bla = 0;
     }
 #endif
-    if (vehicle->isChangingLanes()) {
+    if (vehicle->isChangingLanes() || vehicle->getLane() != (*myCandi).lane) {
+        // changing vehicles or shadows are not eligible
         registerUnchanged(vehicle);
         return false;
     }
