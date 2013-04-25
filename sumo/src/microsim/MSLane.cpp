@@ -706,36 +706,58 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
         MSVehicle* veh = *i;
         if (veh->getLane() != this) {
             // this is the shadow during a continuous lane change
+            //std::cout << " skipping shadow of " << veh->getID() << " on lane " << getID() << "\n";
             ++i;
             continue;
         }
+        //std::cout << " executing move of " << veh->getID() << " on lane " << getID() << "\n";
+        // length is needed later when the vehicle may not exist anymore
+        const SUMOReal length = veh->getVehicleType().getLengthWithGap();
         bool moved = veh->executeMove();
         MSLane* target = veh->getLane();
-        SUMOReal length = veh->getVehicleType().getLengthWithGap();
         if (veh->hasArrived()) {
             // vehicle has reached its arrival position
+            veh->removeLaneChangeShadow(this);
             veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_ARRIVED);
             MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
         } else if (target != 0 && moved) {
             if (target->getEdge().isVaporizing()) {
                 // vehicle has reached a vaporizing edge
+                veh->removeLaneChangeShadow(this);
                 veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_VAPORIZED);
                 MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
             } else {
-                // vehicle has entered a new lane
+                // vehicle has entered a new lane (leaveLane was already called in MSVehicle::executeMove)
                 target->myVehBuffer.push_back(veh);
                 SUMOReal pspeed = veh->getSpeed();
                 SUMOReal oldPos = veh->getPositionOnLane() - SPEED2DIST(veh->getSpeed());
                 veh->workOnMoveReminders(oldPos, veh->getPositionOnLane(), pspeed);
                 into.push_back(target);
+                if (veh->isChangingLanes()) {
+                    // move shadow along
+                    try {
+                        MSLane* other = veh->getLaneChangeOtherLane();
+                        into.push_back(other);
+                        other->myVehBuffer.push_back(veh);
+                        //std::cout << " moving shadow of " << veh->getID() << " to lane " << other->getID() << "\n";
+                    } catch (ProcessError&) {
+                        WRITE_WARNING("Vehicle '" + veh->getID() + "' could not finish continuous lane change time=" + 
+                                time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
+                        veh->abortLaneChangeManeuver(this);
+                    }
+
+                }
             }
         } else if (veh->isParking()) {
             // vehicle started to park
+            veh->removeLaneChangeShadow(this);
             veh->leaveLane(MSMoveReminder::NOTIFICATION_JUNCTION);
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         } else if (veh->getPositionOnLane() > getLength()) {
             // for any reasons the vehicle is beyond its lane... error
-            WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; beyond lane (2), targetLane='" + getID() + "', time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
+            WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; beyond lane (2), targetLane='" + getID() + "', time=" + 
+                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
+            veh->removeLaneChangeShadow(this);
             MSNet::getInstance()->getVehicleControl().registerTeleport();
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         } else {

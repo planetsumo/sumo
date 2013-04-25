@@ -444,13 +444,23 @@ public:
     /// @brief start the lane change maneuver (and finish it instantly if gLaneChangeDuration == 0)
     void continueLaneChangeManeuver();
 
+    /* @brief abort the lane change maneuver prematurely. 
+     * @note vehicle must have been on previousLane in the previous step */
+    void abortLaneChangeManeuver(MSLane *previousLane);
+
+    /* @brief remove the shadow copy of a lane change maneuver
+     * @note vehicle must have been on previousLane in the previous step */
+    void removeLaneChangeShadow(MSLane* previousLane);
+
     /// @brief return true if the vehicle currently performs a lane change maneuver
     bool isChangingLanes() const {
         return myLaneChangeCompletion < 1;
     }
 
-    /// @brief returh the other lane during a lane change maneuver
-    MSLane* getLaneChangeOtherLane() const;
+    /* @brief returh the other lane during a lane change maneuver relative to
+     * to the given lane. If 0 is given this defaults to myLane
+     */
+    MSLane* getLaneChangeOtherLane(MSLane* lane=0) const;
 
     /** @brief Update of members if vehicle leaves a new lane in the lane change step or at arrival. */
     void leaveLane(const MSMoveReminder::Notification reason);

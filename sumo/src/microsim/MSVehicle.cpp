@@ -477,27 +477,30 @@ MSVehicle::getPosition() const {
 
 
 MSLane* 
-MSVehicle::getLaneChangeOtherLane() const {
+MSVehicle::getLaneChangeOtherLane(MSLane* lane) const {
+    if (lane == 0) {
+        lane = myLane;
+    }
     if (isChangingLanes()) {
         if (myLaneChangeMidpointPassed) {
             // vehicle is already on the new lane
-            MSLane* oldLane = myLaneChangeDirection > 0 ? myLane->getRightLane() : myLane->getLeftLane();
+            MSLane* oldLane = myLaneChangeDirection > 0 ? lane->getRightLane() : lane->getLeftLane();
             if (oldLane != 0) {
                 return oldLane;
             } else {
                 // could not determine source lane
                 throw ProcessError("Vehicle '" + getID() + "' could not determine target lane when changing in direction " + 
-                        toString(myLaneChangeDirection) + " from '" + myLane->getID());
+                        toString(myLaneChangeDirection) + " from '" + lane->getID());
             }
         } else {
             // vehicle is still on the old lane
-            MSLane* newLane = myLaneChangeDirection < 0 ? myLane->getRightLane() : myLane->getLeftLane();
+            MSLane* newLane = myLaneChangeDirection < 0 ? lane->getRightLane() : lane->getLeftLane();
             if (newLane != 0) {
                 return newLane;
             } else {
                 // could not determine target lane. something is very wrong here
                 throw ProcessError("Vehicle '" + getID() + "' could not determine target lane when changing in direction " + 
-                        toString(myLaneChangeDirection) + " from '" + myLane->getID());
+                        toString(myLaneChangeDirection) + " from '" + lane->getID());
             }
         }
     } else {
@@ -1902,6 +1905,22 @@ MSVehicle::continueLaneChangeManeuver() {
         assert(myLaneChangeMidpointPassed);
         MSLane* source = myLaneChangeDirection > 0 ? myLane->getRightLane() : myLane->getLeftLane();
         source->removeVehicle(this, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
+    }
+}
+
+
+void 
+MSVehicle::abortLaneChangeManeuver(MSLane* previousLane) {
+    removeLaneChangeShadow(previousLane);
+    myLaneChangeCompletion = 1;
+}
+
+
+void 
+MSVehicle::removeLaneChangeShadow(MSLane* previousLane) {
+    if (isChangingLanes()) {
+        //std::cout << "removing " << getID() << " shadow from " << getLaneChangeOtherLane(previousLane)->getID() << "\n";
+        getLaneChangeOtherLane(previousLane)->removeVehicle(this, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
     }
 }
 
