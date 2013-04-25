@@ -127,6 +127,9 @@ protected:
     /** Find a new candidate and try to change it. */
     bool change();
 
+    /** Update changer for vehicles that did not change */
+    void registerUnchanged(MSVehicle* vehicle);
+
     /** After the possible change, update the changer. */
     void updateChanger(bool vehHasChanged);
 

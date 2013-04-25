@@ -1903,6 +1903,8 @@ MSVehicle::continueLaneChangeManeuver() {
     } else if (!isChangingLanes()) {
         //std::cout << "     finished\n";
         assert(myLaneChangeMidpointPassed);
+        // @todo leave the source lane as soon as the vehicle no longer intersects it
+        //       physically (considering lane width and vehicle width)
         MSLane* source = myLaneChangeDirection > 0 ? myLane->getRightLane() : myLane->getLeftLane();
         source->removeVehicle(this, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
     }

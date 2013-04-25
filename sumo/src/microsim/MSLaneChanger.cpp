@@ -138,10 +138,7 @@ MSLaneChanger::change() {
     }
 #endif
     if (vehicle->isChangingLanes()) {
-        // XXX duplicates code at the end of this function
-        myCandi->lane->myTmpVehicles.push_front(veh(myCandi));
-        vehicle->myLastLaneChangeOffset += DELTA_T;
-        (myCandi)->dens += vehicle->getVehicleType().getLengthWithGap();
+        registerUnchanged(vehicle);
         return false;
     }
     const std::vector<MSVehicle::LaneQ>& preb = vehicle->getBestLanes();
@@ -279,11 +276,16 @@ MSLaneChanger::change() {
             }
         }
     }
-    // Candidate didn't change lane.
+    registerUnchanged(vehicle);
+    return false;
+}
+
+
+void 
+MSLaneChanger::registerUnchanged(MSVehicle* vehicle) {
     myCandi->lane->myTmpVehicles.push_front(veh(myCandi));
     vehicle->myLastLaneChangeOffset += DELTA_T;
     (myCandi)->dens += vehicle->getVehicleType().getLengthWithGap();
-    return false;
 }
 
 
@@ -291,6 +293,8 @@ void
 MSLaneChanger::startChange(MSVehicle* vehicle, ChangerIt& from, int direction) {
     ChangerIt to = from + direction;
     to->hoppedVeh = vehicle;
+    // @todo delay entering the target lane until the vehicle intersects it
+    //       physically (considering lane width and vehicle width)
     to->lane->myTmpVehicles.push_front(vehicle);
     const bool continuous = vehicle->startLaneChangeManeuver(from->lane, to->lane, direction);
     if (continuous) {
