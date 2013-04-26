@@ -770,9 +770,18 @@ MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal leng
             break;
         }
         // check whether we need to slow down in order to finish a continuous lane change
-        if (isChangingLanes() and myLaneChangeMidpointPassed) {
-            // shadow is on the old lane. can it continue?
-            // XXX
+        if (isChangingLanes()) {
+            //std::cout << std::setprecision(20);
+            //std::cout << getID() << " computing slowDown completion=" << myLaneChangeCompletion << ")\n";
+            if (    // slow down to finish lane change before a turn lane
+                    ((*link)->getDirection() == LINKDIR_LEFT || (*link)->getDirection() == LINKDIR_RIGHT) ||
+                    // slow down to finish lane change before the shadow lane ends
+                    (myLaneChangeMidpointPassed && (*link)->getViaLaneOrLane()->getParallelLane(-myLaneChangeDirection) == 0)) {
+                const SUMOReal timeRemaining = STEPS2TIME((1 - myLaneChangeCompletion) * MSGlobals::gLaneChangeDuration);
+                const SUMOReal va = seen / timeRemaining;
+                //std::cout << getID() << " slows down to at most " << va << " to finish continuous lane change\n";
+                v = MIN2(va, v);
+            }
         }
 
         const bool yellow = (*link)->getState() == LINKSTATE_TL_YELLOW_MAJOR || (*link)->getState() == LINKSTATE_TL_YELLOW_MINOR;
@@ -1921,7 +1930,6 @@ MSVehicle::continueLaneChangeManeuver(bool moved) {
 void 
 MSVehicle::removeLaneChangeShadow() {
     if (isChangingLanes()) {
-        //std::cout << "removing " << getID() << " shadow from " << getLaneChangeOtherLane(previousLane)->getID() << "\n";
         myShadowLane->removeVehicle(this, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
         myShadowLane = 0;
     }

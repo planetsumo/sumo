@@ -459,7 +459,7 @@ public:
 
     /// @brief return true if the vehicle currently performs a lane change maneuver
     bool isChangingLanes() const {
-        return myLaneChangeCompletion < 1;
+        return myLaneChangeCompletion < (1 - NUMERICAL_EPS);
     }
 
     /** @brief Update of members if vehicle leaves a new lane in the lane change step or at arrival. */
