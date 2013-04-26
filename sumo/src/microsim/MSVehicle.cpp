@@ -1044,6 +1044,15 @@ MSVehicle::executeMove() {
                     assert(myState.myPos > 0);
                     enterLaneAtMove(approachedLane);
                     myLane = approachedLane;
+                    if (isChangingLanes()) {
+                        if (link->getDirection() == LINKDIR_LEFT || link->getDirection() == LINKDIR_RIGHT) {
+                            // abort lane change
+                            WRITE_WARNING("Vehicle '" + getID() + "' could not finish continuous lane change (turn lane) time=" + 
+                                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
+                            removeLaneChangeShadow();
+                            myLaneChangeCompletion = 1;
+                        }
+                    }
 #ifdef HAVE_INTERNAL_LANES
                     // erase leader for the past link
                     if (myLeaderForLink.find(link) != myLeaderForLink.end()) {
@@ -1868,9 +1877,9 @@ MSVehicle::continueLaneChangeManeuver(bool moved) {
         const int shadowDirection = myLaneChangeMidpointPassed ? -myLaneChangeDirection : myLaneChangeDirection;
         MSLane* shadowCandidate = myLane->getParallelLane(shadowDirection);
         if (shadowCandidate == 0) {
-            WRITE_WARNING("Vehicle '" + getID() + "' could not finish continuous lane change time=" + 
-                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
             // abort lane change
+            WRITE_WARNING("Vehicle '" + getID() + "' could not finish continuous lane change (lane disappeared) time=" + 
+                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
             myLaneChangeCompletion = 1;
             return;
         } else {
