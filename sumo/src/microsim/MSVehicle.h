@@ -343,6 +343,14 @@ public:
     }
 
 
+    /** @brief Returns the lane the vehicles shadow is on during continuouss lane change
+     * @return The vehicle's shadow lane
+     */
+    MSLane* getShadowLane() const {
+        return myShadowLane;
+    }
+
+
     /** @brief Returns the information whether the vehicle is on a road (is simulated)
      * @return Whether the vehicle is simulated
      */
@@ -441,26 +449,18 @@ public:
     /// @brief start the lane change maneuver and return whether it continues
     bool startLaneChangeManeuver(MSLane* source, MSLane* target, int direction);
 
-    /// @brief start the lane change maneuver (and finish it instantly if gLaneChangeDuration == 0)
-    void continueLaneChangeManeuver();
+    /* @brief continue the lane change maneuver
+     * @param[in] moved Whether the vehicle has moved to a new lane
+     */
+    void continueLaneChangeManeuver(bool moved);
 
-    /* @brief abort the lane change maneuver prematurely. 
-     * @note vehicle must have been on previousLane in the previous step */
-    void abortLaneChangeManeuver(MSLane *previousLane);
-
-    /* @brief remove the shadow copy of a lane change maneuver
-     * @note vehicle must have been on previousLane in the previous step */
-    void removeLaneChangeShadow(MSLane* previousLane);
+    /// @brief remove the shadow copy of a lane change maneuver
+    void removeLaneChangeShadow();
 
     /// @brief return true if the vehicle currently performs a lane change maneuver
     bool isChangingLanes() const {
         return myLaneChangeCompletion < 1;
     }
-
-    /* @brief returh the other lane during a lane change maneuver relative to
-     * to the given lane. If 0 is given this defaults to myLane
-     */
-    MSLane* getLaneChangeOtherLane(MSLane* lane=0) const;
 
     /** @brief Update of members if vehicle leaves a new lane in the lane change step or at arrival. */
     void leaveLane(const MSMoveReminder::Notification reason);
@@ -965,6 +965,8 @@ protected:
 
     /// The lane the vehicle is on
     MSLane* myLane;
+    /// The lane the vehicle shadow is on during a continuous lane change
+    MSLane* myShadowLane;
 
     MSAbstractLaneChangeModel* myLaneChangeModel;
 
