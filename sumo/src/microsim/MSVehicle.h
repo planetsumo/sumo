@@ -454,11 +454,18 @@ public:
      */
     void continueLaneChangeManeuver(bool moved);
 
+
+    /* @brief finish the lane change maneuver
+     */
+    inline void endLaneChangeManeuver() {
+        myLaneChangeCompletion = 1;
+    }
+
     /// @brief remove the shadow copy of a lane change maneuver
     void removeLaneChangeShadow();
 
     /// @brief return true if the vehicle currently performs a lane change maneuver
-    bool isChangingLanes() const {
+    inline bool isChangingLanes() const {
         return myLaneChangeCompletion < (1 - NUMERICAL_EPS);
     }
 

@@ -420,6 +420,11 @@ public:
         return myVehicles.empty();
     }
 
+    /// @brief make sure that the given vehicle is not moved again this step
+    void markAsMoved(MSVehicle* veh) {
+        myMovedVehicles.insert(veh);
+    }
+
     void setMaxSpeed(SUMOReal val) {
         myMaxSpeed = val;
     }
@@ -685,6 +690,9 @@ protected:
 
     /** buffer for vehicles that moved from their previous lane onto this one*/
     std::vector<MSVehicle*> myVehBuffer;
+
+    /** registry for vehicles that shall not be moved this step */
+    std::set<MSVehicle*> myMovedVehicles;
 
     /// The vClass permissions for this lane
     SVCPermissions myPermissions;

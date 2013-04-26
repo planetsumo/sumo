@@ -650,7 +650,6 @@ bool
 MSLane::planMovements(SUMOTime t) {
     myLeftVehLength = myVehicleLengthSum;
     assert(myVehicles.size() != 0);
-    std::vector<MSVehicle*> collisions;
     VehCont::iterator lastBeforeEnd = myVehicles.end() - 1;
     VehCont::iterator veh;
     // Move all next vehicles beside the first
@@ -682,16 +681,25 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
         SUMOReal gap = (*pred)->getPositionOnLane() - (*pred)->getVehicleType().getLength() - (*veh)->getPositionOnLane() - (*veh)->getVehicleType().getMinGap();
         if (gap < -0.001) {
             MSVehicle* vehV = *veh;
-            WRITE_WARNING("Teleporting vehicle '" + vehV->getID() + "'; collision with '"
-                          + (*pred)->getID() + "', lane='" + getID() + "', gap=" + toString(gap)
-                          + ", time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + " stage=" + toString(stage) + ".");
-            MSNet::getInstance()->getVehicleControl().registerCollision();
-            myVehicleLengthSum -= vehV->getVehicleType().getLengthWithGap();
-            MSVehicleTransfer::getInstance()->addVeh(timestep, vehV);
-            veh = myVehicles.erase(veh); // remove current vehicle
-            lastVeh = myVehicles.end() - 1;
-            if (veh == myVehicles.end()) {
-                break;
+            if (vehV->getLane() == this) {
+                WRITE_WARNING("Teleporting vehicle '" + vehV->getID() + "'; collision with '"
+                              + (*pred)->getID() + "', lane='" + getID() + "', gap=" + toString(gap)
+                              + ", time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + " stage=" + toString(stage) + ".");
+                MSNet::getInstance()->getVehicleControl().registerCollision();
+                vehV->removeLaneChangeShadow();
+                vehV->endLaneChangeManeuver();
+                myVehicleLengthSum -= vehV->getVehicleType().getLengthWithGap();
+                MSVehicleTransfer::getInstance()->addVeh(timestep, vehV);
+                veh = myVehicles.erase(veh); // remove current vehicle
+                lastVeh = myVehicles.end() - 1;
+                if (veh == myVehicles.end()) {
+                    break;
+                }
+            } else {
+                WRITE_WARNING("Shadow of vehicle '" + vehV->getID() + "'; collision with '"
+                              + (*pred)->getID() + "', lane='" + getID() + "', gap=" + toString(gap)
+                              + ", time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + " stage=" + toString(stage) + ".");
+                ++veh;
             }
         } else {
             ++veh;
@@ -704,8 +712,9 @@ bool
 MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
     for (VehCont::iterator i = myVehicles.begin(); i != myVehicles.end();) {
         MSVehicle* veh = *i;
-        if (veh->getLane() != this) {
+        if (veh->getLane() != this || myMovedVehicles.count(veh) > 0) {
             // this is the shadow during a continuous lane change
+            // or a vehicle that was already moved this step
             //std::cout << " skipping shadow of " << veh->getID() << " on lane " << getID() << "\n";
             ++i;
             continue;
@@ -760,6 +769,8 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
         i = myVehicles.erase(i);
     }
     if (myVehicles.size() > 0) {
+        //std::cout << time2string(MSNet::getInstance()->getCurrentTimeStep()) << " lane " << getID() << " has " << myVehicles.size() << " vehicles.\n";
+        //std::cout << "   last veh: " << (*(myVehicles.end() - 1))->getID() << "\n";
         if (MSGlobals::gTimeToGridlock > 0
                 && !(*(myVehicles.end() - 1))->isStopped()
                 && (*(myVehicles.end() - 1))->getWaitingTime() > MSGlobals::gTimeToGridlock) {
@@ -771,6 +782,7 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         }
     }
+    myMovedVehicles.clear();
     return myVehicles.size() == 0;
 }
 
