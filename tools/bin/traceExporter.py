@@ -119,6 +119,8 @@ def main(args=None):
                          type="float", help="Defines the export step length")
   optParser.add_option("--gps-blur", dest="blur", default=0,
                          type="float", help="Defines the GPS blur")
+  optParser.add_option("-s", "--seed", dest="seed", default=0,
+                         type="float", help="Defines the randomizer seed")
   optParser.add_option("--base-date", dest="base", default=-1, type="int", help="Defines the base date")
   # PHEM
   optParser.add_option("--dri-output", dest="dri", metavar="FILE",
@@ -148,6 +150,8 @@ def main(args=None):
   # parse
   options, remaining_args = optParser.parse_args(args=args)
   
+  if options.seed:
+    random.seed(options.seed)
   ## ---------- process ----------
   net = None
   ## ----- check needed values
