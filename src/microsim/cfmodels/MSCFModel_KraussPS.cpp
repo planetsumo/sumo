@@ -32,11 +32,10 @@
 #include <config.h>
 #endif
 
+#include <utils/geom/GeomHelper.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSLane.h>
 #include "MSCFModel_KraussPS.h"
-#include <microsim/MSAbstractLaneChangeModel.h>
-#include <utils/common/RandHelper.h>
 
 
 // ===========================================================================
@@ -54,15 +53,13 @@ MSCFModel_KraussPS::~MSCFModel_KraussPS() {}
 
 SUMOReal 
 MSCFModel_KraussPS::maxNextSpeed(SUMOReal speed, const MSVehicle * const veh) const {
-    const SUMOReal lp = veh->getPositionOnLane();
-    const MSLane *lane = veh->getLane();
-    const SUMOReal gp = lane->interpolateLanePosToGeometryPos(lp);
+    const SUMOReal gravity = 9.80665;
+    const MSLane* const lane = veh->getLane();
+    const SUMOReal gp = lane->interpolateLanePosToGeometryPos(veh->getPositionOnLane());
     const SUMOReal slope = lane->getShape().slopeDegreeAtLengthPosition(gp);
-    const SUMOReal cSlope = sin(slope);
-	SUMOReal aMax = getMaxAccel();
-    aMax = aMax - aMax*cSlope;
-	SUMOReal vMax = myType->getMaxSpeed();
-    vMax = vMax - vMax*cSlope;
+    const SUMOReal aMax = MAX2(0., getMaxAccel() - gravity * sin(DEG2RAD(slope)));
+    // assuming drag force is proportional to the square of speed
+    const SUMOReal vMax = sqrt(aMax / getMaxAccel()) * myType->getMaxSpeed();
     return MIN2(speed + (SUMOReal) ACCEL2SPEED(aMax), vMax);
 }
 

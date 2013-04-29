@@ -45,7 +45,6 @@
 // ===========================================================================
 class BaseSchemeInfoSource;
 class OutputDevice;
-class GUISUMOAbstractView;
 
 
 // ===========================================================================
@@ -101,8 +100,6 @@ public:
 
     /// @brief The background color to use
     RGBColor backgroundColor;
-    /// @brief Information whether background decals (textures) shall be used
-    bool showBackgroundDecals;
     /// @brief Information whether a grid shall be shown
     bool showGrid;
     /// @brief Information about the grid spacings
@@ -162,8 +159,8 @@ public:
     /// @name junction visualization settings
     //@{
 
-    /// @brief The junction visualization (color assignment) scheme
-    int junctionMode;
+    /// @brief The junction colorer
+    GUIColorer junctionColorer;
     /// @brief Information whether a link's tls index shall be drawn
     bool drawLinkTLIndex;
     /// @brief Information whether a link's junction index shall be drawn
@@ -242,9 +239,6 @@ public:
 
     /** @brief Assignment operator */
     bool operator==(const GUIVisualizationSettings& vs2);
-
-    /** brief The view which is currently calling the draw method with these settings */
-    GUISUMOAbstractView* currentView;
 };
 
 

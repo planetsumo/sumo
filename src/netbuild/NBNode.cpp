@@ -394,8 +394,8 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
     bool noSpline = false;
     PositionVector ret;
     PositionVector init;
-    Position beg = fromE->getLaneShape(fromL).getEnd();
-    Position end = toE->getLaneShape(toL).getBegin();
+    Position beg = fromE->getLaneShape(fromL).back();
+    Position end = toE->getLaneShape(toL).front();
     Position intersection;
     unsigned int noInitialPoints = 0;
     if (beg.distanceTo(end) <= POSITION_EPS) {
@@ -473,8 +473,8 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
     }
     //
     if (noSpline) {
-        ret.push_back(fromE->getLaneShape(fromL).getEnd());
-        ret.push_back(toE->getLaneShape(toL).getBegin());
+        ret.push_back(fromE->getLaneShape(fromL).back());
+        ret.push_back(toE->getLaneShape(toL).front());
     } else {
         SUMOReal* def = new SUMOReal[1 + noInitialPoints * 3];
         for (int i = 0; i < (int) init.size(); ++i) {
@@ -499,7 +499,7 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
     const NBEdge::Lane& lane = fromE->getLaneStruct(fromL);
     if (lane.offset > 0) {
         PositionVector beg = lane.shape.getSubpart(lane.shape.length() - lane.offset, lane.shape.length());;
-        beg.appendWithCrossingPoint(ret);
+        beg.append(ret);
         ret = beg;
     }
     return ret;
@@ -1396,6 +1396,30 @@ NBNode::buildInnerEdges() {
     }
 }
 
+
+bool 
+NBNode::geometryLike() const {
+    if (myIncomingEdges.size() == 1 && myOutgoingEdges.size() == 1) {
+        return true;
+    }
+    if (myIncomingEdges.size() == 2 && myOutgoingEdges.size() == 2) {
+        // check whether the incoming and outgoing edges are pairwise (near) parallel and 
+        // thus the only cross-connections could be turn-arounds
+        NBEdge* out0 = myOutgoingEdges[0];
+        NBEdge* out1 = myOutgoingEdges[1];
+        for (EdgeVector::const_iterator it = myIncomingEdges.begin(); it != myIncomingEdges.end(); ++it) {
+            NBEdge* inEdge = *it;
+            SUMOReal angle0 = fabs(NBHelpers::relAngle(inEdge->getAngleAtNode(this), out0->getAngleAtNode(this)));
+            SUMOReal angle1 = fabs(NBHelpers::relAngle(inEdge->getAngleAtNode(this), out1->getAngleAtNode(this)));
+            if (MAX2(angle0, angle1) <= 160) {
+                // neither of the outgoing edges is parallel to inEdge
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
+}
 
 /****************************************************************************/
 

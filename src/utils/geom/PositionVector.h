@@ -150,9 +150,6 @@ public:
     /// Returns the slope at the given length
     SUMOReal slopeDegreeAtLengthPosition(SUMOReal pos) const;
 
-    /// Returns the tilt at the given length
-    SUMOReal tiltDegreeAtLengthPosition(SUMOReal pos) const;
-
     /// Returns the position between the two given point at the specified position */
     static Position positionAtLengthPosition(const Position& p1,
             const Position& p2, SUMOReal pos);
@@ -189,12 +186,6 @@ public:
     /// Returns the information whether this polygon lies partially within the given polygon
     bool partialWithin(const AbstractPoly& poly, SUMOReal offset = 0) const;
 
-    /// Returns the first position
-    const Position& getBegin() const;
-
-    /// Returns the last position
-    const Position& getEnd() const;
-
     /// Returns the two lists made when this list vector is splitted at the given point
     std::pair<PositionVector, PositionVector> splitAt(SUMOReal where) const;
 
@@ -211,12 +202,23 @@ public:
 
     int appendWithCrossingPoint(const PositionVector& v);
 
+    // @brief append the given vector to this one
+    void append(const PositionVector& v);
+
     ContType::const_iterator begin() const {
         return myCont.begin();
     }
 
     ContType::const_iterator end() const {
         return myCont.end();
+    }
+
+    const Position& front() const {
+        return myCont.front();
+    }
+
+    const Position& back() const {
+        return myCont.back();
     }
 
     PositionVector getSubpart(SUMOReal begin, SUMOReal end) const;

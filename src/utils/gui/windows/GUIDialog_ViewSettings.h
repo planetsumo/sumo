@@ -155,20 +155,23 @@ public:
     void setCurrentScheme(const std::string&);
 
 
-    /** @brief Converts a FOX-color into a RGBColor
-     * @param[in] c The color to convert
-     * @return The converted color
+private:
+    bool updateColorRanges(FXObject* sender, std::vector<FXColorWell*>::const_iterator colIt,
+                       std::vector<FXColorWell*>::const_iterator colEnd,
+                       std::vector<FXRealSpinDial*>::const_iterator threshIt,
+                       std::vector<FXRealSpinDial*>::const_iterator threshEnd,
+                       std::vector<FXButton*>::const_iterator buttonIt,
+                       GUIColorScheme& scheme);
+
+    /** @brief Rebuilds color changing dialogs after choosing another coloring scheme
+     * @param[in] doCreate Whether "create" shall be called (only if built the first time)
      */
-    static RGBColor convert(const FXColor c);
-
-
-    /** @brief Converts a RGBColor into a FOX-color
-     * @param[in] c The color to convert
-     * @return The converted color
-     */
-    static FXColor convert(const RGBColor& c);
-
-protected:
+    FXMatrix* rebuildColorMatrix(FXVerticalFrame* frame,
+                                           std::vector<FXColorWell*>& colors,
+                                           std::vector<FXRealSpinDial*>& thresholds,
+                                           std::vector<FXButton*>& buttons,
+                                           FXCheckButton* interpolation,
+                                           GUIColorScheme& scheme);
 
 
     /** @brief Rebuilds color changing dialogs after choosing another coloring scheme
@@ -200,9 +203,6 @@ protected:
 
 
 private:
-    /// @brief the number of newly created custom schemes
-    static unsigned int myCustomSchemes;
-
     /// @brief The parent view (which settings are changed)
     GUISUMOAbstractView* myParent;
 
@@ -248,6 +248,12 @@ private:
     FXRealSpinDial* myVehicleMinSizeDialer, *myVehicleUpscaleDialer;
     FXCheckButton* myShowBlinker, *myShowMinGap; /* *myShowLaneChangePreference,*/
 
+    FXComboBox* myJunctionColorMode;
+    FXVerticalFrame* myJunctionColorSettingFrame;
+    std::vector<FXColorWell*> myJunctionColors;
+    std::vector<FXRealSpinDial*> myJunctionThresholds;
+    std::vector<FXButton*> myJunctionButtons;
+    FXCheckButton* myJunctionColorInterpolation;
     FXCheckButton* myShowTLIndex, *myShowJunctionIndex;
 
     FXRealSpinDial* myDetectorMinSizeDialer, *myDetectorUpscaleDialer;

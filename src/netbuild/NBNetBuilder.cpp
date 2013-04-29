@@ -109,28 +109,6 @@ NBNetBuilder::compute(OptionsCont& oc,
 
 
     // MODIFYING THE SETS OF NODES AND EDGES
-    // join junctions
-
-    if (oc.exists("junctions.join-exclude") && oc.isSet("junctions.join-exclude")) {
-        myNodeCont.addJoinExclusion(oc.getStringVector("junctions.join-exclude"));
-    }
-    unsigned int numJoined = myNodeCont.joinLoadedClusters(myDistrictCont, myEdgeCont, myTLLCont);
-    if (oc.getBool("junctions.join")) {
-        PROGRESS_BEGIN_MESSAGE("Joining junction clusters");
-        // preliminary geometry computations to determine the length of edges
-        // This depends on turning directions and sorting of edge list
-        // in case junctions are joined geometry computations have to be repeated
-        NBTurningDirectionsComputer::computeTurnDirections(myNodeCont);
-        NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"));
-        myNodeCont.computeNodeShapes(oc.getBool("lefthand"));
-        myEdgeCont.computeEdgeShapes();
-        numJoined += myNodeCont.joinJunctions(oc.getFloat("junctions.join-dist"), myDistrictCont, myEdgeCont, myTLLCont);
-        PROGRESS_DONE_MESSAGE();
-    }
-    if (numJoined > 0) {
-        // bit of a misnomer since we're already done
-        WRITE_MESSAGE(" Joined " + toString(numJoined) + " junction cluster(s).");
-    }
 
     // Removes edges that are connecting the same node
     PROGRESS_BEGIN_MESSAGE("Removing self-loops");
@@ -159,17 +137,59 @@ NBNetBuilder::compute(OptionsCont& oc,
         PROGRESS_DONE_MESSAGE();
         WRITE_MESSAGE("   " + toString(no) + " nodes removed.");
     }
+    // MOVE TO ORIGIN
+    if (!oc.getBool("offset.disable-normalization") && oc.isDefault("offset.x") && oc.isDefault("offset.y")) {
+        moveToOrigin(geoConvHelper);
+    }
+    geoConvHelper.computeFinal(); // information needed for location element fixed at this point
+
     if(oc.exists("geometry.min-dist")&&oc.isSet("geometry.min-dist")) {
         PROGRESS_BEGIN_MESSAGE("Reducing geometries");
         myEdgeCont.reduceGeometries(oc.getFloat("geometry.min-dist"));
         PROGRESS_DONE_MESSAGE();
     }
-    // @note: removing geometry can create similar edges so "Joining" must come afterwards
-    // @note: likewise splitting can destroy similarities so "Joining" must come before
+    // @note: removing geometry can create similar edges so joinSimilarEdges  must come afterwards
+    // @note: likewise splitting can destroy similarities so joinSimilarEdges must come before
     PROGRESS_BEGIN_MESSAGE("Joining similar edges");
     myJoinedEdges.init(myEdgeCont);
     myNodeCont.joinSimilarEdges(myDistrictCont, myEdgeCont, myTLLCont);
     PROGRESS_DONE_MESSAGE();
+    //
+    // join junctions
+    if (oc.exists("junctions.join-exclude") && oc.isSet("junctions.join-exclude")) {
+        myNodeCont.addJoinExclusion(oc.getStringVector("junctions.join-exclude"));
+    }
+    unsigned int numJoined = myNodeCont.joinLoadedClusters(myDistrictCont, myEdgeCont, myTLLCont);
+    if (oc.getBool("junctions.join")) {
+        PROGRESS_BEGIN_MESSAGE("Joining junction clusters");
+        // preliminary geometry computations to determine the length of edges
+        // This depends on turning directions and sorting of edge list
+        // in case junctions are joined geometry computations have to be repeated
+        NBTurningDirectionsComputer::computeTurnDirections(myNodeCont);
+        NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"));
+        myNodeCont.computeNodeShapes(oc.getBool("lefthand"));
+        myEdgeCont.computeEdgeShapes();
+        // preliminary roundabout computations to avoid destroying roundabouts
+        if (oc.getBool("roundabouts.guess") || (oc.isDefault("roundabouts.guess") && myHaveSeenRoundabouts)) {
+            assert(myRoundabouts.size() == 0);
+            myEdgeCont.guessRoundabouts(myRoundabouts);
+            for (std::vector<EdgeVector>::const_iterator it_round = myRoundabouts.begin(); 
+                    it_round != myRoundabouts.end(); ++it_round) {
+                std::vector<std::string> nodeIDs;
+                for (EdgeVector::const_iterator it_edge = it_round->begin(); it_edge != it_round->end(); ++it_edge) {
+                    nodeIDs.push_back((*it_edge)->getToNode()->getID());
+                }
+                myNodeCont.addJoinExclusion(nodeIDs);
+            }
+            myRoundabouts.clear();
+        }
+        numJoined += myNodeCont.joinJunctions(oc.getFloat("junctions.join-dist"), myDistrictCont, myEdgeCont, myTLLCont);
+        PROGRESS_DONE_MESSAGE();
+    }
+    if (numJoined > 0) {
+        // bit of a misnomer since we're already done
+        WRITE_MESSAGE(" Joined " + toString(numJoined) + " junction cluster(s).");
+    }
     //
     if (oc.exists("geometry.split") && oc.getBool("geometry.split")) {
         PROGRESS_BEGIN_MESSAGE("Splitting geometry edges");
@@ -186,25 +206,6 @@ NBNetBuilder::compute(OptionsCont& oc,
 
     // check whether any not previously setable connections may be set now
     myEdgeCont.recheckPostProcessConnections();
-
-    // MOVE TO ORIGIN
-    if (!oc.getBool("offset.disable-normalization") && oc.isDefault("offset.x") && oc.isDefault("offset.y")) {
-        PROGRESS_BEGIN_MESSAGE("Moving network to origin");
-        const SUMOReal x = -geoConvHelper.getConvBoundary().xmin();
-        const SUMOReal y = -geoConvHelper.getConvBoundary().ymin();
-        for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
-            (*i).second->reshiftPosition(x, y);
-        }
-        for (std::map<std::string, NBEdge*>::const_iterator i = myEdgeCont.begin(); i != myEdgeCont.end(); ++i) {
-            (*i).second->reshiftPosition(x, y);
-        }
-        for (std::map<std::string, NBDistrict*>::const_iterator i = myDistrictCont.begin(); i != myDistrictCont.end(); ++i) {
-            (*i).second->reshiftPosition(x, y);
-        }
-        geoConvHelper.moveConvertedBy(x, y);
-        PROGRESS_DONE_MESSAGE();
-    }
-    geoConvHelper.computeFinal(); // information needed for location element fixed at this point
 
     myEdgeCont.computeLaneShapes();
 
@@ -354,7 +355,39 @@ NBNetBuilder::compute(OptionsCont& oc,
     WRITE_MESSAGE("  Converted boundary : " + toString(geoConvHelper.getConvBoundary()));
     WRITE_MESSAGE("-----------------------------------------------------");
     NBRequest::reportWarnings();
+    // report on very large networks
+    if (MAX2(geoConvHelper.getConvBoundary().xmax(), geoConvHelper.getConvBoundary().ymax()) > 1000000 ||
+            MIN2(geoConvHelper.getConvBoundary().xmin(), geoConvHelper.getConvBoundary().ymin()) < -1000000) {
+        WRITE_WARNING("Network contains very large coordinates and will probably flicker in the GUI. Check for outlying nodes and make sure the network is shifted to the coordinate origin");
+    }
 }
 
+
+void 
+NBNetBuilder::moveToOrigin(GeoConvHelper& geoConvHelper) {
+    PROGRESS_BEGIN_MESSAGE("Moving network to origin");
+    // compute new boundary after network modifications have taken place
+    Boundary boundary;
+    for (std::map<std::string, NBNode*>::const_iterator it = myNodeCont.begin(); it != myNodeCont.end(); ++it) {
+        boundary.add(it->second->getPosition());
+    }
+    for (std::map<std::string, NBEdge*>::const_iterator it = myEdgeCont.begin(); it != myEdgeCont.end(); ++it) {
+        boundary.add(it->second->getGeometry().getBoxBoundary());
+    }
+    geoConvHelper.setConvBoundary(boundary);
+    const SUMOReal x = -boundary.xmin();
+    const SUMOReal y = -boundary.ymin();
+    for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
+        (*i).second->reshiftPosition(x, y);
+    }
+    for (std::map<std::string, NBEdge*>::const_iterator i = myEdgeCont.begin(); i != myEdgeCont.end(); ++i) {
+        (*i).second->reshiftPosition(x, y);
+    }
+    for (std::map<std::string, NBDistrict*>::const_iterator i = myDistrictCont.begin(); i != myDistrictCont.end(); ++i) {
+        (*i).second->reshiftPosition(x, y);
+    }
+    geoConvHelper.moveConvertedBy(x, y);
+    PROGRESS_DONE_MESSAGE();
+}
 
 /****************************************************************************/

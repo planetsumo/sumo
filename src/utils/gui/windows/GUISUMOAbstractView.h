@@ -102,13 +102,13 @@ public:
      * @param[in] zoomDist The distance in m to use for the zoom, values < 0 means: use the centeringBoundary
      * @note caller is responsible for calling update
      */
-    void centerTo(GUIGlID id, bool applyZoom, SUMOReal zoomDist = 20);
+    virtual void centerTo(GUIGlID id, bool applyZoom, SUMOReal zoomDist = 20);
 
     /// centers to the chosen artifact
     void centerTo(const Boundary& bound);
 
     /// applies the given viewport settings
-    virtual void setViewport(SUMOReal zoom, SUMOReal xPos, SUMOReal yPos);
+    virtual void setViewport(const Position& lookFrom, const Position& lookAt);
 
     /// meter-to-pixels conversion method
     SUMOReal m2p(SUMOReal meter) const;
@@ -184,8 +184,8 @@ public:
 
 
 
-    void showViewportEditor();
-    virtual void showViewschemeEditor() = 0;
+    virtual void showViewportEditor();
+    void showViewschemeEditor();
     void showToolTips(bool val);
     virtual bool setColorScheme(const std::string&) {
         return true;
@@ -246,7 +246,7 @@ public:
         /// @brief Constructor
         Decal()
             : filename(), centerX(0), centerY(0), centerZ(0),
-              width(1000), height(1000), altitude(1000), rot(0), tilt(0), layer(0),
+              width(0), height(0), altitude(0), rot(0), tilt(0), roll(0), layer(0),
               initialised(false), skip2D(false), glID(-1), image(0) { }
 
         /// @brief The path to the file the image is located at
@@ -267,6 +267,8 @@ public:
         SUMOReal rot;
         /// @brief The tilt of the image to the ground plane (in degrees)
         SUMOReal tilt;
+        /// @brief The roll of the image to the ground plane (in degrees)
+        SUMOReal roll;
         /// @brief The layer of the image
         SUMOReal layer;
         /// @brief Whether this image was initialised (inserted as a texture)
