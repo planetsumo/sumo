@@ -70,6 +70,9 @@ Projection Options:
 TLS Building Options:
   --tls.discard-loaded                Does not instatiate traffic lights loaded
                                         from other formats than XML
+  --tls.discard-simple                Does not instatiate traffic lights at
+                                        geometry-like nodes loaded from other
+                                        formats than XML
   --tls.set STR                       Interprets STR as list of junctions to be
                                         controlled by TLS
   --tls.unset STR                     Interprets STR as list of junctions to be
