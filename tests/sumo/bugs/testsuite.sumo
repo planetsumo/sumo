@@ -108,3 +108,12 @@ ticket852
 ticket853
 ticket856
 ticket859
+ticket879
+ticket881
+
+# test error with inductionLoop detectors at the beginning of the lane
+ticket881b
+
+# test error with instantInductionLoop detectors at the beginning of the lane
+ticket881c
+ticket882
