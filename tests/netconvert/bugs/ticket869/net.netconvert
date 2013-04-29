@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Wed Mar 13 09:52:40 2013 by SUMO netconvert Version dev-SVN-r13478
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <osm-files value="osm.xml"/>
+    </input>
+
+    <output>
+        <output-file value="net.net.xml"/>
+    </output>
+
+    <projection>
+        <proj.utm value="true"/>
+    </projection>
+
+    <processing>
+        <ignore-errors value="true"/>
+    </processing>
+
+</configuration>
+-->
+
+<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/net_file.xsd">
+
+    <location netOffset="-323934.52,-4694846.49" convBoundary="0.00,0.00,83.10,130.36" origBoundary="-106.779095,-79.013333,21.566578,43.226864" projParameter="+proj=utm +zone=19 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
+
+    <edge id="8614778" from="61330091" to="61321502" priority="4" type="highway.residential" spreadType="center" shape="0.00,0.00 27.12,43.21 52.94,84.22 83.10,130.36">
+        <lane id="8614778_0" index="0" speed="13.89" length="154.60" shape="1.40,-0.88 28.52,42.33 54.34,83.35 84.48,129.45"/>
+        <lane id="8614778_1" index="1" speed="13.89" length="154.60" shape="-1.40,0.88 25.72,44.08 51.55,85.10 81.72,131.26"/>
+    </edge>
+
+    <junction id="61321502" type="unregulated" x="83.10" y="130.36" incLanes="8614778_0 8614778_1" intLanes="" shape="85.82,128.58 80.38,132.13"/>
+    <junction id="61330091" type="unregulated" x="0.00" y="0.00" incLanes="" intLanes="" shape="-2.75,1.73 2.75,-1.73"/>
+
+</net>
