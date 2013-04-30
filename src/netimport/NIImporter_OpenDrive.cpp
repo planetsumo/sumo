@@ -480,6 +480,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             continue;
         }
 		OpenDriveEdge *odFrom = edges[fromEdge];
+		int fromLane = (*i).fromLane;
 		bool fromLast = ((*i).fromCP==OPENDRIVE_CP_END) ^ ((*i).fromLane>0&&!(*i).all);
 		fromEdge = fromLast ? odFrom->laneSections.back().sumoID : odFrom->laneSections[0].sumoID;
 
@@ -488,42 +489,50 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             WRITE_WARNING("While setting connections: to-edge '" + toEdge + "' is not known.");
             continue;
         }
+
 		OpenDriveEdge *odTo = edges[toEdge];
-		bool toLast = ((*i).toCP==OPENDRIVE_CP_END) || ((*i).toLane<0);
+		int toLane = (*i).toLane;
+		bool toLast = ((*i).toCP==OPENDRIVE_CP_END) || ((*i).toLane>0);
 		toEdge = toLast ? odTo->laneSections.back().sumoID : odTo->laneSections[0].sumoID;
 
-		int fromLane = (*i).fromLane;
-		if(fromLane==UNSET_CONNECTION) { fromLane = 0; } /// @todo: this is rather a try of a hack than a hack
-		int toLane = (*i).toLane;
-		if(toLane==UNSET_CONNECTION) { toLane = 0; } /// @todo: this is rather a try of a hack than a hack
-
+		if(fromLane==UNSET_CONNECTION) {
+			fromLane = toLast ?  odTo->laneSections.back().laneMap.begin()->first : odTo->laneSections[0].laneMap.begin()->first;
+		}
 		if(fromLane<0) {
-			fromEdge = revertID(fromEdge); // counts for both, OpenDrive and SUMO
+			fromEdge = revertID(fromEdge);
+		} 
+		if(toLane==UNSET_CONNECTION) {
+			toLane = toLast ?  odTo->laneSections.back().laneMap.begin()->first : odTo->laneSections[0].laneMap.begin()->first;
 		}
 		if(toLane<0) {
-			toEdge = revertID(toEdge); // counts for both, OpenDrive and SUMO
-		}
+			toEdge = revertID(toEdge);
+		} 
 		fromLane = fromLast ? odFrom->laneSections.back().laneMap[fromLane] : odFrom->laneSections[0].laneMap[fromLane];
 		toLane = toLast ?  odTo->laneSections.back().laneMap[toLane] : odTo->laneSections[0].laneMap[toLane];
 		NBEdge *from = nb.getEdgeCont().retrieve(fromEdge);
 		NBEdge *to = nb.getEdgeCont().retrieve(toEdge);
-		if(from!=0) {
-			/// @todo from should not be zero; there are many shuffles used to make this untrue
-			/// ...but it happens. So probably, also to may get zero
-			/// probably, it is somehwere around the determination whether the successor or the predecessor information shall be used
-			from->addLane2LaneConnection(fromLane, to, toLane, NBEdge::L2L_USER);
+		if(from==0) {
+			WRITE_WARNING("Could not find fromEdge representation of '' in connection ''.");
+		}
+		if(to==0) {
+			WRITE_WARNING("Could not find fromEdge representation of '' in connection ''.");
+		}
+		if(from==0 || to==0) {
+			continue;
+		}
 
-            if ((*i).origID != "") {
-                std::vector<NBEdge::Connection>& cons = from->getConnections();
-                for (std::vector<NBEdge::Connection>::iterator k = cons.begin(); k != cons.end(); ++k) {
-                    if ((*k).fromLane == fromLane && (*k).toEdge == to && (*k).toLane == toLane) {
-                        (*k).origID = (*i).origID + " " + toString((*i).origLane);
-                        break;
-                    }
-                }
-            }
+		from->addLane2LaneConnection(fromLane, to, toLane, NBEdge::L2L_USER);
 
-        }
+        if ((*i).origID != "") {
+			// @todo: this is the most silly way to determine the connection
+			std::vector<NBEdge::Connection>& cons = from->getConnections();
+            for (std::vector<NBEdge::Connection>::iterator k = cons.begin(); k != cons.end(); ++k) {
+				if ((*k).fromLane == fromLane && (*k).toEdge == to && (*k).toLane == toLane) {
+					(*k).origID = (*i).origID + " " + toString((*i).origLane);
+                    break;
+				}
+			}
+		}
 	}
     // clean up
 	if(oc.exists("geometry.min-dist")&&oc.isSet("geometry.min-dist")) {
