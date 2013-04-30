@@ -375,14 +375,16 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 			    if (!nb.getEdgeCont().insert(currRight)) {
 				    throw ProcessError("Could not add edge '" + currRight->getID() + "'.");
 				}
-				for (int k = 1; k <= (int) (*j).lanesByDir[OPENDRIVE_TAG_RIGHT].size(); ++k) {
-					std::map<int, int>::const_iterator lp = (*j).laneMap.find(-k);
+				const std::vector<OpenDriveLane> &lanes = (*j).lanesByDir[OPENDRIVE_TAG_RIGHT];
+				for(std::vector<OpenDriveLane>::const_iterator k=lanes.begin(); k!=lanes.end(); ++k) {
+//				for (int k = 1; k <= (int) (*j).lanesByDir[OPENDRIVE_TAG_RIGHT].size(); ++k) {
+					std::map<int, int>::const_iterator lp = (*j).laneMap.find((*k).id);
 					if(lp!=(*j).laneMap.end()) {
 						int sumoLaneIndex = lp->second;
 						NBEdge::Lane &sumoLane = currRight->getLaneStruct(sumoLaneIndex);
-						OpenDriveLane &odLane = (*j).lanesByDir[OPENDRIVE_TAG_RIGHT][k-1]; 
+						const OpenDriveLane &odLane = *k;
 
-						sumoLane.origID = e->id + " -" + toString(k);
+						sumoLane.origID = e->id + " -" + toString((*k).id);
 						sumoLane.speed = odLane.speed!=0 ? odLane.speed : defaultSpeed;
 						
 						if(myImportWidths) {
@@ -412,14 +414,16 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 				if (!nb.getEdgeCont().insert(currLeft)) {
 					throw ProcessError("Could not add edge '" + currLeft->getID() + "'.");
 				}
-				for (int k = 1; k <= (int) (*j).lanesByDir[OPENDRIVE_TAG_LEFT].size(); ++k) {
-					std::map<int, int>::const_iterator lp = (*j).laneMap.find(k);
+				const std::vector<OpenDriveLane> &lanes = (*j).lanesByDir[OPENDRIVE_TAG_LEFT];
+				for(std::vector<OpenDriveLane>::const_iterator k=lanes.begin(); k!=lanes.end(); ++k) {
+				//for (int k = 1; k <= (int) (*j).lanesByDir[OPENDRIVE_TAG_LEFT].size(); ++k) {
+					std::map<int, int>::const_iterator lp = (*j).laneMap.find((*k).id);
 					if(lp!=(*j).laneMap.end()) {
 						int sumoLaneIndex = lp->second;
 						NBEdge::Lane &sumoLane = currLeft->getLaneStruct(sumoLaneIndex);
-						OpenDriveLane &odLane = (*j).lanesByDir[OPENDRIVE_TAG_LEFT][k-1]; 
+						const OpenDriveLane &odLane = *k;
 
-						sumoLane.origID = e->id + " " + toString(k);
+						sumoLane.origID = e->id + " " + toString((*k).id);
 						sumoLane.speed = odLane.speed!=0 ? odLane.speed : defaultSpeed;
 
 						if(myImportWidths) {
