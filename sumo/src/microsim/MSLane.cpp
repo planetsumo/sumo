@@ -716,10 +716,13 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
             // this is the shadow during a continuous lane change
             // or a vehicle that was already moved this step
             //std::cout << " skipping shadow of " << veh->getID() << " on lane " << getID() << "\n";
+            //if (myMovedVehicles.count(veh) > 0) {
+            //    std::cout << STEPS2TIME(t) << " skipping " << veh->getID() << " on lane " << getID() << " because it already moved this step\n";
+            //}
             ++i;
             continue;
         }
-        //std::cout << " executing move of " << veh->getID() << " on lane " << getID() << "\n";
+        //std::cout << STEPS2TIME(t) << " executing move of " << veh->getID() << " on lane " << getID() << "\n";
         // length is needed later when the vehicle may not exist anymore
         const SUMOReal length = veh->getVehicleType().getLengthWithGap();
         bool moved = veh->executeMove();
@@ -782,7 +785,6 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         }
     }
-    myMovedVehicles.clear();
     return myVehicles.size() == 0;
 }
 

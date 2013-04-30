@@ -1926,6 +1926,12 @@ MSVehicle::continueLaneChangeManeuver(bool moved) {
                 bestLaneConts.erase(bestLaneConts.begin() + 1, bestLaneConts.end());
             }
         }
+        if (getPositionOnLane() > myLane->getLength()) {
+            WRITE_WARNING("vehicle '" + getID() + "' set back by " + toString(getPositionOnLane() - myLane->getLength()) + 
+                    "m when changing lanes on lane '" + myLane->getID() + " time=" + 
+                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
+            myState.myPos = myLane->getLength();
+        }
         //std::cout << "after leaveLane myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
         myLastLaneChangeOffset = 0;
         getLaneChangeModel().changed();

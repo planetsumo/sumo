@@ -421,8 +421,13 @@ public:
     }
 
     /// @brief make sure that the given vehicle is not moved again this step
-    void markAsMoved(MSVehicle* veh) {
+    inline void markAsMoved(MSVehicle* veh) {
         myMovedVehicles.insert(veh);
+    }
+
+
+    inline void clearMoved() {
+        myMovedVehicles.clear();
     }
 
     void setMaxSpeed(SUMOReal val) {
