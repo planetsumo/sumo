@@ -483,11 +483,14 @@ MSVehicle::getAngle() const {
     Position p2 = myFurtherLanes.size() > 0
                   ? myFurtherLanes.back()->getShape().positionAtLengthPosition(myFurtherLanes.back()->getPartialOccupatorEnd())
                   : myLane->getShape().positionAtLengthPosition(myState.pos() - myType->getLength());
-    if (p1 != p2) {
-        return atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / PI;
-    } else {
-        return -myLane->getShape().rotationDegreeAtLengthPosition(getPositionOnLane());
+    SUMOReal result = (p1 != p2 ?
+            atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / PI :
+            -myLane->getShape().rotationDegreeAtLengthPosition(getPositionOnLane()));
+    if (isChangingLanes()) {
+        const SUMOReal angleOffset = 30 * (myLaneChangeMidpointPassed ? 1 - myLaneChangeCompletion : myLaneChangeCompletion);
+        result += myLaneChangeDirection * angleOffset;
     }
+    return result;
 }
 
 
