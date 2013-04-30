@@ -469,6 +469,13 @@ public:
         return myLaneChangeCompletion < (1 - NUMERICAL_EPS);
     }
 
+
+    /* @brief return whether the vehicle already moved this step.
+     * This is to avoid double moves during lane changing */
+    inline bool alreadyMoved() const {
+        return myAlreadyMoved;
+    }
+
     /** @brief Update of members if vehicle leaves a new lane in the lane change step or at arrival. */
     void leaveLane(const MSMoveReminder::Notification reason);
 
@@ -1013,6 +1020,9 @@ protected:
 
     /// @brief whether myLane has already been set to the target of the lane-change maneuver
     bool myLaneChangeMidpointPassed;
+
+    /// @brief whether the vehicle has already moved this step
+    bool myAlreadyMoved;
 
 protected:
     struct DriveProcessItem {

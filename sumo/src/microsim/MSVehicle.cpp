@@ -288,6 +288,7 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
     myLaneChangeCompletion(1.0),
     myLaneChangeDirection(0),
     myLaneChangeMidpointPassed(false),
+    myAlreadyMoved(false),
     myEdgeWeights(0)
 #ifndef NO_TRACI
     , myInfluencer(0)
@@ -864,6 +865,7 @@ MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal leng
         seen += lane->getLength();
     }
     checkRewindLinkLanes(lengthsInFront);
+    myAlreadyMoved = false;
 }
 
 
@@ -1935,7 +1937,7 @@ MSVehicle::continueLaneChangeManeuver(bool moved) {
         //std::cout << "after leaveLane myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
         myLastLaneChangeOffset = 0;
         getLaneChangeModel().changed();
-        myLane->markAsMoved(this); // make sure this vehicle is not moved again
+        myAlreadyMoved = true;
     } else if (!isChangingLanes()) {
         //std::cout << "     finished\n";
         assert(myLaneChangeMidpointPassed);

@@ -112,9 +112,6 @@ MSEdgeControl::planMovements(SUMOTime t) {
 void
 MSEdgeControl::executeMovements(SUMOTime t) {
     myWithVehicles2Integrate.clear();
-    for (std::list<MSLane*>::iterator i = myActiveLanes.begin(); i != myActiveLanes.end(); ++i) {
-        (*i)->clearMoved();
-    }
     for (std::list<MSLane*>::iterator i = myActiveLanes.begin(); i != myActiveLanes.end();) {
         if ((*i)->getVehicleNumber() == 0 || (*i)->executeMovements(t, myWithVehicles2Integrate)) {
             myLanes[(*i)->getNumericalID()].amActive = false;

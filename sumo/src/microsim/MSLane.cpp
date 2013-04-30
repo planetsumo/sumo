@@ -712,13 +712,9 @@ bool
 MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
     for (VehCont::iterator i = myVehicles.begin(); i != myVehicles.end();) {
         MSVehicle* veh = *i;
-        if (veh->getLane() != this || myMovedVehicles.count(veh) > 0) {
+        if (veh->getLane() != this || veh->alreadyMoved()) {
             // this is the shadow during a continuous lane change
-            // or a vehicle that was already moved this step
             //std::cout << " skipping shadow of " << veh->getID() << " on lane " << getID() << "\n";
-            //if (myMovedVehicles.count(veh) > 0) {
-            //    std::cout << STEPS2TIME(t) << " skipping " << veh->getID() << " on lane " << getID() << " because it already moved this step\n";
-            //}
             ++i;
             continue;
         }
