@@ -11,7 +11,7 @@
 // Krauss car-following model, changing accel and speed by slope
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -42,7 +42,7 @@
 // method definitions
 // ===========================================================================
 MSCFModel_KraussPS::MSCFModel_KraussPS(const MSVehicleType* vtype, SUMOReal accel, SUMOReal decel,
-                                   SUMOReal dawdle, SUMOReal headwayTime)
+                                       SUMOReal dawdle, SUMOReal headwayTime)
     : MSCFModel_Krauss(vtype, accel, decel, dawdle, headwayTime) {
 }
 
@@ -51,8 +51,8 @@ MSCFModel_KraussPS::~MSCFModel_KraussPS() {}
 
 
 
-SUMOReal 
-MSCFModel_KraussPS::maxNextSpeed(SUMOReal speed, const MSVehicle * const veh) const {
+SUMOReal
+MSCFModel_KraussPS::maxNextSpeed(SUMOReal speed, const MSVehicle* const veh) const {
     const SUMOReal gravity = 9.80665;
     const MSLane* const lane = veh->getLane();
     const SUMOReal gp = lane->interpolateLanePosToGeometryPos(veh->getPositionOnLane());

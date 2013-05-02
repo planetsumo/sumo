@@ -9,7 +9,7 @@
 // The dialog to change the view (gui) settings.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -157,21 +157,21 @@ public:
 
 private:
     bool updateColorRanges(FXObject* sender, std::vector<FXColorWell*>::const_iterator colIt,
-                       std::vector<FXColorWell*>::const_iterator colEnd,
-                       std::vector<FXRealSpinDial*>::const_iterator threshIt,
-                       std::vector<FXRealSpinDial*>::const_iterator threshEnd,
-                       std::vector<FXButton*>::const_iterator buttonIt,
-                       GUIColorScheme& scheme);
+                           std::vector<FXColorWell*>::const_iterator colEnd,
+                           std::vector<FXRealSpinDial*>::const_iterator threshIt,
+                           std::vector<FXRealSpinDial*>::const_iterator threshEnd,
+                           std::vector<FXButton*>::const_iterator buttonIt,
+                           GUIColorScheme& scheme);
 
     /** @brief Rebuilds color changing dialogs after choosing another coloring scheme
      * @param[in] doCreate Whether "create" shall be called (only if built the first time)
      */
     FXMatrix* rebuildColorMatrix(FXVerticalFrame* frame,
-                                           std::vector<FXColorWell*>& colors,
-                                           std::vector<FXRealSpinDial*>& thresholds,
-                                           std::vector<FXButton*>& buttons,
-                                           FXCheckButton* interpolation,
-                                           GUIColorScheme& scheme);
+                                 std::vector<FXColorWell*>& colors,
+                                 std::vector<FXRealSpinDial*>& thresholds,
+                                 std::vector<FXButton*>& buttons,
+                                 FXCheckButton* interpolation,
+                                 GUIColorScheme& scheme);
 
 
     /** @brief Rebuilds color changing dialogs after choosing another coloring scheme

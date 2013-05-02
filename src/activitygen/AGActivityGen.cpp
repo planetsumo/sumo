@@ -9,7 +9,7 @@
 // Main class that handles City, Activities and Trips
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -142,7 +142,7 @@ AGActivityGen::varDepTime(AGTrip& trip) {
 void
 AGActivityGen::generateOutputFile(std::list<AGTrip>& trips) {
     AGActivityTripWriter atw(outputFile);
-    if(trips.size()!=0) {
+    if (trips.size() != 0) {
         std::list<AGTrip>::iterator it;
         //variables for TESTS:
         int firstTrip = trips.front().getTime() + trips.front().getDay() * 86400;

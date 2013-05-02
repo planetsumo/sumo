@@ -9,7 +9,7 @@
 // A MSLane extended for visualisation purposes.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -48,7 +48,9 @@ class MSLane;
 class MSEdge;
 class PositionVector;
 #ifdef HAVE_OSG
-namespace osg { class Geometry;}
+namespace osg {
+class Geometry;
+}
 #endif
 
 

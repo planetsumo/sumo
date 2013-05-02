@@ -9,7 +9,7 @@
 // Holds geometrical values for a junction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,7 +45,9 @@
 class MSNet;
 class MSJunction;
 #ifdef HAVE_OSG
-namespace osg { class Geometry;}
+namespace osg {
+class Geometry;
+}
 #endif
 
 

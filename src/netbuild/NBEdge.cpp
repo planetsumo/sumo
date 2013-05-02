@@ -11,7 +11,7 @@
 // Methods for the representation of a single edge
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -386,7 +386,7 @@ NBEdge::computeEdgeShape() {
             } else {
                 const SUMOReal midpoint = old.length() / 2;
                 // EPS*2 because otherwhise shape has only a single point
-                shape = old.getSubpart(midpoint - POSITION_EPS, midpoint + POSITION_EPS); 
+                shape = old.getSubpart(midpoint - POSITION_EPS, midpoint + POSITION_EPS);
                 assert(shape.size() >= 2);
                 assert(shape.length() > 0);
             }
@@ -397,7 +397,7 @@ NBEdge::computeEdgeShape() {
             Line lo(old[0], old[-1]);
             if (135 < GeomHelper::getMinAngleDiff(lc.atan2DegreeAngle(), lo.atan2DegreeAngle())) {
                 shape = shape.reverse();
-                shape = shape.getSubpart(0, 2*POSITION_EPS); // *2 because otherwhise shape has only a single point
+                shape = shape.getSubpart(0, 2 * POSITION_EPS); // *2 because otherwhise shape has only a single point
             }
         }
     }
@@ -515,7 +515,7 @@ NBEdge::splitGeometry(NBEdgeCont& ec, NBNodeCont& nc) {
 }
 
 
-void 
+void
 NBEdge::reduceGeometry(const SUMOReal minDist) {
     myGeom.removeDoublePoints(minDist, true);
 }

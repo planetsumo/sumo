@@ -11,7 +11,7 @@
 // streets, households, bus lines, work positions and school
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -187,8 +187,8 @@ AGCity::generatePopulation() {
     //compensate with adults for too many / missing children
     const int numSecondPers = statData.getPeopleOlderThan(statData.limitAgeChildren) - statData.households + totalChildrenLeft;
     for (int i = 0; i < numSecondPers; i++) {
-        unsigned int index = i%numAdults.size();
-        if(numAdults[index]>=0) {
+        unsigned int index = i % numAdults.size();
+        if (numAdults[index] >= 0) {
             numAdults[index] += 1;
         } else {
             numAdults[index] -= 1;

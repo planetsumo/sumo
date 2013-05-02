@@ -9,7 +9,7 @@
 // A traffic lights logic which represents a tls in an off-mode
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,9 +45,8 @@
 // member method definitions
 // ===========================================================================
 MSOffTrafficLightLogic::MSOffTrafficLightLogic(MSTLLogicControl& tlcontrol,
-        const std::string& id) : 
-    MSTrafficLightLogic(tlcontrol, id, "off", 0, ParameterMap()) 
-{
+        const std::string& id) :
+    MSTrafficLightLogic(tlcontrol, id, "off", 0, ParameterMap()) {
     myDefaultCycleTime = TIME2STEPS(120);
 }
 

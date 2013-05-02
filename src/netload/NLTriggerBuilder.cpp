@@ -12,7 +12,7 @@
 // Builds trigger objects for microsim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -261,10 +261,10 @@ NLTriggerBuilder::buildLaneSpeedTrigger(MSNet& /*net*/, const std::string& id,
 #ifdef HAVE_INTERNAL
 METriggeredCalibrator*
 NLTriggerBuilder::buildMECalibrator(MSNet& /*net*/, const std::string& id,
-                                  const MSEdge* edge, SUMOReal pos,
-                                  const std::string& file,
-                                  const std::string& outfile,
-                                  const SUMOTime freq) {
+                                    const MSEdge* edge, SUMOReal pos,
+                                    const std::string& file,
+                                    const std::string& outfile,
+                                    const SUMOTime freq) {
     return new METriggeredCalibrator(id, edge, pos, file, outfile, freq);
 }
 #endif

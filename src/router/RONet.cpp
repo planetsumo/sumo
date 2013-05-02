@@ -9,7 +9,7 @@
 // The router's network representation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -289,7 +289,7 @@ RONet::checkFlows(SUMOTime time) {
     for (NamedObjectCont<SUMOVehicleParameter*>::IDMap::const_iterator i = myFlows.getMyMap().begin(); i != myFlows.getMyMap().end(); ++i) {
         SUMOVehicleParameter* pars = i->second;
         while (pars->repetitionsDone < pars->repetitionNumber) {
-            SUMOTime depart = static_cast<SUMOTime>(pars->depart + pars->repetitionsDone * pars->repetitionOffset); 
+            SUMOTime depart = static_cast<SUMOTime>(pars->depart + pars->repetitionsDone * pars->repetitionOffset);
             if (myDepartures.find(pars->id) != myDepartures.end()) {
                 depart = myDepartures[pars->id].back();
             }

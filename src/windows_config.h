@@ -11,7 +11,7 @@
 // The general windows configuration file
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -64,11 +64,11 @@
 #define GEO_OUTPUT_ACCURACY 6
 
 /* Define if auto-generated version.h should be used. */
-#define HAVE_VERSION_H 1
+//#define HAVE_VERSION_H 1
 
 /* Version number of package */
 #ifndef HAVE_VERSION_H
-#define VERSION_STRING "svn"
+#define VERSION_STRING "0.17.0"
 #endif
 
 /* Define if junction internal lanes should be used. */

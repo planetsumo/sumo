@@ -7,7 +7,7 @@
 // Exporter writing networks using the openDRIVE format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -93,7 +93,7 @@ NWWriter_OpenDrive::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         SUMOReal width = lanes[li].width < 0 || !e->hasLaneSpecificWidth() ? SUMO_const_laneWidth : lanes[li].width;
         try {
             ls.move2side(-width / 2.);
-        } catch (InvalidArgument&) { 
+        } catch (InvalidArgument&) {
             // we do not write anything, as this should have been reported, already
         }
         writePlanView(ls, device);
@@ -146,7 +146,7 @@ NWWriter_OpenDrive::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
                 // probably, it would make sense to mark such connections and connect the incoming/outgoing streets directly in such cases.
                 try {
                     shape.move2side(-width / 2.);
-                } catch (InvalidArgument&) { 
+                } catch (InvalidArgument&) {
                     // we do not write anything, maybe we should
                 }
                 device << "    <road name=\"" << c.id << "\" length=\"" << shape.length() << "\" id=\"" << getID(c.id, edgeMap, edgeID) << "\" junction=\"" << getID(n->getID(), nodeMap, nodeID) << "\">\n";

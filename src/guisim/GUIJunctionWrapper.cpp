@@ -11,7 +11,7 @@
 // }
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -140,7 +140,7 @@ void
 GUIJunctionWrapper::updateColor(const GUIVisualizationSettings& s) {
     const SUMOReal colorValue = static_cast<SUMOReal>(s.junctionColorer.getActive() == 1 && gSelected.isSelected(getType(), getGlID()));
     const RGBColor& col = s.junctionColorer.getScheme().getColor(colorValue);
-    osg::Vec4ubArray *colors = dynamic_cast<osg::Vec4ubArray*>(myGeom->getColorArray());
+    osg::Vec4ubArray* colors = dynamic_cast<osg::Vec4ubArray*>(myGeom->getColorArray());
     (*colors)[0].set(col.red(), col.green(), col.blue(), col.alpha());
     myGeom->setColorArray(colors);
 }

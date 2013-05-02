@@ -9,7 +9,7 @@
 // An edge the jtr-router may route through
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -118,7 +118,7 @@ ROJTREdge::setTurnDefaults(const std::vector<SUMOReal>& defs) {
     size_t i;
     for (i = 0; i < defs.size(); ++i) {
         for (size_t j = 0; j < myFollowingEdges.size(); ++j) {
-            tmp[i * myFollowingEdges.size() + j] = (SUMOReal) (defs[i] / 100.0 / (myFollowingEdges.size()));
+            tmp[i * myFollowingEdges.size() + j] = (SUMOReal)(defs[i] / 100.0 / (myFollowingEdges.size()));
         }
     }
     // parse from less common multiple

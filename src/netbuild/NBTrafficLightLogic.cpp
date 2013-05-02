@@ -9,7 +9,7 @@
 // A SUMO-compliant built logic for a traffic light
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -68,7 +68,7 @@ const std::string NBTrafficLightLogic::ALLOWED_STATES(NBTrafficLightLogic::allow
 // member method definitions
 // ===========================================================================
 NBTrafficLightLogic::NBTrafficLightLogic(const std::string& id,
-        const std::string& subid, unsigned int noLinks, 
+        const std::string& subid, unsigned int noLinks,
         SUMOTime offset, TrafficLightType type) :
     Named(id), myNumLinks(noLinks), mySubID(subid),
     myOffset(offset),

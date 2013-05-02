@@ -10,7 +10,7 @@
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -101,7 +101,7 @@ protected:
     struct Edge {
 
         Edge(SUMOLong _id) :
-            id(_id), myNoLanes(-1), myNoLanesForward(0), myMaxSpeed(MAXSPEED_UNGIVEN), 
+            id(_id), myNoLanes(-1), myNoLanesForward(0), myMaxSpeed(MAXSPEED_UNGIVEN),
             myCurrentIsRoad(false) {}
 
         /// @brief The edge's id
@@ -351,7 +351,7 @@ protected:
          * @param[in] osmEdges The previously parse OSM-edges
          */
         RelationHandler(const std::map<SUMOLong, NIOSMNode*>& osmNodes,
-                const std::map<SUMOLong, Edge*>& osmEdges);
+                        const std::map<SUMOLong, Edge*>& osmEdges);
 
 
         /// @brief Destructor
@@ -404,11 +404,11 @@ protected:
         /// @brief the destination way for the current restriction
         SUMOLong myToWay;
 
-        /// @brief the via node/way for the current restriction 
+        /// @brief the via node/way for the current restriction
         SUMOLong myViaNode;
         SUMOLong myViaWay;
 
-        
+
         /** @enum RestrictionType
          * @brief whether the only allowed or the only forbidden connection is defined
          */

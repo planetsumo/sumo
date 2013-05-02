@@ -9,7 +9,7 @@
 // Importer for networks stored in openDrive format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -104,11 +104,11 @@ protected:
         OPENDRIVE_TAG_RIGHT,
         OPENDRIVE_TAG_LANE,
         OPENDRIVE_TAG_SIGNAL,
-		OPENDRIVE_TAG_JUNCTION,
-		OPENDRIVE_TAG_CONNECTION,
-		OPENDRIVE_TAG_LANELINK,
-		OPENDRIVE_TAG_WIDTH,
-		OPENDRIVE_TAG_SPEED
+		    OPENDRIVE_TAG_JUNCTION,
+		    OPENDRIVE_TAG_CONNECTION,
+		    OPENDRIVE_TAG_LANELINK,
+		    OPENDRIVE_TAG_WIDTH,
+		    OPENDRIVE_TAG_SPEED
     };
 
 
@@ -142,41 +142,41 @@ protected:
         OPENDRIVE_ATTR_LEVEL,
         OPENDRIVE_ATTR_ORIENTATION,
         OPENDRIVE_ATTR_DYNAMIC,
-		OPENDRIVE_ATTR_INCOMINGROAD,
-		OPENDRIVE_ATTR_CONNECTINGROAD,
-		OPENDRIVE_ATTR_FROM,
-		OPENDRIVE_ATTR_TO,
-		OPENDRIVE_ATTR_MAX
+		    OPENDRIVE_ATTR_INCOMINGROAD,
+		    OPENDRIVE_ATTR_CONNECTINGROAD,
+		    OPENDRIVE_ATTR_FROM,
+		    OPENDRIVE_ATTR_TO,
+		    OPENDRIVE_ATTR_MAX
     };
 
 
-	/** @brief OpenDrive link type enumeration
-	 */
+    /** @brief OpenDrive link type enumeration
+     */
     enum LinkType {
         OPENDRIVE_LT_SUCCESSOR,
         OPENDRIVE_LT_PREDECESSOR
     };
 
 
-	/** @brief OpenDrive element type enumeration
-	 */
-	enum ElementType {
+    /** @brief OpenDrive element type enumeration
+     */
+    enum ElementType {
         OPENDRIVE_ET_UNKNOWN,
         OPENDRIVE_ET_ROAD,
         OPENDRIVE_ET_JUNCTION
     };
 
 
-	/** @brief OpenDrive contact type enumeration
-	 */
-	enum ContactPoint {
+    /** @brief OpenDrive contact type enumeration
+     */
+    enum ContactPoint {
         OPENDRIVE_CP_UNKNOWN,
         OPENDRIVE_CP_START,
         OPENDRIVE_CP_END
     };
 
-	/** @brief OpenDrive geometry type enumeration
-	 */
+    /** @brief OpenDrive geometry type enumeration
+     */
     enum GeometryType {
         OPENDRIVE_GT_UNKNOWN,
         OPENDRIVE_GT_LINE,
@@ -192,15 +192,15 @@ protected:
      * @brief Representation of an OpenDrive link
      */
     struct OpenDriveLink {
-		/** @brief Constructor
-		 * @param[in] linkTypeArg The link type
-		 * @param[in] elementIDArg The element id
-		 */
+        /** @brief Constructor
+         * @param[in] linkTypeArg The link type
+         * @param[in] elementIDArg The element id
+         */
         OpenDriveLink(LinkType linkTypeArg, const std::string& elementIDArg)
             : linkType(linkTypeArg), elementID(elementIDArg),
               elementType(OPENDRIVE_ET_UNKNOWN), contactPoint(OPENDRIVE_CP_UNKNOWN) { }
-        
-		LinkType linkType;
+
+        LinkType linkType;
         std::string elementID;
         ElementType elementType;
         ContactPoint contactPoint;
@@ -212,13 +212,13 @@ protected:
      * @brief Representation of an OpenDrive geometry part
      */
     struct OpenDriveGeometry {
-		/** @brief Constructor
-		 * @param[in] lengthArg The length of this geometry part
-		 * @param[in] sArg The offset from the start, counted from the begin
-		 * @param[in] xArg x-position at this part's begin
-		 * @param[in] yArg y-position at this part's begin
-		 * @param[in] hdgArg heading at this part's begin
-		 */
+        /** @brief Constructor
+         * @param[in] lengthArg The length of this geometry part
+         * @param[in] sArg The offset from the start, counted from the begin
+         * @param[in] xArg x-position at this part's begin
+         * @param[in] yArg y-position at this part's begin
+         * @param[in] hdgArg heading at this part's begin
+         */
         OpenDriveGeometry(SUMOReal lengthArg, SUMOReal sArg, SUMOReal xArg, SUMOReal yArg, SUMOReal hdgArg)
             : length(lengthArg), s(sArg), x(xArg), y(yArg), hdg(hdgArg),
               type(OPENDRIVE_GT_UNKNOWN) { }
@@ -238,11 +238,11 @@ protected:
      * @brief Representation of a lane
      */
     struct OpenDriveLane {
-		/** @brief Constructor
-		 * @param[in] idArg The OpenDrive id of the lane
-		 * @param[in] levelArg The level
-		 * @param[in] typeArg type of the lane
-		 */
+        /** @brief Constructor
+         * @param[in] idArg The OpenDrive id of the lane
+         * @param[in] levelArg The level
+         * @param[in] typeArg type of the lane
+         */
         OpenDriveLane(int idArg, const std::string& levelArg, const std::string& typeArg)
             : id(idArg), level(levelArg), type(typeArg), successor(UNSET_CONNECTION), predecessor(UNSET_CONNECTION),
 		width(0), speed(0) { }
@@ -263,37 +263,37 @@ protected:
      * @brief Representation of a lane section
      */
     struct OpenDriveLaneSection {
-		/** @brief Constructor
-		 * @param[in] sArg The offset from the start, counted from the begin
-		 */
+        /** @brief Constructor
+         * @param[in] sArg The offset from the start, counted from the begin
+         */
         OpenDriveLaneSection(SUMOReal sArg);
 
 
-		/** @brief Returns the number of lanes for the given direction
-		 * @return The named direction's lane number
-		 */
-		unsigned int getLaneNumber(OpenDriveXMLTag dir) const;
+        /** @brief Returns the number of lanes for the given direction
+         * @return The named direction's lane number
+         */
+        unsigned int getLaneNumber(OpenDriveXMLTag dir) const;
 
 
-		/** @brief Build the mapping from OpenDrive to SUMO lanes
-		 *
-		 * Not all lanes are converted to SUMO-lanes; the mapping includes only those
-		 * which are included in the SUMO network.
-		 */
-		void buildLaneMapping();
+        /** @brief Build the mapping from OpenDrive to SUMO lanes
+         *
+         * Not all lanes are converted to SUMO-lanes; the mapping includes only those
+         * which are included in the SUMO network.
+         */
+        void buildLaneMapping();
 
 
-		std::map<int, int> getInnerConnections(OpenDriveXMLTag dir, const OpenDriveLaneSection &prev);
+        std::map<int, int> getInnerConnections(OpenDriveXMLTag dir, const OpenDriveLaneSection& prev);
 
 
-		/// @brief The starting offset of this lane section
+        /// @brief The starting offset of this lane section
         SUMOReal s;
-		/// @brief A mapping from OpenDrive to SUMO-index (the first is signed, the second unsigned)
-		std::map<int, int> laneMap;
-		/// @brief The lanes, sorted by their direction
+        /// @brief A mapping from OpenDrive to SUMO-index (the first is signed, the second unsigned)
+        std::map<int, int> laneMap;
+        /// @brief The lanes, sorted by their direction
         std::map<OpenDriveXMLTag, std::vector<OpenDriveLane> > lanesByDir;
-		/// @brief The id (generic, without the optionally leading '-') of the edge generated for this section
-		std::string sumoID;
+        /// @brief The id (generic, without the optionally leading '-') of the edge generated for this section
+        std::string sumoID;
     };
 
 
@@ -303,13 +303,13 @@ protected:
      * @brief Representation of a signal
      */
     struct OpenDriveSignal {
-		/** @brief Constructor
-		 * @param[in] idArg The OpenDrive id of the signal
-		 * @param[in] typeArg The type of the signal
-		 * @param[in] orientationArg The direction the signal belongs to
-		 * @param[in] dynamicArg Whether the signal is dynamic
-		 * @param[in] sArg The offset from the start, counted from the begin
-		 */
+        /** @brief Constructor
+         * @param[in] idArg The OpenDrive id of the signal
+         * @param[in] typeArg The type of the signal
+         * @param[in] orientationArg The direction the signal belongs to
+         * @param[in] dynamicArg Whether the signal is dynamic
+         * @param[in] sArg The offset from the start, counted from the begin
+         */
         OpenDriveSignal(int idArg, const std::string typeArg, int orientationArg, bool dynamicArg, SUMOReal sArg)
             : id(idArg), type(typeArg), orientation(orientationArg), dynamic(dynamicArg), s(sArg) { }
 
@@ -321,21 +321,21 @@ protected:
     };
 
 
-	/** 
-	 * @struct Connection
-	 * @brief A connection between two roads
-	 */
-	struct Connection {
-		std::string fromEdge;
-		std::string toEdge;
-		int fromLane;
-		int toLane;
-		ContactPoint fromCP;
-		ContactPoint toCP;
-		bool all;
+    /**
+     * @struct Connection
+     * @brief A connection between two roads
+     */
+    struct Connection {
+        std::string fromEdge;
+        std::string toEdge;
+        int fromLane;
+        int toLane;
+        ContactPoint fromCP;
+        ContactPoint toCP;
+        bool all;
         std::string origID;
         int origLane;
-	};
+    };
 
 
     /**
@@ -346,8 +346,8 @@ protected:
         OpenDriveEdge(const std::string& idArg, const std::string& junctionArg, SUMOReal lengthArg)
             : id(idArg), junction(junctionArg), length(lengthArg),
               from(0), to(0) {
-		isInner = junction!=""&&junction!="-1";
-		}
+            isInner = junction != "" && junction != "-1";
+        }
 
         unsigned int getMaxLaneNumber(OpenDriveXMLTag dir) const;
         int getPriority(OpenDriveXMLTag dir) const;
@@ -365,8 +365,8 @@ protected:
         PositionVector geom;
         std::vector<OpenDriveLaneSection> laneSections;
         std::vector<OpenDriveSignal> signals;
-		std::set<Connection> connections;
-		bool isInner;
+        std::set<Connection> connections;
+        bool isInner;
     };
 
 
@@ -415,20 +415,20 @@ private:
     void addLink(LinkType lt, const std::string& elementType, const std::string& elementID,
                  const std::string& contactPoint);
     void addGeometryShape(GeometryType type, const std::vector<SUMOReal>& vals);
-static void setEdgeLinks2(OpenDriveEdge& e, const std::map<std::string, OpenDriveEdge*> &edges);
-static void buildConnectionsToOuter(const Connection &c, const std::map<std::string, OpenDriveEdge*> &innerEdges, std::vector<Connection> &into);
+    static void setEdgeLinks2(OpenDriveEdge& e, const std::map<std::string, OpenDriveEdge*>& edges);
+    static void buildConnectionsToOuter(const Connection& c, const std::map<std::string, OpenDriveEdge*>& innerEdges, std::vector<Connection>& into);
     friend bool operator<(const Connection& c1, const Connection& c2);
-static std::string revertID(const std::string &id);
+    static std::string revertID(const std::string& id);
     OpenDriveEdge myCurrentEdge;
 
     std::map<std::string, OpenDriveEdge*>& myEdges;
     std::vector<int> myElementStack;
     OpenDriveXMLTag myCurrentLaneDirection;
-	std::string myCurrentJunctionID;
-	std::string myCurrentIncomingRoad;
-	std::string myCurrentConnectingRoad;
-	ContactPoint myCurrentContactPoint;
-	bool myConnectionWasEmpty;
+    std::string myCurrentJunctionID;
+    std::string myCurrentIncomingRoad;
+    std::string myCurrentConnectingRoad;
+    ContactPoint myCurrentContactPoint;
+    bool myConnectionWasEmpty;
 
     static std::set<std::string> myLaneTypes2Import;
     static bool myImportAllTypes;
