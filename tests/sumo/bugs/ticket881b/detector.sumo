@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!-- generated on 04/24/13 14:52:06 by SUMO sumo Version dev-SVN-r13719
+<!-- generated on Fri Apr 19 09:00:50 2013 by SUMO sumo Version dev-SVN-r13657
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/sumoConfiguration.xsd">
@@ -8,11 +8,8 @@
     <input>
         <net-file value="net.net.xml"/>
         <route-files value="input_routes.rou.xml"/>
+        <additional-files value="input_additional.add.xml"/>
     </input>
-
-    <output>
-        <vehroute-output value="vehroutes.xml"/>
-    </output>
 
     <report>
         <no-duration-log value="true"/>
@@ -22,9 +19,6 @@
 </configuration>
 -->
 
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/routes_file.xsd">
-    <vehicle id="veh0" depart="1.00" arrival="161.00">
-        <route edges="beg end"/>
-    </vehicle>
-
-</routes>
+<detector>
+   <interval begin="0.00" end="45.00" id="test" nVehContrib="1" flow="80.00" occupancy="1.11" speed="10.04" length="5.00" nVehEntered="1"/>
+</detector>
