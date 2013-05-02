@@ -481,7 +481,7 @@ MSVehicle::getAngle() const {
             atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / PI :
             -myLane->getShape().rotationDegreeAtLengthPosition(getPositionOnLane()));
     if (getLaneChangeModel().isChangingLanes()) {
-        const SUMOReal angleOffset = 30 * (getLaneChangeModel().isLaneChangeMidpointPassed() ? 1 - getLaneChangeModel().getLaneChangeCompletion() : getLaneChangeModel().getLaneChangeCompletion());
+        const SUMOReal angleOffset = 60 / STEPS2TIME(MSGlobals::gLaneChangeDuration) * (getLaneChangeModel().isLaneChangeMidpointPassed() ? 1 - getLaneChangeModel().getLaneChangeCompletion() : getLaneChangeModel().getLaneChangeCompletion());
         result += getLaneChangeModel().getLaneChangeDirection() * angleOffset;
     }
     return result;
