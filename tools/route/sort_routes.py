@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 @file    sort_routes.py
 @author  Jakob Erdmann
@@ -8,7 +8,7 @@
 
 This script sorts the vehicles in the given route file by their depart time
 SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2007-2012 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
 import sys
@@ -20,13 +20,13 @@ from xml.sax import make_parser
 from xml.sax import handler
 from optparse import OptionParser
 
-def parse_args():
+def get_options(args=None):
     USAGE = "Usage: " + sys.argv[0] + " <routefile>"
     optParser = OptionParser()
     optParser.add_option("-o", "--outfile", help="name of output file")
     optParser.add_option("-b", "--big", action="store_true", default=False, 
             help="Use alternative sortign strategy for large files (slower but more memory efficient)")
-    options, args = optParser.parse_args()
+    options, args = optParser.parse_args(args=args)
     if len(args) != 1:
         sys.exit(USAGE)
     options.routefile = args[0]
@@ -81,7 +81,7 @@ def create_line_index(file):
     print "Building line offset index for %s" % file
     result = []
     offset = 0
-    with open(file, 'rb') as f:
+    with open(file, 'rb') as f: # need to read binary here for correct offsets
         for line in f:
             result.append(offset)
             offset += len(line)
@@ -108,7 +108,7 @@ def copy_elements(routefilename, outfilename, element_lines, line_offsets):
         outfile.write(line)
         if '<routes' in line:
             break
-    with open(routefilename, 'rb') as f:
+    with open(routefilename) as f: # don't read binary here for line end conversion
         for depart, start, end in element_lines:
             # convert from 1-based to 0-based indices
             f.seek(line_offsets[start - 1])
@@ -118,8 +118,8 @@ def copy_elements(routefilename, outfilename, element_lines, line_offsets):
     outfile.close()
 
 
-def main():
-    options = parse_args()
+def main(args=None):
+    options = get_options(args=args)
     if options.big:
         line_offsets = create_line_index(options.routefile)
         element_lines = get_element_lines(options.routefile)

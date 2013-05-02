@@ -11,7 +11,7 @@ This file contains a content handler for parsing sumo network xml files.
 It uses other classes from this module to represent the road network.
 
 SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2008-2012 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
 
@@ -149,6 +149,9 @@ class Net:
         
     def getEdge(self, id):
         return self._id2edge[id]
+
+    def hasNode(self, id):
+        return id in self._id2node
 
     def getNode(self, id):
         return self._id2node[id]
@@ -377,9 +380,9 @@ def readNet(filename, **others):
     try:
         if not os.path.isfile(filename):
             print >> sys.stderr, "Network file '%s' not found" % filename
-            raise
+            sys.exit(1)
         parse(filename, netreader)
     except KeyError:
         print >> sys.stderr, "Please mind that the network format has changed in 0.13.0, you may need to update your network!"
-        raise
+        sys.exit(1)
     return netreader.getNet()

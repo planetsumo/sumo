@@ -9,7 +9,7 @@
 Extract statistics from the outputs of a duaIterate run for plotting.
 
 SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2008-2012 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
 import os,sys
@@ -48,16 +48,23 @@ def parse_dualog(dualog, limit):
     reLoaded = re.compile("Loaded: (\d*)")
     reRunning = re.compile("Running: (\d*)")
     reWaiting = re.compile("Waiting: (\d*)")
-    reFrom = re.compile("from '([^']*)'")
+    reFrom = re.compile("from '([^']*)'") # mesosim
     teleports = 0
     emitted = None
     loaded = None
     running = None
     waiting = None
+    haveMicrosim = None
     counts = defaultdict(lambda:0)
     for line in open(dualog):
         try:
             if "Warning: Teleporting vehicle" in line:
+                if haveMicrosim is None:
+                    if "lane='" in line:
+                        haveMicrosim = True
+                        reFrom = re.compile("lane='([^']*)'") 
+                    else:
+                        haveMicrosim = False
                 teleports += 1
                 edge = reFrom.search(line).group(1)
                 if ':' in edge: # mesosim output

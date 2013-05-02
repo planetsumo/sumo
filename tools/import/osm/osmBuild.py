@@ -10,7 +10,7 @@
 Retrieves an area from OpenStreetMap.
 
 SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2009-2012 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
 
@@ -39,6 +39,9 @@ def build(args=None, bindir=os.environ.get('SUMO_BINDIR','')):
     (options, args) = optParser.parse_args(args=args)
     netconvert = path.join(bindir, 'netconvert')
     polyconvert = path.join(bindir, 'polyconvert')
+
+    if not os.path.isfile(netconvert):
+        optParser.error("netconvert executable '%s' not found" % netconvert)
 
     if ((options.oldapi_prefix and options.osm_file) or
             not (options.oldapi_prefix or options.osm_file)):
