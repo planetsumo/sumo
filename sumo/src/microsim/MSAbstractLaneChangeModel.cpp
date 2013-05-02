@@ -143,9 +143,8 @@ MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
     //    << " " << myVehicle.getID() << " continueLaneChangeManeuver myLane=" << myVehicle.getLane()->getID() << " completion=" << myLaneChangeCompletion << "\n";
     myLaneChangeCompletion += (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration;
     //std::cout << getID() << " continues lane change (completion=" << myLaneChangeCompletion << ")\n";
-    //if (!myLaneChangeMidpointPassed && myLaneChangeCompletion >= 
-    //        myVehicle.getLane()->getWidth() / (myVehicle.getLane()->getWidth() + myShadowLane->getWidth())) {
-    if (!myLaneChangeMidpointPassed && myLaneChangeCompletion >= 0.5) {
+    if (!myLaneChangeMidpointPassed && myLaneChangeCompletion >= 
+            myVehicle.getLane()->getWidth() / (myVehicle.getLane()->getWidth() + myShadowLane->getWidth())) {
         //std::cout << "     midpoint reached\n";
         // maneuver midpoint reached, swap myLane and myShadowLane
         myLaneChangeMidpointPassed = true;
@@ -176,14 +175,14 @@ MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
         myAlreadyMoved = true;
     } 
     // remove shadow as soon as the vehicle leaves the original lane geometrically
-    //if (myLaneChangeMidpointPassed && myHaveShadow) {
-    //    const SUMOReal sourceHalfWidth = myShadowLane->getWidth() / 2.0;
-    //    const SUMOReal targetHalfWidth = myVehicle.getLane()->getWidth() / 2.0;
-    //    if (myLaneChangeCompletion * (sourceHalfWidth + targetHalfWidth) - myVehicle.getVehicleType().getWidth() / 2.0 > sourceHalfWidth) {
-    //        std::cout << " removing shadow of " << myVehicle.getID() << " at completion " << myLaneChangeCompletion << "\n";
-    //        removeLaneChangeShadow();
-    //    }
-    //}
+    if (myLaneChangeMidpointPassed && myHaveShadow) {
+        const SUMOReal sourceHalfWidth = myShadowLane->getWidth() / 2.0;
+        const SUMOReal targetHalfWidth = myVehicle.getLane()->getWidth() / 2.0;
+        if (myLaneChangeCompletion * (sourceHalfWidth + targetHalfWidth) - myVehicle.getVehicleType().getWidth() / 2.0 > sourceHalfWidth) {
+            //std::cout << " removing shadow of " << myVehicle.getID() << " at completion " << myLaneChangeCompletion << "\n";
+            removeLaneChangeShadow();
+        }
+    }
     // finish maneuver
     if (!isChangingLanes()) {
         //std::cout << "     finished\n";
