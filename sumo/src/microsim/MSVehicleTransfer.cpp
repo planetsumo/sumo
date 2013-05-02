@@ -57,7 +57,6 @@ const SUMOReal MSVehicleTransfer::TeleportMinSpeed = 1;
 // ===========================================================================
 void
 MSVehicleTransfer::addVeh(const SUMOTime t, MSVehicle* veh) {
-    veh->getLaneChangeModel().removeLaneChangeShadow();
     veh->getLaneChangeModel().endLaneChangeManeuver();
     if (veh->isParking()) {
         veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_PARKING);

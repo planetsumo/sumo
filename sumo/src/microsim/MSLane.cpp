@@ -698,7 +698,12 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
                 WRITE_WARNING("Shadow of vehicle '" + vehV->getID() + "'; collision with '"
                               + (*pred)->getID() + "', lane='" + getID() + "', gap=" + toString(gap)
                               + ", time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + " stage=" + toString(stage) + ".");
-                ++veh;
+                veh = myVehicles.erase(veh); // remove current vehicle
+                lastVeh = myVehicles.end() - 1;
+                vehV->getLaneChangeModel().endLaneChangeManeuver();
+                if (veh == myVehicles.end()) {
+                    break;
+                }
             }
         } else {
             ++veh;

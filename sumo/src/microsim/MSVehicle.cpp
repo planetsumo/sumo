@@ -1062,7 +1062,6 @@ MSVehicle::executeMove() {
                             // abort lane change
                             WRITE_WARNING("Vehicle '" + getID() + "' could not finish continuous lane change (turn lane) time=" + 
                                     time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-                            getLaneChangeModel().removeLaneChangeShadow();
                             getLaneChangeModel().endLaneChangeManeuver();
                         }
                     }

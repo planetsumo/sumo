@@ -50,6 +50,7 @@ MSAbstractLaneChangeModel::MSAbstractLaneChangeModel(MSVehicle& v) :
     myLaneChangeMidpointPassed(false),
     myAlreadyMoved(false),
     myShadowLane(0),
+    myHaveShadow(false),
 #ifndef NO_TRACI
     myChangeRequest(MSVehicle::REQUEST_NONE),
 #endif
@@ -103,6 +104,7 @@ MSAbstractLaneChangeModel::startLaneChangeManeuver(MSLane* source, MSLane* targe
         //std::cout << getID() << " started continuous lane change\n";
         myLaneChangeCompletion = 0;
         myShadowLane = target;
+        myHaveShadow = true;
         myLaneChangeMidpointPassed = false;
         myLaneChangeDirection = direction;
         continueLaneChangeManeuver(false);
@@ -121,7 +123,7 @@ MSAbstractLaneChangeModel::startLaneChangeManeuver(MSLane* source, MSLane* targe
 
 void 
 MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
-    if (moved && myShadowLane != 0) {
+    if (moved && myHaveShadow) {
         // move shadow to next lane
         removeLaneChangeShadow();
         const int shadowDirection = myLaneChangeMidpointPassed ? -myLaneChangeDirection : myLaneChangeDirection;
@@ -130,15 +132,20 @@ MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
             // abort lane change
             WRITE_WARNING("Vehicle '" + myVehicle.getID() + "' could not finish continuous lane change (lane disappeared) time=" + 
                     time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-            myLaneChangeCompletion = 1;
+            endLaneChangeManeuver();
             return;
         }
+        myHaveShadow = true;
+        //std::cout << time2string(MSNet::getInstance()->getCurrentTimeStep())
+        //    << " " << myVehicle.getID() << " new shadow lane: " << myShadowLane->getID() << " completion=" << myLaneChangeCompletion << "\n";
     }
     //std::cout << time2string(MSNet::getInstance()->getCurrentTimeStep())
     //    << " " << myVehicle.getID() << " continueLaneChangeManeuver myLane=" << myVehicle.getLane()->getID() << " completion=" << myLaneChangeCompletion << "\n";
     myLaneChangeCompletion += (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration;
     //std::cout << getID() << " continues lane change (completion=" << myLaneChangeCompletion << ")\n";
-    if (myLaneChangeCompletion >= 0.5 and !myLaneChangeMidpointPassed) {
+    //if (!myLaneChangeMidpointPassed && myLaneChangeCompletion >= 
+    //        myVehicle.getLane()->getWidth() / (myVehicle.getLane()->getWidth() + myShadowLane->getWidth())) {
+    if (!myLaneChangeMidpointPassed && myLaneChangeCompletion >= 0.5) {
         //std::cout << "     midpoint reached\n";
         // maneuver midpoint reached, swap myLane and myShadowLane
         myLaneChangeMidpointPassed = true;
@@ -168,22 +175,32 @@ MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
         changed();
         myAlreadyMoved = true;
     } 
+    // remove shadow as soon as the vehicle leaves the original lane geometrically
+    //if (myLaneChangeMidpointPassed && myHaveShadow) {
+    //    const SUMOReal sourceHalfWidth = myShadowLane->getWidth() / 2.0;
+    //    const SUMOReal targetHalfWidth = myVehicle.getLane()->getWidth() / 2.0;
+    //    if (myLaneChangeCompletion * (sourceHalfWidth + targetHalfWidth) - myVehicle.getVehicleType().getWidth() / 2.0 > sourceHalfWidth) {
+    //        std::cout << " removing shadow of " << myVehicle.getID() << " at completion " << myLaneChangeCompletion << "\n";
+    //        removeLaneChangeShadow();
+    //    }
+    //}
+    // finish maneuver
     if (!isChangingLanes()) {
         //std::cout << "     finished\n";
         assert(myLaneChangeMidpointPassed);
-        // @todo leave the source lane as soon as the vehicle no longer intersects it
-        //       physically (considering lane width and vehicle width)
-        myShadowLane->removeVehicle(&myVehicle, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-        myShadowLane = 0;
-        myLaneChangeCompletion = 1; // only for prettiness
+        endLaneChangeManeuver();
     }
 }
 
 
 void 
 MSAbstractLaneChangeModel::removeLaneChangeShadow() {
-    if (isChangingLanes() && myShadowLane != 0) {
+    //std::cout << time2string(MSNet::getInstance()->getCurrentTimeStep())
+    //    << " " << myVehicle.getID() << " trying to remove shadow for vehicle on lane=" << myVehicle.getLane()->getID() << " completion=" << myLaneChangeCompletion << "\n";
+    if (myShadowLane != 0 && myHaveShadow) {
+    //    std::cout << time2string(MSNet::getInstance()->getCurrentTimeStep())
+    //        << " " << myVehicle.getID() << " removed shadow from lane=" << myShadowLane->getID() << " completion=" << myLaneChangeCompletion << "\n";
         myShadowLane->removeVehicle(&myVehicle, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-        myShadowLane = 0;
+        myHaveShadow = false;
     }
 }

@@ -284,6 +284,7 @@ public:
     /* @brief finish the lane change maneuver
      */
     inline void endLaneChangeManeuver() {
+        removeLaneChangeShadow();
         myLaneChangeCompletion = 1;
         myShadowLane = 0;
     }
@@ -343,8 +344,11 @@ protected:
     /// @brief whether the vehicle has already moved this step
     bool myAlreadyMoved;
 
-    /// The lane the vehicle shadow is on during a continuous lane change
+    /// @brief The lane the vehicle shadow is on during a continuous lane change
     MSLane* myShadowLane;
+
+    /// Wether a vehicle shadow exists
+    bool myHaveShadow;
 
 #ifndef NO_TRACI
     MSVehicle::ChangeRequest myChangeRequest;
