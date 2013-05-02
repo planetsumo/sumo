@@ -37,6 +37,7 @@
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/StdDefs.h>
 #include "MSVehicle.h"
+#include "MSAbstractLaneChangeModel.h"
 #include "MSNet.h"
 #include "MSVehicleType.h"
 #include "MSEdge.h"
@@ -686,8 +687,6 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
                               + (*pred)->getID() + "', lane='" + getID() + "', gap=" + toString(gap)
                               + ", time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + " stage=" + toString(stage) + ".");
                 MSNet::getInstance()->getVehicleControl().registerCollision();
-                vehV->removeLaneChangeShadow();
-                vehV->endLaneChangeManeuver();
                 myVehicleLengthSum -= vehV->getVehicleType().getLengthWithGap();
                 MSVehicleTransfer::getInstance()->addVeh(timestep, vehV);
                 veh = myVehicles.erase(veh); // remove current vehicle
@@ -712,9 +711,9 @@ bool
 MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
     for (VehCont::iterator i = myVehicles.begin(); i != myVehicles.end();) {
         MSVehicle* veh = *i;
-        if (veh->getLane() != this || veh->alreadyMoved()) {
+        if (veh->getLane() != this || veh->getLaneChangeModel().alreadyMoved()) {
             // this is the shadow during a continuous lane change
-            //std::cout << " skipping shadow of " << veh->getID() << " on lane " << getID() << "\n";
+            //std::cout << STEPS2TIME(t) << " skipping shadow of " << veh->getID() << " on lane " << getID() << "\n";
             ++i;
             continue;
         }
@@ -726,13 +725,11 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
         MSLane* target = veh->getLane();
         if (veh->hasArrived()) {
             // vehicle has reached its arrival position
-            veh->removeLaneChangeShadow();
             veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_ARRIVED);
             MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
         } else if (target != 0 && moved) {
             if (target->getEdge().isVaporizing()) {
                 // vehicle has reached a vaporizing edge
-                veh->removeLaneChangeShadow();
                 veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_VAPORIZED);
                 MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
             } else {
@@ -742,22 +739,22 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
                 SUMOReal oldPos = veh->getPositionOnLane() - SPEED2DIST(veh->getSpeed());
                 veh->workOnMoveReminders(oldPos, veh->getPositionOnLane(), pspeed);
                 into.push_back(target);
-                if (veh->isChangingLanes()) {
-                    MSLane* shadowLane = veh->getShadowLane();
-                    into.push_back(shadowLane);
-                    shadowLane->myVehBuffer.push_back(veh);
+                if (veh->getLaneChangeModel().isChangingLanes()) {
+                    MSLane* shadowLane = veh->getLaneChangeModel().getShadowLane();
+                    if (shadowLane != 0) {
+                        into.push_back(shadowLane);
+                        shadowLane->myVehBuffer.push_back(veh);
+                    }
                 }
             }
         } else if (veh->isParking()) {
             // vehicle started to park
-            veh->removeLaneChangeShadow();
             veh->leaveLane(MSMoveReminder::NOTIFICATION_JUNCTION);
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         } else if (veh->getPositionOnLane() > getLength()) {
             // for any reasons the vehicle is beyond its lane... error
             WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; beyond lane (2), targetLane='" + getID() + "', time=" + 
                     time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-            veh->removeLaneChangeShadow();
             MSNet::getInstance()->getVehicleControl().registerTeleport();
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         } else {

@@ -343,14 +343,6 @@ public:
     }
 
 
-    /** @brief Returns the lane the vehicles shadow is on during continuouss lane change
-     * @return The vehicle's shadow lane
-     */
-    MSLane* getShadowLane() const {
-        return myShadowLane;
-    }
-
-
     /** @brief Returns the information whether the vehicle is on a road (is simulated)
      * @return Whether the vehicle is simulated
      */
@@ -446,36 +438,6 @@ public:
     void enterLaneAtLaneChange(MSLane* enteredLane);
 
 
-    /// @brief start the lane change maneuver and return whether it continues
-    bool startLaneChangeManeuver(MSLane* source, MSLane* target, int direction);
-
-    /* @brief continue the lane change maneuver
-     * @param[in] moved Whether the vehicle has moved to a new lane
-     */
-    void continueLaneChangeManeuver(bool moved);
-
-
-    /* @brief finish the lane change maneuver
-     */
-    inline void endLaneChangeManeuver() {
-        myLaneChangeCompletion = 1;
-    }
-
-    /// @brief remove the shadow copy of a lane change maneuver
-    void removeLaneChangeShadow();
-
-    /// @brief return true if the vehicle currently performs a lane change maneuver
-    inline bool isChangingLanes() const {
-        return myLaneChangeCompletion < (1 - NUMERICAL_EPS);
-    }
-
-
-    /* @brief return whether the vehicle already moved this step.
-     * This is to avoid double moves during lane changing */
-    inline bool alreadyMoved() const {
-        return myAlreadyMoved;
-    }
-
     /** @brief Update of members if vehicle leaves a new lane in the lane change step or at arrival. */
     void leaveLane(const MSMoveReminder::Notification reason);
 
@@ -538,7 +500,14 @@ public:
      * @todo Describe better
      */
     const std::vector<MSLane*>& getBestLanesContinuation(const MSLane* const l) const;
+
+
+    /// @brief repair errors in bestLanes after changing between internal edges
+    bool fixContinuations();
     /// @}
+
+    /// @brief repair errors in vehicle position after changing between internal edges
+    bool fixPosition();
 
 
     /** @brief Replaces the current vehicle type by the one given
@@ -790,8 +759,6 @@ public:
     /// @}
 
 
-
-
 #ifndef NO_TRACI
     /** @brief Returns the uninfluenced velocity
      *
@@ -961,9 +928,6 @@ protected:
     void setBlinkerInformation();
 
 
-    /// @brief information how long ago the vehicle has performed a lane-change
-    SUMOTime myLastLaneChangeOffset;
-
     /// @brief The time the vehicle waits (is not faster than 0.1m/s) in seconds
     SUMOTime myWaitingTime;
 
@@ -979,8 +943,6 @@ protected:
 
     /// The lane the vehicle is on
     MSLane* myLane;
-    /// The lane the vehicle shadow is on during a continuous lane change
-    MSLane* myShadowLane;
 
     MSAbstractLaneChangeModel* myLaneChangeModel;
 
@@ -1011,18 +973,6 @@ protected:
     bool myAmRegisteredAsWaitingForPerson;
 
     bool myHaveToWaitOnNextLink;
-
-    /// @brief progress of the lane change maneuver 0:started, 1:complete
-    SUMOReal myLaneChangeCompletion;
-
-    /// @brief direction of the lane change -1 means right, 1 means left
-    int myLaneChangeDirection;
-
-    /// @brief whether myLane has already been set to the target of the lane-change maneuver
-    bool myLaneChangeMidpointPassed;
-
-    /// @brief whether the vehicle has already moved this step
-    bool myAlreadyMoved;
 
 protected:
     struct DriveProcessItem {

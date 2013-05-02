@@ -137,8 +137,9 @@ MSLaneChanger::change() {
         int bla = 0;
     }
 #endif
-    if (vehicle->isChangingLanes() || vehicle->getLane() != (*myCandi).lane) {
-        // changing vehicles or shadows are not eligible
+    //std::cout << "checking for lane change of " << vehicle->getID() << " on " << (*myCandi).lane->getID() << "\n";
+    if (vehicle->getLane() != (*myCandi).lane || vehicle->getLaneChangeModel().isChangingLanes()) {
+        // vehicles shadows and changing vehicles are not eligible
         registerUnchanged(vehicle);
         return false;
     }
@@ -267,9 +268,7 @@ MSLaneChanger::change() {
                     prohibitor->enterLaneAtLaneChange(myCandi->lane);
                     // mark lane change
                     vehicle->getLaneChangeModel().changed();
-                    vehicle->myLastLaneChangeOffset = 0;
                     prohibitor->getLaneChangeModel().changed();
-                    prohibitor->myLastLaneChangeOffset = 0;
                     (myCandi)->dens += prohibitor->getVehicleType().getLengthWithGap();
                     (target)->dens += vehicle->getVehicleType().getLengthWithGap();
                     return true;
@@ -285,7 +284,7 @@ MSLaneChanger::change() {
 void 
 MSLaneChanger::registerUnchanged(MSVehicle* vehicle) {
     myCandi->lane->myTmpVehicles.push_front(veh(myCandi));
-    vehicle->myLastLaneChangeOffset += DELTA_T;
+    vehicle->getLaneChangeModel().unchanged();
     (myCandi)->dens += vehicle->getVehicleType().getLengthWithGap();
 }
 
@@ -297,7 +296,7 @@ MSLaneChanger::startChange(MSVehicle* vehicle, ChangerIt& from, int direction) {
     // @todo delay entering the target lane until the vehicle intersects it
     //       physically (considering lane width and vehicle width)
     to->lane->myTmpVehicles.push_front(vehicle);
-    const bool continuous = vehicle->startLaneChangeManeuver(from->lane, to->lane, direction);
+    const bool continuous = vehicle->getLaneChangeModel().startLaneChangeManeuver(from->lane, to->lane, direction);
     if (continuous) {
         from->lane->myTmpVehicles.push_front(veh(myCandi));
         from->dens += vehicle->getVehicleType().getLengthWithGap();

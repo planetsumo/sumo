@@ -273,11 +273,9 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
                      SUMOReal speedFactor,
                      int /*vehicleIndex*/) :
     MSBaseVehicle(pars, route, type, speedFactor),
-    myLastLaneChangeOffset(0),
     myWaitingTime(0),
     myState(0, 0), //
     myLane(0),
-    myShadowLane(0),
     myLastBestLanesEdge(0),
     myPersonDevice(0),
     myAcceleration(0),
@@ -285,10 +283,6 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
     myAmOnNet(false),
     myAmRegisteredAsWaitingForPerson(false),
     myHaveToWaitOnNextLink(false),
-    myLaneChangeCompletion(1.0),
-    myLaneChangeDirection(0),
-    myLaneChangeMidpointPassed(false),
-    myAlreadyMoved(false),
     myEdgeWeights(0)
 #ifndef NO_TRACI
     , myInfluencer(0)
@@ -467,11 +461,11 @@ MSVehicle::getPosition() const {
     }
     Position result = myLane->getShape().positionAtLengthPosition(
             myLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
-    if (isChangingLanes()) {
-        const Position other = myShadowLane->getShape().positionAtLengthPosition(
-                myShadowLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
-        Line line = myLaneChangeMidpointPassed ?  Line(other, result) : Line(result, other);
-        return line.getPositionAtDistance(myLaneChangeCompletion * line.length());
+    if (getLaneChangeModel().isChangingLanes()) {
+        const Position other = getLaneChangeModel().getShadowLane()->getShape().positionAtLengthPosition(
+                getLaneChangeModel().getShadowLane()->interpolateLanePosToGeometryPos(getPositionOnLane()));
+        Line line = getLaneChangeModel().isLaneChangeMidpointPassed() ?  Line(other, result) : Line(result, other);
+        return line.getPositionAtDistance(getLaneChangeModel().getLaneChangeCompletion() * line.length());
     } 
     return result;
 }
@@ -486,9 +480,9 @@ MSVehicle::getAngle() const {
     SUMOReal result = (p1 != p2 ?
             atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / PI :
             -myLane->getShape().rotationDegreeAtLengthPosition(getPositionOnLane()));
-    if (isChangingLanes()) {
-        const SUMOReal angleOffset = 30 * (myLaneChangeMidpointPassed ? 1 - myLaneChangeCompletion : myLaneChangeCompletion);
-        result += myLaneChangeDirection * angleOffset;
+    if (getLaneChangeModel().isChangingLanes()) {
+        const SUMOReal angleOffset = 30 * (getLaneChangeModel().isLaneChangeMidpointPassed() ? 1 - getLaneChangeModel().getLaneChangeCompletion() : getLaneChangeModel().getLaneChangeCompletion());
+        result += getLaneChangeModel().getLaneChangeDirection() * angleOffset;
     }
     return result;
 }
@@ -778,14 +772,15 @@ MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal leng
         }
         //std::cout << "      next lane " << (*link)->getViaLaneOrLane()->getID() << "\n";
         // check whether we need to slow down in order to finish a continuous lane change
-        if (isChangingLanes()) {
+        if (getLaneChangeModel().isChangingLanes()) {
             //std::cout << std::setprecision(20);
             //std::cout << getID() << " computing slowDown completion=" << myLaneChangeCompletion << ")\n";
             if (    // slow down to finish lane change before a turn lane
                     ((*link)->getDirection() == LINKDIR_LEFT || (*link)->getDirection() == LINKDIR_RIGHT) ||
                     // slow down to finish lane change before the shadow lane ends
-                    (myLaneChangeMidpointPassed && (*link)->getViaLaneOrLane()->getParallelLane(-myLaneChangeDirection) == 0)) {
-                const SUMOReal timeRemaining = STEPS2TIME((1 - myLaneChangeCompletion) * MSGlobals::gLaneChangeDuration);
+                    (getLaneChangeModel().isLaneChangeMidpointPassed() && 
+                    (*link)->getViaLaneOrLane()->getParallelLane(-getLaneChangeModel().getLaneChangeDirection()) == 0)) {
+                const SUMOReal timeRemaining = STEPS2TIME((1 - getLaneChangeModel().getLaneChangeCompletion()) * MSGlobals::gLaneChangeDuration);
                 const SUMOReal va = seen / timeRemaining;
                 //std::cout << getID() << " slows down to at most " << va << " to finish continuous lane change\n";
                 v = MIN2(va, v);
@@ -868,7 +863,7 @@ MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal leng
         seen += lane->getLength();
     }
     checkRewindLinkLanes(lengthsInFront);
-    myAlreadyMoved = false;
+    getLaneChangeModel().resetMoved();
 }
 
 
@@ -1062,13 +1057,13 @@ MSVehicle::executeMove() {
                     assert(myState.myPos > 0);
                     enterLaneAtMove(approachedLane);
                     myLane = approachedLane;
-                    if (isChangingLanes()) {
+                    if (getLaneChangeModel().isChangingLanes()) {
                         if (link->getDirection() == LINKDIR_LEFT || link->getDirection() == LINKDIR_RIGHT) {
                             // abort lane change
                             WRITE_WARNING("Vehicle '" + getID() + "' could not finish continuous lane change (turn lane) time=" + 
                                     time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-                            removeLaneChangeShadow();
-                            myLaneChangeCompletion = 1;
+                            getLaneChangeModel().removeLaneChangeShadow();
+                            getLaneChangeModel().endLaneChangeManeuver();
                         }
                     }
 #ifdef HAVE_INTERNAL_LANES
@@ -1109,8 +1104,8 @@ MSVehicle::executeMove() {
                 ++i;
             }
         }
-        if (isChangingLanes()) {
-            continueLaneChangeManeuver(moved);
+        if (getLaneChangeModel().isChangingLanes()) {
+            getLaneChangeModel().continueLaneChangeManeuver(moved);
         }
         setBlinkerInformation();
     }
@@ -1734,6 +1729,26 @@ MSVehicle::getBestLanesContinuation(const MSLane* const l) const {
 }
 
 
+bool 
+MSVehicle::fixContinuations() {
+    std::vector<MSLane*>& bestLaneConts = (*myCurrentLaneInBestLanes).bestContinuations;
+    if (myLane->getLinkCont()[0]->getLane() != bestLaneConts[1]) {
+        bestLaneConts.erase(bestLaneConts.begin() + 1, bestLaneConts.end());
+        return true;
+    }
+    return false;
+}
+
+
+bool 
+MSVehicle::fixPosition() {
+    if (getPositionOnLane() > myLane->getLength()) {
+        myState.myPos = myLane->getLength();
+        return true;
+    }
+    return false;
+}
+
 
 SUMOReal
 MSVehicle::getDistanceToPosition(SUMOReal destPos, const MSEdge* destEdge) {
@@ -1861,104 +1876,6 @@ unsigned int
 MSVehicle::getLaneIndex() const {
     std::vector<MSLane*>::const_iterator laneP = std::find((*myCurrEdge)->getLanes().begin(), (*myCurrEdge)->getLanes().end(), myLane);
     return (unsigned int) std::distance((*myCurrEdge)->getLanes().begin(), laneP);
-}
-
-
-bool 
-MSVehicle::startLaneChangeManeuver(MSLane* source, MSLane* target, int direction) {
-    target->enteredByLaneChange(this);
-    if (MSGlobals::gLaneChangeDuration > DELTA_T) {
-        //std::cout << getID() << " started continuous lane change\n";
-        myLaneChangeCompletion = 0;
-        myShadowLane = target;
-        myLaneChangeMidpointPassed = false;
-        myLaneChangeDirection = direction;
-        continueLaneChangeManeuver(false);
-        return true;
-    } else {
-        //std::cout << getID() << " performed instant lane change\n";
-        leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-        source->leftByLaneChange(this);
-        enterLaneAtLaneChange(target);
-        myLastLaneChangeOffset = 0;
-        getLaneChangeModel().changed();
-        return false;
-    }
-}
-
-
-void 
-MSVehicle::continueLaneChangeManeuver(bool moved) {
-    //std::cout << time2string(MSNet::getInstance()->getCurrentTimeStep())
-    //    << " " << getID() << " continueLaneChangeManeuver myLane=" << myLane->getID() << " completion=" << myLaneChangeCompletion << " moved=" << moved << "\n";
-    if (moved) {
-        // move shadow to next lane
-        removeLaneChangeShadow();
-        const int shadowDirection = myLaneChangeMidpointPassed ? -myLaneChangeDirection : myLaneChangeDirection;
-        MSLane* shadowCandidate = myLane->getParallelLane(shadowDirection);
-        if (shadowCandidate == 0) {
-            // abort lane change
-            WRITE_WARNING("Vehicle '" + getID() + "' could not finish continuous lane change (lane disappeared) time=" + 
-                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-            myLaneChangeCompletion = 1;
-            return;
-        } else {
-            myShadowLane = shadowCandidate;
-        }
-    }
-    myLaneChangeCompletion += (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration;
-    //std::cout << getID() << " continues lane change (completion=" << myLaneChangeCompletion << ")\n";
-    if (myLaneChangeCompletion >= 0.5 and !myLaneChangeMidpointPassed) {
-        //std::cout << "     midpoint reached\n";
-        // maneuver midpoint reached, swap myLane and myShadowLane
-        myLaneChangeMidpointPassed = true;
-        MSLane* tmp = myLane;
-        //std::cout << getID() << " before myLane=" << myLane->getID() << " myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
-        leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-        enterLaneAtLaneChange(myShadowLane);
-        myShadowLane = tmp;
-        //std::cout << getID() << " after enterLaneAtLaneChange myLane=" << myLane->getID() << " myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
-        if (myLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
-            // internal lanes do not appear in bestLanes so we need to update
-            // myCurrentLaneInBestLanes explicitly
-            getBestLanes(false, myLane->getLogicalPredecessorLane());
-            //std::cout << getID() << " after manual update myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
-
-            std::vector<MSLane*>& bestLaneConts = (*myCurrentLaneInBestLanes).bestContinuations;
-            if (myLane->getLinkCont()[0]->getLane() != bestLaneConts[1]) {
-                WRITE_WARNING("vehicle '" + getID() + "' could not reconstruct bestLanes when changing lanes on lane '" + myLane->getID() + " time=" 
-                        + time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-                bestLaneConts.erase(bestLaneConts.begin() + 1, bestLaneConts.end());
-            }
-        }
-        if (getPositionOnLane() > myLane->getLength()) {
-            WRITE_WARNING("vehicle '" + getID() + "' set back by " + toString(getPositionOnLane() - myLane->getLength()) + 
-                    "m when changing lanes on lane '" + myLane->getID() + " time=" + 
-                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-            myState.myPos = myLane->getLength();
-        }
-        //std::cout << "after leaveLane myCurrentLaneInBestLanes=" << (*myCurrentLaneInBestLanes).lane->getID() << "\n";
-        myLastLaneChangeOffset = 0;
-        getLaneChangeModel().changed();
-        myAlreadyMoved = true;
-    } else if (!isChangingLanes()) {
-        //std::cout << "     finished\n";
-        assert(myLaneChangeMidpointPassed);
-        // @todo leave the source lane as soon as the vehicle no longer intersects it
-        //       physically (considering lane width and vehicle width)
-        myShadowLane->removeVehicle(this, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-        myShadowLane = 0;
-        myLaneChangeCompletion = 1; // only for prettiness
-    }
-}
-
-
-void 
-MSVehicle::removeLaneChangeShadow() {
-    if (isChangingLanes()) {
-        myShadowLane->removeVehicle(this, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-        myShadowLane = 0;
-    }
 }
 
 
