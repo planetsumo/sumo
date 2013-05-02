@@ -9,7 +9,7 @@
 // Exporter writing networks using XML (native input) format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -156,7 +156,7 @@ NWWriter_XML::writeEdgesAndConnections(const OptionsCont& oc, NBNodeCont& nc, NB
             edevice.writeAttr(SUMO_ATTR_TYPE, e->getTypeID());
         }
         edevice.writeAttr(SUMO_ATTR_NUMLANES, e->getNumLanes());
-        if (!e->hasLaneSpecificSpeed()) { 
+        if (!e->hasLaneSpecificSpeed()) {
             edevice.writeAttr(SUMO_ATTR_SPEED, e->getSpeed());
         }
         // write non-default geometry

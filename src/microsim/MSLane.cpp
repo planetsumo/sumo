@@ -13,7 +13,7 @@
 // Representation of a lane in the micro simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -647,7 +647,7 @@ MSLane::getLastVehicleInformation() const {
 
 // ------  ------
 bool
-MSLane::moveCritical(SUMOTime t) {
+MSLane::planMovements(SUMOTime t) {
     myLeftVehLength = myVehicleLengthSum;
     assert(myVehicles.size() != 0);
     std::vector<MSVehicle*> collisions;
@@ -658,11 +658,11 @@ MSLane::moveCritical(SUMOTime t) {
         myLeftVehLength -= (*veh)->getVehicleType().getLengthWithGap();
         VehCont::const_iterator pred(veh + 1);
         assert((*veh)->getLane() == this);
-        (*veh)->move(t, *pred, 0, myLeftVehLength);
+        (*veh)->planMove(t, *pred, 0, myLeftVehLength);
     }
     myLeftVehLength -= (*veh)->getVehicleType().getLengthWithGap();
     assert((*veh)->getLane() == this);
-    (*veh)->move(t, 0, 0, myLeftVehLength);
+    (*veh)->planMove(t, 0, 0, myLeftVehLength);
     assert((*veh)->getPositionOnLane() <= myLength);
     assert((*veh)->getLane() == this);
     return myVehicles.size() == 0;
@@ -700,11 +700,11 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
 
 
 bool
-MSLane::setCritical(SUMOTime t, std::vector<MSLane*>& into) {
+MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
     // move critical vehicles
     for (VehCont::iterator i = myVehicles.begin(); i != myVehicles.end();) {
         MSVehicle* veh = *i;
-        bool moved = veh->moveChecked();
+        bool moved = veh->executeMove();
         MSLane* target = veh->getLane();
         SUMOReal length = veh->getVehicleType().getLengthWithGap();
         if (veh->hasArrived()) {

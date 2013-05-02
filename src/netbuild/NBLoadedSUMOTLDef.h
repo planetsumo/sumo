@@ -8,7 +8,7 @@
 // since NBLoadedTLDef is quite vissim specific)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -126,7 +126,7 @@ protected:
     /** @brief Collects the links participating in this traffic light
      *    (only if not previously loaded)
      */
-    void collectLinks(); 
+    void collectLinks();
 
 
     /** @brief Computes the traffic light logic finally in dependence to the type

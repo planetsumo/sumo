@@ -10,7 +10,7 @@
 // Storage for available visualization settings
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -119,15 +119,6 @@ GUICompleteSchemeStorage::getNumInitialSettings() const {
 }
 
 
-RGBColor
-convert(const FXColor c) {
-    return RGBColor(
-               (SUMOReal) FXREDVAL(c) / (SUMOReal) 255.,
-               (SUMOReal) FXGREENVAL(c) / (SUMOReal) 255.,
-               (SUMOReal) FXBLUEVAL(c) / (SUMOReal) 255.);
-}
-
-
 void
 GUICompleteSchemeStorage::init(FXApp* app) {
     {
@@ -146,7 +137,7 @@ GUICompleteSchemeStorage::init(FXApp* app) {
         GUIVisualizationSettings vs;
         vs.name = "real world";
         vs.vehicleQuality = 2;
-        vs.backgroundColor = RGBColor((SUMOReal) .2, (SUMOReal) .5, (SUMOReal) .2);
+        vs.backgroundColor = RGBColor(51, 128, 51, 255);
         vs.laneShowBorders = true;
         vs.hideConnectors = true;
         vs.minVehicleSize = 0;
@@ -186,7 +177,7 @@ GUICompleteSchemeStorage::init(FXApp* app) {
         }
     }
     myDefaultSettingName = mySortedSchemeNames[0];
-    myX = myY = myZoom = 0;
+    myLookFrom.set(0, 0, 0);
 }
 
 
@@ -215,16 +206,14 @@ GUICompleteSchemeStorage::writeSettings(FXApp* app) {
 
 void
 GUICompleteSchemeStorage::saveViewport(const SUMOReal x, const SUMOReal y, const SUMOReal zoom) {
-    myX = x;
-    myY = y;
-    myZoom = zoom;
+    myLookFrom.set(x, y, zoom);
 }
 
 
 void
 GUICompleteSchemeStorage::setViewport(GUISUMOAbstractView* view) {
-    if (myZoom > 0) {
-        view->setViewport(myZoom, myX, myY);
+    if (myLookFrom.z() > 0) {
+        view->setViewport(myLookFrom, myLookAt);
     } else {
         view->recenterView();
     }

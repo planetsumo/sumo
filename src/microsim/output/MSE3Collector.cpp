@@ -11,7 +11,7 @@
 // A detector of vehicles passing an area between entry/exit points
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -114,6 +114,14 @@ MSE3Collector::MSE3LeaveReminder::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
     return false;
 }
 
+
+bool
+MSE3Collector::MSE3LeaveReminder::notifyLeave(SUMOVehicle& veh, SUMOReal, MSMoveReminder::Notification reason) {
+    if (reason == MSMoveReminder::NOTIFICATION_LANE_CHANGE) {
+        return false;
+    }
+    return true;
+}
 
 /* -------------------------------------------------------------------------
  * MSE3Collector - definitions

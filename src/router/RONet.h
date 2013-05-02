@@ -8,7 +8,7 @@
 // The router's network representation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -31,10 +31,6 @@
 #include <config.h>
 #endif
 
-#include <string>
-#include <set>
-#include <fstream>
-#include <deque>
 #include <vector>
 #include "ROEdge.h"
 #include "RONode.h"
@@ -235,11 +231,16 @@ public:
      * @param[in] flow The parameter of the flow to add
      * @return Whether the flow could be added
      */
-    bool addFlow(SUMOVehicleParameter* flow) {
-        return myFlows.add(flow->id, flow);
-    }
-    // @}
+    bool addFlow(SUMOVehicleParameter* flow, const bool randomize);
 
+
+    /* @brief Adds a person to the network
+     *
+     * @param[in] depart The departure time of the person
+     * @param[in] desc   The xml description of the person
+     */
+    void addPerson(const SUMOTime depart, const std::string desc);
+    // @}
 
 
     /// @name Processing stored vehicle definitions
@@ -270,58 +271,19 @@ public:
 
     /** @brief Opens the output for computed routes
      *
-     * If the second parameter is true, a second file for route alternatives
-     *  will be opened. The route alternatives files is simply the given
-     *  name with ".alt" appended (before the ".xml"-suffix).
-     * If one of the file outputs can not be build, an IOError is thrown
+     * If the second parameter is set, a second file for route alternatives
+     *  will be opened.
+     * If one of the file outputs can not be build, an IOError is thrown.
      *
      * @param[in] filename The (base) name of the file(s) to create
-     * @param[in] useAlternatives Whether a file for writing alternatives shall be created
+     * @param[in] altFilename The name of the file for writing alternatives, "" means no alternatives
      * @param[in] filename The name of the vtype file to create, "" means no separate types
      */
-    void openOutput(const std::string& filename, bool useAlternatives, const std::string& typefilename);
+    void openOutput(const std::string& filename, const std::string altFilename, const std::string typeFilename);
 
 
     /** @brief closes the file output for computed routes */
     void closeOutput();
-
-
-
-
-    /** @brief Returns a random edge which may be used as a starting point
-     *
-     * If the list of possible source (roads with no predecessor, "mySourceEdges") is empty,
-     *  it is tried to be built, first.
-     * @return A random edge from the list of edges with no predecessor
-     */
-    ROEdge* getRandomSource();
-
-
-    /** @brief Returns a random edge which may be used as a starting point
-     *
-     * If the list of possible sources (roads with no predecessor, "mySourceEdges") is empty,
-     *  it is tried to be built, first.
-     * @return A random edge from the list of edges with no predecessor
-     */
-    const ROEdge* getRandomSource() const;
-
-
-    /** @brief Returns a random edge which may be used as an ending point
-     *
-     * If the list of possible destinations (roads with no successor, "myDestinationEdges") is empty,
-     *  it is tried to be built, first.
-     * @return A random edge from the list of edges with no successor
-     */
-    ROEdge* getRandomDestination();
-
-
-    /** @brief Returns a random edge which may be used as an ending point
-     *
-     * If the list of possible destinations (roads with no successor, "myDestinationEdges") is empty,
-     *  it is tried to be built, first.
-     * @return A random edge from the list of edges with no successor
-     */
-    const ROEdge* getRandomDestination() const;
 
 
     /// Returns the number of edges thenetwork contains
@@ -333,22 +295,24 @@ public:
 
     void setRestrictionFound();
 
-	OutputDevice& getRouteOutput() {
-		return *myRoutesOutput;
-	}
+    OutputDevice* getRouteOutput(const bool alternative = false) {
+        if (alternative) {
+            return myRouteAlternativesOutput;
+        }
+        return myRoutesOutput;
+    }
 
 protected:
     bool computeRoute(OptionsCont& options,
                       SUMOAbstractRouter<ROEdge, ROVehicle>& router, const ROVehicle* const veh);
 
-    /// Initialises the lists of source and destination edges
-    void checkSourceAndDestinations() const;
-
-
     /// @brief return vehicles for use by RouteAggregator
     ROVehicleCont& getVehicles() {
         return myVehicles;
     }
+
+
+    void checkFlows(SUMOTime time);
 
 
 protected:
@@ -381,11 +345,12 @@ protected:
     /// @brief Known flows
     NamedObjectCont<SUMOVehicleParameter*> myFlows;
 
-    /// @brief List of source edges
-    mutable std::vector<ROEdge*> mySourceEdges;
+    /// @brief Known persons
+    typedef std::multimap<const SUMOTime, const std::string> PersonMap;
+    PersonMap myPersons;
 
-    /// @brief List of destination edges
-    mutable std::vector<ROEdge*> myDestinationEdges;
+    /// @brief Departure times for randomized flows
+    std::map<std::string, std::vector<SUMOTime> > myDepartures;
 
     /// @brief The file to write the computed routes into
     OutputDevice* myRoutesOutput;

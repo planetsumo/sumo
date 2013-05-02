@@ -10,7 +10,7 @@
 // The car-following model abstraction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -213,7 +213,7 @@ public:
      * @param[in] speed The vehicle itself, for obtaining other values
      * @return The maximum possible speed for the next step
      */
-    virtual SUMOReal maxNextSpeed(SUMOReal speed, const MSVehicle * const veh) const;
+    virtual SUMOReal maxNextSpeed(SUMOReal speed, const MSVehicle* const veh) const;
 
 
     /** @brief Returns the distance the vehicle needs to halt including driver's reaction time

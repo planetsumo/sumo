@@ -11,7 +11,7 @@
 // Container for nodes during the netbuilding process
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -314,8 +314,8 @@ public:
      * @param[out] hasTLS Whether the new node has a traffic light
      * @param[out] tlType The type of traffic light (if any)
      */
-    void analyzeCluster(std::set<NBNode*> cluster, std::string& id, Position& pos, 
-            bool& hasTLS, TrafficLightType& type);
+    void analyzeCluster(std::set<NBNode*> cluster, std::string& id, Position& pos,
+                        bool& hasTLS, TrafficLightType& type);
 
     /// @brief gets all joined clusters (see doc for myClusters2Join)
     void registerJoinedCluster(const std::set<NBNode*>& cluster);
@@ -325,6 +325,11 @@ public:
         return myJoinedClusters;
     }
 
+
+    /* @brief discards traffic lights
+     * @param[in] geometryLike Whether only tls at geometry-like nodes shall be discarded
+     */
+    void discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike);
 
 private:
     /// @name Helper methods for for joining nodes

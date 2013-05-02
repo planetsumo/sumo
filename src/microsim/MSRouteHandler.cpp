@@ -10,7 +10,7 @@
 // Parser and container for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -187,7 +187,7 @@ MSRouteHandler::myStartElement(int element,
                                        myActiveRoute, "for vehicle '" + myVehicleParameter->id + "'");
                 MSEdge::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_TO, myVehicleParameter->id.c_str(), ok),
                                        myActiveRoute, "for vehicle '" + myVehicleParameter->id + "'");
-                closeRoute();
+                closeRoute(true);
             }
             break;
         case SUMO_TAG_TRIP: {
@@ -207,7 +207,7 @@ MSRouteHandler::myStartElement(int element,
                     myActiveRoute.push_back(fromTaz->getFollower(0));
                 }
             }
-            closeRoute();
+            closeRoute(true);
             closeVehicle();
         }
         break;
@@ -329,7 +329,7 @@ MSRouteHandler::myEndElement(int element) {
 
 
 void
-MSRouteHandler::closeRoute() {
+MSRouteHandler::closeRoute(const bool mayBeDisconnected) {
     if (myActiveRoute.size() == 0) {
         delete myActiveRouteColor;
         myActiveRouteColor = 0;
@@ -593,6 +593,7 @@ MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         errorSuffix = " in vehicle '" + myVehicleParameter->id + "'.";
     }
     SUMOVehicleParameter::Stop stop;
+    SUMOVehicleParserHelper::parseStop(stop, attrs);
     // try to parse the assigned bus stop
     stop.busstop = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
     if (stop.busstop != "") {

@@ -10,7 +10,7 @@
 // A basic edge for routing applications
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -360,8 +360,8 @@ public:
         myInterpolate = interpolate;
     }
 
-	/// @brief get edge priority (road class)
-	int getPriority() const {
+    /// @brief get edge priority (road class)
+    int getPriority() const {
         return myPriority;
     }
 
@@ -377,11 +377,17 @@ protected:
 
 
 protected:
-    /// @brief The maximum speed allowed on this edge
-    SUMOReal mySpeed;
+    /// @brief The nodes this edge is connecting
+    RONode* const myFromNode, * const myToNode;
 
     /// @brief The index (numeric id) of the edge
-    unsigned int myIndex;
+    const unsigned int myIndex;
+
+    /// @brief The edge priority (road class)
+    const int myPriority;
+
+    /// @brief The maximum speed allowed on this edge
+    SUMOReal mySpeed;
 
     /// @brief The length of the edge
     SUMOReal myLength;
@@ -411,9 +417,6 @@ protected:
 
     /// @brief List of edges that may be approached from this edge
     std::vector<ROEdge*> myFollowingEdges;
-	
-	/// @brief The edge priority (road class)
-    const int myPriority;
 
 #ifdef HAVE_INTERNAL // catchall for internal stuff
     /// @brief List of edges that approached this edge
@@ -428,9 +431,6 @@ protected:
 
     /// @brief The list of allowed vehicle classes combined across lanes
     SVCPermissions myCombinedPermissions;
-
-    /// @brief The nodes this edge is connecting
-    RONode* myFromNode, *myToNode;
 
     static std::vector<ROEdge*> myEdges;
 

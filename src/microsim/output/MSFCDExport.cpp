@@ -5,7 +5,7 @@
 // Realises dumping Floating Car Data (FCD) Data
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -61,7 +61,7 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
     for (; it != end; ++it) {
         const MSVehicle* veh = static_cast<const MSVehicle*>((*it).second);
         if (veh->isOnRoad()) {
-            MSLane *lane = veh->getLane();
+            MSLane* lane = veh->getLane();
             SUMOReal lp = veh->getPositionOnLane();
             SUMOReal gp = lane->interpolateLanePosToGeometryPos(lp);
             Position pos = lane->getShape().positionAtLengthPosition(gp);

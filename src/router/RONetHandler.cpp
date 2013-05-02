@@ -10,7 +10,7 @@
 // The handler for SUMO-Networks
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -118,7 +118,7 @@ RONetHandler::parseEdge(const SUMOSAXAttributes& attrs) {
     const std::string from = attrs.get<std::string>(SUMO_ATTR_FROM, myCurrentName.c_str(), ok);
     const std::string to = attrs.get<std::string>(SUMO_ATTR_TO, myCurrentName.c_str(), ok);
     const std::string type = attrs.hasAttribute(SUMO_ATTR_FUNCTION) ? attrs.get<std::string>(SUMO_ATTR_FUNCTION, myCurrentName.c_str(), ok) : "";
-	const int priority = attrs.get<int>(SUMO_ATTR_PRIORITY, myCurrentName.c_str(), ok);
+    const int priority = attrs.get<int>(SUMO_ATTR_PRIORITY, myCurrentName.c_str(), ok);
     if (!ok) {
         return;
     }
@@ -248,7 +248,7 @@ RONetHandler::parseDistrict(const SUMOSAXAttributes& attrs) {
     source->setType(ROEdge::ET_DISTRICT);
     myNet.addEdge(source);
     if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
-        std::vector<std::string> desc = StringTokenizer(attrs.getString(SUMO_ATTR_EDGES)).getVector();
+        std::vector<std::string> desc = attrs.getStringVector(SUMO_ATTR_EDGES);
         for (std::vector<std::string>::const_iterator i = desc.begin(); i != desc.end(); ++i) {
             ROEdge* edge = myNet.getEdge(*i);
             // check whether the edge exists

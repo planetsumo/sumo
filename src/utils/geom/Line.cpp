@@ -10,7 +10,7 @@
 // }
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -152,12 +152,6 @@ Line::atan2PositiveAngle() const {
         angle = (SUMOReal) PI * (SUMOReal) 2.0 + angle;
     }
     return angle;
-}
-
-
-SUMOReal
-Line::atan2TiltDegree() const {
-    return (SUMOReal) atan2(myP1.distanceTo2D(myP2), myP1.z() - myP2.z()) * (SUMOReal) 180.0 / (SUMOReal) PI;
 }
 
 

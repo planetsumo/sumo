@@ -9,7 +9,7 @@
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -69,7 +69,6 @@ public:
     SUMOReal atan2Angle() const;
     SUMOReal atan2DegreeAngle() const;
     SUMOReal atan2PositiveAngle() const;
-    SUMOReal atan2TiltDegree() const;
     SUMOReal atan2DegreeSlope() const;
     bool intersects(const Line& l) const;
     Position intersectsAt(const Line& l) const;

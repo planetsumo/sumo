@@ -8,7 +8,7 @@
 // A vehicle as used by router
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -34,17 +34,14 @@
 #include <string>
 #include <iostream>
 #include <utils/common/SUMOTime.h>
-#include <utils/common/RGBColor.h>
 #include <utils/common/SUMOVehicleParameter.h>
 #include <utils/common/SUMOVTypeParameter.h>
 #include <utils/common/UtilExceptions.h>
-#include <utils/common/SUMOAbstractRouter.h>
 
 
 // ===========================================================================
 // class declarations
 // ===========================================================================
-class SUMOVTypeParameter;
 class RORouteDef;
 class OutputDevice;
 class ROEdge;
@@ -64,8 +61,6 @@ public:
      * @param[in] pars Parameter of this vehicle
      * @param[in] route The definition of the route the vehicle shall use
      * @param[in] type The type of the vehicle
-     *
-     * @todo Why is the vehicle builder given?
      */
     ROVehicle(const SUMOVehicleParameter& pars,
               RORouteDef* route, const SUMOVTypeParameter* type);

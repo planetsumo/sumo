@@ -9,7 +9,7 @@
 // The gui-version of the MSInductLoop, together with the according
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -111,7 +111,7 @@ GUIInductLoop::MyWrapper::MyWrapper(GUIInductLoop& detector,
       myDetector(detector), myPosition(pos) {
     const PositionVector& v = wrapper.getShape();
     myFGPosition = v.positionAtLengthPosition(pos);
-    Line l(v.getBegin(), v.getEnd());
+    Line l(v.front(), v.back());
     myBoundary.add(myFGPosition.x() + (SUMOReal) 5.5, myFGPosition.y() + (SUMOReal) 5.5);
     myBoundary.add(myFGPosition.x() - (SUMOReal) 5.5, myFGPosition.y() - (SUMOReal) 5.5);
     myFGRotation = -v.rotationDegreeAtLengthPosition(pos);

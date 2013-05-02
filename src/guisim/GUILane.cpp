@@ -9,7 +9,7 @@
 // Representation of a lane in the micro simulation (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -91,16 +91,16 @@ GUILane::releaseVehicles() const {
 
 
 bool
-GUILane::moveCritical(SUMOTime t) {
+GUILane::planMovements(SUMOTime t) {
     AbstractMutex::ScopedLocker locker(myLock);
-    return MSLane::moveCritical(t);
+    return MSLane::planMovements(t);
 }
 
 
 bool
-GUILane::setCritical(SUMOTime t, std::vector<MSLane*>& into) {
+GUILane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
     AbstractMutex::ScopedLocker locker(myLock);
-    return MSLane::setCritical(t, into);
+    return MSLane::executeMovements(t, into);
 }
 
 

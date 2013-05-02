@@ -10,7 +10,7 @@
 // The representation of a single node
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -434,6 +434,10 @@ public:
     const NBConnectionProhibits& getProhibitions() {
         return myBlockedConnections;
     }
+
+    /** @brief whether this is structurally similar to a geometry node
+     */
+    bool geometryLike() const;
 
     /**
      * @class nodes_by_id_sorter

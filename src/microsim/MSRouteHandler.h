@@ -9,7 +9,7 @@
 // Parser and container for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -105,7 +105,7 @@ protected:
         this method may throw exceptions when
         a) the route is empty or
         b) another route with the same id already exists */
-    void closeRoute();
+    void closeRoute(const bool mayBeDisconnected = false);
 
     /** opens a route distribution for reading */
     void openRouteDistribution(const SUMOSAXAttributes& attrs);

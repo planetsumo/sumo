@@ -9,7 +9,7 @@
 // A list of positions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -150,9 +150,6 @@ public:
     /// Returns the slope at the given length
     SUMOReal slopeDegreeAtLengthPosition(SUMOReal pos) const;
 
-    /// Returns the tilt at the given length
-    SUMOReal tiltDegreeAtLengthPosition(SUMOReal pos) const;
-
     /// Returns the position between the two given point at the specified position */
     static Position positionAtLengthPosition(const Position& p1,
             const Position& p2, SUMOReal pos);
@@ -189,12 +186,6 @@ public:
     /// Returns the information whether this polygon lies partially within the given polygon
     bool partialWithin(const AbstractPoly& poly, SUMOReal offset = 0) const;
 
-    /// Returns the first position
-    const Position& getBegin() const;
-
-    /// Returns the last position
-    const Position& getEnd() const;
-
     /// Returns the two lists made when this list vector is splitted at the given point
     std::pair<PositionVector, PositionVector> splitAt(SUMOReal where) const;
 
@@ -220,6 +211,14 @@ public:
 
     ContType::const_iterator end() const {
         return myCont.end();
+    }
+
+    const Position& front() const {
+        return myCont.front();
+    }
+
+    const Position& back() const {
+        return myCont.back();
     }
 
     PositionVector getSubpart(SUMOReal begin, SUMOReal end) const;
@@ -303,11 +302,11 @@ public:
 
     bool isClosed() const;
 
-	/** @brief Removes positions if too near
-	 * @param[in] minDist The minimum accepted distance; default: POSITION_EPS
-	 * @param[in] assertLength Whether the result must at least contain two points (be a line); default: false, to ensure original behaviour
-	 */
-    void removeDoublePoints(SUMOReal minDist = POSITION_EPS, bool assertLength=false);
+    /** @brief Removes positions if too near
+     * @param[in] minDist The minimum accepted distance; default: POSITION_EPS
+     * @param[in] assertLength Whether the result must at least contain two points (be a line); default: false, to ensure original behaviour
+     */
+    void removeDoublePoints(SUMOReal minDist = POSITION_EPS, bool assertLength = false);
 
     void removeColinearPoints();
 

@@ -13,7 +13,7 @@
 // The simulated network and simulation perfomer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -60,6 +60,7 @@
 #include "MSRoute.h"
 #include <utils/xml/SUMORouteLoaderControl.h>
 #include "trigger/MSTrigger.h"
+#include "trigger/MSCalibrator.h"
 #include "traffic_lights/MSTLLogicControl.h"
 #include "MSVehicleControl.h"
 #include <utils/common/MsgHandler.h>
@@ -379,14 +380,12 @@ MSNet::simulationStep() {
         // assure all lanes with vehicles are 'active'
         myEdges->patchActiveLanes();
 
-        // move vehicles
-        //  precompute possible positions for vehicles that do interact with
-        //   their lane's end
-        myEdges->moveCritical(myStep);
+        // compute safe velocities for all vehicles for the next few lanes
+        // also register ApproachingVehicleInformation for all links
+        myEdges->planMovements(myStep);
 
-        // move vehicles which do interact with their lane's end
-        //  (it is now known whether they may drive
-        myEdges->moveFirst(myStep);
+        // decide right-of-way and execute movements
+        myEdges->executeMovements(myStep);
         if (MSGlobals::gCheck4Accidents) {
             myEdges->detectCollisions(myStep, 1);
         }
@@ -491,6 +490,7 @@ MSNet::clearAll() {
     delete MSVehicleTransfer::getInstance();
     MSDevice_Routing::cleanup();
     MSTrigger::cleanup();
+    MSCalibrator::cleanup();
 }
 
 

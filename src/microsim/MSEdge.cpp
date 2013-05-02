@@ -13,7 +13,7 @@
 // A road/street connecting two junctions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -96,6 +96,9 @@ MSEdge::initialize(std::vector<MSLane*>* lanes) {
     myLanes = lanes;
     if (myLanes && myLanes->size() > 1 && myFunction != EDGEFUNCTION_INTERNAL) {
         myLaneChanger = new MSLaneChanger(myLanes, OptionsCont::getOptions().getBool("lanechange.allow-swap"));
+    }
+    if (myFunction == EDGEFUNCTION_DISTRICT) {
+        myCombinedPermissions = SVCFreeForAll;
     }
 }
 

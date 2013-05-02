@@ -10,7 +10,7 @@
 // A reader of pois and polygons stored in DLR-Navteq (Elmar)-format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -246,7 +246,7 @@ PCLoaderDlrNavteq::loadPolyFile(const std::string& file,
         }
 
         // patch the values
-        bool fill = vec.getBegin() == vec.getEnd();
+        bool fill = vec.front() == vec.back();
         bool discard = oc.getBool("discard");
         int layer = oc.getInt("layer");
         RGBColor color;

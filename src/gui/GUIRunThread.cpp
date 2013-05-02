@@ -9,7 +9,7 @@
 // The thread that runs the simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -73,7 +73,7 @@ GUIRunThread::GUIRunThread(FXApp* app, MFXInterThreadEventClient* parent,
                            FXRealSpinDial& simDelay, MFXEventQue& eq,
                            FXEX::FXThreadEvent& ev)
     : FXSingleEventThread(app, parent),
-      myNet(0), myQuit(false), mySimulationInProgress(false), myOk(true),
+      myNet(0), myHalting(true), myQuit(false), mySimulationInProgress(false), myOk(true),
       mySimDelay(simDelay), myEventQue(eq), myEventThrow(ev) {
     myErrorRetriever = new MsgRetrievingFunction<GUIRunThread>(this, &GUIRunThread::retrieveMessage, MsgHandler::MT_ERROR);
     myMessageRetriever = new MsgRetrievingFunction<GUIRunThread>(this, &GUIRunThread::retrieveMessage, MsgHandler::MT_MESSAGE);

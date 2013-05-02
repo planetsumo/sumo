@@ -13,7 +13,7 @@
 // Container for nodes during the netbuilding process
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -523,7 +523,27 @@ NBNodeCont::joinJunctions(SUMOReal maxdist, NBDistrictCont& dc, NBEdgeCont& ec, 
             }
         }
         if (cluster.size() > 1) {
-            clusters.push_back(cluster);
+            // check for clusters which are to complex and probably won't work very well
+            // we count the incoming edges of the final junction
+            std::set<NBEdge*> finalIncoming;
+            std::vector<std::string> nodeIDs;
+            for (std::set<NBNode*>::const_iterator j = cluster.begin(); j != cluster.end(); ++j) {
+                nodeIDs.push_back((*j)->getID());
+                const EdgeVector& edges = (*j)->getIncomingEdges();
+                for (EdgeVector::const_iterator it_edge = edges.begin(); it_edge != edges.end(); ++it_edge) {
+                    NBEdge* edge = *it_edge;
+                    if (cluster.count(edge->getFromNode()) == 0) {
+                        // incoming edge, does not originate in the cluster
+                        finalIncoming.insert(edge);
+                    }
+                }
+
+            }
+            if (finalIncoming.size() > 4) {
+                WRITE_WARNING("Not joining junctions " + joinToString(nodeIDs, ',') + " because the cluster is to complex");
+            } else {
+                clusters.push_back(cluster);
+            }
         }
     }
     joinNodeClusters(clusters, dc, ec, tlc);
@@ -559,7 +579,7 @@ NBNodeCont::joinNodeClusters(NodeClusters clusters,
         // collect edges
         std::set<NBEdge*> allEdges;
         for (std::set<NBNode*>::const_iterator j = cluster.begin(); j != cluster.end(); ++j) {
-            const std::vector<NBEdge*>& edges = (*j)->getEdges();
+            const EdgeVector& edges = (*j)->getEdges();
             allEdges.insert(edges.begin(), edges.end());
         }
 
@@ -595,7 +615,11 @@ NBNodeCont::joinNodeClusters(NodeClusters clusters,
                 e->addLane2LaneConnection((*k).fromLane, (*k).toEdge, (*k).toLane, NBEdge::L2L_USER, false, (*k).mayDefinitelyPass);
             }
         }
+        // remove original nodes
         registerJoinedCluster(cluster);
+        for (std::set<NBNode*>::const_iterator j = cluster.begin(); j != cluster.end(); ++j) {
+            erase(*j);
+        }
     }
 }
 
@@ -611,8 +635,8 @@ NBNodeCont::registerJoinedCluster(const std::set<NBNode*>& cluster) {
 
 
 void
-NBNodeCont::analyzeCluster(std::set<NBNode*> cluster, std::string& id, Position& pos, 
-        bool& hasTLS, TrafficLightType& type) {
+NBNodeCont::analyzeCluster(std::set<NBNode*> cluster, std::string& id, Position& pos,
+                           bool& hasTLS, TrafficLightType& type) {
     id = "cluster";
     hasTLS = false;
     std::vector<std::string> member_ids;
@@ -820,8 +844,8 @@ NBNodeCont::joinTLS(NBTrafficLightLogicCont& tlc, SUMOReal maxdist) {
 
 
 void
-NBNodeCont::setAsTLControlled(NBNode* node, NBTrafficLightLogicCont& tlc, 
-        TrafficLightType type, std::string id) {
+NBNodeCont::setAsTLControlled(NBNode* node, NBTrafficLightLogicCont& tlc,
+                              TrafficLightType type, std::string id) {
     if (id == "") {
         id = node->getID();
     }
@@ -943,6 +967,23 @@ NBNodeCont::rename(NBNode* node, const std::string& newID) {
     myNodes[newID] = node;
 }
 
+
+void
+NBNodeCont::discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike) {
+    for (NodeCont::const_iterator i = myNodes.begin(); i != myNodes.end(); ++i) {
+        NBNode* node = i->second;
+        if (!geometryLike || node->geometryLike()) {
+            // make a copy of tldefs
+            const std::set<NBTrafficLightDefinition*> tldefs = node->getControllingTLS();
+            for (std::set<NBTrafficLightDefinition*>::const_iterator it = tldefs.begin(); it != tldefs.end(); ++it) {
+                NBTrafficLightDefinition* tlDef = *it;
+                node->removeTrafficLight(tlDef);
+                tlc.extract(tlDef);
+            }
+            node->reinit(node->getPosition(), NODETYPE_UNKNOWN);
+        }
+    }
+}
 
 /****************************************************************************/
 

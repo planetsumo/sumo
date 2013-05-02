@@ -9,7 +9,7 @@
 // A reader of pois and polygons stored in OSM-format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -102,12 +102,12 @@ protected:
 
 protected:
     /// @brief try add the polygon and return the next index on success
-    static int addPolygon(const PCOSMEdge* edge, const PositionVector& vec, const PCTypeMap::TypeDef& def, 
-            const std::string& fullType, int index, bool useName, PCPolyContainer& toFill, bool ignorePruning, bool withAttributes);
+    static int addPolygon(const PCOSMEdge* edge, const PositionVector& vec, const PCTypeMap::TypeDef& def,
+                          const std::string& fullType, int index, bool useName, PCPolyContainer& toFill, bool ignorePruning, bool withAttributes);
 
     /// @brief try add the POI and return the next index on success
-    static int addPOI(const PCOSMNode* node, const Position& pos, const PCTypeMap::TypeDef& def, 
-            const std::string& fullType, int index, PCPolyContainer& toFill, bool ignorePruning, bool withAttributes);
+    static int addPOI(const PCOSMNode* node, const Position& pos, const PCTypeMap::TypeDef& def,
+                      const std::string& fullType, int index, PCPolyContainer& toFill, bool ignorePruning, bool withAttributes);
 
 
 protected:
@@ -130,7 +130,7 @@ protected:
          * @param[in] errorHandler The handler to report errors to (WarningHandler for ignoring errors)
          */
         NodesHandler(std::map<SUMOLong, PCOSMNode*>& toFill, bool withAttributes,
-            MsgHandler &errorHandler);
+                     MsgHandler& errorHandler);
 
 
         /// @brief Destructor
@@ -161,12 +161,12 @@ protected:
         //@}
 
 
-        private:
+    private:
         /// @brief Whether all attributes shall be stored
         bool myWithAttributes;
 
         /// @brief The handler to report errors to (will be the WarningsHandler if --ignore-errors was set)
-        MsgHandler &myErrorHandler;
+        MsgHandler& myErrorHandler;
 
         /// @brief The nodes container to fill
         std::map<SUMOLong, PCOSMNode*>& myToFill;
@@ -203,7 +203,7 @@ protected:
          */
         EdgesHandler(const std::map<SUMOLong, PCOSMNode*>& osmNodes,
                      std::map<std::string, PCOSMEdge*>& toFill, bool withAttributes,
-                     MsgHandler &errorHandler);
+                     MsgHandler& errorHandler);
 
 
         /// @brief Destructor
@@ -239,7 +239,7 @@ protected:
         bool myWithAttributes;
 
         /// @brief The handler to report errors to (will be the WarningsHandler if --ignore-errors was set)
-        MsgHandler &myErrorHandler;
+        MsgHandler& myErrorHandler;
 
         /// @brief The previously parsed nodes
         const std::map<SUMOLong, PCOSMNode*>& myOSMNodes;

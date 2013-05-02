@@ -7,7 +7,7 @@
 // An instantaneous induction loop
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -135,11 +135,6 @@ MSInstantInductLoop::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/, MSMoveR
 
 bool
 MSInstantInductLoop::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification) {
-    if (veh.getPositionOnLane() - veh.getVehicleType().getLength() > myPosition) {
-        // vehicle-front is beyond detector. Ignore
-        return false;
-    }
-    // vehicle is in front of detector
     return true;
 }
 

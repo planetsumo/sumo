@@ -8,7 +8,7 @@
 // A class that performs the loading of routes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -44,7 +44,6 @@
 SUMORouteLoader::SUMORouteLoader(SUMORouteHandler* handler)
     : myParser(0), myMoreAvailable(true), myHandler(handler) {
     myParser = XMLSubSys::getSAXReader(*myHandler);
-    myMoreAvailable = true;
     if (!myParser->parseFirst(myHandler->getFileName())) {
         throw ProcessError("Can not read XML-file '" + myHandler->getFileName() + "'.");
     }
@@ -57,27 +56,31 @@ SUMORouteLoader::~SUMORouteLoader() {
 }
 
 
-void
+SUMOTime
 SUMORouteLoader::loadUntil(SUMOTime time) {
+    SUMOTime firstDepart = SUMOTime_MAX;
     // read only when further data is available, no error occured
     //  and vehicles may be found in the between the departure time of
     //  the last read vehicle and the time to read until
     if (!myMoreAvailable || time <= myHandler->getLastDepart()) {
-        return;
+        return firstDepart;
     }
 
     // read vehicles until specified time or the period to read vehicles
     //  until is reached
     while (myParser->parseNext()) {
+        if (firstDepart == SUMOTime_MAX && myHandler->getLastDepart() >= 0) {
+            firstDepart = myHandler->getLastDepart();
+        }
         // return when the last read vehicle is beyond the period
         if (time <= myHandler->getLastDepart()) {
-            return;
+            return firstDepart;
         }
     }
 
-    // no data are available anymore
+    // no data available anymore
     myMoreAvailable = false;
-    return;
+    return firstDepart;
 }
 
 

@@ -11,7 +11,7 @@
 // Methods for the representation of a single edge
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -352,15 +352,15 @@ NBEdge::hasDefaultGeometry() const {
 
 bool
 NBEdge::hasDefaultGeometryEndpoints() const {
-    return myGeom.getBegin() == myFrom->getPosition() &&
-           myGeom.getEnd() == myTo->getPosition();
+    return myGeom.front() == myFrom->getPosition() &&
+           myGeom.back() == myTo->getPosition();
 }
 
 
 void
 NBEdge::setGeometry(const PositionVector& s, bool inner) {
-    Position begin = myGeom.getBegin(); // may differ from node position
-    Position end = myGeom.getEnd(); // may differ from node position
+    Position begin = myGeom.front(); // may differ from node position
+    Position end = myGeom.back(); // may differ from node position
     myGeom = s;
     if (inner) {
         myGeom.push_front(begin);
@@ -375,21 +375,29 @@ NBEdge::computeEdgeShape() {
     for (unsigned int i = 0; i < myLanes.size(); i++) {
         PositionVector& shape = myLanes[i].shape;
         PositionVector old = shape;
-        shape = startShapeAt(shape, myFrom, i);
+        shape = startShapeAt(shape, myFrom);
         if (shape.size() >= 2) {
-            shape = startShapeAt(shape.reverse(), myTo, i).reverse();
+            shape = startShapeAt(shape.reverse(), myTo).reverse();
         }
         // sanity checks
         if (shape.length() < POSITION_EPS) {
-            WRITE_MESSAGE("Lane '" + myID + "' has calculated shape length near zero. Revert it back to old shape.");
-            // @note old shape may still be shorter than POSITION_EPS
-            shape = old;
+            if (old.length() < 2 * POSITION_EPS) {
+                shape = old;
+            } else {
+                const SUMOReal midpoint = old.length() / 2;
+                // EPS*2 because otherwhise shape has only a single point
+                shape = old.getSubpart(midpoint - POSITION_EPS, midpoint + POSITION_EPS);
+                assert(shape.size() >= 2);
+                assert(shape.length() > 0);
+            }
         } else {
             // @note If the node shapes are overlapping we may get a shape which goes in the wrong direction
+            // in this case the result shape should shortened
             Line lc(shape[0], shape[-1]);
             Line lo(old[0], old[-1]);
             if (135 < GeomHelper::getMinAngleDiff(lc.atan2DegreeAngle(), lo.atan2DegreeAngle())) {
                 shape = shape.reverse();
+                shape = shape.getSubpart(0, 2 * POSITION_EPS); // *2 because otherwhise shape has only a single point
             }
         }
     }
@@ -404,8 +412,7 @@ NBEdge::computeEdgeShape() {
 
 
 PositionVector
-NBEdge::startShapeAt(const PositionVector& laneShape, const NBNode* startNode, unsigned int laneIndex) const {
-    // const std::string error = "Could not find a way to attach lane '" + getLaneID(laneIndex) + "' at node shape of '" + startNode->getID() + "'.";
+NBEdge::startShapeAt(const PositionVector& laneShape, const NBNode* startNode) const {
     const PositionVector& nodeShape = startNode->getShape();
     Line lb = laneShape.getBegLine();
     // this doesn't look reasonable @todo use lb.extrapolateFirstBy(100.0);
@@ -508,7 +515,7 @@ NBEdge::splitGeometry(NBEdgeCont& ec, NBNodeCont& nc) {
 }
 
 
-void 
+void
 NBEdge::reduceGeometry(const SUMOReal minDist) {
     myGeom.removeDoublePoints(minDist, true);
 }
@@ -990,14 +997,14 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
         // compute the maximum speed allowed
         //  see !!! for an explanation (with a_lat_mean ~0.3)
         SUMOReal vmax = (SUMOReal) 0.3 * (SUMOReal) 9.80778 *
-                        getLaneShape(con.fromLane).getEnd().distanceTo(
-                            con.toEdge->getLaneShape(con.toLane).getBegin())
+                        getLaneShape(con.fromLane).back().distanceTo(
+                            con.toEdge->getLaneShape(con.toLane).front())
                         / (SUMOReal) 2.0 / (SUMOReal) PI;
         vmax = MIN2(vmax, ((getSpeed() + con.toEdge->getSpeed()) / (SUMOReal) 2.0));
         vmax = (getSpeed() + con.toEdge->getSpeed()) / (SUMOReal) 2.0;
         //
-        Position end = con.toEdge->getLaneShape(con.toLane).getBegin();
-        Position beg = getLaneShape(con.fromLane).getEnd();
+        Position end = con.toEdge->getLaneShape(con.toLane).front();
+        Position beg = getLaneShape(con.fromLane).back();
 
         assert(shape.size() >= 2);
         // get internal splits if any

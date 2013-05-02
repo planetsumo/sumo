@@ -12,7 +12,7 @@
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -123,6 +123,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "relation",         SUMO_TAG_RELATION },
     { "member",           SUMO_TAG_MEMBER },
 
+    { "viewsettings",     SUMO_TAG_VIEWSETTINGS },
     { "decal",            SUMO_TAG_VIEWSETTINGS_DECAL },
     { "scheme",           SUMO_TAG_VIEWSETTINGS_SCHEME },
     { "opengl",           SUMO_TAG_VIEWSETTINGS_OPENGL },
@@ -200,6 +201,9 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "x",              SUMO_ATTR_X },
     { "y",              SUMO_ATTR_Y },
     { "z",              SUMO_ATTR_Z },
+    { "centerX",        SUMO_ATTR_CENTER_X },
+    { "centerY",        SUMO_ATTR_CENTER_Y },
+    { "centerZ",        SUMO_ATTR_CENTER_Z },
 
     { "key",            SUMO_ATTR_KEY },
     { "requestSize",    SUMO_ATTR_REQUESTSIZE },

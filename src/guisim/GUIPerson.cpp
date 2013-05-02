@@ -9,7 +9,7 @@
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -188,7 +188,7 @@ GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
 
 
 void
-GUIPerson::drawGLAdditional(const GUIVisualizationSettings& /* s */) const {
+GUIPerson::drawGLAdditional(GUISUMOAbstractView* const /* parent */, const GUIVisualizationSettings& /* s */) const {
     glPushName(getGlID());
     glPushMatrix();
     /*
@@ -257,10 +257,31 @@ GUIPerson::setColor(const GUIVisualizationSettings& s) const {
 bool
 GUIPerson::setFunctionalColor(size_t activeScheme) const {
     switch (activeScheme) {
-        case 1:
-            GLHelper::setColor(getParameter().color);
-            return true;
-            // XXX color by stage
+        case 0: {
+            if (getParameter().wasSet(VEHPARS_COLOR_SET)) {
+                GLHelper::setColor(getParameter().color);
+                return true;
+            }
+            if (getVehicleType().wasSet(VTYPEPARS_COLOR_SET)) {
+                GLHelper::setColor(getVehicleType().getColor());
+                return true;
+            }
+            return false;
+        }
+        case 2: {
+            if (getParameter().wasSet(VEHPARS_COLOR_SET)) {
+                GLHelper::setColor(getParameter().color);
+                return true;
+            }
+            return false;
+        }
+        case 3: {
+            if (getVehicleType().wasSet(VTYPEPARS_COLOR_SET)) {
+                GLHelper::setColor(getVehicleType().getColor());
+                return true;
+            }
+            return false;
+        }
         default:
             return false;
     }
@@ -330,7 +351,7 @@ GUIPerson::drawAction_drawAsPoly(const GUIVisualizationSettings& /* s */) const 
     // draw pedestrian shape
     const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
     glRotated(getAngle(now), 0, 0, 1);
-    RGBColor lighter = GLHelper::getColor().changedBrightness(.2);
+    RGBColor lighter = GLHelper::getColor().changedBrightness(51);
     glTranslated(0, 0, .045);
     GLHelper::drawFilledCircle(0.3);
     glTranslated(0, 0, -.045);

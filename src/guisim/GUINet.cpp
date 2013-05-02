@@ -10,7 +10,7 @@
 // A MSNet extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,8 +45,6 @@
 #include <microsim/MSJunction.h>
 #include <microsim/output/MSDetectorControl.h>
 #include <microsim/MSEdge.h>
-#include <microsim/MSVehicleTransfer.h>
-#include <microsim/MSVehicle.h>
 #include <microsim/MSInsertionControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSTLLogicControl.h>
@@ -59,7 +57,6 @@
 #include <guisim/GUIJunctionWrapper.h>
 #include <guisim/GUIVehicleControl.h>
 #include <gui/GUIGlobals.h>
-#include "GUIVehicle.h"
 #include "GUINet.h"
 #include "GUIShapeContainer.h"
 
@@ -96,6 +93,9 @@ GUINet::GUINet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
 
 
 GUINet::~GUINet() {
+    if (myLock.locked()) {
+        myLock.unlock();
+    }
     // delete allocated wrappers
     //  of junctions
     for (std::vector<GUIJunctionWrapper*>::iterator i1 = myJunctionWrapper.begin(); i1 != myJunctionWrapper.end(); i1++) {
@@ -214,6 +214,13 @@ void
 GUINet::guiSimulationStep() {
     GLObjectValuePassConnector<SUMOReal>::updateAll();
     GLObjectValuePassConnector<std::pair<SUMOTime, MSPhaseDefinition> >::updateAll();
+}
+
+
+void
+GUINet::simulationStep() {
+    AbstractMutex::ScopedLocker locker(myLock);
+    MSNet::simulationStep();
 }
 
 
@@ -475,10 +482,40 @@ GUINet::getGUIVehicleControl() {
     return dynamic_cast<GUIVehicleControl*>(myVehicleControl);
 }
 
+
+void
+GUINet::lock() {
+    myLock.lock();
+}
+
+
+void
+GUINet::unlock() {
+    myLock.unlock();
+}
+
 #ifdef HAVE_INTERNAL
 GUIMEVehicleControl*
 GUINet::getGUIMEVehicleControl() {
     return dynamic_cast<GUIMEVehicleControl*>(myVehicleControl);
+}
+#endif
+
+
+#ifdef HAVE_OSG
+void
+GUINet::updateColor(const GUIVisualizationSettings& s) {
+    for (std::vector<GUIEdge*>::const_iterator i = myEdgeWrapper.begin(); i != myEdgeWrapper.end(); ++i) {
+        if ((*i)->getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
+            const size_t numLanes = (*i)->getLanes().size();
+            for (size_t j = 0; j < numLanes; ++j) {
+                (*i)->getLaneGeometry(j).updateColor(s);
+            }
+        }
+    }
+    for (std::vector<GUIJunctionWrapper*>::iterator i = myJunctionWrapper.begin(); i != myJunctionWrapper.end(); ++i) {
+        (*i)->updateColor(s);
+    }
 }
 #endif
 

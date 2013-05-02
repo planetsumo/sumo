@@ -9,7 +9,7 @@
 // A container for traffic light definitions and built programs
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -121,6 +121,12 @@ public:
      * but keeps it in myExtracted for eventual * deletion (used by NETEDIT)
      */
     void extract(NBTrafficLightDefinition* definition);
+
+
+    /// @brief return the number of extracted traffic light definitions
+    size_t getNumExtracted() const {
+        return myExtracted.size();
+    }
 
 
     /// @brief Returns a list of all computed logics

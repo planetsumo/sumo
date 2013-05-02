@@ -10,7 +10,7 @@
 // Perfoms network import
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -109,6 +109,13 @@ NILoader::load(OptionsCont& oc) {
     NIImporter_OpenDrive::loadNetwork(oc, myNetBuilder);
     NIImporter_MATSim::loadNetwork(oc, myNetBuilder);
     NIImporter_ITSUMO::loadNetwork(oc, myNetBuilder);
+    if (oc.getBool("tls.discard-loaded") || oc.getBool("tls.discard-simple")) {
+        myNetBuilder.getNodeCont().discardTrafficLights(myNetBuilder.getTLLogicCont(), oc.getBool("tls.discard-simple"));
+        size_t removed = myNetBuilder.getTLLogicCont().getNumExtracted();
+        if (removed > 0) {
+            WRITE_MESSAGE(" Removed " + toString(removed) + " traffic lights before loading plain-XML");
+        }
+    }
     loadXML(oc);
     // check the loaded structures
     if (myNetBuilder.getNodeCont().size() == 0) {

@@ -8,7 +8,7 @@
 // A loaded (complete) traffic light logic
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -223,7 +223,7 @@ public:
      * @param[in] type The algorithm type for the computed traffic light
      */
     NBLoadedTLDef(const std::string& id, NBNode* junction, SUMOTime offset,
-            TrafficLightType type);
+                  TrafficLightType type);
 
 
     /** @brief Constructor
@@ -232,7 +232,7 @@ public:
      * @param[in] type The algorithm type for the computed traffic light
      */
     NBLoadedTLDef(const std::string& id, SUMOTime offset,
-            TrafficLightType type);
+                  TrafficLightType type);
 
 
     /// @brief Destructor

@@ -9,7 +9,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -318,16 +318,16 @@ NIImporter_Vissim::NIImporter_Vissim(NBNetBuilder& nb, const std::string& file)
     UNUSED_PARAMETER(file);
     insertKnownElements();
     buildParsers();
-    myColorMap["blau"] = RGBColor((SUMOReal) .3, (SUMOReal) 0.3, (SUMOReal) 1);
-    myColorMap["gelb"] = RGBColor(1, 1, 0);
-    myColorMap["grau"] = RGBColor((SUMOReal) .5, (SUMOReal) 0.5, (SUMOReal) .5);
-    myColorMap["lila"] = RGBColor(1, 0, 1);
-    myColorMap["gruen"] = RGBColor(0, 1, 0);
-    myColorMap["rot"] = RGBColor(1, 0, 0);
-    myColorMap["schwarz"] = RGBColor(0, 0, 0);
-    myColorMap["tuerkis"] = RGBColor(0, 1, 1);
-    myColorMap["weiss"] = RGBColor(1, 1, 1);
-    myColorMap["keine"] = RGBColor(1, 1, 1);
+    myColorMap["blau"] = RGBColor(77, 77, 255, 255);
+    myColorMap["gelb"] = RGBColor::YELLOW;
+    myColorMap["grau"] = RGBColor::GREY;
+    myColorMap["lila"] = RGBColor::MAGENTA;
+    myColorMap["gruen"] = RGBColor::GREEN;
+    myColorMap["rot"] = RGBColor::RED;
+    myColorMap["schwarz"] = RGBColor::BLACK;
+    myColorMap["tuerkis"] = RGBColor::CYAN;
+    myColorMap["weiss"] = RGBColor::WHITE;
+    myColorMap["keine"] = RGBColor::WHITE;
 }
 
 
@@ -475,9 +475,7 @@ NIImporter_Vissim::postLoadBuild(SUMOReal offset) {
     NIVissimDistrictConnection::dict_BuildDistricts(myNetBuilder.getDistrictCont(), myNetBuilder.getEdgeCont(), myNetBuilder.getNodeCont());
     NIVissimConnection::dict_buildNBEdgeConnections(myNetBuilder.getEdgeCont());
     NIVissimNodeCluster::dict_addDisturbances(myNetBuilder.getDistrictCont(), myNetBuilder.getNodeCont(), myNetBuilder.getEdgeCont());
-    if (!OptionsCont::getOptions().getBool("tls.discard-loaded")) {
-        NIVissimTL::dict_SetSignals(myNetBuilder.getTLLogicCont(), myNetBuilder.getEdgeCont());
-    }
+    NIVissimTL::dict_SetSignals(myNetBuilder.getTLLogicCont(), myNetBuilder.getEdgeCont());
 }
 
 

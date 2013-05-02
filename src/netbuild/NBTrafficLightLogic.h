@@ -9,7 +9,7 @@
 // A SUMO-compliant built logic for a traffic light
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -97,8 +97,8 @@ public:
      * @param[in] offset The offset of the program (delay)
      * @param[in] type The algorithm type for the computed traffic light
      */
-    NBTrafficLightLogic(const std::string& id, const std::string& subid, unsigned int noLinks, 
-            SUMOTime offset = 0, TrafficLightType type = TLTYPE_STATIC);
+    NBTrafficLightLogic(const std::string& id, const std::string& subid, unsigned int noLinks,
+                        SUMOTime offset = 0, TrafficLightType type = TLTYPE_STATIC);
 
 
     /** @brief Copy Constructor

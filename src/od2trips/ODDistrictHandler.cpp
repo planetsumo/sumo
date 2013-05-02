@@ -9,7 +9,7 @@
 // An XML-Handler for districts
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -95,6 +95,13 @@ ODDistrictHandler::openDistrict(const SUMOSAXAttributes& attrs) {
         return;
     }
     myCurrentDistrict = new ODDistrict(id);
+    if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
+        std::vector<std::string> desc = attrs.getStringVector(SUMO_ATTR_EDGES);
+        for (std::vector<std::string>::const_iterator i = desc.begin(); i != desc.end(); ++i) {
+            myCurrentDistrict->addSource(*i, 1.);
+            myCurrentDistrict->addSink(*i, 1.);
+        }
+    }
 }
 
 

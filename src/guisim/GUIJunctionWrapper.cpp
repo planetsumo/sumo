@@ -11,7 +11,7 @@
 // }
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -34,6 +34,9 @@
 
 #include <string>
 #include <utility>
+#ifdef HAVE_OSG
+#include <osg/Geometry>
+#endif
 #include <microsim/MSLane.h>
 #include <microsim/MSJunction.h>
 #include <utils/geom/Position.h>
@@ -117,7 +120,8 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
     if (!myIsInner) {
         glPushName(getGlID());
         glPushMatrix();
-        glColor3d(0, 0, 0);
+        const SUMOReal colorValue = static_cast<SUMOReal>(s.junctionColorer.getActive() == 1 && gSelected.isSelected(getType(), getGlID()));
+        GLHelper::setColor(s.junctionColorer.getScheme().getColor(colorValue));
         glTranslated(0, 0, getType());
         GLHelper::drawFilledPoly(myJunction.getShape(), true);
         glPopMatrix();
@@ -129,6 +133,18 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
     }
     glPopName();
 }
+
+
+#ifdef HAVE_OSG
+void
+GUIJunctionWrapper::updateColor(const GUIVisualizationSettings& s) {
+    const SUMOReal colorValue = static_cast<SUMOReal>(s.junctionColorer.getActive() == 1 && gSelected.isSelected(getType(), getGlID()));
+    const RGBColor& col = s.junctionColorer.getScheme().getColor(colorValue);
+    osg::Vec4ubArray* colors = dynamic_cast<osg::Vec4ubArray*>(myGeom->getColorArray());
+    (*colors)[0].set(col.red(), col.green(), col.blue(), col.alpha());
+    myGeom->setColorArray(colors);
+}
+#endif
 
 
 /****************************************************************************/

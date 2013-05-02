@@ -9,7 +9,7 @@
 // Sets and checks options for netimport
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -251,12 +251,15 @@ NIFrame::fillOptions() {
     // register opendrive options
     oc.doRegister("opendrive.import-all-lanes", new Option_Bool(false));
     oc.addDescription("opendrive.import-all-lanes", "Processing", "Imports all lane types.");
-    
+
 
 
     // register some additional options
     oc.doRegister("tls.discard-loaded", new Option_Bool(false));
     oc.addDescription("tls.discard-loaded", "TLS Building", "Does not instatiate traffic lights loaded from other formats than XML");
+
+    oc.doRegister("tls.discard-simple", new Option_Bool(false));
+    oc.addDescription("tls.discard-simple", "TLS Building", "Does not instatiate traffic lights at geometry-like nodes loaded from other formats than XML");
 }
 
 

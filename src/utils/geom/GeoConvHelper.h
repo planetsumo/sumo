@@ -9,7 +9,7 @@
 // static methods for processing the coordinates conversion for the current net
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -66,7 +66,7 @@ public:
     /** @brief Constructor
      */
     GeoConvHelper(const std::string& proj, const Position& offset,
-                  const Boundary& orig, const Boundary& conv, int shift = 0, bool inverse = false, bool baseFound = false);
+                  const Boundary& orig, const Boundary& conv, int shift = 0, bool inverse = false);
 
 
     /// @brief Destructor
@@ -147,6 +147,11 @@ public:
 
     /// Returns the converted boundary
     const Boundary& getConvBoundary() const;
+
+    /// sets the converted boundary
+    void setConvBoundary(const Boundary& boundary) {
+        myConvBoundary = boundary;
+    }
 
     /// Returns the network offset
     const Position getOffset() const;

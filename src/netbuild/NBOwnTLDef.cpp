@@ -10,7 +10,7 @@
 // A traffic light logics which must be computed (only nodes/edges are given)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -53,17 +53,17 @@
 // ===========================================================================
 NBOwnTLDef::NBOwnTLDef(const std::string& id,
                        const std::vector<NBNode*>& junctions, SUMOTime offset,
-                       TrafficLightType type) : 
+                       TrafficLightType type) :
     NBTrafficLightDefinition(id, junctions, DefaultProgramID, offset, type) {}
 
 
 NBOwnTLDef::NBOwnTLDef(const std::string& id, NBNode* junction, SUMOTime offset,
-        TrafficLightType type) : 
+                       TrafficLightType type) :
     NBTrafficLightDefinition(id, junction, DefaultProgramID, offset, type) {}
 
 
 NBOwnTLDef::NBOwnTLDef(const std::string& id, SUMOTime offset,
-        TrafficLightType type) : 
+                       TrafficLightType type) :
     NBTrafficLightDefinition(id, DefaultProgramID, offset, type) {}
 
 
@@ -126,14 +126,18 @@ NBOwnTLDef::getBestCombination(const EdgeVector& edges) {
     SUMOReal bestValue = -1;
     for (EdgeVector::const_iterator i = edges.begin(); i != edges.end(); ++i) {
         for (EdgeVector::const_iterator j = i + 1; j != edges.end(); ++j) {
-            SUMOReal value = computeUnblockedWeightedStreamNumber(*i, *j);
+            const SUMOReal value = computeUnblockedWeightedStreamNumber(*i, *j);
             if (value > bestValue) {
                 bestValue = value;
                 bestPair = std::pair<NBEdge*, NBEdge*>(*i, *j);
             } else if (value == bestValue) {
-                SUMOReal ca = GeomHelper::getMinAngleDiff((*i)->getAngleAtNode((*i)->getToNode()), (*j)->getAngleAtNode((*j)->getToNode()));
-                SUMOReal oa = GeomHelper::getMinAngleDiff(bestPair.first->getAngleAtNode(bestPair.first->getToNode()), bestPair.second->getAngleAtNode(bestPair.second->getToNode()));
-                if (oa < ca) {
+                const SUMOReal ca = GeomHelper::getMinAngleDiff((*i)->getAngleAtNode((*i)->getToNode()), (*j)->getAngleAtNode((*j)->getToNode()));
+                const SUMOReal oa = GeomHelper::getMinAngleDiff(bestPair.first->getAngleAtNode(bestPair.first->getToNode()), bestPair.second->getAngleAtNode(bestPair.second->getToNode()));
+                if (fabs(oa - ca) < NUMERICAL_EPS) { // break ties by id
+                    if (bestPair.first->getID() < (*i)->getID()) {
+                        bestPair = std::pair<NBEdge*, NBEdge*>(*i, *j);
+                    }
+                } else if (oa < ca) {
                     bestPair = std::pair<NBEdge*, NBEdge*>(*i, *j);
                 }
             }
@@ -175,7 +179,8 @@ NBOwnTLDef::getBestPair(EdgeVector& incoming) {
 NBTrafficLightLogic*
 NBOwnTLDef::myCompute(const NBEdgeCont&,
                       unsigned int brakingTimeSeconds) {
-    SUMOTime brakingTime = TIME2STEPS(brakingTimeSeconds);
+    const SUMOTime brakingTime = TIME2STEPS(brakingTimeSeconds);
+    const SUMOTime leftTurnTime = TIME2STEPS(6); // make configurable ?
     // build complete lists first
     const EdgeVector& incoming = getIncomingEdges();
     EdgeVector fromEdges, toEdges;
@@ -218,6 +223,7 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
 
     NBTrafficLightLogic* logic = new NBTrafficLightLogic(getID(), getProgramID(), noLinksAll, myOffset, myType);
     EdgeVector toProc = incoming;
+    const SUMOTime greenTime = TIME2STEPS(OptionsCont::getOptions().getInt("tls.green.time"));
     // build all phases
     while (toProc.size() > 0) {
         std::pair<NBEdge*, NBEdge*> chosen;
@@ -228,14 +234,13 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
             chosen = getBestPair(toProc);
         }
         unsigned int pos = 0;
-        SUMOTime duration = TIME2STEPS(OptionsCont::getOptions().getInt("tls.green.time"));
         std::string state((size_t) noLinksAll, 'o');
         // plain straight movers
         for (unsigned int i1 = 0; i1 < (unsigned int) incoming.size(); ++i1) {
             NBEdge* fromEdge = incoming[i1];
-            bool inChosen = fromEdge == chosen.first || fromEdge == chosen.second; //chosen.find(fromEdge)!=chosen.end();
-            unsigned int noLanes = fromEdge->getNumLanes();
-            for (unsigned int i2 = 0; i2 < noLanes; i2++) {
+            const bool inChosen = fromEdge == chosen.first || fromEdge == chosen.second; //chosen.find(fromEdge)!=chosen.end();
+            const unsigned int numLanes = fromEdge->getNumLanes();
+            for (unsigned int i2 = 0; i2 < numLanes; i2++) {
                 std::vector<NBEdge::Connection> approached = fromEdge->getConnectionsFromLane(i2);
                 for (unsigned int i3 = 0; i3 < approached.size(); ++i3) {
                     if (!fromEdge->mayBeTLSControlled(i2, approached[i3].toEdge, approached[i3].toLane)) {
@@ -281,13 +286,11 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
                 }
             }
         }
-
         // add step
-        logic->addStep(duration, state);
+        logic->addStep(greenTime, state);
 
         if (brakingTime > 0) {
             // build yellow (straight)
-            duration = brakingTime;
             for (unsigned int i1 = 0; i1 < pos; ++i1) {
                 if (state[i1] != 'G' && state[i1] != 'g') {
                     continue;
@@ -298,12 +301,11 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
                 state[i1] = 'y';
             }
             // add step
-            logic->addStep(duration, state);
+            logic->addStep(brakingTime, state);
         }
 
         if (haveForbiddenLeftMover) {
             // build left green
-            duration = TIME2STEPS(6);
             for (unsigned int i1 = 0; i1 < pos; ++i1) {
                 if (state[i1] == 'Y' || state[i1] == 'y') {
                     state[i1] = 'r';
@@ -314,11 +316,10 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
                 }
             }
             // add step
-            logic->addStep(duration, state);
+            logic->addStep(leftTurnTime, state);
 
             // build left yellow
             if (brakingTime > 0) {
-                duration = brakingTime;
                 for (unsigned int i1 = 0; i1 < pos; ++i1) {
                     if (state[i1] != 'G' && state[i1] != 'g') {
                         continue;
@@ -326,17 +327,20 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
                     state[i1] = 'y';
                 }
                 // add step
-                logic->addStep(duration, state);
+                logic->addStep(brakingTime, state);
             }
         }
     }
-    if (logic->getDuration() > 0) {
+    const SUMOTime totalDuration = logic->getDuration();
+    if (totalDuration > 0) {
+        if (totalDuration > 3 * (greenTime + 2 * brakingTime + leftTurnTime)) {
+            WRITE_WARNING("The traffic light '" + getID() + "' has a high cycle time of " + time2string(totalDuration) + ".");
+        }
         return logic;
     } else {
         delete logic;
         return 0;
     }
-
 }
 
 

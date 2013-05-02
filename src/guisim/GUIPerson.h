@@ -10,7 +10,7 @@
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -109,9 +109,10 @@ public:
 
 
     /** @brief Draws additionally triggered visualisations
+     * @param[in] parent The view
      * @param[in] s The settings for the current view (may influence drawing)
      */
-    virtual void drawGLAdditional(const GUIVisualizationSettings& s) const;
+    virtual void drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisualizationSettings& s) const;
     //@}
 
     /* @brief set the position of a person while riding in a vehicle

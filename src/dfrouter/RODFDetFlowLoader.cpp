@@ -10,7 +10,7 @@
 // A loader for detector flows
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -34,7 +34,6 @@
 #include <sstream>
 #include <utils/importio/LineReader.h>
 #include <utils/options/OptionsCont.h>
-#include <utils/common/IDSupplier.h>
 #include <utils/common/StringTokenizer.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/FileHelpers.h>

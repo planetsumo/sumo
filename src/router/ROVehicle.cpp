@@ -9,7 +9,7 @@
 // A vehicle as used by router
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -77,9 +77,9 @@ ROVehicle::saveAllAsXML(OutputDevice& os, OutputDevice* const altos,
     }
 
     // write the vehicle (new style, with included routes)
-    myParameter.writeAs("vehicle", os, OptionsCont::getOptions());
+    myParameter.write(os, OptionsCont::getOptions());
     if (altos != 0) {
-        myParameter.writeAs("vehicle", *altos, OptionsCont::getOptions());
+        myParameter.write(*altos, OptionsCont::getOptions());
     }
 
     // check whether the route shall be saved
@@ -88,6 +88,10 @@ ROVehicle::saveAllAsXML(OutputDevice& os, OutputDevice* const altos,
         if (altos != 0) {
             myRoute->writeXMLDefinition(*altos, this, true, withExitTimes);
         }
+    }
+    myParameter.writeStops(os);
+    if (altos != 0) {
+        myParameter.writeStops(*altos);
     }
     os.closeTag();
     if (altos != 0) {

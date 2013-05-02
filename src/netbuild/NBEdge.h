@@ -9,7 +9,7 @@
 // The representation of a single edge during network building
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -1121,7 +1121,7 @@ private:
      * startNode. laneShape may be shorted or extended
      * @note see [wiki:Developer/Network_Building_Process]
      */
-    PositionVector startShapeAt(const PositionVector& laneShape, const NBNode* startNode, unsigned int laneIndex) const;
+    PositionVector startShapeAt(const PositionVector& laneShape, const NBNode* startNode) const;
 
 private:
     /** @brief The building step

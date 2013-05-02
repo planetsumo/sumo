@@ -9,7 +9,7 @@
 // APIs for getting/setting GUI values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -139,34 +139,37 @@ TraCIServerAPI_GUI::processSet(TraCIServer& server, tcpip::Storage& inputStorage
     // process
     switch (variable) {
         case VAR_VIEW_ZOOM: {
+            Position off, p;
             double zoom = 1;
-            if(!server.readTypeCheckingDouble(inputStorage, zoom)) {
+            if (!server.readTypeCheckingDouble(inputStorage, zoom)) {
                 return server.writeErrorStatusCmd(CMD_SET_GUI_VARIABLE, "The zoom must be given as a double.", outputStorage);
             }
-            v->setViewport(zoom, v->getChanger().getXPos(), v->getChanger().getYPos());
-                            }
-            break;
+            off.set(v->getChanger().getXPos(), v->getChanger().getYPos(), zoom);
+            v->setViewport(off, p);
+        }
+        break;
         case VAR_VIEW_OFFSET: {
-            Position off(0,0);
-            if(!server.readTypeCheckingPosition2D(inputStorage, off)) {
+            Position off, p;
+            if (!server.readTypeCheckingPosition2D(inputStorage, off)) {
                 return server.writeErrorStatusCmd(CMD_SET_GUI_VARIABLE, "The view port must be given as a position.", outputStorage);
             }
-            v->setViewport(v->getChanger().getZoom(), off.x(), off.y());
+            off.set(off.x(), off.y(), v->getChanger().getZoom());
+            v->setViewport(off, p);
         }
         break;
         case VAR_VIEW_SCHEMA: {
             std::string schema;
-            if(!server.readTypeCheckingString(inputStorage, schema)) {
+            if (!server.readTypeCheckingString(inputStorage, schema)) {
                 return server.writeErrorStatusCmd(CMD_SET_GUI_VARIABLE, "The scheme must be specified by a string.", outputStorage);
             }
             if (!v->setColorScheme(schema)) {
                 return server.writeErrorStatusCmd(CMD_SET_GUI_VARIABLE, "The scheme is not known.", outputStorage);
             }
-                              }
-            break;
+        }
+        break;
         case VAR_VIEW_BOUNDARY: {
             Boundary b;
-            if(!server.readTypeCheckingBoundary(inputStorage, b)) {
+            if (!server.readTypeCheckingBoundary(inputStorage, b)) {
                 return server.writeErrorStatusCmd(CMD_SET_GUI_VARIABLE, "The boundary must be specified by a bounding box.", outputStorage);
             }
             v->centerTo(b);
@@ -174,7 +177,7 @@ TraCIServerAPI_GUI::processSet(TraCIServer& server, tcpip::Storage& inputStorage
         }
         case VAR_SCREENSHOT: {
             std::string filename;
-            if(!server.readTypeCheckingString(inputStorage, filename)) {
+            if (!server.readTypeCheckingString(inputStorage, filename)) {
                 return server.writeErrorStatusCmd(CMD_SET_GUI_VARIABLE, "Making a snapshot requires a file name.", outputStorage);
             }
             std::string error = v->makeSnapshot(filename);
@@ -185,7 +188,7 @@ TraCIServerAPI_GUI::processSet(TraCIServer& server, tcpip::Storage& inputStorage
         break;
         case VAR_TRACK_VEHICLE: {
             std::string id;
-            if(!server.readTypeCheckingString(inputStorage, id)) {
+            if (!server.readTypeCheckingString(inputStorage, id)) {
                 return server.writeErrorStatusCmd(CMD_SET_GUI_VARIABLE, "Tracking requires a string vehicle ID.", outputStorage);
             }
             if (id == "") {

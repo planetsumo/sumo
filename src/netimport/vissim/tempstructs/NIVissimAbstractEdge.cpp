@@ -9,7 +9,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -138,9 +138,9 @@ NIVissimAbstractEdge::crossesAtPoint(const Position& p1,
                                      const Position& p2) const {
     // !!! not needed
     Position p = GeomHelper::intersection_position2D(
-                     myGeom.getBegin(), myGeom.getEnd(), p1, p2);
+                     myGeom.front(), myGeom.back(), p1, p2);
     return GeomHelper::nearest_position_on_line_to_point2D(
-               myGeom.getBegin(), myGeom.getEnd(), p);
+               myGeom.front(), myGeom.back(), p);
 }
 
 

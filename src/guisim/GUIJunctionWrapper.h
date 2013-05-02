@@ -9,7 +9,7 @@
 // Holds geometrical values for a junction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -44,6 +44,11 @@
 // ===========================================================================
 class MSNet;
 class MSJunction;
+#ifdef HAVE_OSG
+namespace osg {
+class Geometry;
+}
+#endif
 
 
 // ===========================================================================
@@ -134,7 +139,15 @@ public:
     }
 
 
-protected:
+#ifdef HAVE_OSG
+    void setGeometry(osg::Geometry* geom) {
+        myGeom = geom;
+    }
+
+    void updateColor(const GUIVisualizationSettings& s);
+#endif
+
+private:
     /// @brief A reference to the represented junction
     MSJunction& myJunction;
 
@@ -144,6 +157,13 @@ protected:
     /// @brief The represented junction's boundary
     Boundary myBoundary;
 
+    /// @brief whether this wraps an instance of MSInternalJunction
+    bool myIsInner;
+
+#ifdef HAVE_OSG
+    osg::Geometry* myGeom;
+#endif
+
 
 private:
     /// @brief Invalidated copy constructor.
@@ -151,9 +171,6 @@ private:
 
     /// @brief Invalidated assignment operator.
     GUIJunctionWrapper& operator=(const GUIJunctionWrapper&);
-
-    /// @brief whether this wraps an instance of MSInternalJunction
-    bool myIsInner;
 
 };
 

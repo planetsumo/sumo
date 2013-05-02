@@ -12,7 +12,7 @@
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -166,6 +166,7 @@ enum SumoXMLTag {
     SUMO_TAG_RELATION,
     SUMO_TAG_MEMBER,
 
+    SUMO_TAG_VIEWSETTINGS,
     SUMO_TAG_VIEWSETTINGS_DECAL,
     SUMO_TAG_VIEWSETTINGS_SCHEME,
     SUMO_TAG_VIEWSETTINGS_OPENGL,
@@ -187,7 +188,7 @@ enum SumoXMLTag {
     SUMO_TAG_ENTRY,
 
     SUMO_TAG_CF_KRAUSS,
-	SUMO_TAG_CF_KRAUSS_PLUS_SLOPE,
+    SUMO_TAG_CF_KRAUSS_PLUS_SLOPE,
     SUMO_TAG_CF_KRAUSS_ORIG1,
     SUMO_TAG_CF_SMART_SK,
     SUMO_TAG_CF_DANIEL1,
@@ -264,6 +265,9 @@ enum SumoXMLAttr {
     SUMO_ATTR_X,
     SUMO_ATTR_Y,
     SUMO_ATTR_Z,
+    SUMO_ATTR_CENTER_X,
+    SUMO_ATTR_CENTER_Y,
+    SUMO_ATTR_CENTER_Z,
     /* sumo-junction attributes */
     SUMO_ATTR_KEY,
     SUMO_ATTR_REQUESTSIZE,

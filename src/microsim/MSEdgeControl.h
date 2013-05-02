@@ -12,7 +12,7 @@
 // Stores edges and lanes, performs moving of vehicle
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -102,40 +102,30 @@ public:
     /// @name Interfaces for longitudinal vehicle movement
     /// @{
 
-    /** @brief Moves (precomputes) critical vehicles
+    /** @brief Compute safe velocities for all vehicles based on positions and
+     * speeds from the last time step. Also registers
+     * ApproachingVehicleInformation for all links
      *
-     * "Critical" are those vehicles that interact with the next junction and
-     *  all first vehicles. They are not moved, in fact, but their speed along
-     *  the next path is precomputed.
-     *
-     * This method goes through all active lanes calling their "moveCritical"
-     *  implementation. If this call returns true, the lane is removed from the
-     *  list of active lanes.
-     *
-     * @see MSLane::moveCritical
+     * This method goes through all active lanes calling their "planMovements" method.
+     * @see MSLane::planMovements
      */
-    void moveCritical(SUMOTime t);
+    void planMovements(SUMOTime t);
 
 
-    /** @brief Really moves critical vehicles
+    /** @brief Executes planned vehicle movements with regards to right-of-way
      *
-     * "Critical" are those vehicles that interact with the next junction and
-     *  all first vehicles.
+     * This method goes through all active lanes calling their executeMovements
+     * method which causes vehicles to update their positions and speeds.
+     * Lanes which receive new vehicles are stored in myWithVehicles2Integrate
+     * After movements are executed the vehicles in myWithVehicles2Integrate are
+     * put onto their new lanes
+     * This method also updates the "active" status of lanes
      *
-     * At first, this method goes through all active lanes calling their
-     *  "setCritical" implementation. If this call returns true, the lane is removed
-     *  from the list of active lanes. During this call, "myWithVehicles2Integrate"
-     *  is filled with lanes that obtain new vehicles.
-     *
-     * Then, myWithVehicles2Integrate is gone through, calling "integrateNewVehicle"
-     *  of each of the stored instances. If this call returns true and the lane
-     *  was not active before, it is added to the list of active lanes.
-     *
-     * @see MSLane::setCritical
+     * @see MSLane::executeMovements
      * @see MSLane::integrateNewVehicle
      * @todo When moving to parallel processing, the usage of myWithVehicles2Integrate would get insecure!!
      */
-    void moveFirst(SUMOTime t);
+    void executeMovements(SUMOTime t);
     /// @}
 
 
@@ -157,7 +147,7 @@ public:
      * The parameter is simply passed to the lane-instance for reporting.
      *
      * @param[in] timestep The current time step
-     * @param[in] stage The current stage within the simulation step 
+     * @param[in] stage The current stage within the simulation step
      * @note see MSNet::simulationStep
      */
     void detectCollisions(SUMOTime timestep, int stage);

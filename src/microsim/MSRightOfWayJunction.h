@@ -9,7 +9,7 @@
 // A junction with right-of-way - rules
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -80,11 +80,11 @@ public:
     void postloadInit();
 
     const std::vector<MSLink*>& getFoeLinks(const MSLink* const srcLink) const {
-        return myLinkFoeLinks.find((MSLink*) srcLink)->second;
+        return myLinkFoeLinks.find(srcLink)->second;
     }
 
     const std::vector<MSLane*>& getFoeInternalLanes(const MSLink* const srcLink) const {
-        return myLinkFoeInternalLanes.find((MSLink*) srcLink)->second;
+        return myLinkFoeInternalLanes.find(srcLink)->second;
     }
 
 
@@ -92,8 +92,8 @@ protected:
     /** the type of the junction (its logic) */
     MSJunctionLogic* myLogic;
 
-    std::map<MSLink*, std::vector<MSLink*> > myLinkFoeLinks;
-    std::map<MSLink*, std::vector<MSLane*> > myLinkFoeInternalLanes;
+    std::map<const MSLink*, std::vector<MSLink*> > myLinkFoeLinks;
+    std::map<const MSLink*, std::vector<MSLane*> > myLinkFoeInternalLanes;
 
 
 private:

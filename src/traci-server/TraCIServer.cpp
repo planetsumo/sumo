@@ -15,7 +15,7 @@
 /// TraCI server used to control sumo by a remote TraCI client (e.g., ns2)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -991,64 +991,64 @@ TraCIServer::writeResponseWithLength(tcpip::Storage& outputStorage, tcpip::Stora
 
 
 bool
-TraCIServer::readTypeCheckingInt(tcpip::Storage& inputStorage, int &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_INTEGER) {
+TraCIServer::readTypeCheckingInt(tcpip::Storage& inputStorage, int& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_INTEGER) {
         return false;
-     }
-     into = inputStorage.readInt();
-     return true;
-}
-
-
-bool
-TraCIServer::readTypeCheckingDouble(tcpip::Storage& inputStorage, double &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_DOUBLE) {
-        return false;
-     }
-     into = inputStorage.readDouble();
-     return true;
-}
-
-
-bool
-TraCIServer::readTypeCheckingString(tcpip::Storage& inputStorage, std::string &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_STRING) {
-        return false;
-     }
-     into = inputStorage.readString();
-     return true;
-}
-
-
-bool
-TraCIServer::readTypeCheckingStringList(tcpip::Storage& inputStorage, std::vector<std::string> &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_STRINGLIST) {
-        return false;
-     }
-     into = inputStorage.readStringList();
-     return true;
-}
-
-
-bool
-TraCIServer::readTypeCheckingColor(tcpip::Storage& inputStorage, RGBColor &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_COLOR) {
-        return false;
-     }
-    SUMOReal r = (SUMOReal) inputStorage.readUnsignedByte() / 255.;
-    SUMOReal g = (SUMOReal) inputStorage.readUnsignedByte() / 255.;
-    SUMOReal b = (SUMOReal) inputStorage.readUnsignedByte() / 255.;
-    inputStorage.readUnsignedByte(); // skipping alpha by now
-    into.set(r, g, b);
+    }
+    into = inputStorage.readInt();
     return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingPosition2D(tcpip::Storage& inputStorage, Position &into) {
-     if (inputStorage.readUnsignedByte() != POSITION_2D) {
+TraCIServer::readTypeCheckingDouble(tcpip::Storage& inputStorage, double& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_DOUBLE) {
         return false;
-     }
+    }
+    into = inputStorage.readDouble();
+    return true;
+}
+
+
+bool
+TraCIServer::readTypeCheckingString(tcpip::Storage& inputStorage, std::string& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_STRING) {
+        return false;
+    }
+    into = inputStorage.readString();
+    return true;
+}
+
+
+bool
+TraCIServer::readTypeCheckingStringList(tcpip::Storage& inputStorage, std::vector<std::string>& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_STRINGLIST) {
+        return false;
+    }
+    into = inputStorage.readStringList();
+    return true;
+}
+
+
+bool
+TraCIServer::readTypeCheckingColor(tcpip::Storage& inputStorage, RGBColor& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_COLOR) {
+        return false;
+    }
+    unsigned char r = static_cast<unsigned char>(inputStorage.readUnsignedByte());
+    unsigned char g = static_cast<unsigned char>(inputStorage.readUnsignedByte());
+    unsigned char b = static_cast<unsigned char>(inputStorage.readUnsignedByte());
+    unsigned char a = static_cast<unsigned char>(inputStorage.readUnsignedByte());
+    into.set(r, g, b, a);
+    return true;
+}
+
+
+bool
+TraCIServer::readTypeCheckingPosition2D(tcpip::Storage& inputStorage, Position& into) {
+    if (inputStorage.readUnsignedByte() != POSITION_2D) {
+        return false;
+    }
     SUMOReal x = inputStorage.readDouble();
     SUMOReal y = inputStorage.readDouble();
     into.set(x, y, 0);
@@ -1057,10 +1057,10 @@ TraCIServer::readTypeCheckingPosition2D(tcpip::Storage& inputStorage, Position &
 
 
 bool
-TraCIServer::readTypeCheckingBoundary(tcpip::Storage& inputStorage, Boundary &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_BOUNDINGBOX) {
+TraCIServer::readTypeCheckingBoundary(tcpip::Storage& inputStorage, Boundary& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_BOUNDINGBOX) {
         return false;
-     }
+    }
     const SUMOReal xmin = inputStorage.readDouble();
     const SUMOReal ymin = inputStorage.readDouble();
     const SUMOReal xmax = inputStorage.readDouble();
@@ -1071,31 +1071,31 @@ TraCIServer::readTypeCheckingBoundary(tcpip::Storage& inputStorage, Boundary &in
 
 
 bool
-TraCIServer::readTypeCheckingByte(tcpip::Storage& inputStorage, int &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_BYTE) {
+TraCIServer::readTypeCheckingByte(tcpip::Storage& inputStorage, int& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_BYTE) {
         return false;
-     }
+    }
     into = inputStorage.readByte();
     return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingUnsignedByte(tcpip::Storage& inputStorage, int &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_UBYTE) {
+TraCIServer::readTypeCheckingUnsignedByte(tcpip::Storage& inputStorage, int& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_UBYTE) {
         return false;
-     }
+    }
     into = inputStorage.readUnsignedByte();
     return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_POLYGON) {
+TraCIServer::readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_POLYGON) {
         return false;
-     }
-     into.clear();
+    }
+    into.clear();
     unsigned int noEntries = inputStorage.readUnsignedByte();
     PositionVector shape;
     for (unsigned int i = 0; i < noEntries; ++i) {

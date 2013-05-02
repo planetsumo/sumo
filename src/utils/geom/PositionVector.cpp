@@ -10,7 +10,7 @@
 // A list of positions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -276,23 +276,6 @@ PositionVector::slopeDegreeAtLengthPosition(SUMOReal pos) const {
     return l.atan2DegreeSlope();
 }
 
-SUMOReal
-PositionVector::tiltDegreeAtLengthPosition(SUMOReal pos) const {
-    ContType::const_iterator i = myCont.begin();
-    SUMOReal seenLength = 0;
-    do {
-        SUMOReal nextLength = (*i).distanceTo(*(i + 1));
-        if (seenLength + nextLength > pos) {
-            Line l(*i, *(i + 1));
-            return l.atan2TiltDegree();
-        }
-        seenLength += nextLength;
-    } while (++i != myCont.end() - 1);
-    Line l(*(myCont.end() - 2), *(myCont.end() - 1));
-    return l.atan2TiltDegree();
-}
-
-
 Position
 PositionVector::positionAtLengthPosition(const Position& p1,
         const Position& p2,
@@ -432,23 +415,9 @@ PositionVector::partialWithin(const AbstractPoly& poly, SUMOReal offset) const {
 }
 
 
-
 bool
 PositionVector::crosses(const Position& p1, const Position& p2) const {
     return intersects(p1, p2);
-}
-
-
-
-const Position&
-PositionVector::getBegin() const {
-    return myCont[0];
-}
-
-
-const Position&
-PositionVector::getEnd() const {
-    return myCont.back();
 }
 
 
@@ -464,18 +433,18 @@ PositionVector::splitAt(SUMOReal where) const {
     first.push_back(myCont[0]);
     SUMOReal seen = 0;
     ContType::const_iterator it = myCont.begin() + 1;
-    SUMOReal next = first.getEnd().distanceTo(*it);
+    SUMOReal next = first.back().distanceTo(*it);
     // see how many points we can add to first
     while (where >= seen + next + POSITION_EPS) {
         seen += next;
         first.push_back(*it);
         it++;
-        next = first.getEnd().distanceTo(*it);
+        next = first.back().distanceTo(*it);
     }
     if (fabs(where - (seen + next)) > POSITION_EPS || it == myCont.end() - 1) {
         // we need to insert a new point because 'where' is not close to an
         // existing point or it is to close to the endpoint
-        Line tmpL(first.getEnd(), *it);
+        Line tmpL(first.back(), *it);
         Position p = tmpL.getPositionAtDistance(where - seen);
         first.push_back(p);
         second.push_back(p);
@@ -488,7 +457,7 @@ PositionVector::splitAt(SUMOReal where) const {
     }
     assert(first.size() >= 2);
     assert(second.size() >= 2);
-    assert(first.getEnd() == second.getBegin());
+    assert(first.back() == second.front());
     assert(fabs(first.length() + second.length() - length()) < 2 * POSITION_EPS);
     return std::pair<PositionVector, PositionVector>(first, second);
 }
@@ -617,7 +586,7 @@ PositionVector::appendWithCrossingPoint(const PositionVector& v) {
 
 void
 PositionVector::append(const PositionVector& v) {
-    if (myCont.back().distanceTo(v.myCont[0]) < 2) { 
+    if (myCont.back().distanceTo(v.myCont[0]) < 2) {
         copy(v.myCont.begin() + 1, v.myCont.end(), back_inserter(myCont));
     } else {
         copy(v.myCont.begin(), v.myCont.end(), back_inserter(myCont));
@@ -801,7 +770,7 @@ PositionVector::pruneFromEndAt(const Position& p) {
 
 SUMOReal
 PositionVector::beginEndAngle() const {
-    Line tmp(getBegin(), getEnd());
+    Line tmp(front(), back());
     return tmp.atan2Angle();
 }
 
@@ -1125,7 +1094,7 @@ void
 PositionVector::removeDoublePoints(SUMOReal minDist, bool assertLength) {
     if (myCont.size() > 1) {
         ContType::iterator last = myCont.begin();
-		for (ContType::iterator i = myCont.begin() + 1; i != myCont.end() && (!assertLength || myCont.size()>2);) {
+        for (ContType::iterator i = myCont.begin() + 1; i != myCont.end() && (!assertLength || myCont.size() > 2);) {
             if (last->almostSame(*i, minDist)) {
                 i = myCont.erase(i);
             } else {

@@ -9,7 +9,7 @@
 // static methods for processing the coordinates conversion for the current net
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -32,6 +32,8 @@
 
 #include <map>
 #include <cmath>
+#include <cassert>
+#include <climits>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/ToString.h>
 #include <utils/geom/GeomHelper.h>
@@ -55,7 +57,7 @@ int GeoConvHelper::myNumLoaded = 0;
 // method definitions
 // ===========================================================================
 GeoConvHelper::GeoConvHelper(const std::string& proj, const Position& offset,
-                             const Boundary& orig, const Boundary& conv, int shift, bool inverse, bool baseFound):
+                             const Boundary& orig, const Boundary& conv, int shift, bool inverse):
     myProjString(proj),
 #ifdef HAVE_PROJ
     myProjection(0),
@@ -124,10 +126,6 @@ GeoConvHelper::init(OptionsCont& oc) {
     int shift = oc.getInt("proj.scale");
     Position offset = Position(oc.getFloat("offset.x"), oc.getFloat("offset.y"));
     bool inverse = oc.exists("proj.inverse") && oc.getBool("proj.inverse");
-    bool baseFound = !oc.exists("offset.disable-normalization") ||
-                     oc.getBool("offset.disable-normalization") ||
-                     !oc.isDefault("offset.x") ||
-                     !oc.isDefault("offset.y");
 
     if (oc.getBool("simple-projection")) {
         proj = "-";
@@ -152,7 +150,7 @@ GeoConvHelper::init(OptionsCont& oc) {
         proj = oc.getString("proj");
     }
 #endif
-    myProcessing = GeoConvHelper(proj, offset, Boundary(), Boundary(), shift, inverse, baseFound);
+    myProcessing = GeoConvHelper(proj, offset, Boundary(), Boundary(), shift, inverse);
     myFinal = myProcessing;
     return true;
 }
@@ -304,6 +302,10 @@ GeoConvHelper::x2cartesian_const(Position& from) const {
             //!!! recheck whether the axes are mirrored
             from.add(myOffset);
         }
+    }
+    if (x > std::numeric_limits<double>::max() ||
+            y > std::numeric_limits<double>::max()) {
+        return false;
     }
     if (myProjectionMethod != SIMPLE) {
         from.set((SUMOReal)x, (SUMOReal)y);

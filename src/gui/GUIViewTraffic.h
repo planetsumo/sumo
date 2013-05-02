@@ -10,7 +10,7 @@
 // A view on the simulation; this view is a microscopic one
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -90,8 +90,6 @@ public:
     int getTrackedID() const;
 
     bool setColorScheme(const std::string& name);
-
-    void showViewschemeEditor();
 
     /// @brief handle mouse click in gaming mode
     void onGamingClick(Position pos);

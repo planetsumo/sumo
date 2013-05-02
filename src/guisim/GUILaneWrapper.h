@@ -9,7 +9,7 @@
 // A MSLane extended for visualisation purposes.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -47,6 +47,11 @@ class GUIGLObjectPopupMenu;
 class MSLane;
 class MSEdge;
 class PositionVector;
+#ifdef HAVE_OSG
+namespace osg {
+class Geometry;
+}
+#endif
 
 
 // ===========================================================================
@@ -233,7 +238,29 @@ public:
      */
     SUMOReal getStoredEdgeTravelTime() const;
 
-protected:
+#ifdef HAVE_OSG
+    void setGeometry(osg::Geometry* geom) {
+        myGeom = geom;
+    }
+
+    void updateColor(const GUIVisualizationSettings& s);
+#endif
+
+private:
+    /// @brief helper methods
+    void drawLinkNo() const;
+    void drawTLSLinkNo(const GUINet& net) const;
+    void drawLinkRules(const GUINet& net) const;
+    void drawArrows() const;
+    void drawLane2LaneConnections() const;
+
+    /// @brief gets the color value according to the current scheme index
+    SUMOReal getColorValue(size_t activeScheme) const;
+
+    /// @brief sets the color according to the currente settings
+    void setColor(const GUIVisualizationSettings& s) const;
+
+private:
     /// The assigned lane
     MSLane& myLane;
 
@@ -252,11 +279,12 @@ protected:
     /// @brief Quarter of lane width, for speed-up
     SUMOReal myQuarterLaneWidth;
 
-    /// The maximum velocity over all lanes
-    static SUMOReal myAllMaxSpeed;
-
     /// The lane index
     unsigned int myIndex;
+
+#ifdef HAVE_OSG
+    osg::Geometry* myGeom;
+#endif
 
 private:
     /// @brief Invalidated copy constructor.
@@ -264,20 +292,6 @@ private:
 
     /// @brief Invalidated assignment operator.
     GUILaneWrapper& operator=(const GUILaneWrapper&);
-
-    /// @brief helper methods
-    void ROWdrawAction_drawLinkNo() const;
-    void ROWdrawAction_drawTLSLinkNo(const GUINet& net) const;
-    void ROWdrawAction_drawLinkRules(const GUINet& net) const;
-    void ROWdrawAction_drawArrows() const;
-    void ROWdrawAction_drawLane2LaneConnections() const;
-
-    /// @brief sets the color according to the currente settings
-    void setColor(const GUIVisualizationSettings& s) const;
-
-    /// @brief gets the color value according to the current scheme index
-    SUMOReal getColorValue(size_t activeScheme) const;
-
 };
 
 

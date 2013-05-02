@@ -9,7 +9,7 @@
 // The parent class for traffic light logics
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -101,20 +101,19 @@ MSTrafficLightLogic::SwitchCommand::deschedule(MSTrafficLightLogic* tlLogic) {
  * member method definitions
  * ----------------------------------------------------------------------- */
 MSTrafficLightLogic::MSTrafficLightLogic(
-        MSTLLogicControl& tlcontrol,
-        const std::string& id, 
-        const std::string& programID,
-        SUMOTime delay,
-        const ParameterMap& parameters) : 
+    MSTLLogicControl& tlcontrol,
+    const std::string& id,
+    const std::string& programID,
+    SUMOTime delay,
+    const ParameterMap& parameters) :
     myParameter(parameters),
-    myID(id), 
-    myProgramID(programID), 
+    myID(id),
+    myProgramID(programID),
     myCurrentDurationIncrement(-1),
-    myDefaultCycleTime(0) 
-{
+    myDefaultCycleTime(0) {
     mySwitchCommand = new SwitchCommand(tlcontrol, this, delay);
     MSNet::getInstance()->getBeginOfTimestepEvents().addEvent(
-            mySwitchCommand, delay, MSEventControl::NO_CHANGE);
+        mySwitchCommand, delay, MSEventControl::NO_CHANGE);
 }
 
 

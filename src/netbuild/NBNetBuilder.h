@@ -10,7 +10,7 @@
 // Instance responsible for building networks
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -52,6 +52,7 @@
 // ===========================================================================
 class OptionsCont;
 class OutputDevice;
+class GeoConvHelper;
 
 
 // ===========================================================================
@@ -251,6 +252,9 @@ protected:
     /// @brief Map of joined edges
     NBJoinedEdgesMap myJoinedEdges;
 
+private:
+    /// @brief shift network so its lower left corner is at 0,0
+    void moveToOrigin(GeoConvHelper& geoConvHelper);
 
 private:
     /// @brief invalidated copy constructor

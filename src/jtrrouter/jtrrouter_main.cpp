@@ -9,7 +9,7 @@
 // Main for JTRROUTER
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -147,19 +147,12 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
     // initialise the loader
     loader.openRoutes(net);
     // prepare the output
-    net.openOutput(oc.getString("output-file"), false, oc.getString("vtype-output"));
+    net.openOutput(oc.getString("output-file"), "", oc.getString("vtype-output"));
     // build the router
     ROJTRRouter router(net, oc.getBool("ignore-errors"), oc.getBool("accept-all-destinations"),
                        (int)(((SUMOReal) net.getEdgeNo()) * OptionsCont::getOptions().getFloat("max-edges-factor")),
                        oc.getBool("ignore-vclasses"), oc.getBool("allow-loops"));
-    if (!oc.getBool("unsorted-input")) {
-        // the routes are sorted - process stepwise
-        loader.processRoutesStepWise(string2time(oc.getString("begin")), string2time(oc.getString("end")), net, router);
-    } else {
-        // the routes are not sorted: load all and process
-        loader.processAllRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")), net, router);
-    }
-    // end the processing
+    loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")), net, router);
     net.closeOutput();
 }
 
@@ -192,7 +185,7 @@ main(int argc, char** argv) {
         RandHelper::initRandGlobal();
         std::vector<SUMOReal> defs = getTurningDefaults(oc);
         // load data
-        ROLoader loader(oc, true);
+        ROLoader loader(oc, true, !oc.getBool("no-step-log"));
         net = new RONet();
         initNet(*net, loader, defs);
         try {

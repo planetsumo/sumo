@@ -12,7 +12,7 @@
 // The XML-Handler for network loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -155,11 +155,9 @@ NLHandler::myStartElement(int element,
             case SUMO_TAG_VSS:
                 myTriggerBuilder.parseAndBuildLaneSpeedTrigger(myNet, attrs, getFileName());
                 break;
-#ifdef HAVE_INTERNAL
             case SUMO_TAG_CALIBRATOR:
                 myTriggerBuilder.parseAndBuildCalibrator(myNet, attrs, getFileName());
                 break;
-#endif
             case SUMO_TAG_REROUTER:
                 myTriggerBuilder.parseAndBuildRerouter(myNet, attrs, getFileName());
                 break;
@@ -544,7 +542,7 @@ NLHandler::addPOI(const SUMOSAXAttributes& attrs) {
     SUMOReal layer = attrs.getOpt<SUMOReal>(SUMO_ATTR_LAYER, id.c_str(), ok, (SUMOReal)GLO_POI);
     std::string type = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, "");
     std::string laneID = attrs.getOpt<std::string>(SUMO_ATTR_LANE, id.c_str(), ok, "");
-    RGBColor color = attrs.hasAttribute(SUMO_ATTR_COLOR) ? attrs.get<RGBColor>(SUMO_ATTR_COLOR, id.c_str(), ok) : RGBColor(1, 0, 0);
+    RGBColor color = attrs.hasAttribute(SUMO_ATTR_COLOR) ? attrs.get<RGBColor>(SUMO_ATTR_COLOR, id.c_str(), ok) : RGBColor::RED;
     SUMOReal angle = attrs.getOpt<SUMOReal>(SUMO_ATTR_ANGLE, id.c_str(), ok, Shape::DEFAULT_ANGLE);
     std::string imgFile = attrs.getOpt<std::string>(SUMO_ATTR_IMGFILE, id.c_str(), ok, Shape::DEFAULT_IMG_FILE);
     if (imgFile != "" && !FileHelpers::isAbsolute(imgFile)) {
@@ -695,9 +693,9 @@ NLHandler::addPhase(const SUMOSAXAttributes& attrs) {
     // if the traffic light is an actuated traffic light, try to get
     //  the minimum and maximum durations
     SUMOTime minDuration = attrs.getOptSUMOTimeReporting(
-            SUMO_ATTR_MINDURATION, myJunctionControlBuilder.getActiveKey().c_str(), ok, duration);
+                               SUMO_ATTR_MINDURATION, myJunctionControlBuilder.getActiveKey().c_str(), ok, duration);
     SUMOTime maxDuration = attrs.getOptSUMOTimeReporting(
-            SUMO_ATTR_MAXDURATION, myJunctionControlBuilder.getActiveKey().c_str(), ok, duration);
+                               SUMO_ATTR_MAXDURATION, myJunctionControlBuilder.getActiveKey().c_str(), ok, duration);
 
 
 		//SOTL attributes
@@ -1190,7 +1188,7 @@ NLHandler::addDistrict(const SUMOSAXAttributes& attrs) {
         }
         source->initialize(new std::vector<MSLane*>());
         if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
-            std::vector<std::string> desc = StringTokenizer(attrs.getString(SUMO_ATTR_EDGES)).getVector();
+            std::vector<std::string> desc = attrs.getStringVector(SUMO_ATTR_EDGES);
             for (std::vector<std::string>::const_iterator i = desc.begin(); i != desc.end(); ++i) {
                 MSEdge* edge = MSEdge::dictionary(*i);
                 // check whether the edge exists

@@ -8,7 +8,7 @@
 // An O/D (origin/destination) matrix
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -108,6 +108,15 @@ public:
              SUMOTime end, const std::string& origin, const std::string& destination,
              const std::string& vehicleType);
 
+    /** @brief Helper function for flow and trip output writing the depart
+     *   and arrival attributes
+     *
+     * @param[in] dev The stream to write the generated vehicle trips to
+     * @param[in] noVtype Whether vtype information shall not be written
+     * @param[in] cell The OD cell containing the vtype
+     */
+    void writeDefaultAttrs(OutputDevice& dev, const bool noVtype,
+                           const ODCell* const cell);
 
     /** @brief Writes the vehicles stored in the matrix assigning the sources and sinks
      *
@@ -127,15 +136,28 @@ public:
      *
      * @param[in] begin The begin time to generate vehicles for
      * @param[in] end The end time to generate vehicles for
-     * @param[out] strm The stream to write the generated vehicle trips to
+     * @param[in] dev The stream to write the generated vehicle trips to
      * @param[in] uniform Information whether departure times shallbe uniformly spread or random
      * @param[in] noVtype Whether vtype information shall not be written
      * @param[in] prefix A prefix for the vehicle names
      * @param[in] stepLog Whether processed time shall be written
      */
-    void write(SUMOTime begin, SUMOTime end,
-               OutputDevice& dev, bool uniform, bool noVtype,
-               const std::string& prefix, bool stepLog);
+    void write(SUMOTime begin, const SUMOTime end,
+               OutputDevice& dev, const bool uniform, const bool noVtype,
+               const std::string& prefix, const bool stepLog);
+
+
+    /** @brief Writes the flows stored in the matrix
+     *
+     * @param[in] begin The begin time to generate vehicles for
+     * @param[in] end The end time to generate vehicles for
+     * @param[in] dev The stream to write the generated vehicle trips to
+     * @param[in] noVtype Whether vtype information shall not be written
+     * @param[in] prefix A prefix for the flow names
+     */
+    void writeFlows(const SUMOTime begin, const SUMOTime end,
+                    OutputDevice& dev, const bool noVtype,
+                    const std::string& prefix);
 
 
     /** @brief Returns the number of loaded vehicles
@@ -171,31 +193,31 @@ public:
     void applyCurve(const Distribution_Points& ps);
 
 
-	/** @brief read a VISUM-matrix with the O Format
-	 *  @todo Describe
-	 */
-	void readO(LineReader& lr, SUMOReal scale,
-      std::string vehType, bool matrixHasVehType);
+    /** @brief read a VISUM-matrix with the O Format
+     *  @todo Describe
+     */
+    void readO(LineReader& lr, SUMOReal scale,
+               std::string vehType, bool matrixHasVehType);
 
-	/** @brief read a VISUM-matrix with the V Format
-	 *  @todo Describe
-	 */
-	void readV(LineReader& lr, SUMOReal scale,
-      std::string vehType, bool matrixHasVehType);
+    /** @brief read a VISUM-matrix with the V Format
+     *  @todo Describe
+     */
+    void readV(LineReader& lr, SUMOReal scale,
+               std::string vehType, bool matrixHasVehType);
 
-	/** @brief read a VISUM-matrix with the V Format
-	 *  @todo Describe
-	 */
-	void loadMatrix(OptionsCont& oc);
+    /** @brief read a VISUM-matrix with the V Format
+     *  @todo Describe
+     */
+    void loadMatrix(OptionsCont& oc);
 
-	/** @brief split the given timeline 
-	 *  @todo Describe
-	 */
-	Distribution_Points parseTimeLine(const std::vector<std::string>& def, bool timelineDayInHours);
+    /** @brief split the given timeline
+     *  @todo Describe
+     */
+    Distribution_Points parseTimeLine(const std::vector<std::string>& def, bool timelineDayInHours);
 
-	const std::vector<ODCell*>& getCells() {
-		return myContainer;
-	}
+    const std::vector<ODCell*>& getCells() {
+        return myContainer;
+    }
 
 protected:
     /**
@@ -269,22 +291,22 @@ private:
     /** @used in the functions readV and readO
      * @todo Describe
      */
-	std::string getNextNonCommentLine(LineReader& lr);
+    std::string getNextNonCommentLine(LineReader& lr);
 
     /** @used in the functions readV and readO
      * @todo Describe
      */
-	SUMOTime parseSingleTime(const std::string& time);
+    SUMOTime parseSingleTime(const std::string& time);
 
     /** @used in the functions readV and readO
      * @todo Describe
      */
-	std::pair<SUMOTime, SUMOTime> readTime(LineReader& lr);
+    std::pair<SUMOTime, SUMOTime> readTime(LineReader& lr);
 
     /** @used in the functions readV and readO
      * @todo Describe
      */
-	SUMOReal readFactor(LineReader& lr, SUMOReal scale);
+    SUMOReal readFactor(LineReader& lr, SUMOReal scale);
 
 
 protected:

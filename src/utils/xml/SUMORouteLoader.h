@@ -8,7 +8,7 @@
 // A class that performs the loading of routes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -57,18 +57,19 @@ public:
 
     /** loads vehicles until a vehicle is read that starts after
         the specified time */
-    void loadUntil(SUMOTime time);
+    SUMOTime loadUntil(SUMOTime time);
 
     /// returns the information whether new data is available
     bool moreAvailable() const;
 
 private:
-    /// the used SAX2XMLReader
+    /// the used SAXReader
     SUMOSAXReader* myParser;
 
     /// information whether more vehicles should be available
     bool myMoreAvailable;
 
+    /// the used Handler
     SUMORouteHandler* myHandler;
 
 };
