@@ -13,7 +13,7 @@
 // The simulated network and simulation perfomer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -349,6 +349,10 @@ void
 MSNet::simulationStep() {
 #ifndef NO_TRACI
     traci::TraCIServer::processCommandsUntilSimStep(myStep);
+	traci::TraCIServer *t = traci::TraCIServer::getInstance();
+	if(t!=0&&t->getTargetTime()!=0&&t->getTargetTime()<myStep) {
+		return;
+	}
 #endif
     // execute beginOfTimestepEvents
     if (myLogExecutionTime) {
@@ -417,6 +421,11 @@ MSNet::simulationStep() {
     // execute endOfTimestepEvents
     myEndOfTimestepEvents->execute(myStep);
 
+#ifndef NO_TRACI
+    if(traci::TraCIServer::getInstance()!=0) {
+        traci::TraCIServer::getInstance()->postProcessVTD();
+    }
+#endif
     // update and write (if needed) detector values
     writeOutput();
 

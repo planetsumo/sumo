@@ -10,7 +10,7 @@
 // A loaded (complete) traffic light logic
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -266,17 +266,17 @@ NBLoadedTLDef::SignalGroup::remap(NBEdge* removed, int removedLane,
  * NBLoadedTLDef::Phase-methods
  * ----------------------------------------------------------------------- */
 NBLoadedTLDef::NBLoadedTLDef(const std::string& id,
-                             const std::vector<NBNode*>& junctions, SUMOTime offset, TrafficLightType type) : 
+                             const std::vector<NBNode*>& junctions, SUMOTime offset, TrafficLightType type) :
     NBTrafficLightDefinition(id, junctions, DefaultProgramID, offset, type)
 {}
 
 
-NBLoadedTLDef::NBLoadedTLDef(const std::string& id, NBNode* junction, SUMOTime offset, TrafficLightType type) : 
+NBLoadedTLDef::NBLoadedTLDef(const std::string& id, NBNode* junction, SUMOTime offset, TrafficLightType type) :
     NBTrafficLightDefinition(id, junction, DefaultProgramID, offset, type)
 {}
 
 
-NBLoadedTLDef::NBLoadedTLDef(const std::string& id, SUMOTime offset, TrafficLightType type) : 
+NBLoadedTLDef::NBLoadedTLDef(const std::string& id, SUMOTime offset, TrafficLightType type) :
     NBTrafficLightDefinition(id, DefaultProgramID, offset, type)
 {}
 

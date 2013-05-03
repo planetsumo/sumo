@@ -10,7 +10,7 @@
 // Writes positions of vehicles that have a certain (named) type
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -76,10 +76,10 @@ MSVTypeProbe::execute(SUMOTime currentTime) {
             }
             Position pos = veh->getLane()->getShape().positionAtLengthPosition(veh->getPositionOnLane());
             myOutputDevice.openTag("vehicle") << " id=\"" << veh->getID()
-                           << "\" lane=\"" << veh->getLane()->getID()
-                           << "\" pos=\"" << veh->getPositionOnLane()
-                           << "\" x=\"" << pos.x()
-                           << "\" y=\"" << pos.y();
+                                              << "\" lane=\"" << veh->getLane()->getID()
+                                              << "\" pos=\"" << veh->getPositionOnLane()
+                                              << "\" x=\"" << pos.x()
+                                              << "\" y=\"" << pos.y();
             if (GeoConvHelper::getFinal().usingGeoProjection()) {
                 GeoConvHelper::getFinal().cartesian2geo(pos);
                 myOutputDevice.setPrecision(GEO_OUTPUT_ACCURACY);

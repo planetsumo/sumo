@@ -10,7 +10,7 @@
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -192,7 +192,7 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
             break;
         case VAR_BUS_STOP_WAITING: {
             std::string id;
-            if(!server.readTypeCheckingString(inputStorage, id)) {
+            if (!server.readTypeCheckingString(inputStorage, id)) {
                 return server.writeErrorStatusCmd(CMD_GET_SIM_VARIABLE, "Retrieval of persons at busstop requires a string.", outputStorage);
             }
             MSBusStop* s = MSNet::getInstance()->getBusStop(id);
@@ -301,7 +301,7 @@ TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server,
     }
 
     int destPosType = 0;
-    if(!server.readTypeCheckingUnsignedByte(inputStorage, destPosType)) {
+    if (!server.readTypeCheckingUnsignedByte(inputStorage, destPosType)) {
         server.writeStatusCmd(commandId, RTYPE_ERR, "Destination position type must be of type ubyte.");
         return false;
     }

@@ -9,7 +9,7 @@
 // A MSLane extended for visualisation purposes.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -82,7 +82,7 @@ GUILaneWrapper::GUILaneWrapper(MSLane& lane, const PositionVector& shape, unsign
 #ifdef HAVE_OSG
     , myGeom(0)
 #endif
-    {
+{
     myShapeRotations.reserve(myShape.size() - 1);
     myShapeLengths.reserve(myShape.size() - 1);
     int e = (int) myShape.size() - 1;
@@ -476,6 +476,7 @@ GUILaneWrapper::drawMarkings(const GUIVisualizationSettings& s) const {
         setColor(s);
     // optionally draw inverse markings
     if (myIndex > 0) {
+		SUMOReal mw = myHalfLaneWidth + SUMO_const_laneOffset + .01;
         int e = (int) getShape().size() - 1;
         for (int i = 0; i < e; ++i) {
             glPushMatrix();
@@ -483,10 +484,10 @@ GUILaneWrapper::drawMarkings(const GUIVisualizationSettings& s) const {
             glRotated(myShapeRotations[i], 0, 0, 1);
             for (SUMOReal t = 0; t < myShapeLengths[i]; t += 6) {
                 glBegin(GL_QUADS);
-                glVertex2d(-1.8, -t);
-                glVertex2d(-1.8, -t - 3.);
-                glVertex2d(1.0, -t - 3.);
-                glVertex2d(1.0, -t);
+                glVertex2d(-mw, -t);
+                glVertex2d(-mw, -t - 3.);
+                glVertex2d(myQuarterLaneWidth, -t - 3.);
+                glVertex2d(myQuarterLaneWidth, -t);
                 glEnd();
             }
             glPopMatrix();
@@ -732,12 +733,12 @@ GUILaneWrapper::getColorValue(size_t activeScheme) const {
 void
 GUILaneWrapper::updateColor(const GUIVisualizationSettings& s) {
     const RGBColor& col = s.laneColorer.getScheme().getColor(getColorValue(s.laneColorer.getActive()));
-    osg::Vec4ubArray *colors = dynamic_cast<osg::Vec4ubArray*>(myGeom->getColorArray());
+    osg::Vec4ubArray* colors = dynamic_cast<osg::Vec4ubArray*>(myGeom->getColorArray());
     (*colors)[0].set(col.red(), col.green(), col.blue(), col.alpha());
     myGeom->setColorArray(colors);
 }
 #endif
 
-    
+
 /****************************************************************************/
 

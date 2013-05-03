@@ -11,7 +11,7 @@ This file contains a content handler for parsing sumo network xml files.
 It uses other classes from this module to represent the road network.
 
 SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2008-2012 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
 
@@ -341,6 +341,9 @@ class NetReader(handler.ContentHandler):
             self._currentProgram.addPhase(attrs['state'], int(attrs['duration']))
         if name == 'roundabout':
             self._net.addRoundabout(attrs['nodes'].split())
+        if name == 'param':
+            if self._currentLane!=None:
+                self._currentLane._params[attrs['key']] = attrs['value']
 
     def characters(self, content):
         if self._currentLane!=None:

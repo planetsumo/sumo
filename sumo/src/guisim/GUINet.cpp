@@ -10,7 +10,7 @@
 // A MSNet extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -217,7 +217,7 @@ GUINet::guiSimulationStep() {
 }
 
 
-void 
+void
 GUINet::simulationStep() {
     AbstractMutex::ScopedLocker locker(myLock);
     MSNet::simulationStep();
@@ -483,13 +483,13 @@ GUINet::getGUIVehicleControl() {
 }
 
 
-void 
+void
 GUINet::lock() {
     myLock.lock();
 }
 
 
-void 
+void
 GUINet::unlock() {
     myLock.unlock();
 }

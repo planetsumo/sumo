@@ -13,7 +13,7 @@
 // Representation of a lane in the micro simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -679,6 +679,14 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
     VehCont::iterator lastVeh = myVehicles.end() - 1;
     for (VehCont::iterator veh = myVehicles.begin(); veh != lastVeh;) {
         VehCont::iterator pred = veh + 1;
+        if((*veh)->hasInfluencer() && (*veh)->getInfluencer().isVTDControlled()) {
+			++veh;
+            continue;
+        }
+        if((*pred)->hasInfluencer() && (*pred)->getInfluencer().isVTDControlled()) {
+			++veh;
+            continue;
+        }
         SUMOReal gap = (*pred)->getPositionOnLane() - (*pred)->getVehicleType().getLength() - (*veh)->getPositionOnLane() - (*veh)->getVehicleType().getMinGap();
         if (gap < -0.001) {
             MSVehicle* vehV = *veh;
@@ -728,7 +736,12 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
         bool moved = veh->executeMove();
         //std::cout << "    ... now on lane " << veh->getLane()->getID() << "\n";
         MSLane* target = veh->getLane();
+#ifndef NO_TRACI
+		bool vtdControlled = veh->hasInfluencer()&&veh->getInfluencer().isVTDControlled();
+        if (veh->hasArrived()&&!vtdControlled) {
+#else
         if (veh->hasArrived()) {
+#endif
             // vehicle has reached its arrival position
             veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_ARRIVED);
             MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(veh);
@@ -920,8 +933,6 @@ MSLane::succLinkSec(const SUMOVehicle& veh, unsigned int nRouteSuccs,
         return succLinkSource.myLinks.end();
     }
     // the only case where this should happen is for a disconnected route (deliberately ignored)
-    assert(!MSGlobals::gCheckRoutes);
-    assert(succLinkSource.getEdge().allowedLanes(*nRouteEdge) == 0);
     return succLinkSource.myLinks.end();
 }
 

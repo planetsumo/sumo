@@ -9,7 +9,7 @@
 // Sets and checks options for netimport
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -251,7 +251,10 @@ NIFrame::fillOptions() {
     // register opendrive options
     oc.doRegister("opendrive.import-all-lanes", new Option_Bool(false));
     oc.addDescription("opendrive.import-all-lanes", "Processing", "Imports all lane types.");
+    oc.doRegister("opendrive.import-widths", new Option_Bool(false));
+    oc.addDescription("opendrive.import-widths", "Processing", "Whether lane widths shall be imported.");
     
+
 
 
     // register some additional options

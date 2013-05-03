@@ -7,7 +7,7 @@
 // A class representing a street sign
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -92,7 +92,11 @@ NBSign::~NBSign() {}
 void
 NBSign::writeAsPOI(OutputDevice& into, const NBEdge* edge) const {
     PositionVector shp = edge->getLanes()[0].shape;
-    shp.move2side(3);
+	try {
+		shp.move2side(3);
+	} catch (InvalidArgument&) { 
+		// we do not write anything, maybe we should
+	}
     Position pos = shp.positionAtLengthPosition(myOffset);
     into.openTag(SUMO_TAG_POI);
     into.writeAttr(SUMO_ATTR_ID, edge->getID() + "." + toString(myOffset));

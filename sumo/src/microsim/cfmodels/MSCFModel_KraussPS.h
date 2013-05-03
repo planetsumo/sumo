@@ -10,7 +10,7 @@
 // Krauss car-following model, changing accel and speed by slope
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -74,10 +74,10 @@ public:
      * @param[in] speed The vehicle itself, for obtaining other values
      * @return The maximum possible speed for the next step
      */
-	SUMOReal maxNextSpeed(SUMOReal speed, const MSVehicle * const veh) const;
+    SUMOReal maxNextSpeed(SUMOReal speed, const MSVehicle* const veh) const;
 
 
-	/** @brief Returns the model's name
+    /** @brief Returns the model's name
      * @return The model's name
      * @see MSCFModel::getModelName
      */

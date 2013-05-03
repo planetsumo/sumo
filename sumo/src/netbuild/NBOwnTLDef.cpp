@@ -10,7 +10,7 @@
 // A traffic light logics which must be computed (only nodes/edges are given)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -53,17 +53,17 @@
 // ===========================================================================
 NBOwnTLDef::NBOwnTLDef(const std::string& id,
                        const std::vector<NBNode*>& junctions, SUMOTime offset,
-                       TrafficLightType type) : 
+                       TrafficLightType type) :
     NBTrafficLightDefinition(id, junctions, DefaultProgramID, offset, type) {}
 
 
 NBOwnTLDef::NBOwnTLDef(const std::string& id, NBNode* junction, SUMOTime offset,
-        TrafficLightType type) : 
+                       TrafficLightType type) :
     NBTrafficLightDefinition(id, junction, DefaultProgramID, offset, type) {}
 
 
 NBOwnTLDef::NBOwnTLDef(const std::string& id, SUMOTime offset,
-        TrafficLightType type) : 
+                       TrafficLightType type) :
     NBTrafficLightDefinition(id, DefaultProgramID, offset, type) {}
 
 

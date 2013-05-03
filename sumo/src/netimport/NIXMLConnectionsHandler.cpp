@@ -10,7 +10,7 @@
 // Importer for edge connections stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -93,7 +93,7 @@ NIXMLConnectionsHandler::myStartElement(int element,
             myErrorMsgHandler->inform("The connection-destination edge '" + to + "' to reset is not known.");
             return;
         }
-        if (!fromEdge->isConnectedTo(toEdge) && fromEdge->getStep() >= NBEdge::EDGE2EDGES ) {
+        if (!fromEdge->isConnectedTo(toEdge) && fromEdge->getStep() >= NBEdge::EDGE2EDGES) {
             WRITE_WARNING("Target edge '" + toEdge->getID() + "' is not connected with '" + fromEdge->getID() + "'; the connection cannot be reset.");
             return;
         }

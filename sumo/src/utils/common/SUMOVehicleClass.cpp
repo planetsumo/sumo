@@ -10,7 +10,7 @@
 // Definitions of SUMO vehicle classes and helper functions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -136,7 +136,7 @@ StringBijection<SUMOEmissionClass>::Entry SumoEmissionClassStringInitializer[] =
     {"HDV_12_10",              SVE_HDV_12_10},
     {"HDV_12_11",              SVE_HDV_12_11},
     {"HDV_12_12",              SVE_HDV_12_12},
-    // passenger & light duty vehicles; 7 clusters           
+    // passenger & light duty vehicles; 7 clusters
     {"P_7_1",                  SVE_P_LDV_7_1},
     {"P_7_2",                  SVE_P_LDV_7_2},
     {"P_7_3",                  SVE_P_LDV_7_3},
@@ -212,7 +212,7 @@ StringBijection<SUMOEmissionClass>::Entry SumoEmissionClassStringInitializer[] =
 
 StringBijection<SUMOEmissionClass> SumoEmissionClassStrings(
     SumoEmissionClassStringInitializer, SVE_P_LDV_A0_14_14);
-    
+
 
 // ===========================================================================
 // additional constants

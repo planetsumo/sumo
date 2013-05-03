@@ -8,7 +8,7 @@
 // A storage for type mappings
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -110,16 +110,16 @@ public:
      */
     bool has(const std::string& id);
 
-	/// @brief get the default type according to the given options
-	const TypeDef& getDefault() {
-		return myDefaultType;
-	}
+    /// @brief get the default type according to the given options
+    const TypeDef& getDefault() {
+        return myDefaultType;
+    }
 
 protected:
     /// @brief A map of type names to type definitions
     std::map<std::string, TypeDef> myTypes;
 
-	TypeDef myDefaultType;
+    TypeDef myDefaultType;
 
 };
 

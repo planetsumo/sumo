@@ -7,7 +7,7 @@
 // Static storage of an output device and its base (abstract) implementation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -57,10 +57,10 @@ PlainXMLFormatter::writeHeader(std::ostream& into, const SumoXMLTag& rootElement
 
 
 bool
-PlainXMLFormatter::writeXMLHeader(std::ostream& into, const std::string& rootElement, const std::string xmlParams,
+PlainXMLFormatter::writeXMLHeader(std::ostream& into, const std::string& rootElement,
                                   const std::string& attrs, const std::string& comment) {
     if (myXMLStack.empty()) {
-        OptionsCont::getOptions().writeXMLHeader(into, xmlParams);
+        OptionsCont::getOptions().writeXMLHeader(into);
         if (comment != "") {
             into << comment << "\n";
         }

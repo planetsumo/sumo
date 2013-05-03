@@ -15,7 +15,7 @@
 // Representation of a vehicle in the micro simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -261,7 +261,7 @@ public:
      * speeds from the last time step. Also registers
      * ApproachingVehicleInformation for all links
      *
-     * This method goes through the best continuation lanes of the current lane and 
+     * This method goes through the best continuation lanes of the current lane and
      * computes the safe velocities for passing/stopping at the next link as a DriveProcessItem
      *
      * Afterwards it checks if any DriveProcessItem should be discared to avoid
@@ -280,7 +280,7 @@ public:
 
     /** @brief Executes planned vehicle movements with regards to right-of-way
      *
-     * This method goes through all DriveProcessItems in myLFLinkLanes in order 
+     * This method goes through all DriveProcessItems in myLFLinkLanes in order
      * to find a speed that is safe for all upcoming links.
      *
      * Using this speed the position is updated and the vehicle is moved to the
@@ -863,6 +863,20 @@ public:
             return myOriginalSpeed;
         }
 
+		void setVTDControlled(bool c, MSLane *l, SUMOReal pos, int edgeOffset, const MSEdgeVector &route) {
+			myAmVTDControlled = c;
+			myVTDLane = l;
+			myVTDPos = pos;
+			myVTDEdgeOffset = edgeOffset;
+			myVTDRoute = route;
+		}
+
+		void postProcessVTD(MSVehicle *v);
+
+		bool isVTDControlled() const {
+			return myAmVTDControlled;
+		}
+
     private:
         /// @brief The velocity time line to apply
         std::vector<std::pair<SUMOTime, SUMOReal> > mySpeedTimeLine;
@@ -884,6 +898,13 @@ public:
 
         /// @brief Whether the maximum deceleration shall be regarded
         bool myConsiderMaxDeceleration;
+
+		bool myAmVTDControlled;
+		MSLane *myVTDLane;
+		SUMOReal myVTDPos;
+		int myVTDEdgeOffset;
+		MSEdgeVector myVTDRoute;
+
     };
 
 
@@ -893,6 +914,10 @@ public:
      * @return Reference to this vehicle's speed influencer
      */
     Influencer& getInfluencer();
+
+    bool hasInfluencer() const {
+        return myInfluencer!=0;
+    }
 
 
 #endif
