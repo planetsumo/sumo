@@ -145,8 +145,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         return;
     }
     myImportAllTypes = oc.getBool("opendrive.import-all-lanes");
-    myImportWidths = oc.getBool("opendrive.import-widths");
-	myImportWidths = true;
+    myImportWidths = !oc.getBool("opendrive.ignore-widths");
     myLaneTypes2Import.insert("driving");
     myLaneTypes2Import.insert("stop");
     myLaneTypes2Import.insert("mwyEntry");
