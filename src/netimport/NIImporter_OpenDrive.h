@@ -272,7 +272,7 @@ protected:
         /** @brief Returns the number of lanes for the given direction
          * @return The named direction's lane number
          */
-        unsigned int getLaneNumber(OpenDriveXMLTag dir) const;
+        unsigned int getImportedLaneNumber(OpenDriveXMLTag dir) const;
 
 
         /** @brief Build the mapping from OpenDrive to SUMO lanes

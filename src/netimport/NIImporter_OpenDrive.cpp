@@ -366,7 +366,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             }
 
 			// build lanes to right
-			int rightLanesSection = (*j).getLaneNumber(OPENDRIVE_TAG_RIGHT);
+			int rightLanesSection = (*j).getImportedLaneNumber(OPENDRIVE_TAG_RIGHT);
 			NBEdge *currRight = 0;
 			if(rightLanesSection>0) {
 				currRight = new NBEdge("-" + id, sFrom, sTo, "", defaultSpeed, rightLanesSection, priorityR,
@@ -404,7 +404,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 			}
 
 			// build lanes to left
-			int leftLanesSection = (*j).getLaneNumber(OPENDRIVE_TAG_LEFT);
+			int leftLanesSection = (*j).getImportedLaneNumber(OPENDRIVE_TAG_LEFT);
 			NBEdge *currLeft = 0;
 			if(leftLanesSection>0) {
 				currLeft = new NBEdge(id, sTo, sFrom, "", defaultSpeed, leftLanesSection, priorityL,
@@ -569,7 +569,7 @@ NIImporter_OpenDrive::buildConnectionsToOuter(const Connection& c, const std::ma
                 into.push_back(cn);
             }
         } else {
-            unsigned int laneNo = c.toLane < 0 ? dest->laneSections[0].getLaneNumber(OPENDRIVE_TAG_RIGHT) : dest->laneSections[dest->laneSections.size() - 1].getLaneNumber(OPENDRIVE_TAG_LEFT);
+            unsigned int laneNo = c.toLane < 0 ? dest->laneSections[0].getImportedLaneNumber(OPENDRIVE_TAG_RIGHT) : dest->laneSections[dest->laneSections.size() - 1].getImportedLaneNumber(OPENDRIVE_TAG_LEFT);
             if ((*i).fromLane == c.toLane) {
                 Connection cn = (*i);
                 cn.fromEdge = c.fromEdge;
@@ -919,7 +919,7 @@ NIImporter_OpenDrive::OpenDriveLaneSection::OpenDriveLaneSection(SUMOReal sArg) 
 
 
 unsigned int
-NIImporter_OpenDrive::OpenDriveLaneSection::getLaneNumber(OpenDriveXMLTag dir) const {
+NIImporter_OpenDrive::OpenDriveLaneSection::getImportedLaneNumber(OpenDriveXMLTag dir) const {
     unsigned int laneNum = 0;
     const std::vector<OpenDriveLane>& dirLanes = lanesByDir.find(dir)->second;
     for (std::vector<OpenDriveLane>::const_iterator i = dirLanes.begin(); i != dirLanes.end(); ++i) {
@@ -997,7 +997,7 @@ unsigned int
 NIImporter_OpenDrive::OpenDriveEdge::getMaxLaneNumber(OpenDriveXMLTag dir) const {
     unsigned int maxLaneNum = 0;
     for (std::vector<OpenDriveLaneSection>::const_iterator i = laneSections.begin(); i != laneSections.end(); ++i) {
-        maxLaneNum = MAX2(maxLaneNum, (*i).getLaneNumber(dir));
+        maxLaneNum = MAX2(maxLaneNum, (*i).getImportedLaneNumber(dir));
     }
     return maxLaneNum;
 }
