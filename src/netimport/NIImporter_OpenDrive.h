@@ -269,12 +269,6 @@ protected:
         OpenDriveLaneSection(SUMOReal sArg);
 
 
-        /** @brief Returns the number of lanes for the given direction
-         * @return The named direction's lane number
-         */
-        unsigned int getImportedLaneNumber(OpenDriveXMLTag dir) const;
-
-
         /** @brief Build the mapping from OpenDrive to SUMO lanes
          *
          * Not all lanes are converted to SUMO-lanes; the mapping includes only those
@@ -294,6 +288,8 @@ protected:
         std::map<OpenDriveXMLTag, std::vector<OpenDriveLane> > lanesByDir;
         /// @brief The id (generic, without the optionally leading '-') of the edge generated for this section
         std::string sumoID;
+		/// @brief The number of imported lanes on the right and on the left side, respectively
+		unsigned int rightLaneNumber, leftLaneNumber;
     };
 
 
