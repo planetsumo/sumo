@@ -478,10 +478,10 @@ MSVehicle::getPosition() const {
     if (myLane == 0) {
         return Position::INVALID;
     }
-    Position result = myLane->getShape().positionAtLengthPosition(
+    Position result = myLane->getShape().positionAtOffset(
             myLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
     if (getLaneChangeModel().isChangingLanes()) {
-        const Position other = getLaneChangeModel().getShadowLane()->getShape().positionAtLengthPosition(
+        const Position other = getLaneChangeModel().getShadowLane()->getShape().positionAtOffset(
                 getLaneChangeModel().getShadowLane()->interpolateLanePosToGeometryPos(getPositionOnLane()));
         Line line = getLaneChangeModel().isLaneChangeMidpointPassed() ?  Line(other, result) : Line(result, other);
         return line.getPositionAtDistance(getLaneChangeModel().getLaneChangeCompletion() * line.length());
@@ -492,13 +492,13 @@ MSVehicle::getPosition() const {
 
 SUMOReal
 MSVehicle::getAngle() const {
-    Position p1 = myLane->getShape().positionAtLengthPosition(myState.pos());
+    Position p1 = myLane->getShape().positionAtOffset(myState.pos());
     Position p2 = myFurtherLanes.size() > 0
-                  ? myFurtherLanes.back()->getShape().positionAtLengthPosition(myFurtherLanes.back()->getPartialOccupatorEnd())
-                  : myLane->getShape().positionAtLengthPosition(myState.pos() - myType->getLength());
+                  ? myFurtherLanes.back()->getShape().positionAtOffset(myFurtherLanes.back()->getPartialOccupatorEnd())
+                  : myLane->getShape().positionAtOffset(myState.pos() - myType->getLength());
     SUMOReal result = (p1 != p2 ?
             atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / PI :
-            -myLane->getShape().rotationDegreeAtLengthPosition(getPositionOnLane()));
+            -myLane->getShape().rotationDegreeAtOffset(getPositionOnLane()));
     if (getLaneChangeModel().isChangingLanes()) {
         const SUMOReal angleOffset = 60 / STEPS2TIME(MSGlobals::gLaneChangeDuration) * (getLaneChangeModel().isLaneChangeMidpointPassed() ? 1 - getLaneChangeModel().getLaneChangeCompletion() : getLaneChangeModel().getLaneChangeCompletion());
         result += getLaneChangeModel().getLaneChangeDirection() * angleOffset;
