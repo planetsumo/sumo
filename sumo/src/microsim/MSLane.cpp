@@ -726,15 +726,12 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
         MSVehicle* veh = *i;
         if (veh->getLane() != this || veh->getLaneChangeModel().alreadyMoved()) {
             // this is the shadow during a continuous lane change
-            //std::cout << STEPS2TIME(t) << " skipping shadow of " << veh->getID() << " on lane " << getID() << "\n";
             ++i;
             continue;
         }
-        //std::cout << STEPS2TIME(t) << " executing move of " << veh->getID() << " on lane " << getID() << "\n";
         // length is needed later when the vehicle may not exist anymore
         const SUMOReal length = veh->getVehicleType().getLengthWithGap();
         bool moved = veh->executeMove();
-        //std::cout << "    ... now on lane " << veh->getLane()->getID() << "\n";
         MSLane* target = veh->getLane();
 #ifndef NO_TRACI
 		bool vtdControlled = veh->hasInfluencer()&&veh->getInfluencer().isVTDControlled();
@@ -783,8 +780,6 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
         i = myVehicles.erase(i);
     }
     if (myVehicles.size() > 0) {
-        //std::cout << time2string(MSNet::getInstance()->getCurrentTimeStep()) << " lane " << getID() << " has " << myVehicles.size() << " vehicles.\n";
-        //std::cout << "   last veh: " << (*(myVehicles.end() - 1))->getID() << "\n";
         if (MSGlobals::gTimeToGridlock > 0
                 && !(*(myVehicles.end() - 1))->isStopped()
                 && (*(myVehicles.end() - 1))->getWaitingTime() > MSGlobals::gTimeToGridlock) {

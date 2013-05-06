@@ -137,7 +137,6 @@ MSLaneChanger::change() {
         int bla = 0;
     }
 #endif
-    //std::cout << "checking for lane change of " << vehicle->getID() << " on " << (*myCandi).lane->getID() << "\n";
     if (vehicle->getLane() != (*myCandi).lane || vehicle->getLaneChangeModel().isChangingLanes()) {
         // vehicles shadows and changing vehicles are not eligible
         registerUnchanged(vehicle);

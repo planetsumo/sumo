@@ -671,8 +671,6 @@ MSVehicle::processNextStop(SUMOReal currentVelocity) {
 
 void
 MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal lengthsInFront) {
-   //std::cout << time2string(MSNet::getInstance()->getCurrentTimeStep())
-   //    << " " << getID() << " planMove myLane=" << myLane->getID() << "\n";
 #ifdef _MESSAGES
     if (myHBMsgEmitter != 0) {
         if (isOnRoad()) {
@@ -728,7 +726,6 @@ MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal leng
     int lastLink = -1;
     std::pair<MSVehicle*, SUMOReal> leaderInfo = pred != 0 ? std::pair<MSVehicle*, SUMOReal>(pred, gap2pred(*pred)) : std::pair<MSVehicle*, SUMOReal>((MSVehicle*) 0, 0);
     // iterator over subsequent lanes and fill myLFLinkLanes until stopping distance or stopped
-    //std::cout << STEPS2TIME(t) << " planMove " << getID() << " on lane " << myLane->getID() << "\n";
     MSLane* lane = myLane; 
     while (true) {
         SUMOReal laneStopOffset = lane->getLength() > getVehicleType().getMinGap() ? getVehicleType().getMinGap() : POSITION_EPS;
@@ -792,11 +789,8 @@ MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal leng
             myLFLinkLanes.push_back(DriveProcessItem(0, v, v, false, 0, 0, seen));
             break;
         }
-        //std::cout << "      next lane " << (*link)->getViaLaneOrLane()->getID() << "\n";
         // check whether we need to slow down in order to finish a continuous lane change
         if (getLaneChangeModel().isChangingLanes()) {
-            //std::cout << std::setprecision(20);
-            //std::cout << getID() << " computing slowDown completion=" << myLaneChangeCompletion << ")\n";
             if (    // slow down to finish lane change before a turn lane
                     ((*link)->getDirection() == LINKDIR_LEFT || (*link)->getDirection() == LINKDIR_RIGHT) ||
                     // slow down to finish lane change before the shadow lane ends
@@ -804,7 +798,6 @@ MSVehicle::planMove(SUMOTime t, MSVehicle* pred, MSVehicle* neigh, SUMOReal leng
                     (*link)->getViaLaneOrLane()->getParallelLane(-getLaneChangeModel().getLaneChangeDirection()) == 0)) {
                 const SUMOReal timeRemaining = STEPS2TIME((1 - getLaneChangeModel().getLaneChangeCompletion()) * MSGlobals::gLaneChangeDuration);
                 const SUMOReal va = seen / timeRemaining;
-                //std::cout << getID() << " slows down to at most " << va << " to finish continuous lane change\n";
                 v = MIN2(va, v);
             }
         }
