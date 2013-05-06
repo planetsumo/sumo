@@ -106,9 +106,9 @@ void MSPhasedTrafficLightLogic::proceedToNextStep() {
 }
 
 void MSPhasedTrafficLightLogic::setStep(unsigned int step) {
-	assert(myPhases.size() > step);
-	if(myStep != step % myPhases.size()) {
-		myStep = step % myPhases.size();
+	step = step % myPhases.size();
+	if(myStep != step ) {
+		myStep = step;
     	myPhases[myStep]->myLastSwitch = MSNet::getInstance()->getCurrentTimeStep();
 	}
 }

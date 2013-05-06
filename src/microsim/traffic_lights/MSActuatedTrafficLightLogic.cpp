@@ -133,7 +133,7 @@ SUMOTime
 MSActuatedTrafficLightLogic::duration() const {
     assert(myContinue);
     assert(getCurrentPhaseDef().isGreenPhase());
-    assert(myPhases.size() > myStep);
+    assert(myPhases.size() > getCurrentPhaseIndex());
     // define the duration depending from the number of waiting vehicles of the actual phase
     int newduration = (int) getCurrentPhaseDef().minDuration;
     const std::string& state = getCurrentPhaseDef().getState();
@@ -165,7 +165,7 @@ MSActuatedTrafficLightLogic::duration() const {
 void
 MSActuatedTrafficLightLogic::gapControl() {
     //intergreen times should not be lenghtend
-    assert(myPhases.size() > myStep);
+    assert(myPhases.size() > getCurrentPhaseIndex());
     if (!getCurrentPhaseDef().isGreenPhase()) {
         myContinue = false;
         return;

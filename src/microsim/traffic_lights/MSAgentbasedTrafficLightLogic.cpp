@@ -156,7 +156,7 @@ MSAgentbasedTrafficLightLogic::trySwitch(bool) {
     while (getCurrentPhaseDef().duration == 0) {
         nextStep();
     }
-    assert(myPhases.size() > myStep);
+    assert(myPhases.size() > getCurrentPhaseIndex());
     return getCurrentPhaseDef().duration;
 }
 

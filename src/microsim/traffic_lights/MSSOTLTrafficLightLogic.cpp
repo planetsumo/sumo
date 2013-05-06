@@ -72,7 +72,7 @@ void MSSOTLTrafficLightLogic::logStatus() throw() {
 
 void
 MSSOTLTrafficLightLogic::checkPhases() throw() {
-	for (size_t step=0; getPhases().size(); step++) {
+	for (size_t step=0; step < getPhases().size(); step++) {
 		if (getPhase(step).isUndefined()) {
 			MsgHandler::getErrorInstance()->inform("Step " + toString(step) + " of traffic light logic " + myID + " phases declaration has its type undeclared!");
 		}
