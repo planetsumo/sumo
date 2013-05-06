@@ -63,9 +63,9 @@ public:
 protected:
 
 	/*
-	 * @brief Contains the logic to decide the phase change
+	 * @brief Contains the logic to decide whether to release the green light
 	 */
-	SUMOTime decideNextPhase() throw();
+	bool canRelease() throw();
 };
 
 #endif

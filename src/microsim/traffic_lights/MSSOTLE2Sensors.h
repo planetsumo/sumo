@@ -47,7 +47,7 @@ public:
 	/*
 	* @brief This sensor logic contructor
 	*/
-	MSSOTLE2Sensors(std::string tlLogicID, MSTrafficLightLogic::Phases *phases);
+	MSSOTLE2Sensors(std::string tlLogicID, const MSTrafficLightLogic::Phases *phases);
 
 	/*
 	* @brief This sensor logic destructor

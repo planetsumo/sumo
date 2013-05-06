@@ -41,6 +41,7 @@
 #endif // CHECK_MEMORY_LEAKS
 
 
+
 // ===========================================================================
 // member method definitions
 // ===========================================================================
@@ -97,6 +98,20 @@ MSPhasedTrafficLightLogic::trySwitch(bool) {
 }
 */
 
+
+
+void MSPhasedTrafficLightLogic::proceedToNextStep() {
+    setStep(myStep + 1);
+
+}
+
+void MSPhasedTrafficLightLogic::setStep(unsigned int step) {
+	assert(myPhases.size() > step);
+	if(myStep != step % myPhases.size()) {
+		myStep = step % myPhases.size();
+    	myPhases[myStep]->myLastSwitch = MSNet::getInstance()->getCurrentTimeStep();
+	}
+}
 
 // ------------ Static Information Retrieval
 unsigned int

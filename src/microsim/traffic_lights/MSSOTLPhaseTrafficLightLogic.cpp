@@ -30,37 +30,10 @@ MSSOTLPhaseTrafficLightLogic::MSSOTLPhaseTrafficLightLogic(MSTLLogicControl &tlc
 							  const Phases &phases, unsigned int step, SUMOTime delay, MSSOTLSensors *sensors) throw() : MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, sensors){
 }
 
-SUMOTime
-MSSOTLPhaseTrafficLightLogic::decideNextPhase() throw() {
-	//If the junction was in a commit step
-	//=> go to the target step that gives green to the set with the current highest CTS
-	//   and return computeReturnTime()
-	if (myPhases[myStep]->isCommit()) {
-		myStep = getPhaseIndexWithMaxCTS();
-		return computeReturnTime();
+bool
+MSSOTLPhaseTrafficLightLogic::canRelease() throw() {
+	if (getCurrentPhaseElapsed() >= getCurrentPhaseDef().minDuration) {
+		return isThresholdPassed();
 	}
-
-	//If the junction was in a transient step
-	//=> go to the next step and return computeReturnTime()
-	else if (myPhases[myStep]->isTransient()) {
-		myStep++;
-		return computeReturnTime();
-	}
-
-	//If the junction was in a decisional step, check CTS value value for each set of synchronized lights.
-	//If there is at least one set exceeding theta (threshold)
-	//	and the step executed for at least its declared minimum duration
-	//=> go to the next step (triggers prologue) and return computeReturnTime()
-	//Else
-	//=> remain into the current step and return computeReturnTime()
-	else if (myPhases[myStep]->isDecisional()) {
-		if ((MSNet::getInstance()->getCurrentTimeStep() - myPhases[myStep]->myLastSwitch) >= myPhases[myStep]->minDuration) {
-			if (isThresholdPassed()) {
-				myStep++;
-				return computeReturnTime();
-			}
-		}
-		return computeReturnTime();
-	}
-	assert(0);
+	return false;
 }

@@ -36,10 +36,13 @@
 
 ////For MSSOTLTrafficLightLogic
 #define THRESHOLD 10
-#define SENSORS_TYPE "e2"
+//#define SENSORS_TYPE "e2"
+#define SENSORS_TYPE_E1 1
+#define SENSORS_TYPE_E2 2
+#define SENSORS_TYPE SENSORS_TYPE_E2
 
 ////For MSSOTLRequestTrafficLightLogic
-#define MIN_DECISIONAL_PHASE_DUR 5
+#define MIN_DECISIONAL_PHASE_DUR 5000
 
 ////For MSSwarmTrafficLightLogic
 #define PHERO_MAXVAL 10.0
@@ -51,7 +54,31 @@
 #define THETA_MAX 0.8
 #define THETA_MIN 0.2
 #define THETA_INIT 0.5
-#define LEARNING_COX 0.005
+#define LEARNING_COX   0.0005
 #define FORGETTING_COX 0.0005
+
+//// For stimulus function: stimulus = cox * exp(-pow(getPheromoneForInputLanes() - offsetIn, 2)/divisor -pow(getPheromoneForOutputLanes() - offsetOut, 2)/divisor); 
+#define REQUEST_STIM_COX .63662
+#define REQUEST_STIM_OFFSET_IN 0
+#define REQUEST_STIM_OFFSET_OUT 0
+#define REQUEST_STIM_DIVISOR 2
+
+#define PHASE_STIM_COX .0805782
+#define PHASE_STIM_OFFSET_IN 5
+#define PHASE_STIM_OFFSET_OUT 0
+#define PHASE_STIM_DIVISOR 8
+
+#define PLATOON_STIM_COX .127326
+#define PLATOON_STIM_OFFSET_IN 0
+#define PLATOON_STIM_OFFSET_OUT 0
+#define PLATOON_STIM_DIVISOR 10
+
+#define MARCHING_STIM_COX .0407958
+#define MARCHING_STIM_OFFSET_IN 5
+#define MARCHING_STIM_OFFSET_OUT 5
+#define MARCHING_STIM_DIVISOR 8
+
+
+
 #endif
 /****************************************************************************/

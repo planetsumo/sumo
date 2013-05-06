@@ -1,8 +1,9 @@
 /****************************************************************************/
 /// @file    MSSOTLRequestTrafficLightLogic.h
 /// @author  Gianfilippo Slager
-/// @date    Feb 2010
-/// @version $Id: MSSOTLRequestTrafficLightLogic.h 1 2010-03-03 15:00:00Z gslager $
+/// @author  Anna Chiara Bellini
+/// @date    Apr 2013
+/// @version $Id: MSSOTLRequestTrafficLightLogic.h 2 2013-04-05 15:00:00Z gslager $
 ///
 // The class for SOTL Request logics
 /****************************************************************************/
@@ -30,11 +31,13 @@
 
 #include "MSSOTLTrafficLightLogic.h"
 
+using namespace std;
+
 class MSSOTLRequestTrafficLightLogic :
 	public MSSOTLTrafficLightLogic
 {
 public:
-		/** 
+	/** 
 	 * @brief Constructor without sensors passed
      * @param[in] tlcontrol The tls control responsible for this tls
      * @param[in] id This tls' id
@@ -44,7 +47,7 @@ public:
      * @param[in] delay The time to wait before the first switch
      */
 	MSSOTLRequestTrafficLightLogic(MSTLLogicControl &tlcontrol,
-                              const std::string &id, const std::string &subid,
+                              const string &id, const string &subid,
                               const Phases &phases, unsigned int step, SUMOTime delay) throw();
 
 	/** 
@@ -57,7 +60,7 @@ public:
      * @param[in] delay The time to wait before the first switch
      */
 	MSSOTLRequestTrafficLightLogic(MSTLLogicControl &tlcontrol,
-                              const std::string &id, const std::string &subid,
+                              const string &id, const string &subid,
                               const Phases &phases, unsigned int step, SUMOTime delay, MSSOTLSensors *sensors) throw();
 
 protected:
@@ -65,7 +68,7 @@ protected:
 	/*
 	 * @brief Contains the logic to decide the phase change
 	 */
-	SUMOTime decideNextPhase() throw();
+	bool canRelease() throw();
 };
 
 #endif

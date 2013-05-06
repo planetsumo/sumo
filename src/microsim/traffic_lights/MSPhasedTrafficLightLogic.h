@@ -173,7 +173,6 @@ public:
 
     /** @brief Replaces the phases and set the phase index
      */
-	// ACB: I think this could/should be moved to MSPhasedTrafficLightLogic
     void setPhases(const Phases& phases, unsigned int index);
     /// @}
 
@@ -181,14 +180,20 @@ protected:
     /// @brief The list of phases this logic uses
     Phases myPhases;
 
-    /// @brief The current step
-    unsigned int myStep;
+	/// @brief Proceed to the next step
+	void proceedToNextStep();
+
+	/// @brief Forces a specific step
+	void setStep(unsigned int step);
 
 private:
 
     /// @brief frees memory responsibilities
-	// ACB: I think this could/should be moved to MSPhasedTrafficLightLogic
     void deletePhases();
+    /// @brief The current step
+    unsigned int myStep;
+
+
 
 };
 

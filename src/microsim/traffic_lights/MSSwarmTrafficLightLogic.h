@@ -51,17 +51,13 @@ public:
 	*/
 	typedef double Pheromone;
 	
-	typedef double Stimulus;
 
-	typedef double ThetaVal;
-
-	typedef std::pair<std::string, Pheromone> MSLaneId_Pheromone;
-
+	typedef pair<string, Pheromone> MSLaneId_Pheromone;
 	/*
 	* This map type definition identifies a set of lanes, connected to a kind of pheromone.
 	* Pheromone can be of different kinds to express different stimuli
 	*/
-	typedef std::map<std::string, Pheromone> MSLaneId_PheromoneMap;
+	typedef map<string, Pheromone> MSLaneId_PheromoneMap;
 
 	//****************************************************
 
@@ -75,7 +71,7 @@ public:
      * @param[in] delay The time to wait before the first switch
      */
 	MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
-                              const std::string &id, const std::string &subid,
+                              const string &id, const string &subid,
                               const Phases &phases, unsigned int step, SUMOTime delay) throw();
 
 	Policy getCurrentPolicy() { return currentPolicy; }
@@ -106,7 +102,7 @@ protected:
 	* This vector contains the thresholds for each policy,
 	* s.t. theta value are computed with respect to thresholds.
 	*/
-	std::vector<ThetaVal> thresholds;
+	vector<double> thresholds;
 
 	/*
 	* This member keeps track of the last thresholds update, s.t.
@@ -116,10 +112,14 @@ protected:
 	SUMOTime lastThresholdsUpdate;
 
 	/*
-	 * @brief Contains the main logic to perform swarm-based logic
+	 * This member has to contain the switching logic for SOTL policies
 	 */
-	SUMOTime decideNextPhase() throw();
+	
+	unsigned int decideNextPhase() throw();
 
+
+	bool canRelease() throw();
+	
 	/*
 	* @return The average pheromone level regarding congestion on input lanes
 	*/
@@ -155,7 +155,7 @@ protected:
 	* This is the base for learning capabilities of swarm-based approaches.
 	* @return 
 	*/
-	ThetaVal computeThetaVal(Policy policy) throw();
+	double computeThetaVal(Policy policy) throw();
 
 	/*
 	* Compute the stimulus functions for the given policy.
@@ -163,23 +163,16 @@ protected:
 	* returned value is normalized, s.t. the definite integral over the domain is unitary.
 	* @return the stimulus, normalized
 	*/
-	Stimulus computeStimulus(Policy policy);
-
-	/*
-	* @brief Contains the logic to decide the phase change
-	* The swarm-based logic will decide which SOTL policy to perform according to 
-	* pheromone levels
-	*/
-	SUMOTime executePolicy() throw();
+	double computeStimulus(Policy policy);
 
 	//Evalation of a decisional step following SOTLRequest policy logic
-	void evaluateDecStepSOTLRequest() throw();
+	bool evaluateDecStepSOTLRequest() throw();
 	//Evalation of a decisional step following SOTLPhase policy logic
-	void evaluateDecStepSOTLPhase() throw();
+	bool evaluateDecStepSOTLPhase() throw();
 	//Evalation of a decisional step following SOTLPlatoon policy logic
-	void evaluateDecStepSOTLPlatoon() throw();
+	bool evaluateDecStepSOTLPlatoon() throw();
 	//Evalation of a decisional step following SOTLMarching policy logic
-	void evaluateDecStepSOTLMarching() throw();
+	bool evaluateDecStepSOTLMarching() throw();
 };
 
 #endif

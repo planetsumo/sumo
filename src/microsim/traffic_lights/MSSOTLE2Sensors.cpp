@@ -19,7 +19,7 @@
 
 #include "MSSOTLE2Sensors.h"
 
-MSSOTLE2Sensors::MSSOTLE2Sensors(std::string tlLogicID, MSTrafficLightLogic::Phases *phases)
+MSSOTLE2Sensors::MSSOTLE2Sensors(std::string tlLogicID, const MSTrafficLightLogic::Phases *phases)
 : MSSOTLSensors(tlLogicID, phases) {
 }
 

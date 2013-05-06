@@ -11,7 +11,7 @@
 // A fixed traffic light logic
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -71,17 +71,7 @@ MSSimpleTrafficLightLogic::trySwitch(bool) {
         myCurrentDurationIncrement = 0;
         return delay;
     }
-
-    // increment the index
-    myStep++;
-    // if the last phase was reached ...
-    if (myStep >= myPhases.size()) {
-        // ... set the index to the first phase
-        myStep = 0;
-    }
-    assert(myPhases.size() > myStep);
-    //stores the time the phase started
-    myPhases[myStep]->myLastSwitch = MSNet::getInstance()->getCurrentTimeStep();
+	proceedToNextStep();
     // check whether the next duration was overridden
     if (myOverridingTimes.size() > 0) {
         SUMOTime nextDuration = myOverridingTimes[0];
@@ -89,7 +79,7 @@ MSSimpleTrafficLightLogic::trySwitch(bool) {
         return nextDuration;
     }
     // return offset to the next switch
-    return myPhases[myStep]->duration;
+    return getCurrentPhaseDef().duration;
 }
 
 

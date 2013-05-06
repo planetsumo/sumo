@@ -11,7 +11,7 @@
 // An actuated (adaptive) traffic light logic
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -56,10 +56,11 @@
 MSActuatedTrafficLightLogic::MSActuatedTrafficLightLogic(MSTLLogicControl& tlcontrol,
         const std::string& id, const std::string& programID,
         const Phases& phases,
-        unsigned int step, SUMOTime delay,
-        const ParameterMap& parameter) :
+        unsigned int step, SUMOTime delay, 
+        const ParameterMap& parameter) : 
     MSPhasedTrafficLightLogic(tlcontrol, id, programID, phases, step, delay, parameter),
-    myContinue(false) {
+    myContinue(false) 
+{
     myMaxGap = SUMOReal(3.1);
     if (parameter.find("max-gap") != parameter.end()) {
         myMaxGap = TplConvert::_2SUMOReal(parameter.find("max-gap")->second.c_str());
@@ -121,14 +122,7 @@ MSActuatedTrafficLightLogic::trySwitch(bool) {
     if (myContinue) {
         return duration();
     }
-    // increment the index to the current phase
-    myStep++;
-    assert(myStep <= myPhases.size());
-    if (myStep == myPhases.size()) {
-        myStep = 0;
-    }
-    //stores the time the phase started
-    myPhases[myStep]->myLastSwitch = MSNet::getInstance()->getCurrentTimeStep();
+	proceedToNextStep();
     // set the next event
     return getCurrentPhaseDef().minDuration;
 }
@@ -178,7 +172,7 @@ MSActuatedTrafficLightLogic::gapControl() {
     }
 
     // Checks, if the maxDuration is kept. No phase should longer send than maxDuration.
-    SUMOTime actDuration = MSNet::getInstance()->getCurrentTimeStep() - myPhases[myStep]->myLastSwitch;
+    SUMOTime actDuration = MSNet::getInstance()->getCurrentTimeStep() - getCurrentPhaseDef().myLastSwitch;
     if (actDuration >= getCurrentPhaseDef().maxDuration) {
         myContinue = false;
         return;

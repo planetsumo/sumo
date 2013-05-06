@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    MSSOTLTrafficLightLogic.h
 /// @author  Gianfilippo Slager
-/// @date    Feb 2010
-/// @version $Id: MSPhasedTrafficLightLogic.h 2 2010-03-03 15:00:00Z gslager $
+/// @author	 Anna Chiara Bellini
+/// @date    Apr 2013
+/// @version $Id: MSSOTLTrafficLightLogic.h 2 2013-04-12 15:00:00Z acbellini $
 ///
 // The base abstract class for SOTL logics
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright 2001-2009 DLR (http://www.dlr.de/) and contributors
+// Copyright 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This program is free software; you can redistribute it and/or modify
@@ -28,20 +29,12 @@
 #include <config.h>
 #endif
 
-/*
-#include <utility>
-#include <vector>
-#include <bitset>
-#include <microsim/MSEventControl.h>
-#include <microsim/MSNet.h>
-#include "MSPhaseDefinition.h"
-*/
-
 #include <utils/common/SUMOTime.h>
 #include "MSSOTLDefinitions.h"
 #include "MSPhasedTrafficLightLogic.h"
 #include "MSSOTLE2Sensors.h"
 
+using namespace std;
 
 // ===========================================================================
 // class definitions
@@ -52,7 +45,7 @@
  * @brief A fixed traffic light logic
  *
  * The base class for SOTL traffic light which switches between
- * it's phases and sets the lights to red in between.
+ * its phases and sets the lights to red in between.
  * Some functions are called with an information about the current step. This
  * is needed as a single logic may be used by many junctions and so the current
  * step is stored within them, not within methods.
@@ -61,27 +54,24 @@
  */
 class MSSOTLTrafficLightLogic :	public MSPhasedTrafficLightLogic {
 public:
-	typedef unsigned int CTS;
-
-	//The map to store the cars*timesteps for each target phase
-	typedef std::pair<size_t, CTS> TargetPhase_CarsTimesteps;
-	typedef std::map<size_t, CTS> TargetPhase_CarsTimestepsMap;
-
-	//The map to store the time each target phase have been checked last
-	//This helps to compute the timesteps to get the cars*timesteps value
-	typedef std::pair<size_t, SUMOTime> TargetPhase_LastCheck;
-	typedef std::map<size_t, SUMOTime> TargetPhase_LastCheckMap;
+	// typedef unsigned int CTS;
 
 	/** 
 	 * @brief Constructor without sensors passed
      * @param[in] tlcontrol The tls control responsible for this tls
-     * @param[in] id This tls' id
+     * @param[in] id This traffic light id
      * @param[in] subid This tls' sub-id (program id)
      * @param[in] phases Definitions of the phases
      * @param[in] step The initial phase index
      * @param[in] delay The time to wait before the first switch
      */
-	MSSOTLTrafficLightLogic(MSTLLogicControl &tlcontrol, const std::string &id, const std::string &subid, const Phases &phases, unsigned int step, SUMOTime delay) throw();
+	MSSOTLTrafficLightLogic(
+		MSTLLogicControl &tlcontrol, 
+		const string &id, 
+		const string &subid, 
+		const Phases &phases, 
+		unsigned int step, 
+		SUMOTime delay) throw();
 
 	/** 
 	 * @brief Constructor with sensors passed
@@ -93,7 +83,13 @@ public:
      * @param[in] delay The time to wait before the first switch
 	 * @param[in] sensors The already defined sensor logic
      */
-	MSSOTLTrafficLightLogic(MSTLLogicControl &tlcontrol, const std::string &id, const std::string &subid, const Phases &phases, unsigned int step, SUMOTime delay, MSSOTLSensors *sensors) throw();
+	MSSOTLTrafficLightLogic(MSTLLogicControl &tlcontrol, 
+		const string &id, 
+		const string &subid, 
+		const Phases &phases, 
+		unsigned int step, 
+		SUMOTime delay, 
+		MSSOTLSensors *sensors) throw();
 
 	/// @brief Destructor
 	~MSSOTLTrafficLightLogic() throw();
@@ -115,17 +111,25 @@ public:
     SUMOTime trySwitch(bool) throw();
 
 protected:
+
+	void logStatus() throw();
 	/*
 	 * This member has to contain the switching logic for SOTL policies
 	 */
-	virtual SUMOTime decideNextPhase() throw() = 0;
+	
+	virtual unsigned int decideNextPhase() throw();
+
+
+	virtual bool canRelease() throw() = 0;
+	SUMOTime getCurrentPhaseElapsed() throw ();
+
 
 	/*
 	* Count the number of vehicles approaching the target lanes for the given phase.
 	* If the phase in not a target phase the function member will return 0.
 	* @param[in] The target phase index
 	*/
-	unsigned int countVehiclesForTargetPhase(size_t phaseNumber) throw();
+	unsigned int countVehicles(MSPhaseDefinition phase) throw();
 	
 	/*
 	* Every target step except the one from the current chain is checked.
@@ -144,13 +148,13 @@ protected:
 	size_t getPhaseIndexWithMaxCTS() throw();
 
 	/*
-	 * @param[in] phaseStep The step number for the target phase
+	 * @param[in] chain The step number for the target phase
 	 * @return The current cars*timesteps of the given target phase. 0 if not a target phase
 	*/
-	CTS getCTSForTargetPhase(size_t phaseStep) throw();
+	unsigned int getCTS(size_t chain) throw();
 
-	size_t getLastTargetPhase() throw() {
-		return lastTargetPhase;
+	size_t getLastChain() throw() {
+		return lastChain;
 	}
 
 	MSSOTLSensors* getSensors() {
@@ -158,13 +162,15 @@ protected:
 	}
 
 	/*
-	* Computes how many time will pass after decideNextPhase will be executed again
+	* Computes how much time will pass after decideNextPhase will be executed again
 	*/
 	SUMOTime computeReturnTime() {
-		if (myPhases[myStep]->isTransient()) {
-			return myPhases[myStep]->duration;
+		if (getCurrentPhaseDef().isTransient()) {
+			return getCurrentPhaseDef().duration; 
+				
         }
         return DELTA_T;
+		
 	}
 
 private:
@@ -178,17 +184,20 @@ private:
 	* otherwise MSSOTLTrafficLightLogic::init and MSSOTLTrafficLightLogic::~MSSOTLTrafficLightLogic have not to affect SOTLSensors instance lifecycle
 	*/
 	bool sensorsSelfBuilt;
-
-	TargetPhase_CarsTimestepsMap targetPhasesCTS;
-
-	TargetPhase_LastCheckMap lastCheckForTargetPhase;
+	
+	// The map to store the cars*timesteps for each target phase
+	map<size_t, unsigned int> targetPhasesCTS;
+	
+	//The map to store the time each target phase have been checked last
+	//This helps to compute the timesteps to get the cars*timesteps value
+	map<size_t, SUMOTime> lastCheckForTargetPhase;
 
 	/*
-	* This member keeps track which is the current steps chain, i.e.
-	* which is the last target phase executed (even if it is currently executed)
-	* (a steps chain starts always with a target phase)
+	 * This member keeps track which is the current steps chain, i.e.
+	 * which is the last target phase executed (even if it is currently executed)
+	 * (a steps chain starts always with a target phase)
 	*/
-	size_t lastTargetPhase;
+	size_t lastChain;
 
 	/*
 	* @brief Check for phases compliancy
@@ -214,7 +223,8 @@ private:
 	* To reset the cars-timesteps counter when a target phase is newly selected
 	* If phaseStep is not a target phase nothing happens
 	*/
-	void resetCTSForTargetPhase(size_t phaseStep) throw();
+	void resetCTS(unsigned int phaseStep) throw();
+
 };
 
 #endif

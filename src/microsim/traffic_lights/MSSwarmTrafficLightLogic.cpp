@@ -39,13 +39,13 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 		}
 	}
 	//Initializing thresholds for theta evaluations
-	thresholds = std::vector<ThetaVal>::vector(NPolicies, THETA_INIT);
+	thresholds = std::vector<double>::vector(NPolicies, THETA_INIT);
 	lastThresholdsUpdate = MSNet::getInstance()->getCurrentTimeStep();
 
 	MsgHandler::getMessageInstance()->inform("*** Intersection " + id + " will run using MSSwarmTrafficLightLogic ***");
 }
 
-SUMOTime MSSwarmTrafficLightLogic::decideNextPhase() {
+ unsigned int MSSwarmTrafficLightLogic::decideNextPhase() throw() {
 	//Update pheromone levels
 	updatePheromoneLevels();
 	//Decide the current policy according to pheromone levels
@@ -53,7 +53,8 @@ SUMOTime MSSwarmTrafficLightLogic::decideNextPhase() {
 	//Update learning and forgetting thresholds
 	updateThresholds();
 	//Execute current policy
-	return executePolicy();
+	return MSSOTLTrafficLightLogic::decideNextPhase();
+	
 }
 
 //TODO check for soundness
@@ -63,8 +64,8 @@ void MSSwarmTrafficLightLogic::updatePheromoneLevels() {
 		laneIterator->second = BETA_NO * laneIterator->second + GAMMA_NO * (getSensors()->countVehicles(laneIterator->first));
 	}
 	//Updating output lanes pheromone: only input lanes currently having green light. Pheromone for non green lanes is "freezed"
-	if (myPhases[myStep]->isDecisional()) {
-		MSPhaseDefinition::LaneIdVector inputLanes = myPhases[myStep]->getTargetLaneSet();
+	if (getCurrentPhaseDef(). isDecisional()) {
+		MSPhaseDefinition::LaneIdVector inputLanes = getCurrentPhaseDef().getTargetLaneSet();
 		for (MSPhaseDefinition::LaneIdVector::const_iterator laneIterator = inputLanes.begin(); laneIterator != inputLanes.end(); laneIterator++) {
 			pheromoneVehSpeedInputLanes[*laneIterator] = BETA_SP * pheromoneVehSpeedInputLanes[*laneIterator] + 
 				GAMMA_SP * (getSensors()->getMaxSpeed(*laneIterator) - getSensors()->meanVehiclesSpeed(*laneIterator));
@@ -83,7 +84,7 @@ void MSSwarmTrafficLightLogic::updateThresholds() throw() {
 		} else {
 			//Forgetting
 			thresholds[i] = thresholds[i] + FORGETTING_COX * elapsedTime;
-			if (thresholds[i] > THETA_MAX) thresholds[i] = THETA_MAX;
+			if (thresholds[i] > THETA_MAX) thresholds[i] = THETA_MAX;	
 		}
 	}
 }
@@ -110,116 +111,127 @@ MSSwarmTrafficLightLogic::Pheromone MSSwarmTrafficLightLogic::getPheromoneForOut
 	else return accumulator/counter;
 }
 
+
+string getPolicyName(MSSwarmTrafficLightLogic::Policy p) {
+	char* names[] = {"request", "phase", "platoon", "marching"};
+	return names[p];	
+}
+
+
 void MSSwarmTrafficLightLogic::decidePolicy() {
+	Policy current = currentPolicy;
 	// Decide if it is the case to check for another plan
 	if ((double)rand() <= CHANGE_PLAN_PROBABILITY * (double)RAND_MAX) {
 		//Preparing a vector containing [Ttheta0 Ttheta0+Ttheta1...sum(k=0 to j - 1)(Tthetak)...sum(k=0 n-dyn-plans - 1)(Tthetak)]
-		std::vector<ThetaVal> thetaIntervals(NPolicies);
-		ThetaVal partialSum = 0;
+		std::vector<double> thetaIntervals(NPolicies);
+		double partialSum = 0;
 		for (unsigned int nPolicy=0; nPolicy<NPolicies; nPolicy++) {
 			partialSum += computeThetaVal((Policy)nPolicy);
 			thetaIntervals[nPolicy] = partialSum;
 		}
 		//Getting a random double value in the interval [0 sum(k=0 n-dyn-plans - 1)(Tthetak))
-		ThetaVal random = (double)rand() / RAND_MAX * partialSum;
+		double random = (double)rand() / RAND_MAX * partialSum;
 
 		//Finding the interval the random value belongs to: the interval is the chosen policy
 		for (unsigned int i = 0; i < thetaIntervals.size(); i++) {
 			if (random < thetaIntervals[i]) {
 				currentPolicy = (Policy)i;
-				return;
+				break;
 			}
 		}
-		assert(0);
+		if (current != currentPolicy) {
+			MsgHandler::getMessageInstance()->inform("TL " +getID()+" switched policy. Was: " + getPolicyName(current) + " now: "+getPolicyName(currentPolicy));
+		}
 	}
-}
 
-MSSwarmTrafficLightLogic::ThetaVal MSSwarmTrafficLightLogic::computeThetaVal(Policy policy) throw() {
-	Stimulus stimulus = computeStimulus(policy);
-	ThetaVal thetaVal = pow(stimulus, 2) / (pow(stimulus, 2) + pow(thresholds[policy], 2));
+}
+double
+	MSSwarmTrafficLightLogic::computeThetaVal(Policy policy) throw() {
+	double stimulus = computeStimulus(policy);
+	double thetaVal = pow(stimulus, 2) / (pow(stimulus, 2) + pow(thresholds[policy], 2));
 	return thetaVal;
 }
 
-MSSwarmTrafficLightLogic::Stimulus MSSwarmTrafficLightLogic::computeStimulus(Policy policy) throw() {
-	Stimulus stimulus = 0;
+double
+	MSSwarmTrafficLightLogic::computeStimulus(Policy policy) throw() {
+		
+	double cox = .1;
+	int offsetIn = 0;
+	int offsetOut = 0;
+	int divisor = 1;
 	switch (policy) {
-		case SOTLRequest : stimulus = .63662 * exp(-pow(getPheromoneForInputLanes(), 2)/2 -pow(getPheromoneForOutputLanes(), 2)/2); 
+
+		case SOTLRequest : 
+			cox = REQUEST_STIM_COX;
+			offsetIn = REQUEST_STIM_OFFSET_IN;
+			offsetOut = REQUEST_STIM_OFFSET_OUT;
+			divisor = REQUEST_STIM_DIVISOR;
+		break;
+		case SOTLPhase : 
+			cox = PHASE_STIM_COX;
+			offsetIn = PHASE_STIM_OFFSET_IN;
+			offsetOut = PHASE_STIM_OFFSET_OUT;
+			divisor = PHASE_STIM_DIVISOR;
 			break;
-		case SOTLPhase : stimulus = .0805782 * exp(-pow(getPheromoneForInputLanes()-5, 2)/8 -pow(getPheromoneForOutputLanes(), 2)/8);
+		case SOTLPlatoon : 
+			cox = PLATOON_STIM_COX;
+			offsetIn = PLATOON_STIM_OFFSET_IN;
+			offsetOut = PLATOON_STIM_OFFSET_OUT;
+			divisor = PLATOON_STIM_DIVISOR;
 			break;
-		case SOTLPlatoon : stimulus = .127326 * exp(-pow(getPheromoneForInputLanes(), 2)/10 -pow(getPheromoneForOutputLanes(), 2)/10);
-			break;
-		case SOTLMarching : stimulus = .0407958 * exp(-pow(getPheromoneForInputLanes()-5, 2)/8 -pow(getPheromoneForOutputLanes()-5, 2)/8);
+		case SOTLMarching : 
+			cox = MARCHING_STIM_COX;
+			offsetIn = MARCHING_STIM_OFFSET_IN;
+			offsetOut = MARCHING_STIM_OFFSET_OUT;
+			divisor = MARCHING_STIM_DIVISOR;
 			break;
 		default: assert(0);
 	}
+	double stimulus = cox * exp(
+		-pow(getPheromoneForInputLanes() - offsetIn, 2)/divisor 
+		-pow(getPheromoneForOutputLanes() - offsetOut, 2)/divisor
+		); 
+
 	return stimulus;
 }
 
-SUMOTime MSSwarmTrafficLightLogic::executePolicy() {
-	//If the junction was in a commit step
-	//=> go to the target step that gives green to the set with the current highest CTS
-	//   and return computeReturnTime()
-	if (myPhases[myStep]->isCommit()) {
-		myStep = (unsigned int)getPhaseIndexWithMaxCTS();
-		return computeReturnTime();
+bool MSSwarmTrafficLightLogic::canRelease() throw() {
+	bool proceed;
+	switch (currentPolicy) {
+		case SOTLRequest :  proceed = evaluateDecStepSOTLRequest(); break;
+		case SOTLPhase : proceed = evaluateDecStepSOTLPhase(); break;
+		case SOTLPlatoon : proceed = evaluateDecStepSOTLPlatoon(); break;
+		case SOTLMarching : proceed = evaluateDecStepSOTLMarching(); break;
+		default : assert(0);
 	}
-
-	//If the junction was in a transient step
-	//=> go to the next step and return computeReturnTime()
-	else if (myPhases[myStep]->isTransient()) {
-		myStep++;
-		return computeReturnTime();
-	}
-
-	//If the junction was in a decisional step, check CTS value value for each set of synchronized lights.
-	//If there is at least one set exceeding theta (threshold)
-	//=> go to the next step (triggers prologue) and return computeReturnTime()
-	//Else
-	//=> remain into the current step and return computeReturnTime()
-	else if (myPhases[myStep]->isDecisional()) {
-		switch (currentPolicy) {
-			case SOTLRequest : evaluateDecStepSOTLRequest(); break;
-			case SOTLPhase : evaluateDecStepSOTLPhase(); break;
-			case SOTLPlatoon : evaluateDecStepSOTLPlatoon(); break;
-			case SOTLMarching : evaluateDecStepSOTLMarching(); break;
-			default : assert(0);
-		}
-		return computeReturnTime();
-	}
-	assert(0);
+	return proceed;
 }
 
-void MSSwarmTrafficLightLogic::evaluateDecStepSOTLRequest() {
-	if ((MSNet::getInstance()->getCurrentTimeStep() - myPhases[myStep]->myLastSwitch) >= MIN_DECISIONAL_PHASE_DUR) {
-		if (isThresholdPassed()) {
-			myStep++;
-		}
+bool MSSwarmTrafficLightLogic::evaluateDecStepSOTLRequest() {
+	if (getCurrentPhaseElapsed() >= MIN_DECISIONAL_PHASE_DUR) {
+		return isThresholdPassed();
 	}
+	return false;
 }
 
-void MSSwarmTrafficLightLogic::evaluateDecStepSOTLPhase() {
-	if ((MSNet::getInstance()->getCurrentTimeStep() - myPhases[myStep]->myLastSwitch) >= myPhases[myStep]->minDuration) {
-		if (isThresholdPassed()) {
-			myStep++;
-		}
+bool MSSwarmTrafficLightLogic::evaluateDecStepSOTLPhase() {
+	if (getCurrentPhaseElapsed() >= getCurrentPhaseDef().minDuration) {
+		return isThresholdPassed();
 	}
+	return false;
 }
 
-void MSSwarmTrafficLightLogic::evaluateDecStepSOTLPlatoon() {
-	if ((MSNet::getInstance()->getCurrentTimeStep() - myPhases[myStep]->myLastSwitch) >= myPhases[myStep]->minDuration) {
+bool MSSwarmTrafficLightLogic::evaluateDecStepSOTLPlatoon() {
+	if (getCurrentPhaseElapsed() >= getCurrentPhaseDef().minDuration) {
 		if (isThresholdPassed()) {
 			//If there are no other vehicles approaching green lights 
 			//or the declared maximum duration has been reached
-			if ((countVehiclesForTargetPhase(myStep) == 0) || ((MSNet::getInstance()->getCurrentTimeStep() - myPhases[myStep]->myLastSwitch) >= myPhases[myStep]->maxDuration)) {
-				myStep++;
-			}
+			return ((countVehicles(getCurrentPhaseDef()) == 0) || (getCurrentPhaseElapsed() >= getCurrentPhaseDef().maxDuration));
 		}
 	}
+	return false;
 }
 
-void MSSwarmTrafficLightLogic::evaluateDecStepSOTLMarching() {
-	if ((MSNet::getInstance()->getCurrentTimeStep() - myPhases[myStep]->myLastSwitch) >= myPhases[myStep]->duration) {
-		myStep++;
-	}
+bool MSSwarmTrafficLightLogic::evaluateDecStepSOTLMarching() {
+	return (getCurrentPhaseElapsed() >= getCurrentPhaseDef().duration);
 }

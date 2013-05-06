@@ -65,7 +65,7 @@ protected:
 	/*
 	 * @brief Contains the logic to decide the phase change
 	 */
-	SUMOTime decideNextPhase() throw();
+	bool canRelease() throw();
 };
 
 #endif

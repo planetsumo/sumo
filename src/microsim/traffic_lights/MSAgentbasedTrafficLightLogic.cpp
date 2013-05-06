@@ -55,9 +55,9 @@ MSAgentbasedTrafficLightLogic::MSAgentbasedTrafficLightLogic(
     MSTLLogicControl& tlcontrol,
     const std::string& id, const std::string& programID,
     const Phases& phases, unsigned int step, SUMOTime delay,
-    const ParameterMap& parameter) :
+    const ParameterMap& parameter) : 
     MSPhasedTrafficLightLogic(tlcontrol, id, programID, phases, step, delay, parameter),
-    tSinceLastDecision(0), stepOfLastDecision(0) {
+      tSinceLastDecision(0), stepOfLastDecision(0) {
 
     tDecide = 1;
     if (parameter.find("decision-horizon") != parameter.end()) {
@@ -142,7 +142,7 @@ SUMOTime
 MSAgentbasedTrafficLightLogic::trySwitch(bool) {
     assert(getCurrentPhaseDef().minDuration >= 0);
     assert(getCurrentPhaseDef().minDuration <= getCurrentPhaseDef().duration);
-    if (myPhases[myStep]->isGreenPhase()) {
+	if (getCurrentPhaseDef().isGreenPhase()) {
         // collects the data for the signal control
         collectData();
         // decides wheter greentime shall distributed between phases
@@ -164,17 +164,13 @@ MSAgentbasedTrafficLightLogic::trySwitch(bool) {
 // ------------ "agentbased" algorithm methods
 unsigned int
 MSAgentbasedTrafficLightLogic::nextStep() {
-    // increment the index to the current phase
-    myStep++;
-    assert(myStep <= myPhases.size());
-    if (myStep == myPhases.size()) {
-        myStep = 0;
-    }
-    // increment the number of cycles since last decision
-    if (myStep == stepOfLastDecision) {
+		
+	proceedToNextStep();
+	// increment the number of cycles since last decision
+    if (getCurrentPhaseIndex() == stepOfLastDecision) {
         tSinceLastDecision = tSinceLastDecision + 1;
     }
-    return myStep;
+    return getCurrentPhaseIndex();
 }
 
 
@@ -210,18 +206,18 @@ MSAgentbasedTrafficLightLogic::collectData() {
         }
     }
     // if still no entry for the phase exists a new entry with an empty value is created
-    if (myRawDetectorData.find(myStep) == myRawDetectorData.end()) {
+    if (myRawDetectorData.find(getCurrentPhaseIndex()) == myRawDetectorData.end()) {
         ValueType firstData;
-        myRawDetectorData[myStep] = firstData;
+        myRawDetectorData[getCurrentPhaseIndex()] = firstData;
     }
     /* checks whether the number of values that are already in the dataqueue is
        the same number of values taht shall be consideres in the traffic control
        if both numbers are the same, the oldest value is deleted */
-    if (myRawDetectorData[myStep].size() == numberOfValues) {
-        myRawDetectorData[myStep].pop_back();
+    if (myRawDetectorData[getCurrentPhaseIndex()].size() == numberOfValues) {
+        myRawDetectorData[getCurrentPhaseIndex()].pop_back();
     }
     // adds the detectorvalue of the considered phase
-    myRawDetectorData[myStep].push_front(maxPerPhase);
+    myRawDetectorData[getCurrentPhaseIndex()].push_front(maxPerPhase);
 }
 
 
@@ -258,7 +254,7 @@ MSAgentbasedTrafficLightLogic::calculateDuration() {
         myPhases[stepOfMaxValue]->duration = myPhases[stepOfMaxValue]->duration + 1;
         myPhases[stepOfMinValue]->duration = myPhases[stepOfMinValue]->duration - 1;
         tSinceLastDecision = 0;
-        stepOfLastDecision = myStep;
+        stepOfLastDecision = getCurrentPhaseIndex();
     }
 }
 

@@ -39,7 +39,7 @@
 class MSSOTLSensors
 {
 protected:
-	MSTrafficLightLogic::Phases *myPhases;
+	const MSTrafficLightLogic::Phases *myPhases;
 	std::string tlLogicID;
 	size_t currentStep;
 
@@ -56,7 +56,7 @@ public:
 	/*
 	*
 	*/
-	MSSOTLSensors(std::string tlLogicID, MSTrafficLightLogic::Phases *phases);
+	MSSOTLSensors(std::string tlLogicID, const MSTrafficLightLogic::Phases *phases);
 
 	/*
 	*

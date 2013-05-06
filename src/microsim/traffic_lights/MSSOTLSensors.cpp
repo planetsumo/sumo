@@ -18,7 +18,7 @@
 /****************************************************************************/
 #include "MSSOTLSensors.h"
 
-MSSOTLSensors::MSSOTLSensors(std::string tlLogicID, MSTrafficLightLogic::Phases *phases) {
+MSSOTLSensors::MSSOTLSensors(std::string tlLogicID, const MSTrafficLightLogic::Phases *phases) {
 	this->tlLogicID = tlLogicID;
 	this->myPhases = phases;
 }
