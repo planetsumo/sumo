@@ -128,7 +128,6 @@ StringBijection<int>::Entry NIImporter_OpenDrive::openDriveAttrs[] = {
 };
 
 
-std::set<std::string> NIImporter_OpenDrive::myLaneTypes2Import;
 bool NIImporter_OpenDrive::myImportAllTypes;
 bool NIImporter_OpenDrive::myImportWidths;
 
@@ -144,17 +143,20 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     if (!oc.isUsableFileList("opendrive-files")) {
         return;
     }
+	// prepare types
     myImportAllTypes = oc.getBool("opendrive.import-all-lanes");
     myImportWidths = !oc.getBool("opendrive.ignore-widths");
-    myLaneTypes2Import.insert("driving");
-    myLaneTypes2Import.insert("stop");
-    myLaneTypes2Import.insert("mwyEntry");
-    myLaneTypes2Import.insert("mwyExit");
-    myLaneTypes2Import.insert("special1");
-    myLaneTypes2Import.insert("parking");
+    NBTypeCont& tc = nb.getTypeCont();
+    SUMOReal const WIDTH = NBEdge::UNSPECIFIED_WIDTH;
+    tc.insert("driving", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
+    tc.insert("mwyEntry", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
+    tc.insert("mwyExit", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
+    tc.insert("stop", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
+    tc.insert("special1", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
+    tc.insert("parking", 1, (SUMOReal)(30. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
     // build the handler
     std::map<std::string, OpenDriveEdge*> edges;
-    NIImporter_OpenDrive handler(edges);
+	NIImporter_OpenDrive handler(nb.getTypeCont(), edges);
     // parse file(s)
     std::vector<std::string> files = oc.getStringVector("opendrive-files");
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
@@ -595,10 +597,11 @@ NIImporter_OpenDrive::setEdgeLinks2(OpenDriveEdge& e, const std::map<std::string
         std::string edgeID = e.id;
 
         OpenDriveLaneSection& laneSection = l.linkType == OPENDRIVE_LT_SUCCESSOR ? e.laneSections.back() : e.laneSections[0];
+		const std::map<int, int>& laneMap = laneSection.laneMap;
         if (laneSection.lanesByDir.find(OPENDRIVE_TAG_RIGHT) != laneSection.lanesByDir.end()) {
             const std::vector<OpenDriveLane>& lanes = laneSection.lanesByDir.find(OPENDRIVE_TAG_RIGHT)->second;
             for (std::vector<OpenDriveLane>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-                if (!myImportAllTypes && myLaneTypes2Import.find((*j).type) == myLaneTypes2Import.end()) {
+                if (!myImportAllTypes && laneMap.find((*j).id) == laneMap.end()) {
                     continue;
                 }
                 Connection c; // @todo: give Connection a new name and a constructor
@@ -625,7 +628,7 @@ NIImporter_OpenDrive::setEdgeLinks2(OpenDriveEdge& e, const std::map<std::string
         if (laneSection.lanesByDir.find(OPENDRIVE_TAG_LEFT) != laneSection.lanesByDir.end()) {
             const std::vector<OpenDriveLane>& lanes = laneSection.lanesByDir.find(OPENDRIVE_TAG_LEFT)->second;
             for (std::vector<OpenDriveLane>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-                if (!myImportAllTypes && myLaneTypes2Import.find((*j).type) == myLaneTypes2Import.end()) {
+                if (!myImportAllTypes && laneMap.find((*j).id) == laneMap.end()) {
                     continue;
                 }
                 Connection c;
@@ -916,11 +919,11 @@ NIImporter_OpenDrive::OpenDriveLaneSection::OpenDriveLaneSection(SUMOReal sArg) 
 
 
 void
-NIImporter_OpenDrive::OpenDriveLaneSection::buildLaneMapping() {
+NIImporter_OpenDrive::OpenDriveLaneSection::buildLaneMapping(const NBTypeCont &tc) {
     unsigned int sumoLane = 0;
     const std::vector<OpenDriveLane>& dirLanesR = lanesByDir.find(OPENDRIVE_TAG_RIGHT)->second;
     for (std::vector<OpenDriveLane>::const_reverse_iterator i = dirLanesR.rbegin(); i != dirLanesR.rend(); ++i) {
-        if (myImportAllTypes || myLaneTypes2Import.find((*i).type) != myLaneTypes2Import.end()) {
+		if (myImportAllTypes || (tc.knows((*i).type) && !tc.getShallBeDiscarded((*i).type))) {
             laneMap[(*i).id] = sumoLane++;
         }
     }
@@ -928,7 +931,7 @@ NIImporter_OpenDrive::OpenDriveLaneSection::buildLaneMapping() {
     sumoLane = 0;
     const std::vector<OpenDriveLane>& dirLanesL = lanesByDir.find(OPENDRIVE_TAG_LEFT)->second;
     for (std::vector<OpenDriveLane>::const_iterator i = dirLanesL.begin(); i != dirLanesL.end(); ++i) {
-        if (myImportAllTypes || myLaneTypes2Import.find((*i).type) != myLaneTypes2Import.end()) {
+        if (myImportAllTypes || (tc.knows((*i).type) && !tc.getShallBeDiscarded((*i).type))) {
             laneMap[(*i).id] = sumoLane++;
         }
     }
@@ -1020,9 +1023,9 @@ NIImporter_OpenDrive::OpenDriveEdge::getPriority(OpenDriveXMLTag dir) const {
 // ---------------------------------------------------------------------------
 // loader methods
 // ---------------------------------------------------------------------------
-NIImporter_OpenDrive::NIImporter_OpenDrive(std::map<std::string, OpenDriveEdge*>& edges)
+NIImporter_OpenDrive::NIImporter_OpenDrive(const NBTypeCont &tc, std::map<std::string, OpenDriveEdge*>& edges)
     : GenericSAXHandler(openDriveTags, OPENDRIVE_TAG_NOTHING, openDriveAttrs, OPENDRIVE_ATTR_NOTHING, "opendrive"),
-      myCurrentEdge("", "", -1), myEdges(edges) {
+      myTypeContainer(tc), myCurrentEdge("", "", -1), myEdges(edges) {
 }
 
 
@@ -1231,7 +1234,7 @@ NIImporter_OpenDrive::myEndElement(int element) {
             }
             break;
         case OPENDRIVE_TAG_LANESECTION: {
-			myCurrentEdge.laneSections.back().buildLaneMapping();
+			myCurrentEdge.laneSections.back().buildLaneMapping(myTypeContainer);
         }
         break;
         default:

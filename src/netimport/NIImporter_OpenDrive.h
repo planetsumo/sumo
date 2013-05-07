@@ -273,8 +273,9 @@ protected:
          *
          * Not all lanes are converted to SUMO-lanes; the mapping includes only those
          * which are included in the SUMO network.
+		 * @param[in] tc The type container needed to determine whether a lane shall be imported by using the lane's type
          */
-        void buildLaneMapping();
+        void buildLaneMapping(const NBTypeCont &tc);
 
 
         std::map<int, int> getInnerConnections(OpenDriveXMLTag dir, const OpenDriveLaneSection& prev);
@@ -288,7 +289,7 @@ protected:
         std::map<OpenDriveXMLTag, std::vector<OpenDriveLane> > lanesByDir;
         /// @brief The id (generic, without the optionally leading '-') of the edge generated for this section
         std::string sumoID;
-		/// @brief The number of imported lanes on the right and on the left side, respectively
+		/// @brief The number of lanes on the right and on the left side, respectively
 		unsigned int rightLaneNumber, leftLaneNumber;
     };
 
@@ -369,9 +370,10 @@ protected:
 
 protected:
     /** @brief Constructor
-     * @param[in] nc The node control to fill
+     * @param[in] tc The type container used to determine whether a lane shall kept
+     * @param[in] nc The edge map to fill
      */
-    NIImporter_OpenDrive(std::map<std::string, OpenDriveEdge*>& edges);
+    NIImporter_OpenDrive(const NBTypeCont &tc, std::map<std::string, OpenDriveEdge*>& edges);
 
 
     /// @brief Destructor
@@ -415,6 +417,7 @@ private:
     static void buildConnectionsToOuter(const Connection& c, const std::map<std::string, OpenDriveEdge*>& innerEdges, std::vector<Connection>& into);
     friend bool operator<(const Connection& c1, const Connection& c2);
     static std::string revertID(const std::string& id);
+	const NBTypeCont &myTypeContainer;
     OpenDriveEdge myCurrentEdge;
 
     std::map<std::string, OpenDriveEdge*>& myEdges;
@@ -426,7 +429,6 @@ private:
     ContactPoint myCurrentContactPoint;
     bool myConnectionWasEmpty;
 
-    static std::set<std::string> myLaneTypes2Import;
     static bool myImportAllTypes;
 	static bool myImportWidths;
 
