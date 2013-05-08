@@ -313,15 +313,9 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     for (std::map<std::string, OpenDriveEdge*>::iterator i = outerEdges.begin(); i != outerEdges.end(); ++i) {
         OpenDriveEdge* e = (*i).second;
         LaneSpreadFunction lsf = LANESPREAD_CENTER;
-        unsigned int noLanesRight = e->getMaxLaneNumber(OPENDRIVE_TAG_RIGHT);
-        unsigned int noLanesLeft = e->getMaxLaneNumber(OPENDRIVE_TAG_LEFT);
-        if (noLanesRight == 0 && noLanesLeft == 0) {
-            WRITE_WARNING("Edge '" + e->id + "' has no lanes.");
-        }
+		bool lanesBuilt = false;
 
-        // idea: go along the lane sections, build a node in between of each pair
-
-        /// @todo: connections between lane sections are not processed, should
+        // go along the lane sections, build a node in between of each pair
 
         /// @todo: One could think of determining whether lane sections may be joined when being equal in SUMO's sense
         /// Their naming would have to be updated, too, also in TraCI
@@ -374,6 +368,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 			    if (!nb.getEdgeCont().insert(currRight)) {
 				    throw ProcessError("Could not add edge '" + currRight->getID() + "'.");
 				}
+				lanesBuilt = true;
 				const std::vector<OpenDriveLane> &lanes = (*j).lanesByDir[OPENDRIVE_TAG_RIGHT];
 				for(std::vector<OpenDriveLane>::const_iterator k=lanes.begin(); k!=lanes.end(); ++k) {
 					std::map<int, int>::const_iterator lp = (*j).laneMap.find((*k).id);
@@ -411,6 +406,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 				if (!nb.getEdgeCont().insert(currLeft)) {
 					throw ProcessError("Could not add edge '" + currLeft->getID() + "'.");
 				}
+				lanesBuilt = true;
 				const std::vector<OpenDriveLane> &lanes = (*j).lanesByDir[OPENDRIVE_TAG_LEFT];
 				for(std::vector<OpenDriveLane>::const_iterator k=lanes.begin(); k!=lanes.end(); ++k) {
 					std::map<int, int>::const_iterator lp = (*j).laneMap.find((*k).id);
@@ -445,6 +441,9 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 			sB = sE;
 			sFrom = sTo;
 		}
+		if(!lanesBuilt) {
+            WRITE_WARNING("Edge '" + e->id + "' has no lanes.");
+        }
     }
 
 
@@ -982,20 +981,6 @@ NIImporter_OpenDrive::OpenDriveLaneSection::getInnerConnections(OpenDriveXMLTag 
 // ---------------------------------------------------------------------------
 // edge
 // ---------------------------------------------------------------------------
-unsigned int
-NIImporter_OpenDrive::OpenDriveEdge::getMaxLaneNumber(OpenDriveXMLTag dir) const {
-    unsigned int maxLaneNum = 0;
-    for (std::vector<OpenDriveLaneSection>::const_iterator i = laneSections.begin(); i != laneSections.end(); ++i) {
-		if(dir==NIImporter_OpenDrive::OPENDRIVE_TAG_LEFT) {
-	        maxLaneNum = MAX2(maxLaneNum, (*i).leftLaneNumber);
-		} else {
-			maxLaneNum = MAX2(maxLaneNum, (*i).rightLaneNumber);
-		}
-    }
-    return maxLaneNum;
-}
-
-
 int
 NIImporter_OpenDrive::OpenDriveEdge::getPriority(OpenDriveXMLTag dir) const {
     int prio = 1;

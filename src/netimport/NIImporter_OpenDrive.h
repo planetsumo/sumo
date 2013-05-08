@@ -278,6 +278,11 @@ protected:
         void buildLaneMapping(const NBTypeCont &tc);
 
 
+		/** @brief Returns the links from the previous to this lane section
+		 * @param[in] dir The OpenDrive-direction of drive
+		 * @param[in] pre The previous lane section
+		 * @return which lane is approached from which lane of the given previous lane section
+		 */
         std::map<int, int> getInnerConnections(OpenDriveXMLTag dir, const OpenDriveLaneSection& prev);
 
 
@@ -346,8 +351,15 @@ protected:
             isInner = junction != "" && junction != "-1";
         }
 
-        unsigned int getMaxLaneNumber(OpenDriveXMLTag dir) const;
+
+		/** @brief Returns the edge's priority, regarding the direction
+		 *
+		 * The priority is determined by evaluating the signs located at the road
+		 * @param[in] dir The direction which priority shall be returned
+		 * @return The priority of the given direction
+		 */
         int getPriority(OpenDriveXMLTag dir) const;
+
 
         /// @brief The id of the edge
         std::string id;
@@ -394,8 +406,7 @@ protected:
      * @exception ProcessError If something fails
      * @see GenericSAXHandler::myStartElement
      */
-    void myStartElement(int element,
-                        const SUMOSAXAttributes& attrs);
+    void myStartElement(int element, const SUMOSAXAttributes& attrs);
 
 
     /** @brief Called when a closing tag occurs
