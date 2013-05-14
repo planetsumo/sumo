@@ -62,7 +62,7 @@ public:
      * @param[in] speedFactor The factor for driven lane's speed limits
      * @exception ProcessError If a value is wrong
      */
-    MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, const MSVehicleType* type, SUMOReal speedFactor);
+    MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, const MSVehicleType* type, const SUMOReal speedFactor);
 
 
     /// @brief Destructor
@@ -82,13 +82,17 @@ public:
     /** @brief Returns the current route
      * @return The route the vehicle uses
      */
-    const MSRoute& getRoute() const;
+    inline const MSRoute& getRoute() const {
+        return *myRoute;
+    }
 
 
     /** @brief Returns the vehicle's type definition
      * @return The vehicle's type definition
      */
-    const MSVehicleType& getVehicleType() const;
+    inline const MSVehicleType& getVehicleType() const  {
+        return *myType;
+    }
 
 
     /** @brief Returns the maximum speed
@@ -241,7 +245,7 @@ public:
     /** @brief Returns the precomputed factor by which the driver wants to be faster than the speed limit
      * @return Speed limit factor
      */
-    SUMOReal getChosenSpeedFactor() const {
+    inline SUMOReal getChosenSpeedFactor() const {
         return myChosenSpeedFactor;
     }
 
@@ -264,7 +268,7 @@ protected:
     MSRouteIterator myCurrEdge;
 
     /// @brief A precomputed factor by which the driver wants to be faster than the speed limit
-    SUMOReal myChosenSpeedFactor;
+    const SUMOReal myChosenSpeedFactor;
 
 
     /// @name Move reminder structures
@@ -294,6 +298,9 @@ private:
      * @note: in previous versions this was -1
      */
     static const SUMOTime NOT_YET_DEPARTED;
+
+    /// invalidated assignment operator
+    MSBaseVehicle& operator=(const MSBaseVehicle& s);
 
 };
 

@@ -82,6 +82,9 @@ public:
     friend class MSQueueExport;
 
 
+    /// Container for vehicles.
+    typedef std::vector< MSVehicle* > VehCont;
+
     /** Function-object in order to find the vehicle, that has just
         passed the detector. */
     struct VehPosition : public std::binary_function < const MSVehicle*, SUMOReal, bool > {
@@ -287,7 +290,7 @@ public:
      *  afterwards using "releaseVehicles".
      * @return The vehicles on this lane
      */
-    virtual const std::deque< MSVehicle* >& getVehiclesSecure() const {
+    virtual const VehCont& getVehiclesSecure() const {
         return myVehicles;
     }
 
@@ -334,7 +337,7 @@ public:
      * @param[in] The vehicle to return the adapted speed limit for
      * @return This lane's resulting max. speed
      */
-    SUMOReal getVehicleMaxSpeed(const SUMOVehicle* const veh) const {
+    inline SUMOReal getVehicleMaxSpeed(const SUMOVehicle* const veh) const {
         return myMaxSpeed * veh->getChosenSpeedFactor();
     }
 
@@ -342,7 +345,7 @@ public:
     /** @brief Returns the lane's maximum allowed speed
      * @return This lane's maximum allowed speed
      */
-    SUMOReal getSpeedLimit() const {
+    inline SUMOReal getSpeedLimit() const {
         return myMaxSpeed;
     }
 
@@ -350,7 +353,7 @@ public:
     /** @brief Returns the lane's length
      * @return This lane's length
      */
-    SUMOReal getLength() const {
+    inline SUMOReal getLength() const {
         return myLength;
     }
 
@@ -383,7 +386,7 @@ public:
      * This method goes through all vehicles calling their "planMove" method.
      * @see MSVehicle::planMove
      */
-    virtual bool planMovements(SUMOTime t);
+    virtual void planMovements(const SUMOTime t);
 
     /** @brief Executes planned vehicle movements with regards to right-of-way
      *
@@ -453,9 +456,6 @@ public:
     }
 
     static void insertIDs(std::vector<std::string>& into);
-
-    /// Container for vehicles.
-    typedef std::deque< MSVehicle* > VehCont;
 
     /** Same as succLink, but does not throw any assertions when
         the succeeding link could not be found;
@@ -703,9 +703,6 @@ protected:
     MSVehicle* myInlappingVehicle;
 
 
-    /// @brief Not yet seen vehicle lengths
-    SUMOReal myLeftVehLength;
-
     /** The lane's Links to it's succeeding lanes and the default
         right-of-way rule, i.e. blocked or not blocked. */
     MSLinkCont myLinks;
@@ -715,7 +712,7 @@ protected:
     // precomputed myShape.length / myLength
     const SUMOReal myLengthGeometryFactor;
 
-    /// definition of the tatic dictionary type
+    /// definition of the static dictionary type
     typedef std::map< std::string, MSLane* > DictType;
 
     /// Static dictionary to associate string-ids with objects.

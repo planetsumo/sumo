@@ -84,6 +84,8 @@ public:
     using vp::size;
     using vp::front;
     using vp::back;
+    using vp::reference;
+
 
     /// @name Adding items to the container
     /// @{
@@ -162,11 +164,11 @@ public:
 
     /// Returns the position between the two given point at the specified position */
     static Position positionAtOffset(const Position& p1,
-            const Position& p2, SUMOReal pos);
+                                     const Position& p2, SUMOReal pos);
 
     /// Returns the position between the two given point at the specified position */
     static Position positionAtOffset2D(const Position& p1,
-            const Position& p2, SUMOReal pos);
+                                       const Position& p2, SUMOReal pos);
 
     /// Returns a boundary enclosing this list of lines
     Boundary getBoxBoundary() const;
@@ -226,7 +228,7 @@ public:
 
     void move2side(SUMOReal amount);
 
-    Line lineAt(size_t pos) const;
+    Line lineAt(int pos) const;
 
     Line getBegLine() const;
 

@@ -647,26 +647,18 @@ MSLane::getLastVehicleInformation() const {
 
 
 // ------  ------
-bool
+void
 MSLane::planMovements(SUMOTime t) {
-    myLeftVehLength = myVehicleLengthSum;
     assert(myVehicles.size() != 0);
-    VehCont::iterator lastBeforeEnd = myVehicles.end() - 1;
-    VehCont::iterator veh;
-    // Move all next vehicles beside the first
-    for (veh = myVehicles.begin(); veh != lastBeforeEnd; ++veh) {
-        myLeftVehLength -= (*veh)->getVehicleType().getLengthWithGap();
-        VehCont::const_iterator pred(veh + 1);
+    SUMOReal cumulatedVehLength = 0.;
+    const MSVehicle* pred = getPartialOccupator();
+    for (VehCont::reverse_iterator veh = myVehicles.rbegin(); veh != myVehicles.rend(); ++veh) {
         if ((*veh)->getLane() == this) {
-            (*veh)->planMove(t, *pred, 0, myLeftVehLength);
-        } // else: this is the shadow during a continuous lane change
+            (*veh)->planMove(t, pred, 0, cumulatedVehLength);
+        }
+        pred = *veh;
+        cumulatedVehLength += pred->getVehicleType().getLengthWithGap();
     }
-    myLeftVehLength -= (*veh)->getVehicleType().getLengthWithGap();
-    if ((*veh)->getLane() == this) {
-        (*veh)->planMove(t, 0, 0, myLeftVehLength);
-        assert((*veh)->getPositionOnLane() <= myLength);
-    } // else: this is the shadow during a continuous lane change
-    return myVehicles.size() == 0;
 }
 
 
@@ -679,12 +671,12 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
     VehCont::iterator lastVeh = myVehicles.end() - 1;
     for (VehCont::iterator veh = myVehicles.begin(); veh != lastVeh;) {
         VehCont::iterator pred = veh + 1;
-        if((*veh)->hasInfluencer() && (*veh)->getInfluencer().isVTDControlled()) {
-			++veh;
+        if ((*veh)->hasInfluencer() && (*veh)->getInfluencer().isVTDControlled()) {
+            ++veh;
             continue;
         }
-        if((*pred)->hasInfluencer() && (*pred)->getInfluencer().isVTDControlled()) {
-			++veh;
+        if ((*pred)->hasInfluencer() && (*pred)->getInfluencer().isVTDControlled()) {
+            ++veh;
             continue;
         }
         SUMOReal gap = (*pred)->getPositionOnLane() - (*pred)->getVehicleType().getLength() - (*veh)->getPositionOnLane() - (*veh)->getVehicleType().getMinGap();
@@ -734,8 +726,8 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
         bool moved = veh->executeMove();
         MSLane* target = veh->getLane();
 #ifndef NO_TRACI
-		bool vtdControlled = veh->hasInfluencer()&&veh->getInfluencer().isVTDControlled();
-        if (veh->hasArrived()&&!vtdControlled) {
+        bool vtdControlled = veh->hasInfluencer() && veh->getInfluencer().isVTDControlled();
+        if (veh->hasArrived() && !vtdControlled) {
 #else
         if (veh->hasArrived()) {
 #endif
@@ -851,7 +843,7 @@ MSLane::integrateNewVehicle(SUMOTime) {
     sort(myVehBuffer.begin(), myVehBuffer.end(), vehicle_position_sorter());
     for (std::vector<MSVehicle*>::const_iterator i = myVehBuffer.begin(); i != myVehBuffer.end(); ++i) {
         MSVehicle* veh = *i;
-        myVehicles.push_front(veh);
+        myVehicles.insert(myVehicles.begin(), veh);
         myVehicleLengthSum += veh->getVehicleType().getLengthWithGap();
     }
     myVehBuffer.clear();

@@ -143,8 +143,8 @@ MSLaneChanger::change() {
         return false;
     }
 #ifndef NO_TRACI
-	if (vehicle->hasInfluencer() && vehicle->getInfluencer().isVTDControlled()) {
-		return false; // !!! temporary; just because it broke, here
+    if (vehicle->hasInfluencer() && vehicle->getInfluencer().isVTDControlled()) {
+        return false; // !!! temporary; just because it broke, here
     }
 #endif
     const std::vector<MSVehicle::LaneQ>& preb = vehicle->getBestLanes();
@@ -253,9 +253,9 @@ MSLaneChanger::change() {
                     target->lane->myTmpVehicles.erase(i);
                     // set this vehicle
                     target->hoppedVeh = vehicle;
-                    target->lane->myTmpVehicles.push_front(vehicle);
+                    target->lane->myTmpVehicles.insert(target->lane->myTmpVehicles.begin(), vehicle);
                     myCandi->hoppedVeh = prohibitor;
-                    myCandi->lane->myTmpVehicles.push_front(prohibitor);
+                    myCandi->lane->myTmpVehicles.insert(myCandi->lane->myTmpVehicles.begin(), prohibitor);
 
                     // leave lane and detectors
                     vehicle->leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
@@ -287,7 +287,7 @@ MSLaneChanger::change() {
 
 void 
 MSLaneChanger::registerUnchanged(MSVehicle* vehicle) {
-    myCandi->lane->myTmpVehicles.push_front(veh(myCandi));
+    myCandi->lane->myTmpVehicles.insert(myCandi->lane->myTmpVehicles.begin(), veh(myCandi));
     vehicle->getLaneChangeModel().unchanged();
     (myCandi)->dens += vehicle->getVehicleType().getLengthWithGap();
 }
@@ -299,10 +299,10 @@ MSLaneChanger::startChange(MSVehicle* vehicle, ChangerIt& from, int direction) {
     to->hoppedVeh = vehicle;
     // @todo delay entering the target lane until the vehicle intersects it
     //       physically (considering lane width and vehicle width)
-    to->lane->myTmpVehicles.push_front(vehicle);
+    to->lane->myTmpVehicles.insert(to->lane->myTmpVehicles.begin(), vehicle); 
     const bool continuous = vehicle->getLaneChangeModel().startLaneChangeManeuver(from->lane, to->lane, direction);
     if (continuous) {
-        from->lane->myTmpVehicles.push_front(veh(myCandi));
+        from->lane->myTmpVehicles.insert(from->lane->myTmpVehicles.begin(), vehicle); 
         from->dens += vehicle->getVehicleType().getLengthWithGap();
     }
     to->dens += to->hoppedVeh->getVehicleType().getLengthWithGap();
