@@ -178,7 +178,7 @@ public:
      * @todo min/max is used only by one junction type. Recheck
      * @todo min/max: maybe only one type of a phase definition should be built
      */
-    void addPhase(SUMOTime duration, const std::string &state, int min, int max) throw();
+    void addPhase(SUMOTime duration, const std::string &state, int min, int max);
 
 
 	/** @brief Adds a phase to the currently built traffic lights logic

@@ -33,7 +33,7 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 	const string &subid, 
 	const Phases &phases, 
 	unsigned int step, 
-	SUMOTime delay) throw()
+	SUMOTime delay)
 : MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay) {
 	this->mySensors = NULL;
 	sensorsSelfBuilt = true;
@@ -49,7 +49,7 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 	const Phases &phases, 
 	unsigned int step, 
 	SUMOTime delay, 
-	MSSOTLSensors *sensors) throw() 
+	MSSOTLSensors *sensors) 
 : MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay) {
 	this->mySensors = sensors;
 	sensorsSelfBuilt = false;
@@ -58,7 +58,7 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 	setToATargetPhase();
 }
 
-MSSOTLTrafficLightLogic::~MSSOTLTrafficLightLogic() throw() {
+MSSOTLTrafficLightLogic::~MSSOTLTrafficLightLogic() {
 	for (size_t i=0; i<myPhases.size(); i++) {
 		delete myPhases[i];
 	}
@@ -66,12 +66,12 @@ MSSOTLTrafficLightLogic::~MSSOTLTrafficLightLogic() throw() {
 		delete mySensors;
 }
 
-void MSSOTLTrafficLightLogic::logStatus() throw() {
+void MSSOTLTrafficLightLogic::logStatus() {
 	
 }
 
 void
-MSSOTLTrafficLightLogic::checkPhases() throw() {
+MSSOTLTrafficLightLogic::checkPhases() {
 	for (size_t step=0; step < getPhases().size(); step++) {
 		if (getPhase(step).isUndefined()) {
 			MsgHandler::getErrorInstance()->inform("Step " + toString(step) + " of traffic light logic " + myID + " phases declaration has its type undeclared!");
@@ -80,7 +80,7 @@ MSSOTLTrafficLightLogic::checkPhases() throw() {
 }
 
 void
-MSSOTLTrafficLightLogic::setupCTS() throw() {
+MSSOTLTrafficLightLogic::setupCTS() {
 	for (unsigned int phaseStep = 0; phaseStep< getPhases().size(); phaseStep++) {
 
 
@@ -135,7 +135,7 @@ MSSOTLTrafficLightLogic::init(NLDetectorBuilder &nb) throw(ProcessError) {
 }
 
 unsigned int
-MSSOTLTrafficLightLogic::getCTS(size_t chainStartingPhase) throw() {
+MSSOTLTrafficLightLogic::getCTS(size_t chainStartingPhase) {
 	map<size_t, unsigned int>::iterator phaseIterator = targetPhasesCTS.find(chainStartingPhase);
 	if (phaseIterator != targetPhasesCTS.end()) {
 		return phaseIterator->second;
@@ -145,7 +145,7 @@ MSSOTLTrafficLightLogic::getCTS(size_t chainStartingPhase) throw() {
 }
 
 void
-MSSOTLTrafficLightLogic::resetCTS(size_t phaseStep) throw() {
+MSSOTLTrafficLightLogic::resetCTS(size_t phaseStep) {
 	map<size_t, unsigned int>::iterator phaseIterator = targetPhasesCTS.find(phaseStep);
 	if (phaseIterator != targetPhasesCTS.end()) {
 		phaseIterator->second = 0;
@@ -153,7 +153,7 @@ MSSOTLTrafficLightLogic::resetCTS(size_t phaseStep) throw() {
 }
 
 void
-MSSOTLTrafficLightLogic::updateCTS() throw() {
+MSSOTLTrafficLightLogic::updateCTS() {
 	SUMOTime elapsedTimeSteps = 0;
 	//Iterate over the target phase map and update CTS value for every target phase except for the one belonging to the current steps chain
 	for (map<size_t, unsigned int>::iterator mapIterator = targetPhasesCTS.begin(); mapIterator != targetPhasesCTS.end(); mapIterator++) {
@@ -172,7 +172,7 @@ MSSOTLTrafficLightLogic::updateCTS() throw() {
 }
 
 unsigned int 
-MSSOTLTrafficLightLogic::countVehicles(MSPhaseDefinition phase) throw() {
+MSSOTLTrafficLightLogic::countVehicles(MSPhaseDefinition phase) {
 	
 	if (!phase.isTarget()) return 0;
 
@@ -186,7 +186,7 @@ MSSOTLTrafficLightLogic::countVehicles(MSPhaseDefinition phase) throw() {
 }
 
 bool 
-MSSOTLTrafficLightLogic::isThresholdPassed() throw() {
+MSSOTLTrafficLightLogic::isThresholdPassed() {
 	for (map<size_t, unsigned int>::const_iterator iterator = targetPhasesCTS.begin(); iterator!= targetPhasesCTS.end(); iterator++) {
 		//Note that the current chain is not eligible to be directly targeted again, it would be unfair
 		if ((iterator->first != lastChain) && (THRESHOLD <= iterator->second)) {
@@ -198,7 +198,7 @@ MSSOTLTrafficLightLogic::isThresholdPassed() throw() {
 
 
 SUMOTime 
-MSSOTLTrafficLightLogic::getCurrentPhaseElapsed() throw () {
+MSSOTLTrafficLightLogic::getCurrentPhaseElapsed() {
 	MSPhaseDefinition currentPhase = getCurrentPhaseDef();
 	
 	SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
@@ -209,7 +209,7 @@ MSSOTLTrafficLightLogic::getCurrentPhaseElapsed() throw () {
 
 
 size_t
-MSSOTLTrafficLightLogic::getPhaseIndexWithMaxCTS() throw() {
+MSSOTLTrafficLightLogic::getPhaseIndexWithMaxCTS() {
 	size_t bestIndex;
 	unsigned int maxCTS = 0;
 	for (map<size_t, unsigned int>::const_iterator iterator = targetPhasesCTS.begin(); iterator!= targetPhasesCTS.end(); iterator++) {
@@ -222,7 +222,7 @@ MSSOTLTrafficLightLogic::getPhaseIndexWithMaxCTS() throw() {
 }
 
 size_t
-MSSOTLTrafficLightLogic::decideNextPhase() throw() {
+MSSOTLTrafficLightLogic::decideNextPhase() {
 	MSPhaseDefinition currentPhase = getCurrentPhaseDef();
 	SUMOTime elapsed = getCurrentPhaseElapsed();
 	//If the junction was in a commit step
@@ -249,7 +249,7 @@ MSSOTLTrafficLightLogic::decideNextPhase() throw() {
 }
 
 SUMOTime 
-MSSOTLTrafficLightLogic::trySwitch(bool) throw() {
+MSSOTLTrafficLightLogic::trySwitch(bool) {
 	// To check if decideNextPhase changes the step
 	unsigned int previousStep = getCurrentPhaseIndex() ;
 	// Update CTS according to sensors

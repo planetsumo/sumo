@@ -132,7 +132,7 @@ public:
      */
     MSPhaseDefinition(SUMOTime durationArg, const std::string& stateArg) {
 		//PhaseType phaseType;
-		phaseType = PhaseType::bitset();
+		phaseType = PhaseType();
 		phaseType[UNDEFINED_BIT] = 1;
 		phaseType[TRANSIENT_NOTDECISIONAL_BIT] = 0;
 		phaseType[TARGET_BIT] = 0;
@@ -150,7 +150,7 @@ public:
      */
        MSPhaseDefinition(SUMOTime durationArg, SUMOTime minDurationArg, SUMOTime maxDurationArg, const std::string &stateArg) throw() {
 		//PhaseType phaseType;
-		phaseType = PhaseType::bitset();
+		phaseType = PhaseType();
 		phaseType[UNDEFINED_BIT] = 1;
 		phaseType[TRANSIENT_NOTDECISIONAL_BIT] = 0;
 		phaseType[TARGET_BIT] = 0;
@@ -170,7 +170,7 @@ public:
 		if (targetLaneSetArg.size() == 0)
 			MsgHandler::getErrorInstance()->inform("MSPhaseDefinition::MSPhaseDefinition -> targetLaneSetArg cannot be empty for a target phase");
 		//PhaseType phaseType;
-		phaseType = PhaseType::bitset();
+		phaseType = PhaseType();
 		phaseType[UNDEFINED_BIT] = 0;
 		phaseType[TRANSIENT_NOTDECISIONAL_BIT] = transient_notdecisional;
 		phaseType[TARGET_BIT] = 1;
@@ -185,7 +185,7 @@ public:
 	 */
 	MSPhaseDefinition(SUMOTime durationArg, const std::string &stateArg, bool transient_notdecisional, bool commit) throw() {
 		//PhaseType phaseType;
-		phaseType = PhaseType::bitset();
+		phaseType = PhaseType();
 		phaseType[UNDEFINED_BIT] = 0;
 		phaseType[TRANSIENT_NOTDECISIONAL_BIT] = transient_notdecisional;
 		phaseType[TARGET_BIT] = 0;
@@ -206,7 +206,7 @@ public:
 			MsgHandler::getErrorInstance()->inform("MSPhaseDefinition::MSPhaseDefinition -> targetLaneSetArg cannot be empty for a target phase");
 		//PhaseType phaseType;
 		//phaseType = PhaseType::bitset();
-		phaseType = PhaseType::bitset();
+		phaseType = PhaseType();
 		phaseType[UNDEFINED_BIT] = 0;
 		phaseType[TRANSIENT_NOTDECISIONAL_BIT] = transient_notdecisional;
 		phaseType[TARGET_BIT] = 1;
@@ -222,7 +222,7 @@ public:
 	 */
 	MSPhaseDefinition(SUMOTime durationArg, SUMOTime minDurationArg, SUMOTime maxDurationArg, const std::string &stateArg, bool transient_notdecisional, bool commit) throw() {
 		//PhaseType phaseType;
-		phaseType = PhaseType::bitset();
+		phaseType = PhaseType();
 		phaseType[UNDEFINED_BIT] = 0;
 		phaseType[TRANSIENT_NOTDECISIONAL_BIT] = transient_notdecisional;
 		phaseType[TARGET_BIT] = 0;

@@ -71,7 +71,7 @@ public:
 		const string &subid, 
 		const Phases &phases, 
 		unsigned int step, 
-		SUMOTime delay) throw();
+		SUMOTime delay);
 
 	/** 
 	 * @brief Constructor with sensors passed
@@ -89,10 +89,10 @@ public:
 		const Phases &phases, 
 		unsigned int step, 
 		SUMOTime delay, 
-		MSSOTLSensors *sensors) throw();
+		MSSOTLSensors *sensors);
 
 	/// @brief Destructor
-	~MSSOTLTrafficLightLogic() throw();
+	~MSSOTLTrafficLightLogic();
 
 	/** 
 	 * @brief Initialises the tls with sensors on incoming lanes
@@ -108,20 +108,20 @@ public:
 	 * SOTL politics are implementated through decidePhase() member
 	 * @see MSTrafficLightLogic::trySwitch
      */
-    SUMOTime trySwitch(bool) throw();
+    SUMOTime trySwitch(bool);
 
 protected:
 
-	void logStatus() throw();
+	void logStatus();
 	/*
 	 * This member has to contain the switching logic for SOTL policies
 	 */
 	
-	virtual unsigned int decideNextPhase() throw();
+	virtual unsigned int decideNextPhase();
 
 
-	virtual bool canRelease() throw() = 0;
-	SUMOTime getCurrentPhaseElapsed() throw ();
+	virtual bool canRelease() = 0;
+	SUMOTime getCurrentPhaseElapsed();
 
 
 	/*
@@ -129,7 +129,7 @@ protected:
 	* If the phase in not a target phase the function member will return 0.
 	* @param[in] The target phase index
 	*/
-	unsigned int countVehicles(MSPhaseDefinition phase) throw();
+	unsigned int countVehicles(MSPhaseDefinition phase);
 	
 	/*
 	* Every target step except the one from the current chain is checked.
@@ -137,7 +137,7 @@ protected:
 	* targeted again, it would be unfair.
 	* @return True if at least a target phase has passed the threshold for input cars-timesteps
 	*/
-	bool isThresholdPassed() throw();
+	bool isThresholdPassed();
 
 	/*
 	* Every target step except the one from the current chain is checked.
@@ -145,15 +145,15 @@ protected:
 	* targeted again, it would be unfair.
 	* @return The index of the phase with the maximum value of cars-timesteps
 	*/
-	size_t getPhaseIndexWithMaxCTS() throw();
+	size_t getPhaseIndexWithMaxCTS();
 
 	/*
 	 * @param[in] chain The step number for the target phase
 	 * @return The current cars*timesteps of the given target phase. 0 if not a target phase
 	*/
-	unsigned int getCTS(size_t chain) throw();
+	unsigned int getCTS(size_t chain);
 
-	size_t getLastChain() throw() {
+	size_t getLastChain() {
 		return lastChain;
 	}
 
@@ -202,28 +202,28 @@ private:
 	/*
 	* @brief Check for phases compliancy
 	*/
-	void checkPhases() throw();
+	void checkPhases();
 
 	/*
 	* Find the first target phase and set the current step on it
 	*/
-	void setToATargetPhase() throw();
+	void setToATargetPhase();
 
 	/*
 	* This function member helps to set up the map keeping track of target phases and associated timesteps
 	*/
-	void setupCTS() throw();
+	void setupCTS();
 
 	/*
 	* Updates the cars-timesteps counters for each target phase except the one belonging to the current steps chain
 	*/
-	void updateCTS() throw();
+	void updateCTS();
 
 	/*
 	* To reset the cars-timesteps counter when a target phase is newly selected
 	* If phaseStep is not a target phase nothing happens
 	*/
-	void resetCTS(unsigned int phaseStep) throw();
+	void resetCTS(unsigned int phaseStep);
 
 };
 

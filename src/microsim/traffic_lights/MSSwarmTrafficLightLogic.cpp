@@ -21,7 +21,8 @@
 
 MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
                               const std::string &id, const std::string &subid,
-							  const Phases &phases, unsigned int step, SUMOTime delay) throw() : MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay) {
+							  const Phases &phases, unsigned int step, SUMOTime delay) 
+: MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay) {
 	//Setting the startup policy
 	currentPolicy = SOTLPhase;
 	//Initializing the random number generator to a time-dependent seed
@@ -39,13 +40,13 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 		}
 	}
 	//Initializing thresholds for theta evaluations
-	thresholds = std::vector<double>::vector(NPolicies, THETA_INIT);
+	thresholds = std::vector<double>(NPolicies, THETA_INIT);
 	lastThresholdsUpdate = MSNet::getInstance()->getCurrentTimeStep();
 
 	MsgHandler::getMessageInstance()->inform("*** Intersection " + id + " will run using MSSwarmTrafficLightLogic ***");
 }
 
- unsigned int MSSwarmTrafficLightLogic::decideNextPhase() throw() {
+ unsigned int MSSwarmTrafficLightLogic::decideNextPhase() {
 	//Update pheromone levels
 	updatePheromoneLevels();
 	//Decide the current policy according to pheromone levels
@@ -73,7 +74,7 @@ void MSSwarmTrafficLightLogic::updatePheromoneLevels() {
 	}
 }
 
-void MSSwarmTrafficLightLogic::updateThresholds() throw() {
+void MSSwarmTrafficLightLogic::updateThresholds() {
 	SUMOTime elapsedTime = MSNet::getInstance()->getCurrentTimeStep() - lastThresholdsUpdate;
 	lastThresholdsUpdate = MSNet::getInstance()->getCurrentTimeStep();
 	for (int i=0; i<NPolicies; i++) {
@@ -146,14 +147,14 @@ void MSSwarmTrafficLightLogic::decidePolicy() {
 
 }
 double
-	MSSwarmTrafficLightLogic::computeThetaVal(Policy policy) throw() {
+	MSSwarmTrafficLightLogic::computeThetaVal(Policy policy) {
 	double stimulus = computeStimulus(policy);
 	double thetaVal = pow(stimulus, 2) / (pow(stimulus, 2) + pow(thresholds[policy], 2));
 	return thetaVal;
 }
 
 double
-	MSSwarmTrafficLightLogic::computeStimulus(Policy policy) throw() {
+	MSSwarmTrafficLightLogic::computeStimulus(Policy policy) {
 		
 	double cox = .1;
 	int offsetIn = 0;
@@ -195,7 +196,7 @@ double
 	return stimulus;
 }
 
-bool MSSwarmTrafficLightLogic::canRelease() throw() {
+bool MSSwarmTrafficLightLogic::canRelease() {
 	bool proceed;
 	switch (currentPolicy) {
 		case SOTLRequest :  proceed = evaluateDecStepSOTLRequest(); break;

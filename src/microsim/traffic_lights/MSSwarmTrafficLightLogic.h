@@ -72,7 +72,7 @@ public:
      */
 	MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
                               const string &id, const string &subid,
-                              const Phases &phases, unsigned int step, SUMOTime delay) throw();
+                              const Phases &phases, unsigned int step, SUMOTime delay);
 
 	Policy getCurrentPolicy() { return currentPolicy; }
 
@@ -115,10 +115,10 @@ protected:
 	 * This member has to contain the switching logic for SOTL policies
 	 */
 	
-	unsigned int decideNextPhase() throw();
+	unsigned int decideNextPhase();
 
 
-	bool canRelease() throw();
+	bool canRelease();
 	
 	/*
 	* @return The average pheromone level regarding congestion on input lanes
@@ -142,7 +142,7 @@ protected:
 	* Thresholds reinforcement lowers the threshold for the current policy and raises the ones for currently unused policies.
 	* Thresholds belongs to the interval [THETA_MIN THETA_MAX]
 	*/
-	void updateThresholds() throw();
+	void updateThresholds();
 
 	/*
 	* @brief Decide the current policy according to pheromone levels
@@ -155,7 +155,7 @@ protected:
 	* This is the base for learning capabilities of swarm-based approaches.
 	* @return 
 	*/
-	double computeThetaVal(Policy policy) throw();
+	double computeThetaVal(Policy policy);
 
 	/*
 	* Compute the stimulus functions for the given policy.
@@ -166,13 +166,13 @@ protected:
 	double computeStimulus(Policy policy);
 
 	//Evalation of a decisional step following SOTLRequest policy logic
-	bool evaluateDecStepSOTLRequest() throw();
+	bool evaluateDecStepSOTLRequest();
 	//Evalation of a decisional step following SOTLPhase policy logic
-	bool evaluateDecStepSOTLPhase() throw();
+	bool evaluateDecStepSOTLPhase();
 	//Evalation of a decisional step following SOTLPlatoon policy logic
-	bool evaluateDecStepSOTLPlatoon() throw();
+	bool evaluateDecStepSOTLPlatoon();
 	//Evalation of a decisional step following SOTLMarching policy logic
-	bool evaluateDecStepSOTLMarching() throw();
+	bool evaluateDecStepSOTLMarching();
 };
 
 #endif
