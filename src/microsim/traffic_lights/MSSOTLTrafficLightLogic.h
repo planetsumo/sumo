@@ -117,7 +117,8 @@ protected:
 	 * This member has to contain the switching logic for SOTL policies
 	 */
 	
-	virtual unsigned int decideNextPhase();
+	//	virtual unsigned int decideNextPhase();
+	virtual size_t decideNextPhase();
 
 
 	virtual bool canRelease() = 0;
@@ -223,7 +224,7 @@ private:
 	* To reset the cars-timesteps counter when a target phase is newly selected
 	* If phaseStep is not a target phase nothing happens
 	*/
-	void resetCTS(unsigned int phaseStep);
+	void resetCTS(size_t phaseStep);
 
 };
 

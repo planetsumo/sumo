@@ -115,8 +115,7 @@ protected:
 	 * This member has to contain the switching logic for SOTL policies
 	 */
 	
-	unsigned int decideNextPhase();
-
+	size_t decideNextPhase();
 
 	bool canRelease();
 	

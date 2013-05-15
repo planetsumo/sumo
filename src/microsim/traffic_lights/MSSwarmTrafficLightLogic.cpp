@@ -46,7 +46,7 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 	MsgHandler::getMessageInstance()->inform("*** Intersection " + id + " will run using MSSwarmTrafficLightLogic ***");
 }
 
- unsigned int MSSwarmTrafficLightLogic::decideNextPhase() {
+size_t MSSwarmTrafficLightLogic::decideNextPhase() {
 	//Update pheromone levels
 	updatePheromoneLevels();
 	//Decide the current policy according to pheromone levels
