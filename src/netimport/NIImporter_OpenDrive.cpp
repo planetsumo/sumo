@@ -147,7 +147,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     myImportAllTypes = oc.getBool("opendrive.import-all-lanes");
     myImportWidths = !oc.getBool("opendrive.ignore-widths");
     NBTypeCont& tc = nb.getTypeCont();
-    const SUMOReal WIDTH(NBEdge::UNSPECIFIED_WIDTH);
+    const SUMOReal WIDTH(3.65); // as wanted
     tc.insert("driving", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
     tc.insert("mwyEntry", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
     tc.insert("mwyExit", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
@@ -379,9 +379,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 						sumoLane.origID = e->id + " -" + toString((*k).id);
                         sumoLane.speed = odLane.speed!=0 ? odLane.speed : tc.getSpeed(odLane.type);
                         sumoLane.permissions = tc.getPermissions(odLane.type);
-						if(myImportWidths&&odLane.width!=0) {
-							sumoLane.width = odLane.width;
-						}
+						sumoLane.width = myImportWidths&&odLane.width!=0 ? odLane.width : tc.getWidth(odLane.type);
 					}
 				}
 				// connect lane sections
@@ -414,9 +412,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 						sumoLane.origID = e->id + " " + toString((*k).id);
                         sumoLane.speed = odLane.speed!=0 ? odLane.speed : tc.getSpeed(odLane.type);
                         sumoLane.permissions = tc.getPermissions(odLane.type);
-						if(myImportWidths&&odLane.width!=0) {
-							sumoLane.width = odLane.width;
-						}
+						sumoLane.width = myImportWidths&&odLane.width!=0 ? odLane.width : tc.getWidth(odLane.type);
 					}
 				}
 				// connect lane sections
