@@ -42,6 +42,7 @@ output:\([0-9]* ms\){REPLACE (TIME)}
 errors:Leaked object at 
 errors:*** 9 leaks found
 errors:delete: freed
+output:^' 
 
 [floating_point_tolerance]
 output:0.0001
