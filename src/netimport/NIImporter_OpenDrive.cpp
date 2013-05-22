@@ -377,7 +377,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 						const OpenDriveLane &odLane = *k;
 
 						sumoLane.origID = e->id + " -" + toString((*k).id);
-						sumoLane.speed = odLane.speed!=0 ? odLane.speed : defaultSpeed;
+                        sumoLane.speed = odLane.speed!=0 ? odLane.speed : tc.getSpeed(odLane.type);
                         sumoLane.permissions = tc.getPermissions(odLane.type);
 						if(myImportWidths&&odLane.width!=0) {
 							sumoLane.width = odLane.width;
@@ -412,7 +412,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 						const OpenDriveLane &odLane = *k;
 
 						sumoLane.origID = e->id + " " + toString((*k).id);
-						sumoLane.speed = odLane.speed!=0 ? odLane.speed : defaultSpeed;
+                        sumoLane.speed = odLane.speed!=0 ? odLane.speed : tc.getSpeed(odLane.type);
                         sumoLane.permissions = tc.getPermissions(odLane.type);
 						if(myImportWidths&&odLane.width!=0) {
 							sumoLane.width = odLane.width;
