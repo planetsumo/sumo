@@ -147,16 +147,16 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     myImportAllTypes = oc.getBool("opendrive.import-all-lanes");
     myImportWidths = !oc.getBool("opendrive.ignore-widths");
     NBTypeCont& tc = nb.getTypeCont();
-    SUMOReal const WIDTH = NBEdge::UNSPECIFIED_WIDTH;
+    const SUMOReal WIDTH(NBEdge::UNSPECIFIED_WIDTH);
     tc.insert("driving", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
     tc.insert("mwyEntry", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
     tc.insert("mwyExit", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
     tc.insert("stop", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
     tc.insert("special1", 1, (SUMOReal)(80. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
-    tc.insert("parking", 1, (SUMOReal)(30. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
+    tc.insert("parking", 1, (SUMOReal)(5. / 3.6), 1, WIDTH, SVC_UNKNOWN, true);
     // build the handler
     std::map<std::string, OpenDriveEdge*> edges;
-	NIImporter_OpenDrive handler(nb.getTypeCont(), edges);
+	NIImporter_OpenDrive handler(tc, edges);
     // parse file(s)
     std::vector<std::string> files = oc.getStringVector("opendrive-files");
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
@@ -307,8 +307,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     // -------------------------
     // edge building
     // -------------------------
-    //bool useLoadedLengths = oc.getBool("opendrive.use-given-lengths");
-	SUMOReal defaultSpeed = nb.getTypeCont().getSpeed("");
+	SUMOReal defaultSpeed = tc.getSpeed("");
     // build edges
     for (std::map<std::string, OpenDriveEdge*>::iterator i = outerEdges.begin(); i != outerEdges.end(); ++i) {
         OpenDriveEdge* e = (*i).second;
@@ -379,12 +378,9 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 
 						sumoLane.origID = e->id + " -" + toString((*k).id);
 						sumoLane.speed = odLane.speed!=0 ? odLane.speed : defaultSpeed;
-						
-						if(myImportWidths) {
-							SUMOReal width = odLane.width;
-							if(width!=0) {
-								sumoLane.width = width;
-							}
+                        sumoLane.permissions = tc.getPermissions(odLane.type);
+						if(myImportWidths&&odLane.width!=0) {
+							sumoLane.width = odLane.width;
 						}
 					}
 				}
@@ -417,12 +413,9 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 
 						sumoLane.origID = e->id + " " + toString((*k).id);
 						sumoLane.speed = odLane.speed!=0 ? odLane.speed : defaultSpeed;
-
-						if(myImportWidths) {
-							SUMOReal width = odLane.width;
-							if(width!=0) {
-								sumoLane.width = width;
-							}
+                        sumoLane.permissions = tc.getPermissions(odLane.type);
+						if(myImportWidths&&odLane.width!=0) {
+							sumoLane.width = odLane.width;
 						}
 					}
 				}
