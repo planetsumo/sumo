@@ -137,9 +137,14 @@ MSLaneChanger::change() {
         int bla = 0;
     }
 #endif
+    if (vehicle->getLane() != (*myCandi).lane || vehicle->getLaneChangeModel().isChangingLanes()) {
+        // vehicles shadows and changing vehicles are not eligible
+        registerUnchanged(vehicle);
+        return false;
+    }
 #ifndef NO_TRACI
-	if (vehicle->hasInfluencer() && vehicle->getInfluencer().isVTDControlled()) {
-		return false; // !!! temporary; just because it broke, here
+    if (vehicle->hasInfluencer() && vehicle->getInfluencer().isVTDControlled()) {
+        return false; // !!! temporary; just because it broke, here
     }
 #endif
     const std::vector<MSVehicle::LaneQ>& preb = vehicle->getBestLanes();
@@ -166,15 +171,7 @@ MSLaneChanger::change() {
             // inform lane change model about this change
             vehicle->getLaneChangeModel().fulfillChangeRequest(MSVehicle::REQUEST_RIGHT);
 #endif
-            (myCandi - 1)->hoppedVeh = vehicle;
-            (myCandi - 1)->lane->myTmpVehicles.push_front(vehicle);
-            vehicle->leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-            myCandi->lane->leftByLaneChange(vehicle);
-            vehicle->enterLaneAtLaneChange((myCandi - 1)->lane);
-            (myCandi - 1)->lane->enteredByLaneChange(vehicle);
-            vehicle->myLastLaneChangeOffset = 0;
-            vehicle->getLaneChangeModel().changed();
-            (myCandi - 1)->dens += (myCandi - 1)->hoppedVeh->getVehicleType().getLengthWithGap();
+            startChange(vehicle, myCandi, -1);
             return true;
         }
         if ((state1 & LCA_RIGHT) != 0 && (state1 & LCA_URGENT) != 0) {
@@ -201,15 +198,7 @@ MSLaneChanger::change() {
             // inform lane change model about this change
             vehicle->getLaneChangeModel().fulfillChangeRequest(MSVehicle::REQUEST_LEFT);
 #endif
-            (myCandi + 1)->hoppedVeh = veh(myCandi);
-            (myCandi + 1)->lane->myTmpVehicles.push_front(veh(myCandi));
-            vehicle->leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
-            myCandi->lane->leftByLaneChange(vehicle);
-            vehicle->enterLaneAtLaneChange((myCandi + 1)->lane);
-            (myCandi + 1)->lane->enteredByLaneChange(vehicle);
-            vehicle->myLastLaneChangeOffset = 0;
-            vehicle->getLaneChangeModel().changed();
-            (myCandi + 1)->dens += (myCandi + 1)->hoppedVeh->getVehicleType().getLengthWithGap();
+            startChange(vehicle, myCandi, 1);
             return true;
         }
         if ((state2 & LCA_LEFT) != 0 && (state2 & LCA_URGENT) != 0) {
@@ -264,9 +253,9 @@ MSLaneChanger::change() {
                     target->lane->myTmpVehicles.erase(i);
                     // set this vehicle
                     target->hoppedVeh = vehicle;
-                    target->lane->myTmpVehicles.push_front(vehicle);
+                    target->lane->myTmpVehicles.insert(target->lane->myTmpVehicles.begin(), vehicle);
                     myCandi->hoppedVeh = prohibitor;
-                    myCandi->lane->myTmpVehicles.push_front(prohibitor);
+                    myCandi->lane->myTmpVehicles.insert(myCandi->lane->myTmpVehicles.begin(), prohibitor);
 
                     // leave lane and detectors
                     vehicle->leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
@@ -283,9 +272,7 @@ MSLaneChanger::change() {
                     prohibitor->enterLaneAtLaneChange(myCandi->lane);
                     // mark lane change
                     vehicle->getLaneChangeModel().changed();
-                    vehicle->myLastLaneChangeOffset = 0;
                     prohibitor->getLaneChangeModel().changed();
-                    prohibitor->myLastLaneChangeOffset = 0;
                     (myCandi)->dens += prohibitor->getVehicleType().getLengthWithGap();
                     (target)->dens += vehicle->getVehicleType().getLengthWithGap();
                     return true;
@@ -293,11 +280,32 @@ MSLaneChanger::change() {
             }
         }
     }
-    // Candidate didn't change lane.
-    myCandi->lane->myTmpVehicles.push_front(veh(myCandi));
-    vehicle->myLastLaneChangeOffset += DELTA_T;
-    (myCandi)->dens += vehicle->getVehicleType().getLengthWithGap();
+    registerUnchanged(vehicle);
     return false;
+}
+
+
+void 
+MSLaneChanger::registerUnchanged(MSVehicle* vehicle) {
+    myCandi->lane->myTmpVehicles.insert(myCandi->lane->myTmpVehicles.begin(), veh(myCandi));
+    vehicle->getLaneChangeModel().unchanged();
+    (myCandi)->dens += vehicle->getVehicleType().getLengthWithGap();
+}
+
+
+void 
+MSLaneChanger::startChange(MSVehicle* vehicle, ChangerIt& from, int direction) {
+    ChangerIt to = from + direction;
+    to->hoppedVeh = vehicle;
+    // @todo delay entering the target lane until the vehicle intersects it
+    //       physically (considering lane width and vehicle width)
+    to->lane->myTmpVehicles.insert(to->lane->myTmpVehicles.begin(), vehicle); 
+    const bool continuous = vehicle->getLaneChangeModel().startLaneChangeManeuver(from->lane, to->lane, direction);
+    if (continuous) {
+        from->lane->myTmpVehicles.insert(from->lane->myTmpVehicles.begin(), vehicle); 
+        from->dens += vehicle->getVehicleType().getLengthWithGap();
+    }
+    to->dens += to->hoppedVeh->getVehicleType().getLengthWithGap();
 }
 
 

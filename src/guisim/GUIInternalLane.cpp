@@ -91,10 +91,10 @@ GUIInternalLane::releaseVehicles() const {
 }
 
 
-bool
-GUIInternalLane::planMovements(SUMOTime t) {
+void
+GUIInternalLane::planMovements(const SUMOTime t) {
     AbstractMutex::ScopedLocker locker(myLock);
-    return MSInternalLane::planMovements(t);
+    MSInternalLane::planMovements(t);
 }
 
 
@@ -106,9 +106,9 @@ GUIInternalLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
 
 
 MSVehicle*
-GUIInternalLane::removeVehicle(MSVehicle* remVehicle) {
+GUIInternalLane::removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification) {
     AbstractMutex::ScopedLocker locker(myLock);
-    return MSLane::removeVehicle(remVehicle);
+    return MSLane::removeVehicle(remVehicle, notification);
 }
 
 

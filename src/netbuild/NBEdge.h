@@ -940,7 +940,7 @@ public:
     /// @brief set lane specific width (negative lane implies set for all lanes)
     void setLaneWidth(int lane, SUMOReal width);
 
-    /// @brief 
+    /// @brief
     SUMOReal getLaneWidth(int lane) const;
 
     /// @brief set lane specific end-offset (negative lane implies set for all lanes)
@@ -1063,10 +1063,10 @@ private:
     };
 
     /// Computes the shape for the given lane
-    PositionVector computeLaneShape(unsigned int lane, SUMOReal offset) throw(InvalidArgument);
+    PositionVector computeLaneShape(unsigned int lane, SUMOReal offset);
 
     /// Computes the offset from the edge shape on the current segment
-    //std::pair<SUMOReal, SUMOReal> laneOffset(const Position& from, const Position& to, SUMOReal laneCenterOffset) throw(InvalidArgument);
+    //std::pair<SUMOReal, SUMOReal> laneOffset(const Position& from, const Position& to, SUMOReal laneCenterOffset);
 
     void computeLaneShapes();
 

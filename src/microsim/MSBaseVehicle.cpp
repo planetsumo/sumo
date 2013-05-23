@@ -57,7 +57,7 @@ const SUMOTime MSBaseVehicle::NOT_YET_DEPARTED = SUMOTime_MAX;
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, const MSVehicleType* type, SUMOReal speedFactor) :
+MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, const MSVehicleType* type, const SUMOReal speedFactor) :
     myParameter(pars),
     myRoute(route),
     myType(type),
@@ -98,18 +98,6 @@ MSBaseVehicle::getID() const {
 const SUMOVehicleParameter&
 MSBaseVehicle::getParameter() const {
     return *myParameter;
-}
-
-
-const MSRoute&
-MSBaseVehicle::getRoute() const {
-    return *myRoute;
-}
-
-
-const MSVehicleType&
-MSBaseVehicle::getVehicleType() const {
-    return *myType;
 }
 
 

@@ -65,7 +65,6 @@ BinaryFormatter::writeStringList(std::ostream& into, const std::vector<std::stri
 bool
 BinaryFormatter::writeXMLHeader(std::ostream& into,
                                 const std::string& rootElement,
-                                const std::string /* xmlParams */,
                                 const std::string& /* attrs */,
                                 const std::string& /* comment */) {
     if (myXMLStack.empty()) {
@@ -213,7 +212,7 @@ template<>
 void BinaryFormatter::writeAttr(std::ostream& into, const SumoXMLAttr attr, const PositionVector& val) {
     BinaryFormatter::writeAttrHeader(into, attr, BF_LIST);
     FileHelpers::writeInt(into, static_cast<int>(val.size()));
-    for (PositionVector::ContType::const_iterator pos = val.begin(); pos != val.end(); ++pos) {
+    for (PositionVector::const_iterator pos = val.begin(); pos != val.end(); ++pos) {
         writePosition(into, *pos);
     }
 }

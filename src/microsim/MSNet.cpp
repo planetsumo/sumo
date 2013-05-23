@@ -349,10 +349,10 @@ void
 MSNet::simulationStep() {
 #ifndef NO_TRACI
     traci::TraCIServer::processCommandsUntilSimStep(myStep);
-	traci::TraCIServer *t = traci::TraCIServer::getInstance();
-	if(t!=0&&t->getTargetTime()!=0&&t->getTargetTime()<myStep) {
-		return;
-	}
+    traci::TraCIServer* t = traci::TraCIServer::getInstance();
+    if (t != 0 && t->getTargetTime() != 0 && t->getTargetTime() < myStep) {
+        return;
+    }
 #endif
     // execute beginOfTimestepEvents
     if (myLogExecutionTime) {
@@ -372,8 +372,6 @@ MSNet::simulationStep() {
     }
     // check whether the tls programs need to be switched
     myLogics->check2Switch(myStep);
-    // set the signals
-    myLogics->setTrafficLightSignals(myStep);
 
 #ifdef HAVE_INTERNAL
     if (MSGlobals::gUseMesoSim) {
@@ -422,7 +420,7 @@ MSNet::simulationStep() {
     myEndOfTimestepEvents->execute(myStep);
 
 #ifndef NO_TRACI
-    if(traci::TraCIServer::getInstance()!=0) {
+    if (traci::TraCIServer::getInstance() != 0) {
         traci::TraCIServer::getInstance()->postProcessVTD();
     }
 #endif
@@ -578,6 +576,24 @@ MSNet::writeOutput() {
     }
     // write detector values
     myDetectorControl->writeOutput(myStep + DELTA_T, false);
+
+    // write link states
+    if (OptionsCont::getOptions().isSet("link-output")) {
+        OutputDevice& od = OutputDevice::getDeviceByOption("link-output");
+        od.openTag("timestep");
+        od.writeAttr(SUMO_ATTR_ID, STEPS2TIME(myStep));
+        const std::vector<MSEdge*> &edges = myEdges->getEdges();
+        for(std::vector<MSEdge*>::const_iterator i=edges.begin(); i!=edges.end(); ++i) {
+            const std::vector<MSLane*> &lanes = (*i)->getLanes();
+            for(std::vector<MSLane*>::const_iterator j=lanes.begin(); j!=lanes.end(); ++j) {
+                const std::vector<MSLink*> &links = (*j)->getLinkCont();
+                for(std::vector<MSLink*>::const_iterator k=links.begin(); k!=links.end(); ++k) {
+                    (*k)->writeApproaching(od, (*j)->getID());
+                }
+            }
+        }
+        od.closeTag();
+    }
 }
 
 

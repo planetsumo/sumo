@@ -455,7 +455,9 @@ GUILaneWrapper::drawGL(const GUIVisualizationSettings& s) const {
         // retrieve vehicles from lane; disallow simulation
         const MSLane::VehCont& vehicles = myLane.getVehiclesSecure();
         for (MSLane::VehCont::const_iterator v = vehicles.begin(); v != vehicles.end(); ++v) {
-            static_cast<const GUIVehicle* const>(*v)->drawGL(s);
+            if ((*v)->getLane() == &myLane) {
+                static_cast<const GUIVehicle* const>(*v)->drawGL(s);
+            } // else: this is the shadow during a continuous lane change
         }
         // allow lane simulation
         myLane.releaseVehicles();
@@ -474,7 +476,7 @@ GUILaneWrapper::drawMarkings(const GUIVisualizationSettings& s) const {
         setColor(s);
     // optionally draw inverse markings
     if (myIndex > 0) {
-		SUMOReal mw = myHalfLaneWidth + SUMO_const_laneOffset + .01;
+        SUMOReal mw = myHalfLaneWidth + SUMO_const_laneOffset + .01;
         int e = (int) getShape().size() - 1;
         for (int i = 0; i < e; ++i) {
             glPushMatrix();
@@ -543,7 +545,7 @@ GUILaneWrapper::getPopUpMenu(GUIMainWindow& app,
     //
     buildShowParamsPopupEntry(ret, false);
     const SUMOReal pos = myLane.interpolateGeometryPosToLanePos(
-                             myShape.nearest_position_on_line_to_point2D(parent.getPositionInformation()));
+                             myShape.nearest_offset_to_point2D(parent.getPositionInformation()));
     new FXMenuCommand(ret, ("pos: " + toString(pos)).c_str(), 0, 0, 0);
     new FXMenuSeparator(ret);
     buildPositionCopyEntry(ret, false);
