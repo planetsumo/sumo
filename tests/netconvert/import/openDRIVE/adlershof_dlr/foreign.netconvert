@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <OpenDRIVE>
-    <header revMajor="1" revMinor="3" name="" version="1.00" date="Tue Apr 16 08:53:21 2013" north="767.39" south="0.00" east="1737.68" west="0.00" maxRoad="213" maxJunc="87" maxPrg="0"/>
+    <header revMajor="1" revMinor="3" name="" version="1.00" date="Fri May 03 13:45:53 2013" north="767.39" south="0.00" east="1737.68" west="0.00" maxRoad="213" maxJunc="87" maxPrg="0"/>
     <road name="Teltowkanalbrücke" length="53.81" id="0" junction="-1">
         <link>
             <predecessor elementType="junction" elementId="0"/>

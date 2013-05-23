@@ -84,6 +84,9 @@
         <!-- Write vehroute output for vehicles which have not arrived at simulation end -->
         <vehroute-output.write-unfinished value="false" type="BOOL"/>
 
+        <!-- Save links states into FILE -->
+        <link-output value="" type="FILE"/>
+
     </output>
 
     <time>
@@ -134,6 +137,9 @@
 
         <!-- Whether blocking vehicles trying to change lanes may be swapped. -->
         <lanechange.allow-swap value="false" type="BOOL"/>
+
+        <!-- Duration of a lane change maneuver (default 0). -->
+        <lanechange.duration value="0" type="TIME"/>
 
         <!-- Select among routing algorithms [&apos;dijkstra&apos;, &apos;astar&apos;] -->
         <routing-algorithm value="dijkstra" type="STR"/>

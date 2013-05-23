@@ -10,7 +10,7 @@ sumoProcess = subprocess.Popen("%s -c sumo.sumocfg" % (sumoBinary), shell=True, 
 traci.init(8813)
 for step in range(3):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep()
 print "lanes", traci.lane.getIDList()
 laneID = "2fi_0"
 print "examining", laneID
@@ -37,10 +37,20 @@ print "traveltime", traci.lane.getTraveltime(laneID)
 print "numVeh", traci.lane.getLastStepVehicleNumber(laneID)
 print "haltVeh", traci.lane.getLastStepHaltingNumber(laneID)
 print "vehIds", traci.lane.getLastStepVehicleIDs(laneID)
+
+traci.lane.setAllowed(laneID, ["taxi"])
+print "after setAllowed", traci.lane.getAllowed(laneID), traci.lane.getDisallowed(laneID)
+traci.lane.setDisallowed(laneID, ["bus"])
+print "after setDisallowed", traci.lane.getAllowed(laneID), traci.lane.getDisallowed(laneID)
+traci.lane.setMaxSpeed(laneID, 42.)
+print "after setMaxSpeed", traci.lane.getMaxSpeed(laneID)
+traci.lane.setLength(laneID, 123.)
+print "after setLength", traci.lane.getLength(laneID)
+
 traci.lane.subscribe(laneID)
 print traci.lane.getSubscriptionResults(laneID)
 for step in range(3,6):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep()
     print traci.lane.getSubscriptionResults(laneID)
 traci.close()

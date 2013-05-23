@@ -10,7 +10,7 @@ sumoProcess = subprocess.Popen("%s -c sumo.sumocfg" % (sumoBinary), shell=True, 
 traci.init(8813)
 for step in range(3):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep()
 print "edges", traci.edge.getIDList()
 edgeID = "2fi"
 print "examining", edgeID
@@ -30,10 +30,19 @@ print "traveltime", traci.edge.getTraveltime(edgeID)
 print "numVeh", traci.edge.getLastStepVehicleNumber(edgeID)
 print "haltVeh", traci.edge.getLastStepHaltingNumber(edgeID)
 print "vehIds", traci.edge.getLastStepVehicleIDs(edgeID)
+
+traci.edge.adaptTraveltime(edgeID, 42.)
+print "traveltime after adaption", traci.edge.getTraveltime(edgeID)
+print "adaptedTraveltime after adaption", traci.edge.getAdaptedTraveltime(edgeID, 0)
+traci.edge.setEffort(edgeID, 1234.)
+print "effort after adaption", traci.edge.getEffort(edgeID, 0)
+traci.edge.setMaxSpeed(edgeID, 23.)
+print "max speed after adaption", traci.lane.getMaxSpeed(edgeID+"_0")
+
 traci.edge.subscribe(edgeID)
 print traci.edge.getSubscriptionResults(edgeID)
 for step in range(3,6):
     print "step", step
-    traci.simulationStep(step)
+    traci.simulationStep()
     print traci.edge.getSubscriptionResults(edgeID)
 traci.close()
