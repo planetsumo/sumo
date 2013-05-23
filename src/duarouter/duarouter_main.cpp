@@ -9,7 +9,7 @@
 // Main for DUAROUTER
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -116,7 +116,6 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
     } else if (len > 4 && filename.substr(len - 4) == ".sbx") {
         altFilename = filename.substr(0, len - 4) + ".alt.sbx";
     }
-    net.openOutput(filename, altFilename, oc.getString("vtype-output"));
     // build the router
     SUMOAbstractRouter<ROEdge, ROVehicle>* router;
     const std::string measure = oc.getString("weight-attribute");
@@ -206,6 +205,7 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
                 net.getEdgeNo(), oc.getBool("ignore-errors"), op, &ROEdge::getTravelTime);
         }
     }
+    net.openOutput(filename, altFilename, oc.getString("vtype-output"));
     // process route definitions
     try {
         if (routingAlgorithm == "bulkstar") {

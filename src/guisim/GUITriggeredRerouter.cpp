@@ -9,7 +9,7 @@
 // Reroutes vehicles passing an edge (gui version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -324,9 +324,9 @@ GUITriggeredRerouter::GUITriggeredRerouterEdge::GUITriggeredRerouterEdge(GUIEdge
     for (size_t i = 0; i < noLanes; ++i) {
         const PositionVector& v = edge->getLaneGeometry(i).getShape();
         SUMOReal pos = closed ? 3 : v.length() - (SUMOReal) 6.;
-        myFGPositions.push_back(v.positionAtLengthPosition(pos));
-        myFGRotations.push_back(-v.rotationDegreeAtLengthPosition(pos));
-        myBoundary.add(v.positionAtLengthPosition(pos));
+        myFGPositions.push_back(v.positionAtOffset(pos));
+        myFGRotations.push_back(-v.rotationDegreeAtOffset(pos));
+        myBoundary.add(v.positionAtOffset(pos));
     }
 }
 

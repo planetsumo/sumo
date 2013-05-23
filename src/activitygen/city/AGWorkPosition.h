@@ -9,7 +9,7 @@
 // Location and schedules of a work position: linked with one adult
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -58,7 +58,7 @@ public:
     AGWorkPosition(AGDataAndStatistics* ds, const AGStreet& inStreet, SUMOReal pos);
     ~AGWorkPosition();
 
-    void take(AGAdult* ad) throw(std::runtime_error);
+    void take(AGAdult* ad);
     void let();
     bool isTaken() const;
 

@@ -9,7 +9,7 @@
 // Changes the speed allowed on a set of lanes (gui version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -287,9 +287,9 @@ GUILaneSpeedTrigger::GUILaneSpeedTrigger(
     std::vector<MSLane*>::const_iterator i;
     for (i = destLanes.begin(); i != destLanes.end(); ++i) {
         const PositionVector& v = (*i)->getShape();
-        myFGPositions.push_back(v.positionAtLengthPosition(0));
-        myBoundary.add(v.positionAtLengthPosition(0));
-        myFGRotations.push_back(-v.rotationDegreeAtLengthPosition(0));
+        myFGPositions.push_back(v.positionAtOffset(0));
+        myBoundary.add(v.positionAtOffset(0));
+        myFGRotations.push_back(-v.rotationDegreeAtOffset(0));
     }
 }
 

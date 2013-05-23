@@ -9,7 +9,7 @@
 // The gui-version of a MSE3Collector
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -79,8 +79,8 @@ GUIE3Collector::MyWrapper::buildDefinition(const MSCrossSection& section) {
     const PositionVector& v = lane->getShape();
     Line l(v.front(), v.back());
     SingleCrossingDefinition def;
-    def.myFGPosition = v.positionAtLengthPosition(pos);
-    def.myFGRotation = -v.rotationDegreeAtLengthPosition(pos);
+    def.myFGPosition = v.positionAtOffset(pos);
+    def.myFGRotation = -v.rotationDegreeAtOffset(pos);
     return def;
 }
 

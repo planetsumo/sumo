@@ -9,7 +9,7 @@
 // Person in working age: can be linked to a work position.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -113,7 +113,7 @@ AGAdult::resignFromWorkPosition() {
 /****************************************************************************/
 
 const AGWorkPosition&
-AGAdult::getWorkPosition() const throw(std::runtime_error) {
+AGAdult::getWorkPosition() const {
     if (work != 0) {
         return *work;
     }

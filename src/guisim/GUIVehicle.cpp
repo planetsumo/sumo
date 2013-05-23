@@ -9,7 +9,7 @@
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -49,6 +49,7 @@
 #include <utils/gui/div/GLHelper.h>
 #include <utils/gui/div/GLObjectValuePassConnector.h>
 #include <microsim/MSVehicle.h>
+#include <microsim/MSLane.h>
 #include <microsim/logging/CastingFunctionBinding.h>
 #include <microsim/logging/FunctionBinding.h>
 #include <microsim/MSVehicleControl.h>
@@ -886,10 +887,9 @@ void
 GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     glPushName(getGlID());
     glPushMatrix();
-    Position p1 = myLane->getShape().positionAtLengthPosition(
-                      myLane->interpolateLanePosToGeometryPos(myState.pos()));
+    Position p1 = getPosition();
     // one seat in the center of the vehicle by default
-    mySeatPositions[0] = myLane->getShape().positionAtLengthPosition(
+    mySeatPositions[0] = myLane->getShape().positionAtOffset(
                              myLane->interpolateLanePosToGeometryPos(
                                  myState.pos() - getVehicleType().getLength() / 2));
     glTranslated(p1.x(), p1.y(), getType());
@@ -1029,7 +1029,7 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     }
     */
     glPopMatrix();
-    drawName(myLane->getShape().positionAtLengthPosition(
+    drawName(myLane->getShape().positionAtOffset(
                  myLane->interpolateLanePosToGeometryPos(
                      myState.pos() - MIN2(getVehicleType().getLength() / 2, SUMOReal(5)))),
              s.scale, s.vehicleName);
@@ -1084,7 +1084,7 @@ GUIVehicle::drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisuali
                     glColor3d(.8, 0, 0);
                 }
                 const SUMOTime leaveTime = (*i).myLink->getLeaveTime(
-                        (*i).myArrivalTime, (*i).myArrivalSpeed, (*i).getLeaveSpeed(), getVehicleType().getLengthWithGap());
+                                               (*i).myArrivalTime, (*i).myArrivalSpeed, (*i).getLeaveSpeed(), getVehicleType().getLengthWithGap());
                 drawLinkItem(p, (*i).myArrivalTime, leaveTime, s.addExaggeration);
                 // the time slot that ego vehicle uses when checking opened may
                 // differ from the one it requests in setApproaching
@@ -1101,7 +1101,7 @@ GUIVehicle::drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisuali
 }
 
 
-void 
+void
 GUIVehicle::drawLinkItem(const Position& pos, SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal exagerate) {
     glTranslated(pos.x(), pos.y(), -.1);
     GLHelper::drawFilledCircle(1);
@@ -1419,8 +1419,8 @@ GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMO
             backLane = getPreviousLane(backLane, backRouteIndex);
             carriageBackOffset += backLane->getLength();
         }
-        const Position front = lane->getShape().positionAtLengthPosition2D(carriageOffset);
-        const Position back = backLane->getShape().positionAtLengthPosition2D(carriageBackOffset);
+        const Position front = lane->getShape().positionAtOffset2D(carriageOffset);
+        const Position back = backLane->getShape().positionAtOffset2D(carriageBackOffset);
         const SUMOReal angle = atan2((front.x() - back.x()), (back.y() - front.y())) * (SUMOReal) 180.0 / (SUMOReal) PI;
         if (i >= firstPassengerCarriage) {
             computeSeats(front, back, requiredSeats);
@@ -1484,12 +1484,18 @@ GUIVehicle::computeSeats(const Position& front, const Position& back, int& requi
 }
 
 
+SUMOReal 
+GUIVehicle::getLastLaneChangeOffset() const {
+    return STEPS2TIME(getLaneChangeModel().getLastLaneChangeOffset());
+}
+
+
 #ifdef HAVE_OSG
 void
 GUIVehicle::updateColor(GUIOSGView* view) {
     const GUIVisualizationSettings* s = view->getVisualisationSettings();
     const RGBColor& col = s->vehicleColorer.getScheme().getColor(getColorValue(s->vehicleColorer.getActive()));
-    myGeom[view]->setColor(osg::Vec4(col.red()/255., col.green()/255., col.blue()/255., col.alpha()/255.));
+    myGeom[view]->setColor(osg::Vec4(col.red() / 255., col.green() / 255., col.blue() / 255., col.alpha() / 255.));
 }
 #endif
 

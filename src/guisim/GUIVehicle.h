@@ -10,7 +10,7 @@
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -54,7 +54,9 @@ class GUILaneWrapper;
 class MSDevice_Vehroutes;
 #ifdef HAVE_OSG
 class GUIOSGView;
-namespace osg { class ShapeDrawable;}
+namespace osg {
+class ShapeDrawable;
+}
 #endif
 
 
@@ -169,9 +171,7 @@ public:
      * @see MSVehicle::myLastLaneChangeOffset
      * @return The time since the last lane change in seconds
      */
-    SUMOReal getLastLaneChangeOffset() const {
-        return STEPS2TIME(myLastLaneChangeOffset);
-    }
+    SUMOReal getLastLaneChangeOffset() const;
 
 
     /** @brief Returns the description of best lanes to use in order to continue the route

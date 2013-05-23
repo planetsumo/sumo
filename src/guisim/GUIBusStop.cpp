@@ -9,7 +9,7 @@
 // A lane area vehicles can halt at (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -86,7 +86,7 @@ GUIBusStop::GUIBusStop(const std::string& id, const std::vector<std::string>& li
     myFGSignPos = tmp.getLineCenter();
     myFGSignRot = 0;
     if (tmp.length() != 0) {
-        myFGSignRot = myFGShape.rotationDegreeAtLengthPosition(SUMOReal((myFGShape.length() / 2.)));
+        myFGSignRot = myFGShape.rotationDegreeAtOffset(SUMOReal((myFGShape.length() / 2.)));
         myFGSignRot -= 90;
     }
 }

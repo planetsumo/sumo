@@ -8,7 +8,7 @@
 // Builds detectors for guisim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -71,8 +71,8 @@ GUIDetectorBuilder::createInductLoop(const std::string& id,
 
 MSDetectorFileOutput*
 GUIDetectorBuilder::createInstantInductLoop(const std::string& id,
-        MSLane* lane, SUMOReal pos, OutputDevice& od) {
-    return new GUIInstantInductLoop(id, od, lane, pos);
+        MSLane* lane, SUMOReal pos, const std::string& od) {
+    return new GUIInstantInductLoop(id, OutputDevice::getDevice(od), lane, pos);
 }
 
 

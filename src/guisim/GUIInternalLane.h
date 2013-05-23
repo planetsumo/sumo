@@ -9,7 +9,7 @@
 // Representation of a lane over a junction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -114,7 +114,7 @@ public:
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
-    bool planMovements(SUMOTime t);
+    void planMovements(const SUMOTime t);
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
@@ -125,10 +125,15 @@ public:
     bool integrateNewVehicle(SUMOTime t);
     ///@}
 
+    /** the same as in MSLane, but locks the access for the visualisation
+        first; the access will be granted at the end of this method */
     GUILaneWrapper* buildLaneWrapper(unsigned int index);
 
+    /** the same as in MSLane, but locks the access for the visualisation
+        first; the access will be granted at the end of this method */
+    MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification);
+
     void detectCollisions(SUMOTime timestep, int stage);
-    MSVehicle* removeVehicle(MSVehicle* remVehicle);
 
 protected:
     /// moves myTmpVehicles int myVehicles after a lane change procedure

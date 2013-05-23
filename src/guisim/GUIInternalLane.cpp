@@ -9,7 +9,7 @@
 // Lane within junctions, derived from the normal lane
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -91,10 +91,10 @@ GUIInternalLane::releaseVehicles() const {
 }
 
 
-bool
-GUIInternalLane::planMovements(SUMOTime t) {
+void
+GUIInternalLane::planMovements(const SUMOTime t) {
     AbstractMutex::ScopedLocker locker(myLock);
-    return MSInternalLane::planMovements(t);
+    MSInternalLane::planMovements(t);
 }
 
 
@@ -106,9 +106,9 @@ GUIInternalLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
 
 
 MSVehicle*
-GUIInternalLane::removeVehicle(MSVehicle* remVehicle) {
+GUIInternalLane::removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification) {
     AbstractMutex::ScopedLocker locker(myLock);
-    return MSLane::removeVehicle(remVehicle);
+    return MSLane::removeVehicle(remVehicle, notification);
 }
 
 
