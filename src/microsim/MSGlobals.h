@@ -9,7 +9,7 @@
 // Some static variables for faster access
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -71,6 +71,9 @@ public:
 
     /** information whether the routes shall be checked for connectivity */
     static bool gCheckRoutes;
+
+    /** information Duration of a lane change maneuver */
+    static SUMOTime gLaneChangeDuration;
 
 #ifdef HAVE_INTERNAL
     /// Information whether a state has been loaded

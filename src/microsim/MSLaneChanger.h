@@ -9,7 +9,7 @@
 // Performs lane changing of vehicles
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -127,6 +127,9 @@ protected:
     /** Find a new candidate and try to change it. */
     bool change();
 
+    /** Update changer for vehicles that did not change */
+    void registerUnchanged(MSVehicle* vehicle);
+
     /** After the possible change, update the changer. */
     void updateChanger(bool vehHasChanged);
 
@@ -152,6 +155,8 @@ protected:
         const std::vector<MSVehicle::LaneQ>& preb) const;
 
 
+    ///  @brief start the lane change maneuver (and finish it instantly if gLaneChangeDuration == 0)
+    void startChange(MSVehicle* vehicle, ChangerIt& from, int direction);
 
 
     /** Returns true if candidate overlaps with a vehicle, that

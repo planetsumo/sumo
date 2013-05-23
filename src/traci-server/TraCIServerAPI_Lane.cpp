@@ -10,7 +10,7 @@
 // APIs for getting/setting lane values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -219,8 +219,8 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 break;
             case LAST_STEP_VEHICLE_ID_LIST: {
                 std::vector<std::string> vehIDs;
-                const std::deque<MSVehicle*>& vehs = lane->getVehiclesSecure();
-                for (std::deque<MSVehicle*>::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
+                const MSLane::VehCont& vehs = lane->getVehiclesSecure();
+                for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
                     vehIDs.push_back((*j)->getID());
                 }
                 lane->releaseVehicles();
@@ -234,8 +234,8 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 break;
             case LAST_STEP_VEHICLE_HALTING_NUMBER: {
                 int halting = 0;
-                const std::deque<MSVehicle*>& vehs = lane->getVehiclesSecure();
-                for (std::deque<MSVehicle*>::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
+                const MSLane::VehCont& vehs = lane->getVehiclesSecure();
+                for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
                     if ((*j)->getSpeed() < 0.1) {
                         ++halting;
                     }
@@ -247,8 +247,8 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case LAST_STEP_LENGTH: {
                 SUMOReal lengthSum = 0;
-                const std::deque<MSVehicle*>& vehs = lane->getVehiclesSecure();
-                for (std::deque<MSVehicle*>::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
+                const MSLane::VehCont& vehs = lane->getVehiclesSecure();
+                for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
                     lengthSum += (*j)->getVehicleType().getLength();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
@@ -303,7 +303,7 @@ TraCIServerAPI_Lane::processSet(TraCIServer& server, tcpip::Storage& inputStorag
     switch (variable) {
         case VAR_MAXSPEED: {
             double value = 0;
-            if(!server.readTypeCheckingDouble(inputStorage, value)) {
+            if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(CMD_SET_LANE_VARIABLE, "The speed must be given as a double.", outputStorage);
             }
             l->setMaxSpeed(value);
@@ -311,7 +311,7 @@ TraCIServerAPI_Lane::processSet(TraCIServer& server, tcpip::Storage& inputStorag
         break;
         case VAR_LENGTH: {
             double value = 0;
-            if(!server.readTypeCheckingDouble(inputStorage, value)) {
+            if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(CMD_SET_LANE_VARIABLE, "The length must be given as a double.", outputStorage);
             }
             l->setLength(value);
@@ -319,7 +319,7 @@ TraCIServerAPI_Lane::processSet(TraCIServer& server, tcpip::Storage& inputStorag
         break;
         case LANE_ALLOWED: {
             std::vector<std::string> classes;
-            if(!server.readTypeCheckingStringList(inputStorage, classes)) {
+            if (!server.readTypeCheckingStringList(inputStorage, classes)) {
                 return server.writeErrorStatusCmd(CMD_SET_LANE_VARIABLE, "Allowed classes must be given as a list of strings.", outputStorage);
             }
             l->setPermissions(parseVehicleClasses(classes));
@@ -328,7 +328,7 @@ TraCIServerAPI_Lane::processSet(TraCIServer& server, tcpip::Storage& inputStorag
         break;
         case LANE_DISALLOWED: {
             std::vector<std::string> classes;
-            if(!server.readTypeCheckingStringList(inputStorage, classes)) {
+            if (!server.readTypeCheckingStringList(inputStorage, classes)) {
                 return server.writeErrorStatusCmd(CMD_SET_LANE_VARIABLE, "Not allowed classes must be given as a list of strings.", outputStorage);
             }
             l->setPermissions(~parseVehicleClasses(classes)); // negation yields allowed

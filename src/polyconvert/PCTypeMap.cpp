@@ -7,7 +7,7 @@
 // A storage for type mappings
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -42,12 +42,12 @@
 // method definitions
 // ===========================================================================
 PCTypeMap::PCTypeMap(const OptionsCont& oc) {
-	myDefaultType.id = oc.getString("type");
-	myDefaultType.color = RGBColor::parseColor(oc.getString("color"));
-	myDefaultType.layer = oc.getInt("layer");
-	myDefaultType.discard = oc.getBool("discard");
-	myDefaultType.allowFill = true;
-	myDefaultType.prefix = oc.getString("prefix");
+    myDefaultType.id = oc.getString("type");
+    myDefaultType.color = RGBColor::parseColor(oc.getString("color"));
+    myDefaultType.layer = oc.getInt("layer");
+    myDefaultType.discard = oc.getBool("discard");
+    myDefaultType.allowFill = true;
+    myDefaultType.prefix = oc.getString("prefix");
 }
 
 

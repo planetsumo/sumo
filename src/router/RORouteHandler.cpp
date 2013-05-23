@@ -10,7 +10,7 @@
 // Parser and container for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -106,9 +106,9 @@ RORouteHandler::parseFromTo(std::string element,
     } else {
         bool ok = true;
         parseEdges(attrs.get<std::string>(SUMO_ATTR_FROM, myVehicleParameter->id.c_str(), ok),
-                    myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
+                   myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
         parseEdges(attrs.get<std::string>(SUMO_ATTR_TO, myVehicleParameter->id.c_str(), ok, !myEmptyDestinationsAllowed),
-                    myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
+                   myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
     }
     myActiveRouteID = "!" + myVehicleParameter->id;
     if (myVehicleParameter->routeid == "") {
@@ -513,16 +513,21 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
 void
 RORouteHandler::parseEdges(const std::string& desc, std::vector<const ROEdge*>& into,
                            const std::string& rid) {
-    StringTokenizer st(desc);
-    while (st.hasNext()) {
-        const std::string id = st.next();
-        const ROEdge* edge = myNet.getEdge(id);
-        // check whether the edge exists
-        if (edge == 0) {
-            myErrorOutput->inform("The edge '" + id + "' within the route " + rid + " is not known."
-                                  + "\n The route can not be build.");
-        } else {
-            into.push_back(edge);
+    if (desc[0] == BinaryFormatter::BF_ROUTE) {
+        std::istringstream in(desc, std::ios::binary);
+        char c;
+        in >> c;
+        FileHelpers::readEdgeVector(in, into, rid);
+    } else {
+        for (StringTokenizer st(desc); st.hasNext();) {
+            const std::string id = st.next();
+            const ROEdge* edge = myNet.getEdge(id);
+            if (edge == 0) {
+                myErrorOutput->inform("The edge '" + id + "' within the route " + rid + " is not known."
+                                      + "\n The route can not be build.");
+            } else {
+                into.push_back(edge);
+            }
         }
     }
 }

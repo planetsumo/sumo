@@ -10,7 +10,7 @@
 // The representation of a single node
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -1329,19 +1329,6 @@ NBNode::getShape() const {
 }
 
 
-SUMOReal
-NBNode::getMaxEdgeWidth() const {
-    EdgeVector::const_iterator i = myAllEdges.begin();
-    assert(i != myAllEdges.end());
-    SUMOReal ret = (*i)->width();
-    ++i;
-    for (; i != myAllEdges.end(); i++) {
-        ret = ret > (*i)->width() ? ret : (*i)->width();
-    }
-    return ret;
-}
-
-
 NBEdge*
 NBNode::getConnectionTo(NBNode* n) const {
     for (EdgeVector::const_iterator i = myOutgoingEdges.begin(); i != myOutgoingEdges.end(); i++) {
@@ -1410,13 +1397,13 @@ NBNode::buildInnerEdges() {
 }
 
 
-bool 
+bool
 NBNode::geometryLike() const {
     if (myIncomingEdges.size() == 1 && myOutgoingEdges.size() == 1) {
         return true;
     }
     if (myIncomingEdges.size() == 2 && myOutgoingEdges.size() == 2) {
-        // check whether the incoming and outgoing edges are pairwise (near) parallel and 
+        // check whether the incoming and outgoing edges are pairwise (near) parallel and
         // thus the only cross-connections could be turn-arounds
         NBEdge* out0 = myOutgoingEdges[0];
         NBEdge* out1 = myOutgoingEdges[1];

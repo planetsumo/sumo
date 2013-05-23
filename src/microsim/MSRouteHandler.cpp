@@ -10,7 +10,7 @@
 // Parser and container for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -329,7 +329,7 @@ MSRouteHandler::myEndElement(int element) {
 
 
 void
-MSRouteHandler::closeRoute(const bool mayBeDisconnected) {
+MSRouteHandler::closeRoute(const bool /* mayBeDisconnected */) {
     if (myActiveRoute.size() == 0) {
         delete myActiveRouteColor;
         myActiveRouteColor = 0;

@@ -11,7 +11,7 @@
 // Krauss car-following model, with acceleration decrease and faster start
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -104,10 +104,10 @@ MSCFModel_Krauss::_vsafe(SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel
     // This approach should be refined to get a higher (still safe) following speed.
     const SUMOReal egoDecel = MIN2(myDecel, predMaxDecel);
     return (SUMOReal)(0.5 * sqrt(
-                4.0 * egoDecel * (2.0 * gap + predSpeed * predSpeed / predMaxDecel - predSpeed - 1.0) 
-                + (egoDecel * (2.0 * myHeadwayTime - 1.0))
-                * (egoDecel * (2.0 * myHeadwayTime - 1.0)))
-            + myDecel * (0.5 - myHeadwayTime));
+                          4.0 * egoDecel * (2.0 * gap + predSpeed * predSpeed / predMaxDecel - predSpeed - 1.0)
+                          + (egoDecel * (2.0 * myHeadwayTime - 1.0))
+                          * (egoDecel * (2.0 * myHeadwayTime - 1.0)))
+                      + myDecel * (0.5 - myHeadwayTime));
 }
 
 

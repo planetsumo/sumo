@@ -9,7 +9,7 @@
 // Builds detectors for microsim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -54,7 +54,7 @@ MSMessageEmitter::MSMessageEmitter(std::string& file,
                                    bool tableOut,
                                    bool xy,
                                    SUMOReal step) :
-    myDev(OutputDevice::getDevice(file, base)),
+    myDev(OutputDevice::getDevice(FileHelpers::checkForRelativity(file, base))),
     writeLCEvent(false),
     writeBEvent(false),
     writeHBEvent(false) {

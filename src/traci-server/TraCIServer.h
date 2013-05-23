@@ -14,7 +14,7 @@
 /// TraCI server used to control sumo by a remote TraCI client
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -79,6 +79,13 @@ public:
     typedef bool(*CmdExecutor)(traci::TraCIServer& server, tcpip::Storage& inputStorage, tcpip::Storage& outputStorage);
 
 
+    SUMOTime getTargetTime() {
+        return myTargetTime;
+    }
+    static TraCIServer* getInstance() {
+        return myInstance;
+    }
+
     /// @name Initialisation and Shutdown
     /// @{
 
@@ -104,6 +111,11 @@ public:
     /// @brief process all commands until a simulation step is wanted
     static void processCommandsUntilSimStep(SUMOTime step);
 
+    void setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, MSEdgeVector route);
+
+    void postProcessVTD();
+
+    bool vtdDebug() const;
 
 
 
@@ -165,7 +177,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether an integer value was given (by data type)
      */
-    bool readTypeCheckingInt(tcpip::Storage& inputStorage, int &into);
+    bool readTypeCheckingInt(tcpip::Storage& inputStorage, int& into);
 
 
     /** @brief Reads the value type and a double, verifying the type
@@ -174,7 +186,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether a double value was given (by data type)
      */
-    bool readTypeCheckingDouble(tcpip::Storage& inputStorage, double &into);
+    bool readTypeCheckingDouble(tcpip::Storage& inputStorage, double& into);
 
 
     /** @brief Reads the value type and a string, verifying the type
@@ -183,7 +195,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether a string value was given (by data type)
      */
-    bool readTypeCheckingString(tcpip::Storage& inputStorage, std::string &into);
+    bool readTypeCheckingString(tcpip::Storage& inputStorage, std::string& into);
 
 
     /** @brief Reads the value type and a string list, verifying the type
@@ -192,7 +204,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether a double value was given (by data type)
      */
-    bool readTypeCheckingStringList(tcpip::Storage& inputStorage, std::vector<std::string> &into);
+    bool readTypeCheckingStringList(tcpip::Storage& inputStorage, std::vector<std::string>& into);
 
 
     /** @brief Reads the value type and a color, verifying the type
@@ -201,7 +213,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether a color was given (by data type)
      */
-    bool readTypeCheckingColor(tcpip::Storage& inputStorage, RGBColor &into);
+    bool readTypeCheckingColor(tcpip::Storage& inputStorage, RGBColor& into);
 
 
     /** @brief Reads the value type and a 2D position, verifying the type
@@ -210,7 +222,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether a 2D position was given (by data type)
      */
-    bool readTypeCheckingPosition2D(tcpip::Storage& inputStorage, Position &into);
+    bool readTypeCheckingPosition2D(tcpip::Storage& inputStorage, Position& into);
 
 
     /** @brief Reads the value type and a 2D bounding box, verifying the type
@@ -219,7 +231,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether a 2D bounding box was given (by data type)
      */
-    bool readTypeCheckingBoundary(tcpip::Storage& inputStorage, Boundary &into);
+    bool readTypeCheckingBoundary(tcpip::Storage& inputStorage, Boundary& into);
 
 
     /** @brief Reads the value type and a byte, verifying the type
@@ -228,7 +240,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether a byte was given (by data type)
      */
-    bool readTypeCheckingByte(tcpip::Storage& inputStorage, int &into);
+    bool readTypeCheckingByte(tcpip::Storage& inputStorage, int& into);
 
 
     /** @brief Reads the value type and an unsigned byte, verifying the type
@@ -237,7 +249,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether an unsigned byte was given (by data type)
      */
-    bool readTypeCheckingUnsignedByte(tcpip::Storage& inputStorage, int &into);
+    bool readTypeCheckingUnsignedByte(tcpip::Storage& inputStorage, int& into);
 
 
     /** @brief Reads the value type and a polygon, verifying the type
@@ -246,7 +258,7 @@ public:
      * @param[out] into Holder of the read value
      * @return Whether an unsigned byte was given (by data type)
      */
-    bool readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector &into);
+    bool readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector& into);
     /// @}
 
 private:
@@ -329,6 +341,8 @@ private:
 
     /// @brief Map of commandIds -> their executors; applicable if the executor applies to the method footprint
     std::map<int, CmdExecutor> myExecutors;
+
+    std::map<std::string, MSVehicle*> myVTDControlledVehicles;
 
 
     /** @class Subscription

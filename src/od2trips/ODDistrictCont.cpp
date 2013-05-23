@@ -8,7 +8,7 @@
 // A container for districts
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -57,7 +57,7 @@ ODDistrictCont::~ODDistrictCont() {}
 
 
 std::string
-ODDistrictCont::getRandomSourceFromDistrict(const std::string& name) const throw(OutOfBoundsException, InvalidArgument) {
+ODDistrictCont::getRandomSourceFromDistrict(const std::string& name) const {
     ODDistrict* district = get(name);
     if (district == 0) {
         throw InvalidArgument("There is no district '" + name + "'.");
@@ -67,7 +67,7 @@ ODDistrictCont::getRandomSourceFromDistrict(const std::string& name) const throw
 
 
 std::string
-ODDistrictCont::getRandomSinkFromDistrict(const std::string& name) const throw(OutOfBoundsException, InvalidArgument) {
+ODDistrictCont::getRandomSinkFromDistrict(const std::string& name) const {
     ODDistrict* district = get(name);
     if (district == 0) {
         throw InvalidArgument("There is no district '" + name + "'.");

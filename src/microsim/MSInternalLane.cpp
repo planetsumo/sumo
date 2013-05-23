@@ -9,7 +9,7 @@
 // Representation of a lane over a junction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -77,13 +77,13 @@ MSInternalLane::setParentJunctionInformation(MSLogicJunction::InnerState* const 
 }
 
 
-bool
-MSInternalLane::planMovements(SUMOTime t) {
+void
+MSInternalLane::planMovements(const SUMOTime t) {
     assert(myVehicles.size() > 0);
     if (myFoesIndex >= 0) {
         (*myFoesCont)[myFoesIndex] = true;
     }
-    return MSLane::planMovements(t);
+    MSLane::planMovements(t);
 }
 
 

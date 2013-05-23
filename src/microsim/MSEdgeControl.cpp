@@ -10,7 +10,7 @@
 // Stores edges and lanes, performs moving of vehicle
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -99,10 +99,11 @@ MSEdgeControl::patchActiveLanes() {
 void
 MSEdgeControl::planMovements(SUMOTime t) {
     for (std::list<MSLane*>::iterator i = myActiveLanes.begin(); i != myActiveLanes.end();) {
-        if ((*i)->getVehicleNumber() == 0 || (*i)->planMovements(t)) {
+        if ((*i)->getVehicleNumber() == 0) {
             myLanes[(*i)->getNumericalID()].amActive = false;
             i = myActiveLanes.erase(i);
         } else {
+            (*i)->planMovements(t);
             ++i;
         }
     }

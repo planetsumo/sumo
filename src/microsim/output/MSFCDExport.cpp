@@ -5,7 +5,7 @@
 // Realises dumping Floating Car Data (FCD) Data
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -61,10 +61,8 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
     for (; it != end; ++it) {
         const MSVehicle* veh = static_cast<const MSVehicle*>((*it).second);
         if (veh->isOnRoad()) {
-            MSLane *lane = veh->getLane();
-            SUMOReal lp = veh->getPositionOnLane();
-            SUMOReal gp = lane->interpolateLanePosToGeometryPos(lp);
-            Position pos = lane->getShape().positionAtLengthPosition(gp);
+            Position pos = veh->getPosition();
+            MSLane* lane = veh->getLane();
             if (useGeo) {
                 of.setPrecision(GEO_OUTPUT_ACCURACY);
                 GeoConvHelper::getFinal().cartesian2geo(pos);
@@ -76,9 +74,9 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
             of.writeAttr(SUMO_ATTR_ANGLE, veh->getAngle());
             of.writeAttr(SUMO_ATTR_TYPE, veh->getVehicleType().getID());
             of.writeAttr(SUMO_ATTR_SPEED, veh->getSpeed());
-            of.writeAttr(SUMO_ATTR_POSITION, lp);
+            of.writeAttr(SUMO_ATTR_POSITION, veh->getPositionOnLane());
             of.writeAttr(SUMO_ATTR_LANE, lane->getID());
-            of.writeAttr(SUMO_ATTR_SLOPE, lane->getShape().slopeDegreeAtLengthPosition(gp));
+            of.writeAttr(SUMO_ATTR_SLOPE, lane->getShape().slopeDegreeAtOffset(veh->getPositionOnLane()));
             of.closeTag();
         }
     }

@@ -10,7 +10,7 @@
 // Builds trigger objects for microsim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -116,7 +116,7 @@ public:
      * @see buildLaneSpeedTrigger
      */
     void parseAndBuildLaneSpeedTrigger(MSNet& net, const SUMOSAXAttributes& attrs,
-                                       const std::string& base) throw(InvalidArgument);
+                                       const std::string& base);
 
 
     /** @brief Parses his values and builds a rerouter
@@ -127,7 +127,7 @@ public:
      * @exception InvalidArgument If a parameter (edge) is not valid
      */
     void parseAndBuildRerouter(MSNet& net, const SUMOSAXAttributes& attrs,
-                               const std::string& base) throw(InvalidArgument);
+                               const std::string& base);
 
 
     /** @brief Parses his values and builds a bus stop
@@ -136,7 +136,7 @@ public:
      * @param[in] attrs SAX-attributes which define the trigger
      * @exception InvalidArgument If a parameter (lane/position) is not valid
      */
-    void parseAndBuildBusStop(MSNet& net, const SUMOSAXAttributes& attrs) throw(InvalidArgument);
+    void parseAndBuildBusStop(MSNet& net, const SUMOSAXAttributes& attrs);
 
 
     /** @brief Parses his values and builds a mesoscopic or microscopic calibrator
@@ -147,7 +147,7 @@ public:
      * @exception InvalidArgument If a parameter (edge/position) is not valid
      */
     void parseAndBuildCalibrator(MSNet& net, const SUMOSAXAttributes& attrs,
-                                 const std::string& base) throw(InvalidArgument);
+                                 const std::string& base);
     //@}
 
 
@@ -192,7 +192,7 @@ protected:
      */
     virtual void buildBusStop(MSNet& net,
                               const std::string& id, const std::vector<std::string>& lines,
-                              MSLane* lane, SUMOReal frompos, SUMOReal topos) throw(InvalidArgument);
+                              MSLane* lane, SUMOReal frompos, SUMOReal topos);
 
 
     /** @brief builds a microscopic calibrator
@@ -207,9 +207,9 @@ protected:
      * @todo Is the position correct/needed
      */
     MSCalibrator* buildCalibrator(MSNet& net,
-                                           const std::string& id, MSEdge* edge, SUMOReal pos,
-                                           const std::string& file, const std::string& outfile,
-                                           const SUMOTime freq);
+                                  const std::string& id, MSEdge* edge, SUMOReal pos,
+                                  const std::string& file, const std::string& outfile,
+                                  const SUMOTime freq);
 #ifdef HAVE_INTERNAL
     /** @brief builds a mesoscopic calibrator
      *
@@ -223,9 +223,9 @@ protected:
      * @todo Is the position correct/needed
      */
     METriggeredCalibrator* buildMECalibrator(MSNet& net,
-                                           const std::string& id, const MSEdge* edge, SUMOReal pos,
-                                           const std::string& file, const std::string& outfile,
-                                           const SUMOTime freq);
+            const std::string& id, const MSEdge* edge, SUMOReal pos,
+            const std::string& file, const std::string& outfile,
+            const SUMOTime freq);
 #endif
 
 
@@ -262,7 +262,7 @@ protected:
      */
     std::string getFileName(const SUMOSAXAttributes& attrs,
                             const std::string& base,
-                            const bool allowEmpty = false) throw(InvalidArgument);
+                            const bool allowEmpty = false);
 
 
     /** @brief Returns the lane defined by attribute "lane"
@@ -277,7 +277,7 @@ protected:
      * @exception InvalidArgument If the named lane does not exist or a lane is not named
      */
     MSLane* getLane(const SUMOSAXAttributes& attrs,
-                    const std::string& tt, const std::string& tid) throw(InvalidArgument);
+                    const std::string& tt, const std::string& tid);
 
 
     /** @brief returns the position on the lane checking it
@@ -294,7 +294,7 @@ protected:
      * @exception InvalidArgument If the position is beyond the lane
      */
     SUMOReal getPosition(const SUMOSAXAttributes& attrs,
-                         MSLane* lane, const std::string& tt, const std::string& tid) throw(InvalidArgument);
+                         MSLane* lane, const std::string& tt, const std::string& tid);
     /// @}
 
 

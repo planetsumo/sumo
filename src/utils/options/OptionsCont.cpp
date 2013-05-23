@@ -10,7 +10,7 @@
 // A storage for options (typed value containers)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -71,7 +71,7 @@ OptionsCont::getOptions() {
 
 OptionsCont::OptionsCont()
     : myAddresses(), myValues(), myDeprecatedSynonymes(), myHaveInformedAboutDeprecatedDivider(false) {
-    myCopyrightNotices.push_back("Copyright (C) 2001-2012 DLR and contributors; http://sumo.sourceforge.net");
+    myCopyrightNotices.push_back("Copyright (C) 2001-2013 DLR and contributors; http://sumo.sourceforge.net");
 }
 
 
@@ -827,11 +827,11 @@ OptionsCont::writeSchema(std::ostream& os, bool /* addComments */) {
 
 
 void
-OptionsCont::writeXMLHeader(std::ostream& os, const std::string xmlParams) {
+OptionsCont::writeXMLHeader(std::ostream& os) {
     time_t rawtime;
     char buffer [80];
 
-    os << "<?xml version=\"1.0\"" << xmlParams << "?>\n\n";
+    os << "<?xml version=\"1.0\"" << SUMOSAXAttributes::ENCODING << "?>\n\n";
     time(&rawtime);
     strftime(buffer, 80, "<!-- generated on %c by ", localtime(&rawtime));
     os << buffer << myFullName << "\n";

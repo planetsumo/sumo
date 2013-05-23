@@ -8,7 +8,7 @@
 // APIs for getting/setting vehicle values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -81,6 +81,17 @@ private:
                                        tcpip::Storage& outputStorage, const MSVehicle* v);
 
     static MSVehicleType& getSingularType(SUMOVehicle* const veh);
+
+
+    static const std::map<std::string, std::vector<MSLane*> >& getOrBuildVTDMap();
+    static bool vtdMap_matchingEdgeLane(const Position& pos, const std::string& origID, MSVehicle& v, bool report,
+                                        SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges);
+    static bool vtdMap_matchingRoutePosition(const Position& pos, const std::string& origID, MSVehicle& v, bool report,
+            SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges);
+    static bool vtdMap_matchingNearest(const Position& pos, const std::string& origID, MSVehicle& v, traci::TraCIServer& server, bool report,
+                                       SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges);
+
+    static std::map<std::string, std::vector<MSLane*> > gVTDMap;
 
 
 private:

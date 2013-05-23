@@ -10,7 +10,7 @@
 // Storage for edges, including some functionality operating on multiple edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -371,9 +371,9 @@ NBEdgeCont::splitAt(NBDistrictCont& dc, NBEdge* edge, NBNode* node,
                     const std::string& secondEdgeName,
                     unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge) {
     SUMOReal pos;
-    pos = edge->getGeometry().nearest_position_on_line_to_point2D(node->getPosition());
+    pos = edge->getGeometry().nearest_offset_to_point2D(node->getPosition());
     if (pos <= 0) {
-        pos = GeomHelper::nearest_position_on_line_to_point2D(
+        pos = GeomHelper::nearest_offset_on_line_to_point2D(
                   edge->myFrom->getPosition(), edge->myTo->getPosition(),
                   node->getPosition());
     }
@@ -406,14 +406,14 @@ NBEdgeCont::splitAt(NBDistrictCont& dc,
     // build and insert the edges
     NBEdge* one = new NBEdge(firstEdgeName,
                              edge->myFrom, node, edge->myType, edge->mySpeed, noLanesFirstEdge,
-                             edge->getPriority(), edge->myWidth, 0, geoms.first,
+                             edge->getPriority(), edge->myLaneWidth, 0, geoms.first,
                              edge->getStreetName(), edge->myLaneSpreadFunction, true);
     for (unsigned int i = 0; i < noLanesFirstEdge && i < edge->getNumLanes(); i++) {
         one->setSpeed(i, edge->getLaneSpeed(i));
     }
     NBEdge* two = new NBEdge(secondEdgeName,
                              node, edge->myTo, edge->myType, edge->mySpeed, noLanesSecondEdge,
-                             edge->getPriority(), edge->myWidth, edge->myOffset, geoms.second,
+                             edge->getPriority(), edge->myLaneWidth, edge->myOffset, geoms.second,
                              edge->getStreetName(), edge->myLaneSpreadFunction, true);
     for (unsigned int i = 0; i < noLanesSecondEdge && i < edge->getNumLanes(); i++) {
         two->setSpeed(i, edge->getLaneSpeed(i));
@@ -503,7 +503,7 @@ NBEdgeCont::splitGeometry(NBNodeCont& nc) {
 }
 
 
-void 
+void
 NBEdgeCont::reduceGeometries(const SUMOReal minDist) {
     for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
         (*i).second->reduceGeometry(minDist);
@@ -577,7 +577,7 @@ NBEdgeCont::computeEdgeShapes() {
 
 
 void
-NBEdgeCont::recomputeLaneShapes() {
+NBEdgeCont::computeLaneShapes() {
     for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
         (*i).second->computeLaneShapes();
     }

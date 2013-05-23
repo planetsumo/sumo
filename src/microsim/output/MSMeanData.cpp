@@ -10,7 +10,7 @@
 // Data collector for edges/lanes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -468,7 +468,7 @@ MSMeanData::writeXMLOutput(OutputDevice& dev,
 
 void
 MSMeanData::writeXMLDetectorProlog(OutputDevice& dev) const {
-    dev.writeXMLHeader("netstats");
+    dev.writeXMLHeader("meandata", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.sf.net/xsd/meandata_file.xsd\"");
 }
 
 

@@ -9,7 +9,7 @@
 // A mover of vehicles that got stucked due to grid locks
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,6 +36,7 @@
 #include "MSLane.h"
 #include "MSEdge.h"
 #include "MSVehicle.h"
+#include "MSAbstractLaneChangeModel.h"
 #include "MSVehicleControl.h"
 #include "MSVehicleTransfer.h"
 
@@ -56,6 +57,7 @@ const SUMOReal MSVehicleTransfer::TeleportMinSpeed = 1;
 // ===========================================================================
 void
 MSVehicleTransfer::addVeh(const SUMOTime t, MSVehicle* veh) {
+    veh->getLaneChangeModel().endLaneChangeManeuver();
     if (veh->isParking()) {
         veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_PARKING);
     } else {

@@ -10,7 +10,7 @@
 // A reader for polygons and pois stored in XML-format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -206,7 +206,7 @@ PCLoaderXML::myStartElement(int element,
                 return;
             }
             PositionVector shape;
-            for (PositionVector::ContType::const_iterator i = pshape.begin(); i != pshape.end(); ++i) {
+            for (PositionVector::const_iterator i = pshape.begin(); i != pshape.end(); ++i) {
                 Position pos((*i));
                 if (!GeoConvHelper::getProcessing().x2cartesian(pos)) {
                     WRITE_WARNING("Unable to project coordinates for polygon '" + myCurrentID + "'.");

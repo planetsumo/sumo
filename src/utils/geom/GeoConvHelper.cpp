@@ -9,7 +9,7 @@
 // static methods for processing the coordinates conversion for the current net
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -304,7 +304,7 @@ GeoConvHelper::x2cartesian_const(Position& from) const {
         }
     }
     if (x > std::numeric_limits<double>::max() ||
-        y > std::numeric_limits<double>::max()) {
+            y > std::numeric_limits<double>::max()) {
         return false;
     }
     if (myProjectionMethod != SIMPLE) {

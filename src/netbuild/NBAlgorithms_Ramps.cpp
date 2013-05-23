@@ -7,7 +7,7 @@
 // Algorithms for highway on-/off-ramps computation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -175,7 +175,7 @@ NBRampsComputer::buildOnRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDist
         if (curr != 0 && !dontSplit && currLength - POSITION_EPS < rampLength && curr->getNumLanes() == firstLaneNumber && find(incremented.begin(), incremented.end(), curr) == incremented.end()) {
             // there is enough place to build a ramp; do it
             bool wasFirst = first == curr;
-            NBNode* rn = new NBNode(curr->getID() + "-AddedOnRampNode", curr->getGeometry().positionAtLengthPosition(rampLength - currLength));
+            NBNode* rn = new NBNode(curr->getID() + "-AddedOnRampNode", curr->getGeometry().positionAtOffset(rampLength - currLength));
             if (!nc.insert(rn)) {
                 throw ProcessError("Ups - could not build on-ramp for edge '" + curr->getID() + "' (node could not be build)!");
             }
@@ -256,7 +256,7 @@ NBRampsComputer::buildOffRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDis
         if (curr != 0 && !dontSplit && currLength - POSITION_EPS < rampLength && curr->getNumLanes() == firstLaneNumber && find(incremented.begin(), incremented.end(), curr) == incremented.end()) {
             // there is enough place to build a ramp; do it
             bool wasFirst = first == curr;
-            Position pos = curr->getGeometry().positionAtLengthPosition(curr->getGeometry().length() - (rampLength  - currLength));
+            Position pos = curr->getGeometry().positionAtOffset(curr->getGeometry().length() - (rampLength  - currLength));
             NBNode* rn = new NBNode(curr->getID() + "-AddedOffRampNode", pos);
             if (!nc.insert(rn)) {
                 throw ProcessError("Ups - could not build on-ramp for edge '" + curr->getID() + "' (node could not be build)!");

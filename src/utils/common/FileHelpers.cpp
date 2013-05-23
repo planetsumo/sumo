@@ -8,7 +8,7 @@
 // Functions for an easier usage of files
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -120,10 +120,16 @@ FileHelpers::isAbsolute(const std::string& path) {
 
 
 std::string
-FileHelpers::checkForRelativity(std::string filename,
+FileHelpers::checkForRelativity(const std::string& filename,
                                 const std::string& basePath) {
-    if (!isAbsolute(filename)) {
-        filename = getConfigurationRelative(basePath, filename);
+    if (filename == "stdout" || filename == "STDOUT" || filename == "-") {
+        return "stdout";
+    }
+    if (filename == "stderr" || filename == "STDERR") {
+        return "stderr";
+    }
+    if (!isSocket(filename) && !isAbsolute(filename)) {
+        return getConfigurationRelative(basePath, filename);
     }
     return filename;
 }

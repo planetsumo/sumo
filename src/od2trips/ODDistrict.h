@@ -7,7 +7,7 @@
 // A district (origin/destination)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -101,7 +101,7 @@ public:
      * @return One of this district's sources chosen randomly regarding their weights
      * @exception OutOfBoundsException If this district has no sources
      */
-    std::string getRandomSource() const throw(OutOfBoundsException);
+    std::string getRandomSource() const;
 
 
     /** @brief Returns the id of a sink to use
@@ -112,7 +112,7 @@ public:
      * @return One of this district's sinks chosen randomly regarding their weights
      * @exception OutOfBoundsException If this district has no sinks
      */
-    std::string getRandomSink() const throw(OutOfBoundsException);
+    std::string getRandomSink() const;
 
 
     /** @brief Returns the number of sinks

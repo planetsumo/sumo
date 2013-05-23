@@ -11,7 +11,7 @@
 // Importer for network edges stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -170,7 +170,7 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
             myShape = myCurrentEdge->getGeometry();
             myReinitKeepEdgeShape = true;
         }
-        myCurrentWidth = myCurrentEdge->getWidth();
+        myCurrentWidth = myCurrentEdge->getLaneWidth();
         myCurrentOffset = myCurrentEdge->getOffset();
         myLanesSpread = myCurrentEdge->getLaneSpreadFunction();
         if (myCurrentEdge->hasLoadedLength()) {
@@ -288,7 +288,7 @@ NIXMLEdgesHandler::addLane(const SUMOSAXAttributes& attrs) {
     myCurrentEdge->setPreferredVehicleClass(parseVehicleClasses(preferred), lane);
     // try to get the width
     if (attrs.hasAttribute(SUMO_ATTR_WIDTH)) {
-        myCurrentEdge->setWidth(lane, attrs.get<SUMOReal>(SUMO_ATTR_WIDTH, myCurrentID.c_str(), ok));
+        myCurrentEdge->setLaneWidth(lane, attrs.get<SUMOReal>(SUMO_ATTR_WIDTH, myCurrentID.c_str(), ok));
     }
     // try to get the end-offset (lane shortened due to pedestrian crossing etc..)
     if (attrs.hasAttribute(SUMO_ATTR_ENDOFFSET)) {
@@ -467,7 +467,7 @@ NIXMLEdgesHandler::myEndElement(int element) {
             unsigned int noLanesMax = e->getNumLanes();
             // compute the node positions and sort the lanes
             for (i = mySplits.begin(); i != mySplits.end(); ++i) {
-                (*i).gpos = e->getGeometry().positionAtLengthPosition((*i).pos);
+                (*i).gpos = e->getGeometry().positionAtOffset((*i).pos);
                 sort((*i).lanes.begin(), (*i).lanes.end());
                 noLanesMax = MAX2(noLanesMax, (unsigned int)(*i).lanes.size());
             }

@@ -49,11 +49,11 @@
 class MSCalibrator : public MSTrigger, public MSRouteHandler, public Command {
 public:
     /** constructor */
-    MSCalibrator(const std::string &id,
-            MSEdge *edge, SUMOReal pos,
-            const std::string &aXMLFilename,
-            const std::string &outputFilename,
-            const SUMOTime freq);
+    MSCalibrator(const std::string& id,
+                 MSEdge* edge, SUMOReal pos,
+                 const std::string& aXMLFilename,
+                 const std::string& outputFilename,
+                 const SUMOTime freq);
 
     /** destructor */
     virtual ~MSCalibrator();
@@ -80,7 +80,7 @@ protected:
      * @see GenericSAXHandler::myStartElement
      */
     virtual void myStartElement(int element,
-                                const SUMOSAXAttributes &attrs);
+                                const SUMOSAXAttributes& attrs);
 
     /** @brief Called on the closing of a tag;
      *
@@ -95,7 +95,7 @@ protected:
 
     class VehicleRemover : public MSMoveReminder {
     public:
-        VehicleRemover(MSLane* lane, int laneIndex, MSCalibrator* parent) : 
+        VehicleRemover(MSLane* lane, int laneIndex, MSCalibrator* parent) :
             MSMoveReminder(lane, true), myLaneIndex(laneIndex), myParent(parent) {}
 
         /// @name inherited from MSMoveReminder
@@ -113,7 +113,9 @@ protected:
         //@}
         virtual bool notifyEnter(SUMOVehicle& veh, Notification reason);
 
-        void disable() { myParent = 0; }
+        void disable() {
+            myParent = 0;
+        }
 
     private:
         MSCalibrator* myParent;
@@ -124,22 +126,23 @@ protected:
 private:
 
     struct AspiredState {
+        AspiredState() : begin(-1), end(-1), q(-1.), v(-1.), vehicleParameter(0) {}
         SUMOTime begin;
         SUMOTime end;
         SUMOReal q;
         SUMOReal v;
-        SUMOVehicleParameter *vehicleParameter;
+        SUMOVehicleParameter* vehicleParameter;
     };
 
     void writeXMLOutput();
 
     bool isCurrentStateActive(SUMOTime time);
 
-    bool tryEmit(MSLane *lane, MSVehicle *vehicle);
+    bool tryEmit(MSLane* lane, MSVehicle* vehicle);
 
     void init();
 
-    inline int passed() const { 
+    inline int passed() const {
         // calibrator measures at start of segment
         return myEdgeMeanData.nVehEntered + myEdgeMeanData.nVehDeparted - myEdgeMeanData.nVehVaporized;
     }
@@ -147,14 +150,14 @@ private:
     /* @brief returns whether the lane is jammed although it should not be
      * @param[in] lane The lane to check or all for negative values
      */
-    bool invalidJam(int laneIndex=-1) const;
+    bool invalidJam(int laneIndex = -1) const;
 
 
     /* @brief returns the number of vehicles (of the current type) that still
      * fit on the given lane
      * @param[in] lane The lane to check (return the maximum of all lanes for negative values)
      */
-    int remainingVehicleCapacity(int laneIndex=-1) const;
+    int remainingVehicleCapacity(int laneIndex = -1) const;
 
     /// @brief reset collected vehicle data
     void reset();
@@ -168,7 +171,9 @@ private:
 
 private:
     /// @brief the edge on which this calibrator lies
-    MSEdge *myEdge;
+    MSEdge* const myEdge;
+    /// @brief the position on the edge where this calibrator lies
+    const SUMOReal myPos;
     /// @brief data collector for the calibrator
     std::vector<MSMeanData_Net::MSLaneMeanDataValues*> myLaneMeanData;
     /// @brief accumlated data for the whole edge

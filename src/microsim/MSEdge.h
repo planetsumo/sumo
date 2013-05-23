@@ -11,7 +11,7 @@
 // A road/street connecting two junctions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -150,6 +150,14 @@ public:
      * @todo This method searches for the given in the container; probably, this could be done faster
      */
     MSLane* rightLane(const MSLane* const lane) const;
+
+    /** @brief Returns the lane with the given offset parallel to the given lane one or 0 if it does not exist
+     *
+     * @param[in] lane The base lane
+     * @param[in] offset The offset of the result lane
+     * @todo This method searches for the given in the container; probably, this could be done faster
+     */
+    MSLane* parallelLane(const MSLane* const lane, int offset) const;
 
 
     /** @brief Returns this edge's lanes

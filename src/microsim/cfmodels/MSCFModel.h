@@ -10,7 +10,7 @@
 // The car-following model abstraction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -151,13 +151,10 @@ public:
     /// @}
 
 
-    /// @name Virtual methods with default implementation
-    /// @{
-
     /** @brief Get the vehicle type's maximum acceleration [m/s^2]
      * @return The maximum acceleration (in m/s^2) of vehicles of this class
      */
-    virtual SUMOReal getMaxAccel() const {
+    inline SUMOReal getMaxAccel() const {
         return myAccel;
     }
 
@@ -165,10 +162,13 @@ public:
     /** @brief Get the vehicle type's maximum deceleration [m/s^2]
      * @return The maximum deceleration (in m/s^2) of vehicles of this class
      */
-    virtual SUMOReal getMaxDecel() const {
+    inline SUMOReal getMaxDecel() const {
         return myDecel;
     }
 
+
+    /// @name Virtual methods with default implementation
+    /// @{
 
     /** @brief Get the driver's imperfection
      * @return The imperfection of drivers of this class
@@ -191,16 +191,6 @@ public:
     /// @name Currently fixed methods
     /// @{
 
-    /** @brief Incorporates the influence of the vehicle on the left lane
-     *
-     * In Germany, vehicles on the right lane must not pass a vehicle on the lane left to the if the allowed velocity>60km/h
-     * @param[in] ego The ego vehicle
-     * @param[in] neigh The neighbor vehicle on the left lane
-     * @param[in, out] vSafe Current vSafe; may be adapted due to the left neighbor
-     */
-    void leftVehicleVsafe(const MSVehicle* const ego, const MSVehicle* const neigh, SUMOReal& vSafe) const;
-
-
     /** @brief Returns the maximum speed given the current speed
      *
      * The implementation of this method must take into account the time step
@@ -213,14 +203,20 @@ public:
      * @param[in] speed The vehicle itself, for obtaining other values
      * @return The maximum possible speed for the next step
      */
-    virtual SUMOReal maxNextSpeed(SUMOReal speed, const MSVehicle * const veh) const;
+    virtual SUMOReal maxNextSpeed(SUMOReal speed, const MSVehicle* const veh) const;
 
 
     /** @brief Returns the distance the vehicle needs to halt including driver's reaction time
      * @param[in] speed The vehicle's current speed
      * @return The distance needed to halt
      */
-    SUMOReal brakeGap(SUMOReal speed) const;
+    inline SUMOReal brakeGap(const SUMOReal speed) const {
+        /* one possiblity to speed this up is to precalculate speedReduction * steps * (steps+1) / 2
+        for small values of steps (up to 10 maybe) and store them in an array */
+        const SUMOReal speedReduction = ACCEL2SPEED(getMaxDecel());
+        const int steps = int(speed / speedReduction);
+        return SPEED2DIST(steps * speed - speedReduction * steps * (steps + 1) / 2) + speed * myHeadwayTime;
+    }
 
 
     /** @brief Returns the minimum gap to reserve if the leader is braking at maximum
@@ -228,7 +224,7 @@ public:
       * @param[in] leaderSpeed LEADER's speed
       * @param[in] leaderMaxDecel LEADER's max. deceleration rate
       */
-    SUMOReal getSecureGap(const SUMOReal speed, const SUMOReal leaderSpeed, const SUMOReal leaderMaxDecel) const {
+    inline SUMOReal getSecureGap(const SUMOReal speed, const SUMOReal leaderSpeed, const SUMOReal leaderMaxDecel) const {
         const int leaderSteps = int(leaderSpeed / ACCEL2SPEED(leaderMaxDecel));
         const SUMOReal leaderBreak = SPEED2DIST(leaderSteps * leaderSpeed - ACCEL2SPEED(leaderMaxDecel) * leaderSteps * (leaderSteps + 1) / 2);
         return MAX2((SUMOReal) 0, brakeGap(speed) - leaderBreak);
@@ -239,7 +235,7 @@ public:
      * @param[in] v The velocity
      * @return The velocity after maximum deceleration
      */
-    SUMOReal getSpeedAfterMaxDecel(SUMOReal v) const {
+    inline SUMOReal getSpeedAfterMaxDecel(SUMOReal v) const {
         return MAX2((SUMOReal) 0, v - (SUMOReal) ACCEL2SPEED(myDecel));
     }
     /// @}

@@ -9,7 +9,7 @@
 // Encapsulated Xerces-SAX-attributes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -166,7 +166,7 @@ SUMOSAXAttributesImpl_Binary::hasAttribute(int id) const {
 
 
 bool
-SUMOSAXAttributesImpl_Binary::getBool(int id) const throw(EmptyData, BoolFormatException) {
+SUMOSAXAttributesImpl_Binary::getBool(int id) const {
     const std::map<int, char>::const_iterator i = myCharValues.find(id);
     if (i == myCharValues.end()) {
         throw EmptyData();
@@ -192,7 +192,7 @@ SUMOSAXAttributesImpl_Binary::getLong(int /* id */) const {
 
 
 std::string
-SUMOSAXAttributesImpl_Binary::getString(int id) const throw(EmptyData) {
+SUMOSAXAttributesImpl_Binary::getString(int id) const {
     const std::map<int, std::string>::const_iterator i = myStringValues.find(id);
     if (i == myStringValues.end()) {
         throw EmptyData();
@@ -203,7 +203,7 @@ SUMOSAXAttributesImpl_Binary::getString(int id) const throw(EmptyData) {
 
 std::string
 SUMOSAXAttributesImpl_Binary::getStringSecure(int id,
-        const std::string& str) const throw(EmptyData) {
+        const std::string& str) const {
     const std::map<int, std::string>::const_iterator i = myStringValues.find(id);
     if (i == myStringValues.end()) {
         return str;
@@ -315,10 +315,10 @@ SUMOSAXAttributesImpl_Binary::getStringVector(int attr) const {
 std::vector<SUMOReal>
 SUMOSAXAttributesImpl_Binary::getFloatVector(int attr) const {
     std::vector<SUMOReal> ret;
-/*    StringTokenizer st(getString(attr));
-    while (st.hasNext()) {
-        ret.push_back(TplConvert::_2SUMOReal(st.next().c_str()));
-    }*/
+    /*    StringTokenizer st(getString(attr));
+        while (st.hasNext()) {
+            ret.push_back(TplConvert::_2SUMOReal(st.next().c_str()));
+        }*/
     return ret;
 }
 

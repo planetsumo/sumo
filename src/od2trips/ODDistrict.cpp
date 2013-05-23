@@ -8,7 +8,7 @@
 // A district (origin/destination)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -66,13 +66,13 @@ ODDistrict::addSink(const std::string& id, SUMOReal weight) {
 
 
 std::string
-ODDistrict::getRandomSource() const throw(OutOfBoundsException) {
+ODDistrict::getRandomSource() const {
     return mySources.get();
 }
 
 
 std::string
-ODDistrict::getRandomSink() const throw(OutOfBoundsException) {
+ODDistrict::getRandomSink() const {
     return mySinks.get();
 }
 

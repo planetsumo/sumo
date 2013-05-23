@@ -8,7 +8,7 @@
 // A parser to retrieve information from a table with known column
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -76,7 +76,7 @@ NamedColumnsParser::parseLine(const std::string& line) {
 
 
 std::string
-NamedColumnsParser::get(const std::string& name, bool prune) const throw(UnknownElement, OutOfBoundsException) {
+NamedColumnsParser::get(const std::string& name, bool prune) const {
     PosMap::const_iterator i = myDefinitionsMap.find(name);
     if (i == myDefinitionsMap.end()) {
         if (myAmCaseInsensitive) {

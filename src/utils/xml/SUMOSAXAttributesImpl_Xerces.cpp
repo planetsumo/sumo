@@ -9,7 +9,7 @@
 // Encapsulated Xerces-SAX-attributes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -75,7 +75,7 @@ SUMOSAXAttributesImpl_Xerces::hasAttribute(int id) const {
 
 
 bool
-SUMOSAXAttributesImpl_Xerces::getBool(int id) const throw(EmptyData, BoolFormatException) {
+SUMOSAXAttributesImpl_Xerces::getBool(int id) const {
     return TplConvert::_2bool(getAttributeValueSecure(id));
 }
 
@@ -93,7 +93,7 @@ SUMOSAXAttributesImpl_Xerces::getLong(int id) const {
 
 
 std::string
-SUMOSAXAttributesImpl_Xerces::getString(int id) const throw(EmptyData) {
+SUMOSAXAttributesImpl_Xerces::getString(int id) const {
     const XMLCh* utf16 = getAttributeValueSecure(id);
 #if _XERCES_VERSION < 30100
     char* t = XERCES_CPP_NAMESPACE::XMLString::transcode(utf16);
@@ -114,7 +114,7 @@ SUMOSAXAttributesImpl_Xerces::getString(int id) const throw(EmptyData) {
 
 std::string
 SUMOSAXAttributesImpl_Xerces::getStringSecure(int id,
-        const std::string& str) const throw(EmptyData) {
+        const std::string& str) const {
     const XMLCh* utf16 = getAttributeValueSecure(id);
 #if _XERCES_VERSION < 30100
     char* t = XERCES_CPP_NAMESPACE::XMLString::transcode(utf16);

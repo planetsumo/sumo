@@ -9,7 +9,7 @@
 // Storage for edges, including some functionality operating on multiple edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -301,7 +301,7 @@ public:
     void splitGeometry(NBNodeCont& nc);
 
 
-    /** @brief 
+    /** @brief
      * @param[in] nc The node container needed to build (geometry) nodes
      * @see NBEdge::reduceGeometry
      */
@@ -393,7 +393,7 @@ public:
      * @todo Recheck usage
      * @see NBEdge::computeLaneShapes
      */
-    void recomputeLaneShapes();
+    void computeLaneShapes();
 
 
     /** @brief Clears information about controlling traffic lights for all connenections of all edges

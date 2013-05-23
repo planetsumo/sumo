@@ -11,7 +11,7 @@
 // The base class for a view
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -862,7 +862,7 @@ GUISUMOAbstractView::checkSnapshots() {
 
 void
 GUISUMOAbstractView::showViewschemeEditor() {
-    if (myVisualizationChanger==0) {
+    if (myVisualizationChanger == 0) {
         myVisualizationChanger =
             new GUIDialog_ViewSettings(
             this, myVisualizationSettings,
@@ -882,8 +882,8 @@ GUISUMOAbstractView::showViewportEditor() {
             new GUIDialog_EditViewport(this, "Edit Viewport...", 0, 0);
         myViewportChooser->create();
     }
-    Position p(myChanger->getXPos(), myChanger->getYPos(), myChanger->getZoom()), p1;
-    myViewportChooser->setOldValues(p, p1);
+    Position p(myChanger->getXPos(), myChanger->getYPos(), myChanger->getZoom());
+    myViewportChooser->setOldValues(p, Position::INVALID);
     myViewportChooser->show();
 }
 

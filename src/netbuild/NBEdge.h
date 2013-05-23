@@ -9,7 +9,7 @@
 // The representation of a single edge during network building
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -123,7 +123,7 @@ public:
     struct Lane {
         Lane(NBEdge* e) :
             speed(e->getSpeed()), permissions(SVCFreeForAll), preferred(0),
-            offset(e->getOffset()), width(e->getWidth()) {}
+            offset(e->getOffset()), width(e->getLaneWidth()) {}
         /// @brief The lane's shape
         PositionVector shape;
         /// @brief The speed allowed on this lane
@@ -138,6 +138,8 @@ public:
         SUMOReal width;
         /// @brief An original ID, if given (@todo: is only seldom used, should be stored somewhere else, probably)
         std::string origID;
+        /// @brief The lateral offset; computed
+        SUMOReal _latOffset;
     };
 
 
@@ -189,8 +191,7 @@ public:
 
     /// Computes the offset from the edge shape on the current segment
     static std::pair<SUMOReal, SUMOReal> laneOffset(const Position& from,
-            const Position& to, SUMOReal lanewidth, unsigned int lane,
-            size_t noLanes, LaneSpreadFunction lsf, bool leftHand);
+            const Position& to, SUMOReal laneCenterOffset, bool leftHand);
 
     /// @brief unspecified lane width
     static const SUMOReal UNSPECIFIED_WIDTH;
@@ -416,8 +417,8 @@ public:
     /** @brief Returns the width of lanes of this edge
      * @return The width of lanes of this edge
      */
-    SUMOReal getWidth() const {
-        return myWidth;
+    SUMOReal getLaneWidth() const {
+        return myLaneWidth;
     }
 
 
@@ -870,10 +871,6 @@ public:
 
     SUMOReal getMaxLaneOffset();
 
-    Position getMinLaneOffsetPositionAt(NBNode* node, SUMOReal width) const;
-    Position getMaxLaneOffsetPositionAt(NBNode* node, SUMOReal width) const;
-
-
     bool lanesWereAssigned() const;
 
     bool mayBeTLSControlled(int fromLane, NBEdge* toEdge, int toLane) const;
@@ -946,7 +943,10 @@ public:
 
 
     /// @brief set lane specific width (negative lane implies set for all lanes)
-    void setWidth(int lane, SUMOReal width);
+    void setLaneWidth(int lane, SUMOReal width);
+
+    /// @brief
+    SUMOReal getLaneWidth(int lane) const;
 
     /// @brief set lane specific end-offset (negative lane implies set for all lanes)
     void setOffset(int lane, SUMOReal offset);
@@ -1068,11 +1068,10 @@ private:
     };
 
     /// Computes the shape for the given lane
-    PositionVector computeLaneShape(unsigned int lane) throw(InvalidArgument);
+    PositionVector computeLaneShape(unsigned int lane, SUMOReal offset);
 
     /// Computes the offset from the edge shape on the current segment
-    std::pair<SUMOReal, SUMOReal> laneOffset(const Position& from,
-            const Position& to, SUMOReal lanewidth, unsigned int lane) throw(InvalidArgument);
+    //std::pair<SUMOReal, SUMOReal> laneOffset(const Position& from, const Position& to, SUMOReal laneCenterOffset);
 
     void computeLaneShapes();
 
@@ -1181,7 +1180,7 @@ private:
     SUMOReal myOffset;
 
     /// @brief This width of this edge's lanes
-    SUMOReal myWidth;
+    SUMOReal myLaneWidth;
 
     /** @brief Lane information
      * @see Lane

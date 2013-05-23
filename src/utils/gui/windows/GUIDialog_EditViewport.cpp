@@ -8,7 +8,7 @@
 // A dialog to change the viewport
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -138,7 +138,12 @@ GUIDialog_EditViewport::~GUIDialog_EditViewport() {}
 long
 GUIDialog_EditViewport::onCmdOk(FXObject*, FXSelector, void*) {
     myParent->setViewport(Position(myXOff->getValue(), myYOff->getValue(), myZoom->getValue()),
-                          Position(myLookAtX->getValue(), myLookAtY->getValue(), myLookAtZ->getValue()));
+#ifdef HAVE_OSG
+                          Position(myLookAtX->getValue(), myLookAtY->getValue(), myLookAtZ->getValue())
+#else
+                          Position::INVALID
+#endif
+                         );
     hide();
     return 1;
 }
@@ -155,7 +160,12 @@ GUIDialog_EditViewport::onCmdCancel(FXObject*, FXSelector, void*) {
 long
 GUIDialog_EditViewport::onCmdChanged(FXObject*, FXSelector, void*) {
     myParent->setViewport(Position(myXOff->getValue(), myYOff->getValue(), myZoom->getValue()),
-                          Position(myLookAtX->getValue(), myLookAtY->getValue(), myLookAtZ->getValue()));
+#ifdef HAVE_OSG
+                          Position(myLookAtX->getValue(), myLookAtY->getValue(), myLookAtZ->getValue())
+#else
+                          Position::INVALID
+#endif
+                         );
     return 1;
 }
 
@@ -198,9 +208,11 @@ GUIDialog_EditViewport::onCmdSave(FXObject*, FXSelector, void* /*data*/) {
     try {
         OutputDevice& dev = OutputDevice::getDevice(opendialog.getFilename().text());
         dev << "<viewsettings>\n";
-        dev << "    <viewport zoom=\"" << myZoom->getValue() << "\" x=\"" << myXOff->getValue() << "\" y=\"" << myYOff->getValue() << "\"";
-        dev << " centerX=\"" << myLookAtX->getValue() << "\" centerY=\"" << myLookAtY->getValue() << "\" centerZ=\"" << myLookAtZ->getValue() << "\"/>\n";
-        dev << "</viewsettings>\n";
+        dev << "    <viewport zoom=\"" << myZoom->getValue() << "\" x=\"" << myXOff->getValue() << "\" y=\"" << myYOff->getValue();
+#ifdef HAVE_OSG
+        dev << "\" centerX=\"" << myLookAtX->getValue() << "\" centerY=\"" << myLookAtY->getValue() << "\" centerZ=\"" << myLookAtZ->getValue();
+#endif
+        dev << "\"/>\n</viewsettings>\n";
         dev.close();
     } catch (IOError& e) {
         FXMessageBox::error(this, MBOX_OK, "Storing failed!", "%s", e.what());
@@ -215,21 +227,23 @@ GUIDialog_EditViewport::setValues(SUMOReal zoom, SUMOReal xoff, SUMOReal yoff) {
     myXOff->setValue(xoff);
     myYOff->setValue(yoff);
 }
- 
- 
+
+
 void
-GUIDialog_EditViewport::setValues(Position& lookFrom, Position& lookAt) {
+GUIDialog_EditViewport::setValues(const Position& lookFrom, const Position& lookAt) {
     myZoom->setValue(lookFrom.z());
     myXOff->setValue(lookFrom.x());
     myYOff->setValue(lookFrom.y());
+#ifdef HAVE_OSG
     myLookAtX->setValue(lookAt.x());
     myLookAtY->setValue(lookAt.y());
     myLookAtZ->setValue(lookAt.z());
+#endif
 }
 
 
 void
-GUIDialog_EditViewport::setOldValues(Position& lookFrom, Position& lookAt) {
+GUIDialog_EditViewport::setOldValues(const Position& lookFrom, const Position& lookAt) {
     setValues(lookFrom, lookAt);
     myOldLookFrom = lookFrom;
     myOldLookAt = lookAt;

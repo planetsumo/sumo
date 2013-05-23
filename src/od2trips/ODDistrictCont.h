@@ -7,7 +7,7 @@
 // A container for districts
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -68,7 +68,7 @@ public:
      * @exception OutOfBoundsException If the named district has no sources
      * @see ODDistrict::getRandomSource
      */
-    std::string getRandomSourceFromDistrict(const std::string& name) const throw(OutOfBoundsException, InvalidArgument);
+    std::string getRandomSourceFromDistrict(const std::string& name) const;
 
 
     /** @brief Returns the id of a random sink from the named district
@@ -85,10 +85,10 @@ public:
      * @exception OutOfBoundsException If the named district has no sinks
      * @see ODDistrict::getRandomSink
      */
-    std::string getRandomSinkFromDistrict(const std::string& name) const throw(OutOfBoundsException, InvalidArgument);
-	
+    std::string getRandomSinkFromDistrict(const std::string& name) const;
+
     // @brief load districts from FILE
-	void loadDistricts(std::string districtfile);
+    void loadDistricts(std::string districtfile);
 
 private:
     /// @brief invalidated copy constructor

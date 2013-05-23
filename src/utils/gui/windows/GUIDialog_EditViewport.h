@@ -8,7 +8,7 @@
 // A dialog to change the viewport
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -111,14 +111,14 @@ public:
      * @param[in] lookFrom Current viewport's from
      * @param[in] lookAt Current viewport's at
      */
-    void setValues(Position& lookFrom, Position& lookAt);
+    void setValues(const Position& lookFrom, const Position& lookAt);
 
 
     /** @brief Resets old values
      * @param[in] lookFrom Current viewport's from
      * @param[in] lookAt Current viewport's at
      */
-    void setOldValues(Position& lookFrom, Position& lookAt);
+    void setOldValues(const Position& lookFrom, const Position& lookAt);
 
 
     /** @brief Returns the information whether one of the spin dialers is grabbed
@@ -135,7 +135,12 @@ protected:
     Position myOldLookFrom, myOldLookAt;
 
     /// @brief The spin dialers used to change the view
-    FXRealSpinDial* myZoom, *myXOff, *myYOff, *myLookAtX, *myLookAtY, *myLookAtZ;
+    FXRealSpinDial* myZoom, *myXOff, *myYOff;
+
+#ifdef HAVE_OSG
+    /// @brief The spin dialers used to change the view at (osg only)
+    FXRealSpinDial* myLookAtX, *myLookAtY, *myLookAtZ;
+#endif
 
 
 protected:

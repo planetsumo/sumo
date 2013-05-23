@@ -11,7 +11,7 @@
 // APIs for getting/setting vehicle values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -63,6 +63,9 @@
 using namespace traci;
 
 
+
+std::map<std::string, std::vector<MSLane*> > TraCIServerAPI_Vehicle::gVTDMap;
+
 // ===========================================================================
 // method definitions
 // ===========================================================================
@@ -88,7 +91,7 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
             && variable != VAR_WIDTH && variable != VAR_MINGAP && variable != VAR_SHAPECLASS
             && variable != VAR_ACCEL && variable != VAR_DECEL && variable != VAR_IMPERFECTION
             && variable != VAR_TAU && variable != VAR_BEST_LANES && variable != DISTANCE_REQUEST
-            && variable != ID_COUNT
+            && variable != ID_COUNT && variable != VAR_STOPSTATE
        ) {
         return server.writeErrorStatusCmd(CMD_GET_VEHICLE_VARIABLE, "Get Vehicle Variable: unsupported variable specified", outputStorage);
     }
@@ -219,12 +222,12 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                 }
                 // time
                 SUMOTime time = 0;
-                if(!server.readTypeCheckingInt(inputStorage, time)) {
+                if (!server.readTypeCheckingInt(inputStorage, time)) {
                     return server.writeErrorStatusCmd(CMD_GET_VEHICLE_VARIABLE, "Retrieval of travel time requires the referenced time as first parameter.", outputStorage);
                 }
                 // edge
                 std::string edgeID;
-                if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+                if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                     return server.writeErrorStatusCmd(CMD_GET_VEHICLE_VARIABLE, "Retrieval of travel time requires the referenced edge as second parameter.", outputStorage);
                 }
                 MSEdge* edge = MSEdge::dictionary(edgeID);
@@ -251,12 +254,12 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                 }
                 // time
                 SUMOTime time = 0;
-                if(!server.readTypeCheckingInt(inputStorage, time)) {
+                if (!server.readTypeCheckingInt(inputStorage, time)) {
                     return server.writeErrorStatusCmd(CMD_GET_VEHICLE_VARIABLE, "Retrieval of effort requires the referenced time as first parameter.", outputStorage);
                 }
                 // edge
                 std::string edgeID;
-                if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+                if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                     return server.writeErrorStatusCmd(CMD_GET_VEHICLE_VARIABLE, "Retrieval of effort requires the referenced edge as second parameter.", outputStorage);
                 }
                 MSEdge* edge = MSEdge::dictionary(edgeID);
@@ -330,6 +333,14 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                 tempMsg.writeStorage(tempContent);
             }
             break;
+			case VAR_STOPSTATE:{
+					char b = (v->isStopped() ? 1 : 0 +
+                            2 * (v->isParking() ? 1 : 0) +
+                            4 * (v->isStoppedTriggered() ? 1 : 0));
+					tempMsg.writeUnsignedByte(TYPE_UBYTE);
+					tempMsg.writeUnsignedByte(b);
+				}
+			break;
             case DISTANCE_REQUEST:
                 if (!commandDistanceRequest(server, inputStorage, tempMsg, v)) {
                     return false;
@@ -353,7 +364,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
     // variable
     int variable = inputStorage.readUnsignedByte();
     if (variable != CMD_STOP && variable != CMD_CHANGELANE
-            && variable != CMD_SLOWDOWN && variable != CMD_CHANGETARGET
+            && variable != CMD_SLOWDOWN && variable != CMD_CHANGETARGET && variable != CMD_RESUME
             && variable != VAR_ROUTE_ID && variable != VAR_ROUTE
             && variable != VAR_EDGE_TRAVELTIME && variable != VAR_EDGE_EFFORT
             && variable != CMD_REROUTE_TRAVELTIME && variable != CMD_REROUTE_EFFORT
@@ -387,26 +398,38 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             if (inputStorage.readUnsignedByte() != TYPE_COMPOUND) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Stop needs a compound object description.", outputStorage);
             }
-            if (inputStorage.readInt() != 4) {
-                return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Stop needs a compound object description of four items.", outputStorage);
+            int compoundSize = inputStorage.readInt();
+            if (compoundSize != 4 && compoundSize != 5) {
+                return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Stop needs a compound object description of four of five items.", outputStorage);
             }
             // read road map position
             std::string roadId;
-            if(!server.readTypeCheckingString(inputStorage, roadId)) {
+            if (!server.readTypeCheckingString(inputStorage, roadId)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The first stop parameter must be the edge id given as a string.", outputStorage);
             }
             double pos = 0;
-            if(!server.readTypeCheckingDouble(inputStorage, pos)) {
+            if (!server.readTypeCheckingDouble(inputStorage, pos)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The second stop parameter must be the position along the edge given as a double.", outputStorage);
             }
             int laneIndex = 0;
-            if(!server.readTypeCheckingByte(inputStorage, laneIndex)) {
+            if (!server.readTypeCheckingByte(inputStorage, laneIndex)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The third stop parameter must be the lane index given as a byte.", outputStorage);
             }
             // waitTime
             SUMOTime waitTime = 0;
-            if(!server.readTypeCheckingInt(inputStorage, waitTime)) {
+            if (!server.readTypeCheckingInt(inputStorage, waitTime)) {
                 return server.writeErrorStatusCmd(CMD_GET_VEHICLE_VARIABLE, "The fourth stop parameter must be the waiting time given as an integer.", outputStorage);
+            }
+			// optional stop flags
+            bool parking = false;
+            bool triggered = false;
+            if (compoundSize == 5) {
+                int stopFlags;
+                if (!server.readTypeCheckingByte(inputStorage, stopFlags)) {
+                    return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The fifth stop parameter must be a byte indicating its parking/triggered status.", outputStorage);
+                }
+                parking = ((stopFlags & 1) != 0);
+                triggered = ((stopFlags & 2) != 0);
             }
             // check
             if (pos < 0) {
@@ -422,11 +445,33 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "No lane existing with such id on the given road", outputStorage);
             }
             // Forward command to vehicle
-            if (!v->addTraciStop(allLanes[laneIndex], pos, 0, waitTime)) {
+            if (!v->addTraciStop(allLanes[laneIndex], pos, 0, waitTime, parking, triggered)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Vehicle is too close or behind the stop on " + allLanes[laneIndex]->getID(), outputStorage);
             }
         }
         break;
+		case CMD_RESUME: {
+			if (inputStorage.readUnsignedByte() != TYPE_COMPOUND) {
+				server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Resuming requires a compound object.", outputStorage);
+				return false;
+			}
+			if (inputStorage.readInt() != 0) {
+				server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Resuming should obtain an empty compound object.", outputStorage);
+				return false;
+			}
+			if (!static_cast<MSVehicle*>(v)->resumeFromStopping()) {
+				MSVehicle::Stop& sto = (static_cast<MSVehicle*>(v))->getNextStop();
+				std::ostringstream strs;
+				strs << "reached: " << sto.reached;
+				strs << ", duration:" << sto.duration;
+				strs << ", edge:" << (*sto.edge)->getID();
+				strs << ", startPos: " << sto.startPos;
+				std::string posStr = strs.str();
+				server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Failed to resume a non parking vehicle: "+v->getID() + ", "+posStr, outputStorage);
+				return false;
+			}
+		}
+		break;
         case CMD_CHANGELANE: {
             if (inputStorage.readUnsignedByte() != TYPE_COMPOUND) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Lane change needs a compound object description.", outputStorage);
@@ -436,12 +481,12 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             }
             // Lane ID
             int laneIndex = 0;
-            if(!server.readTypeCheckingByte(inputStorage, laneIndex)) {
+            if (!server.readTypeCheckingByte(inputStorage, laneIndex)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The first lane change parameter must be the lane index given as a byte.", outputStorage);
             }
             // stickyTime
             SUMOTime stickyTime = 0;
-            if(!server.readTypeCheckingInt(inputStorage, stickyTime)) {
+            if (!server.readTypeCheckingInt(inputStorage, stickyTime)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The second lane change parameter must be the duration given as an integer.", outputStorage);
             }
             if ((laneIndex < 0) || (laneIndex >= (int)(v->getEdge()->getLanes().size()))) {
@@ -465,14 +510,14 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Slow down needs a compound object description of two items.", outputStorage);
             }
             double newSpeed = 0;
-            if(!server.readTypeCheckingDouble(inputStorage, newSpeed)) {
+            if (!server.readTypeCheckingDouble(inputStorage, newSpeed)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The first slow down parameter must be the speed given as a double.", outputStorage);
             }
             if (newSpeed < 0) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Speed must not be negative", outputStorage);
             }
             SUMOTime duration = 0;
-            if(!server.readTypeCheckingInt(inputStorage, duration)) {
+            if (!server.readTypeCheckingInt(inputStorage, duration)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The second slow down parameter must be the duration given as an integer.", outputStorage);
             }
             if (duration < 0) {
@@ -486,7 +531,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
         break;
         case CMD_CHANGETARGET: {
             std::string edgeID;
-            if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+            if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Change target requires a string containing the id of the new destination edge as parameter.", outputStorage);
             }
             const MSEdge* destEdge = MSEdge::dictionary(edgeID);
@@ -506,7 +551,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
         break;
         case VAR_ROUTE_ID: {
             std::string rid;
-            if(!server.readTypeCheckingString(inputStorage, rid)) {
+            if (!server.readTypeCheckingString(inputStorage, rid)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The route id must be given as a string.", outputStorage);
             }
             const MSRoute* r = MSRoute::dictionary(rid);
@@ -520,7 +565,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
         break;
         case VAR_ROUTE: {
             std::vector<std::string> edgeIDs;
-            if(!server.readTypeCheckingStringList(inputStorage, edgeIDs)) {
+            if (!server.readTypeCheckingStringList(inputStorage, edgeIDs)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "A route must be defined as a list of edge ids.", outputStorage);
             }
             std::vector<const MSEdge*> edges;
@@ -538,16 +583,16 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             if (parameterCount == 4) {
                 // begin time
                 SUMOTime begTime = 0, endTime = 0;
-                if(!server.readTypeCheckingInt(inputStorage, begTime)) {
+                if (!server.readTypeCheckingInt(inputStorage, begTime)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting travel time using 4 parameters requires the begin time as first parameter.", outputStorage);
                 }
                 // begin time
-                if(!server.readTypeCheckingInt(inputStorage, endTime)) {
+                if (!server.readTypeCheckingInt(inputStorage, endTime)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting travel time using 4 parameters requires the end time as second parameter.", outputStorage);
                 }
                 // edge
                 std::string edgeID;
-                if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+                if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting travel time using 4 parameters requires the referenced edge as third parameter.", outputStorage);
                 }
                 MSEdge* edge = MSEdge::dictionary(edgeID);
@@ -556,7 +601,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 }
                 // value
                 double value = 0;
-                if(!server.readTypeCheckingDouble(inputStorage, value)) {
+                if (!server.readTypeCheckingDouble(inputStorage, value)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting travel time using 4 parameters requires the travel time as double as fourth parameter.", outputStorage);
                 }
                 // retrieve
@@ -564,7 +609,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             } else if (parameterCount == 2) {
                 // edge
                 std::string edgeID;
-                if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+                if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting travel time using 2 parameters requires the referenced edge as first parameter.", outputStorage);
                 }
                 MSEdge* edge = MSEdge::dictionary(edgeID);
@@ -573,7 +618,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 }
                 // value
                 double value = 0;
-                if(!server.readTypeCheckingDouble(inputStorage, value)) {
+                if (!server.readTypeCheckingDouble(inputStorage, value)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting travel time using 2 parameters requires the travel time as second parameter.", outputStorage);
                 }
                 // retrieve
@@ -584,7 +629,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             } else if (parameterCount == 1) {
                 // edge
                 std::string edgeID;
-                if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+                if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting travel time using 1 parameter requires the referenced edge as first parameter.", outputStorage);
                 }
                 MSEdge* edge = MSEdge::dictionary(edgeID);
@@ -608,16 +653,16 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             if (parameterCount == 4) {
                 // begin time
                 SUMOTime begTime = 0, endTime = 0;
-                if(!server.readTypeCheckingInt(inputStorage, begTime)) {
+                if (!server.readTypeCheckingInt(inputStorage, begTime)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting effort using 4 parameters requires the begin time as first parameter.", outputStorage);
                 }
                 // begin time
-                if(!server.readTypeCheckingInt(inputStorage, endTime)) {
+                if (!server.readTypeCheckingInt(inputStorage, endTime)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting effort using 4 parameters requires the end time as second parameter.", outputStorage);
                 }
                 // edge
                 std::string edgeID;
-                if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+                if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting effort using 4 parameters requires the referenced edge as third parameter.", outputStorage);
                 }
                 MSEdge* edge = MSEdge::dictionary(edgeID);
@@ -626,7 +671,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 }
                 // value
                 double value = 0;
-                if(!server.readTypeCheckingDouble(inputStorage, value)) {
+                if (!server.readTypeCheckingDouble(inputStorage, value)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting effort using 4 parameters requires the travel time as fourth parameter.", outputStorage);
                 }
                 // retrieve
@@ -634,7 +679,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             } else if (parameterCount == 2) {
                 // edge
                 std::string edgeID;
-                if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+                if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting effort using 2 parameters requires the referenced edge as first parameter.", outputStorage);
                 }
                 MSEdge* edge = MSEdge::dictionary(edgeID);
@@ -643,7 +688,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 }
                 // value
                 double value = 0;
-                if(!server.readTypeCheckingDouble(inputStorage, value)) {
+                if (!server.readTypeCheckingDouble(inputStorage, value)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting effort using 2 parameters requires the travel time as second parameter.", outputStorage);
                 }
                 // retrieve
@@ -654,7 +699,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             } else if (parameterCount == 1) {
                 // edge
                 std::string edgeID;
-                if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+                if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting effort using 1 parameter requires the referenced edge as first parameter.", outputStorage);
                 }
                 MSEdge* edge = MSEdge::dictionary(edgeID);
@@ -692,13 +737,13 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
         break;
         case VAR_SIGNALS: {
             int signals = 0;
-            if(!server.readTypeCheckingInt(inputStorage, signals)) {
+            if (!server.readTypeCheckingInt(inputStorage, signals)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting signals requires an integer.", outputStorage);
             }
             v->switchOffSignal(0x0fffffff);
             v->switchOnSignal(signals);
-                          }
-            break;
+        }
+        break;
         case VAR_MOVE_TO: {
             if (inputStorage.readUnsignedByte() != TYPE_COMPOUND) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting position requires a compound object.", outputStorage);
@@ -708,12 +753,12 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             }
             // lane ID
             std::string laneID;
-            if(!server.readTypeCheckingString(inputStorage, laneID)) {
+            if (!server.readTypeCheckingString(inputStorage, laneID)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The first parameter for setting a position must be the lane ID given as a string.", outputStorage);
             }
             // position on lane
             double position = 0;
-            if(!server.readTypeCheckingDouble(inputStorage, position)) {
+            if (!server.readTypeCheckingDouble(inputStorage, position)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The second parameter for setting a position must be the position given as a double.", outputStorage);
             }
             // process
@@ -726,7 +771,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Vehicle '" + laneID + "' may be set onto an edge to pass only.", outputStorage);
             }
             v->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
-            v->getLane()->removeVehicle(v);
+            v->getLane()->removeVehicle(v, MSMoveReminder::NOTIFICATION_TELEPORT);
             while (v->getEdge() != &destinationEdge) {
                 const MSEdge* nextEdge = v->succEdge(1);
                 // let the vehicle move to the next edge
@@ -740,7 +785,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
         break;
         case VAR_SPEED: {
             double speed = 0;
-            if(!server.readTypeCheckingDouble(inputStorage, speed)) {
+            if (!server.readTypeCheckingDouble(inputStorage, speed)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting speed requires a double.", outputStorage);
             }
             std::vector<std::pair<SUMOTime, SUMOReal> > speedTimeLine;
@@ -753,7 +798,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
         break;
         case VAR_SPEEDSETMODE: {
             int speedMode = 0;
-            if(!server.readTypeCheckingInt(inputStorage, speedMode)) {
+            if (!server.readTypeCheckingInt(inputStorage, speedMode)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting speed mode requires an integer.", outputStorage);
             }
             v->getInfluencer().setConsiderSafeVelocity((speedMode & 1) != 0);
@@ -763,7 +808,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
         break;
         case VAR_COLOR: {
             RGBColor col;
-            if(!server.readTypeCheckingColor(inputStorage, col)) {
+            if (!server.readTypeCheckingColor(inputStorage, col)) {
                 return server.writeErrorStatusCmd(CMD_SET_POLYGON_VARIABLE, "The color must be given using the according type.", outputStorage);
             }
             v->getParameter().color.set(col.red(), col.green(), col.blue(), col.alpha());
@@ -784,7 +829,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             vehicleParams.id = id;
 
             std::string vTypeID;
-            if(!server.readTypeCheckingString(inputStorage, vTypeID)) {
+            if (!server.readTypeCheckingString(inputStorage, vTypeID)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "First parameter (type) requires a string.", outputStorage);
             }
             MSVehicleType* vehicleType = MSNet::getInstance()->getVehicleControl().getVType(vTypeID);
@@ -793,7 +838,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             }
 
             std::string routeID;
-            if(!server.readTypeCheckingString(inputStorage, routeID)) {
+            if (!server.readTypeCheckingString(inputStorage, routeID)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Second parameter (route) requires a string.", outputStorage);
             }
             const MSRoute* route = MSRoute::dictionary(routeID);
@@ -801,7 +846,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Invalid route '" + routeID + "' for vehicle: '" + id + "'", outputStorage);
             }
 
-            if(!server.readTypeCheckingInt(inputStorage, vehicleParams.depart)) {
+            if (!server.readTypeCheckingInt(inputStorage, vehicleParams.depart)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Third parameter (depart) requires an integer.", outputStorage);
             }
             if (vehicleParams.depart < 0) {
@@ -813,7 +858,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             }
 
             double pos;
-	    if(!server.readTypeCheckingDouble(inputStorage, pos)) {
+            if (!server.readTypeCheckingDouble(inputStorage, pos)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Fourth parameter (position) requires a double.", outputStorage);
             }
             vehicleParams.departPos = pos;
@@ -828,7 +873,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             }
 
             double speed;
-            if(!server.readTypeCheckingDouble(inputStorage, speed)) {
+            if (!server.readTypeCheckingDouble(inputStorage, speed)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Fifth parameter (speed) requires a double.", outputStorage);
             }
             vehicleParams.departSpeed = speed;
@@ -842,7 +887,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 vehicleParams.departSpeedProcedure = DEPART_SPEED_GIVEN;
             }
 
-            if(!server.readTypeCheckingByte(inputStorage, vehicleParams.departLane)) {
+            if (!server.readTypeCheckingByte(inputStorage, vehicleParams.departLane)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Sixth parameter (lane) requires a byte.", outputStorage);
             }
 
@@ -869,7 +914,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
         break;
         case REMOVE: {
             int why = 0;
-            if(!server.readTypeCheckingByte(inputStorage, why)) {
+            if (!server.readTypeCheckingByte(inputStorage, why)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Removing a vehicle requires a byte.", outputStorage);
             }
             MSMoveReminder::Notification n = MSMoveReminder::NOTIFICATION_ARRIVED;
@@ -892,9 +937,13 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 default:
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Unknown removal status.", outputStorage);
             }
-            v->onRemovalFromNet(n);
-            v->getLane()->removeVehicle(v);
-            MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(v);
+			if(v->hasDeparted()) {
+				v->onRemovalFromNet(n);
+				if(v->getLane()!=0) {
+					v->getLane()->removeVehicle(v, n);
+				}
+				MSNet::getInstance()->getVehicleControl().scheduleVehicleRemoval(v);
+			}
         }
         break;
         case VAR_MOVE_TO_VTD: {
@@ -906,28 +955,23 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             }
             // edge ID
             std::string edgeID;
-            if(!server.readTypeCheckingString(inputStorage, edgeID)) {
+            if (!server.readTypeCheckingString(inputStorage, edgeID)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The first parameter for setting a VTD vehicle must be the edge ID given as a string.", outputStorage);
             }
             // lane index
             int laneNum = 0;
-            if(!server.readTypeCheckingInt(inputStorage, laneNum)) {
+            if (!server.readTypeCheckingInt(inputStorage, laneNum)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The second parameter for setting a VTD vehicle must be lane given as an int.", outputStorage);
             }
             // x
             double x = 0, y = 0;
-            if(!server.readTypeCheckingDouble(inputStorage, x)) {
+            if (!server.readTypeCheckingDouble(inputStorage, x)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The third parameter for setting a VTD vehicle must be the x-position given as a double.", outputStorage);
             }
             // y
-            if(!server.readTypeCheckingDouble(inputStorage, y)) {
+            if (!server.readTypeCheckingDouble(inputStorage, y)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The fourth parameter for setting a VTD vehicle must be the y-position given as a double.", outputStorage);
             }
-            //if (inputStorage.readUnsignedByte() != TYPE_DOUBLE) {
-            //    server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "The fifth parameter for setting a VTD vehicle must be the speed given as a double.", outputStorage);
-            //    return false;
-            //}
-            //SUMOReal speed = inputStorage.readDouble();
             // process
             if (!v->isOnRoad()) {
                 break;
@@ -937,104 +981,49 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 edgeID = '-' + edgeID;
                 laneNum = -laneNum;
             }
-            //
             Position pos(x, y);
-            unsigned int r = 0;
-            SUMOReal minDist = 1 << (11);
-            MSLane* minDistLane = 0;
-            MSLane* nameMatchingLane = 0;
-            SUMOReal minDistNameMatchingLane = 1 << (11);
-            for (; minDistLane == 0 && r < 10 && nameMatchingLane == 0; ++r) {
-                std::set<std::string> into;
-                PositionVector shape;
-                shape.push_back(pos);
-                server.collectObjectsInRange(CMD_GET_EDGE_VARIABLE, shape, 1 << r, into);
-                for (std::set<std::string>::const_iterator j = into.begin(); j != into.end(); ++j) {
-                    MSEdge* e = MSEdge::dictionary(*j);
-                    const std::vector<MSLane*>& lanes = e->getLanes();
-                    for (std::vector<MSLane*>::const_iterator k = lanes.begin(); k != lanes.end(); ++k) {
-                        MSLane* lane = *k;
-                        bool nameMatches = false;
-                        SUMOReal dist = lane->getShape().distance(pos);
-                        if (lane->knowsParameter("origId")) {
-                            if (lane->getParameter("origId", "") == origID) {
-                                nameMatches = true;
-                                if (dist < minDistNameMatchingLane) {
-                                    minDistNameMatchingLane = dist;
-                                    nameMatchingLane = lane;
-                                }
-                            }
-                        }
-                        if (dist < minDist) {
-                            minDist = dist;
-                            minDistLane = lane;
-                        }
-                    }
-                }
-            }
-            MSLane* lane = nameMatchingLane != 0 ? nameMatchingLane : minDistLane;
-            if (lane != v->getLane()) {
-                MSEdge& destinationEdge = lane->getEdge();
-                MSEdge* routePos = &destinationEdge;
-                while (routePos->getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
-                    routePos = &routePos->getLanes()[0]->getLogicalPredecessorLane()->getEdge();
-                }
-                r = 0;
-                const MSRoute& route = v->getRoute();
-                unsigned int c = v->getRoutePosition();
-                unsigned int l = (int)route.getEdges().size();
-                unsigned int rindex = 0;
-                bool found = false;
-                while (!found && ((int)(c - r) >= 0 || c + r < l)) {
-                    if ((int)(c - r) >= 0 && route[c - r] == routePos) {
-                        rindex = c - r;
-                        found = true;
-                    }
-                    if (c + r < l && route[c + r] == routePos) {
-                        rindex = c + r;
-                        found = true;
-                    }
-                    ++r;
-                }
-                if (v->isOnRoad()) {
-                    v->getLane()->removeVehicle(v);
-                    v->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
-                }
-                if (!found) {
-                    MSEdgeVector edges;
-                    MSLane* firstLane = lane;
-                    if (destinationEdge.getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
-                        edges.push_back(&destinationEdge);
-                    } else {
-                        firstLane = lane->getLogicalPredecessorLane();
-                        edges.push_back(&firstLane->getEdge());
-                    }
-                    const MSLinkCont& lc = firstLane->getLinkCont();
-                    if (lc.size() != 0 && lc[0]->getLane() != 0) {
-                        edges.push_back(&lc[0]->getLane()->getEdge());
-                    }
-                    v->replaceRouteEdges(edges, true);
-                } else {
-                    v->resetRoutePosition(rindex);
-                }
-            } else {
-                v->onRemovalFromNet(MSMoveReminder::NOTIFICATION_TELEPORT);
-                v->getLane()->removeVehicle(v);
-            }
-            /*
-            std::vector<std::pair<SUMOTime, SUMOReal> > speedTimeLine;
-            if (speed >= 0) {
-                speedTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep(), speed));
-                speedTimeLine.push_back(std::make_pair(SUMOTime_MAX, speed));
-            }
-            v->getInfluencer().setSpeedTimeLine(speedTimeLine);
-            */
 
-            const SUMOReal position = lane->interpolateGeometryPosToLanePos(
-                                          lane->getShape().nearest_position_on_line_to_point2D(pos, false));
-            lane->forceVehicleInsertion(v, position);
-            //v->getInfluencer().setPosition(position);
-            v->getBestLanes(true, lane);
+            Position vehPos = v->getPosition();
+            v->getBestLanes();
+            bool report = server.vtdDebug();
+            if (report) {
+                std::cout << std::endl << "begin vehicle " << v->getID() << " vehPos:" << vehPos << " lane:" << v->getLane()->getID() << std::endl;
+            }
+            if (report) {
+                std::cout << " want pos:" << pos << " edge:" << edgeID << " laneNum:" << laneNum << std::endl;
+            }
+
+            MSEdgeVector edgesA, edgesB, edgesC;
+            MSLane* laneA, *laneB, *laneC;
+            laneA = laneB = laneC = 0;
+            SUMOReal lanePosA, lanePosB, lanePosC;
+            SUMOReal bestDistanceA, bestDistanceB, bestDistanceC;
+            bestDistanceA = bestDistanceB = bestDistanceC = 1000.;//pos.distanceSquaredTo2D(vehPos);
+            int routeOffsetA, routeOffsetB, routeOffsetC;
+            routeOffsetA = routeOffsetB = routeOffsetC = 0;
+            // case a): edge/lane is known and matches route
+            bool aFound = vtdMap_matchingEdgeLane(pos, origID, *v, server.vtdDebug(), bestDistanceA, &laneA, lanePosA, routeOffsetA, edgesA);
+            // case b): position is at route, should be somewhere near to it
+            bool bFound = vtdMap_matchingRoutePosition(pos, origID, *v, server.vtdDebug(), bestDistanceB, &laneB, lanePosB, routeOffsetB, edgesB);
+            // case c) nearest matching lane
+            bool cFound = vtdMap_matchingNearest(pos, origID, *v, server, server.vtdDebug(), bestDistanceC, &laneC, lanePosC, routeOffsetC, edgesC);
+            //
+            SUMOReal maxRouteDistance = 50;
+            if (cFound && (bestDistanceA > maxRouteDistance && bestDistanceC > maxRouteDistance)) {
+                // both route-based approach yield in a position too far away from the submitted --> new route!?
+                server.setVTDControlled(v, laneC, lanePosC, routeOffsetC, edgesC);
+            } else {
+                // use the best we have
+                if (bFound) {
+                    server.setVTDControlled(v, laneB, lanePosB, routeOffsetB, edgesB);
+                } else if (aFound) {
+                    server.setVTDControlled(v, laneA, lanePosA, routeOffsetA, edgesA);
+                } else if (cFound) {
+                    server.setVTDControlled(v, laneC, lanePosC, routeOffsetC, edgesC);
+                } else {
+                    return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Could not map vehicle.", outputStorage);
+                }
+            }
         }
         break;
         default:
@@ -1048,6 +1037,201 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             break;
     }
     server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_OK, warning, outputStorage);
+    return true;
+}
+
+
+bool
+TraCIServerAPI_Vehicle::vtdMap_matchingEdgeLane(const Position& pos, const std::string& origID, MSVehicle& v, bool report,
+        SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges) {
+    const std::map<std::string, std::vector<MSLane*> >&  vtdMap = getOrBuildVTDMap();
+    if (vtdMap.find(origID) == vtdMap.end()) {
+        if (report) {
+            std::cout << "  a failed - lane not in map" << std::endl;
+        }
+        return false;
+    }
+    const std::vector<MSLane*>& lanes = vtdMap.find(origID)->second;
+    for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end() && bestDistance > POSITION_EPS; ++i) {
+        MSLane* l = *i;
+        SUMOReal dist = l->getShape().distance(pos);
+        if (report) {
+            std::cout << "   a at lane " << l->getID() << " dist:" << dist << " best:" << bestDistance << std::endl;
+        }
+        if (dist < bestDistance) {
+            bestDistance = dist;
+            *lane = l;
+        }
+    }
+    MSLane* pni = *lane;
+    while (pni != 0 && pni->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL && pni->getIncomingLanes().size() != 0) {
+        pni = pni->getIncomingLanes()[0].lane;
+    }
+    if (pni == 0 || pni->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
+        // not found
+        if (report) {
+            std::cout << "  a failed - no incoming lane" << std::endl;
+        }
+        return false;
+    }
+    const MSEdgeVector& tedges = v.getRoute().getEdges();
+    MSEdgeVector::const_iterator p = std::find(tedges.begin() + v.getRoutePosition(), tedges.end(), &pni->getEdge());
+    if (p != tedges.end()) {
+        lanePos = MAX2(SUMOReal(0), MIN2(SUMOReal((*lane)->getLength() - POSITION_EPS), (*lane)->getShape().nearest_offset_to_point2D(pos, false)));
+        routeOffset = (int)(std::distance(tedges.begin(), p) - v.getRoutePosition());
+        if (report) {
+            std::cout << "  a ok lane:" << (*lane)->getID() << " lanePos:" << lanePos << " routeOffset:" << routeOffset << std::endl;
+        }
+        return true;
+    }
+    if (report) {
+        std::cout << "  a failed - route position beyond route length" << std::endl;
+    }
+    return false;
+}
+
+
+bool
+TraCIServerAPI_Vehicle::vtdMap_matchingRoutePosition(const Position& pos, const std::string& origID, MSVehicle& v, bool report,
+        SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges) {
+
+    int lastBestRouteEdge = 0;
+    int lastRouteEdge = 0;
+    MSLane* bestRouteLane = 0;
+    const std::vector<MSLane*>& bestLaneConts = v.getBestLanesContinuation(v.getLane());
+    for (std::vector<MSLane*>::const_iterator i = bestLaneConts.begin(); i != bestLaneConts.end() && bestDistance > POSITION_EPS; ++i) {
+        MSEdge& e = (*i)->getEdge();
+        if (i != bestLaneConts.begin() && e.getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
+            ++lastRouteEdge;
+        }
+        const std::vector<MSLane*>& lanes = e.getLanes();
+        for (std::vector<MSLane*>::const_iterator k = lanes.begin(); k != lanes.end() && bestDistance > POSITION_EPS; ++k) {
+            MSLane* cl = *k;
+            SUMOReal dist = cl->getShape().distance(pos);
+            if (report) {
+                std::cout << "   b at lane " << cl->getID() << " dist:" << dist << " best:" << bestDistance << std::endl;
+            }
+            if (dist < bestDistance) {
+                bestDistance = dist;
+                *lane = cl;
+                lastBestRouteEdge = lastRouteEdge;
+                if (e.getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
+                    bestRouteLane = *i;
+                } else {
+                    bestRouteLane = *lane;
+                }
+            }
+        }
+    }
+    if (bestRouteLane == 0) {
+        if (report) {
+            std::cout << "  b failed - no best route lane" << std::endl;
+        }
+        return false;
+    }
+    lanePos = MAX2(SUMOReal(0), MIN2(SUMOReal(bestRouteLane->getLength() - POSITION_EPS), bestRouteLane->getShape().nearest_offset_to_point2D(pos, false)));
+    routeOffset = lastBestRouteEdge;
+    if (report) {
+        std::cout << "  b ok lane " << bestRouteLane->getID() << " lanePos:" << lanePos << " best:" << lastBestRouteEdge << std::endl;
+    }
+    return true;
+}
+
+
+bool
+TraCIServerAPI_Vehicle::vtdMap_matchingNearest(const Position& pos, const std::string& origID, MSVehicle& v, traci::TraCIServer& server, bool report,
+        SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges) {
+    unsigned int r = 0;
+    SUMOReal minDist = 1 << (11);
+    MSLane* minDistLane = 0;
+    MSLane* nameMatchingLane = 0;
+    SUMOReal minDistNameMatchingLane = 1 << (11);
+    for (; minDistLane == 0 && r < 10 && nameMatchingLane == 0; ++r) {
+        std::set<std::string> into;
+        PositionVector shape;
+        shape.push_back(pos);
+        server.collectObjectsInRange(CMD_GET_EDGE_VARIABLE, shape, 1 << r, into);
+        for (std::set<std::string>::const_iterator j = into.begin(); j != into.end(); ++j) {
+            MSEdge* e = MSEdge::dictionary(*j);
+            const std::vector<MSLane*>& lanes = e->getLanes();
+            for (std::vector<MSLane*>::const_iterator k = lanes.begin(); k != lanes.end(); ++k) {
+                MSLane* lane = *k;
+                SUMOReal dist = lane->getShape().distance(pos);
+                if (lane->knowsParameter("origId")) {
+                    if (lane->getParameter("origId", "") == origID) {
+                        if (dist < minDistNameMatchingLane) {
+                            minDistNameMatchingLane = dist;
+                            nameMatchingLane = lane;
+                        }
+                    }
+                }
+                if (dist < minDist) {
+                    minDist = dist;
+                    minDistLane = lane;
+                }
+            }
+        }
+    }
+    *lane = nameMatchingLane != 0 ? nameMatchingLane : minDistLane;
+    if (lane == 0) {
+        if (report) {
+            std::cout << "  c failed - no matching lane" << std::endl;
+        }
+        return false;
+    }
+    lanePos = (*lane)->interpolateGeometryPosToLanePos((*lane)->getShape().nearest_offset_to_point2D(pos, false));
+    if (*lane == v.getLane()) {
+        routeOffset = 0;
+        if (report) {
+            std::cout << "  c ok, on same lane" << std::endl;
+        }
+        return true;
+    }
+    MSEdge& destinationEdge = (*lane)->getEdge();
+    MSEdge* routePos = &destinationEdge;
+    while (routePos->getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
+        routePos = &routePos->getLanes()[0]->getLogicalPredecessorLane()->getEdge();
+    }
+    r = 0;
+    const MSRoute& route = v.getRoute();
+    unsigned int c = v.getRoutePosition();
+    unsigned int l = (int)route.getEdges().size();
+    unsigned int rindex = 0;
+    bool found = false;
+    while (!found && ((int)(c - r) >= 0 || c + r < l)) {
+        if ((int)(c - r) >= 0 && route[c - r] == routePos) {
+            rindex = c - r;
+            found = true;
+        }
+        if (c + r < l && route[c + r] == routePos) {
+            rindex = c + r;
+            found = true;
+        }
+        ++r;
+    }
+    if (found) {
+        // the matching lane is part of the route
+        routeOffset = rindex - v.getRoutePosition();
+        if (report) {
+            std::cout << "  c ok, on a different edge of same route" << std::endl;
+        }
+        return true;
+    }
+    // build new route
+    MSLane* firstLane = *lane;
+    if (destinationEdge.getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
+        edges.push_back(&destinationEdge);
+    } else {
+        firstLane = (*lane)->getLogicalPredecessorLane();
+        edges.push_back(&firstLane->getEdge());
+    }
+    const MSLinkCont& lc = firstLane->getLinkCont();
+    if (lc.size() != 0 && lc[0]->getLane() != 0) {
+        edges.push_back(&lc[0]->getLane()->getEdge());
+    }
+    if (report) {
+        std::cout << "  c ok, on a different route" << std::endl;
+    }
     return true;
 }
 
@@ -1073,7 +1257,7 @@ TraCIServerAPI_Vehicle::commandDistanceRequest(traci::TraCIServer& server, tcpip
                 std::string roadID = inputStorage.readString();
                 roadPos.second = inputStorage.readDouble();
                 roadPos.first = TraCIServerAPI_Simulation::getLaneChecking(roadID, inputStorage.readUnsignedByte(), roadPos.second);
-                pos = roadPos.first->getShape().positionAtLengthPosition(roadPos.second);
+                pos = roadPos.first->getShape().positionAtOffset(roadPos.second);
             } catch (TraCIException& e) {
                 return server.writeErrorStatusCmd(CMD_GET_VEHICLE_VARIABLE, e.what(), outputStorage);
             }
@@ -1135,6 +1319,32 @@ TraCIServerAPI_Vehicle::getSingularType(SUMOVehicle* const veh) {
     MSVehicleType* type = MSVehicleType::build(newID, &oType);
     static_cast<MSVehicle*>(veh)->replaceVehicleType(type);
     return *type;
+}
+
+
+#include <microsim/MSEdgeControl.h>
+
+const std::map<std::string, std::vector<MSLane*> >&
+TraCIServerAPI_Vehicle::getOrBuildVTDMap() {
+    if (gVTDMap.size() == 0) {
+        const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
+        for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
+            const std::vector<MSLane*>& lanes = (*i)->getLanes();
+            for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
+                if ((*j)->knowsParameter("origId")) {
+                    std::string origID = (*j)->getParameter("origId", "");
+                    if (gVTDMap.find(origID) == gVTDMap.end()) {
+                        gVTDMap[origID] = std::vector<MSLane*>();
+                    }
+                    gVTDMap[origID].push_back(*j);
+                }
+            }
+        }
+        if (gVTDMap.size() == 0) {
+            gVTDMap["unknown"] = std::vector<MSLane*>();
+        }
+    }
+    return gVTDMap;
 }
 
 

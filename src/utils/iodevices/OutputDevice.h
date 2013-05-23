@@ -9,7 +9,7 @@
 // Static storage of an output device and its base (abstract) implementation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -74,18 +74,16 @@ public:
 
     /** @brief Returns the described OutputDevice
      *
-     * Creates and returns the named device. "stdout" and "-" refer to standard out,
+     * Creates and returns the named device. "stdout" and "stderr" refer to the relevant console streams,
      * "hostname:port" initiates socket connection. Otherwise a filename
-     * is assumed and the second parameter may be used to give a base directory.
+     * is assumed (where "nul" and "/dev/null" do what you would expect on both platforms).
      * If there already is a device with the same name this one is returned.
      *
      * @param[in] name The description of the output name/port/whatever
-     * @param[in] base The base path the application is run within
      * @return The corresponding (built or existing) device
      * @exception IOError If the output could not be built for any reason (error message is supplied)
      */
-    static OutputDevice& getDevice(const std::string& name,
-                                   const std::string& base = "");
+    static OutputDevice& getDevice(const std::string& name);
 
 
     /** @brief Creates the device using the output definition stored in the named option
@@ -120,7 +118,7 @@ public:
      * @exception IOError If the output could not be built for any reason (error message is supplied)
      * @exception InvalidArgument If the option with the given name does not exist
      */
-    static OutputDevice& getDeviceByOption(const std::string& name) throw(IOError, InvalidArgument);
+    static OutputDevice& getDeviceByOption(const std::string& name);
 
 
     /**  Closes all registered devices
@@ -173,7 +171,6 @@ public:
      *  is written and false returned.
      *
      * @param[in] rootElement The root element to use
-     * @param[in] xmlParams Additional parameters (such as encoding) to include in the <?xml> declaration
      * @param[in] attrs Additional attributes to save within the rootElement
      * @param[in] comment Additional comment (saved in front the rootElement)
      * @return Whether the header could be written (stack was empty)
@@ -181,7 +178,6 @@ public:
      * @todo Describe what is saved
      */
     bool writeXMLHeader(const std::string& rootElement,
-                        const std::string xmlParams = "",
                         const std::string& attrs = "",
                         const std::string& comment = "");
 

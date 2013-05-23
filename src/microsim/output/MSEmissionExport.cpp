@@ -6,7 +6,7 @@
 // Realises dumping Emission Data
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -66,7 +66,7 @@ MSEmissionExport::write(OutputDevice& of, SUMOTime timestep) {
             std::string fclass = veh->getVehicleType().getID();
             fclass = fclass.substr(0, fclass.find_first_of("@"));
 
-            Position pos = veh->getLane()->getShape().positionAtLengthPosition(veh->getPositionOnLane());
+            Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
             of.openTag("vehicle") << " id=\"" << veh->getID() << "\" eclass=\"" <<  veh->getVehicleType().getEmissionClass() << "\" co2=\"" << veh->getHBEFA_CO2Emissions()
                                   << "\" co=\"" <<  veh->getHBEFA_COEmissions() << "\" hc=\"" <<  veh->getHBEFA_HCEmissions()
                                   << "\" nox=\"" <<  veh->getHBEFA_NOxEmissions() << "\" pmx=\"" <<  veh->getHBEFA_PMxEmissions()

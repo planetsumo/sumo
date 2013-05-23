@@ -10,7 +10,7 @@
 // Builder of microsim-junctions and tls
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -68,13 +68,12 @@ const int NLJunctionControlBuilder::NO_REQUEST_SIZE = -1;
 // ===========================================================================
 // method definitions
 // ===========================================================================
-NLJunctionControlBuilder::NLJunctionControlBuilder(MSNet& net, NLDetectorBuilder& db) : 
-    myNet(net), 
-    myDetectorBuilder(db), 
-    myOffset(0), 
+NLJunctionControlBuilder::NLJunctionControlBuilder(MSNet& net, NLDetectorBuilder& db) :
+    myNet(net),
+    myDetectorBuilder(db),
+    myOffset(0),
     myJunctions(0),
-    myNetIsLoaded(false)
-{
+    myNetIsLoaded(false) {
     myLogicControl = new MSTLLogicControl();
     myJunctions = new MSJunctionControl();
 }
@@ -93,7 +92,7 @@ NLJunctionControlBuilder::openJunction(const std::string& id,
                                        SUMOReal x, SUMOReal y,
                                        const PositionVector& shape,
                                        const std::vector<MSLane*>& incomingLanes,
-                                       const std::vector<MSLane*>& internalLanes) throw(InvalidArgument) {
+                                       const std::vector<MSLane*>& internalLanes) {
 #ifdef HAVE_INTERNAL_LANES
     myActiveInternalLanes = internalLanes;
 #else
@@ -109,7 +108,7 @@ NLJunctionControlBuilder::openJunction(const std::string& id,
 
 
 void
-NLJunctionControlBuilder::closeJunction() throw(InvalidArgument, ProcessError) {
+NLJunctionControlBuilder::closeJunction() {
     if (myJunctions == 0) {
         throw ProcessError("Information about the number of nodes was missing.");
     }
@@ -163,7 +162,7 @@ NLJunctionControlBuilder::buildNoLogicJunction() {
 
 
 MSJunction*
-NLJunctionControlBuilder::buildLogicJunction() throw(InvalidArgument) {
+NLJunctionControlBuilder::buildLogicJunction() {
     MSJunctionLogic* jtype = getJunctionLogicSecure();
     // build the junction
     return new MSRightOfWayJunction(myActiveID, myPosition, myShape, myActiveIncomingLanes,
@@ -185,7 +184,7 @@ NLJunctionControlBuilder::buildInternalJunction() {
 
 
 MSJunctionLogic*
-NLJunctionControlBuilder::getJunctionLogicSecure() throw(InvalidArgument) {
+NLJunctionControlBuilder::getJunctionLogicSecure() {
     // get and check the junction logic
     if (myLogics.find(myActiveID) == myLogics.end()) {
         throw InvalidArgument("Missing junction logic '" + myActiveID + "'.");
@@ -195,13 +194,13 @@ NLJunctionControlBuilder::getJunctionLogicSecure() throw(InvalidArgument) {
 
 
 MSTLLogicControl::TLSLogicVariants&
-NLJunctionControlBuilder::getTLLogic(const std::string& id) const throw(InvalidArgument) {
+NLJunctionControlBuilder::getTLLogic(const std::string& id) const {
     return getTLLogicControlToUse().get(id);
 }
 
 
 void
-NLJunctionControlBuilder::closeTrafficLightLogic() throw(InvalidArgument, ProcessError) {
+NLJunctionControlBuilder::closeTrafficLightLogic() {
     if (myActiveProgram == "off") {
         if (myAbsDuration > 0) {
             throw InvalidArgument("The off program for TLS '" + myActiveKey + "' has phases.");
@@ -244,13 +243,13 @@ NLJunctionControlBuilder::closeTrafficLightLogic() throw(InvalidArgument, Proces
         case TLTYPE_ACTUATED:
             tlLogic = new MSActuatedTrafficLightLogic(getTLLogicControlToUse(),
                     myActiveKey, myActiveProgram,
-                    myActivePhases, step, firstEventOffset, 
+                    myActivePhases, step, firstEventOffset,
                     myAdditionalParameter);
             break;
         case TLTYPE_AGENT:
             tlLogic = new MSAgentbasedTrafficLightLogic(getTLLogicControlToUse(),
                     myActiveKey, myActiveProgram,
-                    myActivePhases, step, firstEventOffset, 
+                    myActivePhases, step, firstEventOffset,
                     myAdditionalParameter);
             break;
         case TLTYPE_STATIC:
@@ -294,7 +293,7 @@ void
 NLJunctionControlBuilder::addLogicItem(int request,
                                        const std::string& response,
                                        const std::string& foes,
-                                       bool cont) throw(InvalidArgument) {
+                                       bool cont) {
     if (myCurrentHasError) {
         // had an error
         return;
@@ -357,7 +356,7 @@ NLJunctionControlBuilder::addPhase(SUMOTime duration, const std::string& state,
 
 
 void
-NLJunctionControlBuilder::closeJunctionLogic() throw(InvalidArgument) {
+NLJunctionControlBuilder::closeJunctionLogic() {
     if (myRequestSize == NO_REQUEST_SIZE) {
         // We have a legacy network. junction element did not contain logicitems; read the logic later
         return;
@@ -419,9 +418,9 @@ NLJunctionControlBuilder::getActiveSubKey() const {
 }
 
 
-void 
+void
 NLJunctionControlBuilder::postLoadInitialization() {
-    for (std::vector<MSTrafficLightLogic*>::const_iterator it = myLogics2PostLoadInit.begin(); 
+    for (std::vector<MSTrafficLightLogic*>::const_iterator it = myLogics2PostLoadInit.begin();
             it != myLogics2PostLoadInit.end(); ++it) {
         (*it)->init(myDetectorBuilder);
     }

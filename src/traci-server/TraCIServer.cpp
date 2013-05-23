@@ -15,7 +15,7 @@
 /// TraCI server used to control sumo by a remote TraCI client (e.g., ns2)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -200,6 +200,31 @@ TraCIServer::close() {
 bool
 TraCIServer::wasClosed() {
     return myDoCloseConnection;
+}
+
+
+void
+TraCIServer::setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, MSEdgeVector route) {
+    myVTDControlledVehicles[v->getID()] = v;
+    v->getInfluencer().setVTDControlled(true, l, pos, edgeOffset, route);
+}
+
+void
+TraCIServer::postProcessVTD() {
+    for (std::map<std::string, MSVehicle*>::const_iterator i = myVTDControlledVehicles.begin(); i != myVTDControlledVehicles.end(); ++i) {
+        if (MSNet::getInstance()->getVehicleControl().getVehicle((*i).first) != 0) {
+            (*i).second->getInfluencer().postProcessVTD((*i).second);
+        } else {
+            WRITE_WARNING("Vehicle '" + (*i).first + "' was removed though being controlled by VTD");
+        }
+    }
+    myVTDControlledVehicles.clear();
+}
+
+
+bool
+TraCIServer::vtdDebug() const {
+    return true;
 }
 
 
@@ -796,8 +821,8 @@ TraCIServer::collectObjectsInRange(int domain, const PositionVector& shape, SUMO
             for (std::set<std::string>::const_iterator i = tmp.begin(); i != tmp.end(); ++i) {
                 MSLane* l = MSLane::dictionary(*i);
                 if (l != 0) {
-                    const std::deque<MSVehicle*>& vehs = l->getVehiclesSecure();
-                    for (std::deque<MSVehicle*>::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
+                    const MSLane::VehCont& vehs = l->getVehiclesSecure();
+                    for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
                         if (shape.distance((*j)->getPosition()) <= range) {
                             into.insert((*j)->getID());
                         }
@@ -993,47 +1018,47 @@ TraCIServer::writeResponseWithLength(tcpip::Storage& outputStorage, tcpip::Stora
 
 
 bool
-TraCIServer::readTypeCheckingInt(tcpip::Storage& inputStorage, int &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_INTEGER) {
+TraCIServer::readTypeCheckingInt(tcpip::Storage& inputStorage, int& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_INTEGER) {
         return false;
-     }
-     into = inputStorage.readInt();
-     return true;
+    }
+    into = inputStorage.readInt();
+    return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingDouble(tcpip::Storage& inputStorage, double &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_DOUBLE) {
+TraCIServer::readTypeCheckingDouble(tcpip::Storage& inputStorage, double& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_DOUBLE) {
         return false;
-     }
-     into = inputStorage.readDouble();
-     return true;
+    }
+    into = inputStorage.readDouble();
+    return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingString(tcpip::Storage& inputStorage, std::string &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_STRING) {
+TraCIServer::readTypeCheckingString(tcpip::Storage& inputStorage, std::string& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_STRING) {
         return false;
-     }
-     into = inputStorage.readString();
-     return true;
+    }
+    into = inputStorage.readString();
+    return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingStringList(tcpip::Storage& inputStorage, std::vector<std::string> &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_STRINGLIST) {
+TraCIServer::readTypeCheckingStringList(tcpip::Storage& inputStorage, std::vector<std::string>& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_STRINGLIST) {
         return false;
-     }
-     into = inputStorage.readStringList();
-     return true;
+    }
+    into = inputStorage.readStringList();
+    return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingColor(tcpip::Storage& inputStorage, RGBColor &into) {
+TraCIServer::readTypeCheckingColor(tcpip::Storage& inputStorage, RGBColor& into) {
     if (inputStorage.readUnsignedByte() != TYPE_COLOR) {
         return false;
     }
@@ -1047,10 +1072,10 @@ TraCIServer::readTypeCheckingColor(tcpip::Storage& inputStorage, RGBColor &into)
 
 
 bool
-TraCIServer::readTypeCheckingPosition2D(tcpip::Storage& inputStorage, Position &into) {
-     if (inputStorage.readUnsignedByte() != POSITION_2D) {
+TraCIServer::readTypeCheckingPosition2D(tcpip::Storage& inputStorage, Position& into) {
+    if (inputStorage.readUnsignedByte() != POSITION_2D) {
         return false;
-     }
+    }
     SUMOReal x = inputStorage.readDouble();
     SUMOReal y = inputStorage.readDouble();
     into.set(x, y, 0);
@@ -1059,10 +1084,10 @@ TraCIServer::readTypeCheckingPosition2D(tcpip::Storage& inputStorage, Position &
 
 
 bool
-TraCIServer::readTypeCheckingBoundary(tcpip::Storage& inputStorage, Boundary &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_BOUNDINGBOX) {
+TraCIServer::readTypeCheckingBoundary(tcpip::Storage& inputStorage, Boundary& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_BOUNDINGBOX) {
         return false;
-     }
+    }
     const SUMOReal xmin = inputStorage.readDouble();
     const SUMOReal ymin = inputStorage.readDouble();
     const SUMOReal xmax = inputStorage.readDouble();
@@ -1073,31 +1098,31 @@ TraCIServer::readTypeCheckingBoundary(tcpip::Storage& inputStorage, Boundary &in
 
 
 bool
-TraCIServer::readTypeCheckingByte(tcpip::Storage& inputStorage, int &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_BYTE) {
+TraCIServer::readTypeCheckingByte(tcpip::Storage& inputStorage, int& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_BYTE) {
         return false;
-     }
+    }
     into = inputStorage.readByte();
     return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingUnsignedByte(tcpip::Storage& inputStorage, int &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_UBYTE) {
+TraCIServer::readTypeCheckingUnsignedByte(tcpip::Storage& inputStorage, int& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_UBYTE) {
         return false;
-     }
+    }
     into = inputStorage.readUnsignedByte();
     return true;
 }
 
 
 bool
-TraCIServer::readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector &into) {
-     if (inputStorage.readUnsignedByte() != TYPE_POLYGON) {
+TraCIServer::readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector& into) {
+    if (inputStorage.readUnsignedByte() != TYPE_POLYGON) {
         return false;
-     }
-     into.clear();
+    }
+    into.clear();
     unsigned int noEntries = inputStorage.readUnsignedByte();
     PositionVector shape;
     for (unsigned int i = 0; i < noEntries; ++i) {

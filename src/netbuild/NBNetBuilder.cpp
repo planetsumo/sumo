@@ -12,7 +12,7 @@
 // Instance responsible for building networks
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -62,7 +62,7 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-NBNetBuilder::NBNetBuilder() : 
+NBNetBuilder::NBNetBuilder() :
     myEdgeCont(myTypeCont),
     myHaveSeenRoundabouts(false)
 {}
@@ -143,7 +143,7 @@ NBNetBuilder::compute(OptionsCont& oc,
     }
     geoConvHelper.computeFinal(); // information needed for location element fixed at this point
 
-    if(oc.exists("geometry.min-dist")&&oc.isSet("geometry.min-dist")) {
+    if (oc.exists("geometry.min-dist") && oc.isSet("geometry.min-dist")) {
         PROGRESS_BEGIN_MESSAGE("Reducing geometries");
         myEdgeCont.reduceGeometries(oc.getFloat("geometry.min-dist"));
         PROGRESS_DONE_MESSAGE();
@@ -173,7 +173,7 @@ NBNetBuilder::compute(OptionsCont& oc,
         if (oc.getBool("roundabouts.guess") || (oc.isDefault("roundabouts.guess") && myHaveSeenRoundabouts)) {
             assert(myRoundabouts.size() == 0);
             myEdgeCont.guessRoundabouts(myRoundabouts);
-            for (std::vector<EdgeVector>::const_iterator it_round = myRoundabouts.begin(); 
+            for (std::vector<EdgeVector>::const_iterator it_round = myRoundabouts.begin();
                     it_round != myRoundabouts.end(); ++it_round) {
                 std::vector<std::string> nodeIDs;
                 for (EdgeVector::const_iterator it_edge = it_round->begin(); it_edge != it_round->end(); ++it_edge) {
@@ -207,8 +207,7 @@ NBNetBuilder::compute(OptionsCont& oc,
     // check whether any not previously setable connections may be set now
     myEdgeCont.recheckPostProcessConnections();
 
-    // @todo Why?
-    myEdgeCont.recomputeLaneShapes();
+    myEdgeCont.computeLaneShapes();
     NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"));
     NBNodeTopologyTypeComputer::computeTopologyType(myNodeCont, oc);
 
@@ -366,7 +365,7 @@ NBNetBuilder::compute(OptionsCont& oc,
 }
 
 
-void 
+void
 NBNetBuilder::moveToOrigin(GeoConvHelper& geoConvHelper) {
     PROGRESS_BEGIN_MESSAGE("Moving network to origin");
     // compute new boundary after network modifications have taken place

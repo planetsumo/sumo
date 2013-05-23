@@ -13,7 +13,7 @@
 // Representation of a lane in the micro simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -81,6 +81,9 @@ public:
 
     friend class MSQueueExport;
 
+
+    /// Container for vehicles.
+    typedef std::vector< MSVehicle* > VehCont;
 
     /** Function-object in order to find the vehicle, that has just
         passed the detector. */
@@ -287,7 +290,7 @@ public:
      *  afterwards using "releaseVehicles".
      * @return The vehicles on this lane
      */
-    virtual const std::deque< MSVehicle* >& getVehiclesSecure() const {
+    virtual const VehCont& getVehiclesSecure() const {
         return myVehicles;
     }
 
@@ -334,7 +337,7 @@ public:
      * @param[in] The vehicle to return the adapted speed limit for
      * @return This lane's resulting max. speed
      */
-    SUMOReal getVehicleMaxSpeed(const SUMOVehicle* const veh) const {
+    inline SUMOReal getVehicleMaxSpeed(const SUMOVehicle* const veh) const {
         return myMaxSpeed * veh->getChosenSpeedFactor();
     }
 
@@ -342,7 +345,7 @@ public:
     /** @brief Returns the lane's maximum allowed speed
      * @return This lane's maximum allowed speed
      */
-    SUMOReal getSpeedLimit() const {
+    inline SUMOReal getSpeedLimit() const {
         return myMaxSpeed;
     }
 
@@ -350,7 +353,7 @@ public:
     /** @brief Returns the lane's length
      * @return This lane's length
      */
-    SUMOReal getLength() const {
+    inline SUMOReal getLength() const {
         return myLength;
     }
 
@@ -380,10 +383,10 @@ public:
      * speeds from the last time step. Also registers
      * ApproachingVehicleInformation for all links
      *
-     * This method goes through all vehicles calling their "planMove" method. 
+     * This method goes through all vehicles calling their "planMove" method.
      * @see MSVehicle::planMove
      */
-    virtual bool planMovements(SUMOTime t);
+    virtual void planMovements(const SUMOTime t);
 
     /** @brief Executes planned vehicle movements with regards to right-of-way
      *
@@ -454,9 +457,6 @@ public:
 
     static void insertIDs(std::vector<std::string>& into);
 
-    /// Container for vehicles.
-    typedef std::deque< MSVehicle* > VehCont;
-
     /** Same as succLink, but does not throw any assertions when
         the succeeding link could not be found;
         Returns the myLinks.end() instead; Further, the number of edges to
@@ -485,7 +485,8 @@ public:
     // valid for gui-version only
     virtual GUILaneWrapper* buildLaneWrapper(unsigned int index);
 
-    virtual MSVehicle* removeVehicle(MSVehicle* remVehicle);
+    /// @brief remove the vehicle from this lane
+    virtual MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification);
 
     /// The shape of the lane
     PositionVector myShape;
@@ -496,8 +497,11 @@ public:
     void enteredByLaneChange(MSVehicle* v);
 
 
-    MSLane* getLeftLane() const;
-    MSLane* getRightLane() const;
+    /** @brief Returns the lane with the given offset parallel to this one or 0 if it does not exist
+     * @param[in] offset The offset of the result lane
+     */
+    MSLane* getParallelLane(int offset) const;
+
 
     inline void setPermissions(SVCPermissions permissions) {
         myPermissions = permissions;
@@ -699,9 +703,6 @@ protected:
     MSVehicle* myInlappingVehicle;
 
 
-    /// @brief Not yet seen vehicle lengths
-    SUMOReal myLeftVehLength;
-
     /** The lane's Links to it's succeeding lanes and the default
         right-of-way rule, i.e. blocked or not blocked. */
     MSLinkCont myLinks;
@@ -711,7 +712,7 @@ protected:
     // precomputed myShape.length / myLength
     const SUMOReal myLengthGeometryFactor;
 
-    /// definition of the tatic dictionary type
+    /// definition of the static dictionary type
     typedef std::map< std::string, MSLane* > DictType;
 
     /// Static dictionary to associate string-ids with objects.

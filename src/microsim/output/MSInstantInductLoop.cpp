@@ -7,7 +7,7 @@
 // An instantaneous induction loop
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -132,12 +132,6 @@ MSInstantInductLoop::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/, MSMoveR
         write("leave", STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep()), veh, veh.getSpeed());
         return false;
     }
-    return true;
-}
-
-
-bool
-MSInstantInductLoop::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification) {
     return true;
 }
 

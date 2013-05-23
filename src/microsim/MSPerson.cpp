@@ -10,7 +10,7 @@
 // The class for modelling person-movements
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -98,7 +98,7 @@ MSPerson::MSPersonStage::getEdgePosition(const MSEdge* e, SUMOReal at, SUMOReal 
     const MSLane* lane = e->getLanes()[0];
     PositionVector shp = lane->getShape();
     shp.move2side(offset);
-    return shp.positionAtLengthPosition(lane->interpolateLanePosToGeometryPos(at));
+    return shp.positionAtOffset(lane->interpolateLanePosToGeometryPos(at));
 }
 
 
@@ -106,7 +106,7 @@ SUMOReal
 MSPerson::MSPersonStage::getEdgeAngle(const MSEdge* e, SUMOReal at) const {
     // @todo: well, definitely not the nicest way... Should be precomputed
     PositionVector shp = e->getLanes()[0]->getShape();
-    return shp.rotationDegreeAtLengthPosition(at);
+    return shp.rotationDegreeAtOffset(at);
 }
 
 
@@ -321,7 +321,7 @@ Position
 MSPerson::MSPersonStage_Driving::getPosition(SUMOTime /* now */) const {
     if (myVehicle != 0) {
         /// @bug this fails while vehicle is driving across a junction
-        return myVehicle->getEdge()->getLanes()[0]->getShape().positionAtLengthPosition(myVehicle->getPositionOnLane());
+        return myVehicle->getEdge()->getLanes()[0]->getShape().positionAtOffset(myVehicle->getPositionOnLane());
     }
     return getEdgePosition(myWaitingEdge, myWaitingPos, SIDEWALK_OFFSET);
 }

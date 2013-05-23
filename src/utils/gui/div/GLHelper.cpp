@@ -9,7 +9,7 @@
 // Some methods which help to draw certain geometrical objects in openGL
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -57,7 +57,7 @@ GLHelper::drawFilledPoly(const PositionVector& v, bool close) {
     }
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBegin(GL_POLYGON);
-    for (PositionVector::ContType ::const_iterator i = v.begin(); i != v.end(); i++) {
+    for (PositionVector::const_iterator i = v.begin(); i != v.end(); i++) {
         const Position& p = *i;
         glVertex2d(p.x(), p.y());
     }

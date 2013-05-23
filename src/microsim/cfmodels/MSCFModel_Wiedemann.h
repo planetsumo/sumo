@@ -8,7 +8,7 @@
 // The psycho-physical model of Wiedemann
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -30,7 +30,7 @@
 #include <config.h>
 #endif
 
-#include <microsim/MSCFModel.h>
+#include "MSCFModel.h"
 #include <microsim/MSLane.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSVehicleType.h>

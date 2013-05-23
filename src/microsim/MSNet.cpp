@@ -13,7 +13,7 @@
 // The simulated network and simulation perfomer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -349,6 +349,10 @@ void
 MSNet::simulationStep() {
 #ifndef NO_TRACI
     traci::TraCIServer::processCommandsUntilSimStep(myStep);
+    traci::TraCIServer* t = traci::TraCIServer::getInstance();
+    if (t != 0 && t->getTargetTime() != 0 && t->getTargetTime() < myStep) {
+        return;
+    }
 #endif
     // execute beginOfTimestepEvents
     if (myLogExecutionTime) {
@@ -368,8 +372,6 @@ MSNet::simulationStep() {
     }
     // check whether the tls programs need to be switched
     myLogics->check2Switch(myStep);
-    // set the signals
-    myLogics->setTrafficLightSignals(myStep);
 
 #ifdef HAVE_INTERNAL
     if (MSGlobals::gUseMesoSim) {
@@ -417,6 +419,11 @@ MSNet::simulationStep() {
     // execute endOfTimestepEvents
     myEndOfTimestepEvents->execute(myStep);
 
+#ifndef NO_TRACI
+    if (traci::TraCIServer::getInstance() != 0) {
+        traci::TraCIServer::getInstance()->postProcessVTD();
+    }
+#endif
     // update and write (if needed) detector values
     writeOutput();
 
@@ -570,38 +577,22 @@ MSNet::writeOutput() {
     // write detector values
     myDetectorControl->writeOutput(myStep + DELTA_T, false);
 
+    // write link states
     if (OptionsCont::getOptions().isSet("link-output")) {
-    	OutputDevice& od = OutputDevice::getDeviceByOption("link-output");
-    	od << "    <timestep id=\"" << STEPS2TIME(myStep) << "\">\n";
-	    const std::vector<MSEdge*> &edges = myEdges->getEdges();
-	    for(std::vector<MSEdge*>::const_iterator i=edges.begin(); i!=edges.end(); ++i) {
-		    const std::vector<MSLane*> &lanes = (*i)->getLanes();
-		    for(std::vector<MSLane*>::const_iterator j=lanes.begin(); j!=lanes.end(); ++j) {
-			    const std::vector<MSLink*> &links = (*j)->getLinkCont();
-			    for(std::vector<MSLink*>::const_iterator k=links.begin(); k!=links.end(); ++k) {
-    				std::string toID = (*k)->getLane()==0 ? "" : (*k)->getLane()->getID();
-	    			std::string viaID = (*k)->getViaLane()==0 ? "" : (*k)->getViaLane()->getID();
-		    		const std::vector<MSLink::ApproachingVehicleInformation>&a = (*k)->getApproaching();
-			    	od << "        <link fromID=\"" << (*j)->getID() << "\" viaID=\"" << viaID << "\" toID=\"" << toID << "\"";
-				    if(a.size()==0) {
-    					od << "/>\n";
-	    			} else {
-		    			od << ">\n";
-			    		for(std::vector<MSLink::ApproachingVehicleInformation>::const_iterator l=a.begin(); l!=a.end(); ++l) {
-				    		od << "            <approaching "
-							    << "v=\"" << (*l).vehicle->getID() << "\" "
-    							<< "arrivalTime=\"" << STEPS2TIME((*l).arrivalTime) << "\" "
-	    						<< "leaveTime=\"" << STEPS2TIME((*l).leavingTime) << "\" "
-		    					<< "arrivalSpeed=\"" << (*l).arrivalSpeed << "\" "
-			    				<< "leaveSpeed=\"" << (*l).leaveSpeed << "\" "
-				    			<< "willPass=\"" << (*l).willPass << "\"/>\n";
-					    }
-    					od << "        </link>\n";
-	    			}
-		    	}
-    		}   
-	    }
-	    od << "    </timestep>\n";
+        OutputDevice& od = OutputDevice::getDeviceByOption("link-output");
+        od.openTag("timestep");
+        od.writeAttr(SUMO_ATTR_ID, STEPS2TIME(myStep));
+        const std::vector<MSEdge*> &edges = myEdges->getEdges();
+        for(std::vector<MSEdge*>::const_iterator i=edges.begin(); i!=edges.end(); ++i) {
+            const std::vector<MSLane*> &lanes = (*i)->getLanes();
+            for(std::vector<MSLane*>::const_iterator j=lanes.begin(); j!=lanes.end(); ++j) {
+                const std::vector<MSLink*> &links = (*j)->getLinkCont();
+                for(std::vector<MSLink*>::const_iterator k=links.begin(); k!=links.end(); ++k) {
+                    (*k)->writeApproaching(od, (*j)->getID());
+                }
+            }
+        }
+        od.closeTag();
     }
 }
 

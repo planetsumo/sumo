@@ -9,7 +9,7 @@
 // APIs for getting/setting induction loop values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -172,7 +172,7 @@ TraCIServerAPI_InductionLoop::getPosition(const std::string& id, Position& p) {
     if (il == 0) {
         return false;
     }
-    p = il->getLane()->getShape().positionAtLengthPosition(il->getPosition());
+    p = il->getLane()->getShape().positionAtOffset(il->getPosition());
     return true;
 }
 
@@ -183,7 +183,7 @@ TraCIServerAPI_InductionLoop::getTree() {
     const std::map<std::string, MSDetectorFileOutput*>& dets = MSNet::getInstance()->getDetectorControl().getTypedDetectors(SUMO_TAG_INDUCTION_LOOP).getMyMap();
     for (std::map<std::string, MSDetectorFileOutput*>::const_iterator i = dets.begin(); i != dets.end(); ++i) {
         MSInductLoop* il = static_cast<MSInductLoop*>((*i).second);
-        Position p = il->getLane()->getShape().positionAtLengthPosition(il->getPosition());
+        Position p = il->getLane()->getShape().positionAtOffset(il->getPosition());
         t->addObject(il, p);
     }
     return t;
