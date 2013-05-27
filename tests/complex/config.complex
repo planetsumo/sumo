@@ -39,10 +39,10 @@ errors:Die Adresse wird bereits verwendet{REPLACE Address already in use}
 output:\r{REPLACE \n}
 output:\([0-9]*ms\){REPLACE (TIME)}
 output:\([0-9]* ms\){REPLACE (TIME)}
+output:TEXTTEST_IGNORE
 errors:Leaked object at 
 errors:*** 9 leaks found
 errors:delete: freed
-output:^' 
 
 [floating_point_tolerance]
 output:0.0001
