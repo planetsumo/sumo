@@ -950,8 +950,8 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             if (inputStorage.readUnsignedByte() != TYPE_COMPOUND) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting VTD vehicle requires a compound object.", outputStorage);
             }
-            if (inputStorage.readInt() != 4) {
-                return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting VTD vehicle should obtain: edgeID, lane, x, y.", outputStorage);
+            if (inputStorage.readInt() != 5) {
+                return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting VTD vehicle should obtain: edgeID, lane, x, y, angle.", outputStorage);
             }
             // edge ID
             std::string edgeID;
@@ -964,13 +964,17 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The second parameter for setting a VTD vehicle must be lane given as an int.", outputStorage);
             }
             // x
-            double x = 0, y = 0;
+            double x = 0, y = 0, angle = 0;
             if (!server.readTypeCheckingDouble(inputStorage, x)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The third parameter for setting a VTD vehicle must be the x-position given as a double.", outputStorage);
             }
             // y
             if (!server.readTypeCheckingDouble(inputStorage, y)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The fourth parameter for setting a VTD vehicle must be the y-position given as a double.", outputStorage);
+            }
+            // angle
+            if (!server.readTypeCheckingDouble(inputStorage, angle)) {
+                return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The fifth parameter for setting a VTD vehicle must be the angle given as a double.", outputStorage);
             }
             // process
             if (!v->isOnRoad()) {
