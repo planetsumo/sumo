@@ -47,7 +47,6 @@
 #include <utils/geom/GeomConvHelper.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/MSLane.h>
-#include <microsim/MSInternalLane.h>
 #include <microsim/MSBitSetLogic.h>
 #include <microsim/MSJunctionLogic.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
@@ -78,7 +77,9 @@ NLHandler::NLHandler(const std::string& file, MSNet& net,
       myDetectorBuilder(detBuilder), myTriggerBuilder(triggerBuilder),
       myEdgeControlBuilder(edgeBuilder), myJunctionControlBuilder(junctionBuilder),
       myAmInTLLogicMode(false), myCurrentIsBroken(false),
-      myHaveWarnedAboutDeprecatedLanes(false), myLastParameterised(0) {}
+      myHaveWarnedAboutDeprecatedLanes(false), 
+      myLastParameterised(0),
+      myHaveSeenInternalEdge(false) {}
 
 
 NLHandler::~NLHandler() {}
@@ -265,6 +266,7 @@ NLHandler::beginEdgeParsing(const SUMOSAXAttributes& attrs) {
     }
     // omit internal edges if not wished
     if (!MSGlobals::gUsingInternalLanes && id[0] == ':') {
+        myHaveSeenInternalEdge = true;
         myCurrentIsInternalToSkip = true;
         return;
     }

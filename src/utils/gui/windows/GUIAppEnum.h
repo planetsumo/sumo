@@ -177,6 +177,10 @@ enum {
     MID_MAKESNAPSHOT,
     /// toogle zooming style
     MID_ZOOM_STYLE,
+    /// toogle time display mode
+    MID_TIME_TOOGLE,
+    /// toogle delay between alternative value
+    MID_DELAY_TOOGLE,
     //@}
 
 
