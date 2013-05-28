@@ -1,11 +1,12 @@
- Removed 3 traffic lights before loading plain-XML
+Parsing nodes from 'input_nodes.nod.xml'... done.
+Parsing edges from 'input_edges.edg.xml'... done.
  Import done:
-   221 nodes loaded.
-   202 edges loaded.
-The split of edges was performed 69 times.
+   87 nodes loaded.
+   111 edges loaded.
+Proj projection parameters used: '+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs'.
 Removing self-loops... done.
 Removing empty nodes... done.
-   0 nodes removed.
+   41 nodes removed.
 Moving network to origin... done.
 Joining similar edges... done.
 Computing turning directions... done.
@@ -24,16 +25,16 @@ Computing traffic light control information... done.
 Computing node logics... done.
 Computing traffic light logics... 
 done.
- 0 traffic light(s) computed.
+ 1 traffic light(s) computed.
 -----------------------------------------------------
 Summary:
  Node type statistics:
-  Unregulated junctions       : 155
-  Priority junctions          : 66
-  Right-before-left junctions : 0
+  Unregulated junctions       : 3
+  Priority junctions          : 36
+  Right-before-left junctions : 7
  Network boundaries:
-  Original boundary  : -749.69,-1632.80,1187.22,701.26
-  Applied offset     : 749.69,1632.80
-  Converted boundary : 0.00,0.00,1936.91,2334.07
+  Original boundary  : 13.52,52.43,13.55,52.43
+  Applied offset     : -399909.35,-5809365.68
+  Converted boundary : 0.00,0.00,1173.99,767.38
 -----------------------------------------------------
 Success.
