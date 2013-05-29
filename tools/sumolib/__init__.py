@@ -88,14 +88,26 @@ def checkBinary(name, bindir=None):
         envName = "GUISIM_BINARY"
     else:
         envName = name.upper() + "_BINARY"
-    binary = os.environ.get(envName, os.path.join(bindir, name))
-    if not exeExists(binary):
-        binary = os.path.join(os.environ.get("SUMO_BINDIR"), name)
-        if not exeExists(binary):
-            binary = os.path.join(os.environ.get("SUMO_HOME"), "bin", name)
-            if not exeExists(binary):
-                return name
-    return binary
+    env = os.environ
+    join = os.path.join
+    if envName in env and exeExists(env.get(envName)):
+        return env.get(envName)
+    if bindir is not None:
+        binary = join(bindir, name)
+        if exeExists(binary):
+            return binary
+    if "SUMO_BINDIR" in env:
+        binary = join(env.get("SUMO_BINDIR"), name)
+        if exeExists(binary):
+            return binary
+    if "SUMO_HOME" in env:
+        binary = join(env.get("SUMO_HOME"), "bin", name)
+        if exeExists(binary):
+            return binary
+    binary = os.path.abspath(join(os.path.dirname(__file__), '..', '..', 'bin', name))
+    if exeExists(binary):
+        return binary
+    return name
 
 class _Running:
   """
