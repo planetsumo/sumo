@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -163,89 +163,6 @@
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalRelease|Win32'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalDebug|Win32'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Fastbuild|Win32'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalRelease|x64'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalDebug|x64'">
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Fastbuild|x64'">
-    <Midl>
-      <TargetEnvironment>X64</TargetEnvironment>
-    </Midl>
-    <ResourceCompile>
-      <Culture>0x0407</Culture>
-    </ResourceCompile>
-    <PreBuildEvent>
-      <Command>IF EXIST .svn/entries ..\..\..\tools\build\version.py</Command>
-    </PreBuildEvent>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_Daniel1.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.cpp" />
@@ -253,8 +170,9 @@
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_Wiedemann.cpp" />
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Tripinfo.cpp" />
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Vehroutes.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSBaseVehicle.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\MSCFModel.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_IDM.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_Kerner.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_Krauss.cpp" />
@@ -272,7 +190,6 @@
     <ClCompile Include="..\..\..\src\microsim\MSInsertionControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSGlobals.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSInternalJunction.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\MSInternalLane.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSJunction.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSJunctionControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSJunctionLogic.cpp" />
@@ -307,7 +224,7 @@
     <ClInclude Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.h" />
     <ClInclude Include="..\..\..\src\microsim\MSBaseVehicle.h" />
     <ClInclude Include="..\..\..\src\microsim\MSBitSetLogic.h" />
-    <ClInclude Include="..\..\..\src\microsim\MSCFModel.h" />
+    <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_IDM.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_Kerner.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_Krauss.h" />
@@ -326,7 +243,6 @@
     <ClInclude Include="..\..\..\src\microsim\MSInsertionControl.h" />
     <ClInclude Include="..\..\..\src\microsim\MSGlobals.h" />
     <ClInclude Include="..\..\..\src\microsim\MSInternalJunction.h" />
-    <ClInclude Include="..\..\..\src\microsim\MSInternalLane.h" />
     <ClInclude Include="..\..\..\src\microsim\MSJunction.h" />
     <ClInclude Include="..\..\..\src\microsim\MSJunctionControl.h" />
     <ClInclude Include="..\..\..\src\microsim\MSJunctionLogic.h" />
