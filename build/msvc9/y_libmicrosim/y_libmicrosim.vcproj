@@ -547,6 +547,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\..\src\microsim\MSAbstractLaneChangeModel.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\MSBaseVehicle.cpp"
 				>
 			</File>
@@ -644,10 +648,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\MSInternalJunction.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\microsim\MSInternalLane.cpp"
 				>
 			</File>
 			<File
@@ -856,10 +856,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\MSInternalJunction.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\microsim\MSInternalLane.h"
 				>
 			</File>
 			<File

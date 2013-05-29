@@ -49,6 +49,7 @@
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/RandHelper.h>
 #include <utils/common/HelpersHBEFA.h>
+#include <utils/common/HelpersPHEMlight.h>
 #include <utils/common/HelpersHarmonoise.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/StdDefs.h>
@@ -495,7 +496,7 @@ MSVehicle::getSlope() const {
     }
     const SUMOReal lp = getPositionOnLane();
     const SUMOReal gp = myLane->interpolateLanePosToGeometryPos(lp);
-    return myLane->getShape().slopeDegreeAtLengthPosition(gp);
+    return myLane->getShape().slopeDegreeAtOffset(gp);
 }
 
 

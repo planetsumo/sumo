@@ -41,6 +41,7 @@
 #include <microsim/devices/MSDevice_Routing.h>
 #include <microsim/devices/MSDevice_Person.h>
 #include <microsim/devices/MSDevice_HBEFA.h>
+#include <microsim/devices/MSDevice_PHEMlight.h>
 #include "MSVehicleType.h"
 #include "MSEdge.h"
 #include "MSLane.h"
