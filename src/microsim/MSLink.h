@@ -44,6 +44,7 @@
 class MSLane;
 class SUMOVehicle;
 class MSVehicle;
+class OutputDevice;
 
 
 // ===========================================================================
@@ -71,30 +72,36 @@ class MSVehicle;
  */
 class MSLink {
 public:
+
+    typedef std::vector<std::pair<MSVehicle*, SUMOReal> > LinkLeaders;
+
     /** @struct ApproachingVehicleInformation
      * @brief A structure holding the information about vehicles approaching a link
      */
     struct ApproachingVehicleInformation {
         /// @brief Constructor
         ApproachingVehicleInformation(const SUMOTime _arrivalTime, const SUMOTime _leavingTime,
-                                      SUMOReal _arrivalSpeed, SUMOReal _leaveSpeed,
-                                      SUMOVehicle* _vehicle, const bool _willPass) :
+                                      const SUMOReal _arrivalSpeed, const SUMOReal _leaveSpeed,
+                                      const bool _willPass) :
             arrivalTime(_arrivalTime), leavingTime(_leavingTime),
             arrivalSpeed(_arrivalSpeed), leaveSpeed(_leaveSpeed),
-            vehicle(_vehicle), willPass(_willPass) {}
+            willPass(_willPass) {}
 
         /// @brief The time the vehicle's front arrives at the link
-        SUMOTime arrivalTime;
+        const SUMOTime arrivalTime;
         /// @brief The estimated time at which the vehicle leaves the link
-        SUMOTime leavingTime;
+        const SUMOTime leavingTime;
         /// @brief The estimated speed with which the vehicle arrives at the link (for headway computation)
-        SUMOReal arrivalSpeed;
+        const SUMOReal arrivalSpeed;
         /// @brief The estimated speed with which the vehicle leaves the link (for headway computation)
-        SUMOReal leaveSpeed;
-        /// @brief The vehicle
-        SUMOVehicle* vehicle;
+        const SUMOReal leaveSpeed;
         /// @brief Whether the vehicle wants to pass the link (@todo: check semantics)
-        bool willPass;
+        const bool willPass;
+
+    private:
+        /// invalidated assignment operator
+        ApproachingVehicleInformation& operator=(const ApproachingVehicleInformation& s);
+
     };
 
 
@@ -139,17 +146,13 @@ public:
      *
      * The information is stored in myApproachingVehicles.
      */
-    void setApproaching(SUMOVehicle* approaching, SUMOTime arrivalTime,
-                        SUMOReal arrivalSpeed, SUMOReal leaveSpeed, bool setRequest);
+    void setApproaching(const SUMOVehicle* approaching, const SUMOTime arrivalTime,
+                        const SUMOReal arrivalSpeed, const SUMOReal leaveSpeed, const bool setRequest);
 
     /// @brief removes the vehicle from myApproachingVehicles
-    void removeApproaching(SUMOVehicle* veh);
+    void removeApproaching(const SUMOVehicle* veh);
 
     void addBlockedLink(MSLink* link);
-
-    const std::vector<ApproachingVehicleInformation>& getApproaching() const {
-        return myApproachingVehicles;
-    }
 
     /* @brief return information about this vehicle if it is registered as
      * approaching (dummy values otherwise)
@@ -269,14 +272,12 @@ public:
     MSLane* getViaLane() const;
 
 
-    /** @brief Returns the information about the latest vehicle which is on one of the
-     * same-target-foeLanes of this (exit)link
-     * Valid during the move() phase
-     * @param[in] previousLeaders Previous leader candidates which should be returned if they still qualify
+    /** @brief Returns all potential link leaders (vehicles on foeLanes)
+     * Valid during the planMove() phase
      * @param[in] dist The distance of the vehicle who is asking about the leader to this link
-     * @return The leading vehicle and its (virtual) distance to the asking vehicle or <0,0>
+     * @return The all vehicles on foeLanes and their (virtual) distances to the asking vehicle
      */
-    std::pair<MSVehicle*, SUMOReal> getLeaderInfo(const std::map<const MSLink*, std::string>& previousLeaders, SUMOReal dist) const;
+    LinkLeaders getLeaderInfo(SUMOReal dist) const;
 #endif
 
     /// @brief return the via lane if it exists and the lane otherwise
@@ -286,25 +287,11 @@ public:
     /// @brief return the expected time at which the given vehicle will clear the link
     SUMOTime getLeaveTime(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength) const;
 
-
+    /// @brief write information about all approaching vehicles to the given output device
+    void writeApproaching(OutputDevice& od, const std::string fromLaneID) const;
 
 
 private:
-    typedef std::vector<ApproachingVehicleInformation> LinkApproachingVehicles;
-
-    class vehicle_in_request_finder {
-    public:
-        explicit vehicle_in_request_finder(const SUMOVehicle* const v) : myVehicle(v) { }
-        bool operator()(const ApproachingVehicleInformation& vo) {
-            return vo.vehicle == myVehicle;
-        }
-    private:
-        vehicle_in_request_finder& operator=(const vehicle_in_request_finder&); // just to avoid a compiler warning
-    private:
-        const SUMOVehicle* const myVehicle;
-
-    };
-
     /// @brief return whether the given headwayTime is unsafe
     static SUMOTime unsafeHeadwayTime(SUMOTime headwayTime, SUMOReal leaderSpeed, SUMOReal followerSpeed);
 
@@ -315,7 +302,7 @@ private:
     /// @brief The lane approached by this link
     MSLane* myLane;
 
-    LinkApproachingVehicles myApproachingVehicles;
+    std::map<const SUMOVehicle*, ApproachingVehicleInformation> myApproachingVehicles;
     std::set<MSLink*> myBlockedFoeLinks;
 
     /// @brief The position of the link within this request

@@ -204,7 +204,7 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
             // allow/disallow XXX preferred
             nbe->setPermissions(parseVehicleClasses(lane->allow, lane->disallow), fromLaneIndex);
             // width, offset
-            nbe->setWidth(fromLaneIndex, lane->width);
+            nbe->setLaneWidth(fromLaneIndex, lane->width);
             nbe->setOffset(fromLaneIndex, lane->offset);
             nbe->setSpeed(fromLaneIndex, lane->maxSpeed);
         }
@@ -344,7 +344,7 @@ NIImporter_SUMO::addEdge(const SUMOSAXAttributes& attrs) {
     myCurrentEdge->priority = attrs.getOpt<int>(SUMO_ATTR_PRIORITY, id.c_str(), ok, -1);
     myCurrentEdge->type = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, "");
     myCurrentEdge->shape = attrs.getOpt<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok, PositionVector());
-    NILoader::transformCoordinates(myCurrentEdge->shape, true, myLocation);
+    NBNetBuilder::transformCoordinates(myCurrentEdge->shape, true, myLocation);
     myCurrentEdge->length = attrs.getOpt<SUMOReal>(SUMO_ATTR_LENGTH, id.c_str(), ok, NBEdge::UNSPECIFIED_LOADED_LENGTH);
     myCurrentEdge->maxSpeed = 0;
     myCurrentEdge->streetName = attrs.getOpt<std::string>(SUMO_ATTR_NAME, id.c_str(), ok, "");
@@ -392,7 +392,7 @@ NIImporter_SUMO::addLane(const SUMOSAXAttributes& attrs) {
     myCurrentLane->offset = attrs.getOpt<SUMOReal>(SUMO_ATTR_ENDOFFSET, id.c_str(), ok, (SUMOReal) NBEdge::UNSPECIFIED_OFFSET);
     myCurrentLane->shape = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok);
     // lane coordinates are derived (via lane spread) do not include them in convex boundary
-    NILoader::transformCoordinates(myCurrentLane->shape, false, myLocation);
+    NBNetBuilder::transformCoordinates(myCurrentLane->shape, false, myLocation);
 }
 
 
@@ -416,7 +416,7 @@ NIImporter_SUMO::addJunction(const SUMOSAXAttributes& attrs) {
         WRITE_WARNING("Unknown node type for junction '" + id + "'.");
     }
     Position pos = readPosition(attrs, id, ok);
-    NILoader::transformCoordinates(pos, true, myLocation);
+    NBNetBuilder::transformCoordinates(pos, true, myLocation);
     // the network may have non-default edge geometry.
     // accurate reconstruction of legacy networks is not possible. We ought to warn about this
     if (attrs.hasAttribute(SUMO_ATTR_SHAPE)) {
@@ -580,16 +580,18 @@ NIImporter_SUMO::reconstructEdgeShape(const EdgeAttrs* edge, const Position& fro
     // reverse logic of NBEdge::computeLaneShape
     // !!! this will only work for old-style constant width lanes
     const size_t noLanes = edge->lanes.size();
+    SUMOReal offset;
+    if (edge->lsf == LANESPREAD_RIGHT) {
+        offset = (SUMO_const_laneWidth + SUMO_const_laneOffset) / 2.; // @todo: why is the lane offset counted in here?
+    } else {
+        offset = (SUMO_const_laneWidth) / 2. - (SUMO_const_laneWidth * (SUMOReal)noLanes - 1) / 2.; ///= -2.; // @todo: actually, when looking at the road networks, the center line is not in the center
+    }
     for (unsigned int i = 1; i < firstLane.size() - 1; i++) {
         Position from = firstLane[i - 1];
         Position me = firstLane[i];
         Position to = firstLane[i + 1];
-        std::pair<SUMOReal, SUMOReal> offsets = NBEdge::laneOffset(
-                from, me, SUMO_const_laneWidthAndOffset, (unsigned int)noLanes - 1,
-                noLanes, edge->lsf, false);
-        std::pair<SUMOReal, SUMOReal> offsets2 = NBEdge::laneOffset(
-                    me, to, SUMO_const_laneWidthAndOffset, (unsigned int)noLanes - 1,
-                    noLanes, edge->lsf, false);
+        std::pair<SUMOReal, SUMOReal> offsets = NBEdge::laneOffset(from, me, offset, false);
+        std::pair<SUMOReal, SUMOReal> offsets2 = NBEdge::laneOffset(me, to, offset, false);
 
         Line l1(
             Position(from.x() + offsets.first, from.y() + offsets.second),

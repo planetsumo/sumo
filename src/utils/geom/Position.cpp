@@ -1,12 +1,13 @@
 /****************************************************************************/
-/// @file    SUMOTime.h
+/// @file    Position.h
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
+/// @author  Axel Wegener
 /// @author  Michael Behrisch
-/// @date    Fri, 29.04.2005
-/// @version $Id$
+/// @date    Sept 2002
+/// @version $Id: Position.h 13811 2013-05-01 20:31:43Z behrisch $
 ///
-// Variables, methods, and tools for internal time representation
+// A position in the 2D- or 3D-world
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
@@ -19,6 +20,7 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
+
 // ===========================================================================
 // included modules
 // ===========================================================================
@@ -28,45 +30,20 @@
 #include <config.h>
 #endif
 
-#include <sstream>
-#include "SUMOTime.h"
-#include "TplConvert.h"
+#include <limits>
+#include "Position.h"
+
+#ifdef CHECK_MEMORY_LEAKS
+#include <foreign/nvwa/debug_new.h>
+#endif // CHECK_MEMORY_LEAKS
 
 
 // ===========================================================================
-// type definitions
+// static member definitions
 // ===========================================================================
-#ifdef HAVE_SUBSECOND_TIMESTEPS
-SUMOTime DELTA_T = 1000;
-#endif
 
-
-// ===========================================================================
-// method definitions
-// ===========================================================================
-SUMOTime
-string2time(const std::string& r) {
-    double time;
-    std::istringstream buf(r);
-    buf >> time;
-    if (buf.fail()) {
-        throw ProcessError("Input string '" + r + "' cannot be parsed as a time");
-    } else {
-        return TIME2STEPS(time);
-    }
-}
-
-
-std::string
-time2string(SUMOTime t) {
-    // 123456 -> "12.34"
-    std::ostringstream oss;
-    oss.setf(oss.fixed);
-    oss.precision(OUTPUT_ACCURACY);
-    oss << STEPS2TIME(t);
-    return oss.str();
-}
-
-
-/****************************************************************************/
-
+// Position 1Mio km below the surface should suffice for signaling invalidity inside the solar system
+const Position Position::INVALID(
+    - 1024 * 1024 * 1024,
+    - 1024 * 1024 * 1024,
+    - 1024 * 1024 * 1024);

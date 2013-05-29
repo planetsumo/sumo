@@ -40,6 +40,7 @@
 #include <iomanip>
 #include <utils/geom/Boundary.h>
 #include <utils/geom/GeomHelper.h>
+#include <utils/geom/GeoConvHelper.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/ToString.h>
 #include <utils/common/TplConvert.h>
@@ -113,8 +114,9 @@ NBEdgeCont::applyOptions(OptionsCont& oc) {
         myTypes2Remove.insert(types.begin(), types.end());
     }
 
-    if (oc.isSet("keep-edges.in-boundary")) {
-        std::vector<std::string> polyS = oc.getStringVector("keep-edges.in-boundary");
+    if (oc.isSet("keep-edges.in-boundary") || oc.isSet("keep-edges.in-geo-boundary")) {
+        std::vector<std::string> polyS = oc.getStringVector(oc.isSet("keep-edges.in-boundary") ?
+                "keep-edges.in-boundary" : "keep-edges.in-geo-boundary");
         // !!! throw something if length<4 || length%2!=0?
         std::vector<SUMOReal> poly;
         for (std::vector<std::string>::iterator i = polyS.begin(); i != polyS.end(); ++i) {
@@ -136,6 +138,9 @@ NBEdgeCont::applyOptions(OptionsCont& oc) {
                 SUMOReal y = *j++;
                 myPrunningBoundary.push_back(Position(x, y));
             }
+        }
+        if (oc.isSet("keep-edges.in-geo-boundary")) {
+            NBNetBuilder::transformCoordinates(myPrunningBoundary, false);
         }
     }
 }
@@ -371,9 +376,9 @@ NBEdgeCont::splitAt(NBDistrictCont& dc, NBEdge* edge, NBNode* node,
                     const std::string& secondEdgeName,
                     unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge) {
     SUMOReal pos;
-    pos = edge->getGeometry().nearest_position_on_line_to_point2D(node->getPosition());
+    pos = edge->getGeometry().nearest_offset_to_point2D(node->getPosition());
     if (pos <= 0) {
-        pos = GeomHelper::nearest_position_on_line_to_point2D(
+        pos = GeomHelper::nearest_offset_on_line_to_point2D(
                   edge->myFrom->getPosition(), edge->myTo->getPosition(),
                   node->getPosition());
     }
@@ -406,14 +411,14 @@ NBEdgeCont::splitAt(NBDistrictCont& dc,
     // build and insert the edges
     NBEdge* one = new NBEdge(firstEdgeName,
                              edge->myFrom, node, edge->myType, edge->mySpeed, noLanesFirstEdge,
-                             edge->getPriority(), edge->myWidth, 0, geoms.first,
+                             edge->getPriority(), edge->myLaneWidth, 0, geoms.first,
                              edge->getStreetName(), edge->myLaneSpreadFunction, true);
     for (unsigned int i = 0; i < noLanesFirstEdge && i < edge->getNumLanes(); i++) {
         one->setSpeed(i, edge->getLaneSpeed(i));
     }
     NBEdge* two = new NBEdge(secondEdgeName,
                              node, edge->myTo, edge->myType, edge->mySpeed, noLanesSecondEdge,
-                             edge->getPriority(), edge->myWidth, edge->myOffset, geoms.second,
+                             edge->getPriority(), edge->myLaneWidth, edge->myOffset, geoms.second,
                              edge->getStreetName(), edge->myLaneSpreadFunction, true);
     for (unsigned int i = 0; i < noLanesSecondEdge && i < edge->getNumLanes(); i++) {
         two->setSpeed(i, edge->getLaneSpeed(i));
@@ -577,7 +582,7 @@ NBEdgeCont::computeEdgeShapes() {
 
 
 void
-NBEdgeCont::recomputeLaneShapes() {
+NBEdgeCont::computeLaneShapes() {
     for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
         (*i).second->computeLaneShapes();
     }

@@ -49,6 +49,7 @@
 #include <utils/gui/div/GLHelper.h>
 #include <utils/gui/div/GLObjectValuePassConnector.h>
 #include <microsim/MSVehicle.h>
+#include <microsim/MSLane.h>
 #include <microsim/logging/CastingFunctionBinding.h>
 #include <microsim/logging/FunctionBinding.h>
 #include <microsim/MSVehicleControl.h>
@@ -311,7 +312,7 @@ GUIParameterTableWindow*
 GUIVehicle::getParameterWindow(GUIMainWindow& app,
                                GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 20);
+        new GUIParameterTableWindow(app, *this, 21);
     // add items
     ret->mkItem("type [NAME]", false, myType->getID());
     if (getParameter().repetitionNumber > 0) {
@@ -335,6 +336,7 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getSpeed));
     ret->mkItem("angle", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &MSVehicle::getAngle));
+    ret->mkItem("stop info", false, getStopInfo());
     ret->mkItem("CO2 (HBEFA) [mg/s]", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getHBEFA_CO2Emissions));
     ret->mkItem("CO (HBEFA) [mg/s]", true,
@@ -898,10 +900,9 @@ void
 GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     glPushName(getGlID());
     glPushMatrix();
-    Position p1 = myLane->getShape().positionAtLengthPosition(
-                      myLane->interpolateLanePosToGeometryPos(myState.pos()));
+    Position p1 = getPosition();
     // one seat in the center of the vehicle by default
-    mySeatPositions[0] = myLane->getShape().positionAtLengthPosition(
+    mySeatPositions[0] = myLane->getShape().positionAtOffset(
                              myLane->interpolateLanePosToGeometryPos(
                                  myState.pos() - getVehicleType().getLength() / 2));
     glTranslated(p1.x(), p1.y(), getType());
@@ -1041,10 +1042,8 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     }
     */
     glPopMatrix();
-    drawName(myLane->getShape().positionAtLengthPosition(
-                 myLane->interpolateLanePosToGeometryPos(
-                     myState.pos() - MIN2(getVehicleType().getLength() / 2, SUMOReal(5)))),
-             s.scale, s.vehicleName);
+    drawName(getPosition(-MIN2(getVehicleType().getLength() / 2, SUMOReal(5))),
+            s.scale, s.vehicleName);
     glPopName();
     if (myPersonDevice != 0) {
         const std::vector<MSPerson*>& ps = myPersonDevice->getPersons();
@@ -1102,6 +1101,7 @@ GUIVehicle::drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisuali
                 // differ from the one it requests in setApproaching
                 MSLink::ApproachingVehicleInformation avi = (*i).myLink->getApproaching(this);
                 if (avi.arrivalTime != (*i).myArrivalTime || avi.leavingTime != leaveTime) {
+                    assert(false);
                     glColor3d(1, 0.65, 0);
                     drawLinkItem(p + Position(0, -1), avi.arrivalTime, avi.leavingTime, s.addExaggeration * 0.7);
                 }
@@ -1443,8 +1443,8 @@ GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMO
             backLane = getPreviousLane(backLane, backRouteIndex);
             carriageBackOffset += backLane->getLength();
         }
-        const Position front = lane->getShape().positionAtLengthPosition2D(carriageOffset);
-        const Position back = backLane->getShape().positionAtLengthPosition2D(carriageBackOffset);
+        const Position front = lane->getShape().positionAtOffset2D(carriageOffset);
+        const Position back = backLane->getShape().positionAtOffset2D(carriageBackOffset);
         const SUMOReal angle = atan2((front.x() - back.x()), (back.y() - front.y())) * (SUMOReal) 180.0 / (SUMOReal) PI;
         if (i >= firstPassengerCarriage) {
             computeSeats(front, back, requiredSeats);
@@ -1505,6 +1505,31 @@ GUIVehicle::computeSeats(const Position& front, const Position& back, int& requi
             requiredSeats--;
         }
     }
+}
+
+
+SUMOReal 
+GUIVehicle::getLastLaneChangeOffset() const {
+    return STEPS2TIME(getLaneChangeModel().getLastLaneChangeOffset());
+}
+
+
+std::string 
+GUIVehicle::getStopInfo() const {
+    std::string result = "";
+    if (isParking()) {
+        result += "parking";
+    } else if (isStopped()) {
+        result += "stopped";
+    } else {
+        return "";
+    }
+    if (myStops.front().triggered) {
+        result += ", triggered";
+    } else {
+        result += ", duration=" + time2string(myStops.front().duration);
+    }
+    return result;
 }
 
 

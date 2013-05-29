@@ -52,9 +52,12 @@
 // method definitions
 // ===========================================================================
 MSInstantInductLoop::MSInstantInductLoop(const std::string& id,
-        OutputDevice& od, MSLane* const lane, SUMOReal positionInMeters)
-    : MSMoveReminder(lane), MSDetectorFileOutput(id), myOutputDevice(od),
-      myPosition(positionInMeters), myLastExitTime(-1) {
+        OutputDevice& od, MSLane* const lane, SUMOReal positionInMeters) : 
+    MSMoveReminder(id, lane), 
+    MSDetectorFileOutput(id), 
+    myOutputDevice(od),
+    myPosition(positionInMeters), myLastExitTime(-1) 
+{
     assert(myPosition >= 0 && myPosition <= myLane->getLength());
     writeXMLDetectorProlog(od);
 }
@@ -129,12 +132,6 @@ MSInstantInductLoop::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/, MSMoveR
         write("leave", STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep()), veh, veh.getSpeed());
         return false;
     }
-    return true;
-}
-
-
-bool
-MSInstantInductLoop::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification) {
     return true;
 }
 

@@ -66,7 +66,7 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         return;
     }
     OutputDevice& device = OutputDevice::getDevice(oc.getString("output-file"));
-    device.writeXMLHeader("net", SUMOSAXAttributes::ENCODING, NWFrame::MAJOR_VERSION + " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.sf.net/xsd/net_file.xsd\""); // street names may contain non-ascii chars
+    device.writeXMLHeader("net", NWFrame::MAJOR_VERSION + " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.sf.net/xsd/net_file.xsd\""); // street names may contain non-ascii chars
     device.lf();
     // get involved container
     const NBNodeCont& nc = nb.getNodeCont();
@@ -240,9 +240,17 @@ NWWriter_SUMO::writeEdge(OutputDevice& into, const NBEdge& e, bool noNames, bool
     }
     // write the lanes
     const std::vector<NBEdge::Lane>& lanes = e.getLanes();
+
     SUMOReal length = e.getLoadedLength();
+    if (OptionsCont::getOptions().getBool("no-internal-links") && !e.hasLoadedLength()) {
+        // use length to junction center even if a modified geometry was given
+        PositionVector geom = e.getGeometry();
+        geom.push_back_noDoublePos(e.getToNode()->getPosition());
+        geom.push_front_noDoublePos(e.getFromNode()->getPosition());
+        length = geom.length();
+    }
     if (length <= 0) {
-        length = (SUMOReal) .1;
+        length = (SUMOReal)POSITION_EPS;
     }
     for (unsigned int i = 0; i < (unsigned int) lanes.size(); i++) {
         writeLane(into, e.getID(), e.getLaneID(i), lanes[i], length, i, origNames);

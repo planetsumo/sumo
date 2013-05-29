@@ -43,6 +43,7 @@
 #include <utils/xml/SUMOSAXHandler.h>
 #include <netbuild/NBNodeCont.h>
 #include <netbuild/NBTypeCont.h>
+#include <netbuild/NBNetBuilder.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/TplConvert.h>
@@ -51,7 +52,6 @@
 #include <utils/common/ToString.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/geom/GeoConvHelper.h>
-#include "NILoader.h"
 #include "NIXMLEdgesHandler.h"
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -170,7 +170,7 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
             myShape = myCurrentEdge->getGeometry();
             myReinitKeepEdgeShape = true;
         }
-        myCurrentWidth = myCurrentEdge->getWidth();
+        myCurrentWidth = myCurrentEdge->getLaneWidth();
         myCurrentOffset = myCurrentEdge->getOffset();
         myLanesSpread = myCurrentEdge->getLaneSpreadFunction();
         if (myCurrentEdge->hasLoadedLength()) {
@@ -288,7 +288,7 @@ NIXMLEdgesHandler::addLane(const SUMOSAXAttributes& attrs) {
     myCurrentEdge->setPreferredVehicleClass(parseVehicleClasses(preferred), lane);
     // try to get the width
     if (attrs.hasAttribute(SUMO_ATTR_WIDTH)) {
-        myCurrentEdge->setWidth(lane, attrs.get<SUMOReal>(SUMO_ATTR_WIDTH, myCurrentID.c_str(), ok));
+        myCurrentEdge->setLaneWidth(lane, attrs.get<SUMOReal>(SUMO_ATTR_WIDTH, myCurrentID.c_str(), ok));
     }
     // try to get the end-offset (lane shortened due to pedestrian crossing etc..)
     if (attrs.hasAttribute(SUMO_ATTR_ENDOFFSET)) {
@@ -404,7 +404,7 @@ NIXMLEdgesHandler::tryGetShape(const SUMOSAXAttributes& attrs) {
         return PositionVector();
     }
     PositionVector shape = attrs.getOpt<PositionVector>(SUMO_ATTR_SHAPE, 0, ok, PositionVector());
-    if (!NILoader::transformCoordinates(shape)) {
+    if (!NBNetBuilder::transformCoordinates(shape)) {
         WRITE_ERROR("Unable to project coordinates for edge '" + myCurrentID + "'.");
     }
     myReinitKeepEdgeShape = myKeepEdgeShape;
@@ -467,7 +467,7 @@ NIXMLEdgesHandler::myEndElement(int element) {
             unsigned int noLanesMax = e->getNumLanes();
             // compute the node positions and sort the lanes
             for (i = mySplits.begin(); i != mySplits.end(); ++i) {
-                (*i).gpos = e->getGeometry().positionAtLengthPosition((*i).pos);
+                (*i).gpos = e->getGeometry().positionAtOffset((*i).pos);
                 sort((*i).lanes.begin(), (*i).lanes.end());
                 noLanesMax = MAX2(noLanesMax, (unsigned int)(*i).lanes.size());
             }

@@ -62,7 +62,7 @@
 MSMeanData::MeanDataValues::MeanDataValues(
     MSLane* const lane, const SUMOReal length, const bool doAdd,
     const std::set<std::string>* const vTypes) :
-    MSMoveReminder(lane, doAdd),
+    MSMoveReminder("meandata_" + (lane == 0 ? "NULL" :  lane->getID()), lane, doAdd),
     myLaneLength(length),
     sampleSeconds(0),
     travelledDistance(0),
@@ -468,7 +468,7 @@ MSMeanData::writeXMLOutput(OutputDevice& dev,
 
 void
 MSMeanData::writeXMLDetectorProlog(OutputDevice& dev) const {
-    dev.writeXMLHeader("netstats");
+    dev.writeXMLHeader("meandata", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.sf.net/xsd/meandata_file.xsd\"");
 }
 
 

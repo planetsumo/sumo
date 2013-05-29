@@ -151,6 +151,14 @@ public:
      */
     MSLane* rightLane(const MSLane* const lane) const;
 
+    /** @brief Returns the lane with the given offset parallel to the given lane one or 0 if it does not exist
+     *
+     * @param[in] lane The base lane
+     * @param[in] offset The offset of the result lane
+     * @todo This method searches for the given in the container; probably, this could be done faster
+     */
+    MSLane* parallelLane(const MSLane* const lane, int offset) const;
+
 
     /** @brief Returns this edge's lanes
      *
@@ -290,7 +298,7 @@ public:
     /** @brief Computes and returns the current travel time for this edge
      *
      * The mean speed of all lanes is used to compute the travel time.
-     * To avoid inifinte travel times, the given minimum speed is used.
+     * To avoid infinite travel times, the given minimum speed is used.
      *
      * @param[in] minSpeed The minimumSpeed to assume if traffic on this edge is stopped
      * @return The current effort (travel time) to pass the edge

@@ -50,10 +50,10 @@ class Boundary;
  * @class PositionVector
  * @brief A list of positions
  */
-class PositionVector : public AbstractPoly {
-public:
-    /// Definition of the list of points
-    typedef std::vector<Position> ContType;
+class PositionVector : public AbstractPoly, private std::vector<Position> {
+
+private:
+    typedef std::vector<Position> vp;
 
 public:
     /** @brief Constructor
@@ -72,14 +72,23 @@ public:
     /// @brief Destructor
     ~PositionVector();
 
+    using vp::iterator;
+    using vp::const_iterator;
+    using vp::const_reference;
+    using vp::value_type;
+    using vp::begin;
+    using vp::end;
+    using vp::push_back;
+    using vp::pop_back;
+    using vp::clear;
+    using vp::size;
+    using vp::front;
+    using vp::back;
+    using vp::reference;
+
 
     /// @name Adding items to the container
     /// @{
-
-    /** @brief Appends the given position to the list
-     * @param[in] p The position to append
-     */
-    void push_back(const Position& p);
 
 
     /** @brief Appends all positions from the given vector
@@ -89,9 +98,17 @@ public:
     /// @}
 
 
-
-    /// Puts the given position at the begin of the list
+    /// Puts the given position at the front of the list
     void push_front(const Position& p);
+
+    /// Removes and returns the position at the fron of the list
+    Position pop_front();
+
+    void insertAt(int index, const Position& p);
+
+    void replaceAt(int index, const Position& by);
+
+    void eraseAt(int i);
 
     /** @brief Returns the information whether the position vector describes a polygon lying around the given point
         The optional offset is added to the polygon's bounderies */
@@ -125,9 +142,7 @@ public:
     /** Returns the position of the intersection */
     Position intersectsAtPoint(const PositionVector& v1) const; // !!!
 
-    /// Removes all information from this list
-    void clear();
-
+    /// @brief ensures that the last position equals the first
     void closePolygon();
 
     /** @brief returns the position at the given index
@@ -135,28 +150,25 @@ public:
     const Position& operator[](int index) const;
     Position& operator[](int index);
 
-    /// returns the number of points making up the line vector
-    size_t size() const;
+    /// Returns the position at the given length
+    Position positionAtOffset(SUMOReal pos) const;
 
     /// Returns the position at the given length
-    Position positionAtLengthPosition(SUMOReal pos) const;
-
-    /// Returns the position at the given length
-    Position positionAtLengthPosition2D(SUMOReal pos) const;
+    Position positionAtOffset2D(SUMOReal pos) const;
 
     /// Returns the rotation at the given length
-    SUMOReal rotationDegreeAtLengthPosition(SUMOReal pos) const;
+    SUMOReal rotationDegreeAtOffset(SUMOReal pos) const;
 
     /// Returns the slope at the given length
-    SUMOReal slopeDegreeAtLengthPosition(SUMOReal pos) const;
+    SUMOReal slopeDegreeAtOffset(SUMOReal pos) const;
 
     /// Returns the position between the two given point at the specified position */
-    static Position positionAtLengthPosition(const Position& p1,
-            const Position& p2, SUMOReal pos);
+    static Position positionAtOffset(const Position& p1,
+                                     const Position& p2, SUMOReal pos);
 
     /// Returns the position between the two given point at the specified position */
-    static Position positionAtLengthPosition2D(const Position& p1,
-            const Position& p2, SUMOReal pos);
+    static Position positionAtOffset2D(const Position& p1,
+                                       const Position& p2, SUMOReal pos);
 
     /// Returns a boundary enclosing this list of lines
     Boundary getBoxBoundary() const;
@@ -172,9 +184,6 @@ public:
     void scaleSize(SUMOReal factor);
 
     Position getLineCenter() const;
-
-    Position pop_back();
-    Position pop_front();
 
     /// Returns the length
     SUMOReal length() const;
@@ -205,25 +214,9 @@ public:
     // @brief append the given vector to this one
     void append(const PositionVector& v);
 
-    ContType::const_iterator begin() const {
-        return myCont.begin();
-    }
+    PositionVector getSubpart(SUMOReal beginOffset, SUMOReal endOffset) const;
 
-    ContType::const_iterator end() const {
-        return myCont.end();
-    }
-
-    const Position& front() const {
-        return myCont.front();
-    }
-
-    const Position& back() const {
-        return myCont.back();
-    }
-
-    PositionVector getSubpart(SUMOReal begin, SUMOReal end) const;
-
-    PositionVector getSubpart2D(SUMOReal begin, SUMOReal end) const;
+    PositionVector getSubpart2D(SUMOReal beginOffset, SUMOReal endOffset) const;
 
     void sortAsPolyCWByAngle();
 
@@ -235,14 +228,12 @@ public:
 
     void move2side(SUMOReal amount);
 
-    Line lineAt(size_t pos) const;
+    Line lineAt(int pos) const;
 
     Line getBegLine() const;
 
     Line getEndLine() const;
 
-
-    void insertAt(int index, const Position& p);
 
     // @brief inserts p between the two closest positions and returns the insertion index
     int insertAtClosest(const Position& p);
@@ -275,16 +266,12 @@ public:
     // !!!
     SUMOReal isLeft(const Position& P0, const Position& P1, const Position& P2) const;
 
-    void set(size_t pos, const Position& p);
-
     void pruneFromBeginAt(const Position& p);
     void pruneFromEndAt(const Position& p);
 
     SUMOReal beginEndAngle() const;
 
-    void eraseAt(int i);
-
-    SUMOReal nearest_position_on_line_to_point2D(const Position& p, bool perpendicular = true) const;
+    SUMOReal nearest_offset_to_point2D(const Position& p, bool perpendicular = true) const;
 
     /* @brief index of the closest position to p
      * @note: may only be called for a non-empty vector */
@@ -298,8 +285,6 @@ public:
     void push_back_noDoublePos(const Position& p);
     void push_front_noDoublePos(const Position& p);
 
-    void replaceAt(size_t index, const Position& by);
-
     bool isClosed() const;
 
     /** @brief Removes positions if too near
@@ -309,11 +294,6 @@ public:
     void removeDoublePoints(SUMOReal minDist = POSITION_EPS, bool assertLength = false);
 
     void removeColinearPoints();
-
-private:
-
-    /// The list of points
-    ContType myCont;
 
 };
 

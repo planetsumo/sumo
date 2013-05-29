@@ -47,7 +47,6 @@
 #include <utils/geom/GeomConvHelper.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/MSLane.h>
-#include <microsim/MSInternalLane.h>
 #include <microsim/MSBitSetLogic.h>
 #include <microsim/MSJunctionLogic.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
@@ -78,7 +77,9 @@ NLHandler::NLHandler(const std::string& file, MSNet& net,
       myDetectorBuilder(detBuilder), myTriggerBuilder(triggerBuilder),
       myEdgeControlBuilder(edgeBuilder), myJunctionControlBuilder(junctionBuilder),
       myAmInTLLogicMode(false), myCurrentIsBroken(false),
-      myHaveWarnedAboutDeprecatedLanes(false), myLastParameterised(0) {}
+      myHaveWarnedAboutDeprecatedLanes(false), 
+      myLastParameterised(0),
+      myHaveSeenInternalEdge(false) {}
 
 
 NLHandler::~NLHandler() {}
@@ -265,6 +266,7 @@ NLHandler::beginEdgeParsing(const SUMOSAXAttributes& attrs) {
     }
     // omit internal edges if not wished
     if (!MSGlobals::gUsingInternalLanes && id[0] == ':') {
+        myHaveSeenInternalEdge = true;
         myCurrentIsInternalToSkip = true;
         return;
     }
@@ -565,7 +567,7 @@ NLHandler::addPOI(const SUMOSAXAttributes& attrs) {
             if (lanePos < 0) {
                 lanePos = lane->getLength() + lanePos;
             }
-            pos = lane->getShape().positionAtLengthPosition(lanePos);
+            pos = lane->getShape().positionAtOffset(lanePos);
         } else {
             // try computing x,y from lon,lat
             if (lat == INVALID_POSITION || lon == INVALID_POSITION) {
@@ -811,7 +813,7 @@ NLHandler::addE1Detector(const SUMOSAXAttributes& attrs) {
     }
     try {
         myDetectorBuilder.buildInductLoop(id, lane, position, frequency,
-                                          OutputDevice::getDevice(file, getFileName()),
+                                          FileHelpers::checkForRelativity(file, getFileName()),
                                           friendlyPos, splitByType);
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
@@ -837,7 +839,7 @@ NLHandler::addInstantE1Detector(const SUMOSAXAttributes& attrs) {
         return;
     }
     try {
-        myDetectorBuilder.buildInstantInductLoop(id, lane, position, OutputDevice::getDevice(file, getFileName()), friendlyPos);
+        myDetectorBuilder.buildInstantInductLoop(id, lane, position, FileHelpers::checkForRelativity(file, getFileName()), friendlyPos);
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
     } catch (IOError& e) {
@@ -857,7 +859,7 @@ NLHandler::addVTypeProbeDetector(const SUMOSAXAttributes& attrs) {
         return;
     }
     try {
-        myDetectorBuilder.buildVTypeProbe(id, type, frequency, OutputDevice::getDevice(file, getFileName()));
+        myDetectorBuilder.buildVTypeProbe(id, type, frequency, FileHelpers::checkForRelativity(file, getFileName()));
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
     } catch (IOError& e) {
@@ -879,7 +881,7 @@ NLHandler::addRouteProbeDetector(const SUMOSAXAttributes& attrs) {
     }
     try {
         myDetectorBuilder.buildRouteProbe(id, edge, frequency, begin,
-                                          OutputDevice::getDevice(file, getFileName()));
+                                          FileHelpers::checkForRelativity(file, getFileName()));
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
     } catch (IOError& e) {
@@ -913,13 +915,13 @@ NLHandler::addE2Detector(const SUMOSAXAttributes& attrs) {
             if (toLane == "<invalid>") {
                 myDetectorBuilder.buildE2Detector(id, lane, position, length, cont,
                                                   myJunctionControlBuilder.getTLLogic(lsaid),
-                                                  OutputDevice::getDevice(file, getFileName()),
+                                                  FileHelpers::checkForRelativity(file, getFileName()),
                                                   haltingTimeThreshold, haltingSpeedThreshold, jamDistThreshold,
                                                   friendlyPos);
             } else {
                 myDetectorBuilder.buildE2Detector(id, lane, position, length, cont,
                                                   myJunctionControlBuilder.getTLLogic(lsaid), toLane,
-                                                  OutputDevice::getDevice(file, getFileName()),
+                                                  FileHelpers::checkForRelativity(file, getFileName()),
                                                   haltingTimeThreshold, haltingSpeedThreshold, jamDistThreshold,
                                                   friendlyPos);
             }
@@ -930,7 +932,7 @@ NLHandler::addE2Detector(const SUMOSAXAttributes& attrs) {
                 return;
             }
             myDetectorBuilder.buildE2Detector(id, lane, position, length, cont, frequency,
-                                              OutputDevice::getDevice(file, getFileName()),
+                                              FileHelpers::checkForRelativity(file, getFileName()),
                                               haltingTimeThreshold, haltingSpeedThreshold, jamDistThreshold,
                                               friendlyPos);
         }
@@ -955,7 +957,7 @@ NLHandler::beginE3Detector(const SUMOSAXAttributes& attrs) {
     }
     try {
         myDetectorBuilder.beginE3Detector(id,
-                                          OutputDevice::getDevice(file, getFileName()),
+                                          FileHelpers::checkForRelativity(file, getFileName()),
                                           frequency, haltingSpeedThreshold, haltingTimeThreshold);
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
@@ -1017,7 +1019,7 @@ NLHandler::addEdgeLaneMeanData(const SUMOSAXAttributes& attrs, int objecttype) {
                 excludeEmpty[0] != 't' && excludeEmpty[0] != 'T' && excludeEmpty[0] != '1' && excludeEmpty[0] != 'x',
                 excludeEmpty == "defaults", withInternal, trackVehicles,
                 maxTravelTime, minSamples, haltingSpeedThreshold, vtypes,
-                OutputDevice::getDevice(file, getFileName()));
+                FileHelpers::checkForRelativity(file, getFileName()));
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
     } catch (IOError& e) {

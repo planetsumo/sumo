@@ -201,6 +201,31 @@ TraCIServer::wasClosed() {
 }
 
 
+void
+TraCIServer::setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, MSEdgeVector route) {
+    myVTDControlledVehicles[v->getID()] = v;
+    v->getInfluencer().setVTDControlled(true, l, pos, edgeOffset, route);
+}
+
+void
+TraCIServer::postProcessVTD() {
+    for (std::map<std::string, MSVehicle*>::const_iterator i = myVTDControlledVehicles.begin(); i != myVTDControlledVehicles.end(); ++i) {
+        if (MSNet::getInstance()->getVehicleControl().getVehicle((*i).first) != 0) {
+            (*i).second->getInfluencer().postProcessVTD((*i).second);
+        } else {
+            WRITE_WARNING("Vehicle '" + (*i).first + "' was removed though being controlled by VTD");
+        }
+    }
+    myVTDControlledVehicles.clear();
+}
+
+
+bool
+TraCIServer::vtdDebug() const {
+    return true;
+}
+
+
 // ---------- Initialisation and Shutdown
 
 
@@ -794,8 +819,8 @@ TraCIServer::collectObjectsInRange(int domain, const PositionVector& shape, SUMO
             for (std::set<std::string>::const_iterator i = tmp.begin(); i != tmp.end(); ++i) {
                 MSLane* l = MSLane::dictionary(*i);
                 if (l != 0) {
-                    const std::deque<MSVehicle*>& vehs = l->getVehiclesSecure();
-                    for (std::deque<MSVehicle*>::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
+                    const MSLane::VehCont& vehs = l->getVehiclesSecure();
+                    for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
                         if (shape.distance((*j)->getPosition()) <= range) {
                             into.insert((*j)->getID());
                         }

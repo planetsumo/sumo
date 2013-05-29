@@ -163,7 +163,15 @@ MSFrame::fillOptions() {
     oc.doRegister("vehroute-output.write-unfinished", new Option_Bool(false));
     oc.addDescription("vehroute-output.write-unfinished", "Output", "Write vehroute output for vehicles which have not arrived at simulation end");
 
+    oc.doRegister("link-output", new Option_FileName());
+    oc.addDescription("link-output", "Output", "Save links states into FILE");
 
+#ifdef _DEBUG
+    oc.doRegister("movereminder-output", new Option_FileName());
+    oc.addDescription("movereminder-output", "Output", "Save movereminder states of selected vehicles into FILE");
+    oc.doRegister("movereminder-output.vehicles", new Option_String());
+    oc.addDescription("movereminder-output.vehicles", "Output", "List of vehicle ids which shall save their movereminder states");
+#endif
 
 #ifdef HAVE_INTERNAL
     oc.doRegister("save-state.times", new Option_IntVector(IntVector()));//!!! check, describe
@@ -224,6 +232,9 @@ MSFrame::fillOptions() {
 
     oc.doRegister("lanechange.allow-swap", new Option_Bool(false));
     oc.addDescription("lanechange.allow-swap", "Processing", "Whether blocking vehicles trying to change lanes may be swapped.");
+
+    oc.doRegister("lanechange.duration", new Option_String("0", "TIME"));
+    oc.addDescription("lanechange.duration", "Processing", "Duration of a lane change maneuver (default 0).");
 
     oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
     oc.addDescription("routing-algorithm", "Processing",
@@ -317,7 +328,7 @@ MSFrame::fillOptions() {
 void
 MSFrame::buildStreams() {
     // standard outputs
-    OutputDevice::createDeviceByOption("netstate-dump", "sumo-netstate");
+    OutputDevice::createDeviceByOption("netstate-dump", "netstate");
     OutputDevice::createDeviceByOption("summary-output", "summary");
     OutputDevice::createDeviceByOption("tripinfo-output", "tripinfos");
 
@@ -327,6 +338,10 @@ MSFrame::buildStreams() {
     OutputDevice::createDeviceByOption("full-output", "full-export");
     OutputDevice::createDeviceByOption("queue-output", "queue-export");
     OutputDevice::createDeviceByOption("vtk-output", "vtk-export");
+    OutputDevice::createDeviceByOption("link-output", "link-output");
+#ifdef _DEBUG
+    OutputDevice::createDeviceByOption("movereminder-output", "movereminder-output");
+#endif
 
     MSDevice_Vehroutes::init();
 }
@@ -371,6 +386,16 @@ MSFrame::checkOptions() {
         oc.set("meso-junction-control", "true");
     }
 #endif
+    if (string2time(oc.getString("step-length")) <= 0) {
+        WRITE_ERROR("the minimum step-length is 0.001");
+        ok = false;
+    }
+#ifdef _DEBUG
+    if (oc.isSet("movereminder-output.vehicles") && !oc.isSet("movereminder-output")) {
+        WRITE_ERROR("option movereminder-output.vehicles requires option movereminder-output to be set");
+        ok = false;
+    }
+#endif
     return ok;
 }
 
@@ -390,6 +415,7 @@ MSFrame::setMSGlobals(OptionsCont& oc) {
     MSGlobals::gTimeToGridlock = string2time(oc.getString("time-to-teleport")) < 0 ? 0 : string2time(oc.getString("time-to-teleport"));
     MSGlobals::gCheck4Accidents = !oc.getBool("ignore-accidents");
     MSGlobals::gCheckRoutes = !oc.getBool("ignore-route-errors");
+    MSGlobals::gLaneChangeDuration = string2time(oc.getString("lanechange.duration"));
 #ifdef HAVE_INTERNAL
     MSGlobals::gStateLoaded = oc.isSet("load-state");
     MSGlobals::gUseMesoSim = oc.getBool("mesosim");
@@ -405,6 +431,11 @@ MSFrame::setMSGlobals(OptionsCont& oc) {
     if (oc.isSet("routeDist.maxsize")) {
         MSRoute::setMaxRouteDistSize(oc.getInt("routeDist.maxsize"));
     }
+#ifdef _DEBUG
+    if (oc.isSet("movereminder-output")) {
+        MSBaseVehicle::initMoveReminderOutput(oc);
+    }
+#endif
 }
 
 

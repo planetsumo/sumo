@@ -33,11 +33,11 @@
 #endif
 
 #include <math.h>
+#include <microsim/MSVehicleType.h>
+#include <microsim/MSVehicle.h>
+#include <microsim/MSLane.h>
+#include <microsim/MSAbstractLaneChangeModel.h>
 #include "MSCFModel.h"
-#include "MSVehicleType.h"
-#include "MSVehicle.h"
-#include "MSLane.h"
-#include "MSAbstractLaneChangeModel.h"
 
 
 // ===========================================================================
@@ -82,18 +82,6 @@ MSCFModel::interactionGap(const MSVehicle* const veh, SUMOReal vL) const {
 }
 
 
-void
-MSCFModel::leftVehicleVsafe(const MSVehicle* const ego, const MSVehicle* const neigh, SUMOReal& vSafe) const {
-    if (neigh != 0 && neigh->getSpeed() > 60. / 3.6) {
-        SUMOReal mgap = MAX2((SUMOReal) 0, neigh->getPositionOnLane() - neigh->getVehicleType().getLength() - ego->getPositionOnLane() - ego->getVehicleType().getMinGap());
-        SUMOReal nVSafe = followSpeed(ego, ego->getSpeed(), mgap, neigh->getSpeed(), neigh->getCarFollowModel().getMaxDecel());
-        if (mgap - neigh->getSpeed() >= 0) {
-            vSafe = MIN2(vSafe, nVSafe);
-        }
-    }
-}
-
-
 SUMOReal
 MSCFModel::maxNextSpeed(SUMOReal speed, const MSVehicle* const /*veh*/) const {
     return MIN2(speed + (SUMOReal) ACCEL2SPEED(getMaxAccel()), myType->getMaxSpeed());
@@ -101,18 +89,7 @@ MSCFModel::maxNextSpeed(SUMOReal speed, const MSVehicle* const /*veh*/) const {
 
 
 SUMOReal
-MSCFModel::brakeGap(SUMOReal speed) const {
-    /* one possiblity to speed this up is to precalculate speedReduction * steps * (steps+1) / 2
-       for small values of steps (up to 10 maybe) and store them in an array */
-    const SUMOReal speedReduction = ACCEL2SPEED(getMaxDecel());
-    const int steps = int(speed / speedReduction);
-    return SPEED2DIST(steps * speed - speedReduction * steps * (steps + 1) / 2) + speed * myHeadwayTime;
-}
-
-
-SUMOReal
-MSCFModel::freeSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal seen, SUMOReal maxSpeed) const {
-    UNUSED_PARAMETER(veh);
+MSCFModel::freeSpeed(const MSVehicle* const /* veh */, SUMOReal /* speed */, SUMOReal seen, SUMOReal maxSpeed) const {
     // adapt speed to succeeding lane, no reaction time is involved
     // when breaking for y steps the following distance g is covered
     // (drive with v in the final step)

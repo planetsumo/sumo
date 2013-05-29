@@ -58,7 +58,8 @@
 // ===========================================================================
 MSInductLoop::MSInductLoop(const std::string& id, MSLane* const lane,
                            SUMOReal positionInMeters, bool splitByType) :
-    MSMoveReminder(lane), MSDetectorFileOutput(id),
+    MSMoveReminder(id, lane), 
+    MSDetectorFileOutput(id),
     myPosition(positionInMeters), mySplitByType(splitByType),
     myLastLeaveTime(STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())),
     myVehicleDataCont(),
@@ -191,7 +192,7 @@ MSInductLoop::getTimestepsSinceLastDetection() const {
 
 void
 MSInductLoop::writeXMLDetectorProlog(OutputDevice& dev) const {
-    dev.writeXMLHeader("detector");
+    dev.writeXMLHeader("detector", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.sf.net/xsd/det_e1_file.xsd\"");
 }
 
 
