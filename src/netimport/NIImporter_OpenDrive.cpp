@@ -358,6 +358,8 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             std::string id = e->id;
             if (sFrom != e->from || sTo != e->to) {
                 id = id + "." + toString((*j).s);
+            } else if(e->laneSections.size()==1) {
+                id = id + ".0.00";
             }
 
 			// build lanes to right
