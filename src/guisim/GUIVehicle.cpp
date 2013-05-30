@@ -312,7 +312,7 @@ GUIParameterTableWindow*
 GUIVehicle::getParameterWindow(GUIMainWindow& app,
                                GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 20);
+        new GUIParameterTableWindow(app, *this, 21);
     // add items
     ret->mkItem("type [NAME]", false, myType->getID());
     if (getParameter().repetitionNumber > 0) {
@@ -336,6 +336,7 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getSpeed));
     ret->mkItem("angle", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &MSVehicle::getAngle));
+    ret->mkItem("stop info", false, getStopInfo());
     ret->mkItem("CO2 (HBEFA) [mg/s]", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getHBEFA_CO2Emissions));
     ret->mkItem("CO (HBEFA) [mg/s]", true,
@@ -1029,10 +1030,8 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     }
     */
     glPopMatrix();
-    drawName(myLane->getShape().positionAtOffset(
-                 myLane->interpolateLanePosToGeometryPos(
-                     myState.pos() - MIN2(getVehicleType().getLength() / 2, SUMOReal(5)))),
-             s.scale, s.vehicleName);
+    drawName(getPosition(-MIN2(getVehicleType().getLength() / 2, SUMOReal(5))),
+            s.scale, s.vehicleName);
     glPopName();
     if (myPersonDevice != 0) {
         const std::vector<MSPerson*>& ps = myPersonDevice->getPersons();
@@ -1089,10 +1088,7 @@ GUIVehicle::drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisuali
                 // the time slot that ego vehicle uses when checking opened may
                 // differ from the one it requests in setApproaching
                 MSLink::ApproachingVehicleInformation avi = (*i).myLink->getApproaching(this);
-                if (avi.arrivalTime != (*i).myArrivalTime || avi.leavingTime != leaveTime) {
-                    glColor3d(1, 0.65, 0);
-                    drawLinkItem(p + Position(0, -1), avi.arrivalTime, avi.leavingTime, s.addExaggeration * 0.7);
-                }
+                assert(avi.arrivalTime == (*i).myArrivalTime && avi.leavingTime == leaveTime);
             }
         }
     }
@@ -1487,6 +1483,25 @@ GUIVehicle::computeSeats(const Position& front, const Position& back, int& requi
 SUMOReal 
 GUIVehicle::getLastLaneChangeOffset() const {
     return STEPS2TIME(getLaneChangeModel().getLastLaneChangeOffset());
+}
+
+
+std::string 
+GUIVehicle::getStopInfo() const {
+    std::string result = "";
+    if (isParking()) {
+        result += "parking";
+    } else if (isStopped()) {
+        result += "stopped";
+    } else {
+        return "";
+    }
+    if (myStops.front().triggered) {
+        result += ", triggered";
+    } else {
+        result += ", duration=" + time2string(myStops.front().duration);
+    }
+    return result;
 }
 
 

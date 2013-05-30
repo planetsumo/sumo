@@ -311,11 +311,11 @@ public:
     /** @brief Return current position (x/y, cartesian)
      *
      * If the vehicle's myLane is 0, Position::INVALID.
-     * @todo Recheck myLane usage in this context, think about a proper "invalid" return value
+     * @param[in] offset optional offset in longitudianl direction
      * @return The current position (in cartesian coordinates)
      * @see myLane
      */
-    Position getPosition() const;
+    Position getPosition(SUMOReal offset=0) const;
 
 
     /** @brief Returns the lane the vehicle is on
@@ -1006,8 +1006,7 @@ protected:
         SUMOReal availableSpace;
         DriveProcessItem(MSLink* link, SUMOReal vPass, SUMOReal vWait, bool setRequest,
                          SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal distance,
-                         SUMOReal leaveSpeed=-1.
-                        ) :
+                         SUMOReal leaveSpeed=-1.) :
             myLink(link), myVLinkPass(vPass), myVLinkWait(vWait), mySetRequest(setRequest),
             myArrivalTime(arrivalTime), myArrivalSpeed(arrivalSpeed), myDistance(distance),
             accelV(leaveSpeed), hadVehicle(false), availableSpace(-1.) { };
@@ -1059,9 +1058,8 @@ protected:
      * @param[in,out] the safe velocity for arriving at the next link
      */
     void adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
-                       const SUMOReal seen, const int lastLink,
-                       const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass,
-                       DriveItemVector& lfLinks) const;
+                       const SUMOReal seen, DriveProcessItem* const lastLink,
+                       const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass) const;
 
 private:
     /* @brief The vehicle's knowledge about edge efforts/travel times; @see MSEdgeWeightsStorage

@@ -228,7 +228,9 @@ GeoConvHelper::cartesian2geo(Position& cartesian) const {
 
 bool
 GeoConvHelper::x2cartesian(Position& from, bool includeInBoundary) {
-    myOrigBoundary.add(from);
+    if (includeInBoundary) {
+        myOrigBoundary.add(from);
+    }
     // init projection parameter on first use
 #ifdef HAVE_PROJ
     if (myProjection == 0) {

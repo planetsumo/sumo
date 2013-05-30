@@ -111,6 +111,8 @@ FXDEFMAP(GUIApplicationWindow) GUIApplicationWindowMap[] = {
     FXMAPFUNC(SEL_COMMAND,  MID_START,              GUIApplicationWindow::onCmdStart),
     FXMAPFUNC(SEL_COMMAND,  MID_STOP,               GUIApplicationWindow::onCmdStop),
     FXMAPFUNC(SEL_COMMAND,  MID_STEP,               GUIApplicationWindow::onCmdStep),
+    FXMAPFUNC(SEL_COMMAND,  MID_TIME_TOOGLE,        GUIApplicationWindow::onCmdTimeToggle),
+    FXMAPFUNC(SEL_COMMAND,  MID_DELAY_TOOGLE,       GUIApplicationWindow::onCmdDelayToggle),
     FXMAPFUNC(SEL_COMMAND,  MID_CLEARMESSAGEWINDOW, GUIApplicationWindow::onCmdClearMsgWindow),
 
     FXMAPFUNC(SEL_UPDATE,   MID_OPEN_CONFIG,       GUIApplicationWindow::onUpdOpen),
@@ -146,9 +148,10 @@ GUIApplicationWindow::GUIApplicationWindow(FXApp* a,
     : GUIMainWindow(a),
       myLoadThread(0), myRunThread(0),
       myAmLoading(false),
-      mySimDelay(50),
+      myAlternateSimDelay(0),
       myRecentNets(a, "nets"), myConfigPattern(configPattern),
-      hadDependentBuild(false) {
+      hadDependentBuild(false),
+      myShowTimeAsHMS(false) {
     GUIIconSubSys::init(a);
 }
 
@@ -260,6 +263,8 @@ GUIApplicationWindow::create() {
     if (getApp()->reg().readIntEntry("SETTINGS", "maximized", 0) == 1) {
         maximize();
     }
+    myShowTimeAsHMS = (getApp()->reg().readIntEntry("gui", "timeasHMS", 0) == 1);
+    myAlternateSimDelay = getApp()->reg().readIntEntry("gui", "alternateSimDelay", 100);
 }
 
 
@@ -473,14 +478,14 @@ GUIApplicationWindow::buildToolBars() {
                                    LAYOUT_DOCK_SAME | LAYOUT_SIDE_TOP | FRAME_RAISED);
         new FXToolBarGrip(myToolBar3, myToolBar3, FXToolBar::ID_TOOLBARGRIP,
                           TOOLBARGRIP_DOUBLE);
-        new FXLabel(myToolBar3, "Time:", 0, LAYOUT_CENTER_Y);
-        myLCDLabel = new FXEX::FXLCDLabel(myToolBar3, 9, 0, 0,
-                                          FXEX::LCDLABEL_LEADING_ZEROS);
+        new FXButton(myToolBar3, "Time:\t\tToggle between seconds and hour:minute:seconds display", 0, this, MID_TIME_TOOGLE, 
+                BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
+        myLCDLabel = new FXEX::FXLCDLabel(myToolBar3, 13, 0, 0, JUSTIFY_RIGHT);
         myLCDLabel->setHorizontal(2);
         myLCDLabel->setVertical(6);
         myLCDLabel->setThickness(2);
         myLCDLabel->setGroove(2);
-        myLCDLabel->setText("-----------");
+        myLCDLabel->setText("-------------");
     }
     {
         // Simulation Delay
@@ -489,7 +494,8 @@ GUIApplicationWindow::buildToolBars() {
                                    LAYOUT_DOCK_SAME | LAYOUT_SIDE_TOP | FRAME_RAISED | LAYOUT_FILL_Y);
         new FXToolBarGrip(myToolBar4, myToolBar4, FXToolBar::ID_TOOLBARGRIP,
                           TOOLBARGRIP_DOUBLE);
-        new FXLabel(myToolBar4, "Delay (ms):", 0, LAYOUT_CENTER_Y);
+        new FXButton(myToolBar4, "Delay (ms):\t\tToggle between alternative delay values", 0, this, MID_DELAY_TOOGLE,
+                BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
         mySimDelayTarget =
             new FXRealSpinDial(myToolBar4, 7, 0, MID_SIMDELAY,
                                LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y);
@@ -525,11 +531,9 @@ GUIApplicationWindow::onCmdQuit(FXObject*, FXSelector, void*) {
     getApp()->reg().writeIntEntry("SETTINGS", "width", getWidth());
     getApp()->reg().writeIntEntry("SETTINGS", "height", getHeight());
     getApp()->reg().writeStringEntry("SETTINGS", "basedir", gCurrentFolder.text());
-    if (isMaximized()) {
-        getApp()->reg().writeIntEntry("SETTINGS", "maximized", 1);
-    } else {
-        getApp()->reg().writeIntEntry("SETTINGS", "maximized", 0);
-    }
+    getApp()->reg().writeIntEntry("SETTINGS", "maximized", isMaximized() ? 1 : 0);
+    getApp()->reg().writeIntEntry("gui", "timeasHMS", myShowTimeAsHMS ? 1 :0);
+    getApp()->reg().writeIntEntry("gui", "alternateSimDelay", myAlternateSimDelay);
     getApp()->exit(0);
     return 1;
 }
@@ -695,6 +699,25 @@ GUIApplicationWindow::onCmdStep(FXObject*, FXSelector, void*) {
         myWasStarted = true;
     }
     myRunThread->singleStep();
+    return 1;
+}
+
+
+long
+GUIApplicationWindow::onCmdTimeToggle(FXObject*, FXSelector, void*) {
+    myShowTimeAsHMS = !myShowTimeAsHMS;
+    if (myRunThread->simulationAvailable()) {
+        updateTimeLCD(myRunThread->getNet().getCurrentTimeStep());
+    }
+    return 1;
+}
+
+
+long
+GUIApplicationWindow::onCmdDelayToggle(FXObject*, FXSelector, void*) {
+    const SUMOTime tmp = myAlternateSimDelay;
+    myAlternateSimDelay = mySimDelayTarget->getValue();
+    mySimDelayTarget->setValue(tmp);
     return 1;
 }
 
@@ -940,12 +963,7 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
             setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
         }
         // set simulation step begin information
-        std::string t = time2string(ec->myNet->getCurrentTimeStep());
-        if (myAmGaming || fmod(TS, 1.) == 0.) {
-            myLCDLabel->setText(t.substr(0, t.length() - 3).c_str());
-        } else {
-            myLCDLabel->setText(t.c_str());
-        }
+        updateTimeLCD(ec->myNet->getCurrentTimeStep());
     }
     getApp()->endWaitCursor();
     // start if wished
@@ -959,12 +977,7 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
 void
 GUIApplicationWindow::handleEvent_SimulationStep(GUIEvent*) {
     updateChildren();
-    std::string t = time2string(myRunThread->getNet().getCurrentTimeStep());
-    if (myAmGaming || fmod(TS, 1.) == 0.) {
-        myLCDLabel->setText(t.substr(0, t.length() - 3).c_str());
-    } else {
-        myLCDLabel->setText(t.c_str());
-    }
+    updateTimeLCD(myRunThread->getNet().getCurrentTimeStep());
     update();
 }
 
@@ -1046,7 +1059,7 @@ GUIApplicationWindow::getBuildGLCanvas() const {
 void
 GUIApplicationWindow::closeAllWindows() {
     myTrackerLock.lock();
-    myLCDLabel->setText("-----------");
+    myLCDLabel->setText("-------------");
     // remove trackers and other external windows
     size_t i;
     for (i = 0; i < mySubWindows.size(); ++i) {
@@ -1105,6 +1118,27 @@ GUIApplicationWindow::setStatusBarText(const std::string& text) {
     myStatusbar->getStatusLine()->setNormalText(text.c_str());
 }
 
+
+void 
+GUIApplicationWindow::updateTimeLCD(const SUMOTime time) {
+    SUMOReal fracSeconds = STEPS2TIME(time);
+    const bool hideFraction = myAmGaming || fmod(TS, 1.) == 0.;
+    const int BuffSize = 100;
+    char buffer[BuffSize];
+    if (myShowTimeAsHMS) {
+        const int hours = (int)fracSeconds / 3600;
+        const int minutes = ((int)fracSeconds % 3600) / 60;
+        fracSeconds = fracSeconds - 3600 * hours - 60 * minutes;
+        const std::string format = (hideFraction ?
+                 "%02d-%02d-%02.0f" : "%02d-%02d-%06.3f");
+        snprintf(buffer, BuffSize, format.c_str(), hours, minutes, fracSeconds);
+    } else {
+        const std::string format = (hideFraction ?
+                 "%13.0f" : "%13.3f");
+        snprintf(buffer, BuffSize, format.c_str(), fracSeconds);
+    }
+    myLCDLabel->setText(buffer);
+}
 
 /****************************************************************************/
 
