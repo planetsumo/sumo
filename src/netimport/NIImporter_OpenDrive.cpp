@@ -181,6 +181,8 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 
     // convert geometries into a discretised representation
     computeShapes(edges);
+    // check whether lane sections are valid and whether further must be introduced
+    revistLaneSections(edges);
 
     // -------------------------
     // node building
@@ -288,7 +290,6 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         }
 
     }
-
 
     // build start/end nodes which were not defined previously
     for (std::map<std::string, OpenDriveEdge*>::iterator i = outerEdges.begin(); i != outerEdges.end(); ++i) {
@@ -730,6 +731,41 @@ NIImporter_OpenDrive::computeShapes(std::map<std::string, OpenDriveEdge*>& edges
         for (unsigned int j = 0; j < e.geom.size(); ++j) {
             if (!NBNetBuilder::transformCoordinates(e.geom[j])) {
                 WRITE_ERROR("Unable to project coordinates for.");
+            }
+        }
+    }
+}
+
+
+void
+NIImporter_OpenDrive::revistLaneSections(std::map<std::string, OpenDriveEdge*>& edges) {
+    for (std::map<std::string, OpenDriveEdge*>::iterator i = edges.begin(); i != edges.end(); ++i) {
+        OpenDriveEdge& e = *(*i).second;
+        std::vector<OpenDriveLaneSection> &laneSections = e.laneSections;
+        SUMOReal lastS = -1;
+        // check whether the lane sections are in the right order
+        bool sorted = true;
+        for(std::vector<OpenDriveLaneSection>::const_iterator j=laneSections.begin(); j!=laneSections.end() && sorted; ++j) {
+            if((*j).s<=lastS) {
+                sorted = false;
+            }
+            lastS = (*j).s;
+        }
+        if(!sorted) {
+            WRITE_WARNING("The sections of edge '" + e.id + "' are not sorted properly.");
+            sort(e.laneSections.begin(), e.laneSections.end(), sections_by_s_sorter());
+        }
+        // check whether no duplicates of s-value occure
+        lastS = -1;
+        laneSections = e.laneSections;
+        for(std::vector<OpenDriveLaneSection>::iterator j=laneSections.begin(); j!=laneSections.end();) {
+            bool simlarToLast = fabs((*j).s-lastS)<POSITION_EPS;
+            lastS = (*j).s;
+            if(simlarToLast) {
+                WRITE_WARNING("Almost duplicate s-value '" + toString(lastS) + "' for lane sections occured at edge '" + e.id + "'; second entry was removed.");
+                j = laneSections.erase(j);
+            } else {
+                ++j;
             }
         }
     }

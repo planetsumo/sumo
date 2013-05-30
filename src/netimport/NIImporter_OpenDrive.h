@@ -379,6 +379,17 @@ protected:
     };
 
 
+    /** @brief A class for sorting lane sections by their s-value */
+    class sections_by_s_sorter {
+    public:
+        /// @brief Constructor
+        explicit sections_by_s_sorter() { }
+
+        /// @brief Sorting function; compares OpenDriveLaneSection::s
+        int operator()(const OpenDriveLaneSection& ls1, const OpenDriveLaneSection& ls2) {
+            return ls1.s < ls2.s;
+        }
+    };
 
 protected:
     /** @brief Constructor
@@ -470,7 +481,19 @@ protected:
     static void calcPointOnCurve(SUMOReal* ad_x, SUMOReal* ad_y, SUMOReal ad_centerX, SUMOReal ad_centerY,
                                  SUMOReal ad_r, SUMOReal ad_length);
 
+
+    /** @brief Computes a polygon representation of each edge's geometry
+     * @param[in] edges The edges which geometries shall be converted
+     */
     static void computeShapes(std::map<std::string, OpenDriveEdge*>& edges);
+
+    /** @brief Rechecks lane sections of the given edges
+     *
+     *
+     * @param[in] edges The edges which lane sections shall be reviewed
+     */
+    static void revistLaneSections(std::map<std::string, OpenDriveEdge*>& edges);
+
     static void setNodeSecure(NBNodeCont& nc, OpenDriveEdge& e,
                               const std::string& nodeID, NIImporter_OpenDrive::LinkType lt);
 
