@@ -8,7 +8,13 @@ traci
 
 # complex jtrrouter tests
 jtrrouter
+
+# complex netconvert tests
 netconvert
+
+# complex traffic lights tests
+traffic_lights
 
 # tutorials
 tutorial
+
