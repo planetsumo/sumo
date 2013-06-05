@@ -169,15 +169,15 @@ MSLink::blockedAtTime(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal arrival
         if (!i->second.willPass) {
             continue;
         }
+        const SUMOTime foeArrivalTime = (1.0 - impatience) * i->second.arrivalTime + impatience * i->second.arrivalTimeBraking;
+        const SUMOReal foeArrivalSpeed = (1.0 - impatience) * i->second.arrivalSpeed + impatience * i->second.arrivalSpeedBraking;
         if (i->second.leavingTime < arrivalTime) {
             // ego wants to be follower
             if (sameTargetLane && unsafeHeadwayTime(arrivalTime - i->second.leavingTime, i->second.leaveSpeed, arrivalSpeed)) {
                 return true;
             }
-        } else if (i->second.arrivalTime > leaveTime) {
+        } else if (foeArrivalTime > leaveTime) {
             // ego wants to be leader.
-            const SUMOTime foeArrivalTime = (1.0 - impatience) * i->second.arrivalTime + impatience * i->second.arrivalTimeBraking;
-            const SUMOReal foeArrivalSpeed = (1.0 - impatience) * i->second.arrivalSpeed + impatience * i->second.arrivalSpeedBraking;
             if (sameTargetLane && unsafeHeadwayTime(foeArrivalTime - leaveTime, leaveSpeed, foeArrivalSpeed)) {
                 return true;
             }

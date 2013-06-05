@@ -835,8 +835,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
                                  (*link)->getState() == LINKSTATE_TL_YELLOW_MINOR;
         const bool setRequest = v > 0; // even if red, if we cannot break we should issue a request
         const SUMOReal vLinkWait = MIN2(v, cfModel.stopSpeed(this, stopDist));
-        const bool couldStop = seen > cfModel.brakeGap(myState.mySpeed) - myState.mySpeed * cfModel.getHeadwayTime();
-        if (yellowOrRed && couldStop) {
+        if (yellowOrRed && seen > cfModel.brakeGap(myState.mySpeed) - myState.mySpeed * cfModel.getHeadwayTime()) {
             // the vehicle is able to brake in front of a yellow/red traffic light
             lfLinks.push_back(DriveProcessItem(*link, vLinkWait, vLinkWait, false, t + TIME2STEPS(seen / vLinkWait), vLinkWait, 0, SUMOTime_MAX, stopDist));
             // XXX division by 0 (vLinkWait) should be avoided
@@ -881,10 +880,13 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         // compute speed, time if vehicle starts braking now
         // if stopping is possible, arrivalTime can be arbitrarily large. A small value keeps fractional times (impatience) meaningful
         SUMOReal arrivalSpeedBraking = 0;
-        SUMOTime arrivalTimeBraking = arrivalTime + TIME2STEPS(10); 
-        if (!couldStop) { 
-            arrivalSpeedBraking = estimateSpeedAfterDistance(seen, v, getVehicleType().getCarFollowModel().getMaxDecel());
-            arrivalTimeBraking = TIME2STEPS(seen / ((v + arrivalSpeedBraking) * 0.5));
+        SUMOTime arrivalTimeBraking = arrivalTime + TIME2STEPS(30); 
+        if (seen < cfModel.brakeGap(v) && 
+                // mismatch between discrete formula (brakeGap) and continuous formula (estimateSpeedAfterDistance)
+                (2 * seen * -getVehicleType().getCarFollowModel().getMaxDecel() + v * v > 0)) { 
+            arrivalSpeedBraking = estimateSpeedAfterDistance(seen, v, -getVehicleType().getCarFollowModel().getMaxDecel());
+            // due to discrecte/continuous mismatch we have to ensure arrivalTimeBraking >= arrivalTime
+            arrivalTimeBraking = MAX2(arrivalTime, t + TIME2STEPS(seen / ((v + arrivalSpeedBraking) * 0.5)));
         }
         lfLinks.push_back(DriveProcessItem(*link, v, vLinkWait, setRequest,
                                            arrivalTime, arrivalSpeed, 
@@ -1950,7 +1952,8 @@ MSVehicle::getLaneIndex() const {
 
 SUMOReal 
 MSVehicle::getImpatience() const {
-    return MAX2((SUMOReal)0, MIN2((SUMOReal)1, getVehicleType().getImpatience() + myWaitingTime / MSGlobals::gTimeToGridlock));
+    return MAX2((SUMOReal)0, MIN2((SUMOReal)1, getVehicleType().getImpatience() + 
+                (MSGlobals::gTimeToGridlock > 0 ? (SUMOReal)myWaitingTime / MSGlobals::gTimeToGridlock : 0)));
 }
 
 
