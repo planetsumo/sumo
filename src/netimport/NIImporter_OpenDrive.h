@@ -146,7 +146,8 @@ protected:
 		    OPENDRIVE_ATTR_CONNECTINGROAD,
 		    OPENDRIVE_ATTR_FROM,
 		    OPENDRIVE_ATTR_TO,
-		    OPENDRIVE_ATTR_MAX
+		    OPENDRIVE_ATTR_MAX,
+            OPENDRIVE_ATTR_SOFFSET
     };
 
 
@@ -247,15 +248,15 @@ protected:
             : id(idArg), level(levelArg), type(typeArg), successor(UNSET_CONNECTION), predecessor(UNSET_CONNECTION),
 		width(0), speed(0) { }
 
-        int id;
-        std::string level;
-        std::string type;
-        int successor;
-        int predecessor;
-		SUMOReal speed;
-		SUMOReal width; ///< @todo: this is the maximum width only
+        int id; //!< The lane's id
+        std::string level; //!< The lane's level (not used)
+        std::string type; //!< The lane's type
+        int successor; //!< The lane's successor lane
+        int predecessor; //!< The lane's predecessor lane
+        std::vector<std::pair<SUMOReal, SUMOReal> > speeds; //!< List of positions/speeds of speed changes
+		SUMOReal speed; //!< The lane's speed (set in post-processing)
+		SUMOReal width; //!< The lane's width; @todo: this is the maximum width only
     };
-
 
 
     /**
@@ -285,6 +286,9 @@ protected:
 		 */
         std::map<int, int> getInnerConnections(OpenDriveXMLTag dir, const OpenDriveLaneSection& prev);
 
+
+        bool buildSpeedChanges(const NBTypeCont &tc, std::vector<OpenDriveLaneSection> &newSections);
+        OpenDriveLaneSection buildLaneSection(SUMOReal startPos);
 
         /// @brief The starting offset of this lane section
         SUMOReal s;
@@ -391,6 +395,25 @@ protected:
         }
     };
 
+    /* @brief A class for search in position/speed tuple vectors for the given position */
+    class same_position_finder {
+    public:
+        /** @brief constructor */
+        explicit same_position_finder(SUMOReal pos) : myPosition(pos) { }
+
+        /** @brief the comparing function */
+        bool operator()(const std::pair<SUMOReal, SUMOReal> &ps) {
+            return ps.first==myPosition;
+        }
+
+    private:
+        same_position_finder& operator=(const same_position_finder&); // just to avoid a compiler warning
+    private:
+        /// @brief The position to search for
+        SUMOReal myPosition;
+
+    };
+
 protected:
     /** @brief Constructor
      * @param[in] tc The type container used to determine whether a lane shall kept
@@ -492,7 +515,7 @@ protected:
      *
      * @param[in] edges The edges which lane sections shall be reviewed
      */
-    static void revistLaneSections(std::map<std::string, OpenDriveEdge*>& edges);
+    static void revisitLaneSections(const NBTypeCont &tc, std::map<std::string, OpenDriveEdge*>& edges);
 
     static void setNodeSecure(NBNodeCont& nc, OpenDriveEdge& e,
                               const std::string& nodeID, NIImporter_OpenDrive::LinkType lt);

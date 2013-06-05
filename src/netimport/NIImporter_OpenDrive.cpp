@@ -32,6 +32,7 @@
 #endif
 #include <string>
 #include <cmath>
+#include <iterator>
 #include <utils/xml/SUMOSAXHandler.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/TplConvert.h>
@@ -123,6 +124,7 @@ StringBijection<int>::Entry NIImporter_OpenDrive::openDriveAttrs[] = {
     { "from",			NIImporter_OpenDrive::OPENDRIVE_ATTR_FROM },
     { "to",  			NIImporter_OpenDrive::OPENDRIVE_ATTR_TO },
 	{ "max",            NIImporter_OpenDrive::OPENDRIVE_ATTR_MAX },
+    { "sOffset",        NIImporter_OpenDrive::OPENDRIVE_ATTR_SOFFSET },
 
     { "",               NIImporter_OpenDrive::OPENDRIVE_ATTR_NOTHING }
 };
@@ -182,7 +184,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     // convert geometries into a discretised representation
     computeShapes(edges);
     // check whether lane sections are valid and whether further must be introduced
-    revistLaneSections(edges);
+    revisitLaneSections(tc, edges);
 
     // -------------------------
     // node building
@@ -327,7 +329,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         int priorityL = e->getPriority(OPENDRIVE_TAG_LEFT);
         SUMOReal sB = 0;
         SUMOReal sE = e->length;
-        SUMOReal cF = e->length / e->geom.length();
+        SUMOReal cF = e->length / e->geom.length2D();
         NBEdge* prevRight = 0;
         NBEdge* prevLeft = 0;
 
@@ -354,7 +356,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
                 }
                 sE = nextS / cF;
             }
-            PositionVector geom = e->geom.getSubpart(sB, sE);
+            PositionVector geom = e->geom.getSubpart2D(sB, sE);
             std::string id = e->id;
             if (sFrom != e->from || sTo != e->to) {
                 id = id + "." + toString((*j).s);
@@ -716,9 +718,6 @@ NIImporter_OpenDrive::computeShapes(std::map<std::string, OpenDriveEdge*>& edges
                     break;
                 case OPENDRIVE_GT_POLY3:
                     geom = geomFromPoly(e, g);
-                    if (geom.size() == 1) {
-                        geom = geomFromPoly(e, g);
-                    }
                     break;
                 default:
                     break;
@@ -740,10 +739,23 @@ NIImporter_OpenDrive::computeShapes(std::map<std::string, OpenDriveEdge*>& edges
 
 
 void
-NIImporter_OpenDrive::revistLaneSections(std::map<std::string, OpenDriveEdge*>& edges) {
+NIImporter_OpenDrive::revisitLaneSections(const NBTypeCont &tc, std::map<std::string, OpenDriveEdge*>& edges) {
     for (std::map<std::string, OpenDriveEdge*>::iterator i = edges.begin(); i != edges.end(); ++i) {
         OpenDriveEdge& e = *(*i).second;
         std::vector<OpenDriveLaneSection> &laneSections = e.laneSections;
+        // split by speed limits
+        std::vector<OpenDriveLaneSection> newSections;
+        for(std::vector<OpenDriveLaneSection>::iterator j=laneSections.begin(); j!=laneSections.end(); ++j) {
+            std::vector<OpenDriveLaneSection> splitSections;
+            bool splitBySpeed = (*j).buildSpeedChanges(tc, splitSections);
+            if(!splitBySpeed) {
+                newSections.push_back(*j);
+                continue;
+            }
+            std::copy(splitSections.begin(), splitSections.end(), back_inserter(newSections));
+        }
+        e.laneSections = newSections;
+        laneSections = e.laneSections;
         SUMOReal lastS = -1;
         // check whether the lane sections are in the right order
         bool sorted = true;
@@ -859,7 +871,6 @@ NIImporter_OpenDrive::geomFromPoly(const OpenDriveEdge& e, const OpenDriveGeomet
     UNUSED_PARAMETER(e);
     std::vector<Position> ret;
     for (SUMOReal off = 0; off < g.length + 2.; off += 2.) {
-        //SUMOReal off = g.length;
         SUMOReal x = off;
         SUMOReal y = g.params[0] + g.params[1] * off + g.params[2] * pow(off, 2.) + g.params[3] * pow(off, 3.);
         SUMOReal s = sin(g.hdg);
@@ -1001,6 +1012,94 @@ NIImporter_OpenDrive::OpenDriveLaneSection::getInnerConnections(OpenDriveXMLTag 
         }
     }
     return ret;
+}
+
+
+NIImporter_OpenDrive::OpenDriveLaneSection
+NIImporter_OpenDrive::OpenDriveLaneSection::buildLaneSection(SUMOReal startPos) {
+    OpenDriveLaneSection ret(*this);
+    ret.s += startPos;
+    for(unsigned int k=0; k!=ret.lanesByDir[OPENDRIVE_TAG_RIGHT].size(); ++k) {
+        OpenDriveLane &l = ret.lanesByDir[OPENDRIVE_TAG_RIGHT][k];
+        std::vector<std::pair<SUMOReal, SUMOReal> >::const_iterator i = std::find_if(l.speeds.begin(), l.speeds.end(), same_position_finder(startPos));
+        if(i!=l.speeds.end()) {
+            l.speed = (*i).second;
+        }
+    }
+    for(unsigned int k=0; k!=ret.lanesByDir[OPENDRIVE_TAG_LEFT].size(); ++k) {
+        OpenDriveLane &l = ret.lanesByDir[OPENDRIVE_TAG_LEFT][k];
+        std::vector<std::pair<SUMOReal, SUMOReal> >::const_iterator i = std::find_if(l.speeds.begin(), l.speeds.end(), same_position_finder(startPos));
+        if(i!=l.speeds.end()) {
+            l.speed = (*i).second;
+        }
+    }
+    return ret;
+}
+
+
+bool
+NIImporter_OpenDrive::OpenDriveLaneSection::buildSpeedChanges(const NBTypeCont &tc, std::vector<OpenDriveLaneSection> &newSections) {
+    std::set<SUMOReal> speedChangePositions;
+    // collect speed change positions and apply initial speed to the begin
+    for(std::vector<OpenDriveLane>::iterator k=lanesByDir[OPENDRIVE_TAG_RIGHT].begin(); k!=lanesByDir[OPENDRIVE_TAG_RIGHT].end(); ++k) {
+        for(std::vector<std::pair<SUMOReal, SUMOReal> >::const_iterator l=(*k).speeds.begin(); l!=(*k).speeds.end(); ++l) {
+            speedChangePositions.insert((*l).first);
+            if((*l).first==0) {
+                (*k).speed = (*l).second;
+            }
+        }
+    }
+    for(std::vector<OpenDriveLane>::iterator k=lanesByDir[OPENDRIVE_TAG_LEFT].begin(); k!=lanesByDir[OPENDRIVE_TAG_LEFT].end(); ++k) {
+        for(std::vector<std::pair<SUMOReal, SUMOReal> >::const_iterator l=(*k).speeds.begin(); l!=(*k).speeds.end(); ++l) {
+            speedChangePositions.insert((*l).first);
+            if((*l).first==0) {
+                (*k).speed = (*l).second;
+            }
+        }
+    }
+    // do nothing if there is none
+    if(speedChangePositions.size()==0) {
+        return false;
+    }
+    if(*speedChangePositions.begin()>0) {
+        speedChangePositions.insert(0);
+    }
+    //
+    for(std::set<SUMOReal>::iterator i=speedChangePositions.begin(); i!=speedChangePositions.end(); ++i) {
+        if(i==speedChangePositions.begin()) {
+            newSections.push_back(*this);
+        } else {
+            newSections.push_back(buildLaneSection(*i));
+        }
+    }
+    // propagate speeds
+    for(int i=0; i!=(int) newSections.size(); ++i) {
+        OpenDriveLaneSection &ls = newSections[i];
+        std::map<OpenDriveXMLTag, std::vector<OpenDriveLane> > &lanesByDir = ls.lanesByDir;
+        for(int j=0; j!=lanesByDir[OPENDRIVE_TAG_RIGHT].size(); ++j) {
+            OpenDriveLane &l = lanesByDir[OPENDRIVE_TAG_RIGHT][j];
+            if(l.speed!=0) {
+                continue;
+            }
+            if(i>1) {
+                l.speed = newSections[i-1].lanesByDir[OPENDRIVE_TAG_RIGHT][j].speed;
+            } else {
+                tc.getSpeed(l.type);
+            }
+        }
+        for(int j=0; j!=lanesByDir[OPENDRIVE_TAG_LEFT].size(); ++j) {
+            OpenDriveLane &l = lanesByDir[OPENDRIVE_TAG_LEFT][j];
+            if(l.speed!=0) {
+                continue;
+            }
+            if(i<(int) newSections.size() - 1) {
+                l.speed = newSections[i+1].lanesByDir[OPENDRIVE_TAG_LEFT][j].speed;
+            } else {
+                tc.getSpeed(l.type);
+            }
+        }
+    }
+    return true;
 }
 
 
@@ -1209,7 +1308,8 @@ NIImporter_OpenDrive::myStartElement(int element,
         case OPENDRIVE_TAG_SPEED: {
             if (myElementStack.size() >= 2 && myElementStack[myElementStack.size() - 1] == OPENDRIVE_TAG_LANE) {
                 SUMOReal speed = attrs.get<SUMOReal>(OPENDRIVE_ATTR_MAX, myCurrentEdge.id.c_str(), ok);
-				myCurrentEdge.laneSections.back().lanesByDir[myCurrentLaneDirection].back().speed = speed;
+                SUMOReal pos = attrs.get<SUMOReal>(OPENDRIVE_ATTR_SOFFSET, myCurrentEdge.id.c_str(), ok);
+				myCurrentEdge.laneSections.back().lanesByDir[myCurrentLaneDirection].back().speeds.push_back(std::make_pair(pos, speed));
             }
         }
         break;
