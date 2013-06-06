@@ -48,6 +48,7 @@
 #include <utils/gui/div/GUIGlobalSelection.h>
 #include <utils/gui/div/GLHelper.h>
 #include <utils/gui/div/GLObjectValuePassConnector.h>
+#include <utils/gui/div/GUIGlobalSelection.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSLane.h>
 #include <microsim/logging/CastingFunctionBinding.h>
@@ -62,7 +63,7 @@
 #include "GUIPerson.h"
 #include "GUINet.h"
 #include "GUIEdge.h"
-#include "GUILaneWrapper.h"
+#include "GUILane.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -83,6 +84,7 @@ FXDEFMAP(GUIVehicle::GUIVehiclePopupMenu) GUIVehiclePopupMenuMap[] = {
     FXMAPFUNC(SEL_COMMAND, MID_STOP_TRACK, GUIVehicle::GUIVehiclePopupMenu::onCmdStopTrack),
     FXMAPFUNC(SEL_COMMAND, MID_SHOW_LFLINKITEMS, GUIVehicle::GUIVehiclePopupMenu::onCmdShowLFLinkItems),
     FXMAPFUNC(SEL_COMMAND, MID_HIDE_LFLINKITEMS, GUIVehicle::GUIVehiclePopupMenu::onCmdHideLFLinkItems),
+    FXMAPFUNC(SEL_COMMAND, MID_SHOW_FOES, GUIVehicle::GUIVehiclePopupMenu::onCmdShowFoes),
 };
 
 // Object implementation
@@ -232,6 +234,14 @@ GUIVehicle::GUIVehiclePopupMenu::onCmdHideLFLinkItems(FXObject*, FXSelector, voi
     return 1;
 }
 
+long
+GUIVehicle::GUIVehiclePopupMenu::onCmdShowFoes(FXObject*, FXSelector, void*) {
+    assert(myObject->getType() == GLO_VEHICLE);
+    static_cast<GUIVehicle*>(myObject)->selectBlockingFoes();
+    GUIVehicle* veh = dynamic_cast<GUIVehicle*>(myObject);
+    return 1;
+}
+
 
 /* -------------------------------------------------------------------------
  * GUIVehicle - methods
@@ -300,6 +310,8 @@ GUIVehicle::getPopUpMenu(GUIMainWindow& app,
     } else {
         new FXMenuCommand(ret, "Stop Tracking", 0, ret, MID_STOP_TRACK);
     }
+    new FXMenuCommand(ret, "Select Foes", 0, ret, MID_SHOW_FOES);
+
     new FXMenuSeparator(ret);
     //
     buildShowParamsPopupEntry(ret);
@@ -890,9 +902,7 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     glPushMatrix();
     Position p1 = getPosition();
     // one seat in the center of the vehicle by default
-    mySeatPositions[0] = myLane->getShape().positionAtOffset(
-                             myLane->interpolateLanePosToGeometryPos(
-                                 myState.pos() - getVehicleType().getLength() / 2));
+    mySeatPositions[0] = myLane->geometryPositionAtOffset(myState.pos() - getVehicleType().getLength() / 2);
     glTranslated(p1.x(), p1.y(), getType());
     glRotated(getAngle(), 0, 0, 1);
     // set lane color
@@ -1088,11 +1098,7 @@ GUIVehicle::drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisuali
                 // the time slot that ego vehicle uses when checking opened may
                 // differ from the one it requests in setApproaching
                 MSLink::ApproachingVehicleInformation avi = (*i).myLink->getApproaching(this);
-                if (avi.arrivalTime != (*i).myArrivalTime || avi.leavingTime != leaveTime) {
-                    assert(false);
-                    glColor3d(1, 0.65, 0);
-                    drawLinkItem(p + Position(0, -1), avi.arrivalTime, avi.leavingTime, s.addExaggeration * 0.7);
-                }
+                assert(avi.arrivalTime == (*i).myArrivalTime && avi.leavingTime == leaveTime);
             }
         }
     }
@@ -1231,6 +1237,8 @@ GUIVehicle::getColorValue(size_t activeScheme) const {
                 return -1;
             }
             return getNumberReroutes();
+        case 20:
+            return gSelected.isSelected(GLO_VEHICLE, getGlID());
     }
     return 0;
 }
@@ -1332,19 +1340,9 @@ void
 GUIVehicle::draw(const MSRoute& r) const {
     MSRouteIterator i = r.begin();
     for (; i != r.end(); ++i) {
-        const MSEdge* e = *i;
-        const GUIEdge* ge = static_cast<const GUIEdge*>(e);
-        const GUILaneWrapper& lane = ge->getLaneGeometry((size_t) 0);
-        GLHelper::drawBoxLines(lane.getShape(), lane.getShapeRotations(), lane.getShapeLengths(), 1.0);
+        const GUILane* lane = static_cast<GUILane*>((*i)->getLanes()[0]);
+        GLHelper::drawBoxLines(lane->getShape(), lane->getShapeRotations(), lane->getShapeLengths(), 1.0);
     }
-}
-
-
-GUILaneWrapper&
-GUIVehicle::getLaneWrapper() const {
-    GUIEdge* edge = dynamic_cast<GUIEdge*>(&(myLane->getEdge()));
-    assert(edge != 0);
-    return edge->getLaneGeometry(myLane);
 }
 
 
@@ -1506,6 +1504,23 @@ GUIVehicle::getStopInfo() const {
         result += ", duration=" + time2string(myStops.front().duration);
     }
     return result;
+}
+
+
+void 
+GUIVehicle::selectBlockingFoes() const {
+    if (myLFLinkLanes.size() == 0) {
+        return;
+    }
+    const DriveProcessItem& dpi = myLFLinkLanes[0];
+    if (dpi.myLink == 0) {
+        return;
+    }
+    std::vector<const SUMOVehicle*> blockingFoes = dpi.myLink->getBlockingFoes(
+            dpi.myArrivalTime, dpi.myArrivalSpeed, dpi.getLeaveSpeed(), getVehicleType().getLengthWithGap());
+    for (std::vector<const SUMOVehicle*>::const_iterator it = blockingFoes.begin(); it != blockingFoes.end(); ++it) {
+        gSelected.select(static_cast<const GUIVehicle*>(*it)->getGlID());
+    }
 }
 
 
