@@ -50,7 +50,6 @@
 // ===========================================================================
 class GUISUMOAbstractView;
 class GUIGLObjectPopupMenu;
-class GUILaneWrapper;
 class MSDevice_Vehroutes;
 #ifdef HAVE_OSG
 class GUIOSGView;
@@ -225,6 +224,8 @@ public:
         long onCmdShowLFLinkItems(FXObject*, FXSelector, void*);
         /// @brief Called if all routes of the vehicle shall be hidden
         long onCmdHideLFLinkItems(FXObject*, FXSelector, void*);
+        /// @brief Called when show a vehicles foes
+        long onCmdShowFoes(FXObject*, FXSelector, void*);
 
     protected:
         /// @brief Information which additional visualisations are enabled (per view)
@@ -280,6 +281,9 @@ public:
     void drawBestLanes() const;
     /// @}
 
+    /// @brief adds the blocking foes to the current selection
+    void selectBlockingFoes() const;
+
 #ifdef HAVE_OSG
     void setGeometry(GUIOSGView* view, osg::ShapeDrawable* geom) {
         myGeom[view] = geom;
@@ -298,9 +302,6 @@ private:
 
     /// @brief sets the color according to the current scheme index and some vehicle function
     bool setFunctionalColor(size_t activeScheme) const;
-
-    /// @brief retrieves the laneWrapper for this vehicles lane
-    GUILaneWrapper& getLaneWrapper() const;
 
     /// @name drawing helper methods
     /// @{

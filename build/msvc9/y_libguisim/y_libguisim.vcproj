@@ -609,10 +609,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\guisim\GUILaneWrapper.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\src\guisim\GUINet.cpp"
 				>
 			</File>
@@ -695,10 +691,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\guisim\GUILaneSpeedTrigger.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\guisim\GUILaneWrapper.h"
 				>
 			</File>
 			<File

@@ -137,7 +137,7 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                     ++cnt;
                     // opened
                     tempContent.writeUnsignedByte(TYPE_UBYTE);
-                    tempContent.writeUnsignedByte(link->opened(MSNet::getInstance()->getCurrentTimeStep(), 0, 0, 0.) ? 1 : 0);
+                    tempContent.writeUnsignedByte(link->opened(MSNet::getInstance()->getCurrentTimeStep(), 0, 0, 0.0, 0.0) ? 1 : 0);
                     ++cnt;
                     // approaching foe
                     tempContent.writeUnsignedByte(TYPE_UBYTE);
@@ -145,11 +145,11 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                     ++cnt;
                     // state (not implemented, yet)
                     tempContent.writeUnsignedByte(TYPE_STRING);
-                    tempContent.writeString("");
+                    tempContent.writeString(SUMOXMLDefinitions::LinkStates.getString(link->getState()));
                     ++cnt;
-                    // direction (not implemented, yet)
+                    // direction 
                     tempContent.writeUnsignedByte(TYPE_STRING);
-                    tempContent.writeString("");
+                    tempContent.writeString(SUMOXMLDefinitions::LinkDirections.getString(link->getDirection()));
                     ++cnt;
                     // length
                     tempContent.writeUnsignedByte(TYPE_DOUBLE);

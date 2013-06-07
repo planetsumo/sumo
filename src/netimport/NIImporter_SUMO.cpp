@@ -83,7 +83,8 @@ NIImporter_SUMO::NIImporter_SUMO(NBNetBuilder& nb)
       myCurrentTL(0),
       myLocation(0),
       mySuspectKeepShape(false),
-      myHaveSeenInternalEdge(false) {}
+      myHaveSeenInternalEdge(false)
+{}
 
 
 NIImporter_SUMO::~NIImporter_SUMO() {
@@ -348,6 +349,9 @@ NIImporter_SUMO::addEdge(const SUMOSAXAttributes& attrs) {
     myCurrentEdge->length = attrs.getOpt<SUMOReal>(SUMO_ATTR_LENGTH, id.c_str(), ok, NBEdge::UNSPECIFIED_LOADED_LENGTH);
     myCurrentEdge->maxSpeed = 0;
     myCurrentEdge->streetName = attrs.getOpt<std::string>(SUMO_ATTR_NAME, id.c_str(), ok, "");
+    if (myCurrentEdge->streetName != "" && OptionsCont::getOptions().isDefault("output.street-names")) {
+        OptionsCont::getOptions().set("output.street-names", "true");
+    }
 
     std::string lsfS = toString(LANESPREAD_RIGHT);
     lsfS = attrs.getOpt<std::string>(SUMO_ATTR_SPREADTYPE, id.c_str(), ok, lsfS);
@@ -453,16 +457,9 @@ NIImporter_SUMO::addConnection(const SUMOSAXAttributes& attrs) {
     conn.toLaneIdx = attrs.get<int>(SUMO_ATTR_TO_LANE, 0, ok);
     conn.tlID = attrs.getOpt<std::string>(SUMO_ATTR_TLID, 0, ok, "");
     conn.mayDefinitelyPass = attrs.getOpt<bool>(SUMO_ATTR_PASS, 0, ok, false);
-    const size_t suffixSize = NBRampsComputer::ADDED_ON_RAMP_EDGE.size();
-    if (!conn.mayDefinitelyPass && conn.toEdgeID.size() > suffixSize &&
-            conn.toEdgeID.substr(conn.toEdgeID.size() - suffixSize) == NBRampsComputer::ADDED_ON_RAMP_EDGE) {
-        WRITE_MESSAGE("Infering connection attribute pass=\"1\" from to-edge id '" + conn.toEdgeID + "'");
-        conn.mayDefinitelyPass = true;
-    }
     if (conn.tlID != "") {
         conn.tlLinkNo = attrs.get<int>(SUMO_ATTR_TLLINKINDEX, 0, ok);
     }
-
     if (from->lanes.size() <= (size_t) fromLaneIdx) {
         WRITE_ERROR("Invalid lane index '" + toString(fromLaneIdx) + "' for connection from '" + fromID + "'.");
         return;

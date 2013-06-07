@@ -57,31 +57,13 @@ GUIEdgeControlBuilder::GUIEdgeControlBuilder()
 GUIEdgeControlBuilder::~GUIEdgeControlBuilder() {}
 
 
-MSEdge*
-GUIEdgeControlBuilder::closeEdge() {
-    MSEdge* ret = NLEdgeControlBuilder::closeEdge();
-    static_cast<GUIEdge*>(ret)->initGeometry();
-    return ret;
-}
-
-
 MSLane*
 GUIEdgeControlBuilder::addLane(const std::string& id,
                                SUMOReal maxSpeed, SUMOReal length,
                                const PositionVector& shape,
                                SUMOReal width,
                                SVCPermissions permissions) {
-    MSLane* lane = 0;
-    switch (myActiveEdge->getPurpose()) {
-        case MSEdge::EDGEFUNCTION_INTERNAL:
-        case MSEdge::EDGEFUNCTION_NORMAL:
-        case MSEdge::EDGEFUNCTION_CONNECTOR:
-            lane = new GUILane(id, maxSpeed, length, myActiveEdge,
-                               myCurrentNumericalLaneID++, shape, width, permissions);
-            break;
-        default:
-            throw InvalidArgument("A lane with an unknown type occured (" + toString(myActiveEdge->getPurpose()) + ")");
-    }
+    MSLane* lane = new GUILane(id, maxSpeed, length, myActiveEdge, myCurrentNumericalLaneID++, shape, width, permissions, myLaneStorage->size());
     myLaneStorage->push_back(lane);
     return lane;
 }

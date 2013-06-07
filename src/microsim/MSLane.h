@@ -55,7 +55,6 @@ class MSEdge;
 class MSVehicle;
 class MSLaneChanger;
 class MSLink;
-class GUILaneWrapper;
 class MSVehicleTransfer;
 class OutputDevice;
 
@@ -74,8 +73,6 @@ class MSLane : public Named, public Parameterised {
 public:
     /// needs access to myTmpVehicles (this maybe should be done via double-buffering!!!)
     friend class MSLaneChanger;
-
-    friend class GUILaneWrapper;
 
     friend class MSXMLRawOut;
 
@@ -309,7 +306,7 @@ public:
     /** @brief Returns this lane's numerical id
      * @return This lane's numerical id
      */
-    size_t getNumericalID() const {
+    inline size_t getNumericalID() const {
         return myNumericalID;
     }
 
@@ -317,18 +314,24 @@ public:
     /** @brief Returns this lane's shape
      * @return This lane's shape
      */
-    const PositionVector& getShape() const {
+    inline const PositionVector& getShape() const {
         return myShape;
     }
 
     /* @brief fit the given lane position to a visibly suitable geometry position
-     * (lane length might differ from geometry length */
+     * (lane length might differ from geometry length) */
     inline SUMOReal interpolateLanePosToGeometryPos(SUMOReal lanePos) const {
         return lanePos * myLengthGeometryFactor;
     }
 
+    /* @brief fit the given lane position to a visibly suitable geometry position
+     * and return the coordinates */
+    inline const Position geometryPositionAtOffset(SUMOReal offset) const {
+        return myShape.positionAtOffset(interpolateLanePosToGeometryPos(offset));
+    }
+
     /* @brief fit the given geomtry position to a valid lane position
-     * (lane length might differ from geometry length */
+     * (lane length might differ from geometry length) */
     inline SUMOReal interpolateGeometryPosToLanePos(SUMOReal geometryPos) const {
         return geometryPos / myLengthGeometryFactor;
     }
@@ -481,9 +484,6 @@ public:
 
 
 
-
-    // valid for gui-version only
-    virtual GUILaneWrapper* buildLaneWrapper(unsigned int index);
 
     /// @brief remove the vehicle from this lane
     virtual MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification);

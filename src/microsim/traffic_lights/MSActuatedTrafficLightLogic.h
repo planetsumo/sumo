@@ -76,7 +76,7 @@ public:
                                 //const MSSimpleTrafficLightLogic::Phases& phases,
 								const MSPhasedTrafficLightLogic::Phases& phases,
                                 unsigned int step, SUMOTime delay,
-                                const ParameterMap& parameter);
+                                const std::map<std::string, std::string>& parameter);
 
 
     /** @brief Initialises the tls with information about incoming lanes

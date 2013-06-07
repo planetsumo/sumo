@@ -88,9 +88,11 @@ MSLink::setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, 
 
 
 void
-MSLink::setApproaching(const SUMOVehicle* approaching, const SUMOTime arrivalTime, const SUMOReal arrivalSpeed, const SUMOReal leaveSpeed, const bool setRequest) {
+MSLink::setApproaching(const SUMOVehicle* approaching, const SUMOTime arrivalTime, const SUMOReal arrivalSpeed, const SUMOReal leaveSpeed, 
+        const bool setRequest, const SUMOTime arrivalTimeBraking, const SUMOReal arrivalSpeedBraking) {
     const SUMOTime leaveTime = getLeaveTime(arrivalTime, arrivalSpeed, leaveSpeed, approaching->getVehicleType().getLengthWithGap());
-    myApproachingVehicles.insert(std::make_pair(approaching, ApproachingVehicleInformation(arrivalTime, leaveTime, arrivalSpeed, leaveSpeed, setRequest)));
+    myApproachingVehicles.insert(std::make_pair(approaching, 
+                ApproachingVehicleInformation(arrivalTime, leaveTime, arrivalSpeed, leaveSpeed, setRequest, arrivalTimeBraking, arrivalSpeedBraking)));
 }
 
 
@@ -124,7 +126,7 @@ MSLink::getApproaching(const SUMOVehicle* veh) const {
     if (i != myApproachingVehicles.end()) {
         return i->second;
     } else {
-        return ApproachingVehicleInformation(-1000, -1000, 0, 0, false);
+        return ApproachingVehicleInformation(-1000, -1000, 0, 0, false, -1000, 0);
     }
 }
 
@@ -136,7 +138,8 @@ MSLink::getLeaveTime(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leave
 
 
 bool
-MSLink::opened(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength) const {
+MSLink::opened(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength, SUMOReal impatience,
+        std::vector<const SUMOVehicle*>* collectFoes) const {
     if (myState == LINKSTATE_TL_RED) {
         return false;
     }
@@ -152,7 +155,7 @@ MSLink::opened(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed,
             }
         }
 #endif
-        if ((*i)->blockedAtTime(arrivalTime, leaveTime, arrivalSpeed, leaveSpeed, myLane == (*i)->getLane())) {
+        if ((*i)->blockedAtTime(arrivalTime, leaveTime, arrivalSpeed, leaveSpeed, myLane == (*i)->getLane(), impatience, collectFoes)) {
             return false;
         }
     }
@@ -162,24 +165,39 @@ MSLink::opened(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed,
 
 bool
 MSLink::blockedAtTime(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed,
-                      bool sameTargetLane) const {
+                      bool sameTargetLane, SUMOReal impatience,
+                      std::vector<const SUMOVehicle*>* collectFoes) const {
     for (std::map<const SUMOVehicle*, ApproachingVehicleInformation>::const_iterator i = myApproachingVehicles.begin(); i != myApproachingVehicles.end(); ++i) {
         if (!i->second.willPass) {
             continue;
         }
+        const SUMOTime foeArrivalTime = (1.0 - impatience) * i->second.arrivalTime + impatience * i->second.arrivalTimeBraking;
+        const SUMOReal foeArrivalSpeed = (1.0 - impatience) * i->second.arrivalSpeed + impatience * i->second.arrivalSpeedBraking;
         if (i->second.leavingTime < arrivalTime) {
             // ego wants to be follower
             if (sameTargetLane && unsafeHeadwayTime(arrivalTime - i->second.leavingTime, i->second.leaveSpeed, arrivalSpeed)) {
-                return true;
+                if (collectFoes == 0) {
+                    return true;
+                } else {
+                    collectFoes->push_back(i->first);
+                }
             }
-        } else if (i->second.arrivalTime > leaveTime) {
-            // ego wants to be leader
-            if (sameTargetLane && unsafeHeadwayTime(i->second.arrivalTime - leaveTime, leaveSpeed, i->second.arrivalSpeed)) {
-                return true;
+        } else if (foeArrivalTime > leaveTime) {
+            // ego wants to be leader.
+            if (sameTargetLane && unsafeHeadwayTime(foeArrivalTime - leaveTime, leaveSpeed, foeArrivalSpeed)) {
+                if (collectFoes == 0) {
+                    return true;
+                } else {
+                    collectFoes->push_back(i->first);
+                }
             }
         } else {
             // even without considering safeHeadwayTime there is already a conflict
-            return true;
+            if (collectFoes == 0) {
+                return true;
+            } else {
+                collectFoes->push_back(i->first);
+            }
         }
     }
     return false;
@@ -228,7 +246,7 @@ MSLink::maybeOccupied(MSLane* lane) {
 bool
 MSLink::hasApproachingFoe(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal speed) const {
     for (std::vector<MSLink*>::const_iterator i = myFoeLinks.begin(); i != myFoeLinks.end(); ++i) {
-        if ((*i)->blockedAtTime(arrivalTime, leaveTime, speed, speed, myLane == (*i)->getLane())) {
+        if ((*i)->blockedAtTime(arrivalTime, leaveTime, speed, speed, myLane == (*i)->getLane(), 0)) {
             return true;
         }
     }
