@@ -53,7 +53,7 @@
 MSSimpleTrafficLightLogic::MSSimpleTrafficLightLogic(MSTLLogicControl& tlcontrol,
         const std::string& id, const std::string& subid, const Phases& phases,
         unsigned int step, SUMOTime delay,
-        const ParameterMap& parameters) 
+        const std::map<std::string, std::string>& parameters) 
             : MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, parameters) {}
 
 

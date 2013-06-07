@@ -1261,7 +1261,7 @@ GUIVehicle::getColorValue(size_t activeScheme) const {
                 return -1;
             }
             return getNumberReroutes();
-        case 20:
+        case 26:
             return gSelected.isSelected(GLO_VEHICLE, getGlID());
     }
     return 0;

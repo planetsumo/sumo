@@ -34,7 +34,7 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 	const Phases &phases, 
 	unsigned int step, 
 	SUMOTime delay)
-: MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay) {
+: MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, std::map<std::string, std::string>()) {
 	this->mySensors = NULL;
 	sensorsSelfBuilt = true;
 	checkPhases();
@@ -50,7 +50,7 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 	unsigned int step, 
 	SUMOTime delay, 
 	MSSOTLSensors *sensors) 
-: MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay) {
+: MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, std::map<std::string, std::string>()) {
 	this->mySensors = sensors;
 	sensorsSelfBuilt = false;
 	checkPhases();
