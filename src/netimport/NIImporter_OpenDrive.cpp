@@ -1021,6 +1021,7 @@ NIImporter_OpenDrive::OpenDriveLaneSection::buildLaneSection(SUMOReal startPos) 
     ret.s += startPos;
     for(unsigned int k=0; k!=ret.lanesByDir[OPENDRIVE_TAG_RIGHT].size(); ++k) {
         OpenDriveLane &l = ret.lanesByDir[OPENDRIVE_TAG_RIGHT][k];
+        l.speed = 0;
         std::vector<std::pair<SUMOReal, SUMOReal> >::const_iterator i = std::find_if(l.speeds.begin(), l.speeds.end(), same_position_finder(startPos));
         if(i!=l.speeds.end()) {
             l.speed = (*i).second;
@@ -1029,6 +1030,7 @@ NIImporter_OpenDrive::OpenDriveLaneSection::buildLaneSection(SUMOReal startPos) 
     for(unsigned int k=0; k!=ret.lanesByDir[OPENDRIVE_TAG_LEFT].size(); ++k) {
         OpenDriveLane &l = ret.lanesByDir[OPENDRIVE_TAG_LEFT][k];
         std::vector<std::pair<SUMOReal, SUMOReal> >::const_iterator i = std::find_if(l.speeds.begin(), l.speeds.end(), same_position_finder(startPos));
+        l.speed = 0;
         if(i!=l.speeds.end()) {
             l.speed = (*i).second;
         }
@@ -1081,7 +1083,7 @@ NIImporter_OpenDrive::OpenDriveLaneSection::buildSpeedChanges(const NBTypeCont &
             if(l.speed!=0) {
                 continue;
             }
-            if(i>1) {
+            if(i>0) {
                 l.speed = newSections[i-1].lanesByDir[OPENDRIVE_TAG_RIGHT][j].speed;
             } else {
                 tc.getSpeed(l.type);
@@ -1092,8 +1094,8 @@ NIImporter_OpenDrive::OpenDriveLaneSection::buildSpeedChanges(const NBTypeCont &
             if(l.speed!=0) {
                 continue;
             }
-            if(i<(int) newSections.size() - 1) {
-                l.speed = newSections[i+1].lanesByDir[OPENDRIVE_TAG_LEFT][j].speed;
+            if(i>0) {
+                l.speed = newSections[i-1].lanesByDir[OPENDRIVE_TAG_LEFT][j].speed;
             } else {
                 tc.getSpeed(l.type);
             }
