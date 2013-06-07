@@ -1078,26 +1078,18 @@ NIImporter_OpenDrive::OpenDriveLaneSection::buildSpeedChanges(const NBTypeCont &
     for(int i=0; i!=(int) newSections.size(); ++i) {
         OpenDriveLaneSection &ls = newSections[i];
         std::map<OpenDriveXMLTag, std::vector<OpenDriveLane> > &lanesByDir = ls.lanesByDir;
-        for(int j=0; j!=lanesByDir[OPENDRIVE_TAG_RIGHT].size(); ++j) {
-            OpenDriveLane &l = lanesByDir[OPENDRIVE_TAG_RIGHT][j];
-            if(l.speed!=0) {
-                continue;
-            }
-            if(i>0) {
-                l.speed = newSections[i-1].lanesByDir[OPENDRIVE_TAG_RIGHT][j].speed;
-            } else {
-                tc.getSpeed(l.type);
-            }
-        }
-        for(int j=0; j!=lanesByDir[OPENDRIVE_TAG_LEFT].size(); ++j) {
-            OpenDriveLane &l = lanesByDir[OPENDRIVE_TAG_LEFT][j];
-            if(l.speed!=0) {
-                continue;
-            }
-            if(i>0) {
-                l.speed = newSections[i-1].lanesByDir[OPENDRIVE_TAG_LEFT][j].speed;
-            } else {
-                tc.getSpeed(l.type);
+        for(std::map<OpenDriveXMLTag, std::vector<OpenDriveLane> >::iterator k=lanesByDir.begin(); k!=lanesByDir.end(); ++k) {
+            std::vector<OpenDriveLane> &lanes = (*k).second;
+            for(int j=0; j!=lanes.size(); ++j) {
+                OpenDriveLane &l = lanes[j];
+                if(l.speed!=0) {
+                    continue;
+                }
+                if(i>0) {
+                    l.speed = newSections[i-1].lanesByDir[(*k).first][j].speed;
+                } else {
+                    tc.getSpeed(l.type);
+                }
             }
         }
     }
