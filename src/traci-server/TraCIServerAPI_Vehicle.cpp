@@ -1006,7 +1006,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             laneA = laneB = laneC = 0;
             SUMOReal lanePosA, lanePosB, lanePosC;
             SUMOReal bestDistanceA, bestDistanceB, bestDistanceC;
-            bestDistanceA = bestDistanceB = bestDistanceC = 1000.;//pos.distanceSquaredTo2D(vehPos);
+            bestDistanceA = bestDistanceB = bestDistanceC = std::numeric_limits<SUMOReal>::max();
             int routeOffsetA, routeOffsetB, routeOffsetC;
             routeOffsetA = routeOffsetB = routeOffsetC = 0;
             // case a): edge/lane is known and matches route
@@ -1016,22 +1016,24 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             // case c) nearest matching lane
             bool cFound = vtdMap_matchingNearest(pos, origID, *v, server, server.vtdDebug(), bestDistanceC, &laneC, lanePosC, routeOffsetC, edgesC);
             //
-            SUMOReal maxRouteDistance = 50;
+            SUMOReal maxRouteDistance = 100;
+            /*
             if (cFound && (bestDistanceA > maxRouteDistance && bestDistanceC > maxRouteDistance)) {
                 // both route-based approach yield in a position too far away from the submitted --> new route!?
                 server.setVTDControlled(v, laneC, lanePosC, routeOffsetC, edgesC);
             } else {
+            */
                 // use the best we have
-                if (bFound) {
+                if (bFound && maxRouteDistance<bestDistanceB) {
                     server.setVTDControlled(v, laneB, lanePosB, routeOffsetB, edgesB);
-                } else if (aFound) {
+                } else if (aFound && maxRouteDistance<bestDistanceA) {
                     server.setVTDControlled(v, laneA, lanePosA, routeOffsetA, edgesA);
-                } else if (cFound) {
+                } else if (cFound && maxRouteDistance<bestDistanceC) {
                     server.setVTDControlled(v, laneC, lanePosC, routeOffsetC, edgesC);
                 } else {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Could not map vehicle.", outputStorage);
                 }
-            }
+            //}
         }
         break;
         default:
