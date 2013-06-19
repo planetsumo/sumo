@@ -267,11 +267,6 @@ MSVehicle::~MSVehicle() {
         (*i)->resetPartialOccupation(this);
     }
     myFurtherLanes.clear();
-    for (DriveItemVector::iterator i = myLFLinkLanes.begin(); i != myLFLinkLanes.end(); ++i) {
-        if ((*i).myLink != 0) {
-            (*i).myLink->removeApproaching(this);
-        }
-    }
     //
     if (myType->amVehicleSpecific()) {
         delete myType;
@@ -335,11 +330,6 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
 void
 MSVehicle::onRemovalFromNet(const MSMoveReminder::Notification reason) {
     workOnMoveReminders(myState.myPos - SPEED2DIST(myState.mySpeed), myState.myPos, myState.mySpeed);
-    for (DriveItemVector::iterator i = myLFLinkLanes.begin(); i != myLFLinkLanes.end(); ++i) {
-        if ((*i).myLink != 0) {
-            (*i).myLink->removeApproaching(this);
-        }
-    }
     leaveLane(reason);
 }
 
@@ -701,12 +691,6 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         int bla = 0;
     }
 #endif
-    // remove information about approaching links, will be reset later in this step
-    for (DriveItemVector::iterator i = lfLinks.begin(); i != lfLinks.end(); ++i) {
-        if ((*i).myLink != 0) {
-            (*i).myLink->removeApproaching(this);
-        }
-    }
     lfLinks.clear();
     //
     const MSCFModel& cfModel = getCarFollowModel();
@@ -875,6 +859,9 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
             // due to discrecte/continuous mismatch we have to ensure arrivalTimeBraking >= arrivalTime
             arrivalTimeBraking = MAX2(arrivalTime, t + TIME2STEPS(seen / ((v + arrivalSpeedBraking) * 0.5)));
         }
+        if ((*link)->getState() == LINKSTATE_ALLWAY_STOP) {
+            arrivalTime += (SUMOTime)RandHelper::rand((size_t)2); // tie braker 
+        }
         lfLinks.push_back(DriveProcessItem(*link, v, vLinkWait, setRequest,
                                            arrivalTime, arrivalSpeed, 
                                            arrivalTimeBraking, arrivalSpeedBraking,
@@ -932,6 +919,17 @@ MSVehicle::adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
 }
 
 
+void
+MSVehicle::setApproaches() const {
+    for (DriveItemVector::const_iterator i = myLFLinkLanes.begin(); i != myLFLinkLanes.end(); ++i) {
+        if ((*i).myLink != 0) {
+            (*i).myLink->setApproaching(this, (*i).myArrivalTime, (*i).myArrivalSpeed, (*i).getLeaveSpeed(), 
+                    (*i).mySetRequest, (*i).myArrivalTimeBraking, (*i).myArrivalSpeedBraking, getWaitingTime());
+        }
+    }
+}
+
+
 bool
 MSVehicle::executeMove() {
 #ifdef DEBUG_VEHICLE_GUI_SELECTION
@@ -966,7 +964,7 @@ MSVehicle::executeMove() {
                 vSafe = (*i).myVLinkWait;
                 braking = true;
                 lastWasGreenCont = false;
-                link->removeApproaching(this);
+                link->removeApproaching(this); // XXX order dependency
                 break;
             }
             //
@@ -979,7 +977,7 @@ MSVehicle::executeMove() {
                 braking = true;
                 lastWasGreenCont = false;
                 if (ls == LINKSTATE_EQUAL) {
-                    link->removeApproaching(this);
+                    link->removeApproaching(this); // XXX order dependency
                 }
                 break; // could be revalidated
             }
@@ -992,7 +990,7 @@ MSVehicle::executeMove() {
                 vSafe = (*i).myVLinkWait;
                 braking = true;
                 if (ls == LINKSTATE_EQUAL) {
-                    link->removeApproaching(this);
+                    link->removeApproaching(this); // XXX order dependency
                 }
                 break;
             }
@@ -1308,15 +1306,6 @@ MSVehicle::checkRewindLinkLanes(const SUMOReal lengthsInFront, DriveItemVector& 
 #else
     UNUSED_PARAMETER(lengthsInFront);
 #endif
-    for (DriveItemVector::iterator i = lfLinks.begin(); i != lfLinks.end(); ++i) {
-        if ((*i).myLink != 0) {
-            if ((*i).myLink->getState() == LINKSTATE_ALLWAY_STOP) {
-                (*i).myArrivalTime += (SUMOTime)RandHelper::rand((size_t)2); // tie braker 
-            }
-            (*i).myLink->setApproaching(this, (*i).myArrivalTime, (*i).myArrivalSpeed, (*i).getLeaveSpeed(), 
-                    (*i).mySetRequest, (*i).myArrivalTimeBraking, (*i).myArrivalSpeedBraking, getWaitingTime());
-        }
-    }
 }
 
 

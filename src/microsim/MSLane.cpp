@@ -673,6 +673,16 @@ MSLane::planMovements(SUMOTime t) {
 
 
 void
+MSLane::setApproaches() {
+    for (VehCont::reverse_iterator veh = myVehicles.rbegin(); veh != myVehicles.rend(); ++veh) {
+        if ((*veh)->getLane() == this) {
+            (*veh)->setApproaches();
+        }
+    }
+}
+
+
+void
 MSLane::detectCollisions(SUMOTime timestep, int stage) {
     if (myVehicles.size() < 2) {
         return;

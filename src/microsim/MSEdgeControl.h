@@ -103,13 +103,22 @@ public:
     /// @{
 
     /** @brief Compute safe velocities for all vehicles based on positions and
-     * speeds from the last time step. Also registers
-     * ApproachingVehicleInformation for all links
+     * speeds from the last time step. 
      *
      * This method goes through all active lanes calling their "planMovements" method.
      * @see MSLane::planMovements
      */
     void planMovements(SUMOTime t);
+
+
+    /// @name Interfaces for longitudinal vehicle movement
+    /// @{
+
+    /** @brief Registers vehicle approaches to all links for the current time step
+     * This method goes through all active lanes calling their "setApproaches" method.
+     * @see MSLane::setApproaches
+     */
+    void setApproaches();
 
 
     /** @brief Executes planned vehicle movements with regards to right-of-way

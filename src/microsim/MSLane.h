@@ -383,13 +383,22 @@ public:
     /// @{
 
     /** @brief Compute safe velocities for all vehicles based on positions and
-     * speeds from the last time step. Also registers
-     * ApproachingVehicleInformation for all links
+     * speeds from the last time step. 
      *
      * This method goes through all vehicles calling their "planMove" method.
      * @see MSVehicle::planMove
      */
     virtual void planMovements(const SUMOTime t);
+
+    /// @name Vehicle movement (longitudinal)
+    /// @{
+
+    /** @brief Registers approaching vehicle information for all vehicles
+     *
+     * This method goes through all vehicles calling their "setApproaches" method.
+     * @see MSVehicle::setApproaches
+     */
+    virtual void setApproaches();
 
     /** @brief Executes planned vehicle movements with regards to right-of-way
      *

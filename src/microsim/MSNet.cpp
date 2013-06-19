@@ -374,8 +374,10 @@ MSNet::simulationStep() {
         myEdges->patchActiveLanes();
 
         // compute safe velocities for all vehicles for the next few lanes
-        // also register ApproachingVehicleInformation for all links
         myEdges->planMovements(myStep);
+
+        // register ApproachingVehicleInformation for all links
+        myEdges->setApproaches();
 
         // decide right-of-way and execute movements
         myEdges->executeMovements(myStep);

@@ -127,6 +127,13 @@ GUILane::planMovements(const SUMOTime t) {
 }
 
 
+void
+GUILane::setApproaches() {
+    AbstractMutex::ScopedLocker locker(myLock);
+    MSLane::setApproaches();
+}
+
+
 bool
 GUILane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
     AbstractMutex::ScopedLocker locker(myLock);

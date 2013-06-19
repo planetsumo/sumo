@@ -248,14 +248,16 @@ public:
      * Afterwards it checks if any DriveProcessItem should be discared to avoid
      * blocking a junction (checkRewindLinkLanes).
      *
-     * Finally the ApproachingVehicleInformation is registered for all links that
-     * shall be passed
-     *
      * @param[in] t The current timeStep
      * @param[in] pred The leader (may be 0)
      * @param[in] lengthsInFront Sum of vehicle lengths in front of the vehicle
      */
     void planMove(const SUMOTime t, const MSVehicle* pred, const SUMOReal lengthsInFront);
+
+
+    /** @brief registers ApproachingVehicleInformation is registered for all links that
+     */
+    void setApproaches() const;
 
 
     /** @brief Executes planned vehicle movements with regards to right-of-way

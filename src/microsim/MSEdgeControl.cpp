@@ -111,6 +111,22 @@ MSEdgeControl::planMovements(SUMOTime t) {
 
 
 void
+MSEdgeControl::setApproaches() {
+    // remove all approaches from the last step
+    for (LaneUsageVector::const_iterator it = myLanes.begin(); it != myLanes.end(); ++it) {
+        const MSLinkCont& links = it->lane->getLinkCont();
+        for (MSLinkCont::const_iterator it_link = links.begin(); it_link != links.end(); ++it_link) {
+            (*it_link)->removeApproaching();
+        }
+    }
+    // set new approaches
+    for (std::list<MSLane*>::iterator it = myActiveLanes.begin(); it != myActiveLanes.end(); ++it) {
+        (*it)->setApproaches(); 
+    }
+}
+
+
+void
 MSEdgeControl::executeMovements(SUMOTime t) {
     myWithVehicles2Integrate.clear();
     for (std::list<MSLane*>::iterator i = myActiveLanes.begin(); i != myActiveLanes.end();) {

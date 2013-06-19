@@ -172,6 +172,11 @@ public:
     /// @brief removes the vehicle from myApproachingVehicles
     void removeApproaching(const SUMOVehicle* veh);
 
+    /// @brief removes all ApproachingVehicleInformation
+    inline void removeApproaching() {
+        myApproachingVehicles.clear();
+    }
+
     void addBlockedLink(MSLink* link);
 
     /* @brief return information about this vehicle if it is registered as
