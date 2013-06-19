@@ -256,6 +256,7 @@ public:
 
 
     /** @brief registers ApproachingVehicleInformation is registered for all links that
+     * shall be passed
      */
     void setApproaches() const;
 
