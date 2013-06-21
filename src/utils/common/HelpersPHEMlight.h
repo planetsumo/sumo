@@ -32,10 +32,10 @@
 
 #include <vector>
 #include "StdDefs.h"
-#include "SUMOVehicleClass.h"
+#include "PHEMCEPHandler.h"
+#include "PHEMConstants.h"
 #include <limits>
 #include <cmath>
-
 
 // ===========================================================================
 // class definitions
@@ -186,6 +186,15 @@ public:
      */
     static SUMOReal computeDefaultFuel(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt);
 
+	/** @brief Returns the power of used for a vehicle at state v,a, slope and loading
+     * @param[in] v The vehicle's average velocity
+     * @param[in] a The vehicle's average acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+	 * @param{in] vehicleCep vehicles CEP data
+     * @param{in] loading vehicle loading [kg]
+     * @return The amount of fuel emitted by the given vehicle class [ml]
+     */
+	static double CalcPower(double v, double a, double slope, PHEMCEP vehicleCep, double loading);
 
 };
 
