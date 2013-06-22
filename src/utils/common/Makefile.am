@@ -16,6 +16,7 @@ HelpersPHEMlight.cpp HelpersPHEMlight.h \
 InstancePool.h \
 IDSupplier.h IDSupplier.cpp \
 Named.h Parameterised.cpp Parameterised.h \
+PHEMCEP.h PHEMCEP.cpp PHEMCEPHandler.h PHEMCEPHandler.cpp PHEMConstants.h \
 StringTokenizer.cpp StringTokenizer.h \
 StringUtils.cpp StringUtils.h UtilExceptions.h \
 MsgHandler.h MsgHandler.cpp \

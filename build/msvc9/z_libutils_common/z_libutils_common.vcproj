@@ -482,6 +482,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\utils\common\PHEMCEP.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\utils\common\PHEMCEPHandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\utils\common\RandHelper.cpp"
 				>
 			</File>
@@ -588,6 +596,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\utils\common\Parameterised.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\utils\common\PHEMCEP.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\utils\common\PHEMCEPHandler.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\utils\common\PHEMConstants.h"
 				>
 			</File>
 			<File
