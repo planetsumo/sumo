@@ -186,7 +186,8 @@ def writeRouteConf(step, options, file, output, routesInfo, initial_type):
         <max-alternatives value="%s"/>
         <logit value="%s"/>
         <logit.beta value="%s"/>
-        <logit.gamma value="%s"/>""" % (
+        <logit.gamma value="%s"/>
+        <weights.expand value="x"/>""" % (
                 options.continueOnUnbuild, 
                 bool(options.districts), 
                 options.gBeta, 
@@ -456,8 +457,8 @@ def main(args=None):
         if not (options.skipFirstRouting and step == 0):
             simulation_demands = [get_basename(f) + "_%03i.rou%s" % (step, routesSuffix) for f in input_demands]
         if not ((options.skipFirstRouting and step == 1) or step == 0):
-            router_demands = [get_basename(f) + "_%03i.rou.alt%s" % (step-1, routesSuffix) for fr in input_demands]
-
+            router_demands = [get_basename(f) + "_%03i.rou.alt%s" % (step-1, routesSuffix) for f in input_demands]
+        
         if not (options.skipFirstRouting and step == options.firstStep):
             # call duarouter
             for router_input, output in zip(router_demands, simulation_demands):
