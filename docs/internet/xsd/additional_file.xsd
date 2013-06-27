@@ -206,6 +206,7 @@
         <xsd:attribute name="id" type="xsd:string" use="required"/>
         <xsd:attribute name="edges" type="xsd:string" use="optional"/>
         <xsd:attribute name="file" type="xsd:string" use="optional"/>
+        <xsd:attribute name="probability" type="positiveFloatType"/>
     </xsd:complexType>
 
     <xsd:complexType name="instantInductionLoopType">
