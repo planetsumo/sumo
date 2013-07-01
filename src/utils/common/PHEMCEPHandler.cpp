@@ -32,7 +32,7 @@
 #include <string>
 #include <vector>
 #include "UtilExceptions.h"
-#include "PHEMCEPHAndler.h"
+#include "PHEMCEPHandler.h"
 #include "PHEMConstants.h"
 
 // ===========================================================================
@@ -210,7 +210,7 @@ bool PHEMCEPHandler::ReadVehicleFile(std::string emissionClass,
 
 } // end of ReadVehicleFile
 
-bool PHEMCEPHandler::ReadEmissionData(std::string emissionClass, std::vector<std::string> &header, std::vector<std::vector<double>> &matrix)
+bool PHEMCEPHandler::ReadEmissionData(std::string emissionClass, std::vector<std::string> &header, std::vector<std::vector<double> > &matrix)
 {
 	// declare file stream
     std::ifstream fileEmission ( std::string(PHEM_DATA_PATH + emissionClass + "_" + PHEM_DATA_VERSION +".csv").c_str() );

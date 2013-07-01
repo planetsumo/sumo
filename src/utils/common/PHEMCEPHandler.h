@@ -70,7 +70,7 @@ private:
      * @param[in] emissionClass desired PHEM emission class
      * @return Indicator if loading was successul
      */
-	bool PHEMCEPHandler::Load(SUMOEmissionClass emissionClass);
+	bool Load(SUMOEmissionClass emissionClass);
 
 	 /** @brief Helper method to read a vehicle file from file system
      * @param[in] emissionClass desired PHEM emission class
@@ -86,7 +86,7 @@ private:
 	 * @param[in] ratedPower out variable for rated power of vehicle
      * @return Indicator if reading was successul
      */
-	bool PHEMCEPHandler::ReadVehicleFile(std::string emissionClass,
+	bool ReadVehicleFile(std::string emissionClass,
 									 double &vehicleMass,
 									 double &vehicleLoading,
 									 double &vehicleMassRot,
@@ -105,7 +105,7 @@ private:
 	 * @param[in] matrix matrix holding power pattern and CEP curves
      * @return Indicator if reading was successul
      */
-	bool PHEMCEPHandler::ReadEmissionData(std::string emissionClass, std::vector<std::string> &header, std::vector<std::vector<double>> &matrix);
+	bool ReadEmissionData(std::string emissionClass, std::vector<std::string> &header, std::vector<std::vector<double> > &matrix);
 
 	
 	// ===========================================================================

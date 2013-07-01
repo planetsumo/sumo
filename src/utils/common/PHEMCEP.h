@@ -45,7 +45,7 @@ class PHEMCEP
 {	
 
 public:
-	PHEMCEP::PHEMCEP(SUMOEmissionClass emissionClass,
+	PHEMCEP(SUMOEmissionClass emissionClass,
 		     double vehicleMass,
 			 double vehicleLoading,
 		     double vehicleMassRot,
@@ -60,76 +60,76 @@ public:
 		     std::vector<std::string> headerLine,
 		     std::vector< std::vector<double> > matrix);
 
-	PHEMCEP::PHEMCEP() {};
+	PHEMCEP() {};
 
 	~PHEMCEP(void);
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return PHEM emission class of vehicle
      */
-	SUMOEmissionClass PHEMCEP::GetEmissionClass();
+	SUMOEmissionClass GetEmissionClass();
 
 	/** @brief Returns a emission measure for power[kW] level
 	 * @param[in] pollutantIdentifier Desired pollutant, e.g. NOx
 	 * @param[in] power in [kW]
      * @return emission in [g/h]
      */
-	double PHEMCEP::GetEmission(std::string pollutantIdentifier, double power);
+	double GetEmission(std::string pollutantIdentifier, double power);
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return Rolling resistance f0
      */
-	double PHEMCEP::GetResistanceF0();
+	double GetResistanceF0();
 	
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return Rolling resistance f1
      */
-	double PHEMCEP::GetResistanceF1();
+	double GetResistanceF1();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return Rolling resistance f2
      */
-	double PHEMCEP::GetResistanceF2();
+	double GetResistanceF2();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return Rolling resistance f3
      */
-	double PHEMCEP::GetResistanceF3();
+	double GetResistanceF3();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return Rolling resistance f4
      */
-	double PHEMCEP::GetResistanceF4();
+	double GetResistanceF4();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return Cw value
      */
-	double PHEMCEP::GetCdValue();
+	double GetCdValue();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return crosssectional area of vehicle
      */
-	double PHEMCEP::GetCrossSectionalArea();
+	double GetCrossSectionalArea();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return vehicle mass
      */
-	double PHEMCEP::GetMassVehicle();
+	double GetMassVehicle();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return vehicle loading
      */
-	double PHEMCEP::GetVehicleLoading();
+	double GetVehicleLoading();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return rotational mass of vehicle
      */
-	double PHEMCEP::GetMassRot();
+	double GetMassRot();
 
 	/** @brief Getter function to recieve vehicle data from CEP
      * @return rated power of vehicle
      */
-	double PHEMCEP::GetRatedPower();
+	double GetRatedPower();
 
 private:
 
@@ -141,7 +141,7 @@ private:
 	 * @param[in] e2 emission value for p2
      * @return emission value for px
      */
-	double PHEMCEP::Interpolate(double px, double p1, double p2, double e1, double e2);
+	double Interpolate(double px, double p1, double p2, double e1, double e2);
 
 // ===========================================================================
 // member declarations
@@ -164,7 +164,7 @@ private:
 	int _numberPollutants;
 	std::vector<double> _powerPattern;
 
-	StringBijection<std::vector<double>> _cepCurves;
+	StringBijection<std::vector<double> > _cepCurves;
 };
 
 #endif

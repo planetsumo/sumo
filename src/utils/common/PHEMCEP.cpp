@@ -62,10 +62,10 @@ PHEMCEP::PHEMCEP(SUMOEmissionClass emissionClass,
 	_massRot = vehicleMassRot;
 	_ratedPower = ratedPower;
 
-	_cepCurves = StringBijection<std::vector<double>>();
+	_cepCurves = StringBijection<std::vector<double> >();
 
 	std::vector<std::string> pollutantIdentifier;
-	std::vector<std::vector<double>> pollutantMeasures;
+	std::vector<std::vector<double> > pollutantMeasures;
 
 	// get number pollutant Measures
 	_numberPollutants = headerLine.size();
@@ -108,7 +108,7 @@ PHEMCEP::PHEMCEP(SUMOEmissionClass emissionClass,
 	} // end for
 
 
-	_cepCurves = StringBijection<std::vector<double>>();  
+	_cepCurves = StringBijection<std::vector<double> >();  
 
 	for(int i=0; i<_numberPollutants; i++)
 	{
@@ -131,7 +131,7 @@ double PHEMCEP::GetEmission(std::string pollutant, double power)
 	if(!_cepCurves.hasString(pollutant))
 		throw InvalidArgument("Emission pollutant " + pollutant + " not found!");
 
-	std::vector<double> &emissionCurve = _cepCurves.get(pollutant);
+	std::vector<double> emissionCurve = _cepCurves.get(pollutant);
 
 	if(emissionCurve.size()==0)
 		throw InvalidArgument("Empty emission curve for " + pollutant + " found!");
