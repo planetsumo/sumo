@@ -267,6 +267,12 @@ MSVehicle::~MSVehicle() {
         (*i)->resetPartialOccupation(this);
     }
     myFurtherLanes.clear();
+    // remove soon-to-be-dead references 
+    for (DriveItemVector::iterator i = myLFLinkLanes.begin(); i != myLFLinkLanes.end(); ++i) {
+        if ((*i).myLink != 0) {
+            (*i).myLink->removeApproaching(this);
+        }
+    }
     //
     if (myType->amVehicleSpecific()) {
         delete myType;
