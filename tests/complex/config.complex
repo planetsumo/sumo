@@ -29,6 +29,9 @@ vss:vss.xml
 results:results.csv
 
 [run_dependent_text]
+output:\r{REPLACE \n}
+output:\([0-9]*ms\){REPLACE (TIME)}
+output:^Performance:{->}^Vehicles:
 net:<!--{[->]}-->
 vehroutes:<!--{[->]}-->
 tripinfo:<!--{[->]}-->
@@ -38,7 +41,9 @@ output:visible boundary
 errors:Die Adresse wird bereits verwendet{REPLACE Address already in use}
 output:\r{REPLACE \n}
 output:\([0-9]*ms\){REPLACE (TIME)}
-output:\([0-9]* ms\){REPLACE (TIME)}
+output:[0-9]* ms{REPLACE TIME}
+output: UPS:
+output: time factor:
 errors:Leaked object at 
 errors:*** 9 leaks found
 errors:delete: freed
