@@ -219,6 +219,7 @@
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_SmartSK.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_Wiedemann.h" />
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_PHEMlight.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Tripinfo.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Vehroutes.h" />
     <ClInclude Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.h" />
@@ -233,7 +234,6 @@
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_HBEFA.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Person.h" />
-    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_PHENlight.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Routing.h" />
     <ClInclude Include="..\..\..\src\microsim\MSEdge.h" />
     <ClInclude Include="..\..\..\src\microsim\MSEdgeControl.h" />

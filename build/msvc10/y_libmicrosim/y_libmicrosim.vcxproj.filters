@@ -195,9 +195,6 @@
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Person.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_PHEMlight.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Routing.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
@@ -307,6 +304,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_SmartSK.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_PHEMlight.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>
