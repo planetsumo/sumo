@@ -87,9 +87,9 @@ PHEMCEP::PHEMCEP(SUMOEmissionClass emissionClass,
 
 
 	// looping through matrix and assigning values
-	for(int i=0; i<matrix.size(); i++)
+	for(int i=0; i<(int) matrix.size(); i++)
 	{
-		for(int j=0; j<matrix[i].size(); j++)
+		for(int j=0; j<(int) matrix[i].size(); j++)
 		{
 			if(matrix[i].size() != _numberPollutants + 1)
 				return;
