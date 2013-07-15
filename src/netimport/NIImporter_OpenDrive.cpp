@@ -44,6 +44,8 @@
 #include <netbuild/NBNode.h>
 #include <netbuild/NBNodeCont.h>
 #include <netbuild/NBNetBuilder.h>
+#include <netbuild/NBOwnTLDef.h>
+#include <netbuild/NBTrafficLightLogicCont.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
 #include <utils/geom/GeoConvHelper.h>
 #include <utils/geom/GeomConvHelper.h>
@@ -440,7 +442,6 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         }
     }
 
-
     // -------------------------
     // connections building
     // -------------------------
@@ -504,11 +505,11 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 		toLane = toLast ?  odTo->laneSections.back().laneMap[toLane] : odTo->laneSections[0].laneMap[toLane];
 		NBEdge *from = nb.getEdgeCont().retrieve(fromEdge);
 		NBEdge *to = nb.getEdgeCont().retrieve(toEdge);
-		if(from==0) {
-			WRITE_WARNING("Could not find fromEdge representation of '' in connection ''.");
+		if(from==0) { 
+            WRITE_WARNING("Could not find fromEdge representation of '" + fromEdge + "' in connection '" + (*i).origID + "'.");
 		}
 		if(to==0) {
-			WRITE_WARNING("Could not find fromEdge representation of '' in connection ''.");
+            WRITE_WARNING("Could not find fromEdge representation of '" + toEdge + "' in connection '" + (*i).origID + "'.");
 		}
 		if(from==0 || to==0) {
 			continue;
@@ -527,7 +528,96 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 			}
 		}
 	}
+
+
+    // -------------------------
+    // traffic lights
+    // -------------------------
+    std::map<std::string, std::string> tlsControlled;
+    for (std::map<std::string, OpenDriveEdge*>::iterator i = edges.begin(); i != edges.end(); ++i) {
+        OpenDriveEdge *e = (*i).second;
+        for (std::vector<OpenDriveSignal>::const_iterator j = e->signals.begin(); j != e->signals.end(); ++j) {
+            if ((*j).type != "1000001") {
+                continue;
+            }
+            std::vector<OpenDriveLaneSection>::iterator k = e->laneSections.begin();
+            bool found = false;
+            for(; k!=e->laneSections.end()-1 && !found;) {
+                if((*j).s>(*k).s && (*j).s<=(*(k+1)).s) {
+                    found = true;
+                } else {
+                    ++k;
+                }
+            }
+
+            // @todo: major problem, currently, still not completely solved:
+            //  inner edges may have traffic lights, too. Nice on one hand, as directions can be recognized
+            //  but hard to follow backwards
+            std::string id = (*k).sumoID;
+            if(id=="") {
+                if(e->junction!="") {
+                    //WRITE_WARNING("Found a traffic light signal on an internal edge; will not build it (original edge id='" + e->id + "').");
+                    std::string fromID, toID;
+                    for(std::vector<OpenDriveLink>::const_iterator l=e->links.begin(); l!=e->links.end(); ++l) {
+                        if((*l).linkType==OPENDRIVE_LT_PREDECESSOR && (*l).elementType==OPENDRIVE_ET_ROAD) {
+                            if(fromID!="") {
+                                WRITE_WARNING("Ambigous start of connection.");
+                            }
+                            fromID = (*l).elementID;
+                            OpenDriveEdge *e = edges[fromID];
+                            fromID = (*l).contactPoint==OPENDRIVE_CP_START ? e->laneSections[0].sumoID : e->laneSections.back().sumoID;
+                        }
+                        if((*l).linkType==OPENDRIVE_LT_SUCCESSOR && (*l).elementType==OPENDRIVE_ET_ROAD) {
+                            if(toID!="") {
+                                WRITE_WARNING("Ambigous end of connection.");
+                            }
+                            toID = (*l).elementID;
+                            OpenDriveEdge *e = edges[toID];
+                            toID = (*l).contactPoint==OPENDRIVE_CP_START ? e->laneSections[0].sumoID : e->laneSections.back().sumoID;
+                        }
+                    }
+                    id = fromID + "->" + toID;
+                } else {
+                    WRITE_WARNING("Found a traffic light signal on an unknown edge (original edge id='" + e->id + "').");
+                    continue;
+                }
+            }
+
+            if ((*j).orientation > 0) {
+                id = "-" + id;
+            }
+            tlsControlled[id] = (*j).id;
+        }
+    }
+
+    for (std::map<std::string, std::string>::iterator i = tlsControlled.begin(); i != tlsControlled.end(); ++i) {
+        std::string id = (*i).first;
+        if(id.find("->")!=std::string::npos) {
+            id = id.substr(0, id.find("->"));
+        }
+        NBEdge *e = nb.getEdgeCont().retrieve(id);
+        if(e==0) {
+            WRITE_WARNING("Could not find edge '" + id + "' while building it's traffic light.");
+            continue;
+        }
+        NBNode *toNode = e->getToNode();
+        if(!toNode->isTLControlled()) {
+            TrafficLightType type = SUMOXMLDefinitions::TrafficLightTypes.get(OptionsCont::getOptions().getString("tls.default-type"));
+            NBTrafficLightDefinition* tlDef = new NBOwnTLDef(toNode->getID(), toNode, 0, type);
+            if (!nb.getTLLogicCont().insert(tlDef)) {
+                // actually, nothing should fail here
+                delete tlDef;
+                throw ProcessError();
+            }
+            toNode->addTrafficLight(tlDef);
+        }
+        NBTrafficLightDefinition* tlDef = *toNode->getControllingTLS().begin();
+        //tlDef->addParameter("edge
+    }
+
+    // -------------------------
     // clean up
+    // -------------------------
 	if(oc.exists("geometry.min-dist")&&oc.isSet("geometry.min-dist")) {
 		oc.unSet("geometry.min-dist");
 	}
@@ -750,10 +840,11 @@ NIImporter_OpenDrive::revisitLaneSections(const NBTypeCont &tc, std::map<std::st
             bool splitBySpeed = (*j).buildSpeedChanges(tc, splitSections);
             if(!splitBySpeed) {
                 newSections.push_back(*j);
-                continue;
+            } else {
+                std::copy(splitSections.begin(), splitSections.end(), back_inserter(newSections));
             }
-            std::copy(splitSections.begin(), splitSections.end(), back_inserter(newSections));
         }
+
         e.laneSections = newSections;
         laneSections = e.laneSections;
         SUMOReal lastS = -1;
@@ -1112,10 +1203,10 @@ NIImporter_OpenDrive::OpenDriveEdge::getPriority(OpenDriveXMLTag dir) const {
         if ((*i).type == "205") {
             tmp = 0;
         }
-        if (tmp != 1 && dir == OPENDRIVE_TAG_RIGHT && (*i).orientation < 0) {
+        if (tmp != 1 && dir == OPENDRIVE_TAG_RIGHT && (*i).orientation > 0) {
             prio = tmp;
         }
-        if (tmp != 1 && dir == OPENDRIVE_TAG_LEFT && (*i).orientation > 0) {
+        if (tmp != 1 && dir == OPENDRIVE_TAG_LEFT && (*i).orientation < 0) {
             prio = tmp;
         }
 
