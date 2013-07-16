@@ -127,6 +127,7 @@ StringBijection<int>::Entry NIImporter_OpenDrive::openDriveAttrs[] = {
     { "to",  			NIImporter_OpenDrive::OPENDRIVE_ATTR_TO },
 	{ "max",            NIImporter_OpenDrive::OPENDRIVE_ATTR_MAX },
     { "sOffset",        NIImporter_OpenDrive::OPENDRIVE_ATTR_SOFFSET },
+    { "name",           NIImporter_OpenDrive::OPENDRIVE_ATTR_NAME },
 
     { "",               NIImporter_OpenDrive::OPENDRIVE_ATTR_NOTHING }
 };
@@ -597,7 +598,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         }
         NBEdge *e = nb.getEdgeCont().retrieve(id);
         if(e==0) {
-            WRITE_WARNING("Could not find edge '" + id + "' while building it's traffic light.");
+            WRITE_WARNING("Could not find edge '" + id + "' while building its traffic light.");
             continue;
         }
         NBNode *toNode = e->getToNode();
@@ -614,7 +615,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             static_cast<NBOwnTLDef*>(tlDef)->setSinglePhase();
         }
         tlDef = *toNode->getControllingTLS().begin();
-        //tlDef->addParameter("edge
+        tlDef->addParameter("connection:" + id, (*i).second);
     }
 
     // -------------------------
