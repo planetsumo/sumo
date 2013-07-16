@@ -420,9 +420,6 @@
 // name of the current program (get: traffic lights)
 #define TL_CURRENT_PROGRAM 0x29
 
-// controlled junctions (get: traffic lights)
-#define TL_CONTROLLED_JUNCTIONS 0x2a
-
 // complete definition (get: traffic lights)
 #define TL_COMPLETE_DEFINITION_RYG 0x2b
 
@@ -431,6 +428,9 @@
 
 // assumed time to next switch (get: traffic lights)
 #define TL_NEXT_SWITCH 0x2d
+
+// current state, using external signal names (get: traffic lights)
+#define TL_EXTERNAL_STATE 0x2e
 
 
 
