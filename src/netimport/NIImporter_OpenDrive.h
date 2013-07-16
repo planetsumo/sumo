@@ -147,7 +147,8 @@ protected:
 		    OPENDRIVE_ATTR_FROM,
 		    OPENDRIVE_ATTR_TO,
 		    OPENDRIVE_ATTR_MAX,
-            OPENDRIVE_ATTR_SOFFSET
+            OPENDRIVE_ATTR_SOFFSET,
+            OPENDRIVE_ATTR_NAME
     };
 
 
@@ -312,15 +313,17 @@ protected:
         /** @brief Constructor
          * @param[in] idArg The OpenDrive id of the signal
          * @param[in] typeArg The type of the signal
+         * @param[in] nameArg The type of the signal
          * @param[in] orientationArg The direction the signal belongs to
          * @param[in] dynamicArg Whether the signal is dynamic
          * @param[in] sArg The offset from the start, counted from the begin
          */
-        OpenDriveSignal(int idArg, const std::string typeArg, int orientationArg, bool dynamicArg, SUMOReal sArg)
-            : id(idArg), type(typeArg), orientation(orientationArg), dynamic(dynamicArg), s(sArg) { }
+        OpenDriveSignal(int idArg, const std::string typeArg, const std::string nameArg, int orientationArg, bool dynamicArg, SUMOReal sArg)
+            : id(idArg), type(typeArg), name(nameArg), orientation(orientationArg), dynamic(dynamicArg), s(sArg) { }
 
         int id;
         std::string type;
+        std::string name;
         int orientation;
         bool dynamic;
         SUMOReal s;

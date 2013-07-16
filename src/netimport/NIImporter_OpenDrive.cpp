@@ -586,7 +586,7 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             if ((*j).orientation > 0) {
                 id = "-" + id;
             }
-            tlsControlled[id] = (*j).id;
+            tlsControlled[id] = (*j).name;
         }
     }
 
@@ -601,17 +601,19 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             continue;
         }
         NBNode *toNode = e->getToNode();
+        NBTrafficLightDefinition* tlDef = 0;
         if(!toNode->isTLControlled()) {
             TrafficLightType type = SUMOXMLDefinitions::TrafficLightTypes.get(OptionsCont::getOptions().getString("tls.default-type"));
-            NBTrafficLightDefinition* tlDef = new NBOwnTLDef(toNode->getID(), toNode, 0, type);
+            tlDef = new NBOwnTLDef(toNode->getID(), toNode, 0, type);
             if (!nb.getTLLogicCont().insert(tlDef)) {
                 // actually, nothing should fail here
                 delete tlDef;
                 throw ProcessError();
             }
             toNode->addTrafficLight(tlDef);
+            static_cast<NBOwnTLDef*>(tlDef)->setSinglePhase();
         }
-        NBTrafficLightDefinition* tlDef = *toNode->getControllingTLS().begin();
+        tlDef = *toNode->getControllingTLS().begin();
         //tlDef->addParameter("edge
     }
 
@@ -1344,10 +1346,11 @@ NIImporter_OpenDrive::myStartElement(int element,
         case OPENDRIVE_TAG_SIGNAL: {
             int id = attrs.get<int>(OPENDRIVE_ATTR_ID, myCurrentEdge.id.c_str(), ok);
             std::string type = attrs.get<std::string>(OPENDRIVE_ATTR_TYPE, myCurrentEdge.id.c_str(), ok);
+            std::string name = attrs.getOpt<std::string>(OPENDRIVE_ATTR_NAME, myCurrentEdge.id.c_str(), ok, "", false);
             int orientation = attrs.get<std::string>(OPENDRIVE_ATTR_ORIENTATION, myCurrentEdge.id.c_str(), ok) == "-" ? -1 : 1;
             SUMOReal s = attrs.get<SUMOReal>(OPENDRIVE_ATTR_S, myCurrentEdge.id.c_str(), ok);
             bool dynamic = attrs.get<std::string>(OPENDRIVE_ATTR_DYNAMIC, myCurrentEdge.id.c_str(), ok) == "no" ? false : true;
-            myCurrentEdge.signals.push_back(OpenDriveSignal(id, type, orientation, dynamic, s));
+            myCurrentEdge.signals.push_back(OpenDriveSignal(id, type, name, orientation, dynamic, s));
         }
         break;
         case OPENDRIVE_TAG_JUNCTION:
