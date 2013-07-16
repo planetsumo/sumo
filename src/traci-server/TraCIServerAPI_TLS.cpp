@@ -248,26 +248,25 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
                     MSLane *fromLane = 0;
                     const MSTrafficLightLogic::LaneVectorVector& lanes = tls->getLanes();
                     MSTrafficLightLogic::LaneVectorVector::const_iterator j = lanes.begin();
-                    for(; j!=lanes.end(); ++j) {
-                        for(MSTrafficLightLogic::LaneVector::const_iterator k=(*j).begin(); k!=(*j).end(); ++k) {
-                            if(denotesEdge) {
-                                if((*k)->getEdge().getID()==from) {
-                                    fromLane = *k;
-                                    break;
-                                }
-                            } else {
-                                if((*k)->getID()==from) {
-                                    fromLane = *k;
-                                    break;
-                                }
+                    for(; j!=lanes.end()&&fromLane==0; ) {
+                        for(MSTrafficLightLogic::LaneVector::const_iterator k=(*j).begin(); k!=(*j).end()&&fromLane==0; ) {
+                            if(denotesEdge && (*k)->getEdge().getID()==from) {
+                                fromLane = *k;
+                            } else if(!denotesEdge && (*k)->getID()==from) {
+                                fromLane = *k;
                             }
+                            if(fromLane==0) {
+                                ++k;
+                            }
+                        }
+                        if(fromLane==0) {
+                            ++j;
                         }
                     }
                     if(fromLane==0) {
                         return server.writeErrorStatusCmd(CMD_GET_TL_VARIABLE, "Could not find edge or lane '" + from + "' in traffic light '" + id + "'.", outputStorage);
                     }
                     unsigned int pos = std::distance(lanes.begin(), j);
-                    std::cout << pos << " " << state << std::endl;
                     tempMsg.writeUnsignedByte(TYPE_UBYTE);
                     tempMsg.writeUnsignedByte(state[pos]); // state
                 }
