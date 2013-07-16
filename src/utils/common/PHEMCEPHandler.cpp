@@ -199,7 +199,7 @@ bool PHEMCEPHandler::ReadVehicleFile(std::string emissionClass,
 			std::istringstream(cell) >> f3;
 
 		// reading f4
-		if(dataCount==17)
+		if(dataCount==18)
 			std::istringstream(cell) >> f4;
 
     } // end while
