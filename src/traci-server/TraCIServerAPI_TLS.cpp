@@ -267,7 +267,7 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
                         return server.writeErrorStatusCmd(CMD_GET_TL_VARIABLE, "Could not find edge or lane '" + from + "' in traffic light '" + id + "'.", outputStorage);
                     }
                     unsigned int pos = std::distance(lanes.begin(), j);
-                    tempMsg.writeUnsignedByte(TYPE_STRING);
+                    tempMsg.writeUnsignedByte(TYPE_UBYTE);
                     tempMsg.writeUnsignedByte(state[pos]); // state
                 }
             }
