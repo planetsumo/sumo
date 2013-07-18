@@ -63,6 +63,9 @@ public:
         a vehicle as a grid lock participant */
     static SUMOTime gTimeToGridlock;
 
+    /** The time to detect grid locks on highways */
+    static SUMOTime gTimeToGridlockHighways;
+
     /// Information whether the simulation regards internal lanes
     static bool gUsingInternalLanes;
 
@@ -93,11 +96,9 @@ public:
 
 #endif
 
-#ifdef _DEBUG
     /// @brief global utility flags for debugging
     static bool gDebugFlag1;
     static bool gDebugFlag2;
-#endif
 
 };
 

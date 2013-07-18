@@ -65,6 +65,8 @@ def addGenericOptions(optParser):
                          default=False, help="sloppy insertion tests (may speed up the sim considerably)")
     optParser.add_option("--time-to-teleport", dest="timetoteleport", type="int", default=300,
                          help="Delay before blocked vehicles are teleported where -1 means no teleporting")
+    optParser.add_option("--time-to-teleport.highways", dest="timetoteleport_highways", type="int", default=0,
+                         help="Delay before blocked vehicles are teleported on wrong highway lanes")
     optParser.add_option("--cost-modifier", dest="costmodifier", type="choice",
                          choices=('grohnde', 'isar', 'None'), 
                          default='None', help="Whether to modify link travel costs of the given routes")
@@ -185,6 +187,7 @@ def writeRouteConf(step, options, file, output, routesInfo, initial_type):
         <keep-all-routes value="%s"/>
         <routing-algorithm value="%s"/>%s
         <max-alternatives value="%s"/>
+        <weights.expand value="true"/>
         <logit value="%s"/>
         <logit.beta value="%s"/>
         <logit.gamma value="%s"/>""" % (
@@ -258,6 +261,7 @@ def writeSUMOConf(sumoBinary, step, options, additional_args, route_files):
         '--lanechange.allow-swap', options.lanechangeallowed,
         '--sloppy-insert', options.sloppy_insert,
         '--time-to-teleport', options.timetoteleport,
+        '--time-to-teleport.highways', options.timetoteleport_highways,
         '--verbose',
         '--no-warnings', options.noWarnings,
         ] + additional_args
@@ -460,7 +464,7 @@ def main(args=None):
         if not (options.skipFirstRouting and step == 0):
             simulation_demands = [get_basename(f) + "_%03i.rou%s" % (step, routesSuffix) for f in input_demands]
         if not ((options.skipFirstRouting and step == 1) or step == 0):
-            router_demands = [get_basename(f) + "_%03i.rou.alt%s" % (step-1, routesSuffix) for fr in input_demands]
+            router_demands = [get_basename(f) + "_%03i.rou.alt%s" % (step-1, routesSuffix) for f in input_demands]
 
         if not (options.skipFirstRouting and step == options.firstStep):
             # call duarouter

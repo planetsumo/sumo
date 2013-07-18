@@ -54,6 +54,9 @@
         <!-- Save the Floating Car Data using geo-coordinates (lon/lat) -->
         <fcd-output.geo value="false" type="BOOL"/>
 
+        <!-- Add the vehicle signal state to the FCD output (brake lights etc.) -->
+        <fcd-output.signals value="false" type="BOOL"/>
+
         <!-- Save a lot of information for each timestep (very redundant) -->
         <full-output value="" type="FILE"/>
 
@@ -128,6 +131,9 @@
 
         <!-- Specify how long a vehicle may wait until being teleported, defaults to 300, non-positive values disable teleporting -->
         <time-to-teleport value="300" type="TIME"/>
+
+        <!-- The teleport time on highways -->
+        <time-to-teleport.highways value="0" type="TIME"/>
 
         <!-- How long vehicles wait for departure before being skipped, defaults to -1 which means vehicles are never skipped -->
         <max-depart-delay value="-1" type="TIME"/>
@@ -235,6 +241,15 @@
         <device.phem.deterministic value="false" type="BOOL"/>
 
     </emissions>
+
+    <example_device>
+        <!-- Assign a device to named vehicles -->
+        <device.example.explicit value="" type="STR"/>
+
+        <!-- An exemplary parameter which can be used by all instances of the example device -->
+        <device.example.parameter value="0" type="FLOAT"/>
+
+    </example_device>
 
     <traci_server>
         <!-- Enables TraCI Server if set -->

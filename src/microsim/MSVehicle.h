@@ -41,6 +41,7 @@
 #include <list>
 #include <deque>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include "MSVehicleType.h"
@@ -63,9 +64,6 @@ class MSEdgeWeightsStorage;
 class OutputDevice;
 class Position;
 class MSDevice_Person;
-#ifdef _MESSAGES
-class MSMessageEmitter;
-#endif
 
 
 // ===========================================================================
@@ -558,6 +556,8 @@ public:
         bool parking;
         /// @brief Information whether the stop has been reached
         bool reached;
+        /// @brief IDs of persons the vehicle has to wait for until departing
+        std::set<std::string> awaitedPersons;
     };
 
 
@@ -992,13 +992,6 @@ protected:
 
     /// @brief The time the vehicle waits (is not faster than 0.1m/s) in seconds
     SUMOTime myWaitingTime;
-
-#ifdef _MESSAGES
-    /// The message emitters
-    MSMessageEmitter* myLCMsgEmitter;
-    MSMessageEmitter* myBMsgEmitter;
-    MSMessageEmitter* myHBMsgEmitter;
-#endif
 
     /// @brief This Vehicles driving state (pos and speed)
     State myState;

@@ -459,7 +459,8 @@ MSLane::isInsertionSuccess(MSVehicle* aVehicle,
             }
             break;
         }
-        if (!(*link)->opened(arrivalTime, speed, speed, aVehicle->getVehicleType().getLength(), aVehicle->getImpatience())) {
+        if (!(*link)->opened(arrivalTime, speed, speed, aVehicle->getVehicleType().getLength(), aVehicle->getImpatience(), cfModel.getMaxDecel(), 0)
+             || !(*link)->havePriority()) {
             // have to stop at junction
             SUMOReal nspeed = cfModel.stopSpeed(aVehicle, speed, seen);
             if (nspeed < speed) {
@@ -467,7 +468,16 @@ MSLane::isInsertionSuccess(MSVehicle* aVehicle,
                     speed = MIN2(nspeed, speed);
                     dist = cfModel.brakeGap(speed) + aVehicle->getVehicleType().getMinGap();
                 } else {
-                    // we may not drive with the given velocity - we cannot stop at the junction in time (try again later)
+                    // we may not drive with the given velocity - we cannot stop at the junction in time 
+                    const LinkState state = (*link)->getState();
+                    if (state == LINKSTATE_MINOR 
+                            || state == LINKSTATE_EQUAL 
+                            || state == LINKSTATE_STOP
+                            || state == LINKSTATE_ALLWAY_STOP) {
+                        // no sense in trying later
+                        WRITE_ERROR("Vehicle '" + aVehicle->getID() + "' will not be able to depart using the given velocity (unpriorised junction too close)!");
+                        MSNet::getInstance()->getInsertionControl().descheduleDeparture(aVehicle);
+                    }
                     return false;
                 }
             }
@@ -523,7 +533,7 @@ MSLane::isInsertionSuccess(MSVehicle* aVehicle,
             // may already be comitted to blocking the link and unable to stop
             const SUMOTime arrivalTime = MSNet::getInstance()->getCurrentTimeStep() + TIME2STEPS(seen / speed);
             const SUMOTime leaveTime = arrivalTime + TIME2STEPS((*link)->getLength() * speed);
-            if ((*link)->hasApproachingFoe(arrivalTime, leaveTime, speed)) {
+            if ((*link)->hasApproachingFoe(arrivalTime, leaveTime, speed, cfModel.getMaxDecel())) {
                 SUMOReal nspeed = cfModel.followSpeed(aVehicle, speed, seen, 0, 0);
                 if (nspeed < speed) {
                     if (patchSpeed) {
@@ -772,15 +782,18 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
         i = myVehicles.erase(i);
     }
     if (myVehicles.size() > 0) {
-        if (MSGlobals::gTimeToGridlock > 0
-                && !(*(myVehicles.end() - 1))->isStopped()
-                && (*(myVehicles.end() - 1))->getWaitingTime() > MSGlobals::gTimeToGridlock) {
-            MSVehicle* veh = *(myVehicles.end() - 1);
-            myVehicleLengthSum -= veh->getVehicleType().getLengthWithGap();
-            myVehicles.erase(myVehicles.end() - 1);
-            WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; waited too long, lane='" + getID() + "', time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-            MSNet::getInstance()->getVehicleControl().registerTeleport();
-            MSVehicleTransfer::getInstance()->addVeh(t, veh);
+        if (MSGlobals::gTimeToGridlock > 0 || MSGlobals::gTimeToGridlockHighways > 0) {
+            MSVehicle *last = myVehicles.back();
+            bool r1 = MSGlobals::gTimeToGridlock>0 && !last->isStopped() && last->getWaitingTime() > MSGlobals::gTimeToGridlock;
+            bool r2 = MSGlobals::gTimeToGridlockHighways>0 && !last->isStopped() && last->getWaitingTime() > MSGlobals::gTimeToGridlockHighways && last->getLane()->getSpeedLimit()>69./3.6 && !last->getLane()->appropriate(last);
+            if(r1||r2) {
+                MSVehicle* veh = *(myVehicles.end() - 1);
+                myVehicleLengthSum -= veh->getVehicleType().getLengthWithGap();
+                myVehicles.erase(myVehicles.end() - 1);
+                WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; waited too long, lane='" + getID() + "', time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
+                MSNet::getInstance()->getVehicleControl().registerTeleport();
+                MSVehicleTransfer::getInstance()->addVeh(t, veh);
+            }
         }
     }
     return myVehicles.size() == 0;
@@ -1111,10 +1124,18 @@ MSLane::getLeaderOnConsecutive(SUMOReal dist, SUMOReal seen, SUMOReal speed, con
     do {
         // get the next link used
         MSLinkCont::const_iterator link = targetLane->succLinkSec(veh, view, *nextLane, bestLaneConts);
-        if (nextLane->isLinkEnd(link) || !(*link)->opened(arrivalTime, speed, speed, veh.getVehicleType().getLength(), veh.getImpatience()) || (*link)->getState() == LINKSTATE_TL_RED) {
+        if (nextLane->isLinkEnd(link) || !(*link)->opened(arrivalTime, speed, speed, veh.getVehicleType().getLength(), 
+                    veh.getImpatience(), veh.getCarFollowModel().getMaxDecel(), 0) || (*link)->getState() == LINKSTATE_TL_RED) {
             break;
         }
 #ifdef HAVE_INTERNAL_LANES
+        // check for link leaders
+        const MSLink::LinkLeaders linkLeaders = (*link)->getLeaderInfo(seen - veh.getVehicleType().getMinGap());
+        if (linkLeaders.size() > 0) {
+            // XXX if there is more than one link leader we should return the most important 
+            // one (gap, decel) but this is hard to know at this point
+            return linkLeaders[0];
+        }
         bool nextInternal = (*link)->getViaLane() != 0;
 #endif
         nextLane = (*link)->getViaLaneOrLane();

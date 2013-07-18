@@ -498,7 +498,7 @@ bool
 TraCIServer::commandCloseConnection() {
     myDoCloseConnection = true;
     // write answer
-    writeStatusCmd(CMD_CLOSE, RTYPE_OK, "Goodbye");
+    writeStatusCmd(CMD_CLOSE, RTYPE_OK, "");
     return true;
 }
 

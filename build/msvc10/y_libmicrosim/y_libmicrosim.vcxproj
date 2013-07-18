@@ -168,6 +168,7 @@
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_SmartSK.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_Wiedemann.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Example.cpp" />
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Tripinfo.cpp" />
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Vehroutes.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.cpp" />
@@ -199,7 +200,6 @@
     <ClCompile Include="..\..\..\src\microsim\MSLink.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSLinkCont.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSLogicJunction.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\MSMessageEmitter.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSMoveReminder.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSNet.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSNoLogicJunction.cpp" />

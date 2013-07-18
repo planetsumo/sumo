@@ -63,6 +63,7 @@
 #include "NBRequest.h"
 #include "NBOwnTLDef.h"
 #include "NBTrafficLightLogicCont.h"
+#include "NBTrafficLightDefinition.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -224,7 +225,7 @@ NBNode::reinit(const Position& position, SumoXMLNodeType type,
     myPosition = position;
     // patch type
     myType = type;
-    if (myType != NODETYPE_TRAFFIC_LIGHT) {
+    if (myType != NODETYPE_TRAFFIC_LIGHT && myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
         removeTrafficLights();
     }
     if (updateEdgeGeometries) {
@@ -255,7 +256,9 @@ NBNode::reshiftPosition(SUMOReal xoff, SUMOReal yoff) {
 void
 NBNode::addTrafficLight(NBTrafficLightDefinition* tlDef) {
     myTrafficLights.insert(tlDef);
-    myType = NODETYPE_TRAFFIC_LIGHT;
+    if (myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
+        myType = NODETYPE_TRAFFIC_LIGHT;
+    }
 }
 
 
@@ -286,6 +289,21 @@ NBNode::isJoinedTLSControlled() const {
         }
     }
     return false;
+}
+
+
+void
+NBNode::invalidateTLS(NBTrafficLightLogicCont& tlCont) {
+    if (isTLControlled()) {
+        NBTrafficLightDefinition* orig = *myTrafficLights.begin();
+        removeTrafficLights();
+        NBTrafficLightDefinition* tlDef = new NBOwnTLDef(orig->getID() + "_reguessed", this, orig->getOffset(), orig->getType());
+        if (!tlCont.insert(tlDef)) {
+            // actually, nothing should fail here
+            delete tlDef;
+            throw ProcessError("Could not allocate tls '" + myID + "'.");
+        }
+    }
 }
 
 
@@ -551,7 +569,7 @@ NBNode::computeLogic(const NBEdgeCont& ec, OptionsCont& oc) {
         return;
     }
     // compute the logic if necessary or split the junction
-    if (myType != NODETYPE_NOJUNCTION && myType != NODETYPE_DISTRICT) {
+    if (myType != NODETYPE_NOJUNCTION && myType != NODETYPE_DISTRICT && myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
         // build the request
         myRequest = new NBRequest(ec, this,
                                   myAllEdges, myIncomingEdges, myOutgoingEdges, myBlockedConnections);
@@ -575,9 +593,9 @@ NBNode::computeLogic(const NBEdgeCont& ec, OptionsCont& oc) {
 
 
 bool
-NBNode::writeLogic(OutputDevice& into) const {
+NBNode::writeLogic(OutputDevice& into, const bool checkLaneFoes) const {
     if (myRequest) {
-        myRequest->writeLogic(myID, into);
+        myRequest->writeLogic(myID, into, checkLaneFoes);
         return true;
     }
     return false;
@@ -667,11 +685,7 @@ NBNode::computeLanes2Lanes() {
         NBEdge* out1 = myOutgoingEdges[0];
         NBEdge* out2 = myOutgoingEdges[1];
         // for internal: check which one is the rightmost
-        SUMOReal a1 = out1->getAngleAtNode(this);
-        SUMOReal a2 = out2->getAngleAtNode(this);
-        SUMOReal ccw = GeomHelper::getCCWAngleDiff(a1, a2);
-        SUMOReal cw = GeomHelper::getCWAngleDiff(a1, a2);
-        if (ccw < cw) {
+        if (NBContHelper::relative_outgoing_edge_sorter(myIncomingEdges[0])(out2, out1)) {
             std::swap(out1, out2);
         }
         myIncomingEdges[0]->addLane2LaneConnections(0, out1, 0, out1->getNumLanes(), NBEdge::L2L_VALIDATED, true, true);
@@ -1234,8 +1248,11 @@ NBNode::getLinkState(const NBEdge* incoming, NBEdge* outgoing, int fromlane,
     if (myType == NODETYPE_RIGHT_BEFORE_LEFT) {
         return LINKSTATE_EQUAL; // all the same
     }
+    if (myType == NODETYPE_ALLWAY_STOP) {
+        return LINKSTATE_ALLWAY_STOP; // all drive, first one to arrive may drive first
+    }
     if ((!incoming->isInnerEdge() && mustBrake(incoming, outgoing, fromlane)) && !mayDefinitelyPass) {
-        return LINKSTATE_MINOR; // minor road
+        return myType == NODETYPE_PRIORITY_STOP ? LINKSTATE_STOP : LINKSTATE_MINOR; // minor road
     }
     // traffic lights are not regarded here
     return LINKSTATE_MAJOR;

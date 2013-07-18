@@ -6,5 +6,6 @@ MSDevice_Person.cpp MSDevice_Person.h \
 MSDevice_PHEMlight.cpp MSDevice_PHEMlight.h \
 MSDevice_Routing.cpp MSDevice_Routing.h \
 MSDevice_Tripinfo.cpp MSDevice_Tripinfo.h \
+MSDevice_Example.cpp MSDevice_Example.h \
 MSDevice_Vehroutes.cpp MSDevice_Vehroutes.h 
 

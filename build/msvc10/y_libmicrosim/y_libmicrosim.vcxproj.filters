@@ -91,9 +91,6 @@
     <ClCompile Include="..\..\..\src\microsim\MSLogicJunction.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\MSMessageEmitter.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\MSMoveReminder.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
@@ -155,6 +152,9 @@
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Example.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -306,7 +306,7 @@
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_SmartSK.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_PHEMlight.h">
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Example.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

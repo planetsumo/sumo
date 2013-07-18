@@ -215,7 +215,7 @@ MSRouteHandler::myStartElement(int element,
             break;
     }
     // parse embedded vtype information
-    if (myCurrentVType != 0 && element != SUMO_TAG_VTYPE) {
+    if (myCurrentVType != 0 && element != SUMO_TAG_VTYPE && element != SUMO_TAG_PARAM) {
         SUMOVehicleParserHelper::parseVTypeEmbedded(*myCurrentVType, element, attrs);
         return;
     }
@@ -662,6 +662,13 @@ MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         WRITE_ERROR("Invalid bool for 'triggered' or 'parking' for stop on lane '" + stop.lane + "'" + errorSuffix);
         return;
     }
+
+    // expected persons
+    std::string expectedStr = attrs.getOpt<std::string>(SUMO_ATTR_EXPECTED, 0, ok, "");
+    std::set<std::string> personIDs;
+    SUMOSAXAttributes::parseStringSet(expectedStr, personIDs);
+    stop.awaitedPersons = personIDs;
+
     const std::string idx = attrs.getOpt<std::string>(SUMO_ATTR_INDEX, 0, ok, "end");
     if (idx == "end") {
         stop.index = STOP_INDEX_END;

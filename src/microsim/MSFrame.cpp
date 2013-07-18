@@ -52,7 +52,7 @@
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <microsim/devices/MSDevice_Routing.h>
 #include <microsim/devices/MSDevice_HBEFA.h>
-#include <microsim/devices/MSDevice_PHEMlight.h>
+#include <microsim/devices/MSDevice_Example.h>
 #include <utils/common/RandHelper.h>
 #include "MSFrame.h"
 #include <utils/common/SystemFrame.h>
@@ -126,6 +126,8 @@ MSFrame::fillOptions() {
     oc.addDescription("fcd-output", "Output", "Save the Floating Car Data");
     oc.doRegister("fcd-output.geo", new Option_Bool(false));
     oc.addDescription("fcd-output.geo", "Output", "Save the Floating Car Data using geo-coordinates (lon/lat)");
+    oc.doRegister("fcd-output.signals", new Option_Bool(false));
+    oc.addDescription("fcd-output.signals", "Output", "Add the vehicle signal state to the FCD output (brake lights etc.)");
     oc.doRegister("full-output", new Option_FileName());
     oc.addDescription("full-output", "Output", "Save a lot of information for each timestep (very redundant)");
     oc.doRegister("queue-output", new Option_FileName());
@@ -223,6 +225,8 @@ MSFrame::fillOptions() {
 
     oc.doRegister("time-to-teleport", new Option_String("300", "TIME"));
     oc.addDescription("time-to-teleport", "Processing", "Specify how long a vehicle may wait until being teleported, defaults to 300, non-positive values disable teleporting");
+    oc.doRegister("time-to-teleport.highways", new Option_String("0", "TIME"));
+    oc.addDescription("time-to-teleport.highways", "Processing", "The teleport time on highways");
 
     oc.doRegister("max-depart-delay", new Option_String("-1", "TIME"));
     oc.addDescription("max-depart-delay", "Processing", "How long vehicles wait for departure before being skipped, defaults to -1 which means vehicles are never skipped");
@@ -248,7 +252,7 @@ MSFrame::fillOptions() {
     MSDevice_Routing::insertOptions();
     oc.addOptionSubTopic("Emissions");
     MSDevice_HBEFA::insertOptions();
-    MSDevice_PHEMlight::insertOptions();
+    MSDevice_Example::insertOptions();
 
 
     // register report options
@@ -413,6 +417,7 @@ MSFrame::setMSGlobals(OptionsCont& oc) {
 #endif
     // set the grid lock time
     MSGlobals::gTimeToGridlock = string2time(oc.getString("time-to-teleport")) < 0 ? 0 : string2time(oc.getString("time-to-teleport"));
+    MSGlobals::gTimeToGridlockHighways = string2time(oc.getString("time-to-teleport.highways")) < 0 ? 0 : string2time(oc.getString("time-to-teleport.highways"));
     MSGlobals::gCheck4Accidents = !oc.getBool("ignore-accidents");
     MSGlobals::gCheckRoutes = !oc.getBool("ignore-route-errors");
     MSGlobals::gLaneChangeDuration = string2time(oc.getString("lanechange.duration"));

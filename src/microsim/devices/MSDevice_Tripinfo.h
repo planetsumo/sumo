@@ -64,6 +64,10 @@ public:
      */
     static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
 
+    /// @brief 
+    static const std::type_info& getTypeInfo() {
+        return typeid(MSDevice_Tripinfo);
+    }
 
 public:
     /// @name Methods called on vehicle movement / state change, overwriting MSDevice
@@ -126,6 +130,9 @@ private:
      * @param[in] id The ID of the device
      */
     MSDevice_Tripinfo(SUMOVehicle& holder, const std::string& id);
+
+    /// @brief dummy constructor
+    MSDevice_Tripinfo();
 
 
 private:

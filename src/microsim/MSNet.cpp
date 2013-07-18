@@ -90,11 +90,6 @@
 #include "MSPerson.h"
 #include "MSEdgeWeightsStorage.h"
 
-
-#ifdef _MESSAGES
-#include "MSMessageEmitter.h"
-#endif
-
 #ifdef HAVE_INTERNAL
 #include <mesosim/MELoop.h>
 #include <mesosim/StateHandler.h>
@@ -244,10 +239,6 @@ MSNet::~MSNet() {
         delete myPersonControl;
     }
     delete myShapeContainer;
-#ifdef _MESSAGES
-    myMsgEmitter.clear();
-    msgEmitVec.clear();
-#endif
     delete myEdgeWeights;
     delete myRouterTTDijkstra;
     delete myRouterTTAStar;
@@ -269,6 +260,8 @@ MSNet::simulate(SUMOTime start, SUMOTime stop) {
     // the simulation loop
     MSNet::SimulationState state = SIMSTATE_RUNNING;
     myStep = start;
+    // preload the routes especially for TraCI
+    loadRoutes();
 #ifndef NO_TRACI
 #ifdef HAVE_PYTHON
     if (OptionsCont::getOptions().isSet("python-script")) {
@@ -303,6 +296,11 @@ MSNet::simulate(SUMOTime start, SUMOTime stop) {
     // exit simulation loop
     closeSimulation(start);
     return 0;
+}
+
+void 
+MSNet::loadRoutes() {
+    myRouteLoaders->loadNext(myStep);
 }
 
 
@@ -401,8 +399,7 @@ MSNet::simulationStep() {
 #ifdef HAVE_INTERNAL
     }
 #endif
-    // load routes
-    myRouteLoaders->loadNext(myStep);
+    loadRoutes();
 
     // persons
     if (myPersonControl != 0) {
@@ -742,35 +739,4 @@ MSNet::getRouterEffort(const std::vector<MSEdge*>& prohibited) const {
 }
 
 
-
-#ifdef _MESSAGES
-MSMessageEmitter*
-MSNet::getMsgEmitter(const std::string& whatemit) {
-    msgEmitVec.clear();
-    msgEmitVec = myMsgEmitter.buildAndGetStaticVector();
-    for (std::vector<MSMessageEmitter*>::iterator it = msgEmitVec.begin(); it != msgEmitVec.end(); ++it) {
-        if ((*it)->getEventsEnabled(whatemit)) {
-            return *it;
-        }
-    }
-    return 0;
-}
-
-
-void
-MSNet::createMsgEmitter(std::string& id,
-                        std::string& file,
-                        const std::string& base,
-                        std::string& whatemit,
-                        bool reverse,
-                        bool table,
-                        bool xy,
-                        SUMOReal step) {
-    MSMessageEmitter* msgEmitter = new MSMessageEmitter(file, base, whatemit, reverse, table, xy, step);
-    myMsgEmitter.add(id, msgEmitter);
-}
-#endif
-
-
 /****************************************************************************/
-
