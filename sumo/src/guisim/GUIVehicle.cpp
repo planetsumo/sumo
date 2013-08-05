@@ -57,6 +57,7 @@
 #include <microsim/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <microsim/devices/MSDevice_Person.h>
+#include <traci-server/TraCIServerAPI_Edge.h>
 #include <gui/GUIApplicationWindow.h>
 #include <gui/GUIGlobals.h>
 #include "GUIVehicle.h"
@@ -1118,7 +1119,7 @@ GUIVehicle::drawLinkItem(const Position& pos, SUMOTime arrivalTime, SUMOTime lea
 const std::vector<MSVehicle::LaneQ>&
 GUIVehicle::getBestLanes() const {
     myLock.lock();
-    const std::vector<MSVehicle::LaneQ>& ret = MSVehicle::getBestLanes();
+    const std::vector<MSVehicle::LaneQ>& ret = traverse_noptr(MSVehicle::getBestLanes());
     myLock.unlock();
     return ret;
 }
@@ -1301,7 +1302,7 @@ GUIVehicle::drawRoute(const GUIVisualizationSettings& s, int routeNo, SUMOReal d
 void
 GUIVehicle::drawBestLanes() const {
     myLock.lock();
-    std::vector<std::vector<MSVehicle::LaneQ> > bestLanes = myBestLanes;
+    std::vector<std::vector<MSVehicle::LaneQ> > bestLanes = traverse_deep_noptr(myBestLanes);
     myLock.unlock();
     SUMOReal width = 0.5;
     for (std::vector<std::vector<MSVehicle::LaneQ> >::iterator j = bestLanes.begin(); j != bestLanes.end(); ++j) {

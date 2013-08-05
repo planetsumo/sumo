@@ -32,6 +32,7 @@
 #include <cassert>
 #include <microsim/MSEdge.h>
 #include <microsim/MSLane.h>
+#include <microsim/MSVehicle.h>
 #include "MS_E2_ZS_CollectorOverLanes.h"
 #include "MSE2Collector.h"
 
@@ -111,14 +112,27 @@ MS_E2_ZS_CollectorOverLanes::extendTo(SUMOReal length) {
                 if (predeccessors.size() == 0) {
                     int off = 1;
                     MSEdge& e = toExtend->getEdge();
-                    const std::vector<MSLane*>& lanes = e.getLanes();
-                    int idx = (int) distance(lanes.begin(), find(lanes.begin(), lanes.end(), toExtend));
+                    
+                    /* speed fix */ //const std::vector<MSLane*>& lanes = e.getLanes();
+                    MSLane** lanes = e.getLanes();
+                    unsigned int sizeLanes = 0;
+                    PREBSIZE(lanes,sizeLanes);
+
+                    int idx = 0;
+                    while(true){
+                        if((lanes+idx) == 0) break; /* todo check notsure */
+                        if(*(lanes+idx) == toExtend) break;
+                        ++idx;
+                    }
+
+                    //int idx = (int) distance(lanes.begin(), find(lanes.begin(), lanes.end(), toExtend));
+
                     while (predeccessors.size() == 0) {
                         if (idx - off >= 0) {
                             MSLane* tryMe = lanes[idx - off];
                             predeccessors = getLanePredeccessorLanes(tryMe);
                         }
-                        if (predeccessors.size() == 0 && idx + off < (int) lanes.size()) {
+                        if (predeccessors.size() == 0 && idx + off < sizeLanes) {
                             MSLane* tryMe = lanes[idx + off];
                             predeccessors = getLanePredeccessorLanes(tryMe);
                         }

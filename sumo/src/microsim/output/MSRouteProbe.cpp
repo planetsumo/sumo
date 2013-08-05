@@ -73,8 +73,15 @@ MSRouteProbe::MSRouteProbe(const std::string& id, const MSEdge* edge, SUMOTime b
         return;
     }
 #endif
-    for (std::vector<MSLane*>::const_iterator it = edge->getLanes().begin(); it != edge->getLanes().end(); ++it) {
-        (*it)->addMoveReminder(this);
+
+    /* speed fix: avoid vector here, necessary because of new structure in Vehicle/Route/Lane/etc */
+    MSLane** lanes = edge->getLanes();
+    unsigned int sizeLanes = 0;
+    PREBSIZE(lanes,sizeLanes);
+
+    //for (std::vector<MSLane*>::const_iterator it = edge->getLanes().begin(); it != edge->getLanes().end(); ++it) {
+    for(int i=0; i<sizeLanes; ++i) {
+        (*(lanes+i))->addMoveReminder(this);
     }
 }
 

@@ -91,9 +91,16 @@ MSTriggeredRerouter::MSTriggeredRerouter(const std::string& id,
             continue;
         }
 #endif
-        const std::vector<MSLane*>& destLanes = (*j)->getLanes();
-        for (std::vector<MSLane*>::const_iterator i = destLanes.begin(); i != destLanes.end(); ++i) {
-            (*i)->addMoveReminder(this);
+
+        /* speed fix */
+        MSLane** lanes = (*j)->getLanes();
+        unsigned int sizeLanes = 0;
+        PREBSIZE(lanes,sizeLanes);
+
+        //onst std::vector<MSLane*>& destLanes = (*j)->getLanes();
+
+        for (int i=0;i<sizeLanes; ++i) {
+            (*(lanes+i))->addMoveReminder(this);
         }
     }
     if (off) {

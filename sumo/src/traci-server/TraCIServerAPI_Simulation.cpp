@@ -43,6 +43,7 @@
 #include <microsim/MSVehicle.h>
 #include "TraCIConstants.h"
 #include "TraCIServerAPI_Simulation.h"
+#include "TraCIServerAPI_Edge.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -220,7 +221,7 @@ TraCIServerAPI_Simulation::convertCartesianToRoadMap(Position pos) {
 
     allEdgeIds = MSNet::getInstance()->getEdgeControl().getEdgeNames();
     for (std::vector<std::string>::iterator itId = allEdgeIds.begin(); itId != allEdgeIds.end(); itId++) {
-        const std::vector<MSLane*>& allLanes = MSEdge::dictionary((*itId))->getLanes();
+        const std::vector<MSLane*>& allLanes = traverse(MSEdge::dictionary((*itId))->getLanes());
         for (std::vector<MSLane*>::const_iterator itLane = allLanes.begin(); itLane != allLanes.end(); itLane++) {
             const SUMOReal newDistance = (*itLane)->getShape().distance(pos);
             if (newDistance < minDistance) {
@@ -241,7 +242,7 @@ TraCIServerAPI_Simulation::getLaneChecking(std::string roadID, int laneIndex, SU
     if (edge == 0) {
         throw TraCIException("Unknown edge " + roadID);
     }
-    if (laneIndex < 0 || laneIndex >= (int)edge->getLanes().size()) {
+    if (laneIndex < 0 || laneIndex >= (int)traverse(edge->getLanes()).size()) {
         throw TraCIException("Invalid lane index for " + roadID);
     }
     const MSLane* lane = edge->getLanes()[laneIndex];
@@ -314,7 +315,7 @@ TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server,
             outputStorage.writeUnsignedByte(POSITION_ROADMAP);
             outputStorage.writeString(roadPos.first->getEdge().getID());
             outputStorage.writeDouble(roadPos.second);
-            const std::vector<MSLane*> lanes = roadPos.first->getEdge().getLanes();
+            const std::vector<MSLane*> lanes = traverse(roadPos.first->getEdge().getLanes());
             outputStorage.writeUnsignedByte((int)distance(lanes.begin(), find(lanes.begin(), lanes.end(), roadPos.first)));
         }
         break;

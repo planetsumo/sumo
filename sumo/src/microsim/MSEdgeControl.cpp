@@ -32,6 +32,7 @@
 #endif
 
 #include "MSEdgeControl.h"
+#include "MSVehicle.h"
 #include "MSEdge.h"
 #include "MSLane.h"
 #include <iostream>
@@ -45,30 +46,40 @@
 // ===========================================================================
 // member method definitions
 // ===========================================================================
-MSEdgeControl::MSEdgeControl(const std::vector< MSEdge* >& edges)
-    : myEdges(edges),
-      myLanes(MSLane::dictSize()),
+MSEdgeControl::MSEdgeControl(MSEdge** _edges)
+    : myLanes(MSLane::dictSize()),
       myLastLaneChange(MSEdge::dictSize()) {
-    // build the usage definitions for lanes
-    for (std::vector< MSEdge* >::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
-        const std::vector<MSLane*>& lanes = (*i)->getLanes();
-        if (lanes.size() == 1) {
-            size_t pos = (*lanes.begin())->getNumericalID();
-            myLanes[pos].lane = *(lanes.begin());
-            myLanes[pos].firstNeigh = lanes.end();
-            myLanes[pos].lastNeigh = lanes.end();
+
+    myEdgesSize = 0;
+    myEdges = _edges;
+    PREBSIZE(myEdges,myEdgesSize);
+
+    //int *i=0;*i=1;
+    //for (std::vector< MSEdge* >::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
+    for(int i=0;i<myEdgesSize;++i){
+        MSLane** lanes = (*(myEdges+i))->getLanes();
+        unsigned int lsize = 0;
+        
+        if(lanes != 0)
+            PREBSIZE(lanes,lsize);
+        
+        if (lsize == 1) {
+            size_t pos = (*lanes/*.begin()*/)->getNumericalID();
+            myLanes[pos].lane = *lanes;
+            myLanes[pos].firstNeigh = (lanes+lsize-1);
+            myLanes[pos].lastNeigh = (lanes+lsize-1);
             myLanes[pos].amActive = false;
             myLanes[pos].haveNeighbors = false;
         } else {
-            for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-                size_t pos = (*j)->getNumericalID();
-                myLanes[pos].lane = *j;
-                myLanes[pos].firstNeigh = (j + 1);
-                myLanes[pos].lastNeigh = lanes.end();
+            for (int j=0;j<lsize;++j) {
+                size_t pos = (*(lanes+j))->getNumericalID();
+                myLanes[pos].lane = *(lanes+j);
+                myLanes[pos].firstNeigh = (lanes + j + 1);
+                myLanes[pos].lastNeigh = (lanes+lsize-1);
                 myLanes[pos].amActive = false;
                 myLanes[pos].haveNeighbors = true;
             }
-            myLastLaneChange[(*i)->getNumericalID()] = -1;
+            myLastLaneChange[(*(myEdges+i))->getNumericalID()] = -1;
         }
     }
 }
@@ -147,11 +158,15 @@ MSEdgeControl::changeLanes(SUMOTime t) {
             if (myLastLaneChange[edge.getNumericalID()] != t) {
                 myLastLaneChange[edge.getNumericalID()] = t;
                 edge.changeLanes(t);
-                const std::vector<MSLane*>& lanes = edge.getLanes();
-                for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                    LaneUsage& lu = myLanes[(*i)->getNumericalID()];
-                    if ((*i)->getVehicleNumber() > 0 && !lu.amActive) {
-                        toAdd.push_back(*i);
+                // speed fix const std::vector<MSLane*>& lanes = edge.getLanes();
+                MSLane** lanes = edge.getLanes();
+                unsigned int lsize = 0;
+                PREBSIZE(lanes,lsize);
+                //for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
+                for(int j=0;j<lsize;j++){
+                    LaneUsage& lu = myLanes[(*(lanes+j))->getNumericalID()];
+                    if ((*(lanes+j))->getVehicleNumber() > 0 && !lu.amActive) {
+                        toAdd.push_back(*(lanes+j));
                         lu.amActive = true;
                     }
                 }
@@ -179,8 +194,9 @@ MSEdgeControl::detectCollisions(SUMOTime timestep, int stage) {
 std::vector<std::string>
 MSEdgeControl::getEdgeNames() const {
     std::vector<std::string> ret;
-    for (std::vector<MSEdge*>::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
-        ret.push_back((*i)->getID());
+    //for (std::vector<MSEdge*>::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
+    for(int i=0;i<myEdgesSize;++i){
+        ret.push_back((*(myEdges+i))->getID());
     }
     return ret;
 }

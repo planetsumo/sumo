@@ -140,14 +140,17 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
         into.push_back(device);
         // initialise edge efforts if not done before
         if (myEdgeEfforts.size() == 0) {
-            const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
+            MSEdge** edges = MSNet::getInstance()->getEdgeControl().getEdges();
+            unsigned int esize = 0;
+            PREBSIZE(edges,esize);
             const bool useLoaded = oc.getBool("device.rerouting.init-with-loaded-weights");
             const SUMOReal currentSecond = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
-            for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
+            //for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
+            for(int i=0;i<esize;++i){
                 if (useLoaded) {
-                    myEdgeEfforts[*i] = MSNet::getTravelTime(*i, 0, currentSecond);
+                    myEdgeEfforts[*(edges+i)] = MSNet::getTravelTime(*(edges+i), 0, currentSecond); // TODO: Double Check
                 } else {
-                    myEdgeEfforts[*i] = (*i)->getCurrentTravelTime();
+                    myEdgeEfforts[*(edges+i)] = (*(edges+i))->getCurrentTravelTime();
                 }
             }
         }
@@ -262,9 +265,14 @@ MSDevice_Routing::adaptEdgeEfforts(SUMOTime /*currentTime*/) {
     }
     myCachedRoutes.clear();
     SUMOReal newWeight = (SUMOReal)(1. - myAdaptationWeight);
-    const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
-    for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
-        myEdgeEfforts[*i] = myEdgeEfforts[*i] * myAdaptationWeight + (*i)->getCurrentTravelTime() * newWeight;
+    //const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
+    /* speed fix */
+    MSEdge** edges = MSNet::getInstance()->getEdgeControl().getEdges();
+    unsigned int esize = 0;
+    PREBSIZE(edges,esize);
+    //for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
+    for(int i=0;i<esize;++i){
+        myEdgeEfforts[*(edges+i)] = myEdgeEfforts[*(edges+i)] * myAdaptationWeight + (*(edges+i))->getCurrentTravelTime() * newWeight;
     }
     return myAdaptationInterval;
 }

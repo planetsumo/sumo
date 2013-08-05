@@ -58,18 +58,30 @@
 // ===========================================================================
 // member method definitions
 // ===========================================================================
-MSLaneChanger::MSLaneChanger(std::vector<MSLane*>* lanes, bool allowSwap)
+MSLaneChanger::MSLaneChanger(MSLane** lanes, bool allowSwap)
     : myAllowsSwap(allowSwap) {
-    assert(lanes->size() > 1);
+
+    unsigned int sizeLanes = 0;
+    PREBSIZE(lanes,sizeLanes);
+
+    assert(sizeLanes > 1);
+
+
 
     // Fill the changer with the lane-data.
-    myChanger.reserve(lanes->size());
-    for (std::vector<MSLane*>::iterator lane = lanes->begin(); lane != lanes->end(); ++lane) {
+    myChanger.reserve(sizeLanes);
+
+
+
+    //for (std::vector<MSLane*>::iterator lane = lanes->begin(); lane != lanes->end(); ++lane) {
+    /* speed fix */
+    for(int i=0;i<sizeLanes;++i){
+        MSLane** lane = lanes+i;
         ChangeElem ce;
         ce.follow    = 0;
         ce.lead      = 0;
         ce.lane      = *lane;
-        ce.veh       = (*lane)->myVehicles.rbegin();
+        ce.veh       = (*lane)->myVehicles.rbegin(); // TODO: Get rid of this vector
         ce.hoppedVeh = 0;
         ce.lastBlocked = 0;
         myChanger.push_back(ce);
@@ -147,10 +159,16 @@ MSLaneChanger::change() {
         return false; // !!! temporary; just because it broke, here
     }
 #endif
-    const std::vector<MSVehicle::LaneQ>& preb = vehicle->getBestLanes();
-    assert(preb.size() == myChanger.size());
-    for (int i = 0; i < (int) myChanger.size(); ++i) {
-        ((std::vector<MSVehicle::LaneQ>&) preb)[i].occupation = myChanger[i].dens + preb[i].nextOccupation;
+    //const std::vector<MSVehicle::LaneQ>& preb = vehicle->getBestLanes();
+    MSVehicle::LaneQ** preb = vehicle->getBestLanes();
+    unsigned int preb_size = 0;
+
+
+
+    PREBSIZE(preb,preb_size);
+    assert(preb_size == myChanger.size());
+    for (int i = 0; i < /*(int) myChanger.size()*/ preb_size; ++i) {
+        (*(preb+i))->occupation = myChanger[i].dens + (*(preb+i))->nextOccupation;
     }
 
     vehicle->getLaneChangeModel().prepareStep();
@@ -474,12 +492,12 @@ MSLaneChanger::findCandidate() {
     return max;
 }
 
-
+/* todo change*/
 int
 MSLaneChanger::change2right(const std::pair<MSVehicle* const, SUMOReal>& leader,
                             const std::pair<MSVehicle* const, SUMOReal>& rLead,
                             const std::pair<MSVehicle* const, SUMOReal>& rFollow,
-                            const std::vector<MSVehicle::LaneQ>& preb) const {
+                            MSVehicle::LaneQ** preb) const {
     ChangerIt target = myCandi - 1;
     int blocked = overlapWithHopped(target)
                   ? target->hoppedVeh->getPositionOnLane() < veh(myCandi)->getPositionOnLane()
@@ -514,12 +532,12 @@ MSLaneChanger::change2right(const std::pair<MSVehicle* const, SUMOReal>& leader,
                msg, blocked, leader, rLead, rFollow, *(myCandi - 1)->lane, preb, &(myCandi->lastBlocked));
 }
 
-
+/* todo change*/
 int
 MSLaneChanger::change2left(const std::pair<MSVehicle* const, SUMOReal>& leader,
                            const std::pair<MSVehicle* const, SUMOReal>& rLead,
                            const std::pair<MSVehicle* const, SUMOReal>& rFollow,
-                           const std::vector<MSVehicle::LaneQ>& preb) const {
+                           MSVehicle::LaneQ** preb) const {
     ChangerIt target = myCandi + 1;
     int blocked = overlapWithHopped(target)
                   ? target->hoppedVeh->getPositionOnLane() < veh(myCandi)->getPositionOnLane()

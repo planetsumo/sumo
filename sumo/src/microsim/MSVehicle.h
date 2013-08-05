@@ -65,6 +65,8 @@ class OutputDevice;
 class Position;
 class MSDevice_Person;
 
+// Max edges count, initialized with standard value and overidden by NLEdgeControlBuilder
+extern int CONST_MAXEDGES;
 
 // ===========================================================================
 // class definitions
@@ -446,7 +448,7 @@ public:
         /// @brief Whether this lane allows to continue the drive
         bool allowsContinuation;
         /// @brief Consecutive lane that can be followed without a lane change (contribute to length and occupation)
-        std::vector<MSLane*> bestContinuations;
+        std::vector<MSLane*> bestContinuations; /* todo */
     };
 
     /** @brief Returns the description of best lanes to use in order to continue the route
@@ -467,7 +469,7 @@ public:
      * @param[in] startLane The lane the process shall start at ("myLane" will be used if ==0)
      * @return The best lanes structure holding matching the current vehicle position and state ahead
      */
-    virtual const std::vector<LaneQ>& getBestLanes(bool forceRebuild = false, MSLane* startLane = 0) const;
+    virtual LaneQ** getBestLanes(bool forceRebuild = false, MSLane* startLane = 0) const;
 
 
     /** @brief Returns the subpart of best lanes that describes the vehicle's current lane and their successors
@@ -957,12 +959,33 @@ protected:
     /// The lane the vehicle is on
     MSLane* myLane;
 
+    // lane change indicator to avoid the 25 Million Cycle Loop
+    mutable MSLane* oldLanePointer;
+
     MSAbstractLaneChangeModel* myLaneChangeModel;
 
     mutable const MSEdge* myLastBestLanesEdge;
-    mutable std::vector<std::vector<LaneQ> > myBestLanes;
+
+    /* mutable std::vector<std::vector<LaneQ> > myBestLanes;
     mutable std::vector<LaneQ>::iterator myCurrentLaneInBestLanes;
+    static std::vector<MSLane*> myEmptyLaneVector; */
+
+    /* speed fix */
+    #define CONST_MAXLANES 6
+    #define CONST_MAXEDGES_INITIAL_VALUE 5000
+    #define CONST_VECTOR_OF_VECTOR_CONTAINER 10
+
+    #define CONST_EMPTY_LANE_SIZE 10
+
+    #define PREBSIZE(preb, preb_size) {void**x5r=(void**)preb;while(*(x5r++));preb_size=--x5r-(void**)preb;}
+
+    #define PBREAK(i) if(i==0) break
+
+    mutable unsigned short sizeBestLanes;
+    mutable LaneQ** myBestLanes;
+    mutable LaneQ* myCurrentLaneInBestLanes;
     static std::vector<MSLane*> myEmptyLaneVector;
+
 
     /// @brief The vehicle's list of stops
     std::list<Stop> myStops;

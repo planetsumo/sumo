@@ -143,6 +143,7 @@ protected:
 
     /// @brief pointer to the currently chosen edge
     MSEdge* myActiveEdge;
+    MSEdge** resultVector;
 
     /// @brief pointer to a temporary lane storage
     std::vector<MSLane*>* myLaneStorage;

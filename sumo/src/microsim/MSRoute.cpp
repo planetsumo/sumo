@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <limits>
 #include "MSRoute.h"
+#include "MSVehicle.h"
 #include "MSEdge.h"
 #include "MSLane.h"
 #include <utils/common/FileHelpers.h>
@@ -267,12 +268,15 @@ MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* from
             distance += toPos;
             break;
         } else {
-            const std::vector<MSLane*>& lanes = (*it)->getLanes();
-            distance += lanes[0]->getLength();
+            // speed fix const std::vector<MSLane*>& lanes = (*it)->getLanes();
+            MSLane** lanes = (*it)->getLanes(); // TODO: Get rid of the vectors and the const iterator from above in the future
+            unsigned int lsize = 0;
+            PREBSIZE(lanes,lsize);
+            distance += (*lanes)->getLength();
 #ifdef HAVE_INTERNAL_LANES
             // add length of internal lanes to the result
-            for (std::vector<MSLane*>::const_iterator laneIt = lanes.begin(); laneIt != lanes.end(); ++laneIt) {
-                const MSLinkCont& links = (*laneIt)->getLinkCont();
+            for (int i = 0; i < lsize; i++) {
+                const MSLinkCont& links = (*(lanes+i))->getLinkCont();
                 for (MSLinkCont::const_iterator linkIt = links.begin(); linkIt != links.end(); ++linkIt) {
                     if ((*linkIt) == 0 || (*linkIt)->getLane() == 0) {
                         continue;

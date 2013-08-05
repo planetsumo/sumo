@@ -681,7 +681,9 @@ GUILane::firstWaitingTime() const {
 
 SUMOReal
 GUILane::getEdgeLaneNumber() const {
-    return (SUMOReal) myEdge->getLanes().size();
+    int sz = 0;
+    PREBSIZE(myEdge->getLanes(), sz);
+    return (SUMOReal)sz;
 }
 
 

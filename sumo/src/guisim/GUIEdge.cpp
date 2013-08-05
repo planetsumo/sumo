@@ -68,7 +68,6 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
-
 // ===========================================================================
 // included modules
 // ===========================================================================
@@ -88,8 +87,8 @@ GUIEdge::~GUIEdge() {
 
 MSLane&
 GUIEdge::getLane(size_t laneNo) {
-    assert(laneNo < myLanes->size());
-    return *((*myLanes)[laneNo]);
+    assert(laneNo < sizeMyLanes);
+    return **(myLanes+laneNo);
 }
 
 
@@ -111,8 +110,8 @@ GUIEdge::getIDs(bool includeInternal) {
 Boundary
 GUIEdge::getBoundary() const {
     Boundary ret;
-    for (std::vector<MSLane*>::const_iterator i = myLanes->begin(); i != myLanes->end(); ++i) {
-        ret.add((*i)->getShape().getBoxBoundary());
+    for (int i = 0; i < sizeMyLanes; ++i) {
+        ret.add((*(myLanes+i))->getShape().getBoxBoundary());
     }
     ret.grow(10);
     return ret;
@@ -206,14 +205,14 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
         glPushName(getGlID());
     }
     // draw the lanes
-    for (std::vector<MSLane*>::const_iterator i = myLanes->begin(); i != myLanes->end(); ++i) {
+    for (int i = 0; i < sizeMyLanes; ++i) {
 #ifdef HAVE_INTERNAL
         if (MSGlobals::gUseMesoSim) {
             setColor(s);
         }
 #endif
-        GUILane *l = dynamic_cast<GUILane*>(*i);
-        if(l!=0) {
+        GUILane *l = dynamic_cast<GUILane*>(*(myLanes+i));
+        if (l != 0) {
             l->drawGL(s);
         }
     }
@@ -299,8 +298,8 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
     const bool drawInternalEdgeName = s.internalEdgeName.show && myFunction != EDGEFUNCTION_NORMAL;
     const bool drawStreetName = s.streetName.show && myStreetName != "";
     if (drawEdgeName || drawInternalEdgeName || drawStreetName) {
-        GUILane* lane1 = dynamic_cast<GUILane*>((*myLanes)[0]);
-        GUILane* lane2 = dynamic_cast<GUILane*>((*myLanes).back());
+        GUILane* lane1 = dynamic_cast<GUILane*>(*myLanes);
+        GUILane* lane2 = dynamic_cast<GUILane*>(*(myLanes+sizeMyLanes-1));
         if(lane1!=0&&lane2!=0) {
             Position p = lane1->getShape().positionAtOffset(lane1->getShape().length() / (SUMOReal) 2.);
             p.add(lane2->getShape().positionAtOffset(lane2->getShape().length() / (SUMOReal) 2.));

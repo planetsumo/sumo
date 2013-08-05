@@ -268,19 +268,29 @@ MSMeanData::MSMeanData(const std::string& id,
 
 void
 MSMeanData::init() {
-    const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
-    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
-        if (myDumpInternal || (*e)->getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
-            myEdges.push_back(*e);
+    //const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
+    /* speed fix */
+    MSEdge** edges = MSNet::getInstance()->getEdgeControl().getEdges();
+    unsigned int esize = 0;
+    PREBSIZE(edges,esize);
+    //for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    for(int i=0;i<esize;++i){
+        if (myDumpInternal || (*(edges+i))->getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
+            myEdges.push_back(*(edges+i));
             myMeasures.push_back(std::vector<MeanDataValues*>());
-            const std::vector<MSLane*>& lanes = (*e)->getLanes();
+
+            /* speed fix */ //const std::vector<MSLane*>& lanes = (*e)->getLanes();
+            MSLane** lanes = (*(edges+i))->getLanes();
+            unsigned int sizeLanes = 0;
+            PREBSIZE(lanes,sizeLanes);
+
 #ifdef HAVE_INTERNAL
             if (MSGlobals::gUseMesoSim) {
                 MeanDataValues* data;
                 if (myTrackVehicles) {
-                    data = new MeanDataValueTracker(0, lanes[0]->getLength(), &myVehicleTypes, this);
+                    data = new MeanDataValueTracker(0, (*lanes)->getLength(), &myVehicleTypes, this);
                 } else {
-                    data = createValues(0, lanes[0]->getLength(), false);
+                    data = createValues(0, *(lanes)->getLength(), false);
                 }
                 myMeasures.back().push_back(data);
                 MESegment* s = MSGlobals::gMesoNet->getSegmentForEdge(**e);
@@ -295,18 +305,20 @@ MSMeanData::init() {
             }
 #endif
             if (myAmEdgeBased && myTrackVehicles) {
-                myMeasures.back().push_back(new MeanDataValueTracker(0, lanes[0]->getLength(), &myVehicleTypes, this));
+                myMeasures.back().push_back(new MeanDataValueTracker(0, (*lanes)->getLength(), &myVehicleTypes, this));
             }
-            for (std::vector<MSLane*>::const_iterator lane = lanes.begin(); lane != lanes.end(); ++lane) {
+            /* speed fix begin */ //for (std::vector<MSLane*>::const_iterator lane = lanes.begin(); lane != lanes.end(); ++lane) {
+            for( int i=0; i<sizeLanes; i++){
                 if (myTrackVehicles) {
                     if (myAmEdgeBased) {
-                        (*lane)->addMoveReminder(myMeasures.back().back());
+                        (*(lanes+i))->addMoveReminder(myMeasures.back().back());
                     } else {
-                        myMeasures.back().push_back(new MeanDataValueTracker(*lane, (*lane)->getLength(), &myVehicleTypes, this));
+                        myMeasures.back().push_back(new MeanDataValueTracker((*(lanes+i)), (*(lanes+i))->getLength(), &myVehicleTypes, this));
                     }
                 } else {
-                    myMeasures.back().push_back(createValues(*lane, (*lane)->getLength(), true));
+                    myMeasures.back().push_back(createValues((*(lanes+i)), (*(lanes+i))->getLength(), true));
                 }
+            /*speed fix end */ //}
             }
         }
     }
@@ -397,7 +409,13 @@ MSMeanData::writeEdge(OutputDevice& dev,
         if (myTrackVehicles) {
             MeanDataValues& meanData = **edgeValues.begin();
             if (writePrefix(dev, meanData, SUMO_TAG_EDGE, edge->getID())) {
-                meanData.write(dev, stopTime - startTime, (SUMOReal)edge->getLanes().size(), myPrintDefaults ? edge->getLength() / edge->getSpeedLimit() : -1.);
+
+                /* speed fix: avoid allocating vector here, this costs time */
+                MSLane** _lanes = edge->getLanes();
+                unsigned int sizeLanes = 0;
+                PREBSIZE(_lanes,sizeLanes);
+
+                meanData.write(dev, stopTime - startTime, (SUMOReal)sizeLanes, myPrintDefaults ? edge->getLength() / edge->getSpeedLimit() : -1.);
             }
             meanData.reset(true);
         } else {
@@ -408,7 +426,13 @@ MSMeanData::writeEdge(OutputDevice& dev,
                 meanData.reset();
             }
             if (writePrefix(dev, *sumData, SUMO_TAG_EDGE, edge->getID())) {
-                sumData->write(dev, stopTime - startTime, (SUMOReal)edge->getLanes().size(), myPrintDefaults ? edge->getLength() / edge->getSpeedLimit() : -1.);
+
+                /* speed fix: avoid allocating vector here, this costs time */
+                MSLane** _lanes = edge->getLanes();
+                unsigned int sizeLanes = 0;
+                PREBSIZE(_lanes,sizeLanes);
+                
+                sumData->write(dev, stopTime - startTime, (SUMOReal)sizeLanes, myPrintDefaults ? edge->getLength() / edge->getSpeedLimit() : -1.);
             }
             delete sumData;
         }

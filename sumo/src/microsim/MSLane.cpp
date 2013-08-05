@@ -918,6 +918,9 @@ MSLane::succLinkSec(const SUMOVehicle& veh, unsigned int nRouteSuccs,
     // "conts" stores the best continuations of our current lane
     // we should never return an arbitrary link since this may cause collisions
     MSLinkCont::const_iterator link;
+    //std::cout << "succLinkSource = " << succLinkSource.getID() << "\r\n";
+    //std::cout << "returning end: " << nRouteSuccs << " < " << conts.size() << "\tmyLinks.sz()=" << succLinkSource.myLinks.size() << "\r\n";
+
     if (nRouteSuccs < conts.size()) {
         // we go through the links in our list and return the matching one
         for (link = succLinkSource.myLinks.begin(); link != succLinkSource.myLinks.end(); ++link) {

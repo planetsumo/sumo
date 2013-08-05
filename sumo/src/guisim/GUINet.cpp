@@ -58,6 +58,7 @@
 #include <guisim/GUIJunctionWrapper.h>
 #include <guisim/GUIVehicleControl.h>
 #include <gui/GUIGlobals.h>
+#include <traci-server/TraCIServerAPI_Edge.h>
 #include "GUINet.h"
 #include "GUIShapeContainer.h"
 
@@ -282,7 +283,7 @@ GUINet::initGUIStructures() {
     for (std::vector<GUIEdge*>::iterator i = myEdgeWrapper.begin(); i != myEdgeWrapper.end(); ++i) {
         GUIEdge* edge = *i;
         Boundary b;
-        const std::vector<MSLane*>& lanes = edge->getLanes();
+        const std::vector<MSLane*>& lanes = traverse(edge->getLanes());
         for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
             b.add((*j)->getShape().getBoxBoundary());
         }

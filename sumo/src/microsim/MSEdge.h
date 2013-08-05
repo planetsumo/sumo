@@ -134,23 +134,6 @@ public:
     /// @name Access to the edge's lanes
     /// @{
 
-    /** @brief Returns the lane left to the one given, 0 if the given lane is leftmost
-     *
-     * @param[in] lane The lane right to the one to be returned
-     * @return The lane left to the given, 0 if no such lane exists
-     * @todo This method searches for the given in the container; probably, this could be done faster
-     */
-    MSLane* leftLane(const MSLane* const lane) const;
-
-
-    /** @brief Returns the lane right to the one given, 0 if the given lane is rightmost
-     *
-     * @param[in] lane The lane left to the one to be returned
-     * @return The lane right to the given, 0 if no such lane exists
-     * @todo This method searches for the given in the container; probably, this could be done faster
-     */
-    MSLane* rightLane(const MSLane* const lane) const;
-
     /** @brief Returns the lane with the given offset parallel to the given lane one or 0 if it does not exist
      *
      * @param[in] lane The base lane
@@ -159,13 +142,14 @@ public:
      */
     MSLane* parallelLane(const MSLane* const lane, int offset) const;
 
-
     /** @brief Returns this edge's lanes
      *
      * @return This edge's lanes
-     */
-    const std::vector<MSLane*>& getLanes() const {
-        return *myLanes;
+     */    
+     #define PREBSIZE(preb, preb_size) {void**x5r=(void**)preb;while(*(x5r++));preb_size=--x5r-(void**)preb;}
+
+    MSLane** getLanes() const {
+        return myLanes;
     }
 
 
@@ -532,7 +516,10 @@ protected:
     int myNumericalID;
 
     /// @brief Container for the edge's lane; should be sorted: (right-hand-traffic) the more left the lane, the higher the container-index
-    std::vector<MSLane*>* myLanes;
+    //std::vector<MSLane*>* myLanes;
+    /* speed fix */
+    MSLane** myLanes;
+    unsigned int sizeMyLanes;
 
     /// @brief This member will do the lane-change
     MSLaneChanger* myLaneChanger;

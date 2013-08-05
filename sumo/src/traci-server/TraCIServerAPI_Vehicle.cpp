@@ -47,6 +47,8 @@
 #include <utils/common/HelpersHBEFA.h>
 #include <utils/common/HelpersHarmonoise.h>
 #include <utils/common/SUMOVehicleParameter.h>
+#include "TraCIServerAPI_Edge.h"
+
 #include "TraCIConstants.h"
 #include "TraCIServerAPI_Simulation.h"
 #include "TraCIServerAPI_Vehicle.h"
@@ -156,7 +158,7 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
             case VAR_LANE_INDEX:
                 tempMsg.writeUnsignedByte(TYPE_INTEGER);
                 if (onRoad) {
-                    const std::vector<MSLane*>& lanes = v->getLane()->getEdge().getLanes();
+                    const std::vector<MSLane*>& lanes = traverse(v->getLane()->getEdge().getLanes());
                     tempMsg.writeInt((int)std::distance(lanes.begin(), std::find(lanes.begin(), lanes.end(), v->getLane())));
                 } else {
                     tempMsg.writeInt(INVALID_INT_VALUE);
@@ -301,7 +303,10 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                 tcpip::Storage tempContent;
                 unsigned int cnt = 0;
                 tempContent.writeUnsignedByte(TYPE_INTEGER);
-                const std::vector<MSVehicle::LaneQ>& bestLanes = onRoad ? v->getBestLanes() : std::vector<MSVehicle::LaneQ>();
+                std::vector<MSVehicle::LaneQ> bestLanes = std::vector<MSVehicle::LaneQ>();
+                if(onRoad)
+                    bestLanes = traverse_noptr(v->getBestLanes());
+
                 tempContent.writeInt((int) bestLanes.size());
                 ++cnt;
                 for (std::vector<MSVehicle::LaneQ>::const_iterator i = bestLanes.begin(); i != bestLanes.end(); ++i) {
@@ -314,6 +319,7 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                     ++cnt;
                     tempContent.writeUnsignedByte(TYPE_DOUBLE);
                     tempContent.writeDouble(lq.nextOccupation);
+
                     ++cnt;
                     tempContent.writeUnsignedByte(TYPE_BYTE);
                     tempContent.writeByte(lq.bestLaneOffset);
@@ -441,7 +447,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             if (road == 0) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Unable to retrieve road with given id", outputStorage);
             }
-            const std::vector<MSLane*>& allLanes = road->getLanes();
+            const std::vector<MSLane*>& allLanes = traverse(road->getLanes());
             if ((laneIndex < 0) || laneIndex >= (int)(allLanes.size())) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "No lane existing with such id on the given road", outputStorage);
             }
@@ -490,7 +496,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             if (!server.readTypeCheckingInt(inputStorage, stickyTime)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The second lane change parameter must be the duration given as an integer.", outputStorage);
             }
-            if ((laneIndex < 0) || (laneIndex >= (int)(v->getEdge()->getLanes().size()))) {
+            if ((laneIndex < 0) || (laneIndex >= (int)(traverse(v->getEdge()->getLanes()).size()))) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "No lane existing with given id on the current road", outputStorage);
             }
             // Forward command to vehicle
@@ -1109,7 +1115,7 @@ TraCIServerAPI_Vehicle::vtdMap_matchingRoutePosition(const Position& pos, const 
         if (i != bestLaneConts.begin() && e.getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
             ++lastRouteEdge;
         }
-        const std::vector<MSLane*>& lanes = e.getLanes();
+        const std::vector<MSLane*>& lanes = traverse(e.getLanes());
         for (std::vector<MSLane*>::const_iterator k = lanes.begin(); k != lanes.end() && bestDistance > POSITION_EPS; ++k) {
             MSLane* cl = *k;
             SUMOReal dist = cl->getShape().distance(pos);
@@ -1158,7 +1164,7 @@ TraCIServerAPI_Vehicle::vtdMap_matchingNearest(const Position& pos, const std::s
         server.collectObjectsInRange(CMD_GET_EDGE_VARIABLE, shape, 1 << r, into);
         for (std::set<std::string>::const_iterator j = into.begin(); j != into.end(); ++j) {
             MSEdge* e = MSEdge::dictionary(*j);
-            const std::vector<MSLane*>& lanes = e->getLanes();
+            const std::vector<MSLane*>& lanes = traverse(e->getLanes());
             for (std::vector<MSLane*>::const_iterator k = lanes.begin(); k != lanes.end(); ++k) {
                 MSLane* lane = *k;
                 SUMOReal dist = lane->getShape().distance(pos);
@@ -1332,16 +1338,20 @@ TraCIServerAPI_Vehicle::getSingularType(SUMOVehicle* const veh) {
 const std::map<std::string, std::vector<MSLane*> >&
 TraCIServerAPI_Vehicle::getOrBuildVTDMap() {
     if (gVTDMap.size() == 0) {
-        const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
-        for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
-            const std::vector<MSLane*>& lanes = (*i)->getLanes();
-            for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-                if ((*j)->knowsParameter("origId")) {
-                    std::string origID = (*j)->getParameter("origId", "");
+        MSEdge** edges = MSNet::getInstance()->getEdgeControl().getEdges();
+        unsigned int esize = 0;
+        PREBSIZE(edges, esize);
+        for (int i = 0; i < esize; ++i) {
+            MSLane** lanes = (*(edges+i))->getLanes();
+            unsigned int laneSize = 0;
+            PREBSIZE(lanes, laneSize);
+            for (int j = 0; j < laneSize; ++j) {
+                if ((*(lanes+j))->knowsParameter("origId")) {
+                    std::string origID = (*(lanes+j))->getParameter("origId", "");
                     if (gVTDMap.find(origID) == gVTDMap.end()) {
                         gVTDMap[origID] = std::vector<MSLane*>();
                     }
-                    gVTDMap[origID].push_back(*j);
+                    gVTDMap[origID].push_back(*(lanes+j));
                 }
             }
         }

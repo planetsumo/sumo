@@ -36,6 +36,37 @@
 #include "TraCIServer.h"
 #include <foreign/tcpip/storage.h>
 
+/* speed fix: This is an ugly workaround. We need to redo the pointer structure treatment in traci too. Future work! */
+template <class Type> inline std::vector<Type*> const traverse(Type** e){
+    std::vector<Type*> ret;
+    while(*e != 0){
+        ret.push_back(*e);
+        ++e;
+    }
+    return ret;
+}
+template <class Type> inline std::vector< std::vector<Type> > const traverse_deep_noptr(Type** e){
+    std::vector< std::vector<Type> > ret_global;
+    while(true){
+        std::vector<Type> ret;
+
+        while(*e != 0){
+            ret.push_back(**e);
+            ++e;
+        }
+
+        ret_global.push_back(ret);
+        if(*(e+1)==0) return ret_global;
+    }
+}
+template <class Type> inline std::vector<Type> const traverse_noptr(Type** e){
+    std::vector<Type> ret;
+    while(*e != 0){
+        ret.push_back(**e);
+        ++e;
+    }
+    return ret;
+}
 
 // ===========================================================================
 // class definitions

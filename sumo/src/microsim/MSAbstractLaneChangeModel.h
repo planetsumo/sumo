@@ -191,7 +191,7 @@ public:
         const std::pair<MSVehicle*, SUMOReal>& neighLead,
         const std::pair<MSVehicle*, SUMOReal>& neighFollow,
         const MSLane& neighLane,
-        const std::vector<MSVehicle::LaneQ>& preb,
+        MSVehicle::LaneQ** preb,
         MSVehicle** lastBlocked) = 0;
 
     /** @brief Called to examine whether the vehicle wants to change to left
@@ -203,7 +203,7 @@ public:
         const std::pair<MSVehicle*, SUMOReal>& neighLead,
         const std::pair<MSVehicle*, SUMOReal>& neighFollow,
         const MSLane& neighLane,
-        const std::vector<MSVehicle::LaneQ>& preb,
+        MSVehicle::LaneQ** preb,
         MSVehicle** lastBlocked) = 0;
 
     virtual void* inform(void* info, MSVehicle* sender) = 0;

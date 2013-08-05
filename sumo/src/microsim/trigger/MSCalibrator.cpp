@@ -100,8 +100,14 @@ MSCalibrator::init() {
         MSNet::getInstance()->getEndOfTimestepEvents().addEvent(this,
                 MSNet::getInstance()->getCurrentTimeStep(),
                 MSEventControl::ADAPT_AFTER_EXECUTION);
-        for (size_t i = 0; i < myEdge->getLanes().size(); ++i) {
-            MSLane* lane = myEdge->getLanes()[i];
+
+        MSLane** lanes = myEdge->getLanes();
+        unsigned int sizeLanes = 0;
+        PREBSIZE(lanes,sizeLanes);
+
+        /* speed fix */
+        for (size_t i = 0; i < sizeLanes; ++i) {
+            MSLane* lane = *(lanes+i);
             MSMeanData_Net::MSLaneMeanDataValues* laneData = new MSMeanData_Net::MSLaneMeanDataValues(lane, myEdge->getLength(), true);
             LeftoverReminders.push_back(laneData);
             myLaneMeanData.push_back(laneData);
@@ -246,8 +252,15 @@ MSCalibrator::execute(SUMOTime currentTime) {
         reset();
         if (!mySpeedIsDefault) {
             // reset speed to default
-            for (std::vector<MSLane*>::const_iterator i = myEdge->getLanes().begin(); i != myEdge->getLanes().end(); ++i) {
-                (*i)->setMaxSpeed(myDefaultSpeed);
+
+            /* speed fix */
+            MSLane** lanes = myEdge->getLanes();
+            unsigned int sizeLanes = 0;
+            PREBSIZE(lanes,sizeLanes);
+     
+
+            for (int i=0;i<sizeLanes;++i) {
+                (*(lanes+i))->setMaxSpeed(myDefaultSpeed);
             }
             mySpeedIsDefault = true;
         }
@@ -258,8 +271,14 @@ MSCalibrator::execute(SUMOTime currentTime) {
     }
     // we are active
     if (!myDidSpeedAdaption && myCurrentStateInterval->v >= 0) {
-        for (std::vector<MSLane*>::const_iterator i = myEdge->getLanes().begin(); i != myEdge->getLanes().end(); ++i) {
-            (*i)->setMaxSpeed(myCurrentStateInterval->v);
+
+        /* speed fix */
+        MSLane** lanes = myEdge->getLanes();
+        unsigned int sizeLanes = 0;
+        PREBSIZE(lanes,sizeLanes);
+
+        for (int i=0;i<sizeLanes;++i) {
+            (*(lanes+i))->setMaxSpeed(myCurrentStateInterval->v);
         }
         mySpeedIsDefault = false;
         myDidSpeedAdaption = true;
@@ -377,8 +396,12 @@ MSCalibrator::reset() {
 
 bool
 MSCalibrator::invalidJam(int laneIndex) const {
+    /* speed fix: this might be slower, but we have to do it this way because of the pointer-pointer structure */
+    MSLane** lanes = myEdge->getLanes();
+    unsigned int numLanes = 0;
+    PREBSIZE(lanes, numLanes);
+
     if (laneIndex < 0) {
-        const int numLanes = (int)myEdge->getLanes().size();
         for (int i = 0; i < numLanes; ++i) {
             if (invalidJam(i)) {
                 return true;
@@ -386,8 +409,8 @@ MSCalibrator::invalidJam(int laneIndex) const {
         }
         return false;
     }
-    assert(laneIndex < (int)myEdge->getLanes().size());
-    const MSLane* const lane = myEdge->getLanes()[laneIndex];
+    assert(laneIndex < numLanes);
+    const MSLane* const lane = *(lanes+laneIndex);
     if (lane->getVehicleNumber() < 4) {
         // cannot reliably detect invalid jams
         return false;
@@ -400,16 +423,22 @@ MSCalibrator::invalidJam(int laneIndex) const {
 
 int
 MSCalibrator::remainingVehicleCapacity(int laneIndex) const {
+
+    /* speed fix: this might be slower, but we have to do it this way because of the pointer-pointer structure */
+    MSLane** lanes = myEdge->getLanes();
+    unsigned int sizeLanes = 0;
+    PREBSIZE(lanes,sizeLanes);
+
     if (laneIndex < 0) {
-        const int numLanes = (int)myEdge->getLanes().size();
+        const int numLanes = sizeLanes;
         int result = 0;
         for (int i = 0; i < numLanes; ++i) {
             result = MAX2(result, remainingVehicleCapacity(i));
         }
         return result;
     }
-    assert(laneIndex < (int)myEdge->getLanes().size());
-    MSLane* lane = myEdge->getLanes()[laneIndex];
+    assert(laneIndex < sizeLanes);
+    MSLane* lane = *(lanes+laneIndex);
     MSVehicle* last = lane->getLastVehicle();
     const SUMOVehicleParameter* pars = myCurrentStateInterval->vehicleParameter;
     const MSVehicleType* vtype = MSNet::getInstance()->getVehicleControl().getVType(pars->vtypeid);

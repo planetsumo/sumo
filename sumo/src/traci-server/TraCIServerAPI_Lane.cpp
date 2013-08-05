@@ -39,6 +39,7 @@
 #include <microsim/MSNet.h>
 #include "TraCIConstants.h"
 #include "TraCIServerAPI_Lane.h"
+#include "TraCIServerAPI_Edge.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -359,9 +360,14 @@ TraCIServerAPI_Lane::getShape(const std::string& id, PositionVector& shape) {
 TraCIRTree*
 TraCIServerAPI_Lane::getTree() {
     TraCIRTree* t = new TraCIRTree();
-    const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
+    MSEdge** edgesPtr = MSNet::getInstance()->getEdgeControl().getEdges();
+    const std::vector<MSEdge*>& edges = traverse(edgesPtr);
     for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
-        const std::vector<MSLane*>& lanes = (*i)->getLanes();
+        MSEdge* edge = (*i);
+        if(edge == 0) continue;
+        MSLane** lanesPtr = edge->getLanes();
+        if(lanesPtr == 0) continue; // no lanes given back, prevent segfault - yet not sure why we could run into this problem though. Never seen edges with 0 lanes but obviously they exist.
+        const std::vector<MSLane*>& lanes = traverse(lanesPtr);
         for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
             Boundary b = (*j)->getShape().getBoxBoundary();
             b.grow(3.);

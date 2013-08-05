@@ -58,9 +58,13 @@ void
 MSXMLRawOut::write(OutputDevice& of, const MSEdgeControl& ec,
                    SUMOTime timestep) {
     of.openTag("timestep") << " time=\"" << time2string(timestep) << "\"";
-    const std::vector<MSEdge*>& edges = ec.getEdges();
-    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
-        writeEdge(of, **e);
+    // speed fix const std::vector<MSEdge*>& edges = ec.getEdges();
+    MSEdge** edges = ec.getEdges();
+    unsigned int esize=0;
+    PREBSIZE(edges,esize);
+    //for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    for(int i=0;i<esize;++i){
+        writeEdge(of, **(edges+i));
     }
     of.closeTag();
 }
@@ -83,9 +87,13 @@ MSXMLRawOut::writeEdge(OutputDevice& of, const MSEdge& edge) {
             }
         } else {
 #endif
-            const std::vector<MSLane*>& lanes = edge.getLanes();
-            for (std::vector<MSLane*>::const_iterator lane = lanes.begin(); lane != lanes.end(); ++lane) {
-                if (((**lane).getVehicleNumber() != 0)) {
+            /* speed fix */ //const std::vector<MSLane*>& lanes = edge.getLanes();
+            MSLane** lanes = edge.getLanes();
+            unsigned int sizeLanes = 0;
+            PREBSIZE(lanes,sizeLanes);
+            //for (std::vector<MSLane*>::const_iterator lane = lanes.begin(); lane != lanes.end(); ++lane) {
+            for(int i=0; i<sizeLanes; ++i){
+                if (((*(lanes+i))->getVehicleNumber() != 0)) {
                     dump = true;
                     break;
                 }
@@ -106,9 +114,12 @@ MSXMLRawOut::writeEdge(OutputDevice& of, const MSEdge& edge) {
             }
         } else {
 #endif
-            const std::vector<MSLane*>& lanes = edge.getLanes();
-            for (std::vector<MSLane*>::const_iterator lane = lanes.begin(); lane != lanes.end(); ++lane) {
-                writeLane(of, **lane);
+            MSLane** lanes = edge.getLanes();
+            unsigned int sizeLanes = 0;
+            PREBSIZE(lanes,sizeLanes);
+            /* speed fix */ //const std::vector<MSLane*>& lanes = edge.getLanes();
+            for(int i=0; i<sizeLanes; ++i){
+                writeLane(of, *(*(lanes+i)));
             }
 #ifdef HAVE_INTERNAL
         }

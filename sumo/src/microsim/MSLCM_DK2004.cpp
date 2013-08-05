@@ -85,7 +85,7 @@ MSLCM_DK2004::wantsChangeToRight(MSAbstractLaneChangeModel::MSLCMessager& msgPas
                                  const std::pair<MSVehicle*, SUMOReal>& neighLead,
                                  const std::pair<MSVehicle*, SUMOReal>& neighFollow,
                                  const MSLane& neighLane,
-                                 const std::vector<MSVehicle::LaneQ>& preb,
+                                 MSVehicle::LaneQ** preb,
                                  MSVehicle** lastBlocked) {
 #ifdef DEBUG_VEHICLE_GUI_SELECTION
     if (gSelected.isSelected(GLO_VEHICLE, static_cast<const GUIVehicle*>(&myVehicle)->getGlID())) {
@@ -99,15 +99,18 @@ MSLCM_DK2004::wantsChangeToRight(MSAbstractLaneChangeModel::MSLCMessager& msgPas
     SUMOReal neighExtDist = 0;
     SUMOReal currExtDist = 0;
     int currIdx = 0;
-    for (int p = 0; p < (int) preb.size(); ++p) {
-        if (preb[p].lane == myVehicle.getLane()) {
-            curr = preb[p];
+    unsigned int preb_size = 0;
+    PREBSIZE(preb,preb_size);
+
+    for (int p = 0; p < preb_size; ++p) {
+        if ((*(preb+p))->lane == myVehicle.getLane()) {
+            curr = **(preb+p);
             bestLaneOffset = curr.bestLaneOffset;
             currentDist = curr.length;
             currExtDist = curr.lane->getLength();
-            neighDist = preb[p - 1].length;
-            neighExtDist = preb[p - 1].lane->getLength();
-            best = preb[p + bestLaneOffset];
+            neighDist = preb[p - 1]->length;
+            neighExtDist = preb[p - 1]->lane->getLength();
+            best = **(preb + p + bestLaneOffset);
             currIdx = p;
         }
     }
@@ -190,7 +193,7 @@ MSLCM_DK2004::wantsChangeToRight(MSAbstractLaneChangeModel::MSLCMessager& msgPas
     // this rule prevents the vehicle from moving in opposite direction of the best lane
     //  unless the way till the end where the vehicle has to be on the best lane
     //  is long enough
-    SUMOReal maxJam = MAX2(preb[currIdx - 1].occupation, preb[currIdx].occupation);
+    SUMOReal maxJam = MAX2(preb[currIdx - 1]->occupation, preb[currIdx]->occupation);
     SUMOReal neighLeftPlace = MAX2((SUMOReal) 0, neighDist - myVehicle.getPositionOnLane() - maxJam);
     if (bestLaneOffset >= 0 && (currentDistDisallows(neighLeftPlace, bestLaneOffset + 2, rv))) {
         // ...we will not change the lane if not
@@ -211,7 +214,7 @@ MSLCM_DK2004::wantsChangeToRight(MSAbstractLaneChangeModel::MSLCMessager& msgPas
     //  in this case, we do not want to get to the dead-end of an on-ramp
     //
     // THIS RULE APPLIES ONLY TO CHANGING TO THE RIGHT LANE
-    if (bestLaneOffset == 0 && preb[currIdx - 1].bestLaneOffset != 0 && myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle) > 80. / 3.6) {
+    if (bestLaneOffset == 0 && preb[currIdx - 1]->bestLaneOffset != 0 && myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle) > 80. / 3.6) {
         return ret;
     }
     // --------
@@ -302,7 +305,7 @@ MSLCM_DK2004::wantsChangeToLeft(MSAbstractLaneChangeModel::MSLCMessager& msgPass
                                 const std::pair<MSVehicle*, SUMOReal>& neighLead,
                                 const std::pair<MSVehicle*, SUMOReal>& neighFollow,
                                 const MSLane& neighLane,
-                                const std::vector<MSVehicle::LaneQ>& preb,
+                                MSVehicle::LaneQ** preb,
                                 MSVehicle** lastBlocked) {
 #ifdef DEBUG_VEHICLE_GUI_SELECTION
     if (gSelected.isSelected(GLO_VEHICLE, static_cast<const GUIVehicle*>(&myVehicle)->getGlID())) {
@@ -316,15 +319,18 @@ MSLCM_DK2004::wantsChangeToLeft(MSAbstractLaneChangeModel::MSLCMessager& msgPass
     SUMOReal neighExtDist = 0;
     SUMOReal currExtDist = 0;
     int currIdx = 0;
-    for (int p = 0; p < (int) preb.size(); ++p) {
-        if (preb[p].lane == myVehicle.getLane()) {
-            curr = preb[p];
+    unsigned int preb_size = 0;
+    PREBSIZE(preb,preb_size);
+
+    for (int p = 0; p < preb_size; ++p) {
+        if (preb[p]->lane == myVehicle.getLane()) {
+            curr = **(preb+p);
             bestLaneOffset = curr.bestLaneOffset;
             currentDist = curr.length;
             currExtDist = curr.lane->getLength();
-            neighDist = preb[p + 1].length;
-            neighExtDist = preb[p + 1].lane->getLength();
-            best = preb[p + bestLaneOffset];
+            neighDist = (*(preb + p + 1))->length;
+            neighExtDist = (*(preb + p + 1))->lane->getLength();
+            best = **(preb + p + bestLaneOffset);
             currIdx = p;
         }
     }
@@ -409,7 +415,7 @@ MSLCM_DK2004::wantsChangeToLeft(MSAbstractLaneChangeModel::MSLCMessager& msgPass
     // this rule prevents the vehicle from moving in opposite direction of the best lane
     //  unless the way till the end where the vehicle has to be on the best lane
     //  is long enough
-    SUMOReal maxJam = MAX2(preb[currIdx + 1].occupation, preb[currIdx].occupation);
+    SUMOReal maxJam = MAX2(preb[currIdx + 1]->occupation, preb[currIdx]->occupation);
     SUMOReal neighLeftPlace = MAX2((SUMOReal) 0, neighDist - myVehicle.getPositionOnLane() - maxJam);
     if (bestLaneOffset <= 0 && (currentDistDisallows(neighLeftPlace, bestLaneOffset - 2, lv))) {
         // ...we will not change the lane if not
@@ -531,7 +537,10 @@ MSLCM_DK2004::patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMORe
     }
 
     // just to make sure to be notified about lane chaning end
-    if (myVehicle.getLane()->getEdge().getLanes().size() == 1) {
+    MSLane** lanes = myVehicle.getLane()->getEdge().getLanes();
+    unsigned int lsize = 0;
+    PREBSIZE(lanes,lsize);
+    if (lsize == 1) {
         // remove chaning information if on a road with a single lane
         changed();
         return wanted;

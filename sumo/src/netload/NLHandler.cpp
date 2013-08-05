@@ -961,8 +961,17 @@ NLHandler::addConnection(const SUMOSAXAttributes& attrs) {
             WRITE_ERROR("Unknown to-edge '" + toID + "' in connection");
             return;
         }
-        if (fromLaneIdx < 0 || static_cast<unsigned int>(fromLaneIdx) >= from->getLanes().size() ||
-                toLaneIdx < 0 || static_cast<unsigned int>(toLaneIdx) >= to->getLanes().size()) {
+
+        MSLane** fromLanes = from->getLanes();
+        MSLane** toLanes = to->getLanes();
+        int fromSize = 0;
+        int toSize = 0;
+        PREBSIZE(fromLanes,fromSize);
+        PREBSIZE(toLanes,toSize);
+
+
+        if (fromLaneIdx < 0 || static_cast<unsigned int>(fromLaneIdx) >= fromSize ||
+                toLaneIdx < 0 || static_cast<unsigned int>(toLaneIdx) >= toSize) {
             WRITE_ERROR("Invalid lane index in connection from '" + from->getID() + "' to '" + to->getID() + "'.");
             return;
         }

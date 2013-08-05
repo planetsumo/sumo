@@ -54,7 +54,7 @@
 class MSLaneChanger {
 public:
     /// Constructor
-    MSLaneChanger(std::vector<MSLane*>* lanes, bool allowSwap);
+    MSLaneChanger(MSLane** lanes, bool allowSwap);
 
     /// Destructor.
     ~MSLaneChanger();
@@ -146,13 +146,13 @@ protected:
         const std::pair<MSVehicle* const, SUMOReal>& leader,
         const std::pair<MSVehicle* const, SUMOReal>& rLead,
         const std::pair<MSVehicle* const, SUMOReal>& rFollow,
-        const std::vector<MSVehicle::LaneQ>& preb) const;
+        MSVehicle::LaneQ** preb) const;
 
     int change2left(
         const std::pair<MSVehicle* const, SUMOReal>& leader,
         const std::pair<MSVehicle* const, SUMOReal>& rLead,
         const std::pair<MSVehicle* const, SUMOReal>& rFollow,
-        const std::vector<MSVehicle::LaneQ>& preb) const;
+        MSVehicle::LaneQ** preb) const;
 
 
     ///  @brief start the lane change maneuver (and finish it instantly if gLaneChangeDuration == 0)

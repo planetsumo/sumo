@@ -118,18 +118,23 @@ MSFullExport::writeEdge(OutputDevice& of) {
 
     MSEdgeControl& ec = MSNet::getInstance()->getEdgeControl();
 
-    const std::vector<MSEdge*>& edges = ec.getEdges();
-    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    MSEdge** edges = ec.getEdges();
+    unsigned int esize = 0;
+    PREBSIZE(edges, esize);
+    //for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    for(int i=0;i<esize;++i){
 
-        MSEdge& edge = **e;
+        MSEdge& edge = **(edges+i);
 
         of.openTag("edge") << " id=\"" << edge.getID() << "\" traveltime=\"" << edge.getCurrentTravelTime() << "\">\n";
 
-        const std::vector<MSLane*>& lanes = edge.getLanes();
-        for (std::vector<MSLane*>::const_iterator lane = lanes.begin(); lane != lanes.end(); ++lane) {
 
-            writeLane(of, **lane);
-
+        // /*speed fix*/ const std::vector<MSLane*>& lanes = edge.getLanes();
+        MSLane** lanes = edge.getLanes();
+        unsigned int sizeLanes = 0;
+        PREBSIZE(lanes,sizeLanes);
+        for (int i=0;i<sizeLanes;i++) {
+            writeLane(of, *(*(lanes+i)));
         }
 
         of.closeTag();

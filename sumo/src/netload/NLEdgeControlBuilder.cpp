@@ -38,6 +38,7 @@
 #include <microsim/MSLane.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSEdgeControl.h>
+#include <microsim/MSVehicle.h>
 #include <utils/common/StringTokenizer.h>
 #include <utils/common/UtilExceptions.h>
 #include "NLBuilder.h"
@@ -58,7 +59,7 @@
 // method definitions
 // ===========================================================================
 NLEdgeControlBuilder::NLEdgeControlBuilder()
-    : myCurrentNumericalLaneID(0), myCurrentNumericalEdgeID(0), myEdges(0) {
+    : myCurrentNumericalLaneID(0), myCurrentNumericalEdgeID(0), myEdges(0), resultVector(0) {
     myActiveEdge = (MSEdge*) 0;
     myLaneStorage = new std::vector<MSLane*>();
 }
@@ -66,6 +67,10 @@ NLEdgeControlBuilder::NLEdgeControlBuilder()
 
 NLEdgeControlBuilder::~NLEdgeControlBuilder() {
     delete myLaneStorage;
+    /*if(resultVector!=0){
+        free(resultVector);
+        std::cout << "free resultvector" << std::endl;
+    }*/ // Free is bad here!
 }
 
 
@@ -99,21 +104,33 @@ NLEdgeControlBuilder::closeEdge() {
     copy(myLaneStorage->begin(), myLaneStorage->end(), back_inserter(*lanes));
     myLaneStorage->clear();
     myActiveEdge->initialize(lanes);
+    delete lanes;
     return myActiveEdge;
 }
 
 
 MSEdgeControl*
 NLEdgeControlBuilder::build() {
-    for (EdgeCont::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
+
+    /* Override vehicle's max edge count here */
+    CONST_MAXEDGES = myEdges.size()+2; /* include terminating zero-ptr */
+
+    /* TODO: think about eliminating myEdges as a vector here. This will obsolete the ** conversion */
+    resultVector = (MSEdge**)calloc(sizeof(MSEdge**),CONST_MAXEDGES);
+    int i=0;
+    for (EdgeCont::iterator i1 = myEdges.begin(); i1 != myEdges.end(); ++i1, ++i) {
+        MSEdge* ptr = *i1;
         (*i1)->closeBuilding();
 #ifdef HAVE_INTERNAL
         if (MSGlobals::gUseMesoSim) {
             MSGlobals::gMesoNet->buildSegmentsFor(**i1, OptionsCont::getOptions());
         }
 #endif
+
+        *(resultVector+i) = ptr;
     }
-    return new MSEdgeControl(myEdges);
+    *(resultVector+i+1) = 0;
+    return new MSEdgeControl(resultVector);
 }
 
 

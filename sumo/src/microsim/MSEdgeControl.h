@@ -83,7 +83,7 @@ public:
      * @param[in] edges The loaded edges
      * @todo Assure both containers are not 0
      */
-    MSEdgeControl(const std::vector< MSEdge* >& edges);
+    MSEdgeControl(MSEdge** edges);
 
 
     /// @brief Destructor.
@@ -158,7 +158,7 @@ public:
      * @return the container storing one-lane edges
      * @todo Check: Is this secure?
      */
-    const std::vector<MSEdge*>& getEdges() const {
+    MSEdge** getEdges() const {
         return myEdges;
     }
 
@@ -194,9 +194,9 @@ public:
         /// @brief The described lane
         MSLane* lane;
         /// @brief The lane left to the described lane (==lastNeigh if none)
-        std::vector<MSLane*>::const_iterator firstNeigh;
+        MSLane** firstNeigh;
         /// @brief The end of this lane's edge's lane container
-        std::vector<MSLane*>::const_iterator lastNeigh;
+        MSLane** lastNeigh;
         /// @brief Information whether this lane is active
         bool amActive;
         /// @brief Information whether this lane belongs to a multi-lane edge
@@ -205,7 +205,8 @@ public:
 
 private:
     /// @brief Loaded edges
-    std::vector<MSEdge*> myEdges;
+    MSEdge** myEdges;
+    unsigned int myEdgesSize;
 
     /// @brief Definition of a container about a lane's number of vehicles and neighbors
     typedef std::vector<LaneUsage> LaneUsageVector;

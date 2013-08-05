@@ -53,6 +53,7 @@
 #include <utils/gui/div/GUIGlobalSelection.h>
 #include <foreign/polyfonts/polyfonts.h>
 #include <utils/gui/globjects/GLIncludes.h>
+#include <traci-server/TraCIServerAPI_Edge.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -316,7 +317,7 @@ GUITriggeredRerouter::GUITriggeredRerouterEdge::GUITriggeredRerouterEdge(GUIEdge
     myParent(parent),
     myEdge(edge),
     myAmClosedEdge(closed) {
-    const std::vector<MSLane*>& lanes = edge->getLanes();
+    const std::vector<MSLane*>& lanes = traverse(edge->getLanes());
     myFGPositions.reserve(lanes.size());
     myFGRotations.reserve(lanes.size());
     for (std::vector<MSLane*>::const_iterator i=lanes.begin(); i!=lanes.end(); ++i) {

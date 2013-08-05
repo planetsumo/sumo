@@ -44,7 +44,7 @@
 #include "TraCIServerAPI_Edge.h"
 #include <microsim/MSEdgeWeightsStorage.h>
 #include <utils/common/HelpersHarmonoise.h>
-
+#
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
@@ -54,6 +54,7 @@
 // used namespaces
 // ===========================================================================
 using namespace traci;
+
 
 
 // ===========================================================================
@@ -133,7 +134,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 break;
             case LAST_STEP_VEHICLE_ID_LIST: {
                 std::vector<std::string> vehIDs;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     const MSLane::VehCont& vehs = (*i)->getVehiclesSecure();
                     for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
@@ -147,7 +148,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case VAR_CO2EMISSION: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getHBEFA_CO2Emissions();
                 }
@@ -157,7 +158,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case VAR_COEMISSION: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getHBEFA_COEmissions();
                 }
@@ -167,7 +168,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case VAR_HCEMISSION: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getHBEFA_HCEmissions();
                 }
@@ -177,7 +178,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case VAR_PMXEMISSION: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getHBEFA_PMxEmissions();
                 }
@@ -187,7 +188,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case VAR_NOXEMISSION: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getHBEFA_NOxEmissions();
                 }
@@ -197,7 +198,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case VAR_FUELCONSUMPTION: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getHBEFA_FuelConsumption();
                 }
@@ -207,7 +208,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case VAR_NOISEEMISSION: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (SUMOReal) pow(10., ((*i)->getHarmonoise_NoiseEmissions() / 10.));
                 }
@@ -221,7 +222,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case LAST_STEP_VEHICLE_NUMBER: {
                 int sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getVehicleNumber();
                 }
@@ -231,7 +232,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case LAST_STEP_MEAN_SPEED: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getMeanSpeed();
                 }
@@ -241,7 +242,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case LAST_STEP_OCCUPANCY: {
                 SUMOReal sum = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     sum += (*i)->getOccupancy();
                 }
@@ -251,7 +252,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case LAST_STEP_VEHICLE_HALTING_NUMBER: {
                 int halting = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     const MSLane::VehCont& vehs = (*i)->getVehiclesSecure();
                     for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
@@ -268,7 +269,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             case LAST_STEP_LENGTH: {
                 SUMOReal lengthSum = 0;
                 int noVehicles = 0;
-                const std::vector<MSLane*>& lanes = e->getLanes();
+                const std::vector<MSLane*>& lanes = traverse(e->getLanes());
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                     const MSLane::VehCont& vehs = (*i)->getVehiclesSecure();
                     for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
@@ -319,7 +320,7 @@ TraCIServerAPI_Edge::processSet(TraCIServer& server, tcpip::Storage& inputStorag
                 return server.writeErrorStatusCmd(CMD_SET_EDGE_VARIABLE, "Allowed vehicle classes must be given as a list of strings.", outputStorage);
             }
             SVCPermissions permissions = parseVehicleClasses(classes);
-            const std::vector<MSLane*>& lanes = e->getLanes();
+            const std::vector<MSLane*>& lanes = traverse(e->getLanes());
             for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                 (*i)->setPermissions(permissions);
             }
@@ -333,7 +334,7 @@ TraCIServerAPI_Edge::processSet(TraCIServer& server, tcpip::Storage& inputStorag
                 return server.writeErrorStatusCmd(CMD_SET_EDGE_VARIABLE, "Not allowed vehicle classes must be given as a list of strings.", outputStorage);
             }
             SVCPermissions permissions = ~parseVehicleClasses(classes); // negation yields allowed
-            const std::vector<MSLane*>& lanes = e->getLanes();
+            const std::vector<MSLane*>& lanes = traverse(e->getLanes());
             for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                 (*i)->setPermissions(permissions);
             }
@@ -410,7 +411,7 @@ TraCIServerAPI_Edge::processSet(TraCIServer& server, tcpip::Storage& inputStorag
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(CMD_SET_EDGE_VARIABLE, "The speed must be given as a double.", outputStorage);
             }
-            const std::vector<MSLane*>& lanes = e->getLanes();
+            const std::vector<MSLane*>& lanes = traverse(e->getLanes());
             for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
                 (*i)->setMaxSpeed(value);
             }
@@ -430,7 +431,7 @@ TraCIServerAPI_Edge::getShape(const std::string& id, PositionVector& shape) {
     if (e == 0) {
         return false;
     }
-    const std::vector<MSLane*>& lanes = e->getLanes();
+    const std::vector<MSLane*>& lanes = traverse(e->getLanes());
     shape.push_back(lanes.front()->getShape());
     if (lanes.size() > 1) {
         shape.push_back(lanes.back()->getShape().reverse());
@@ -442,9 +443,9 @@ TraCIServerAPI_Edge::getShape(const std::string& id, PositionVector& shape) {
 TraCIRTree*
 TraCIServerAPI_Edge::getTree() {
     TraCIRTree* t = new TraCIRTree();
-    const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
+    const std::vector<MSEdge*>& edges = traverse(MSNet::getInstance()->getEdgeControl().getEdges());
     for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
-        const std::vector<MSLane*>& lanes = (*i)->getLanes();
+        const std::vector<MSLane*>& lanes = traverse((*i)->getLanes());
         Boundary b;
         for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
             b.add((*j)->getShape().getBoxBoundary());

@@ -59,6 +59,7 @@
 #include "GUIViewTraffic.h"
 #include "GUIApplicationWindow.h"
 #include "GUISUMOViewParent.h"
+#include <traci-server/TraCIServerAPI_Edge.h>
 
 #ifdef HAVE_OSG
 #include <osgview/GUIOSGView.h>
@@ -240,7 +241,7 @@ GUISUMOViewParent::isSelected(GUIGlObject* o) const {
             // hmph, just some security stuff
             return false;
         }
-        const std::vector<MSLane*> &lanes = edge->getLanes();
+        const std::vector<MSLane*> &lanes = traverse(edge->getLanes());
         for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
             GUILane *l = dynamic_cast<GUILane*>(*j);
             if(l!=0 && gSelected.isSelected(GLO_LANE, l->getGlID())) {

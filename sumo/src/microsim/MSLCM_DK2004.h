@@ -35,6 +35,7 @@
 
 #include <microsim/MSAbstractLaneChangeModel.h>
 #include <vector>
+#include <microsim/MSVehicle.h>
 
 // ===========================================================================
 // enumeration definition
@@ -76,7 +77,7 @@ public:
         const std::pair<MSVehicle*, SUMOReal>& neighLead,
         const std::pair<MSVehicle*, SUMOReal>& neighFollow,
         const MSLane& neighLane,
-        const std::vector<MSVehicle::LaneQ>& preb,
+        MSVehicle::LaneQ** preb,
         MSVehicle** lastBlocked);
 
     /** @brief Called to examine whether the vehicle wants to change to left
@@ -88,7 +89,7 @@ public:
         const std::pair<MSVehicle*, SUMOReal>& neighLead,
         const std::pair<MSVehicle*, SUMOReal>& neighFollow,
         const MSLane& neighLane,
-        const std::vector<MSVehicle::LaneQ>& preb,
+        MSVehicle::LaneQ** preb,
         MSVehicle** lastBlocked);
 
     virtual void* inform(void* info, MSVehicle* sender);
