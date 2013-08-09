@@ -108,7 +108,7 @@ HelpersPHEMlight::computeFuel(SUMOEmissionClass c, double v, double a, double sl
 
 	double power = CalcPower(v, a, slope, *currCep, currCep->GetVehicleLoading());
 
-	return currCep->GetEmission("HC", power) / SECONDS_PER_HOUR;
+	return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR;
 }
 
 
