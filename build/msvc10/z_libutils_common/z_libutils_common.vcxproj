@@ -152,11 +152,6 @@
     <ClCompile Include="..\..\..\src\utils\common\SUMOVTypeParameter.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\SystemFrame.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\SysUtils.cpp" />
-    <ClCompile Include="..\..\..\src\utils\emissions\HelpersHarmonoise.cpp" />
-    <ClCompile Include="..\..\..\src\utils\emissions\HelpersHBEFA.cpp" />
-    <ClCompile Include="..\..\..\src\utils\emissions\HelpersPHEMlight.cpp" />
-    <ClCompile Include="..\..\..\src\utils\emissions\PHEMCEP.cpp" />
-    <ClCompile Include="..\..\..\src\utils\emissions\PHEMCEPHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\utils\common\AbstractMutex.h" />
@@ -196,12 +191,6 @@
     <ClInclude Include="..\..\..\src\utils\common\ValueTimeLine.h" />
     <ClInclude Include="..\..\..\src\utils\common\VectorHelper.h" />
     <ClInclude Include="..\..\..\src\utils\common\WrappingCommand.h" />
-    <ClInclude Include="..\..\..\src\utils\emissions\HelpersHarmonoise.h" />
-    <ClInclude Include="..\..\..\src\utils\emissions\HelpersHBEFA.h" />
-    <ClInclude Include="..\..\..\src\utils\emissions\HelpersPHEMlight.h" />
-    <ClInclude Include="..\..\..\src\utils\emissions\PHEMCEP.h" />
-    <ClInclude Include="..\..\..\src\utils\emissions\PHEMCEPHandler.h" />
-    <ClInclude Include="..\..\..\src\utils\emissions\PHEMConstants.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
