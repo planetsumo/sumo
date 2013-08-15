@@ -478,6 +478,7 @@ src/traci-server/Makefile
 src/utils/Makefile
 src/utils/common/Makefile
 src/utils/distribution/Makefile
+src/utils/emissions/Makefile
 src/utils/foxtools/Makefile
 src/utils/geom/Makefile
 src/utils/gui/Makefile
