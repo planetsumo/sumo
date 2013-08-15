@@ -39,9 +39,9 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-
 PHEMCEPHandler::PHEMCEPHandler() {
 }
+
 
 PHEMCEPHandler::~PHEMCEPHandler() {
 	std::map<SUMOEmissionClass,PHEMCEP*>::iterator iter = _ceps.begin();
@@ -90,19 +90,10 @@ PHEMCEPHandler::Load(SUMOEmissionClass emissionClass) {
 		return false;
 
 	_ceps[emissionClass] = new PHEMCEP(emissionClass, 
-									   vehicleMass,
-									   vehicleLoading,
-									   vehicleMassRot,
-									   crosssectionalArea,
-									   cwValue,
-									   f0,
-									   f1,
-									   f2,
-									   f3,
-									   f4,
-									   ratedPower, 
-									   header,
-									   matrix);
+        vehicleMass, vehicleLoading, vehicleMassRot,
+        crosssectionalArea, cwValue,
+        f0, f1, f2, f3, f4,
+        ratedPower,  header, matrix);
 
 	return true;
 } // end of Load()
@@ -117,7 +108,6 @@ PHEMCEPHandler::GetCep(SUMOEmissionClass emissionClass) {
 	} // end if
 
 	return _ceps[emissionClass];
-	
 } // end of GetCep
 
 
@@ -139,8 +129,7 @@ PHEMCEPHandler::ReadVehicleFile(const std::string &path, const std::string &emis
 	// skip header
 	std::getline(fileVehicle,line);
 
-	while(std::getline(fileVehicle,line) && dataCount<=18)
-    {
+	while(std::getline(fileVehicle,line) && dataCount<=18) {
         std::stringstream  lineStream(line);
 
 		if(line.substr(0,1) == commentPrefix)
@@ -197,9 +186,7 @@ PHEMCEPHandler::ReadVehicleFile(const std::string &path, const std::string &emis
     } // end while
 
 	fileVehicle.close();
-
 	return true;
-
 } // end of ReadVehicleFile
 
 
@@ -212,20 +199,16 @@ PHEMCEPHandler::ReadEmissionData(const std::string &path, const std::string &emi
 	if(!fileEmission.good())
 		return false;
 
-	
 	std::string line;
 	std::string cell;
-
 	// read header line for pollutant identifiers
-	if(std::getline(fileEmission,line))
-	{
+	if(std::getline(fileEmission,line)) {
 		std::stringstream  lineStream(line);
 
 		// skip first entry "Pe"
 		std::getline(lineStream,cell,',');
 
-		while(std::getline(lineStream,cell,','))
-        {
+		while(std::getline(lineStream,cell,',')) {
 			header.push_back(cell);
 		} // end while
 
@@ -234,13 +217,11 @@ PHEMCEPHandler::ReadEmissionData(const std::string &path, const std::string &emi
 	// skip units
 	std::getline(fileEmission,line);
 
-	while(std::getline(fileEmission,line))
-    {
+	while(std::getline(fileEmission,line)) {
         std::stringstream  lineStream(line);
         std::string cell;
 		std::vector <double> vi;
-        while(std::getline(lineStream,cell,','))
-        {
+        while(std::getline(lineStream,cell,',')) {
 			double entry;
 			std::istringstream(cell) >> entry;
 			vi.push_back(entry);

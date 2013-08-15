@@ -35,19 +35,11 @@
 using std::string;
 
 PHEMCEP::PHEMCEP(SUMOEmissionClass emissionClass,
-		 double vehicleMass,
-		 double vehicleLoading,
-		 double vehicleMassRot,
-		 double crossArea,
-		 double cWValue,
-		 double f0,
-		 double f1,
-		 double f2,
-		 double f3,
-		 double f4,
-		 double ratedPower,
-		 std::vector<std::string> headerLine,
-		 std::vector< std::vector<double> > matrix)
+		 double vehicleMass, double vehicleLoading, double vehicleMassRot,
+		 double crossArea, double cWValue,
+		 double f0, double f1, double f2, double f3, double f4,
+		 double ratedPower, const std::vector<std::string> &headerLine, 
+         const std::vector< std::vector<double> > &matrix)
 {
 	_emissionClass = emissionClass;
 	_resistanceF0 = f0;
@@ -55,7 +47,7 @@ PHEMCEP::PHEMCEP(SUMOEmissionClass emissionClass,
 	_resistanceF2 = f2;
 	_resistanceF3 = f3;
 	_resistanceF4 = f4;
-	_cdValue = cWValue;
+	_cwValue = cWValue;
 	_crossSectionalArea = crossArea;
 	_massVehicle = vehicleMass;
 	_vehicleLoading = vehicleLoading;
@@ -71,8 +63,7 @@ PHEMCEP::PHEMCEP(SUMOEmissionClass emissionClass,
 	_numberPollutants = headerLine.size();
 
 	// init pollutant identifiers
-	for(int i=0; i<_numberPollutants; i++)
-	{
+	for(int i=0; i<_numberPollutants; i++) {
 		pollutantIdentifier.push_back(headerLine[i]);
 	} // end for
 
@@ -80,54 +71,43 @@ PHEMCEP::PHEMCEP(SUMOEmissionClass emissionClass,
 	_sizeOfPattern = matrix.size();
 
 	// initialize measures
-	for(int i=0; i<_numberPollutants; i++)
-	{
+	for(int i=0; i<_numberPollutants; i++) {
 		pollutantMeasures.push_back(std::vector<double>());
 	} // end for
 
 
 	// looping through matrix and assigning values
-	for(int i=0; i<(int) matrix.size(); i++)
-	{
-		for(int j=0; j<(int) matrix[i].size(); j++)
-		{
+	for(int i=0; i<(int) matrix.size(); i++) {
+		for(int j=0; j<(int) matrix[i].size(); j++) {
 			if(matrix[i].size() != _numberPollutants + 1)
 				return;
 
-			if(j==0)
-			{
+			if(j==0) {
 				_powerPattern.push_back(matrix[i][j] * _ratedPower);
-			}
-			else
-			{
+			} else {
 				pollutantMeasures[j-1].push_back(matrix[i][j] * matrix[i][0] * _ratedPower);
 			} // end if
-
 
 		} // end for
 	} // end for
 
 
 	_cepCurves = StringBijection<std::vector<double> >();  
-
-	for(int i=0; i<_numberPollutants; i++)
-	{
+	for(int i=0; i<_numberPollutants; i++) {
 		_cepCurves.insert(pollutantIdentifier[i], pollutantMeasures[i]);
 	} // end for
-
 } // end of Cep
 
 
 
-PHEMCEP::~PHEMCEP(void)
-{
+PHEMCEP::~PHEMCEP() {
 	// free power pattern
 	_powerPattern.clear();
-
 } // end of ~Cep
 
-double PHEMCEP::GetEmission(std::string pollutant, double power)
-{
+
+double 
+PHEMCEP::GetEmission(const std::string &pollutant, double power) const {
 	if(!_cepCurves.hasString(pollutant))
 		throw InvalidArgument("Emission pollutant " + pollutant + " not found!");
 
@@ -140,9 +120,8 @@ double PHEMCEP::GetEmission(std::string pollutant, double power)
 		return emissionCurve[0];
 
 	// in case that the demanded power is smaller than the first entry (smallest) in the power pattern the first two entries are extrapolated
-	if(power <= _powerPattern.front())
-	{ 
-		double calcEmission =  PHEMCEP::Interpolate(power, _powerPattern[0], _powerPattern[1], emissionCurve[0], emissionCurve[1]);
+	if(power <= _powerPattern.front()) { 
+		double calcEmission = Interpolate(power, _powerPattern[0], _powerPattern[1], emissionCurve[0], emissionCurve[1]);
 	
 		if(calcEmission < 0)
 			return 0;
@@ -152,9 +131,8 @@ double PHEMCEP::GetEmission(std::string pollutant, double power)
 	} // end if
 
 	// if power bigger than all entries in power pattern the last two values are linearly extrapolated
-	if(power >= _powerPattern.back())
-	{
-		return PHEMCEP::Interpolate(power, _powerPattern[_powerPattern.size()-2], _powerPattern.back(), emissionCurve[emissionCurve.size()-2], emissionCurve.back());
+	if(power >= _powerPattern.back()) {
+		return Interpolate(power, _powerPattern[_powerPattern.size()-2], _powerPattern.back(), emissionCurve[emissionCurve.size()-2], emissionCurve.back());
 	} // end if
 
 	// bisection search to find correct position in power pattern	
@@ -162,95 +140,32 @@ double PHEMCEP::GetEmission(std::string pollutant, double power)
 	int upperIndex = _powerPattern.size() - 1;
 	int lowerIndex = 0;
 
-	while(upperIndex - lowerIndex > 1)
-	{
-		if(_powerPattern[middleIndex] == power)
-		{
+	while(upperIndex - lowerIndex > 1) {
+		if(_powerPattern[middleIndex] == power) {
 			return emissionCurve[middleIndex];
-		}
-		else if (_powerPattern[middleIndex] < power)
-		{
+		} else if (_powerPattern[middleIndex] < power) {
 			lowerIndex = middleIndex;
 			middleIndex = (upperIndex - lowerIndex) / 2 + lowerIndex;
-		}
-		else
-		{
+		} else {
 			upperIndex = middleIndex;
 			middleIndex = (upperIndex - lowerIndex) / 2 + lowerIndex;
 		} // end if
 	} // end while
 
 	if(_powerPattern[lowerIndex]<= power && power < _powerPattern[upperIndex])
-		return PHEMCEP::Interpolate(power, _powerPattern[lowerIndex], _powerPattern[upperIndex], emissionCurve[lowerIndex], emissionCurve[upperIndex]);
+		return Interpolate(power, _powerPattern[lowerIndex], _powerPattern[upperIndex], emissionCurve[lowerIndex], emissionCurve[upperIndex]);
 	else
 		throw ProcessError("Error during calculation of emission for power!");
 
 } // end of GetEmission
 
-double PHEMCEP::Interpolate(double px, double p1, double p2, double e1, double e2)
-{
+
+double 
+PHEMCEP::Interpolate(double px, double p1, double p2, double e1, double e2) const {
 	if(p2==p1)
 		return e1;
-
 	return e1 + (px - p1)/(p2 - p1)*(e2 - e1);
 } // end of Interpolate 
 
-double PHEMCEP::GetResistanceF0()
-{
-	return PHEMCEP::_resistanceF0;
-} // end of GetResistanceF0
 
-double PHEMCEP::GetResistanceF1()
-{
-	return PHEMCEP::_resistanceF1;
-} // end if GetResistanceF1
-
-double PHEMCEP::GetResistanceF2()
-{
-	return PHEMCEP::_resistanceF2;
-} // end of GetResistanceF2
-
-double PHEMCEP::GetResistanceF3()
-{
-	return PHEMCEP::_resistanceF3;
-} // end of GetResistanceF3
-
-double PHEMCEP::GetResistanceF4()
-{
-	return PHEMCEP::_resistanceF4;
-} // end of GetResistanceF4
-
-double PHEMCEP::GetCdValue()
-{
-	return PHEMCEP::_cdValue;
-} // end of GetCdValue
-
-double PHEMCEP::GetCrossSectionalArea()
-{
-	return PHEMCEP::_crossSectionalArea;
-} // end of GetCrossSectionalArea
-
-double PHEMCEP::GetMassVehicle()
-{
-	return PHEMCEP::_massVehicle;
-} // end of GetMassVehicle
-
-double PHEMCEP::GetVehicleLoading()
-{
-	return PHEMCEP::_vehicleLoading;
-} // end of GetMassVehicle
-
-double PHEMCEP::GetMassRot()
-{
-	return PHEMCEP::_massRot;
-} // end of GetMassRot
-
-double PHEMCEP::GetRatedPower()
-{
-	return PHEMCEP::_ratedPower;
-} // end of GetRatedPower
-
-SUMOEmissionClass PHEMCEP::GetEmissionClass()
-{
-	return _emissionClass;
-} // end of GetEmissionClass
+/****************************************************************************/

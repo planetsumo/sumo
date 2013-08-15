@@ -43,13 +43,15 @@
 class PHEMCEPHandler
 {
 public:
-
+    /// @brief Destructor
 	~PHEMCEPHandler();
+
 
 	/** @brief Implementatio of Singelton pattern
      * @return reference on the actual instance
      */
 	static PHEMCEPHandler& getHandlerInstance();
+
 
 	 /** @brief Returns the CEP data for a PHEM emission class
      * @param[in] emissionClass desired PHEM emission class
@@ -57,15 +59,8 @@ public:
      */
 	PHEMCEP* GetCep(SUMOEmissionClass emissionClass);
 
+
 private:
-
-	/** @brief Implementation of Singelton pattern
-     *  private (copy) constructor and =operator to avoid more than one instances
-     */
-	PHEMCEPHandler();
-	PHEMCEPHandler(PHEMCEPHandler const&);              
-	void operator=(PHEMCEPHandler const&);
-
 	 /** @brief Helper method to load CEP and vehicle files from file system
      * @param[in] emissionClass desired PHEM emission class
      * @return Indicator if loading was successul
@@ -105,12 +100,18 @@ private:
         std::vector<std::string> &header, std::vector<std::vector<double> > &matrix);
 
 	
-	// ===========================================================================
-	// member declarations
-	// ===========================================================================
-
+private:
 	/// @brief bijection between PHEMEmissionClass and CEPs
 	std::map<SUMOEmissionClass,PHEMCEP*> _ceps;
+
+
+private:
+	/** @brief Implementation of Singelton pattern
+     *  private (copy) constructor and =operator to avoid more than one instances
+     */
+	PHEMCEPHandler();
+	PHEMCEPHandler(PHEMCEPHandler const&);              
+	void operator=(PHEMCEPHandler const&);
 
 };
 

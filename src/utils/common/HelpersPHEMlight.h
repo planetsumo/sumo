@@ -187,6 +187,8 @@ public:
      */
     static SUMOReal computeDefaultFuel(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt);
 
+
+
 	/** @brief Returns the power of used for a vehicle at state v,a, slope and loading
      * @param[in] v The vehicle's average velocity
      * @param[in] a The vehicle's average acceleration
@@ -195,7 +197,7 @@ public:
      * @param{in] loading vehicle loading [kg]
      * @return The amount of fuel emitted by the given vehicle class [ml]
      */
-	static double CalcPower(double v, double a, double slope, PHEMCEP vehicleCep, double loading);
+	static double CalcPower(double v, double a, double slope, const PHEMCEP &vehicleCep, double loading);
 
 };
 
