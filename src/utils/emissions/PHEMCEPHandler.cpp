@@ -116,7 +116,7 @@ PHEMCEPHandler::ReadVehicleFile(const std::string &path, const std::string &emis
                                 double &vehicleMass, double &vehicleLoading, double &vehicleMassRot,
                                 double &crossArea, double &cWValue,
                                 double &f0, double &f1, double &f2, double &f3, double &f4, double &ratedPower) {
-    std::ifstream fileVehicle (path + emissionClass + ".veh");
+  std::ifstream fileVehicle (std::string(path + emissionClass + ".veh").c_str());
 
 	if(!fileVehicle.good())
 		return false;
@@ -194,7 +194,7 @@ bool
 PHEMCEPHandler::ReadEmissionData(const std::string &path, const std::string &emissionClass, 
                                  std::vector<std::string> &header, std::vector<std::vector<double> > &matrix) {
 	// declare file stream
-    std::ifstream fileEmission (path + emissionClass + ".csv");
+  std::ifstream fileEmission (std::string(path + emissionClass + ".csv").c_str());
 
 	if(!fileEmission.good())
 		return false;
