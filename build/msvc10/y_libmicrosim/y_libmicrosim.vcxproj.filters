@@ -306,6 +306,9 @@
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_SmartSK.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_PHEMlight.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Example.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>

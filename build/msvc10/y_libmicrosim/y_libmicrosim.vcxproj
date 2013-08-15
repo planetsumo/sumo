@@ -219,6 +219,7 @@
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_SmartSK.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_Wiedemann.h" />
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Example.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_PHEMlight.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Tripinfo.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Vehroutes.h" />
