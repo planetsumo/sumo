@@ -25,7 +25,4 @@ const double GRAVITY_CONST = 9.81;
 const double AIR_DENSITY_CONST = 1.182;
 const int SECONDS_PER_HOUR = 3600;
 
-const std::string PHEM_DATA_VERSION = "V1";
-const std::string PHEM_DATA_PATH = "../../../../../../../data/PHEMlight/";
-
 #endif

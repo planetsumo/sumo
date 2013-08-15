@@ -59,7 +59,7 @@ public:
 
 private:
 
-	/** @brief Implementatio of Singelton pattern
+	/** @brief Implementation of Singelton pattern
      *  private (copy) constructor and =operator to avoid more than one instances
      */
 	PHEMCEPHandler();
@@ -72,7 +72,9 @@ private:
      */
 	bool Load(SUMOEmissionClass emissionClass);
 
+
 	 /** @brief Helper method to read a vehicle file from file system
+     * @param[in] path The path to PHEMlight data files
      * @param[in] emissionClass desired PHEM emission class
 	 * @param[in] vehicleMass out variable for vehicle mass
 	 * @param[in] vehivleLoading out variable for vehicle loading
@@ -86,26 +88,21 @@ private:
 	 * @param[in] ratedPower out variable for rated power of vehicle
      * @return Indicator if reading was successul
      */
-	bool ReadVehicleFile(std::string emissionClass,
-									 double &vehicleMass,
-									 double &vehicleLoading,
-									 double &vehicleMassRot,
-									 double &crossArea,
-									 double &cWValue,
-									 double &f0,
-									 double &f1,
-									 double &f2,
-									 double &f3,
-									 double &f4,
-									 double &ratedPower);
+	bool ReadVehicleFile(const std::string &path, const std::string &emissionClass,
+        double &vehicleMass, double &vehicleLoading, double &vehicleMassRot,
+        double &crossArea, double &cWValue,
+        double &f0, double &f1, double &f2, double &f3, double &f4, double &ratedPower);
+
 
 	/** @brief Helper method to read a CEP file from file system
+     * @param[in] path The path to PHEMlight data files
      * @param[in] emissionClass desired PHEM emission class
 	 * @param[in] header vector of pollutant identifiers
 	 * @param[in] matrix matrix holding power pattern and CEP curves
      * @return Indicator if reading was successul
      */
-	bool ReadEmissionData(std::string emissionClass, std::vector<std::string> &header, std::vector<std::vector<double> > &matrix);
+	bool ReadEmissionData(const std::string &path, const std::string &emissionClass, 
+        std::vector<std::string> &header, std::vector<std::vector<double> > &matrix);
 
 	
 	// ===========================================================================

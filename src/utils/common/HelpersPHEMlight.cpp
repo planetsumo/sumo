@@ -29,6 +29,8 @@
 #endif
 
 #include "HelpersPHEMlight.h"
+#include "PHEMCEPHandler.h"
+#include "PHEMConstants.h"
 #include <limits>
 #include <cmath>
 

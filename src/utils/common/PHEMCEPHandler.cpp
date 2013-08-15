@@ -34,36 +34,34 @@
 #include "UtilExceptions.h"
 #include "PHEMCEPHandler.h"
 #include "PHEMConstants.h"
+#include <utils/options/OptionsCont.h>
 
 // ===========================================================================
 // method definitions
 // ===========================================================================
 
-PHEMCEPHandler::PHEMCEPHandler()
-{	
-
+PHEMCEPHandler::PHEMCEPHandler() {
 }
 
-PHEMCEPHandler::~PHEMCEPHandler()
-{
+PHEMCEPHandler::~PHEMCEPHandler() {
 	std::map<SUMOEmissionClass,PHEMCEP*>::iterator iter = _ceps.begin();
-	while (iter != _ceps.end())
-	{
+	while (iter != _ceps.end()) {
 		delete(iter->second);
 		iter++;
 	} // end while
-
 	_ceps.clear();
 }
 
-PHEMCEPHandler& PHEMCEPHandler::getHandlerInstance()
-{
+
+PHEMCEPHandler& 
+PHEMCEPHandler::getHandlerInstance() {
 	static PHEMCEPHandler instance;
 	return instance;
 }
 
-bool PHEMCEPHandler::Load(SUMOEmissionClass emissionClass)
-{	
+
+bool 
+PHEMCEPHandler::Load(SUMOEmissionClass emissionClass) {	
 	// get string identifier for PHEM emission class
 	std::string emissionClassIdentifier = SumoEmissionClassStrings.getString(emissionClass);
 
@@ -83,10 +81,12 @@ bool PHEMCEPHandler::Load(SUMOEmissionClass emissionClass)
 	double f4;
 	double ratedPower;
 
-	if(!ReadVehicleFile(emissionClassIdentifier, vehicleMass, vehicleLoading, vehicleMassRot, crosssectionalArea, cwValue, f0, f1, f2, f3, f4, ratedPower))
+    OptionsCont &oc = OptionsCont::getOptions();
+    std::string phemPath = oc.getString("phemlight-path") + "/";
+	if(!ReadVehicleFile(phemPath, emissionClassIdentifier, vehicleMass, vehicleLoading, vehicleMassRot, crosssectionalArea, cwValue, f0, f1, f2, f3, f4, ratedPower))
 		return false;
 
-	if(!ReadEmissionData(emissionClassIdentifier, header, matrix))
+	if(!ReadEmissionData(phemPath, emissionClassIdentifier, header, matrix))
 		return false;
 
 	_ceps[emissionClass] = new PHEMCEP(emissionClass, 
@@ -107,11 +107,11 @@ bool PHEMCEPHandler::Load(SUMOEmissionClass emissionClass)
 	return true;
 } // end of Load()
 
-PHEMCEP* PHEMCEPHandler::GetCep(SUMOEmissionClass emissionClass)
-{
+
+PHEMCEP* 
+PHEMCEPHandler::GetCep(SUMOEmissionClass emissionClass) {
 	// check if Cep has been loaded
-	if(_ceps.find(emissionClass) == _ceps.end())
-	{
+	if(_ceps.find(emissionClass) == _ceps.end()) {
 		if(!PHEMCEPHandler::Load(emissionClass))
 			throw InvalidArgument("File for PHEM emission class " + SumoEmissionClassStrings.getString(emissionClass) + " not found.");
 	} // end if
@@ -120,21 +120,13 @@ PHEMCEP* PHEMCEPHandler::GetCep(SUMOEmissionClass emissionClass)
 	
 } // end of GetCep
 
-bool PHEMCEPHandler::ReadVehicleFile(std::string emissionClass,
-								 double &vehicleMass,
-								 double &vehicleLoading,
-								 double &vehicleMassRot,
-								 double &crossArea,
-								 double &cWValue,
-								 double &f0,
-								 double &f1,
-								 double &f2,
-								 double &f3,
-								 double &f4,
-								 double &ratedPower)
 
-{
-    std::ifstream fileVehicle ( std::string(PHEM_DATA_PATH + emissionClass + "_" + PHEM_DATA_VERSION + ".veh").c_str() );
+bool 
+PHEMCEPHandler::ReadVehicleFile(const std::string &path, const std::string &emissionClass,
+                                double &vehicleMass, double &vehicleLoading, double &vehicleMassRot,
+                                double &crossArea, double &cWValue,
+                                double &f0, double &f1, double &f2, double &f3, double &f4, double &ratedPower) {
+    std::ifstream fileVehicle (path + emissionClass + ".veh");
 
 	if(!fileVehicle.good())
 		return false;
@@ -210,10 +202,12 @@ bool PHEMCEPHandler::ReadVehicleFile(std::string emissionClass,
 
 } // end of ReadVehicleFile
 
-bool PHEMCEPHandler::ReadEmissionData(std::string emissionClass, std::vector<std::string> &header, std::vector<std::vector<double> > &matrix)
-{
+
+bool 
+PHEMCEPHandler::ReadEmissionData(const std::string &path, const std::string &emissionClass, 
+                                 std::vector<std::string> &header, std::vector<std::vector<double> > &matrix) {
 	// declare file stream
-    std::ifstream fileEmission ( std::string(PHEM_DATA_PATH + emissionClass + "_" + PHEM_DATA_VERSION +".csv").c_str() );
+    std::ifstream fileEmission (path + emissionClass + ".csv");
 
 	if(!fileEmission.good())
 		return false;
@@ -259,3 +253,6 @@ bool PHEMCEPHandler::ReadEmissionData(std::string emissionClass, std::vector<std
 
 	return true;
 } // end of ReadEmissionData
+
+
+/****************************************************************************/

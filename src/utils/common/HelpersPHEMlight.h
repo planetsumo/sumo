@@ -32,10 +32,11 @@
 
 #include <vector>
 #include "StdDefs.h"
-#include "PHEMCEPHandler.h"
-#include "PHEMConstants.h"
+#include "SUMOVehicleClass.h"
+#include "PHEMCEP.h"
 #include <limits>
 #include <cmath>
+
 
 // ===========================================================================
 // class definitions
