@@ -28,9 +28,9 @@
 #endif
 
 #include <string>
-#include "StringBijection.h"
+#include <utils/common/StringBijection.h>
+#include <utils/common/UtilExceptions.h>
 #include "PHEMCEP.h"
-#include "UtilExceptions.h"
 
 using std::string;
 

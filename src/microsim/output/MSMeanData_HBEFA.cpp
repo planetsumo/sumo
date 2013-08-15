@@ -36,7 +36,7 @@
 #include <utils/common/ToString.h>
 #include <utils/iodevices/OutputDevice.h>
 #include "MSMeanData_HBEFA.h"
-#include <utils/common/HelpersHBEFA.h>
+#include <utils/emissions/HelpersHBEFA.h>
 #include <limits>
 
 #ifdef CHECK_MEMORY_LEAKS

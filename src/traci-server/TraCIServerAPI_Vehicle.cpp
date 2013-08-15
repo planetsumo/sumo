@@ -44,8 +44,8 @@
 #include <utils/geom/PositionVector.h>
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/DijkstraRouterEffort.h>
-#include <utils/common/HelpersHBEFA.h>
-#include <utils/common/HelpersHarmonoise.h>
+#include <utils/emissions/HelpersHBEFA.h>
+#include <utils/emissions/HelpersHarmonoise.h>
 #include <utils/common/SUMOVehicleParameter.h>
 #include "TraCIConstants.h"
 #include "TraCIServerAPI_Simulation.h"

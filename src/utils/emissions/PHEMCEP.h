@@ -30,9 +30,10 @@
 #endif
 
 #include <vector>
+#include <utils/common/SUMOVehicleClass.h>
+#include <utils/common/StringBijection.h>
 #include "PHEMCEP.h"
-#include "SUMOVehicleClass.h"
-#include "StringBijection.h"
+
 
 // ===========================================================================
 // class definitions

@@ -32,10 +32,10 @@
 #endif
 
 #include <vector>
-#include "StdDefs.h"
-#include "SUMOVehicleClass.h"
 #include <limits>
 #include <cmath>
+#include <utils/common/StdDefs.h>
+#include <utils/common/SUMOVehicleClass.h>
 
 
 // ===========================================================================

@@ -31,10 +31,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "UtilExceptions.h"
 #include "PHEMCEPHandler.h"
 #include "PHEMConstants.h"
 #include <utils/options/OptionsCont.h>
+#include <utils/common/UtilExceptions.h>
 
 // ===========================================================================
 // method definitions

@@ -35,7 +35,7 @@
 #include <utils/common/ToString.h>
 #include <utils/iodevices/OutputDevice.h>
 #include "MSMeanData_PHEMlight.h"
-#include <utils/common/HelpersPHEMlight.h>
+#include <utils/emissions/HelpersPHEMlight.h>
 #include <limits>
 
 #ifdef CHECK_MEMORY_LEAKS

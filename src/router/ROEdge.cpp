@@ -40,8 +40,8 @@
 #include "ROEdge.h"
 #include "ROVehicle.h"
 #include <utils/common/SUMOVTypeParameter.h>
-#include <utils/common/HelpersHBEFA.h>
-#include <utils/common/HelpersHarmonoise.h>
+#include <utils/emissions/HelpersHBEFA.h>
+#include <utils/emissions/HelpersHarmonoise.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>

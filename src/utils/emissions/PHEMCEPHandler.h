@@ -30,8 +30,9 @@
 #endif
 
 #include <vector>
+#include <utils/common/StringBijection.h>
 #include "PHEMCEP.h"
-#include "StringBijection.h"
+
 
 // ===========================================================================
 // class definitions

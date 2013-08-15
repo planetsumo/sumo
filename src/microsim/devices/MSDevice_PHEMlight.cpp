@@ -32,7 +32,7 @@
 #include <microsim/MSLane.h>
 #include <microsim/MSVehicleControl.h>
 #include <utils/options/OptionsCont.h>
-#include <utils/common/HelpersPHEMlight.h>
+#include <utils/emissions/HelpersPHEMlight.h>
 #include <utils/iodevices/OutputDevice.h>
 
 #ifdef CHECK_MEMORY_LEAKS

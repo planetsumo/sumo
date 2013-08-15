@@ -10,13 +10,9 @@ StringBijection.h
 
 libcommon_a_SOURCES = AbstractMutex.h \
 FileHelpers.cpp FileHelpers.h \
-HelpersHarmonoise.cpp HelpersHarmonoise.h \
-HelpersHBEFA.cpp HelpersHBEFA.h \
-HelpersPHEMlight.cpp HelpersPHEMlight.h \
 InstancePool.h \
 IDSupplier.h IDSupplier.cpp \
 Named.h Parameterised.cpp Parameterised.h \
-PHEMCEP.h PHEMCEP.cpp PHEMCEPHandler.h PHEMCEPHandler.cpp PHEMConstants.h \
 StringTokenizer.cpp StringTokenizer.h \
 StringUtils.cpp StringUtils.h UtilExceptions.h \
 MsgHandler.h MsgHandler.cpp \

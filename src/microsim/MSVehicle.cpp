@@ -48,9 +48,9 @@
 #include <utils/common/FileHelpers.h>
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/RandHelper.h>
-#include <utils/common/HelpersHBEFA.h>
-#include <utils/common/HelpersPHEMlight.h>
-#include <utils/common/HelpersHarmonoise.h>
+#include <utils/emissions/HelpersHBEFA.h>
+#include <utils/emissions/HelpersPHEMlight.h>
+#include <utils/emissions/HelpersHarmonoise.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/StdDefs.h>
 #include <utils/geom/Line.h>
