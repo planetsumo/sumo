@@ -139,14 +139,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\utils\common\FileHelpers.cpp" />
-    <ClCompile Include="..\..\..\src\utils\common\HelpersHarmonoise.cpp" />
-    <ClCompile Include="..\..\..\src\utils\common\HelpersHBEFA.cpp" />
-    <ClCompile Include="..\..\..\src\utils\common\HelpersPHEMlight.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\IDSupplier.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\MsgHandler.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\Parameterised.cpp" />
-    <ClCompile Include="..\..\..\src\utils\common\PHEMCEP.cpp" />
-    <ClCompile Include="..\..\..\src\utils\common\PHEMCEPHandler.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\RandHelper.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\RGBColor.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\StringTokenizer.cpp" />
@@ -157,6 +152,11 @@
     <ClCompile Include="..\..\..\src\utils\common\SUMOVTypeParameter.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\SystemFrame.cpp" />
     <ClCompile Include="..\..\..\src\utils\common\SysUtils.cpp" />
+    <ClCompile Include="..\..\..\src\utils\emissions\HelpersHarmonoise.cpp" />
+    <ClCompile Include="..\..\..\src\utils\emissions\HelpersHBEFA.cpp" />
+    <ClCompile Include="..\..\..\src\utils\emissions\HelpersPHEMlight.cpp" />
+    <ClCompile Include="..\..\..\src\utils\emissions\PHEMCEP.cpp" />
+    <ClCompile Include="..\..\..\src\utils\emissions\PHEMCEPHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\utils\common\AbstractMutex.h" />
@@ -165,9 +165,6 @@
     <ClInclude Include="..\..\..\src\utils\common\DijkstraRouterEffort.h" />
     <ClInclude Include="..\..\..\src\utils\common\DijkstraRouterTT.h" />
     <ClInclude Include="..\..\..\src\utils\common\FileHelpers.h" />
-    <ClInclude Include="..\..\..\src\utils\common\HelpersHarmonoise.h" />
-    <ClInclude Include="..\..\..\src\utils\common\HelpersHBEFA.h" />
-    <ClInclude Include="..\..\..\src\utils\common\HelpersPHEMlight.h" />
     <ClInclude Include="..\..\..\src\utils\common\IDSupplier.h" />
     <ClInclude Include="..\..\..\src\utils\common\InstancePool.h" />
     <ClInclude Include="..\..\..\src\utils\common\MsgHandler.h" />
@@ -175,9 +172,6 @@
     <ClInclude Include="..\..\..\src\utils\common\Named.h" />
     <ClInclude Include="..\..\..\src\utils\common\NamedObjectCont.h" />
     <ClInclude Include="..\..\..\src\utils\common\Parameterised.h" />
-    <ClInclude Include="..\..\..\src\utils\common\PHEMCEP.h" />
-    <ClInclude Include="..\..\..\src\utils\common\PHEMCEPHandler.h" />
-    <ClInclude Include="..\..\..\src\utils\common\PHEMConstants.h" />
     <ClInclude Include="..\..\..\src\utils\common\RandHelper.h" />
     <ClInclude Include="..\..\..\src\utils\common\RandomDistributor.h" />
     <ClInclude Include="..\..\..\src\utils\common\RGBColor.h" />
@@ -202,6 +196,12 @@
     <ClInclude Include="..\..\..\src\utils\common\ValueTimeLine.h" />
     <ClInclude Include="..\..\..\src\utils\common\VectorHelper.h" />
     <ClInclude Include="..\..\..\src\utils\common\WrappingCommand.h" />
+    <ClInclude Include="..\..\..\src\utils\emissions\HelpersHarmonoise.h" />
+    <ClInclude Include="..\..\..\src\utils\emissions\HelpersHBEFA.h" />
+    <ClInclude Include="..\..\..\src\utils\emissions\HelpersPHEMlight.h" />
+    <ClInclude Include="..\..\..\src\utils\emissions\PHEMCEP.h" />
+    <ClInclude Include="..\..\..\src\utils\emissions\PHEMCEPHandler.h" />
+    <ClInclude Include="..\..\..\src\utils\emissions\PHEMConstants.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

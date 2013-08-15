@@ -14,15 +14,6 @@
     <ClCompile Include="..\..\..\src\utils\common\FileHelpers.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\utils\common\HelpersHarmonoise.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\utils\common\HelpersHBEFA.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\utils\common\HelpersPHEMlight.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\utils\common\IDSupplier.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
@@ -62,10 +53,19 @@
     <ClCompile Include="..\..\..\src\utils\common\SysUtils.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\utils\common\PHEMCEP.cpp">
+    <ClCompile Include="..\..\..\src\utils\emissions\HelpersHarmonoise.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\utils\common\PHEMCEPHandler.cpp">
+    <ClCompile Include="..\..\..\src\utils\emissions\HelpersHBEFA.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\utils\emissions\HelpersPHEMlight.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\utils\emissions\PHEMCEP.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\utils\emissions\PHEMCEPHandler.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,15 +83,6 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\utils\common\FileHelpers.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\utils\common\HelpersHarmonoise.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\utils\common\HelpersHBEFA.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\utils\common\HelpersPHEMlight.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\utils\common\IDSupplier.h">
@@ -190,13 +181,22 @@
     <ClInclude Include="..\..\..\src\utils\common\AStarRouter.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\utils\common\PHEMCEP.h">
+    <ClInclude Include="..\..\..\src\utils\emissions\HelpersHarmonoise.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\utils\common\PHEMCEPHandler.h">
+    <ClInclude Include="..\..\..\src\utils\emissions\HelpersHBEFA.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\utils\common\PHEMConstants.h">
+    <ClInclude Include="..\..\..\src\utils\emissions\HelpersPHEMlight.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\utils\emissions\PHEMCEP.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\utils\emissions\PHEMCEPHandler.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\utils\emissions\PHEMConstants.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>
