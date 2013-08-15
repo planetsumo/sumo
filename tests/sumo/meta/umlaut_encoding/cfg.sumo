@@ -7,4 +7,8 @@
         <route-files value="input_routes.rou.xml"/>
     </input>
 
+    <emissions>
+        <phemlight-path value="./PHEMlight/"/>
+    </emissions>
+
 </configuration>

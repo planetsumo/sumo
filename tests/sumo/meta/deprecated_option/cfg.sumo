@@ -7,6 +7,10 @@
         <route-files value="input_routes.rou.xml"/>
     </input>
 
+    <emissions>
+        <phemlight-path value="./PHEMlight/"/>
+    </emissions>
+
     <random_number>
         <random value="true"/>
     </random_number>

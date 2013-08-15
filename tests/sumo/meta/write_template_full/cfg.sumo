@@ -90,6 +90,7 @@
     </routing>
 
     <emissions>
+        <phemlight-path value="./PHEMlight/" type="FILE" help="Determines where to load PHEMlight definitions from."/>
         <device.hbefa.probability value="0" type="FLOAT" help="The probability for a vehicle to have an emission logging device"/>
         <device.hbefa.explicit value="" synonymes="device.hbefa.knownveh" type="STR" help="Assign a device to named vehicles"/>
         <device.hbefa.deterministic value="false" type="BOOL" help="The devices are set deterministic using a fraction of 1000"/>
