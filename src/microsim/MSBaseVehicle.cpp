@@ -40,7 +40,7 @@
 #include <microsim/devices/MSDevice_Tripinfo.h>
 #include <microsim/devices/MSDevice_Routing.h>
 #include <microsim/devices/MSDevice_Person.h>
-#include <microsim/devices/MSDevice_HBEFA.h>
+#include <microsim/devices/MSDevice_Emissions.h>
 #include <microsim/devices/MSDevice_Example.h>
 #include "MSVehicleType.h"
 #include "MSEdge.h"
@@ -81,7 +81,7 @@ MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, c
     MSDevice_Vehroutes::buildVehicleDevices(*this, myDevices);
     MSDevice_Tripinfo::buildVehicleDevices(*this, myDevices);
     MSDevice_Routing::buildVehicleDevices(*this, myDevices);
-    MSDevice_HBEFA::buildVehicleDevices(*this, myDevices);
+    MSDevice_Emissions::buildVehicleDevices(*this, myDevices);
     MSDevice_Example::buildVehicleDevices(*this, myDevices);
     //
     for (std::vector< MSDevice* >::iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {

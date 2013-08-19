@@ -599,15 +599,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_HBEFA.cpp"
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_Emissions.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\devices\MSDevice_Person.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_PHEMlight.cpp"
 				>
 			</File>
 			<File
@@ -807,15 +803,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_HBEFA.h"
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_Emissions.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\devices\MSDevice_Person.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_PHEMlight.h"
 				>
 			</File>
 			<File

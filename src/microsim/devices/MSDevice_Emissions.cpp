@@ -1,12 +1,12 @@
 /****************************************************************************/
-/// @file    MSDevice_HBEFA.cpp
+/// @file    MSDevice_Emissions.cpp
 /// @author  Daniel Krajzewicz
 /// @author  Laura Bieker
 /// @author  Michael Behrisch
 /// @date    Fri, 30.01.2009
 /// @version $Id$
 ///
-// A device which collects vehicular emissions (using HBEFA-reformulation)
+// A device which collects vehicular emissions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
@@ -29,12 +29,12 @@
 #include <config.h>
 #endif
 
-#include "MSDevice_HBEFA.h"
+#include "MSDevice_Emissions.h"
 #include <microsim/MSNet.h>
 #include <microsim/MSLane.h>
 #include <microsim/MSVehicleControl.h>
 #include <utils/options/OptionsCont.h>
-#include <utils/emissions/HelpersHBEFA.h>
+#include <utils/emissions/PollutantsInterface.h>
 #include <utils/iodevices/OutputDevice.h>
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -49,73 +49,74 @@
 // static initialisation methods
 // ---------------------------------------------------------------------------
 void
-MSDevice_HBEFA::insertOptions() {
+MSDevice_Emissions::insertOptions() {
     OptionsCont& oc = OptionsCont::getOptions();
 
-    oc.doRegister("device.hbefa.probability", new Option_Float(0.));//!!! describe
-    oc.addDescription("device.hbefa.probability", "Emissions", "The probability for a vehicle to have an emission logging device");
+    oc.doRegister("device.emissions.probability", new Option_Float(0.));//!!! describe
+    oc.addDescription("device.emissions.probability", "Emissions", "The probability for a vehicle to have an emission logging device");
 
-    oc.doRegister("device.hbefa.explicit", new Option_String());//!!! describe
-    oc.addSynonyme("device.hbefa.explicit", "device.hbefa.knownveh", true);
-    oc.addDescription("device.hbefa.explicit", "Emissions", "Assign a device to named vehicles");
+    oc.doRegister("device.emissions.explicit", new Option_String());//!!! describe
+    oc.addSynonyme("device.emissions.explicit", "device.emissions.knownveh", true);
+    oc.addDescription("device.emissions.explicit", "Emissions", "Assign a device to named vehicles");
 
-    oc.doRegister("device.hbefa.deterministic", new Option_Bool(false)); //!!! describe
-    oc.addDescription("device.hbefa.deterministic", "Emissions", "The devices are set deterministic using a fraction of 1000");
+    oc.doRegister("device.emissions.deterministic", new Option_Bool(false)); //!!! describe
+    oc.addDescription("device.emissions.deterministic", "Emissions", "The devices are set deterministic using a fraction of 1000");
 }
 
 
 void
-MSDevice_HBEFA::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into) {
+MSDevice_Emissions::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into) {
     OptionsCont& oc = OptionsCont::getOptions();
-    if (oc.getFloat("device.hbefa.probability") == 0 && !oc.isSet("device.hbefa.explicit")) {
+    if (oc.getFloat("device.emissions.probability") == 0 && !oc.isSet("device.emissions.explicit")) {
         // no route computation is modelled
         return;
     }
     // route computation is enabled
     bool haveByNumber = false;
-    if (oc.getBool("device.hbefa.deterministic")) {
-        haveByNumber = MSNet::getInstance()->getVehicleControl().isInQuota(oc.getFloat("device.hbefa.probability"));
+    if (oc.getBool("device.emissions.deterministic")) {
+        haveByNumber = MSNet::getInstance()->getVehicleControl().isInQuota(oc.getFloat("device.emissions.probability"));
     } else {
-        haveByNumber = RandHelper::rand() <= oc.getFloat("device.hbefa.probability");
+        haveByNumber = RandHelper::rand() <= oc.getFloat("device.emissions.probability");
     }
-    bool haveByName = oc.isSet("device.hbefa.explicit") && OptionsCont::getOptions().isInStringVector("device.hbefa.explicit", v.getID());
+    bool haveByName = oc.isSet("device.emissions.explicit") && OptionsCont::getOptions().isInStringVector("device.emissions.explicit", v.getID());
     if (haveByNumber || haveByName) {
         // build the device
-        MSDevice_HBEFA* device = new MSDevice_HBEFA(v, "hbefa_" + v.getID());
+        MSDevice_Emissions* device = new MSDevice_Emissions(v, "emissions_" + v.getID());
         into.push_back(device);
     }
 }
 
 
 // ---------------------------------------------------------------------------
-// MSDevice_HBEFA-methods
+// MSDevice_Emissions-methods
 // ---------------------------------------------------------------------------
-MSDevice_HBEFA::MSDevice_HBEFA(SUMOVehicle& holder, const std::string& id)
+MSDevice_Emissions::MSDevice_Emissions(SUMOVehicle& holder, const std::string& id)
     : MSDevice(holder, id),
       myCO2(0), myCO(0), myHC(0), myPMx(0), myNOx(0), myFuel(0) {
 }
 
 
-MSDevice_HBEFA::~MSDevice_HBEFA() {
+MSDevice_Emissions::~MSDevice_Emissions() {
 }
 
 
 bool
-MSDevice_HBEFA::notifyMove(SUMOVehicle& veh, SUMOReal /*oldPos*/, SUMOReal /*newPos*/, SUMOReal newSpeed) {
+MSDevice_Emissions::notifyMove(SUMOVehicle& veh, SUMOReal /*oldPos*/, SUMOReal /*newPos*/, SUMOReal newSpeed) {
     const SUMOEmissionClass c = veh.getVehicleType().getEmissionClass();
     const SUMOReal a = veh.getAcceleration();
-    myCO2 += TS * HelpersHBEFA::computeCO2(c, newSpeed, a);
-    myCO += TS * HelpersHBEFA::computeCO(c, newSpeed, a);
-    myHC += TS * HelpersHBEFA::computeHC(c, newSpeed, a);
-    myPMx += TS * HelpersHBEFA::computePMx(c, newSpeed, a);
-    myNOx += TS * HelpersHBEFA::computeNOx(c, newSpeed, a);
-    myFuel += TS * HelpersHBEFA::computeFuel(c, newSpeed, a);
+    const SUMOReal slope = veh.getSlope();
+    myCO2 += TS * PollutantsInterface::computeCO2(c, newSpeed, a, slope);
+    myCO += TS * PollutantsInterface::computeCO(c, newSpeed, a, slope);
+    myHC += TS * PollutantsInterface::computeHC(c, newSpeed, a, slope);
+    myPMx += TS * PollutantsInterface::computePMx(c, newSpeed, a, slope);
+    myNOx += TS * PollutantsInterface::computeNOx(c, newSpeed, a, slope);
+    myFuel += TS * PollutantsInterface::computeFuel(c, newSpeed, a, slope);
     return true;
 }
 
 
 void
-MSDevice_HBEFA::generateOutput() const {
+MSDevice_Emissions::generateOutput() const {
     if (OptionsCont::getOptions().isSet("tripinfo-output")) {
         OutputDevice& os = OutputDevice::getDeviceByOption("tripinfo-output");
         (os.openTag("emissions") <<

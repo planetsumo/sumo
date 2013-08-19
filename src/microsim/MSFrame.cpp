@@ -51,8 +51,7 @@
 #include <microsim/MSGlobals.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <microsim/devices/MSDevice_Routing.h>
-#include <microsim/devices/MSDevice_HBEFA.h>
-#include <microsim/devices/MSDevice_PHEMlight.h>
+#include <microsim/devices/MSDevice_Emissions.h>
 #include <microsim/devices/MSDevice_Example.h>
 #include <utils/common/RandHelper.h>
 #include "MSFrame.h"
@@ -254,8 +253,7 @@ MSFrame::fillOptions() {
     oc.addOptionSubTopic("Emissions");
     oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
-    MSDevice_HBEFA::insertOptions();
-    MSDevice_PHEMlight::insertOptions();
+    MSDevice_Emissions::insertOptions();
     MSDevice_Example::insertOptions();
 
 

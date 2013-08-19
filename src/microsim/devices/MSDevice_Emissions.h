@@ -1,13 +1,14 @@
 /****************************************************************************/
-/// @file    MSDevice_PHEMlight.h
+/// @file    MSDevice_Emissions.h
 /// @author  Daniel Krajzewicz
-/// @date    Sat, 20.04.2013
-/// @version $Id: MSDevice_PHEMlight.h 13107 2012-12-02 13:57:34Z behrisch $
+/// @author  Michael Behrisch
+/// @date    Fri, 30.01.2009
+/// @version $Id$
 ///
-// A device which collects vehicular emissions (using PHEMlight)
+// A device which collects vehicular emissions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -17,8 +18,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef MSDevice_PHEMlight_h
-#define MSDevice_PHEMlight_h
+#ifndef MSDevice_Emissions_h
+#define MSDevice_Emissions_h
 
 
 // ===========================================================================
@@ -49,26 +50,26 @@ class MSLane;
 // class definitions
 // ===========================================================================
 /**
- * @class MSDevice_PHEMlight
- * @brief A device which collects vehicular emissions (using PHEMlight)
+ * @class MSDevice_Emissions
+ * @brief A device which collects vehicular emissions
  *
  * Each device collects the vehicular emissions / fuel consumption by being
- *  called each time step, computing the current values using HelpersPHEMlight, and
+ *  called each time step, computing the current values using HelpersHBEFA, and
  *  aggregating them into internal storages over the whol journey.
  *
  * @see MSDevice
- * @see HelpersPHEMlight
+ * @see HelpersHBEFA
  */
-class MSDevice_PHEMlight : public MSDevice {
+class MSDevice_Emissions : public MSDevice {
 public:
-    /** @brief Inserts MSDevice_PHEMlight-options
+    /** @brief Inserts MSDevice_Emissions-options
      */
     static void insertOptions();
 
 
     /** @brief Build devices for the given vehicle, if needed
      *
-     * The options are read and evaluated whether PHEMlight-devices shall be built
+     * The options are read and evaluated whether hbefa-devices shall be built
      *  for the given vehicle.
      *
      * For each seen vehicle, the global vehicle index is increased.
@@ -97,7 +98,7 @@ public:
         * @return false, if the vehicle is beyond the lane, true otherwise
         * @see MSMoveReminder
         * @see MSMoveReminder::notifyMove
-        * @see HelpersPHEMlight
+        * @see HelpersHBEFA
         */
     bool notifyMove(SUMOVehicle& veh, SUMOReal oldPos, SUMOReal newPos, SUMOReal newSpeed);
     /// @}
@@ -113,7 +114,7 @@ public:
 
 
     /// @brief Destructor.
-    ~MSDevice_PHEMlight();
+    ~MSDevice_Emissions();
 
 
 private:
@@ -122,7 +123,7 @@ private:
      * @param[in] holder The vehicle that holds this device
      * @param[in] id The ID of the device
      */
-    MSDevice_PHEMlight(SUMOVehicle& holder, const std::string& id);
+    MSDevice_Emissions(SUMOVehicle& holder, const std::string& id);
 
 
 private:
@@ -136,10 +137,10 @@ private:
 
 private:
     /// @brief Invalidated copy constructor.
-    MSDevice_PHEMlight(const MSDevice_PHEMlight&);
+    MSDevice_Emissions(const MSDevice_Emissions&);
 
     /// @brief Invalidated assignment operator.
-    MSDevice_PHEMlight& operator=(const MSDevice_PHEMlight&);
+    MSDevice_Emissions& operator=(const MSDevice_Emissions&);
 
 
 };

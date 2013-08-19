@@ -473,6 +473,10 @@
 				RelativePath="..\..\..\src\utils\emissions\PHEMCEPHandler.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\src\utils\emissions\PollutantsInterface.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header-Dateien"
@@ -500,6 +504,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\utils\emissions\PHEMConstants.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\utils\emissions\PollutantsInterface.h"
 				>
 			</File>
 		</Filter>
