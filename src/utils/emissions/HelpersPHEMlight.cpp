@@ -96,41 +96,6 @@ HelpersPHEMlight::computeFuel(SUMOEmissionClass c, double v, double a, double sl
 }
 
 
-SUMOReal
-HelpersPHEMlight::computeDefaultCO(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt) {
-    return -1;
-}
-
-
-SUMOReal
-HelpersPHEMlight::computeDefaultCO2(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt) {
-    return -1;
-}
-
-
-SUMOReal
-HelpersPHEMlight::computeDefaultHC(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt) {
-    return -1;
-}
-
-
-SUMOReal
-HelpersPHEMlight::computeDefaultNOx(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt) {
-    return -1;
-}
-
-
-SUMOReal
-HelpersPHEMlight::computeDefaultPMx(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt) {
-    return -1;
-}
-
-
-SUMOReal
-HelpersPHEMlight::computeDefaultFuel(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt) {
-    return -1;
-}
-
 
 double
 HelpersPHEMlight::CalcPower(double v, double a, double slope, const PHEMCEP &vehicleCep, double loading) {

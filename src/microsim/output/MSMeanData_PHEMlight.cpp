@@ -36,6 +36,7 @@
 #include <utils/iodevices/OutputDevice.h>
 #include "MSMeanData_PHEMlight.h"
 #include <utils/emissions/HelpersPHEMlight.h>
+#include <utils/emissions/PollutantsInterface.h>
 #include <limits>
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -138,12 +139,12 @@ MSMeanData_PHEMlight::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOT
         const SUMOReal speed = MIN2(myLaneLength / defaultTravelTime, t->getMaxSpeed());
 		const SUMOReal slope = 0; // !!! discuss/check
         dev << "\"\n            traveltime=\"" << OutputDevice::realString(defaultTravelTime) <<
-            "\" CO_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultCO(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
-            "\" CO2_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultCO2(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
-            "\" HC_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultHC(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
-            "\" PMx_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultPMx(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
-            "\" NOx_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultNOx(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
-            "\" fuel_perVeh=\"" << OutputDevice::realString(HelpersPHEMlight::computeDefaultFuel(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6);
+            "\" CO_perVeh=\"" << OutputDevice::realString(PollutantsInterface::computeDefaultCO(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" CO2_perVeh=\"" << OutputDevice::realString(PollutantsInterface::computeDefaultCO2(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" HC_perVeh=\"" << OutputDevice::realString(PollutantsInterface::computeDefaultHC(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" PMx_perVeh=\"" << OutputDevice::realString(PollutantsInterface::computeDefaultPMx(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" NOx_perVeh=\"" << OutputDevice::realString(PollutantsInterface::computeDefaultNOx(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6) <<
+            "\" fuel_perVeh=\"" << OutputDevice::realString(PollutantsInterface::computeDefaultFuel(t->getEmissionClass(), speed, t->getCarFollowModel().getMaxAccel(), slope, defaultTravelTime), 6);
     }
     dev << "\"";
     dev.closeTag();

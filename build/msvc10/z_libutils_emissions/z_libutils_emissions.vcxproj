@@ -143,6 +143,7 @@
     <ClCompile Include="..\..\..\src\utils\emissions\HelpersPHEMlight.cpp" />
     <ClCompile Include="..\..\..\src\utils\emissions\PHEMCEP.cpp" />
     <ClCompile Include="..\..\..\src\utils\emissions\PHEMCEPHandler.cpp" />
+    <ClCompile Include="..\..\..\src\utils\emissions\PollutantsInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\utils\emissions\HelpersHarmonoise.h" />
@@ -151,6 +152,7 @@
     <ClInclude Include="..\..\..\src\utils\emissions\PHEMCEP.h" />
     <ClInclude Include="..\..\..\src\utils\emissions\PHEMCEPHandler.h" />
     <ClInclude Include="..\..\..\src\utils\emissions\PHEMConstants.h" />
+    <ClInclude Include="..\..\..\src\utils\emissions\PollutantsInterface.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

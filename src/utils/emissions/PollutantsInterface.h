@@ -1,13 +1,13 @@
 /****************************************************************************/
-/// @file    HelpersPHEMlight.h
+/// @file    PollutantsInterface.h
 /// @author  Daniel Krajzewicz
-/// @date    Sat, 20.04.2013
-/// @version $Id: HelpersPHEMlight.h 13107 2012-12-02 13:57:34Z behrisch $
+/// @date    Mon, 19.08.2013
+/// @version $Id: PollutantsInterface.h 13107 2012-12-02 13:57:34Z behrisch $
 ///
-// Helper methods for PHEMlight-based emission computation
+// Interface to capsulate different emission models
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -17,8 +17,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef HelpersPHEMlight_h
-#define HelpersPHEMlight_h
+#ifndef PollutantsInterface_h
+#define PollutantsInterface_h
 
 
 // ===========================================================================
@@ -42,10 +42,10 @@
 // class definitions
 // ===========================================================================
 /**
- * @class HelpersPHEMlight
+ * @class PollutantsInterface
  * @brief Helper methods for PHEMlight-based emission computation
  */
-class HelpersPHEMlight {
+class PollutantsInterface {
 public:
     /** @brief Returns the maximum possible acceleration
      * @param[in] c The vehicle emission class
@@ -122,16 +122,71 @@ public:
 
 
 
-
-	/** @brief Returns the power of used for a vehicle at state v,a, slope and loading
+    /** @brief Returns the amount of emitted CO given the vehicle type and default values for the state (in mg)
+     * @param[in] c The vehicle emission class
      * @param[in] v The vehicle's average velocity
      * @param[in] a The vehicle's average acceleration
      * @param[in] slope The road's slope at vehicle's position [°]
-	 * @param{in] vehicleCep vehicles CEP data
-     * @param{in] loading vehicle loading [kg]
+     * @param{in] tt the time the vehicle travels
+     * @return The amount of CO emitted by the given vehicle class [mg]
+     */
+    static SUMOReal computeDefaultCO(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt);
+
+
+    /** @brief Returns the amount of emitted CO2 given the vehicle type and default values for the state (in mg)
+     * @param[in] c The vehicle emission class
+     * @param[in] v The vehicle's average velocity
+     * @param[in] a The vehicle's average acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+     * @param{in] tt the time the vehicle travels
+     * @return The amount of CO2 emitted by the given vehicle class [mg]
+     */
+    static SUMOReal computeDefaultCO2(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt);
+
+
+    /** @brief Returns the amount of emitted HC given the vehicle type and default values for the state (in mg)
+     * @param[in] c The vehicle emission class
+     * @param[in] v The vehicle's average velocity
+     * @param[in] a The vehicle's average acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+     * @param{in] tt the time the vehicle travels
+     * @return The amount of HC emitted by the given vehicle class [mg]
+     */
+    static SUMOReal computeDefaultHC(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt);
+
+
+    /** @brief Returns the amount of emitted NOx given the vehicle type and default values for the state (in mg)
+     * @param[in] c The vehicle emission class
+     * @param[in] v The vehicle's average velocity
+     * @param[in] a The vehicle's average acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+     * @param{in] tt the time the vehicle travels
+     * @return The amount of NOx emitted by the given vehicle class [mg]
+     */
+    static SUMOReal computeDefaultNOx(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt);
+
+
+    /** @brief Returns the amount of emitted PMx given the vehicle type and default values for the state (in mg)
+     * @param[in] c The vehicle emission class
+     * @param[in] v The vehicle's average velocity
+     * @param[in] a The vehicle's average acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+     * @param{in] tt the time the vehicle travels
+     * @return The amount of PMx emitted by the given vehicle class [mg]
+     */
+    static SUMOReal computeDefaultPMx(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt);
+
+
+    /** @brief Returns the amount of fuel given the vehicle type and default values for the state (in ml)
+     * @param[in] c The vehicle emission class
+     * @param[in] v The vehicle's average velocity
+     * @param[in] a The vehicle's average acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+     * @param{in] tt the time the vehicle travels
      * @return The amount of fuel emitted by the given vehicle class [ml]
      */
-	static double CalcPower(double v, double a, double slope, const PHEMCEP &vehicleCep, double loading);
+    static SUMOReal computeDefaultFuel(SUMOEmissionClass c, double v, double a, double slope, SUMOReal tt);
+
 
 };
 

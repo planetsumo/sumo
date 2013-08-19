@@ -301,6 +301,10 @@ enum SUMOEmissionClass {
     SVE_P_LDV_A0_14_13,
     SVE_P_LDV_A0_14_14,
 
+    SVE_META_HBEFA21_END, // end of iTETRIS' HBEFA 2.1 classes
+
+
+
     // PHEMlight
     SVE_PKW_D_EU0,
     SVE_PKW_D_EU1,
@@ -357,7 +361,9 @@ enum SUMOEmissionClass {
     SVE_SB_D_EU4_SCR,
     SVE_SB_D_EU5_EGR,
     SVE_SB_D_EU5_SCR,
-    SVE_SB_D_EU6
+    SVE_SB_D_EU6,
+
+    SVE_META_PHEMLIGHT_END // end of COLOMBO's PHEMlight classes
 
 };
 
