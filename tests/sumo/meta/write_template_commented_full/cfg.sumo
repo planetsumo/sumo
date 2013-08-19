@@ -226,22 +226,13 @@
         <phemlight-path value="./PHEMlight/" type="FILE"/>
 
         <!-- The probability for a vehicle to have an emission logging device -->
-        <device.hbefa.probability value="0" type="FLOAT"/>
+        <device.emissions.probability value="0" type="FLOAT"/>
 
         <!-- Assign a device to named vehicles -->
-        <device.hbefa.explicit value="" synonymes="device.hbefa.knownveh" type="STR"/>
+        <device.emissions.explicit value="" synonymes="device.emissions.knownveh" type="STR"/>
 
         <!-- The devices are set deterministic using a fraction of 1000 -->
-        <device.hbefa.deterministic value="false" type="BOOL"/>
-
-        <!-- The probability for a vehicle to have an emission logging device -->
-        <device.phem.probability value="0" type="FLOAT"/>
-
-        <!-- Assign a device to named vehicles -->
-        <device.phem.explicit value="" synonymes="device.phem.knownveh" type="STR"/>
-
-        <!-- The devices are set deterministic using a fraction of 1000 -->
-        <device.phem.deterministic value="false" type="BOOL"/>
+        <device.emissions.deterministic value="false" type="BOOL"/>
 
     </emissions>
 

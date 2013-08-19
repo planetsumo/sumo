@@ -124,15 +124,10 @@ Routing Options:
 Emissions Options:
   --phemlight-path FILE               Determines where to load PHEMlight
                                         definitions from.
-  --device.hbefa.probability FLOAT    The probability for a vehicle to have an
+  --device.emissions.probability FLOAT  The probability for a vehicle to have an
                                         emission logging device
-  --device.hbefa.explicit STR         Assign a device to named vehicles
-  --device.hbefa.deterministic        The devices are set deterministic using a
-                                        fraction of 1000
-  --device.phem.probability FLOAT     The probability for a vehicle to have an
-                                        emission logging device
-  --device.phem.explicit STR          Assign a device to named vehicles
-  --device.phem.deterministic         The devices are set deterministic using a
+  --device.emissions.explicit STR     Assign a device to named vehicles
+  --device.emissions.deterministic    The devices are set deterministic using a
                                         fraction of 1000
 
 Example Device Options:
