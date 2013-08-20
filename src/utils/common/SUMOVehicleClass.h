@@ -199,7 +199,9 @@ extern const SVCPermissions SVCFreeForAll;
  * @brief Definition of vehicle emission classes
  *
  * The order is important - HBEFA computation helper use it.
+ * @see PollutantsInterface
  * @see HelpersHBEFA
+ * @see HelpersPHEMlight
  */
 enum SUMOEmissionClass {
     SVE_UNKNOWN = -1,

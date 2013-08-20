@@ -48,8 +48,7 @@
 #include <utils/common/FileHelpers.h>
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/RandHelper.h>
-#include <utils/emissions/HelpersHBEFA.h>
-#include <utils/emissions/HelpersPHEMlight.h>
+#include <utils/emissions/PollutantsInterface.h>
 #include <utils/emissions/HelpersHarmonoise.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/StdDefs.h>
@@ -1829,74 +1828,38 @@ MSVehicle::getDistanceToPosition(SUMOReal destPos, const MSEdge* destEdge) {
 
 
 SUMOReal
-MSVehicle::getHBEFA_CO2Emissions() const {
-    return HelpersHBEFA::computeCO2(myType->getEmissionClass(), myState.speed(), myAcceleration);
+MSVehicle::getCO2Emissions() const {
+    return PollutantsInterface::computeCO2(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
 }
 
 
 SUMOReal
-MSVehicle::getHBEFA_COEmissions() const {
-    return HelpersHBEFA::computeCO(myType->getEmissionClass(), myState.speed(), myAcceleration);
+MSVehicle::getCOEmissions() const {
+    return PollutantsInterface::computeCO(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
 }
 
 
 SUMOReal
-MSVehicle::getHBEFA_HCEmissions() const {
-    return HelpersHBEFA::computeHC(myType->getEmissionClass(), myState.speed(), myAcceleration);
+MSVehicle::getHCEmissions() const {
+    return PollutantsInterface::computeHC(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
 }
 
 
 SUMOReal
-MSVehicle::getHBEFA_NOxEmissions() const {
-    return HelpersHBEFA::computeNOx(myType->getEmissionClass(), myState.speed(), myAcceleration);
+MSVehicle::getNOxEmissions() const {
+    return PollutantsInterface::computeNOx(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
 }
 
 
 SUMOReal
-MSVehicle::getHBEFA_PMxEmissions() const {
-    return HelpersHBEFA::computePMx(myType->getEmissionClass(), myState.speed(), myAcceleration);
+MSVehicle::getPMxEmissions() const {
+    return PollutantsInterface::computePMx(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
 }
 
 
 SUMOReal
-MSVehicle::getHBEFA_FuelConsumption() const {
-    return HelpersHBEFA::computeFuel(myType->getEmissionClass(), myState.speed(), myAcceleration);
-}
-
-
-SUMOReal
-MSVehicle::getPHEMlight_CO2Emissions() const {
-    return HelpersPHEMlight::computeCO2(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
-}
-
-
-SUMOReal
-MSVehicle::getPHEMlight_COEmissions() const {
-    return HelpersPHEMlight::computeCO(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
-}
-
-
-SUMOReal
-MSVehicle::getPHEMlight_HCEmissions() const {
-    return HelpersPHEMlight::computeHC(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
-}
-
-
-SUMOReal
-MSVehicle::getPHEMlight_NOxEmissions() const {
-    return HelpersPHEMlight::computeNOx(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
-}
-
-
-SUMOReal
-MSVehicle::getPHEMlight_PMxEmissions() const {
-    return HelpersPHEMlight::computePMx(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
-}
-
-
-SUMOReal
-MSVehicle::getPHEMlight_FuelConsumption() const {
-    return HelpersPHEMlight::computeFuel(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
+MSVehicle::getFuelConsumption() const {
+    return PollutantsInterface::computeFuel(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
 }
 
 

@@ -67,9 +67,9 @@ MSEmissionExport::write(OutputDevice& of, SUMOTime timestep) {
             fclass = fclass.substr(0, fclass.find_first_of("@"));
 
             Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
-            of.openTag("vehicle") << " id=\"" << veh->getID() << "\" eclass=\"" <<  veh->getVehicleType().getEmissionClass() << "\" co2=\"" << veh->getHBEFA_CO2Emissions()
-                                  << "\" co=\"" <<  veh->getHBEFA_COEmissions() << "\" hc=\"" <<  veh->getHBEFA_HCEmissions()
-                                  << "\" nox=\"" <<  veh->getHBEFA_NOxEmissions() << "\" pmx=\"" <<  veh->getHBEFA_PMxEmissions()
+            of.openTag("vehicle") << " id=\"" << veh->getID() << "\" eclass=\"" <<  veh->getVehicleType().getEmissionClass() << "\" co2=\"" << veh->getCO2Emissions()
+                                  << "\" co=\"" <<  veh->getCOEmissions() << "\" hc=\"" <<  veh->getHCEmissions()
+                                  << "\" nox=\"" <<  veh->getNOxEmissions() << "\" pmx=\"" <<  veh->getPMxEmissions()
                                   << "\" noise=\"" <<  veh->getHarmonoise_NoiseEmissions() << "\" route=\"" << veh->getRoute().getID()
                                   << "\" type=\"" <<  fclass << "\" waiting=\"" <<  veh->getWaitingSeconds()
                                   << "\" lane=\"" <<  veh->getLane()->getID() << "\" pos=\""

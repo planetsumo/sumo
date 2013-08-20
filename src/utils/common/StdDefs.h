@@ -32,12 +32,23 @@
 #include <config.h>
 #endif
 
-/* avoiding compiler warning unreferenced parameter */
+// ===========================================================================
+// definitions
+// ===========================================================================
+#ifndef PI
+#define PI 3.1415926535897932384626433832795
+#endif
+
+
+// ===========================================================================
+// avoiding compiler warning unreferenced parameter
+// ===========================================================================
 #define UNUSED_PARAMETER(x)  ((void)(x))
 
-/* -------------------------------------------------------------------------
- * some constant defaults used by SUMO
- * ----------------------------------------------------------------------- */
+
+// ===========================================================================
+// some constant defaults used by SUMO
+// ===========================================================================
 const SUMOReal SUMO_const_laneWidth = (SUMOReal) 3.2;
 const SUMOReal SUMO_const_halfLaneWidth = (SUMOReal) 1.6;
 const SUMOReal SUMO_const_quarterLaneWidth = (SUMOReal) 0.8;

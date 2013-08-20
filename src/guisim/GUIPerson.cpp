@@ -302,17 +302,17 @@ GUIPerson::getColorValue(size_t /* activeScheme */) const {
         case 10:
             return getMaxSpeed();
         case 11:
-            return getHBEFA_CO2Emissions();
+            return getCO2Emissions();
         case 12:
-            return getHBEFA_COEmissions();
+            return getCOEmissions();
         case 13:
-            return getHBEFA_PMxEmissions();
+            return getPMxEmissions();
         case 14:
-            return getHBEFA_NOxEmissions();
+            return getNOxEmissions();
         case 15:
-            return getHBEFA_HCEmissions();
+            return getHCEmissions();
         case 16:
-            return getHBEFA_FuelConsumption();
+            return getFuelConsumption();
         case 17:
             return getHarmonoise_NoiseEmissions();
         case 18:

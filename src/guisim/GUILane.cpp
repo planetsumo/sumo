@@ -681,38 +681,38 @@ GUILane::getEdgeLaneNumber() const {
 
 // ------------ Current state retrieval
 SUMOReal
-GUILane::getNormedHBEFA_CO2Emissions() const {
-    return getHBEFA_CO2Emissions() / getLength();
+GUILane::getNormedCO2Emissions() const {
+    return getCO2Emissions() / getLength();
 }
 
 
 SUMOReal
-GUILane::getNormedHBEFA_COEmissions() const {
-    return getHBEFA_COEmissions() / getLength();
+GUILane::getNormedCOEmissions() const {
+    return getCOEmissions() / getLength();
 }
 
 
 SUMOReal
-GUILane::getNormedHBEFA_PMxEmissions() const {
-    return getHBEFA_PMxEmissions() / getLength();
+GUILane::getNormedPMxEmissions() const {
+    return getPMxEmissions() / getLength();
 }
 
 
 SUMOReal
-GUILane::getNormedHBEFA_NOxEmissions() const {
-    return getHBEFA_NOxEmissions() / getLength();
+GUILane::getNormedNOxEmissions() const {
+    return getNOxEmissions() / getLength();
 }
 
 
 SUMOReal
-GUILane::getNormedHBEFA_HCEmissions() const {
-    return getHBEFA_HCEmissions() / getLength();
+GUILane::getNormedHCEmissions() const {
+    return getHCEmissions() / getLength();
 }
 
 
 SUMOReal
-GUILane::getNormedHBEFA_FuelConsumption() const {
-    return getHBEFA_FuelConsumption() / getLength();
+GUILane::getNormedFuelConsumption() const {
+    return getFuelConsumption() / getLength();
 }
 
 
@@ -756,17 +756,17 @@ GUILane::getColorValue(size_t activeScheme) const {
         case 6:
             return getEdgeLaneNumber();
         case 7:
-            return getNormedHBEFA_CO2Emissions();
+            return getNormedCO2Emissions();
         case 8:
-            return getNormedHBEFA_COEmissions();
+            return getNormedCOEmissions();
         case 9:
-            return getNormedHBEFA_PMxEmissions();
+            return getNormedPMxEmissions();
         case 10:
-            return getNormedHBEFA_NOxEmissions();
+            return getNormedNOxEmissions();
         case 11:
-            return getNormedHBEFA_HCEmissions();
+            return getNormedHCEmissions();
         case 12:
-            return getNormedHBEFA_FuelConsumption();
+            return getNormedFuelConsumption();
         case 13:
             return getHarmonoise_NoiseEmissions();
         case 14: {

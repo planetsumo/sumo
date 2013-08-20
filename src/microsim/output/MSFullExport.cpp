@@ -90,9 +90,9 @@ MSFullExport::writeVehicles(OutputDevice& of) {
 
             Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
 
-            of.openTag("vehicle") << " id=\"" << veh->getID() << "\" eclass=\"" <<  veh->getVehicleType().getEmissionClass() << "\" co2=\"" << veh->getHBEFA_CO2Emissions()
-                                  << "\" co=\"" <<  veh->getHBEFA_COEmissions() << "\" hc=\"" <<  veh->getHBEFA_HCEmissions()
-                                  << "\" nox=\"" <<  veh->getHBEFA_NOxEmissions() << "\" pmx=\"" <<  veh->getHBEFA_PMxEmissions()
+            of.openTag("vehicle") << " id=\"" << veh->getID() << "\" eclass=\"" <<  veh->getVehicleType().getEmissionClass() << "\" co2=\"" << veh->getCO2Emissions()
+                                  << "\" co=\"" <<  veh->getCOEmissions() << "\" hc=\"" <<  veh->getHCEmissions()
+                                  << "\" nox=\"" <<  veh->getNOxEmissions() << "\" pmx=\"" <<  veh->getPMxEmissions()
                                   << "\" noise=\"" <<  veh->getHarmonoise_NoiseEmissions() << "\" route=\"" << veh->getRoute().getID()
                                   << "\" type=\"" <<  fclass << "\" waiting=\"" <<  veh->getWaitingSeconds()
                                   << "\" lane=\"" <<  veh->getLane()->getID()
@@ -145,13 +145,13 @@ MSFullExport::writeLane(OutputDevice& of, const MSLane& lane) {
 
     of.openTag("lane")
             << " id=\"" << lane.getID()
-            << "\" co=\"" << lane.getHBEFA_COEmissions()
-            << "\" co2=\"" << lane.getHBEFA_CO2Emissions()
-            << "\" nox=\"" << lane.getHBEFA_NOxEmissions()
-            << "\" pmx=\"" << lane.getHBEFA_PMxEmissions()
-            << "\" hc=\"" << lane.getHBEFA_HCEmissions()
+            << "\" co=\"" << lane.getCOEmissions()
+            << "\" co2=\"" << lane.getCO2Emissions()
+            << "\" nox=\"" << lane.getNOxEmissions()
+            << "\" pmx=\"" << lane.getPMxEmissions()
+            << "\" hc=\"" << lane.getHCEmissions()
             << "\" noise=\"" << lane.getHarmonoise_NoiseEmissions()
-            << "\" fuel=\"" << lane.getHBEFA_FuelConsumption()
+            << "\" fuel=\"" << lane.getFuelConsumption()
             << "\" maxspeed=\"" << lane.getSpeedLimit() * 3.6
             << "\" meanspeed=\"" << lane.getMeanSpeed() * 3.6
             << "\" occupancy=\"" << lane.getOccupancy()

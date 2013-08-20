@@ -54,11 +54,12 @@ class MSLane;
  * @brief A device which collects vehicular emissions
  *
  * Each device collects the vehicular emissions / fuel consumption by being
- *  called each time step, computing the current values using HelpersHBEFA, and
- *  aggregating them into internal storages over the whol journey.
+ *  called each time step, computing the current values using 
+ *  PollutantsInterface, and aggregating them into internal storages over 
+ *  the complete journey.
  *
  * @see MSDevice
- * @see HelpersHBEFA
+ * @see PollutantsInterface
  */
 class MSDevice_Emissions : public MSDevice {
 public:
@@ -69,7 +70,7 @@ public:
 
     /** @brief Build devices for the given vehicle, if needed
      *
-     * The options are read and evaluated whether hbefa-devices shall be built
+     * The options are read and evaluated whether emissions-devices shall be built
      *  for the given vehicle.
      *
      * For each seen vehicle, the global vehicle index is increased.
@@ -98,7 +99,7 @@ public:
         * @return false, if the vehicle is beyond the lane, true otherwise
         * @see MSMoveReminder
         * @see MSMoveReminder::notifyMove
-        * @see HelpersHBEFA
+        * @see PollutantsInterface
         */
     bool notifyMove(SUMOVehicle& veh, SUMOReal oldPos, SUMOReal newPos, SUMOReal newSpeed);
     /// @}
