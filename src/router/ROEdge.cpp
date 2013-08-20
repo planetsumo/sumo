@@ -186,7 +186,7 @@ ROEdge::getCOEffort(const ROVehicle* const veh, SUMOReal time) const {
     if (!getStoredEffort(time, ret)) {
         const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
         const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultCO(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time), 0); // @todo: give correct slope
+        ret = PollutantsInterface::computeDefaultCO(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -198,7 +198,7 @@ ROEdge::getCO2Effort(const ROVehicle* const veh, SUMOReal time) const {
     if (!getStoredEffort(time, ret)) {
         const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
         const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultCO2(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time), 0); // @todo: give correct slope
+        ret = PollutantsInterface::computeDefaultCO2(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -210,7 +210,7 @@ ROEdge::getPMxEffort(const ROVehicle* const veh, SUMOReal time) const {
     if (!getStoredEffort(time, ret)) {
         const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
         const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultPMx(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time), 0); // @todo: give correct slope
+        ret = PollutantsInterface::computeDefaultPMx(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -222,7 +222,7 @@ ROEdge::getHCEffort(const ROVehicle* const veh, SUMOReal time) const {
     if (!getStoredEffort(time, ret)) {
         const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
         const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultHC(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time), 0); // @todo: give correct slope
+        ret = PollutantsInterface::computeDefaultHC(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -234,7 +234,7 @@ ROEdge::getNOxEffort(const ROVehicle* const veh, SUMOReal time) const {
     if (!getStoredEffort(time, ret)) {
         const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
         const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultNOx(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time), 0); // @todo: give correct slope
+        ret = PollutantsInterface::computeDefaultNOx(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -246,7 +246,7 @@ ROEdge::getFuelEffort(const ROVehicle* const veh, SUMOReal time) const {
     if (!getStoredEffort(time, ret)) {
         const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
         const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultFuel(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time), 0); // @todo: give correct slope
+        ret = PollutantsInterface::computeDefaultFuel(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }

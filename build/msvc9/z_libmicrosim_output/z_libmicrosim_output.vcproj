@@ -591,19 +591,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_Emissions.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\output\MSMeanData_Harmonoise.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\output\MSMeanData_HBEFA.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\src\microsim\output\MSMeanData_Net.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\microsim\output\MSMeanData_PHEMlight.cpp"
 				>
 			</File>
 			<File
@@ -680,19 +676,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_Emissions.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\output\MSMeanData_Harmonoise.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\output\MSMeanData_HBEFA.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\src\microsim\output\MSMeanData_Net.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\microsim\output\MSMeanData_PHEMlight.h"
 				>
 			</File>
 			<File
