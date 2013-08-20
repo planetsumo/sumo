@@ -5,7 +5,7 @@
 /// @date    Mon, 10.05.2004
 /// @version $Id$
 ///
-// Emission data collector for edges/lanes that uses HBEFA-reformulation
+// Emission data collector for edges/lanes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
@@ -49,7 +49,7 @@ class MSLane;
 // ===========================================================================
 /**
  * @class MSMeanData_Emissions
- * @brief Emission data collector for edges/lanes that uses HBEFA-reformulation
+ * @brief Emission data collector for edges/lanes
  *
  * This structure does not contain the data itself, it is stored within
  *  MSLaneMeanDataValues-MoveReminder objects.

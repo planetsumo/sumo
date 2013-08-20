@@ -44,7 +44,7 @@
 #include <utils/geom/PositionVector.h>
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/DijkstraRouterEffort.h>
-#include <utils/emissions/HelpersHBEFA.h>
+#include <utils/emissions/PollutantsInterface.h>
 #include <utils/emissions/HelpersHarmonoise.h>
 #include <utils/common/SUMOVehicleParameter.h>
 #include "TraCIConstants.h"
@@ -183,27 +183,27 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                 break;
             case VAR_CO2EMISSION:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(onRoad ? HelpersHBEFA::computeCO2(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration()) : INVALID_DOUBLE_VALUE);
+                tempMsg.writeDouble(onRoad ? PollutantsInterface::computeCO2(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration(), v->getSlope()) : INVALID_DOUBLE_VALUE);
                 break;
             case VAR_COEMISSION:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(onRoad ? HelpersHBEFA::computeCO(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration()) : INVALID_DOUBLE_VALUE);
+                tempMsg.writeDouble(onRoad ? PollutantsInterface::computeCO(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration(), v->getSlope()) : INVALID_DOUBLE_VALUE);
                 break;
             case VAR_HCEMISSION:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(onRoad ? HelpersHBEFA::computeHC(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration()) : INVALID_DOUBLE_VALUE);
+                tempMsg.writeDouble(onRoad ? PollutantsInterface::computeHC(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration(), v->getSlope()) : INVALID_DOUBLE_VALUE);
                 break;
             case VAR_PMXEMISSION:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(onRoad ? HelpersHBEFA::computePMx(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration()) : INVALID_DOUBLE_VALUE);
+                tempMsg.writeDouble(onRoad ? PollutantsInterface::computePMx(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration(), v->getSlope()) : INVALID_DOUBLE_VALUE);
                 break;
             case VAR_NOXEMISSION:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(onRoad ? HelpersHBEFA::computeNOx(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration()) : INVALID_DOUBLE_VALUE);
+                tempMsg.writeDouble(onRoad ? PollutantsInterface::computeNOx(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration(), v->getSlope()) : INVALID_DOUBLE_VALUE);
                 break;
             case VAR_FUELCONSUMPTION:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(onRoad ? HelpersHBEFA::computeFuel(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration()) : INVALID_DOUBLE_VALUE);
+                tempMsg.writeDouble(onRoad ? PollutantsInterface::computeFuel(v->getVehicleType().getEmissionClass(), v->getSpeed(), v->getAcceleration(), v->getSlope()) : INVALID_DOUBLE_VALUE);
                 break;
             case VAR_NOISEEMISSION:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
