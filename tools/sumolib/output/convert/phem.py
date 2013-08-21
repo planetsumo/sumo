@@ -7,18 +7,12 @@
 This module includes functions for converting SUMO's fcd-output into
 data files read by PHEM.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
 import sumolib
 import math
-
-
-
-
-
-
 
 
 def _convType(tID):
@@ -49,7 +43,6 @@ def fcd2dri(inpFCD, outSTRM, ignored):
         print >> outSTRM, "%s,%s,%s" % (sumolib._intTime(q.time), float(v.speed)*3.6, percSlope)
 
 
-
 def net2str(net, outSTRM):
   """
   Writes the network object given as "inpNET" as a .str file readable by PHEM.
@@ -71,8 +64,7 @@ def net2str(net, outSTRM):
       print >> outSTRM, "%s,%s,%s,%s,%s,%s" % (eid, len(e._lanes), c1[0], c2[0], c1[1], c2[1])
   return sIDm 
 
-
-
+          
 def fcd2fzp(inpFCD, outSTRM, further):
   """
   Reformats the contents of the given fcd-output file into a .fzp file, readable
@@ -104,7 +96,6 @@ def fcd2fzp(inpFCD, outSTRM, further):
                   sumolib._intTime(q.time), float(v.x), float(v.y), 
                   vid, float(v.speed)*3.6, percSlope, vtid, sid)
   return vIDm, vtIDm
-  
   
   
 def vehicleTypes2flt(outSTRM, vtIDm):

@@ -1,14 +1,13 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@file    duaIterate.py
+@file    costMemory.py
 @author  Jakob Erdmann
 @date    2012-03-14
 @version $Id$
 
 Perform smoothing of edge costs across successive iterations of duaIterate
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
