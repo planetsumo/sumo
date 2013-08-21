@@ -9,7 +9,7 @@
 ///
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -957,7 +957,7 @@ NIImporter_OpenStreetMap::RelationHandler::findEdgeRef(SUMOLong wayRef, const st
         result = 0;
     }
     return result;
-};
+}
 
 
 /****************************************************************************/

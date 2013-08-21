@@ -9,7 +9,7 @@
 ///
 // A connnection between lanes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -35,6 +35,7 @@
 #include "MSNet.h"
 #include "MSLink.h"
 #include "MSLane.h"
+#include "MSEdge.h"
 #include "MSGlobals.h"
 #include "MSVehicle.h"
 
@@ -188,7 +189,6 @@ MSLink::blockedAtTime(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal arrival
             }
         }
         const SUMOTime foeArrivalTime = (SUMOTime)((1.0 - impatience) * i->second.arrivalTime + impatience * i->second.arrivalTimeBraking);
-        const SUMOReal foeArrivalSpeed = (1.0 - impatience) * i->second.arrivalSpeed + impatience * i->second.arrivalSpeedBraking;
         if (i->second.leavingTime < arrivalTime) {
             // ego wants to be follower
             if (sameTargetLane && (arrivalTime - i->second.leavingTime < myLookaheadTime
@@ -328,6 +328,10 @@ MSLink::getLeaderInfo(SUMOReal dist) const {
         for (std::vector<MSLane*>::const_iterator it_lane = myFoeLanes.begin(); it_lane != myFoeLanes.end(); ++it_lane) {
             // it is not sufficient to return the last vehicle on the foeLane because ego might be its leader
             // therefore we return all vehicles on the lane
+            //
+            // special care must be taken for continuation lanes. (next lane is also internal)
+            // vehicles on these lanes should always block (gap = -1)
+            const bool contLane = ((*it_lane)->getLinkCont()[0]->getViaLaneOrLane()->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL);
             const MSLane::VehCont& vehicles = (*it_lane)->getVehiclesSecure();
             (*it_lane)->releaseVehicles();
             for (MSLane::VehCont::const_iterator it_veh = vehicles.begin(); it_veh != vehicles.end(); ++it_veh) {
@@ -335,13 +339,16 @@ MSLink::getLeaderInfo(SUMOReal dist) const {
                 // XXX apply viaLane/foeLane specific distance offset 
                 // to account for the fact that the crossing point has different distances from the lane ends
                 result.push_back(std::make_pair(leader,
+                            contLane ? -1 :
                             dist - ((*it_lane)->getLength() - leader->getPositionOnLane()) - leader->getVehicleType().getLength()));
 
             }
             // XXX partial occupates should be ignored if they do not extend past the crossing point
             MSVehicle* leader = (*it_lane)->getPartialOccupator();
             if (leader != 0) {
-                result.push_back(std::make_pair(leader, dist - ((*it_lane)->getLength() - (*it_lane)->getPartialOccupatorEnd())));
+                result.push_back(std::make_pair(leader, 
+                            contLane ? -1 :
+                            dist - ((*it_lane)->getLength() - (*it_lane)->getPartialOccupatorEnd())));
             }
         }
     }

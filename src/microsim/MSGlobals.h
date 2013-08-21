@@ -8,7 +8,7 @@
 ///
 // Some static variables for faster access
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -78,10 +78,10 @@ public:
     /** information Duration of a lane change maneuver */
     static SUMOTime gLaneChangeDuration;
 
-#ifdef HAVE_INTERNAL
     /// Information whether a state has been loaded
     static bool gStateLoaded;
 
+#ifdef HAVE_INTERNAL
     /** Information whether mesosim shall be used */
     static bool gUseMesoSim;
 

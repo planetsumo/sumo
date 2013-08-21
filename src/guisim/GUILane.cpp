@@ -8,7 +8,7 @@
 ///
 // Representation of a lane in the micro simulation (gui-version)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -417,8 +417,14 @@ GUILane::drawLane2LaneConnections() const {
             case LINKSTATE_MINOR:
                 glColor3d(.2, .2, .2);
                 break;
+            case LINKSTATE_STOP:
+                glColor3d(.4, .2, .2);
+                break;
             case LINKSTATE_EQUAL:
                 glColor3d(.5, .5, .5);
+                break;
+            case LINKSTATE_ALLWAY_STOP:
+                glColor3d(.2, .2, .4);
                 break;
             case LINKSTATE_DEADEND:
                 glColor3d(0, 0, 0);
@@ -781,6 +787,9 @@ GUILane::getColorValue(size_t activeScheme) const {
                 ews.retrieveExistingTravelTime(myEdge, 0, 0, value);
                 return 100 * myLength / value / getSpeedLimit();
             }
+        }
+        case 16: {
+            return 1 / myLengthGeometryFactor;
         }
     }
     return 0;

@@ -10,7 +10,7 @@
 ///
 // Helper methods for parsing vehicle attributes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -81,7 +81,12 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
     }
     SUMOVehicleParameter* ret = new SUMOVehicleParameter();
     ret->id = id;
-    parseCommonAttributes(attrs, ret, "flow");
+    try {
+        parseCommonAttributes(attrs, ret, "flow");
+    } catch (ProcessError&) {
+        delete ret;
+        throw;
+    }
 
     // parse repetition information
     if (attrs.hasAttribute(SUMO_ATTR_PERIOD)) {

@@ -5,7 +5,7 @@
 ///
 // Realises dumping Emission Data
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -52,33 +52,28 @@
 void
 MSEmissionExport::write(OutputDevice& of, SUMOTime timestep) {
 
-    of.openTag("timestep") << " time=\"" << time2string(timestep) << "\">\n";
+    of.openTag("timestep").writeAttr("time", time2string(timestep));
 
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
     MSVehicleControl::constVehIt it = vc.loadedVehBegin();
     MSVehicleControl::constVehIt end = vc.loadedVehEnd();
-
     for (; it != end; ++it) {
         const MSVehicle* veh = static_cast<const MSVehicle*>((*it).second);
-
-        if (veh->isOnRoad()) {
+        if (!veh->isOnRoad()) {
+            continue;
+        }
 
             std::string fclass = veh->getVehicleType().getID();
             fclass = fclass.substr(0, fclass.find_first_of("@"));
 
             Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
-            of.openTag("vehicle") << " id=\"" << veh->getID() << "\" eclass=\"" <<  veh->getVehicleType().getEmissionClass() << "\" co2=\"" << veh->getCO2Emissions()
-                                  << "\" co=\"" <<  veh->getCOEmissions() << "\" hc=\"" <<  veh->getHCEmissions()
-                                  << "\" nox=\"" <<  veh->getNOxEmissions() << "\" pmx=\"" <<  veh->getPMxEmissions()
-                                  << "\" noise=\"" <<  veh->getHarmonoise_NoiseEmissions() << "\" route=\"" << veh->getRoute().getID()
-                                  << "\" type=\"" <<  fclass << "\" waiting=\"" <<  veh->getWaitingSeconds()
-                                  << "\" lane=\"" <<  veh->getLane()->getID() << "\" pos=\""
-                                  << veh->getPositionOnLane() << "\" speed=\"" << veh->getSpeed() * 3.6
-                                  << "\" angle=\"" << veh->getAngle() << "\" x=\"" << pos.x() << "\" y=\"" << pos.y() << "\"";
+            of.openTag("vehicle").writeAttr("id", veh->getID()).writeAttr("eclass", veh->getVehicleType().getEmissionClass()).writeAttr("co2", veh->getCO2Emissions());
+            of.writeAttr("co", veh->getCOEmissions()).writeAttr("hc", veh->getHCEmissions()).writeAttr("nox", veh->getNOxEmissions());
+            of.writeAttr("pmx", veh->getPMxEmissions()).writeAttr("fuel", veh->getFuelConsumption()).writeAttr("noise", veh->getHarmonoise_NoiseEmissions());
+            of.writeAttr("route", veh->getRoute().getID()).writeAttr("type", fclass).writeAttr("waiting", veh->getWaitingSeconds());
+            of.writeAttr("lane", veh->getLane()->getID()).writeAttr("pos", veh->getPositionOnLane()).writeAttr("speed", veh->getSpeed() * 3.6);
+            of.writeAttr("angle", veh->getAngle()).writeAttr("x", pos.x()).writeAttr("y", pos.y());
             of.closeTag();
-
-        }
     }
-
     of.closeTag();
 }

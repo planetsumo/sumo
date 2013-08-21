@@ -14,7 +14,7 @@
 ///
 // Representation of a vehicle in the micro simulation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -53,6 +53,7 @@
 // ===========================================================================
 // class declarations
 // ===========================================================================
+class SUMOSAXAttributes;
 class MSMoveReminder;
 class MSLaneChanger;
 class MSVehicleTransfer;
@@ -924,6 +925,17 @@ public:
 
 #endif
 
+    /// @name state io
+    //@{
+
+    /// Saves the states of a vehicle
+    void saveState(OutputDevice& out);
+
+    /** @brief Loads the state of this vehicle from the given description
+     */
+    void loadState(const SUMOSAXAttributes& attrs, const SUMOTime offset);
+    //@}
+
 protected:
 
     SUMOReal getSpaceTillLastStanding(const MSLane* l, bool& foundStopped) const;
@@ -1081,6 +1093,11 @@ protected:
                        const SUMOReal seen, DriveProcessItem* const lastLink,
                        const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass) const;
 
+#ifdef HAVE_INTERNAL_LANES
+    /// @brief ids of vehicles being followed across a link (for resolving priority)
+    mutable std::set<std::string> myLinkLeaders;
+#endif
+
 private:
     /* @brief The vehicle's knowledge about edge efforts/travel times; @see MSEdgeWeightsStorage
      * @note member is initialized on first access */
@@ -1095,8 +1112,6 @@ private:
 #endif
 
 #ifdef HAVE_INTERNAL_LANES
-    /// @brief ids of vehicles being followed across a link (for resolving priority)
-    mutable std::set<std::string> myLinkLeaders;
     /// @brief map from the links to link leader ids
     mutable std::map<const MSLink*, std::string> myLeaderForLink;
 #endif

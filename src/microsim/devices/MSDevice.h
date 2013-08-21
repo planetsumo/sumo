@@ -7,7 +7,7 @@
 ///
 // Abstract in-vehicle device
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -63,6 +63,20 @@ class SUMOVehicle;
  *  an empty (nothing doing) implementation of these.
  */
 class MSDevice : public MSMoveReminder, public Named {
+public:
+    /** @brief Inserts options for building devices
+     */
+    static void insertOptions();
+
+
+    /** @brief Build devices for the given vehicle, if needed
+     *
+     * @param[in] v The vehicle for which a device may be built
+     * @param[in, filled] into The vector to store the built device in
+     */
+    static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
+
+
 public:
     /** @brief Constructor
      *

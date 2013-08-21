@@ -8,7 +8,7 @@
 ///
 // The router's network representation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -245,11 +245,9 @@ RONet::addPerson(const SUMOTime depart, const std::string desc) {
 bool
 RONet::computeRoute(OptionsCont& options, SUMOAbstractRouter<ROEdge, ROVehicle>& router,
                     const ROVehicle* const veh) {
-    MsgHandler* mh = MsgHandler::getErrorInstance();
+    MsgHandler* mh = (OptionsCont::getOptions().getBool("ignore-errors") ? 
+            MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance());
     std::string noRouteMsg = "The vehicle '" + veh->getID() + "' has no valid route.";
-    if (options.getBool("ignore-errors")) {
-        mh = MsgHandler::getWarningInstance();
-    }
     RORouteDef* const routeDef = veh->getRouteDefinition();
     // check if the route definition is valid
     if (routeDef == 0) {
@@ -308,6 +306,7 @@ RONet::checkFlows(SUMOTime time) {
             RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
             ROVehicle* veh = new ROVehicle(*newPars, route, type);
             addVehicle(newPars->id, veh);
+            delete newPars;
         }
         if (pars->repetitionsDone == pars->repetitionNumber) {
             toRemove.push_back(i->first);

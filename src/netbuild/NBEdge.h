@@ -8,7 +8,7 @@
 ///
 // The representation of a single edge during network building
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -429,12 +429,17 @@ public:
     }
 
 
-    /** @brief Returns the width of lanes of this edge
+    /** @brief Returns the default width of lanes of this edge
      * @return The width of lanes of this edge
      */
     SUMOReal getLaneWidth() const {
         return myLaneWidth;
     }
+
+    /** @brief Returns the width of the lane of this edge
+     * @return The width of the lane of this edge
+     */
+    SUMOReal getLaneWidth(int lane) const;
 
 
     /** @brief Returns the street name of this edge
@@ -455,6 +460,11 @@ public:
     SUMOReal getOffset() const {
         return myOffset;
     }
+
+    /** @brief Returns the offset to the destination node a the specified lane
+     * @return The offset to the destination node
+     */
+    SUMOReal getOffset(int lane) const;
 
 
     /** @brief Returns the type name
@@ -574,6 +584,14 @@ public:
      * @param[in] minDist The minimum distance between two position to keep the second
      */
     void reduceGeometry(const SUMOReal minDist);
+
+
+    /** @brief Check the angles of successive geometry segments
+     * @param[in] maxAngle The maximum angle allowed
+     * @param[in] minRadius The minimum turning radius allowed at the start and end
+     * @param[in] fix Whether to prune geometry points to avoid sharp turns at start and end
+     */
+    void checkGeometry(const SUMOReal maxAngle, const SUMOReal minRadius, bool fix);
     //@}
 
 
@@ -954,9 +972,6 @@ public:
 
     /// @brief set lane specific width (negative lane implies set for all lanes)
     void setLaneWidth(int lane, SUMOReal width);
-
-    /// @brief
-    SUMOReal getLaneWidth(int lane) const;
 
     /// @brief set lane specific end-offset (negative lane implies set for all lanes)
     void setOffset(int lane, SUMOReal offset);

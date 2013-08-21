@@ -9,7 +9,7 @@
 ///
 // Parser for routes during their loading
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -186,6 +186,9 @@ SUMORouteHandler::myEndElement(int element) {
             myBeginDefault = string2time(OptionsCont::getOptions().getString("begin"));
             myEndDefault = string2time(OptionsCont::getOptions().getString("end"));
             break;
+        case SUMO_TAG_TRIP:
+            delete myVehicleParameter;
+            myVehicleParameter = 0;
         default:
             break;
     }

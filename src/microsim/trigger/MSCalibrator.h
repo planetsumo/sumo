@@ -7,7 +7,7 @@
 ///
 // Calibrates the flow on an edge by removing an inserting vehicles
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2011 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -118,8 +118,8 @@ protected:
         }
 
     private:
-        MSCalibrator* myParent;
         int myLaneIndex;
+        MSCalibrator* myParent;
     };
     friend class VehicleRemover;
 
@@ -165,8 +165,10 @@ private:
     /// @brief aggregate lane values
     void updateMeanData();
 
-    void scheduleRemoval(MSVehicle* veh) {
-        myToRemove.push_back(veh);
+    /** @brief try to schedule the givne vehicle for removal. return true if it
+     * isn't already scheduled */
+    bool scheduleRemoval(MSVehicle* veh) {
+        return myToRemove.insert(veh).second;
     };
 
 private:
@@ -185,7 +187,7 @@ private:
 
     std::vector<VehicleRemover*> myVehicleRemovers;
 
-    std::vector<MSVehicle*> myToRemove;
+    std::set<MSVehicle*> myToRemove;
 
     /// @brief The device for xml statistics
     OutputDevice* myOutput;

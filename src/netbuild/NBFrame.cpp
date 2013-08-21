@@ -8,7 +8,7 @@
 ///
 // Sets and checks options for netbuild
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -107,6 +107,15 @@ NBFrame::fillOptions(bool forNetgen) {
 
         oc.doRegister("geometry.min-dist", new Option_Float());
         oc.addDescription("geometry.min-dist", "Processing", "reduces too similar geometry points");
+
+        oc.doRegister("geometry.max-angle", new Option_Float(99));
+        oc.addDescription("geometry.max-angle", "Processing", "Warn about edge geometries with an angle above DEGREES in successive segments");
+
+        oc.doRegister("geometry.min-radius", new Option_Float(9));
+        oc.addDescription("geometry.min-radius", "Processing", "Warn about edge geometries with a turning radius less than METERS at the start or end");
+
+        oc.doRegister("geometry.min-radius.fix", new Option_Bool(false));
+        oc.addDescription("geometry.min-radius.fix", "Processing", "Straighten edge geometries to avoid turning radii less than geometry.min-radius");
     }
 
     oc.doRegister("offset.disable-normalization", new Option_Bool(false));

@@ -8,7 +8,7 @@
 ///
 // Importer for networks stored in SUMO format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -180,9 +180,12 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
                 if (toEdge == 0) { // removed by explicit list, vclass, ...
                     continue;
                 }
+                if (nbe->hasConnectionTo(toEdge, c.toLaneIdx)) {
+                    WRITE_WARNING("Target lane '" + toEdge->getLaneID(c.toLaneIdx) + "' has multiple connections from '" + nbe->getID() + "'.");
+                }
                 nbe->addLane2LaneConnection(
                     fromLaneIndex, toEdge, c.toLaneIdx, NBEdge::L2L_VALIDATED,
-                    false, c.mayDefinitelyPass);
+                    true, c.mayDefinitelyPass);
 
                 // maybe we have a tls-controlled connection
                 if (c.tlID != "") {
@@ -210,6 +213,12 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
             nbe->setSpeed(fromLaneIndex, lane->maxSpeed);
         }
         nbe->declareConnectionsAsLoaded();
+        if (!nbe->hasLaneSpecificWidth() && nbe->getLanes()[0].width != NBEdge::UNSPECIFIED_WIDTH) {
+            nbe->setLaneWidth(-1, nbe->getLaneWidth(0));
+        }
+        if (!nbe->hasLaneSpecificOffset() && nbe->getOffset(0) != NBEdge::UNSPECIFIED_OFFSET) {
+            nbe->setOffset(-1, nbe->getOffset(0));
+        }
     }
     // insert loaded prohibitions
     for (std::vector<Prohibition>::const_iterator it = myProhibitions.begin(); it != myProhibitions.end(); it++) {

@@ -9,7 +9,7 @@
 ///
 // The GUI-version of a polygon
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -131,9 +131,9 @@ void APIENTRY combineCallback(GLdouble coords[3],
 }
 
 
-SUMOReal POLY_TEX_DIM = 256;
-GLfloat xPlane[] = {1.0 / POLY_TEX_DIM, 0.0, 0.0, 0.0};
-GLfloat yPlane[] = {0.0, 1.0 / POLY_TEX_DIM, 0.0, 0.0};
+GLfloat INV_POLY_TEX_DIM = 1.0 / 256.0;
+GLfloat xPlane[] = {INV_POLY_TEX_DIM, 0.0, 0.0, 0.0};
+GLfloat yPlane[] = {0.0, INV_POLY_TEX_DIM, 0.0, 0.0};
 
 void
 GUIPolygon::drawGL(const GUIVisualizationSettings& s) const {

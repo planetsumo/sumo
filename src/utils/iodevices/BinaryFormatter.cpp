@@ -6,7 +6,7 @@
 ///
 // Static storage of an output device and its base (abstract) implementation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -113,14 +113,6 @@ BinaryFormatter::closeTag(std::ostream& into) {
         return true;
     }
     return false;
-}
-
-
-void
-BinaryFormatter::writeAttr(std::ostream& into, const std::string& attr, const std::string& val) {
-    if (SUMOXMLDefinitions::Attrs.hasString(attr)) {
-        writeAttr(into, (const SumoXMLAttr)(SUMOXMLDefinitions::Attrs.get(attr)), val);
-    }
 }
 
 
@@ -239,7 +231,7 @@ void BinaryFormatter::writeAttr(std::ostream& into, const SumoXMLAttr attr, cons
 
 
 template<>
-void BinaryFormatter::writeAttr(std::ostream& into, const SumoXMLAttr attr, const std::vector<int>& val) {
+void BinaryFormatter::writeAttr(std::ostream& into, const SumoXMLAttr /* attr */, const std::vector<int>& val) {
     FileHelpers::writeByte(into, BF_LIST);
     FileHelpers::writeInt(into, (int)val.size());
     for (std::vector<int>::const_iterator it = val.begin(); it != val.end(); ++it) {

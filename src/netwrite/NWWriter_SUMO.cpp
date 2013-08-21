@@ -8,7 +8,7 @@
 ///
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -257,8 +257,8 @@ NWWriter_SUMO::writeEdge(OutputDevice& into, const NBEdge& e, bool noNames, bool
     if (OptionsCont::getOptions().getBool("no-internal-links") && !e.hasLoadedLength()) {
         // use length to junction center even if a modified geometry was given
         PositionVector geom = e.getGeometry();
-        geom.push_back_noDoublePos(e.getToNode()->getPosition());
-        geom.push_front_noDoublePos(e.getFromNode()->getPosition());
+        geom.push_back_noDoublePos(e.getToNode()->getCenter());
+        geom.push_front_noDoublePos(e.getFromNode()->getCenter());
         length = geom.length();
     }
     if (length <= 0) {

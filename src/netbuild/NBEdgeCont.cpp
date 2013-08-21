@@ -9,7 +9,7 @@
 ///
 // Storage for edges, including some functionality operating on multiple edges
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -512,6 +512,16 @@ void
 NBEdgeCont::reduceGeometries(const SUMOReal minDist) {
     for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
         (*i).second->reduceGeometry(minDist);
+    }
+}
+
+
+void
+NBEdgeCont::checkGeometries(const SUMOReal maxAngle, const SUMOReal minRadius, bool fix) {
+    if (maxAngle > 0 || minRadius > 0) {
+        for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
+            (*i).second->checkGeometry(maxAngle, minRadius, fix);
+        }
     }
 }
 

@@ -8,7 +8,7 @@
 ///
 // Static storage of an output device and its base (abstract) implementation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -237,12 +237,6 @@ OutputDevice::inform(const std::string& msg, const char progress) {
     postWriteHook();
 }
 
-
-OutputDevice&
-OutputDevice::writeAttr(std::string attr, std::string val) {
-    myFormatter->writeAttr(getOStream(), attr, val);
-    return *this;
-}
 
 /****************************************************************************/
 

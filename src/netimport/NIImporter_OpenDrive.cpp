@@ -9,7 +9,7 @@
 ///
 // Importer for networks stored in openDrive format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -311,7 +311,6 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     // build edges
     for (std::map<std::string, OpenDriveEdge*>::iterator i = outerEdges.begin(); i != outerEdges.end(); ++i) {
         OpenDriveEdge* e = (*i).second;
-        LaneSpreadFunction lsf = LANESPREAD_CENTER;
         unsigned int noLanesRight = e->getMaxLaneNumber(OPENDRIVE_TAG_RIGHT);
         unsigned int noLanesLeft = e->getMaxLaneNumber(OPENDRIVE_TAG_LEFT);
         if (noLanesRight == 0 && noLanesLeft == 0) {
@@ -570,7 +569,6 @@ NIImporter_OpenDrive::buildConnectionsToOuter(const Connection& c, const std::ma
                 into.push_back(cn);
             }
         } else {
-            unsigned int laneNo = c.toLane < 0 ? dest->laneSections[0].getLaneNumber(OPENDRIVE_TAG_RIGHT) : dest->laneSections[dest->laneSections.size() - 1].getLaneNumber(OPENDRIVE_TAG_LEFT);
             if ((*i).fromLane == c.toLane) {
                 Connection cn = (*i);
                 cn.fromEdge = c.fromEdge;
@@ -792,8 +790,6 @@ NIImporter_OpenDrive::geomFromArc(const OpenDriveEdge& e, const OpenDriveGeometr
     SUMOReal endY = g.y;
     SUMOReal startX = g.x;
     SUMOReal startY = g.y;
-    SUMOReal hdgS = g.hdg;
-    SUMOReal hdgE;
     SUMOReal geo_posS = g.s;
     SUMOReal geo_posE = g.s;
     bool end = false;
@@ -808,18 +804,12 @@ NIImporter_OpenDrive::geomFromArc(const OpenDriveEdge& e, const OpenDriveGeometr
         calcPointOnCurve(&endX, &endY, centerX, centerY, radius, geo_posE - geo_posS);
 
         dist += (geo_posE - geo_posS);
-        if (curvature > 0.0) {
-            hdgE = g.hdg + dist / fabs(radius);
-        } else {
-            hdgE = g.hdg - dist / fabs(radius);
-        }
         //
         ret.push_back(Position(startX, startY));
         //
         startX = endX;
         startY = endY;
         geo_posS = geo_posE;
-        hdgS = hdgE;
 
         if (geo_posE  - (g.s + g.length) < 0.001 && geo_posE  - (g.s + g.length) > -0.001) {
             end = true;

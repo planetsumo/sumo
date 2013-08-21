@@ -8,7 +8,7 @@
 ///
 // Importer for networks stored in Elmar's format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -312,7 +312,7 @@ NIImporter_DlrNavteq::EdgesHandler::report(const std::string& result) {
     try {
         // EXTENDED_NUMBER_OF_LANES is prefered but may not be defined
         numLanes = TplConvert::_2int(getColumn(st, EXTENDED_NUMBER_OF_LANES, "-1").c_str());
-        if (numLanes = -1) {  
+        if (numLanes == -1) {  
             numLanes = NINavTeqHelper::getLaneNumber(id, getColumn(st, NUMBER_OF_LANES), speed);
         }
     } catch (NumberFormatException&) {

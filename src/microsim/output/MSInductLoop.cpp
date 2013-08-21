@@ -11,7 +11,7 @@
 ///
 // An unextended detector measuring at a fixed position on a fixed lane.
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -122,7 +122,7 @@ MSInductLoop::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/, MSMoveReminder
 
 
 bool
-MSInductLoop::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification) {
+MSInductLoop::notifyEnter(SUMOVehicle& /* veh */, MSMoveReminder::Notification) {
     return true;
 }
 

@@ -8,7 +8,7 @@
 ///
 // Encapsulated SAX-Attributes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -243,7 +243,7 @@ std::string SUMOSAXAttributes::getInternal(const int attr) const {
 template<> const RGBColor invalid_return<RGBColor>::value = RGBColor();
 template<> const std::string invalid_return<RGBColor>::type = "color";
 template<>
-RGBColor SUMOSAXAttributes::getInternal(const int attr) const {
+RGBColor SUMOSAXAttributes::getInternal(const int /* attr */) const {
     return getColor();
 }
 

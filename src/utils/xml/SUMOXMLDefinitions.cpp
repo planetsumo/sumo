@@ -11,7 +11,7 @@
 ///
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -127,6 +127,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "background",       SUMO_TAG_VIEWSETTINGS_BACKGROUND },
     { "edges",            SUMO_TAG_VIEWSETTINGS_EDGES },
     { "vehicles",         SUMO_TAG_VIEWSETTINGS_VEHICLES },
+    { "persons",          SUMO_TAG_VIEWSETTINGS_PERSONS },
     { "junctions",        SUMO_TAG_VIEWSETTINGS_JUNCTIONS },
     { "additionals",      SUMO_TAG_VIEWSETTINGS_ADDITIONALS },
     { "pois",             SUMO_TAG_VIEWSETTINGS_POIS },

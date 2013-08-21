@@ -10,7 +10,7 @@
 ///
 // Methods for the representation of a single edge
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -496,7 +496,7 @@ NBEdge::splitGeometry(NBEdgeCont& ec, NBNodeCont& nc) {
     NBEdge* currentEdge = this;
     for (int i = 1; i < (int) myGeom.size() - 1; i++) {
         // build the node first
-        if (i != static_cast<int>(myGeom.size() - 2)) {
+        if (i != (int)myGeom.size() - 2) {
             std::string nodename = myID + "_in_between#" + toString(i);
             if (!nc.insert(nodename, myGeom[i])) {
                 throw ProcessError("Error on adding in-between node '" + nodename + "'.");
@@ -531,6 +531,51 @@ NBEdge::splitGeometry(NBEdgeCont& ec, NBNodeCont& nc) {
 void
 NBEdge::reduceGeometry(const SUMOReal minDist) {
     myGeom.removeDoublePoints(minDist, true);
+}
+
+
+void
+NBEdge::checkGeometry(const SUMOReal maxAngle, const SUMOReal minRadius, bool fix) {
+    if (myGeom.size() < 3) {
+        return;
+    }
+    //std::cout << "checking geometry of " << getID() << " geometry = " << toString(myGeom) << "\n";
+    std::vector<SUMOReal> angles; // absolute segment angles
+    //std::cout << "  absolute angles:";
+    for (int i = 0; i < (int)myGeom.size() - 1; ++i) {
+        angles.push_back(myGeom.lineAt(i).atan2DegreeAngle());
+        //std::cout << " " << angles.back();
+    }
+    //std::cout << "\n  relative angles: ";
+    for (int i = 0; i < (int)angles.size() - 1; ++i) {
+        const SUMOReal relAngle = fabs(NBHelpers::relAngle(angles[i], angles[i + 1]));
+        //std::cout << relAngle << " ";
+        if (maxAngle > 0 && relAngle > maxAngle) {
+            WRITE_WARNING("Found angle of " + toString(relAngle) + " degrees at edge " + getID() + ", segment " + toString(i));
+        }
+        if (relAngle < 1) {
+            continue;
+        }
+        if (i == 0 || i == (int)angles.size() - 2) {
+            const bool start = i == 0;
+            const Line l = (start ? myGeom.getBegLine() : myGeom.getEndLine());
+            const SUMOReal r = tan(DEG2RAD(90 - 0.5 * relAngle)) * l.length2D();
+            //std::cout << (start ? "  start" : "  end") << " length=" << l.length2D() << " radius=" << r << "  ";
+            if (minRadius > 0 && r < minRadius) {
+                if (fix) {
+                    WRITE_MESSAGE("Removing sharp turn with radius " + toString(r) + " at the " + 
+                            (start ? "start" : "end") + " of edge " + getID());
+                    myGeom.eraseAt(start ? 1 : i + 1);
+                    checkGeometry(maxAngle, minRadius, fix);
+                    return;
+                } else {
+                    WRITE_WARNING("Found sharp turn with radius " + toString(r) + " at the " + 
+                            (start ? "start" : "end") + " of edge " + getID());
+                }
+            }
+        }
+    }
+    //std::cout << "\n";
 }
 
 
@@ -1262,7 +1307,7 @@ NBEdge::hasLaneSpecificPermissions() const {
 bool
 NBEdge::hasLaneSpecificWidth() const {
     for (std::vector<Lane>::const_iterator i = myLanes.begin(); i != myLanes.end(); ++i) {
-        if (i->width != getLaneWidth()) {
+        if (i->width != myLanes.begin()->width) {
             return true;
         }
     }
@@ -1284,7 +1329,7 @@ NBEdge::hasLaneSpecificSpeed() const {
 bool
 NBEdge::hasLaneSpecificOffset() const {
     for (std::vector<Lane>::const_iterator i = myLanes.begin(); i != myLanes.end(); ++i) {
-        if (i->offset != getOffset()) {
+        if (i->offset != myLanes.begin()->offset) {
             return true;
         }
     }
@@ -1955,6 +2000,13 @@ NBEdge::getLaneWidth(int lane) const {
            ? myLanes[lane].width
            : getLaneWidth() != UNSPECIFIED_WIDTH ? getLaneWidth() : SUMO_const_laneWidth;
 }
+
+
+SUMOReal
+NBEdge::getOffset(int lane) const {
+    return myLanes[lane].offset != UNSPECIFIED_OFFSET ? myLanes[lane].offset : getOffset();
+}
+
 
 void
 NBEdge::setOffset(int lane, SUMOReal offset) {

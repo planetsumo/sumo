@@ -11,7 +11,7 @@
 ///
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -169,6 +169,7 @@ enum SumoXMLTag {
     SUMO_TAG_VIEWSETTINGS_BACKGROUND,
     SUMO_TAG_VIEWSETTINGS_EDGES,
     SUMO_TAG_VIEWSETTINGS_VEHICLES,
+    SUMO_TAG_VIEWSETTINGS_PERSONS,
     SUMO_TAG_VIEWSETTINGS_JUNCTIONS,
     SUMO_TAG_VIEWSETTINGS_ADDITIONALS,
     SUMO_TAG_VIEWSETTINGS_POIS,

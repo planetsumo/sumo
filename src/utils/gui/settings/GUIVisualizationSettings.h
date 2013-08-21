@@ -8,7 +8,7 @@
 ///
 // Stores the information about how to visualize structures
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -153,6 +153,22 @@ public:
     bool drawMinGap;
     // Setting bundles for optional drawing vehicle names
     GUIVisualizationTextSettings vehicleName;
+    //@}
+
+
+    /// @name person visualization settings
+    //@{
+
+    /// @brief The person colorer
+    GUIColorer personColorer;
+    /// @brief The quality of person drawing
+    int personQuality;
+    /// @brief The minimum size of persons to let them be drawn
+    float minPersonSize;
+    /// @brief The person exaggeration (upscale)
+    float personExaggeration;
+    // Setting bundles for optional drawing person names
+    GUIVisualizationTextSettings personName;
     //@}
 
 

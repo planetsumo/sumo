@@ -11,7 +11,7 @@
 ///
 // Instance responsible for building networks
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -131,34 +131,7 @@ NBNetBuilder::compute(OptionsCont& oc,
             PROGRESS_DONE_MESSAGE();
         }
     }
-    //
-    if (removeUnwishedNodes) {
-        unsigned int no = 0;
-        const bool removeGeometryNodes = oc.exists("geometry.remove") && oc.getBool("geometry.remove");
-        PROGRESS_BEGIN_MESSAGE("Removing empty nodes" + std::string(removeGeometryNodes ? " and geometry nodes" : ""));
-        no = myNodeCont.removeUnwishedNodes(myDistrictCont, myEdgeCont, myJoinedEdges, myTLLCont, removeGeometryNodes);
-        PROGRESS_DONE_MESSAGE();
-        WRITE_MESSAGE("   " + toString(no) + " nodes removed.");
-    }
-    // MOVE TO ORIGIN
-    if (!oc.getBool("offset.disable-normalization") && oc.isDefault("offset.x") && oc.isDefault("offset.y")) {
-        moveToOrigin(geoConvHelper);
-    }
-    geoConvHelper.computeFinal(); // information needed for location element fixed at this point
-
-    if (oc.exists("geometry.min-dist") && oc.isSet("geometry.min-dist")) {
-        PROGRESS_BEGIN_MESSAGE("Reducing geometries");
-        myEdgeCont.reduceGeometries(oc.getFloat("geometry.min-dist"));
-        PROGRESS_DONE_MESSAGE();
-    }
-    // @note: removing geometry can create similar edges so joinSimilarEdges  must come afterwards
-    // @note: likewise splitting can destroy similarities so joinSimilarEdges must come before
-    PROGRESS_BEGIN_MESSAGE("Joining similar edges");
-    myJoinedEdges.init(myEdgeCont);
-    myNodeCont.joinSimilarEdges(myDistrictCont, myEdgeCont, myTLLCont);
-    PROGRESS_DONE_MESSAGE();
-    //
-    // join junctions
+    // join junctions (may create new "geometry"-nodes so it needs to come before removing these
     if (oc.exists("junctions.join-exclude") && oc.isSet("junctions.join-exclude")) {
         myNodeCont.addJoinExclusion(oc.getStringVector("junctions.join-exclude"));
     }
@@ -187,12 +160,40 @@ NBNetBuilder::compute(OptionsCont& oc,
             myRoundabouts.clear();
         }
         numJoined += myNodeCont.joinJunctions(oc.getFloat("junctions.join-dist"), myDistrictCont, myEdgeCont, myTLLCont);
+        // reset geometry to avoid influencing subsequent steps (ramps.guess)
+        myEdgeCont.computeLaneShapes();
         PROGRESS_DONE_MESSAGE();
     }
     if (numJoined > 0) {
         // bit of a misnomer since we're already done
         WRITE_MESSAGE(" Joined " + toString(numJoined) + " junction cluster(s).");
     }
+    //
+    if (removeUnwishedNodes) {
+        unsigned int no = 0;
+        const bool removeGeometryNodes = oc.exists("geometry.remove") && oc.getBool("geometry.remove");
+        PROGRESS_BEGIN_MESSAGE("Removing empty nodes" + std::string(removeGeometryNodes ? " and geometry nodes" : ""));
+        no = myNodeCont.removeUnwishedNodes(myDistrictCont, myEdgeCont, myJoinedEdges, myTLLCont, removeGeometryNodes);
+        PROGRESS_DONE_MESSAGE();
+        WRITE_MESSAGE("   " + toString(no) + " nodes removed.");
+    }
+    // MOVE TO ORIGIN
+    if (!oc.getBool("offset.disable-normalization") && oc.isDefault("offset.x") && oc.isDefault("offset.y")) {
+        moveToOrigin(geoConvHelper);
+    }
+    geoConvHelper.computeFinal(); // information needed for location element fixed at this point
+
+    if (oc.exists("geometry.min-dist") && oc.isSet("geometry.min-dist")) {
+        PROGRESS_BEGIN_MESSAGE("Reducing geometries");
+        myEdgeCont.reduceGeometries(oc.getFloat("geometry.min-dist"));
+        PROGRESS_DONE_MESSAGE();
+    }
+    // @note: removing geometry can create similar edges so joinSimilarEdges  must come afterwards
+    // @note: likewise splitting can destroy similarities so joinSimilarEdges must come before
+    PROGRESS_BEGIN_MESSAGE("Joining similar edges");
+    myJoinedEdges.init(myEdgeCont);
+    myNodeCont.joinSimilarEdges(myDistrictCont, myEdgeCont, myTLLCont);
+    PROGRESS_DONE_MESSAGE();
     //
     if (oc.exists("geometry.split") && oc.getBool("geometry.split")) {
         PROGRESS_BEGIN_MESSAGE("Splitting geometry edges");
@@ -209,7 +210,14 @@ NBNetBuilder::compute(OptionsCont& oc,
 
     // check whether any not previously setable connections may be set now
     myEdgeCont.recheckPostProcessConnections();
-
+    //
+    if (oc.exists("geometry.max-angle")) {
+        myEdgeCont.checkGeometries(
+                oc.getFloat("geometry.max-angle"), 
+                oc.getFloat("geometry.min-radius"),
+                oc.getBool("geometry.min-radius.fix"));
+    }
+    //
     myEdgeCont.computeLaneShapes();
 
     // APPLY SPEED MODIFICATIONS

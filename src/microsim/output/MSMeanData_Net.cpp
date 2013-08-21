@@ -7,7 +7,7 @@
 ///
 // Network state mean data collector for edges/lanes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -63,8 +63,9 @@ MSMeanData_Net::MSLaneMeanDataValues::MSLaneMeanDataValues(MSLane* const lane,
         const MSMeanData_Net* parent)
     : MSMeanData::MeanDataValues(lane, length, doAdd, vTypes),
       nVehDeparted(0), nVehArrived(0), nVehEntered(0), nVehLeft(0),
-      nVehVaporized(0), nVehLaneChangeFrom(0), nVehLaneChangeTo(0),
-      waitSeconds(0), vehLengthSum(0), myParent(parent) {}
+      nVehVaporized(0), waitSeconds(0),
+      nVehLaneChangeFrom(0), nVehLaneChangeTo(0),
+      vehLengthSum(0), myParent(parent) {}
 
 
 MSMeanData_Net::MSLaneMeanDataValues::~MSLaneMeanDataValues() {

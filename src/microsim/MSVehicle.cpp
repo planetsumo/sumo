@@ -16,7 +16,7 @@
 ///
 // Representation of a vehicle in the micro simulation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -55,6 +55,7 @@
 #include <utils/geom/Line.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/iodevices/BinaryInputDevice.h>
+#include <utils/xml/SUMOSAXAttributes.h>
 #include <microsim/MSVehicleControl.h>
 #include <microsim/MSGlobals.h>
 #include "trigger/MSBusStop.h"
@@ -854,6 +855,11 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
                 myLeaderForLink[*link] = leader->getID();
                 myLinkLeaders.insert(leader->getID());
                 adaptToLeader(*it, seen, lastLink, lane, v, vLinkPass);
+                if (view > 0) {
+                    // we are not yet on the junction with this linkLeader.
+                    // at least we can drive up to the junction and stop there
+                    v = MAX2(v, vLinkWait);
+                }
             }
         }
 #endif
@@ -881,11 +887,17 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         // if stopping is possible, arrivalTime can be arbitrarily large. A small value keeps fractional times (impatience) meaningful
         SUMOReal arrivalSpeedBraking = 0;
         SUMOTime arrivalTimeBraking = arrivalTime + TIME2STEPS(30); 
-        if (seen < cfModel.brakeGap(v) && 
-                // mismatch between discrete formula (brakeGap) and continuous formula (estimateSpeedAfterDistance)
-                (2 * seen * -getVehicleType().getCarFollowModel().getMaxDecel() + v * v > 0)) { 
-            arrivalSpeedBraking = estimateSpeedAfterDistance(seen, v, -getVehicleType().getCarFollowModel().getMaxDecel());
-            // due to discrecte/continuous mismatch we have to ensure arrivalTimeBraking >= arrivalTime
+        if (seen < cfModel.brakeGap(v)) {
+            // vehicle cannot come to a complete stop in time
+            // Because we use a continuous formula for computiing the possible slow-down
+            // we need to handle the mismatch with the discrete dynamics
+            if (seen < v) {
+                arrivalSpeedBraking = arrivalSpeed; // no time left for braking after this step
+            } else if (2 * seen * -getVehicleType().getCarFollowModel().getMaxDecel() + v * v >= 0) {
+                arrivalSpeedBraking = estimateSpeedAfterDistance(seen, v, -getVehicleType().getCarFollowModel().getMaxDecel());
+            }
+            // due to discrecte/continuous mismatch we have to ensure that braking actually helps
+            arrivalSpeedBraking = MIN2(arrivalSpeedBraking, arrivalSpeed);
             arrivalTimeBraking = MAX2(arrivalTime, t + TIME2STEPS(seen / ((v + arrivalSpeedBraking) * 0.5)));
         }
         lfLinks.push_back(DriveProcessItem(*link, v, vLinkWait, setRequest,
@@ -2014,6 +2026,34 @@ MSVehicle::getSpeedWithoutTraciInfluence() const {
     return myState.mySpeed;
 }
 
+
+void
+MSVehicle::saveState(OutputDevice& out) {
+    MSBaseVehicle::saveState(out);
+    // here starts the vehicle internal part (see loading)
+    std::vector<int> internals;
+    internals.push_back(myDeparture);
+    internals.push_back((int)distance(myRoute->begin(), myCurrEdge));
+    out.writeAttr(SUMO_ATTR_STATE, toString(internals));
+    out.writeAttr(SUMO_ATTR_POSITION, myState.myPos);
+    out.writeAttr(SUMO_ATTR_SPEED, myState.mySpeed);
+    out.closeTag();
+}
+
+
+void
+MSVehicle::loadState(const SUMOSAXAttributes& attrs, const SUMOTime offset) {
+    unsigned int routeOffset;
+    std::istringstream bis(attrs.getString(SUMO_ATTR_STATE));
+    bis >> myDeparture;
+    bis >> routeOffset;
+    if (hasDeparted()) {
+        myDeparture -= offset;
+        myCurrEdge += routeOffset;
+    }
+    myState.myPos = attrs.getFloat(SUMO_ATTR_POSITION);
+    myState.mySpeed = attrs.getFloat(SUMO_ATTR_SPEED);
+}
 
 #endif
 

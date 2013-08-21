@@ -6,7 +6,7 @@
 ///
 // A device which stands as an implementation example and which outputs movereminder calls
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -127,8 +127,8 @@ MSDevice_Example::~MSDevice_Example() {
 
 
 bool
-MSDevice_Example::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
-                              SUMOReal newPos, SUMOReal newSpeed) {
+MSDevice_Example::notifyMove(SUMOVehicle& veh, SUMOReal /* oldPos */,
+                              SUMOReal /* newPos */, SUMOReal newSpeed) {
     std::cout << "device '" << getID() << "' notifyMove: newSpeed=" << newSpeed << "\n";
     // check whether another device is present on the vehicle:
     MSDevice_Tripinfo* otherDevice = static_cast<MSDevice_Tripinfo*>(veh.getDevice(MSDevice_Tripinfo::getTypeInfo()));

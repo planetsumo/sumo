@@ -9,7 +9,7 @@
 ///
 // A vehicle route
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -109,7 +109,6 @@ public:
 
     const MSEdge* operator[](unsigned index) const;
 
-#ifdef HAVE_INTERNAL
     /// @name State I/O (mesosim only)
     /// @{
 
@@ -119,7 +118,6 @@ public:
      */
     static void dict_saveState(OutputDevice& out);
     /// @}
-#endif
 
     const MSEdgeVector& getEdges() const {
         return myEdges;
