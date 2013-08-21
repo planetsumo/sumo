@@ -35,6 +35,10 @@ tls_state_switch:tls_state_switch.xml
 physstates:physstates.xml
 cfg:config.cfg
 fcd:fcd.xml
+full:full.xml
+vtk:vtk.txt
+queue:queue.xml
+emissions:emissions.xml
 tol_sql:tol_sql.txt
 tol_plain:tol_plain.txt
 tol_la_sql:tol_la_sql.txt
@@ -50,6 +54,8 @@ c2x_saved_info_freq:c2x_saved_info_freq.xml
 c2x_edge_near_info:c2x_edge_near_info.xml
 log:log.txt
 state:state.xml
+state2:state2.xml
+binstate:state.sbx
 calibrator_log:calibrator.log.xml
 links:linkstate.xml
 
@@ -72,11 +78,18 @@ tripinfos:<!--{[->]}-->
 vtypeprobe:<!--{[->]}-->
 vehroutes:<!--{[->]}-->
 fcd:<!--{[->]}-->
+full:<!--{[->]}-->
+queue:<!--{[->]}-->
+emissions:<!--{[->]}-->
 links:<!--{[->]}-->
+vtk:<!--{[->]}-->
 vehroutes_ignore_arrival:<!--{[->]}-->
 vehroutes_ignore_arrival:arrival="[^"]*"{REPLACE arrival="<ignored>"}
 state:<!--{[->]}-->
 state:<snapshot version="[^"]*"{REPLACE <snapshot version="<version>"}
+state2:<!--{[->]}-->
+state2:<snapshot version="[^"]*"{REPLACE <snapshot version="<version>"}
+binstate:dev-SVN-r\d+{REPLACE dev-SVN-r<version>}
 tls_state:<!--{[->]}-->
 tls_switch:<!--{[->]}-->
 tls_state_switch:<!--{[->]}-->
