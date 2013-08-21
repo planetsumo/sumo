@@ -33,7 +33,7 @@
 #include <microsim/devices/MSDevice_Tripinfo.h>
 #include <microsim/devices/MSDevice_Routing.h>
 #include <microsim/devices/MSDevice_Person.h>
-#include <microsim/devices/MSDevice_HBEFA.h>
+#include <microsim/devices/MSDevice_Emissions.h>
 #include <microsim/devices/MSDevice_Example.h>
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -55,7 +55,7 @@
 void
 MSDevice::insertOptions() {
     MSDevice_Routing::insertOptions();
-    MSDevice_HBEFA::insertOptions();
+    MSDevice_Emissions::insertOptions();
     MSDevice_Example::insertOptions();
 }
 
@@ -65,7 +65,7 @@ MSDevice::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into) {
     MSDevice_Vehroutes::buildVehicleDevices(v, into);
     MSDevice_Tripinfo::buildVehicleDevices(v, into);
     MSDevice_Routing::buildVehicleDevices(v, into);
-    MSDevice_HBEFA::buildVehicleDevices(v, into);
+    MSDevice_Emissions::buildVehicleDevices(v, into);
     MSDevice_Example::buildVehicleDevices(v, into);
 }
 
