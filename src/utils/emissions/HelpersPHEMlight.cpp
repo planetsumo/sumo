@@ -68,7 +68,6 @@ SUMOReal
 HelpersPHEMlight::computeHC(SUMOEmissionClass c, double v, double a, double slope) {
 	PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
 	double power = CalcPower(v, a, slope, *currCep, currCep->GetVehicleLoading());
-    a
 	return currCep->GetEmission("HC", power) / SECONDS_PER_HOUR / 1000.;
 } 
 
