@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-@file    getWikiPages.py
+@file    buildHTMLDocs.py
 @author  Daniel Krajzewicz
 @date    2011-10-20
 @version $Id$
@@ -30,57 +30,27 @@ between the <!-- content begins --> / <!-- content ends --> markers. Then,
 the page is saved into HTML_FOLDER/<PAGE_PATH>. All images are copied
 from MIRROR_FOLDER/images to HTML_FOLDER/images.
 
-Copyright (C) 2011 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
 import urllib, os, sys, shutil
+from mirrorWiki import readParsePage, readParseEditPage
 
-def getIndex():
-    f = urllib.urlopen("http://sourceforge.net/apps/mediawiki/sumo/index.php?title=SUMO_User_Documentation&action=edit")
-    c = f.read()
-    b = c.find('name="wpTextbox1"')
-    b = c.find(">", b)+1
-    e = c.find("</textarea>", b)
-    return c[b:e]
-
-def readParsePage(page):
-    f = urllib.urlopen("http://sourceforge.net/apps/mediawiki/sumo/index.php?title=%s" % page)
-    c = f.read()
-    b = c.find("This page was last modified on");
-    e = c.find("<", b)
-    lastMod = c[b:e]
-    b = c.find("globalWrapper")
-    b = c.find('<a name="top"', b)
-    e = c.find("<div class=\"printfooter\">")
-    c = c[b:e]
-    c = c.replace("<h3 id=\"siteSub\">From sumo</h3>", "")
-    b = c.find("<div id=\"jump-to-nav\">")
-    e = c.find("</div>", b)+6
-    c = c[:b] + c[e:]
-    c = c + '</div><hr/><div id="lastmod">' + lastMod + '</div>'
-    return c
-    
 def patchLinks(page, name):
     images = set()
     level = len(name.split("/"))-1
     level = "../" * level
     b = page.find("<a href")
     while b>=0:
-        # images
-        if page[b+9:].startswith("File:") or page[b+9:].startswith("Image:"):
-            images.add(page[b+9:page.find("\"",b+9)])
-            e = page.find(":", b+9)+1
-            page = page[:b] + level + "images/" + page[e:]
         # images/files
-        elif page[b+9:].startswith("/apps/mediawiki/sumo/index.php?title=File:") or page[b+9:].startswith("/apps/mediawiki/sumo/index.php?title=Image:"):
+        if page[b+9:].startswith("/wiki/File:") or page[b+9:].startswith("/wiki/Image:"):
             b2 = b
-            b = page.find("title=", b)+6
+            b = page.find(":", b)+1
             images.add(page[b:page.find("\"",b)])
-            e = page.find(":", b)+1
-            page = page[:b2+9] + level + "images/" + page[e:]
+            page = page[:b2+9] + level + "images/" + page[b:]
         # pages (HTML)
-        elif page[b+9:].startswith("/apps/mediawiki/sumo/index.php"):
-            e = page.find("?", b+9)+7
+        elif page[b+9:].startswith("/wiki/"):
+            e = b+9+6
             e2 = page.find("\"", b+9)
             link = page[e:e2]
             if link.find("action=edit")<0:
@@ -101,7 +71,7 @@ def patchImages(page, name):
     b = page.find("<img ")
     b = page.find("src", b)
     while b>=0:
-        b= b + 5	    
+        b += 5
         e = page.find("\"", b+2)
         add = page[b:e]
         l = add[add.rfind("/"):]
@@ -159,13 +129,14 @@ if len(sys.argv)<2:
 else:
     pages = ["href=?title=" + sys.argv[1] + "\""]
 for p in pages:
-    if(not p.startswith("href")):
+    if not p.startswith("href"):
         continue
-    b = p.find("?title=")
+    b = p.find("/wiki/")
     e = p.find("\"", b)
-    name = p[b+7:e]
+    name = p[b+6:e]
     if name.endswith(".css"):
         print "Skipping css-file %s" % name
+        continue
     print "Fetching %s" % name
     c = readParsePage(name)
     if name.find("/")>0:
@@ -188,15 +159,15 @@ imageFiles = []
 for i in images:
     print "Fetching image %s" % i
     if i.find(":")>=0:
-        f = urllib.urlopen("http://sourceforge.net/apps/mediawiki/sumo/index.php?title=%s" % i)
+        f = urllib.urlopen("http://sumo-sim.org/wiki/%s" % i)
         c = f.read()
         b = c.find("<div class=\"fullImageLink\" id=\"file\">")
         b = c.find("href=", b)+6
         e = c.find("\"", b+1)
-        f = urllib.urlopen("http://sourceforge.net/%s" % c[b:e])
+        f = urllib.urlopen("http://sumo-sim.org/%s" % c[b:e])
         i = i[i.find(":")+1:]
     else:
-        f = urllib.urlopen("http://sourceforge.net/%s" % i)
+        f = urllib.urlopen("http://sumo-sim.org/%s" % i)
         i = i[i.rfind("/")+1:]
     if i.find("px-")>=0:
         i = i[:i.find('-')+1]
@@ -206,7 +177,7 @@ for i in images:
     imageFiles.append(os.path.join("images", i))
 
 # build navigation
-nav = getIndex()
+nav = readParseEditPage("SUMO_User_Documentation")
 lines = nav[nav.find("="):].split("\n")
 level = 0
 c = "<ul>\n";
@@ -262,13 +233,14 @@ except: pass
 try: os.mkdir(HTML_FOLDER + "/images")
 except: pass
 for p in pages:
-    if(not p.startswith("href")):
+    if not p.startswith("href"):
         continue
-    b = p.find("?title=")
+    b = p.find("/wiki/")
     e = p.find("\"", b)
-    name = p[b+7:e]
+    name = p[b+6:e]
     if name.endswith(".css"):
         print "Skipping css-file %s" % name
+        continue
     name = name + ".html"
     t = os.path.join(HTML_FOLDER, name)
     fd = open(os.path.join(MIRROR_FOLDER, name))
@@ -305,6 +277,4 @@ for p in pages:
     fd.close()
 for i in imageFiles:
     shutil.copy(os.path.join(MIRROR_FOLDER, i), os.path.join(HTML_FOLDER, i))
-
-
-
+shutil.copy(os.path.join(HTML_FOLDER, 'SUMO_User_Documentation.html'), os.path.join(HTML_FOLDER, 'index.html'))

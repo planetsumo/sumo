@@ -7,7 +7,7 @@
 
 Generates random trips for the given network.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
@@ -79,8 +79,8 @@ def get_options():
     optParser.add_option("-a", "--trip-parameters", dest="trippar",
                          default="", help="additional trip parameters")
     optParser.add_option("-b", "--begin", type="float", default=0, help="begin time")
-    optParser.add_option("-e", "--end", type="float", default=3600, help="end time")
-    optParser.add_option("-p", "--period", type="float", default=1, help="repetition period")
+    optParser.add_option("-e", "--end", type="float", default=3600, help="end time (default 3600)")
+    optParser.add_option("-p", "--period", type="float", default=1, help="repetition period (default 1)")
     optParser.add_option("-s", "--seed", type="int", help="random seed")
     optParser.add_option("-l", "--length", action="store_true",
                          default=False, help="weight edge probability by length")
@@ -97,13 +97,13 @@ def get_options():
     optParser.add_option("-v", "--verbose", action="store_true",
                          default=False, help="tell me what you are doing")
     (options, args) = optParser.parse_args()
-    if not options.netfile:
-        optParser.print_help()
-        sys.exit()
     return options
 
 
 def main(options):
+    if not options.netfile:
+        optParser.print_help()
+        sys.exit()
     if options.seed:
         random.seed(options.seed)
 

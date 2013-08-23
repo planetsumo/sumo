@@ -12,7 +12,7 @@ It checks for possible scenarios in the current working directory
 and lets the user start them as a game. Furthermore it
 saves highscores to local disc and to the central highscore server.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
@@ -20,7 +20,7 @@ import os, subprocess, sys, re, pickle, httplib, glob, Tkinter
 from xml.dom import pulldom
 
 _SCOREFILE = "scores.pkl"
-_SCORESERVER = "sumo.sourceforge.net"
+_SCORESERVER = "sumo-sim.org"
 _SCORESCRIPT = "/scores.php?game=TLS&"
 _DEBUG = False
 
@@ -67,7 +67,6 @@ class StartDialog:
         # there is one column for every config, +2 more columns for control buttons
         configs = glob.glob(os.path.join(base, "*.sumocfg"))
         numButtons = len(configs) + 2
-        print numButtons
         # button dimensions
         bWidth_start = 15
         bWidth_high = 7
@@ -115,7 +114,8 @@ class StartDialog:
 
     def start_cfg(self, cfg):
         self.root.destroy()
-        print "starting", cfg
+        if _DEBUG:
+            print "starting", cfg
         self.gametime = parseEndTime(cfg)
         self.ret = subprocess.call([guisimPath, "-S", "-G", "-Q", "-c", cfg])
         self.category = self.category_name(cfg) # remember which which cfg was launched

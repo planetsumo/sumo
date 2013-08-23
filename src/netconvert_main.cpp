@@ -8,7 +8,7 @@
 ///
 // Main for NETCONVERT
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -120,6 +120,10 @@ main(int argc, char** argv) {
             throw ProcessError();
         }
         RandHelper::initRandGlobal();
+        // build the projection
+        if (!GeoConvHelper::init(oc)) {
+            throw ProcessError("Could not build projection!");
+        }
         NBNetBuilder nb;
         nb.applyOptions(oc);
         // load data

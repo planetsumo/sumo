@@ -7,7 +7,7 @@
 ///
 // A device which collects info on the vehicle trip
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -65,7 +65,21 @@ public:
     static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
 
 
+    /** @brief Returns this device's type information
+     * @return The c++ type information
+     */
+    static const std::type_info& getTypeInfo() {
+        return typeid(MSDevice_Tripinfo);
+    }
+
+
+
 public:
+    /// @brief Destructor.
+    ~MSDevice_Tripinfo();
+
+
+
     /// @name Methods called on vehicle movement / state change, overwriting MSDevice
     /// @{
 
@@ -115,10 +129,6 @@ public:
     void generateOutput() const;
 
 
-    /// @brief Destructor.
-    ~MSDevice_Tripinfo();
-
-
 private:
     /** @brief Constructor
      *
@@ -128,16 +138,28 @@ private:
     MSDevice_Tripinfo(SUMOVehicle& holder, const std::string& id);
 
 
-private:
+    /// @brief dummy constructor
+    MSDevice_Tripinfo();
 
+
+private:
+    /// @brief The lane the vehicle departed at
     std::string myDepartLane;
+    /// @brief The position on the lane the vehicle departed at
     SUMOReal myDepartPos;
+    /// @brief The speed on departure
     SUMOReal myDepartSpeed;
+    /// @brief The overall number of waiting steps
     unsigned int myWaitingSteps;
+    /// @brief The vehicle's arrival time
     SUMOTime myArrivalTime;
+    /// @brief The lane the vehicle arrived at
     std::string myArrivalLane;
+    /// @brief The position on the lane the vehicle arrived at
     SUMOReal myArrivalPos;
+    /// @brief The speed when arriving
     SUMOReal myArrivalSpeed;
+
 
 private:
     /// @brief Invalidated copy constructor.

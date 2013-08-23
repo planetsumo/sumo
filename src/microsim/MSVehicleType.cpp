@@ -10,7 +10,7 @@
 ///
 // The car-following model and parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -164,6 +164,16 @@ MSVehicleType::setWidth(const SUMOReal& width) {
         myParameter.width = myOriginalType->getWidth();
     } else {
         myParameter.width = width;
+    }
+}
+
+
+void
+MSVehicleType::setImpatience(const SUMOReal impatience) {
+    if (myOriginalType != 0 && impatience < 0) {
+        myParameter.impatience = myOriginalType->getImpatience();
+    } else {
+        myParameter.impatience = impatience;
     }
 }
 

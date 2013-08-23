@@ -8,7 +8,7 @@
 ///
 // A device which collects vehicular emissions (using HBEFA-reformulation)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -49,38 +49,16 @@
 // static initialisation methods
 // ---------------------------------------------------------------------------
 void
-MSDevice_HBEFA::insertOptions() {
-    OptionsCont& oc = OptionsCont::getOptions();
-    oc.addOptionSubTopic("Emissions");
-
-    oc.doRegister("device.hbefa.probability", new Option_Float(0.));//!!! describe
-    oc.addDescription("device.hbefa.probability", "Emissions", "The probability for a vehicle to have an emission logging device");
-
-    oc.doRegister("device.hbefa.explicit", new Option_String());//!!! describe
-    oc.addSynonyme("device.hbefa.explicit", "device.hbefa.knownveh", true);
-    oc.addDescription("device.hbefa.explicit", "Emissions", "Assign a device to named vehicles");
-
-    oc.doRegister("device.hbefa.deterministic", new Option_Bool(false)); //!!! describe
-    oc.addDescription("device.hbefa.deterministic", "Emissions", "The devices are set deterministic using a fraction of 1000");
+MSDevice_HBEFA::insertOptions(OptionsCont &oc) {
+    insertDefaultAssignmentOptions("hbefa", "Emissions", oc);
 }
 
 
 void
 MSDevice_HBEFA::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into) {
     OptionsCont& oc = OptionsCont::getOptions();
-    if (oc.getFloat("device.hbefa.probability") == 0 && !oc.isSet("device.hbefa.explicit")) {
-        // no route computation is modelled
-        return;
-    }
     // route computation is enabled
-    bool haveByNumber = false;
-    if (oc.getBool("device.hbefa.deterministic")) {
-        haveByNumber = MSNet::getInstance()->getVehicleControl().isInQuota(oc.getFloat("device.hbefa.probability"));
-    } else {
-        haveByNumber = RandHelper::rand() <= oc.getFloat("device.hbefa.probability");
-    }
-    bool haveByName = oc.isSet("device.hbefa.explicit") && OptionsCont::getOptions().isInStringVector("device.hbefa.explicit", v.getID());
-    if (haveByNumber || haveByName) {
+    if (equippedByDefaultAssignmentOptions(oc, "hbefa", v)) {
         // build the device
         MSDevice_HBEFA* device = new MSDevice_HBEFA(v, "hbefa_" + v.getID());
         into.push_back(device);
@@ -117,15 +95,17 @@ MSDevice_HBEFA::notifyMove(SUMOVehicle& veh, SUMOReal /*oldPos*/, SUMOReal /*new
 
 void
 MSDevice_HBEFA::generateOutput() const {
-    OutputDevice& os = OutputDevice::getDeviceByOption("tripinfo-output");
-    (os.openTag("emissions") <<
-     " CO_abs=\"" << OutputDevice::realString(myCO, 6) <<
-     "\" CO2_abs=\"" << OutputDevice::realString(myCO2, 6) <<
-     "\" HC_abs=\"" << OutputDevice::realString(myHC, 6) <<
-     "\" PMx_abs=\"" << OutputDevice::realString(myPMx, 6) <<
-     "\" NOx_abs=\"" << OutputDevice::realString(myNOx, 6) <<
-     "\" fuel_abs=\"" << OutputDevice::realString(myFuel, 6) <<
-     "\"").closeTag();
+    if (OptionsCont::getOptions().isSet("tripinfo-output")) {
+        OutputDevice& os = OutputDevice::getDeviceByOption("tripinfo-output");
+        (os.openTag("emissions") <<
+         " CO_abs=\"" << OutputDevice::realString(myCO, 6) <<
+         "\" CO2_abs=\"" << OutputDevice::realString(myCO2, 6) <<
+         "\" HC_abs=\"" << OutputDevice::realString(myHC, 6) <<
+         "\" PMx_abs=\"" << OutputDevice::realString(myPMx, 6) <<
+         "\" NOx_abs=\"" << OutputDevice::realString(myNOx, 6) <<
+         "\" fuel_abs=\"" << OutputDevice::realString(myFuel, 6) <<
+         "\"").closeTag();
+    }
 }
 
 

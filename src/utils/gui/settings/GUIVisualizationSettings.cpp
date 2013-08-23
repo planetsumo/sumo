@@ -8,7 +8,7 @@
 ///
 // Stores the information about how to visualize structures
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -57,10 +57,12 @@ GUIVisualizationSettings::GUIVisualizationSettings()
       edgeName(false, 50, RGBColor(255, 128, 0, 255)),
       internalEdgeName(false, 40, RGBColor(128, 64, 0, 255)),
       streetName(false, 55, RGBColor::YELLOW),
-      hideConnectors(false), laneWidthExaggeration(1), vehicleQuality(0),
-      minVehicleSize(1), vehicleExaggeration(1), showBlinker(true),
+      hideConnectors(false), laneWidthExaggeration(1), 
+      vehicleQuality(0), minVehicleSize(1), vehicleExaggeration(1), showBlinker(true),
       drawLaneChangePreference(false), drawMinGap(false),
       vehicleName(false, 50, RGBColor(204, 153, 0, 255)),
+      personQuality(0), minPersonSize(1), personExaggeration(1),
+      personName(false, 50, RGBColor(0, 153, 204, 255)),
       drawLinkTLIndex(false), drawLinkJunctionIndex(false),
       junctionName(false, 50, RGBColor(0, 255, 128, 255)),
       internalJunctionName(false, 50, RGBColor(0, 204, 128, 255)),
@@ -125,6 +127,13 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::GREEN, (SUMOReal)100);
     scheme.setAllowsNegativeValues(true);
     laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by given length/geometrical length", RGBColor::BLACK);
+    scheme.addColor(RGBColor::RED, (SUMOReal)0.25);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)0.5);
+    scheme.addColor(RGBColor(179, 179, 179, 255), (SUMOReal)1.0);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)2.0);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)4.0);
+    laneColorer.addScheme(scheme);
 
 
     /// add vehicle coloring schemes
@@ -174,6 +183,24 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::YELLOW, (SUMOReal)1.);
     scheme.addColor(RGBColor::WHITE, (SUMOReal)10.);
     vehicleColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
+    scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
+    vehicleColorer.addScheme(scheme);
+
+    /// add person coloring schemes
+    personColorer.addScheme(GUIColorScheme("given person/type color", RGBColor::YELLOW, "", true));
+    personColorer.addScheme(GUIColorScheme("uniform", RGBColor::YELLOW, "", true));
+    personColorer.addScheme(GUIColorScheme("given/assigned person color", RGBColor::YELLOW, "", true));
+    personColorer.addScheme(GUIColorScheme("given/assigned type color", RGBColor::YELLOW, "", true));
+    scheme = GUIColorScheme("by mode", RGBColor::YELLOW); // walking
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)(1)); // riding
+    scheme.addColor(RGBColor::RED, (SUMOReal)(2)); // stopped
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)(3)); // waiting for ride
+    personColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by waiting time", RGBColor::BLUE);
+    scheme.addColor(RGBColor::RED, (SUMOReal)(5 * 60));
+    personColorer.addScheme(scheme);
+
 
 #ifdef HAVE_INTERNAL
     /// add edge coloring schemes
@@ -262,6 +289,14 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
         << ">\n";
     vehicleColorer.save(dev);
     dev << "        </vehicles>\n";
+    dev << "        <persons personMode=\"" << personColorer.getActive()
+        << "\" personQuality=\"" << personQuality
+        << "\" minPersonSize=\"" << minPersonSize
+        << "\" personExaggeration=\"" << personExaggeration
+        << "                  " << personName.print("personName")
+        << ">\n";
+    personColorer.save(dev);
+    dev << "        </persons>\n";
 
     dev << "        <junctions junctionMode=\"" << junctionColorer.getActive()
         << "\" drawLinkTLIndex=\"" << drawLinkTLIndex
@@ -369,6 +404,21 @@ GUIVisualizationSettings::operator==(const GUIVisualizationSettings& v2) {
         return false;
     }
     if (vehicleName != v2.vehicleName) {
+        return false;
+    }
+    if (!(personColorer == v2.personColorer)) {
+        return false;
+    }
+    if (personQuality != v2.personQuality) {
+        return false;
+    }
+    if (minPersonSize != v2.minPersonSize) {
+        return false;
+    }
+    if (personExaggeration != v2.personExaggeration) {
+        return false;
+    }
+    if (personName != v2.personName) {
         return false;
     }
     if (!(junctionColorer == v2.junctionColorer)) {

@@ -8,7 +8,7 @@
 ///
 // Structure representing possible vehicle parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -53,7 +53,9 @@ SUMOVTypeParameter::SUMOVTypeParameter()
       defaultProbability(DEFAULT_VEH_PROB),
       speedFactor(DEFAULT_VEH_SPEEDFACTOR), speedDev(DEFAULT_VEH_SPEEDDEV),
       emissionClass(SVE_UNKNOWN), color(RGBColor::DEFAULT_COLOR),
-      vehicleClass(SVC_UNKNOWN), width(DEFAULT_VEH_WIDTH),
+      vehicleClass(SVC_UNKNOWN), 
+      impatience(0),
+      width(DEFAULT_VEH_WIDTH),
       height(DEFAULT_VEH_HEIGHT), shape(DEFAULT_VEH_SHAPE),
       cfModel(DEFAULT_VEH_FOLLOW_MODEL), lcModel(DEFAULT_VEH_LANE_CHANGE_MODEL),
       setParameter(0), saved(false), onlyReferenced(false) {
@@ -90,6 +92,13 @@ SUMOVTypeParameter::write(OutputDevice& dev) const {
     }
     if (wasSet(VTYPEPARS_EMISSIONCLASS_SET)) {
         dev.writeAttr(SUMO_ATTR_EMISSIONCLASS, getVehicleEmissionTypeName(emissionClass));
+    }
+    if (wasSet(VTYPEPARS_IMPATIENCE_SET)) {
+        if (impatience == -std::numeric_limits<SUMOReal>::max()) {
+            dev.writeAttr(SUMO_ATTR_IMPATIENCE, "off");
+        } else {
+            dev.writeAttr(SUMO_ATTR_IMPATIENCE, impatience);
+        }
     }
     if (wasSet(VTYPEPARS_SHAPE_SET)) {
         dev.writeAttr(SUMO_ATTR_GUISHAPE, getVehicleShapeName(shape));

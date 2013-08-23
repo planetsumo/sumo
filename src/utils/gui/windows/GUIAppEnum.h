@@ -9,7 +9,7 @@
 ///
 // Message and object IDs used by the FOX-version of the gui
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -247,6 +247,8 @@ enum {
     MID_START_TRACK,
     /// Stop to track a vehicle
     MID_STOP_TRACK,
+    /// select foes of a vehicle
+    MID_SHOW_FOES,
     MID_SHOW_LFLINKITEMS,
     MID_HIDE_LFLINKITEMS,
     //@}
@@ -307,6 +309,8 @@ enum {
     MID_CHOOSEN_SAVE,
     /// Clear set
     MID_CHOOSEN_CLEAR,
+    /// Reset set
+    MID_CHOOSEN_RESET,
     /// Deselect selected items
     MID_CHOOSEN_DESELECT,
     /// Deselect selected items

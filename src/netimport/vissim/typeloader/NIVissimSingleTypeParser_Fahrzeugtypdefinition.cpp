@@ -7,7 +7,7 @@
 ///
 //
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -78,9 +78,16 @@ NIVissimSingleTypeParser_Fahrzeugtypdefinition::parse(std::istream& from) {
             } else {
                 int r, g, b;
                 r = TplConvert::_2int(colorName.c_str());
-                from >> g; // type-checking is missing!
-                from >> b; // type-checking is missing!
-                color = RGBColor(r, g, b, 255);
+                if (!(from >> g)) {
+                    throw NumberFormatException();
+                }
+                if (!(from >> b)) {
+                    throw NumberFormatException();
+                }
+                if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
+                    throw NumberFormatException();
+                }
+                color = RGBColor((unsigned char)r, (unsigned char)g, (unsigned char)b, 255);
             }
         }
         tag = myRead(from);

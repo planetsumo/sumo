@@ -8,7 +8,7 @@
 ///
 // A device which collects info on the vehicle trip
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -145,7 +145,6 @@ MSDevice_Tripinfo::generateOutput() const {
        << "\" vaporized=\"" << (myHolder.getEdge() == *(myHolder.getRoute().end() - 1) ? "" : "0")
        << "\"";
 }
-
 
 
 /****************************************************************************/

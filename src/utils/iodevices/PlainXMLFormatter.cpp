@@ -6,7 +6,7 @@
 ///
 // Static storage of an output device and its base (abstract) implementation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -109,11 +109,6 @@ PlainXMLFormatter::closeTag(std::ostream& into) {
     return false;
 }
 
-
-void
-PlainXMLFormatter::writeAttr(std::ostream& into, const std::string& attr, const std::string& val) {
-    into << " " << attr << "=\"" << val << "\"";
-}
 
 /****************************************************************************/
 

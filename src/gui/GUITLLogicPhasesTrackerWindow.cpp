@@ -8,7 +8,7 @@
 ///
 // A window displaying the phase diagram of a tl-logic
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -38,7 +38,6 @@
 #include <microsim/MSLink.h>
 #include <utils/common/ToString.h>
 #include <guisim/GUITrafficLightLogicWrapper.h>
-#include <utils/gui/images/GUITexturesHelper.h>
 #include <utils/gui/windows/GUIAppEnum.h>
 #include <utils/gui/images/GUIIconSubSys.h>
 #include <foreign/polyfonts/polyfonts.h>

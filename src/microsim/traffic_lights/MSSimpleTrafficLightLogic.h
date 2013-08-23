@@ -10,7 +10,7 @@
 ///
 // A fixed traffic light logic
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -69,7 +69,7 @@ public:
     MSSimpleTrafficLightLogic(MSTLLogicControl& tlcontrol,
                               const std::string& id, const std::string& subid,
                               const Phases& phases, unsigned int step, SUMOTime delay,
-                              const ParameterMap& parameters = ParameterMap());
+                              const std::map<std::string, std::string>& parameters);
 
 
     /// @brief Destructor

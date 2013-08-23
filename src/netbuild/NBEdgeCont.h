@@ -8,7 +8,7 @@
 ///
 // Storage for edges, including some functionality operating on multiple edges
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -306,6 +306,15 @@ public:
      * @see NBEdge::reduceGeometry
      */
     void reduceGeometries(const SUMOReal minDist);
+
+
+    /** @brief
+     * @param[in] maxAngle The maximum geometry angle allowed
+     * @param[in] minRadius The minimum turning radius allowed at the start and end
+     * @param[in] fix Whether to prune geometry points to avoid sharp turns at start and end
+     * @see NBEdge::checkGeometry
+     */
+    void checkGeometries(const SUMOReal maxAngle, const SUMOReal minRadius, bool fix);
     /// @}
 
 

@@ -8,7 +8,7 @@
 ///
 // Parser for routes during their loading
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -133,6 +133,9 @@ protected:
 
     /// save last depart (only to be used if vehicle is not discarded)
     void registerLastDepart();
+
+    /// @brief assign arbitrary vehicle parameters
+    void addParam(const SUMOSAXAttributes& attrs);
 
 protected:
     /// @brief Parameter of the current vehicle, trip, person, or flow

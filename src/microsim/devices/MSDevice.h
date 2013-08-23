@@ -7,7 +7,7 @@
 ///
 // Abstract in-vehicle device
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -33,6 +33,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
 #include <microsim/MSMoveReminder.h>
 #include <utils/common/Named.h>
 #include <utils/common/UtilExceptions.h>
@@ -43,6 +45,7 @@
 // ===========================================================================
 class OutputDevice;
 class SUMOVehicle;
+class OptionsCont;
 
 
 // ===========================================================================
@@ -63,6 +66,21 @@ class SUMOVehicle;
  *  an empty (nothing doing) implementation of these.
  */
 class MSDevice : public MSMoveReminder, public Named {
+public:
+    /** @brief Inserts options for building devices
+     * @param[filled] oc The options container to add the options to
+     */
+    static void insertOptions(OptionsCont &oc);
+
+
+    /** @brief Build devices for the given vehicle, if needed
+     *
+     * @param[in] v The vehicle for which a device may be built
+     * @param[in, filled] into The vector to store the built device in
+     */
+    static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
+
+
 public:
     /** @brief Constructor
      *
@@ -103,9 +121,40 @@ public:
     }
 
 
+
+protected:
+    /// @name Helper methods for device assignment
+    /// @{
+
+    /** @brief Adds common command options that allow to assign devices to vehicles
+     *
+     * @param[in] deviceName The name of the device type
+     * @param[in] optionsTopic The options topic into which the options shall be added
+     * @param[filled] oc The options container to add the options to
+     */
+    static void insertDefaultAssignmentOptions(const std::string &deviceName, const std::string &optionsTopic, OptionsCont &oc);
+
+
+    /** @brief Determines whether a vehicle should get a certain device
+     *
+     * @param[in] oc The options container to get the information about assignment from
+     * @param[in] deviceName The name of the device type
+     * @param[in] v The vehicle to determine whether it shall be equipped or not
+     */
+    static bool equippedByDefaultAssignmentOptions(const OptionsCont &oc, const std::string &deviceName, SUMOVehicle& v);
+    /// @}
+
+
+
 protected:
     /// @brief The vehicle that stores the device
     SUMOVehicle& myHolder;
+
+
+
+private:
+    /// @brief vehicles which explicitly carry a device, sorted by device, first
+    static std::map<std::string, std::set<std::string> > myExplicitIDs;
 
 
 private:

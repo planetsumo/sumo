@@ -9,7 +9,7 @@
 ///
 // Inserts vehicles into the network when their departure time is reached
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -233,11 +233,9 @@ MSInsertionControl::checkFlows(SUMOTime time,
                 }
             } else {
                 // strange: another vehicle with the same id already exists
-#ifdef HAVE_INTERNAL
                 if (MSGlobals::gStateLoaded) {
                     break;
                 }
-#endif
                 throw ProcessError("Another vehicle with the id '" + newPars->id + "' exists.");
             }
         }

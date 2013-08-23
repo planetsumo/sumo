@@ -9,7 +9,7 @@
 ///
 // Instance responsible for building networks
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -209,6 +209,17 @@ public:
     void haveSeenRoundabouts() {
         myHaveSeenRoundabouts = true;
     }
+
+    /**
+     * @brief transforms loaded coordinates
+     * handles projections, offsets (using GeoConvHelper) and import of height data (using Heightmapper if available)
+     * @param[in,out] from The coordinate to be transformed
+     * @param[in] includeInBoundary Whether to patch the convex boundary of the GeoConvHelper default instance
+     * @param[in] from_srs The spatial reference system of the input coordinate
+     * @notde These methods are located outside of GeoConvHelper to avoid linker-dependecies on INTERNAL_LIBS and GDAL for libgeom
+     */
+    static bool transformCoordinates(Position& from, bool includeInBoundary = true, GeoConvHelper* from_srs = 0);
+    static bool transformCoordinates(PositionVector& from, bool includeInBoundary = true, GeoConvHelper* from_srs = 0);
 
 
 protected:

@@ -6,7 +6,7 @@
 ///
 // Algorithms for network computation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -184,12 +184,12 @@ NBNodeTypeComputer::computeNodeTypes(NBNodeCont& nc) {
         }
         // check whether the junction is not a real junction
         if (n->myIncomingEdges.size() == 1) {
-            n->myType = NODETYPE_PRIORITY_JUNCTION;
+            n->myType = NODETYPE_PRIORITY;
             continue;
         }
         // @todo "isSimpleContinuation" should be revalidated
         if (n->isSimpleContinuation()) {
-            n->myType = NODETYPE_PRIORITY_JUNCTION;
+            n->myType = NODETYPE_PRIORITY;
             continue;
         }
         // determine the type
@@ -201,12 +201,13 @@ NBNodeTypeComputer::computeNodeTypes(NBNodeCont& nc) {
                     continue;
                 }
                 // @todo check against a legal document
+                // @todo figure out when NODETYPE_PRIORITY_STOP is appropriate
                 const SUMOReal s1 = (*i)->getSpeed() * (SUMOReal) 3.6;
                 const SUMOReal s2 = (*j)->getSpeed() * (SUMOReal) 3.6;
                 const int p1 = (*i)->getPriority();
                 const int p2 = (*j)->getPriority();
                 if (fabs(s1 - s2) > (SUMOReal) 9.5 || MAX2(s1, s2) >= (SUMOReal) 49. || p1 != p2) {
-                    type = NODETYPE_PRIORITY_JUNCTION;
+                    type = NODETYPE_PRIORITY;
                     break;
                 }
             }
@@ -319,13 +320,13 @@ NBEdgePriorityComputer::setPriorityJunctionPriorities(NBNode& n) {
     for (i = bestIncoming.begin(); i != bestIncoming.end(); ++i) {
         EdgeVector::iterator j;
         NBEdge* t1 = *i;
-        SUMOReal angle1 = t1->getAngle() + 180;
+        SUMOReal angle1 = t1->getTotalAngle() + 180;
         if (angle1 >= 360) {
             angle1 -= 360;
         }
         for (j = i + 1; j != bestIncoming.end(); ++j) {
             NBEdge* t2 = *j;
-            SUMOReal angle2 = t2->getAngle() + 180;
+            SUMOReal angle2 = t2->getTotalAngle() + 180;
             if (angle2 >= 360) {
                 angle2 -= 360;
             }

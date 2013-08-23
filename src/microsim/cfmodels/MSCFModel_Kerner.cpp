@@ -8,7 +8,7 @@
 ///
 // car-following model by B. Kerner
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -65,8 +65,7 @@ MSCFModel_Kerner::followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMORe
 
 
 SUMOReal
-MSCFModel_Kerner::stopSpeed(const MSVehicle* const veh, SUMOReal gap) const {
-    const SUMOReal speed = veh->getSpeed();
+MSCFModel_Kerner::stopSpeed(const MSVehicle* const veh, const SUMOReal speed, SUMOReal gap) const {
     return MIN2(_v(veh, speed, maxNextSpeed(speed, veh), gap, 0), maxNextSpeed(speed, veh));
 }
 

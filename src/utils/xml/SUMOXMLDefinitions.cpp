@@ -11,7 +11,7 @@
 ///
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -61,9 +61,6 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "edgeData",         SUMO_TAG_MEANDATA_EDGE },
     { "laneData",         SUMO_TAG_MEANDATA_LANE },
 
-#ifdef _MESSAGES
-    { "msgemitter",		  SUMO_TAG_MSG_EMITTER },
-#endif
     { "detEntry",         SUMO_TAG_DET_ENTRY },
     { "detExit",          SUMO_TAG_DET_EXIT },
     { "edgeFollowDetector", SUMO_TAG_EDGEFOLLOWDETECTOR },
@@ -130,6 +127,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "background",       SUMO_TAG_VIEWSETTINGS_BACKGROUND },
     { "edges",            SUMO_TAG_VIEWSETTINGS_EDGES },
     { "vehicles",         SUMO_TAG_VIEWSETTINGS_VEHICLES },
+    { "persons",          SUMO_TAG_VIEWSETTINGS_PERSONS },
     { "junctions",        SUMO_TAG_VIEWSETTINGS_JUNCTIONS },
     { "additionals",      SUMO_TAG_VIEWSETTINGS_ADDITIONALS },
     { "pois",             SUMO_TAG_VIEWSETTINGS_POIS },
@@ -296,14 +294,6 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "via",            SUMO_ATTR_VIA },
     { "nodes",          SUMO_ATTR_NODES },
 
-#ifdef _MESSAGES
-    { "msg",			SUMO_ATTR_MSG },
-    { "emit_msg",		SUMO_ATTR_EVENTS },
-    { "reverse",		SUMO_ATTR_REVERSE },
-    { "table",			SUMO_ATTR_TABLE },
-    { "xy",				SUMO_ATTR_XY },
-    { "step",			SUMO_ATTR_STEP },
-#endif
     { "minDur",         SUMO_ATTR_MINDURATION },
     { "maxDur",         SUMO_ATTR_MAXDURATION },
     { "foes",           SUMO_ATTR_FOES },
@@ -342,10 +332,12 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "imgFile",        SUMO_ATTR_IMGFILE },
     { "angle",          SUMO_ATTR_ANGLE },
     { "emissionClass",  SUMO_ATTR_EMISSIONCLASS },
+    { "impatience",     SUMO_ATTR_IMPATIENCE },
     { "startPos",       SUMO_ATTR_STARTPOS },
     { "endPos",         SUMO_ATTR_ENDPOS },
     { "triggered",      SUMO_ATTR_TRIGGERED },
     { "parking",        SUMO_ATTR_PARKING },
+    { "expected",       SUMO_ATTR_EXPECTED },
     { "index",          SUMO_ATTR_INDEX },
 
     { "entering",       SUMO_ATTR_ENTERING },
@@ -426,8 +418,11 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
 
 StringBijection<SumoXMLNodeType>::Entry SUMOXMLDefinitions::sumoNodeTypeValues[] = {
     {"traffic_light",       NODETYPE_TRAFFIC_LIGHT},
-    {"priority",            NODETYPE_PRIORITY_JUNCTION},
+    {"traffic_light_unregulated", NODETYPE_TRAFFIC_LIGHT_NOJUNCTION},
+    {"priority",            NODETYPE_PRIORITY},
+    {"priority_stop",       NODETYPE_PRIORITY_STOP},
     {"right_before_left",   NODETYPE_RIGHT_BEFORE_LEFT},
+    {"allway_stop",         NODETYPE_ALLWAY_STOP},
     {"district",            NODETYPE_DISTRICT},
     {"unregulated",         NODETYPE_NOJUNCTION},
     {"internal",            NODETYPE_INTERNAL},
@@ -465,6 +460,8 @@ StringBijection<LinkState>::Entry SUMOXMLDefinitions::linkStateValues[] = {
     { "M", LINKSTATE_MAJOR },
     { "m", LINKSTATE_MINOR },
     { "=", LINKSTATE_EQUAL },
+    { "s", LINKSTATE_STOP },
+    { "w", LINKSTATE_ALLWAY_STOP },
     { "-", LINKSTATE_DEADEND }
 };
 

@@ -7,7 +7,7 @@
 ///
 // Global storage for textures; manages and draws them
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -36,13 +36,6 @@
 
 
 // ===========================================================================
-// variable declarations
-// ===========================================================================
-/// determines whether the textures shall be displayed within the gui
-extern bool gAllowTextures;
-
-
-// ===========================================================================
 // class definitions
 // ===========================================================================
 /**
@@ -51,15 +44,18 @@ extern bool gAllowTextures;
  */
 class GUITexturesHelper {
 public:
+    /// @brief return maximum number of pixels in x and y direction
+    static int getMaxTextureSize();
+
+    /// Adds a texture to use
+    static GUIGlID add(FXImage* i);
+
     /// Draws a named texture as a box with the given size
     static void drawTexturedBox(unsigned int which, SUMOReal size);
 
     /// Draws a named texture as a rectangle with the given sizes
     static void drawTexturedBox(unsigned int which,
                                 SUMOReal sizeX1, SUMOReal sizeY1, SUMOReal sizeX2, SUMOReal sizeY2);
-
-    /// Adds a texture to use
-    static GUIGlID add(FXImage* i);
 
     /// @brief return texture id for the given filename (initialize on first use)
     // @note return -1 on failure
@@ -68,10 +64,22 @@ public:
     /// @brief clears loaded textures
     static void clearTextures();
 
+    /// @brief don't draw any textures
+    static void allowTextures(const bool val) {
+        myAllowTextures = val;
+    }
+
+    /// @brief clears loaded textures
+    static bool texturesAllowed() {
+        return myAllowTextures;
+    }
+
 private:
     /// @brief mapping from image paths to decals (initialization on first use)
     static std::map<std::string, int> myTextures;
 
+    /// @brief whether textures are drawn
+    static bool myAllowTextures;
 
 };
 

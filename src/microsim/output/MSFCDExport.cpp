@@ -4,7 +4,7 @@
 ///
 // Realises dumping Floating Car Data (FCD) Data
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -53,6 +53,7 @@
 void
 MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
     const bool useGeo = OptionsCont::getOptions().getBool("fcd-output.geo");
+    const bool signals = OptionsCont::getOptions().getBool("fcd-output.signals");
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
     MSVehicleControl::constVehIt it = vc.loadedVehBegin();
     MSVehicleControl::constVehIt end = vc.loadedVehEnd();
@@ -77,6 +78,9 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
             of.writeAttr(SUMO_ATTR_POSITION, veh->getPositionOnLane());
             of.writeAttr(SUMO_ATTR_LANE, lane->getID());
             of.writeAttr(SUMO_ATTR_SLOPE, lane->getShape().slopeDegreeAtOffset(veh->getPositionOnLane()));
+            if (signals) {
+                of.writeAttr("signals", toString(veh->getSignals()));
+            }
             of.closeTag();
         }
     }

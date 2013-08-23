@@ -8,7 +8,7 @@
 ///
 // Importer for networks stored in MATSim format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -157,7 +157,7 @@ NIImporter_MATSim::NodesHandler::myStartElement(int element, const SUMOSAXAttrib
         return;
     }
     Position pos(x, y);
-    if (!NILoader::transformCoordinates(pos)) {
+    if (!NBNetBuilder::transformCoordinates(pos)) {
         WRITE_ERROR("Unable to project coordinates for node '" + id + "'.");
     }
     NBNode* node = new NBNode(id, pos);

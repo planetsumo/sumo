@@ -10,7 +10,7 @@
 ///
 // Helper methods for parsing vehicle attributes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -81,7 +81,12 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
     }
     SUMOVehicleParameter* ret = new SUMOVehicleParameter();
     ret->id = id;
-    parseCommonAttributes(attrs, ret, "flow");
+    try {
+        parseCommonAttributes(attrs, ret, "flow");
+    } catch (ProcessError&) {
+        delete ret;
+        throw;
+    }
 
     // parse repetition information
     if (attrs.hasAttribute(SUMO_ATTR_PERIOD)) {
@@ -342,6 +347,14 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
         vtype->emissionClass = parseEmissionClass(attrs, vtype->id);
         vtype->setParameter |= VTYPEPARS_EMISSIONCLASS_SET;
     }
+    if (attrs.hasAttribute(SUMO_ATTR_IMPATIENCE)) {
+        if (attrs.get<std::string>(SUMO_ATTR_IMPATIENCE, vtype->id.c_str(), ok) == "off") {
+            vtype->impatience = -std::numeric_limits<SUMOReal>::max();
+        } else {
+            vtype->impatience = attrs.get<SUMOReal>(SUMO_ATTR_IMPATIENCE, vtype->id.c_str(), ok);
+        }
+        vtype->setParameter |= VTYPEPARS_IMPATIENCE_SET;
+    }
     if (attrs.hasAttribute(SUMO_ATTR_VCLASS)) {
         vtype->vehicleClass = parseVehicleClass(attrs, vtype->id);
         vtype->setParameter |= VTYPEPARS_VEHICLECLASS_SET;
@@ -572,6 +585,10 @@ SUMOVehicleParserHelper::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOS
     if (attrs.hasAttribute(SUMO_ATTR_PARKING)) {
         stop.setParameter |= STOP_PARKING_SET;
     }
+    if (attrs.hasAttribute(SUMO_ATTR_EXPECTED)) {
+        stop.setParameter |= STOP_EXPECTED_SET;
+    }
+    // don't like this (dkrajzew)
 }
 
 /****************************************************************************/

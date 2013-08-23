@@ -9,7 +9,7 @@
 ///
 // The representation of a single node
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -63,6 +63,7 @@
 #include "NBRequest.h"
 #include "NBOwnTLDef.h"
 #include "NBTrafficLightLogicCont.h"
+#include "NBTrafficLightDefinition.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -224,7 +225,7 @@ NBNode::reinit(const Position& position, SumoXMLNodeType type,
     myPosition = position;
     // patch type
     myType = type;
-    if (myType != NODETYPE_TRAFFIC_LIGHT) {
+    if (myType != NODETYPE_TRAFFIC_LIGHT && myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
         removeTrafficLights();
     }
     if (updateEdgeGeometries) {
@@ -255,7 +256,9 @@ NBNode::reshiftPosition(SUMOReal xoff, SUMOReal yoff) {
 void
 NBNode::addTrafficLight(NBTrafficLightDefinition* tlDef) {
     myTrafficLights.insert(tlDef);
-    myType = NODETYPE_TRAFFIC_LIGHT;
+    if (myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
+        myType = NODETYPE_TRAFFIC_LIGHT;
+    }
 }
 
 
@@ -286,6 +289,35 @@ NBNode::isJoinedTLSControlled() const {
         }
     }
     return false;
+}
+
+
+void
+NBNode::invalidateTLS(NBTrafficLightLogicCont& tlCont) {
+    if (isTLControlled()) {
+        std::set<NBTrafficLightDefinition*> newDefs;
+        for (std::set<NBTrafficLightDefinition*>::iterator it =  myTrafficLights.begin(); it != myTrafficLights.end(); ++it) {
+            NBTrafficLightDefinition* orig = *it;
+            if (dynamic_cast<NBOwnTLDef*>(orig) != 0) {
+                // this definition will be guessed anyway. no need to invalidate
+                newDefs.insert(orig);
+            } else {
+                const std::string new_id = orig->getID() + "_reguessed";
+                NBTrafficLightDefinition* newDef = new NBOwnTLDef(new_id, orig->getOffset(), orig->getType());
+                if (!tlCont.insert(newDef)) {
+                    // the original definition was shared by other nodes and was already invalidated
+                    delete newDef;
+                    newDef = tlCont.getDefinition(new_id, orig->getProgramID());
+                    assert(newDef != 0);
+                }
+                newDefs.insert(newDef);
+            }
+        }
+        removeTrafficLights();
+        for (std::set<NBTrafficLightDefinition*>::iterator it =  newDefs.begin(); it != newDefs.end(); ++it) {
+            (*it)->addNode(this);
+        }
+    }
 }
 
 
@@ -413,13 +445,13 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
             Position center = straightCenter;//.add(straightCenter);
             Line cross(straightConn);
             cross.sub(cross.p1().x(), cross.p1().y());
-            cross.rotateAtP1(PI / 2);
+            cross.rotateAtP1(M_PI / 2);
             center.sub(cross.p2());
             init.push_back(center);
             init.push_back(end);
         } else {
             const SUMOReal angle = fabs(fromE->getLaneShape(fromL).getEndLine().atan2Angle() - toE->getLaneShape(toL).getBegLine().atan2Angle());
-            if (angle < PI / 4. || angle > 7. / 4.*PI) {
+            if (angle < M_PI / 4. || angle > 7. / 4.*M_PI) {
                 // very low angle: almost straight
                 noInitialPoints = 4;
                 init.push_back(beg);
@@ -551,7 +583,7 @@ NBNode::computeLogic(const NBEdgeCont& ec, OptionsCont& oc) {
         return;
     }
     // compute the logic if necessary or split the junction
-    if (myType != NODETYPE_NOJUNCTION && myType != NODETYPE_DISTRICT) {
+    if (myType != NODETYPE_NOJUNCTION && myType != NODETYPE_DISTRICT && myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
         // build the request
         myRequest = new NBRequest(ec, this,
                                   myAllEdges, myIncomingEdges, myOutgoingEdges, myBlockedConnections);
@@ -575,9 +607,9 @@ NBNode::computeLogic(const NBEdgeCont& ec, OptionsCont& oc) {
 
 
 bool
-NBNode::writeLogic(OutputDevice& into) const {
+NBNode::writeLogic(OutputDevice& into, const bool checkLaneFoes) const {
     if (myRequest) {
-        myRequest->writeLogic(myID, into);
+        myRequest->writeLogic(myID, into, checkLaneFoes);
         return true;
     }
     return false;
@@ -667,11 +699,7 @@ NBNode::computeLanes2Lanes() {
         NBEdge* out1 = myOutgoingEdges[0];
         NBEdge* out2 = myOutgoingEdges[1];
         // for internal: check which one is the rightmost
-        SUMOReal a1 = out1->getAngleAtNode(this);
-        SUMOReal a2 = out2->getAngleAtNode(this);
-        SUMOReal ccw = GeomHelper::getCCWAngleDiff(a1, a2);
-        SUMOReal cw = GeomHelper::getCWAngleDiff(a1, a2);
-        if (ccw < cw) {
+        if (NBContHelper::relative_outgoing_edge_sorter(myIncomingEdges[0])(out2, out1)) {
             std::swap(out1, out2);
         }
         myIncomingEdges[0]->addLane2LaneConnections(0, out1, 0, out1->getNumLanes(), NBEdge::L2L_VALIDATED, true, true);
@@ -1234,8 +1262,11 @@ NBNode::getLinkState(const NBEdge* incoming, NBEdge* outgoing, int fromlane,
     if (myType == NODETYPE_RIGHT_BEFORE_LEFT) {
         return LINKSTATE_EQUAL; // all the same
     }
+    if (myType == NODETYPE_ALLWAY_STOP) {
+        return LINKSTATE_ALLWAY_STOP; // all drive, first one to arrive may drive first
+    }
     if ((!incoming->isInnerEdge() && mustBrake(incoming, outgoing, fromlane)) && !mayDefinitelyPass) {
-        return LINKSTATE_MINOR; // minor road
+        return myType == NODETYPE_PRIORITY_STOP ? LINKSTATE_STOP : LINKSTATE_MINOR; // minor road
     }
     // traffic lights are not regarded here
     return LINKSTATE_MAJOR;
@@ -1419,6 +1450,23 @@ NBNode::geometryLike() const {
         return true;
     }
     return false;
+}
+
+Position
+NBNode::getCenter() const {
+     /* Conceptually, the center point would be identical with myPosition. 
+     * However, if the shape is influenced by custom geometry endpoints of the adjoining edges,
+     * myPosition may fall outside the shape. In this case it is better to use
+     * the center of the shape 
+     **/
+    PositionVector tmp = myPoly;
+    tmp.closePolygon();
+    //std::cout << getID() << " around=" << tmp.around(myPosition) << " dist=" << tmp.distance(myPosition) << "\n";
+    if (tmp.size() < 3 || tmp.around(myPosition) || tmp.distance(myPosition) < POSITION_EPS) {
+        return myPosition;
+    } else {
+        return myPoly.getPolygonCenter();
+    }
 }
 
 /****************************************************************************/

@@ -8,7 +8,7 @@
 ///
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -99,8 +99,20 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     writeTrafficLights(device, nb.getTLLogicCont());
 
     // write the nodes (junctions)
+    std::set<NBNode*> roundaboutNodes;
+    const bool checkLaneFoesAll = oc.getBool("check-lane-foes.all");
+    const bool checkLaneFoesRoundabout = !checkLaneFoesAll && oc.getBool("check-lane-foes.roundabout");
+    if (checkLaneFoesRoundabout) {
+        const std::vector<EdgeVector>& roundabouts = nb.getRoundabouts();
+        for (std::vector<EdgeVector>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
+            for (EdgeVector::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
+                roundaboutNodes.insert((*j)->getToNode());
+            }
+        }
+    }
     for (std::map<std::string, NBNode*>::const_iterator i = nc.begin(); i != nc.end(); ++i) {
-        writeJunction(device, *(*i).second);
+        const bool checkLaneFoes = checkLaneFoesAll || (checkLaneFoesRoundabout && roundaboutNodes.count((*i).second) > 0);
+        writeJunction(device, *(*i).second, checkLaneFoes);
     }
     device.lf();
     const bool includeInternal = !oc.getBool("no-internal-links");
@@ -146,8 +158,20 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
 
     // write roundabout information
     const std::vector<EdgeVector>& roundabouts = nb.getRoundabouts();
+    //  make output deterministic
+    std::vector<std::vector<std::string> > edgeIDs;
     for (std::vector<EdgeVector>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
-        writeRoundabout(device, *i);
+        std::vector<std::string> tEdgeIDs;
+        for (EdgeVector::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
+            tEdgeIDs.push_back((*j)->getID());
+        }
+        std::sort(tEdgeIDs.begin(), tEdgeIDs.end());
+        edgeIDs.push_back(tEdgeIDs);
+    }
+    std::sort(edgeIDs.begin(), edgeIDs.end());
+    //  write
+    for (std::vector<std::vector<std::string> >::const_iterator i = edgeIDs.begin(); i != edgeIDs.end(); ++i) {
+        writeRoundabout(device, *i, ec);
     }
     if (roundabouts.size() != 0) {
         device.lf();
@@ -245,8 +269,8 @@ NWWriter_SUMO::writeEdge(OutputDevice& into, const NBEdge& e, bool noNames, bool
     if (OptionsCont::getOptions().getBool("no-internal-links") && !e.hasLoadedLength()) {
         // use length to junction center even if a modified geometry was given
         PositionVector geom = e.getGeometry();
-        geom.push_back_noDoublePos(e.getToNode()->getPosition());
-        geom.push_front_noDoublePos(e.getFromNode()->getPosition());
+        geom.push_back_noDoublePos(e.getToNode()->getCenter());
+        geom.push_front_noDoublePos(e.getFromNode()->getCenter());
         length = geom.length();
     }
     if (length <= 0) {
@@ -305,7 +329,7 @@ NWWriter_SUMO::writeLane(OutputDevice& into, const std::string& eID, const std::
 
 
 void
-NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n) {
+NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool checkLaneFoes) {
     // write the attributes
     into.openTag(SUMO_TAG_JUNCTION).writeAttr(SUMO_ATTR_ID, n.getID());
     into.writeAttr(SUMO_ATTR_TYPE, n.getType());
@@ -352,7 +376,7 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n) {
         into.closeTag();
     } else {
         // write right-of-way logics
-        n.writeLogic(into);
+        n.writeLogic(into, checkLaneFoes);
         into.closeTag();
     }
 }
@@ -465,15 +489,12 @@ NWWriter_SUMO::writeInternalConnection(OutputDevice& into,
 
 
 void
-NWWriter_SUMO::writeRoundabout(OutputDevice& into, const EdgeVector& r) {
-    std::vector<std::string> edgeIDs;
+NWWriter_SUMO::writeRoundabout(OutputDevice& into, const std::vector<std::string>& edgeIDs,
+                               const NBEdgeCont &ec) {
     std::vector<std::string> nodeIDs;
-    for (EdgeVector::const_iterator j = r.begin(); j != r.end(); ++j) {
-        edgeIDs.push_back((*j)->getID());
-        nodeIDs.push_back((*j)->getToNode()->getID());
+    for(std::vector<std::string>::const_iterator i=edgeIDs.begin(); i!=edgeIDs.end(); ++i) {
+        nodeIDs.push_back(ec.retrieve(*i)->getToNode()->getID());
     }
-    // make output deterministic
-    std::sort(edgeIDs.begin(), edgeIDs.end());
     std::sort(nodeIDs.begin(), nodeIDs.end());
     into.openTag(SUMO_TAG_ROUNDABOUT);
     into.writeAttr(SUMO_ATTR_NODES, joinToString(nodeIDs, " "));

@@ -9,7 +9,7 @@
 ///
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -169,12 +169,13 @@ NIImporter_OpenStreetMap::load(const OptionsCont& oc, NBNetBuilder& nb) {
     tc.insert("highway.ford",          1, (SUMOReal)(10. / 3.6),  1, WIDTH, SVC_PUBLIC_ARMY);
 
     //  for railways
-    tc.insert("railway.rail",          1, (SUMOReal)(300. / 3.6),  15, WIDTH, SVC_RAIL_FAST, true);
-    tc.insert("railway.tram",          1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_CITYRAIL,  true);
-    tc.insert("railway.light_rail",    1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, true);
-    tc.insert("railway.subway",        1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_CITYRAIL,  true);
-    tc.insert("railway.preserved",     1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, true);
-    tc.insert("railway.monorail",      1, (SUMOReal)(300. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, true); // rail stuff has to be discussed
+    const bool oneWay = OptionsCont::getOptions().getBool("osm.railway.oneway-default");
+    tc.insert("railway.rail",          1, (SUMOReal)(300. / 3.6),  15, WIDTH, SVC_RAIL_FAST, oneWay);
+    tc.insert("railway.tram",          1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_CITYRAIL,  oneWay);
+    tc.insert("railway.light_rail",    1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, oneWay);
+    tc.insert("railway.subway",        1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_CITYRAIL,  oneWay);
+    tc.insert("railway.preserved",     1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, oneWay);
+    tc.insert("railway.monorail",      1, (SUMOReal)(300. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, oneWay); // rail stuff has to be discussed
 
 
     /* Parse file(s)
@@ -300,7 +301,7 @@ NIImporter_OpenStreetMap::insertNodeChecking(SUMOLong id, NBNodeCont& nc, NBTraf
     if (node == 0) {
         NIOSMNode* n = myOSMNodes.find(id)->second;
         Position pos(n->lon, n->lat);
-        if (!NILoader::transformCoordinates(pos, true)) {
+        if (!NBNetBuilder::transformCoordinates(pos, true)) {
             WRITE_ERROR("Unable to project coordinates for node " + toString(id) + ".");
             return 0;
         }
@@ -363,7 +364,7 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
     for (std::vector<SUMOLong>::const_iterator i = passed.begin(); i != passed.end(); ++i) {
         NIOSMNode* n = myOSMNodes.find(*i)->second;
         Position pos(n->lon, n->lat);
-        if (!NILoader::transformCoordinates(pos, true)) {
+        if (!NBNetBuilder::transformCoordinates(pos, true)) {
             WRITE_ERROR("Unable to project coordinates for edge " + id + ".");
         }
         shape.push_back_noDoublePos(pos);
@@ -743,6 +744,12 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
             myCurrentEdge->myIsOneWay = value;
         } else if (key == "name") {
             myCurrentEdge->streetName = value;
+        } else if (key == "tracks") {
+            if (TplConvert::_2int(value.c_str()) > 1) {
+                myCurrentEdge->myIsOneWay = "false";
+            } else {
+                myCurrentEdge->myIsOneWay = "true";
+            }
         }
     }
 }
@@ -950,7 +957,7 @@ NIImporter_OpenStreetMap::RelationHandler::findEdgeRef(SUMOLong wayRef, const st
         result = 0;
     }
     return result;
-};
+}
 
 
 /****************************************************************************/

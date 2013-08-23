@@ -6,7 +6,7 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -1205,7 +1205,7 @@ TraCIAPI::TrafficLightScope::getCompleteRedYellowGreenDefinition(const std::stri
             int duration2 = inMsg.readInt();
             inMsg.readUnsignedByte();
             std::string phase = inMsg.readString();
-            phases.push_back(TraCIAPI::TraCIPhase(duration, phase, duration1, duration2));
+            phases.push_back(TraCIAPI::TraCIPhase(duration, duration1, duration2, phase));
         }
         ret.push_back(TraCIAPI::TraCILogic(subID, type, std::map<std::string, SUMOReal>(), phaseIndex, phases));
     }

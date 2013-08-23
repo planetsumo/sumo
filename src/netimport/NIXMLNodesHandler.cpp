@@ -9,7 +9,7 @@
 ///
 // Importer for network nodes stored in XML
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -48,7 +48,7 @@
 #include <netbuild/NBNodeCont.h>
 #include <netbuild/NBTrafficLightLogicCont.h>
 #include <netbuild/NBOwnTLDef.h>
-#include "NILoader.h"
+#include <netbuild/NBNetBuilder.h>
 #include "NIXMLNodesHandler.h"
 #include "NIImporter_SUMO.h"
 
@@ -133,7 +133,7 @@ NIXMLNodesHandler::addNode(const SUMOSAXAttributes& attrs) {
         myPosition.set(myPosition.x(), myPosition.y(), attrs.get<SUMOReal>(SUMO_ATTR_Z, myID.c_str(), ok));
     }
     if (xOk && yOk) {
-        if (needConversion && !NILoader::transformCoordinates(myPosition, true, myLocation)) {
+        if (needConversion && !NBNetBuilder::transformCoordinates(myPosition, true, myLocation)) {
             WRITE_ERROR("Unable to project coordinates for node '" + myID + "'.");
         }
     } else {
@@ -152,8 +152,12 @@ NIXMLNodesHandler::addNode(const SUMOSAXAttributes& attrs) {
     std::string typeS = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, myID.c_str(), ok, "");
     if (SUMOXMLDefinitions::NodeTypes.hasString(typeS)) {
         type = SUMOXMLDefinitions::NodeTypes.get(typeS);
+        if (type == NODETYPE_DEAD_END_DEPRECATED || type == NODETYPE_DEAD_END) { 
+            // dead end is a computed status. Reset this to unknown so it will
+            // be corrected if additional connections are loaded
+            type = NODETYPE_UNKNOWN;
+        }
     }
-
     // check whether a prior node shall be modified
     if (node == 0) {
         node = new NBNode(myID, myPosition, type);
@@ -173,7 +177,7 @@ NIXMLNodesHandler::addNode(const SUMOSAXAttributes& attrs) {
         node->reinit(myPosition, type, updateEdgeGeometries);
     }
     // process traffic light definition
-    if (type == NODETYPE_TRAFFIC_LIGHT) {
+    if (type == NODETYPE_TRAFFIC_LIGHT || type == NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
         processTrafficLightDefinitions(attrs, node);
     }
 }

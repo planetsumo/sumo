@@ -8,7 +8,7 @@
 ///
 // Sets and checks options for netbuild
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -107,6 +107,15 @@ NBFrame::fillOptions(bool forNetgen) {
 
         oc.doRegister("geometry.min-dist", new Option_Float());
         oc.addDescription("geometry.min-dist", "Processing", "reduces too similar geometry points");
+
+        oc.doRegister("geometry.max-angle", new Option_Float(99));
+        oc.addDescription("geometry.max-angle", "Processing", "Warn about edge geometries with an angle above DEGREES in successive segments");
+
+        oc.doRegister("geometry.min-radius", new Option_Float(9));
+        oc.addDescription("geometry.min-radius", "Processing", "Warn about edge geometries with a turning radius less than METERS at the start or end");
+
+        oc.doRegister("geometry.min-radius.fix", new Option_Bool(false));
+        oc.addDescription("geometry.min-radius.fix", "Processing", "Straighten edge geometries to avoid turning radii less than geometry.min-radius");
     }
 
     oc.doRegister("offset.disable-normalization", new Option_Bool(false));
@@ -150,6 +159,14 @@ NBFrame::fillOptions(bool forNetgen) {
         oc.doRegister("speed.factor", new Option_Float(1));
         oc.addDescription("speed.factor", "Processing", "Modifies all edge speeds by multiplying FLOAT");
     }
+
+
+    oc.doRegister("check-lane-foes.roundabout", new Option_Bool(true));
+    oc.addDescription("check-lane-foes.roundabout", "Processing",
+                      "Allow driving onto a multi-lane road if there are foes on other lanes (at roundabouts)");
+    oc.doRegister("check-lane-foes.all", new Option_Bool(false));
+    oc.addDescription("check-lane-foes.all", "Processing",
+                      "Allow driving onto a multi-lane road if there are foes on other lanes (everywhere)");
 
     // tls setting options
     // explicit tls
@@ -238,6 +255,9 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.doRegister("keep-edges.in-boundary", new Option_String());
     oc.addDescription("keep-edges.in-boundary", "Edge Removal", "Only keep edges which are located within the given boundary (given either as CARTESIAN corner coordinates <xmin,ymin,xmax,ymax> or as polygon <x0,y0,x1,y1,...>)");
 
+    oc.doRegister("keep-edges.in-geo-boundary", new Option_String());
+    oc.addDescription("keep-edges.in-geo-boundary", "Edge Removal", "Only keep edges which are located within the given boundary (given either as GEODETIC corner coordinates <lon-min,lat-min,lon-max,lat-max> or as polygon <lon0,lat0,lon1,lat1,...>)");
+
     if (!forNetgen) {
         oc.doRegister("keep-edges.by-vclass", new Option_String());
         oc.addDescription("keep-edges.by-vclass", "Edge Removal", "Only keep edges which allow one of the vclasss in STR");
@@ -314,6 +334,10 @@ NBFrame::checkOptions() {
     }
     if (!SUMOXMLDefinitions::TrafficLightTypes.hasString(oc.getString("tls.default-type"))) {
         WRITE_ERROR("unsupported value '" + oc.getString("tls.default-type") + "' for option '--tls.default-type'");
+        ok = false;
+    }
+    if (oc.isSet("keep-edges.in-boundary") && oc.isSet("keep-edges.in-geo-boundary")) {
+        WRITE_ERROR("only one of the options 'keep-edges.in-boundary' or 'keep-edges.in-geo-boundary' may be given");
         ok = false;
     }
     return ok;

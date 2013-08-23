@@ -10,7 +10,7 @@
 ///
 // Bus line of the city: contains all the buses of this line
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
@@ -149,8 +149,6 @@ AGBusLine::locateRevStation(AGPosition pos) {
 void
 AGBusLine::generateBuses(int start, int stop, int rate) {
     int t = start;
-    AGBus* bus;
-    UNUSED_PARAMETER(bus);
     while (t < stop) {
         buses.push_back(AGBus(t)); //one direction
         revBuses.push_back(AGBus(t)); //return direction

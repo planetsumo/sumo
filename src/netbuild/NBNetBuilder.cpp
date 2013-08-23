@@ -11,7 +11,7 @@
 ///
 // Instance responsible for building networks
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -53,6 +53,9 @@
 #include "NBAlgorithms.h"
 #include "NBAlgorithms_Ramps.h"
 
+#ifdef HAVE_INTERNAL
+#include <internal/HeightMapper.h>
+#endif
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -128,34 +131,7 @@ NBNetBuilder::compute(OptionsCont& oc,
             PROGRESS_DONE_MESSAGE();
         }
     }
-    //
-    if (removeUnwishedNodes) {
-        unsigned int no = 0;
-        const bool removeGeometryNodes = oc.exists("geometry.remove") && oc.getBool("geometry.remove");
-        PROGRESS_BEGIN_MESSAGE("Removing empty nodes" + std::string(removeGeometryNodes ? " and geometry nodes" : ""));
-        no = myNodeCont.removeUnwishedNodes(myDistrictCont, myEdgeCont, myJoinedEdges, myTLLCont, removeGeometryNodes);
-        PROGRESS_DONE_MESSAGE();
-        WRITE_MESSAGE("   " + toString(no) + " nodes removed.");
-    }
-    // MOVE TO ORIGIN
-    if (!oc.getBool("offset.disable-normalization") && oc.isDefault("offset.x") && oc.isDefault("offset.y")) {
-        moveToOrigin(geoConvHelper);
-    }
-    geoConvHelper.computeFinal(); // information needed for location element fixed at this point
-
-    if (oc.exists("geometry.min-dist") && oc.isSet("geometry.min-dist")) {
-        PROGRESS_BEGIN_MESSAGE("Reducing geometries");
-        myEdgeCont.reduceGeometries(oc.getFloat("geometry.min-dist"));
-        PROGRESS_DONE_MESSAGE();
-    }
-    // @note: removing geometry can create similar edges so joinSimilarEdges  must come afterwards
-    // @note: likewise splitting can destroy similarities so joinSimilarEdges must come before
-    PROGRESS_BEGIN_MESSAGE("Joining similar edges");
-    myJoinedEdges.init(myEdgeCont);
-    myNodeCont.joinSimilarEdges(myDistrictCont, myEdgeCont, myTLLCont);
-    PROGRESS_DONE_MESSAGE();
-    //
-    // join junctions
+    // join junctions (may create new "geometry"-nodes so it needs to come before removing these
     if (oc.exists("junctions.join-exclude") && oc.isSet("junctions.join-exclude")) {
         myNodeCont.addJoinExclusion(oc.getStringVector("junctions.join-exclude"));
     }
@@ -184,12 +160,40 @@ NBNetBuilder::compute(OptionsCont& oc,
             myRoundabouts.clear();
         }
         numJoined += myNodeCont.joinJunctions(oc.getFloat("junctions.join-dist"), myDistrictCont, myEdgeCont, myTLLCont);
+        // reset geometry to avoid influencing subsequent steps (ramps.guess)
+        myEdgeCont.computeLaneShapes();
         PROGRESS_DONE_MESSAGE();
     }
     if (numJoined > 0) {
         // bit of a misnomer since we're already done
         WRITE_MESSAGE(" Joined " + toString(numJoined) + " junction cluster(s).");
     }
+    //
+    if (removeUnwishedNodes) {
+        unsigned int no = 0;
+        const bool removeGeometryNodes = oc.exists("geometry.remove") && oc.getBool("geometry.remove");
+        PROGRESS_BEGIN_MESSAGE("Removing empty nodes" + std::string(removeGeometryNodes ? " and geometry nodes" : ""));
+        no = myNodeCont.removeUnwishedNodes(myDistrictCont, myEdgeCont, myJoinedEdges, myTLLCont, removeGeometryNodes);
+        PROGRESS_DONE_MESSAGE();
+        WRITE_MESSAGE("   " + toString(no) + " nodes removed.");
+    }
+    // MOVE TO ORIGIN
+    if (!oc.getBool("offset.disable-normalization") && oc.isDefault("offset.x") && oc.isDefault("offset.y")) {
+        moveToOrigin(geoConvHelper);
+    }
+    geoConvHelper.computeFinal(); // information needed for location element fixed at this point
+
+    if (oc.exists("geometry.min-dist") && oc.isSet("geometry.min-dist")) {
+        PROGRESS_BEGIN_MESSAGE("Reducing geometries");
+        myEdgeCont.reduceGeometries(oc.getFloat("geometry.min-dist"));
+        PROGRESS_DONE_MESSAGE();
+    }
+    // @note: removing geometry can create similar edges so joinSimilarEdges  must come afterwards
+    // @note: likewise splitting can destroy similarities so joinSimilarEdges must come before
+    PROGRESS_BEGIN_MESSAGE("Joining similar edges");
+    myJoinedEdges.init(myEdgeCont);
+    myNodeCont.joinSimilarEdges(myDistrictCont, myEdgeCont, myTLLCont);
+    PROGRESS_DONE_MESSAGE();
     //
     if (oc.exists("geometry.split") && oc.getBool("geometry.split")) {
         PROGRESS_BEGIN_MESSAGE("Splitting geometry edges");
@@ -206,7 +210,14 @@ NBNetBuilder::compute(OptionsCont& oc,
 
     // check whether any not previously setable connections may be set now
     myEdgeCont.recheckPostProcessConnections();
-
+    //
+    if (oc.exists("geometry.max-angle")) {
+        myEdgeCont.checkGeometries(
+                oc.getFloat("geometry.max-angle"), 
+                oc.getFloat("geometry.min-radius"),
+                oc.getBool("geometry.min-radius.fix"));
+    }
+    //
     myEdgeCont.computeLaneShapes();
 
     // APPLY SPEED MODIFICATIONS
@@ -390,4 +401,61 @@ NBNetBuilder::moveToOrigin(GeoConvHelper& geoConvHelper) {
     PROGRESS_DONE_MESSAGE();
 }
 
+
+bool
+NBNetBuilder::transformCoordinates(Position& from, bool includeInBoundary, GeoConvHelper* from_srs) {
+    Position orig(from);
+    bool ok = GeoConvHelper::getProcessing().x2cartesian(from, includeInBoundary);
+#ifdef HAVE_INTERNAL
+    if (ok) {
+        const HeightMapper& hm = HeightMapper::get();
+        if (hm.ready()) {
+            if (from_srs != 0 && from_srs->usingGeoProjection()) {
+                from_srs->cartesian2geo(orig);
+            }
+            SUMOReal z = hm.getZ(orig);
+            from = Position(from.x(), from.y(), z);
+        }
+    }
+#else
+    UNUSED_PARAMETER(from_srs);
+#endif
+    return ok;
+}
+
+
+bool
+NBNetBuilder::transformCoordinates(PositionVector& from, bool includeInBoundary, GeoConvHelper* from_srs) {
+    const SUMOReal maxLength = OptionsCont::getOptions().getFloat("geometry.max-segment-length");
+    if (maxLength > 0 && from.size() > 1) {
+        // transformation to cartesian coordinates must happen before we can check segment length
+        PositionVector copy = from;
+        for (int i = 0; i < (int) from.size(); i++) {
+            transformCoordinates(copy[i], false);
+        }
+        // check lengths and insert new points where needed (in the original
+        // coordinate system)
+        int inserted = 0;
+        for (int i = 0; i < (int)copy.size() - 1; i++) {
+            Position start = from[i + inserted];
+            Position end = from[i + inserted + 1];
+            SUMOReal length = copy[i].distanceTo(copy[i + 1]);
+            const Position step = (end - start) * (maxLength / length);
+            int steps = 0;
+            while (length > maxLength) {
+                length -= maxLength;
+                steps++;
+                from.insertAt(i + inserted + 1, start + (step * steps));
+                inserted++;
+            }
+        }
+        // now perform the transformation again so that height mapping can be
+        // performed for the new points
+    }
+    bool ok = true;
+    for (int i = 0; i < (int) from.size(); i++) {
+        ok = ok && transformCoordinates(from[i], includeInBoundary, from_srs);
+    }
+    return ok;
+}
 /****************************************************************************/

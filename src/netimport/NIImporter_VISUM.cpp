@@ -9,7 +9,7 @@
 ///
 // A VISUM network importer
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -249,7 +249,7 @@ NIImporter_VISUM::parse_Nodes() {
     SUMOReal x = getNamedFloat("XKoord");
     SUMOReal y = getNamedFloat("YKoord");
     Position pos(x, y);
-    if (!NILoader::transformCoordinates(pos)) {
+    if (!NBNetBuilder::transformCoordinates(pos)) {
         WRITE_ERROR("Unable to project coordinates for node " + myCurrentID + ".");
         return;
     }
@@ -272,7 +272,7 @@ NIImporter_VISUM::parse_Districts() {
     SUMOReal x = getNamedFloat("XKoord");
     SUMOReal y = getNamedFloat("YKoord");
     Position pos(x, y);
-    if (!NILoader::transformCoordinates(pos, false)) {
+    if (!NBNetBuilder::transformCoordinates(pos, false)) {
         WRITE_ERROR("Unable to project coordinates for district " + myCurrentID + ".");
         return;
     }
@@ -296,7 +296,7 @@ NIImporter_VISUM::parse_Point() {
     SUMOReal x = TplConvert::_2SUMOReal(myLineParser.get("XKOORD").c_str());
     SUMOReal y = TplConvert::_2SUMOReal(myLineParser.get("YKOORD").c_str());
     Position pos(x, y);
-    if (!NILoader::transformCoordinates(pos, false)) {
+    if (!NBNetBuilder::transformCoordinates(pos, false)) {
         WRITE_ERROR("Unable to project coordinates for point " + toString(id) + ".");
         return;
     }
@@ -613,7 +613,7 @@ NIImporter_VISUM::parse_EdgePolys() {
         return;
     }
     Position pos(x, y);
-    if (!NILoader::transformCoordinates(pos)) {
+    if (!NBNetBuilder::transformCoordinates(pos)) {
         WRITE_ERROR("Unable to project coordinates for node '" + from->getID() + "'.");
         return;
     }

@@ -8,7 +8,7 @@
 ///
 // Derivation of NLEdgeControlBuilder which build gui-edges
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -57,31 +57,13 @@ GUIEdgeControlBuilder::GUIEdgeControlBuilder()
 GUIEdgeControlBuilder::~GUIEdgeControlBuilder() {}
 
 
-MSEdge*
-GUIEdgeControlBuilder::closeEdge() {
-    MSEdge* ret = NLEdgeControlBuilder::closeEdge();
-    static_cast<GUIEdge*>(ret)->initGeometry();
-    return ret;
-}
-
-
 MSLane*
 GUIEdgeControlBuilder::addLane(const std::string& id,
                                SUMOReal maxSpeed, SUMOReal length,
                                const PositionVector& shape,
                                SUMOReal width,
                                SVCPermissions permissions) {
-    MSLane* lane = 0;
-    switch (myActiveEdge->getPurpose()) {
-        case MSEdge::EDGEFUNCTION_INTERNAL:
-        case MSEdge::EDGEFUNCTION_NORMAL:
-        case MSEdge::EDGEFUNCTION_CONNECTOR:
-            lane = new GUILane(id, maxSpeed, length, myActiveEdge,
-                               myCurrentNumericalLaneID++, shape, width, permissions);
-            break;
-        default:
-            throw InvalidArgument("A lane with an unknown type occured (" + toString(myActiveEdge->getPurpose()) + ")");
-    }
+    MSLane* lane = new GUILane(id, maxSpeed, length, myActiveEdge, myCurrentNumericalLaneID++, shape, width, permissions, (int)myLaneStorage->size());
     myLaneStorage->push_back(lane);
     return lane;
 }
@@ -90,9 +72,6 @@ GUIEdgeControlBuilder::addLane(const std::string& id,
 
 MSEdge*
 GUIEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, const std::string& streetName) {
-    if (function == MSEdge::EDGEFUNCTION_INTERNAL) {
-        return new GUIEdge(id, -1, function, streetName);
-    }
     return new GUIEdge(id, myCurrentNumericalEdgeID++, function, streetName);
 }
 

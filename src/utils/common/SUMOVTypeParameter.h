@@ -8,7 +8,7 @@
 ///
 // Structure representing possible vehicle parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -37,6 +37,7 @@
 #include "SUMOVehicleClass.h"
 #include "RGBColor.h"
 #include "SUMOTime.h"
+#include <utils/common/Parameterised.h>
 
 
 // ===========================================================================
@@ -63,6 +64,7 @@ const int VTYPEPARS_HEIGHT_SET = 2 << 10;
 const int VTYPEPARS_SHAPE_SET = 2 << 11;
 const int VTYPEPARS_OSGFILE_SET = 2 << 12;
 const int VTYPEPARS_IMGFILE_SET = 2 << 13;
+const int VTYPEPARS_IMPATIENCE_SET = 2 << 14;
 
 
 // ===========================================================================
@@ -72,7 +74,7 @@ const int VTYPEPARS_IMGFILE_SET = 2 << 13;
  * @class SUMOVTypeParameter
  * @brief Structure representing possible vehicle parameter
  */
-class SUMOVTypeParameter {
+class SUMOVTypeParameter : public Parameterised {
 public:
     /** @brief Constructor
      *
@@ -131,6 +133,8 @@ public:
     RGBColor color;
     /// @brief The vehicle's class
     SUMOVehicleClass vehicleClass;
+    /// @brief The vehicle's impatience (willingness to obstruct others)
+    SUMOReal impatience;
 
 
     /// @name Values for drawing this class' vehicles

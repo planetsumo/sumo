@@ -7,7 +7,7 @@
 ///
 // A base class for vehicle implementations
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -249,6 +249,18 @@ public:
     inline SUMOReal getChosenSpeedFactor() const {
         return myChosenSpeedFactor;
     }
+
+    /// @brief Returns a device of the given type if it exists or 0
+    MSDevice* getDevice(const std::type_info& type) const;
+
+
+    /// @name state io
+    //@{
+
+    /// Saves the (common) state of a vehicle
+    virtual void saveState(OutputDevice& out);
+
+    //@}
 
 protected:
     /** @brief (Re-)Calculates the arrival position from the vehicle parameters

@@ -8,7 +8,7 @@
 ///
 // A base class for vehicle implementations
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -36,16 +36,13 @@
 #include <utils/common/MsgHandler.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/iodevices/OutputDevice.h>
-#include <microsim/devices/MSDevice_Vehroutes.h>
-#include <microsim/devices/MSDevice_Tripinfo.h>
-#include <microsim/devices/MSDevice_Routing.h>
-#include <microsim/devices/MSDevice_Person.h>
-#include <microsim/devices/MSDevice_HBEFA.h>
 #include "MSVehicleType.h"
 #include "MSEdge.h"
 #include "MSLane.h"
 #include "MSMoveReminder.h"
 #include "MSBaseVehicle.h"
+#include "MSNet.h"
+#include "devices/MSDevice.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -77,10 +74,7 @@ MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, c
 #endif
 {
     // init devices
-    MSDevice_Vehroutes::buildVehicleDevices(*this, myDevices);
-    MSDevice_Tripinfo::buildVehicleDevices(*this, myDevices);
-    MSDevice_Routing::buildVehicleDevices(*this, myDevices);
-    MSDevice_HBEFA::buildVehicleDevices(*this, myDevices);
+    MSDevice::buildVehicleDevices(*this, myDevices);
     //
     for (std::vector< MSDevice* >::iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {
         myMoveReminders.push_back(std::make_pair(*dev, 0.));
@@ -161,7 +155,7 @@ MSBaseVehicle::replaceRouteEdges(const MSEdgeVector& edges, bool onInit) {
         id = "!" + id;
     }
     if (myRoute->getID().find("!var#") != std::string::npos) {
-        id = myRoute->getID().substr(0, myRoute->getID().rfind("!var#") + 4) + toString(getNumberReroutes() + 1);
+        id = myRoute->getID().substr(0, myRoute->getID().rfind("!var#") + 5) + toString(getNumberReroutes() + 1);
     } else {
         id = id + "!var#1";
     }
@@ -301,6 +295,28 @@ MSBaseVehicle::calculateArrivalPos() {
             myArrivalPos = lastLaneLength;
             break;
     }
+}
+
+
+MSDevice* 
+MSBaseVehicle::getDevice(const std::type_info& type) const {
+    for (std::vector<MSDevice*>::const_iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {
+        if (typeid(**dev) == type) {
+            return *dev;
+        }
+    }
+    return 0;
+}
+
+
+void
+MSBaseVehicle::saveState(OutputDevice& out) {
+    out.openTag(SUMO_TAG_VEHICLE).writeAttr(SUMO_ATTR_ID, myParameter->id);
+    out.writeAttr(SUMO_ATTR_DEPART, myParameter->depart);
+    out.writeAttr(SUMO_ATTR_ROUTE, myRoute->getID());
+    out.writeAttr(SUMO_ATTR_TYPE, myType->getID());
+    // here starts the vehicle internal part (see loading)
+    // @note: remember to close the vehicle tag when calling this in a subclass!
 }
 
 

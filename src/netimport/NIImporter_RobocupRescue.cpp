@@ -8,7 +8,7 @@
 ///
 // Importer for networks stored in robocup rescue league format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -166,7 +166,7 @@ NIImporter_RobocupRescue::loadNodes(const std::string& file) {
         }
 
         Position pos((SUMOReal)(posX / 1000.), -(SUMOReal)(posY / 1000.));
-        NILoader::transformCoordinates(pos);
+        NBNetBuilder::transformCoordinates(pos);
         NBNode* node = new NBNode(toString(id), pos);
         myNodeCont.insert(node);
         --noNodes;

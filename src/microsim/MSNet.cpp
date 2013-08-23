@@ -12,7 +12,7 @@
 ///
 // The simulated network and simulation perfomer
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -89,15 +89,10 @@
 #include <ctime>
 #include "MSPerson.h"
 #include "MSEdgeWeightsStorage.h"
-
-
-#ifdef _MESSAGES
-#include "MSMessageEmitter.h"
-#endif
+#include "MSStateHandler.h"
 
 #ifdef HAVE_INTERNAL
 #include <mesosim/MELoop.h>
-#include <mesosim/StateHandler.h>
 #include <utils/iodevices/BinaryInputDevice.h>
 #endif
 
@@ -176,7 +171,7 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
     myLogExecutionTime = !oc.getBool("no-duration-log");
     myLogStepNumber = !oc.getBool("no-step-log");
     myTooManyVehicles = oc.getInt("max-num-vehicles");
-    myInserter = new MSInsertionControl(*vc, string2time(oc.getString("max-depart-delay")), oc.getBool("sloppy-insert"));
+    myInserter = new MSInsertionControl(*vc, string2time(oc.getString("max-depart-delay")), !oc.getBool("eager-insert"));
     myVehicleControl = vc;
     myDetectorControl = new MSDetectorControl();
     myEdges = 0;
@@ -244,10 +239,6 @@ MSNet::~MSNet() {
         delete myPersonControl;
     }
     delete myShapeContainer;
-#ifdef _MESSAGES
-    myMsgEmitter.clear();
-    msgEmitVec.clear();
-#endif
     delete myEdgeWeights;
     delete myRouterTTDijkstra;
     delete myRouterTTAStar;
@@ -269,6 +260,8 @@ MSNet::simulate(SUMOTime start, SUMOTime stop) {
     // the simulation loop
     MSNet::SimulationState state = SIMSTATE_RUNNING;
     myStep = start;
+    // preload the routes especially for TraCI
+    loadRoutes();
 #ifndef NO_TRACI
 #ifdef HAVE_PYTHON
     if (OptionsCont::getOptions().isSet("python-script")) {
@@ -303,6 +296,11 @@ MSNet::simulate(SUMOTime start, SUMOTime stop) {
     // exit simulation loop
     closeSimulation(start);
     return 0;
+}
+
+void 
+MSNet::loadRoutes() {
+    myRouteLoaders->loadNext(myStep);
 }
 
 
@@ -358,14 +356,12 @@ MSNet::simulationStep() {
     if (myLogExecutionTime) {
         mySimStepBegin = SysUtils::getCurrentMillis();
     }
-#ifdef HAVE_INTERNAL
-    // netstate output
+    // simulation state output
     std::vector<SUMOTime>::iterator timeIt = find(myStateDumpTimes.begin(), myStateDumpTimes.end(), myStep);
     if (timeIt != myStateDumpTimes.end()) {
-        const int dist = distance(myStateDumpTimes.begin(), timeIt);
-        StateHandler::saveState(myStateDumpFiles[dist], myStep);
+        const int dist = (int)distance(myStateDumpTimes.begin(), timeIt);
+        MSStateHandler::saveState(myStateDumpFiles[dist], myStep);
     }
-#endif
     myBeginOfTimestepEvents->execute(myStep);
     if (MSGlobals::gCheck4Accidents) {
         myEdges->detectCollisions(myStep, 0);
@@ -401,8 +397,7 @@ MSNet::simulationStep() {
 #ifdef HAVE_INTERNAL
     }
 #endif
-    // load routes
-    myRouteLoaders->loadNext(myStep);
+    loadRoutes();
 
     // persons
     if (myPersonControl != 0) {
@@ -742,35 +737,4 @@ MSNet::getRouterEffort(const std::vector<MSEdge*>& prohibited) const {
 }
 
 
-
-#ifdef _MESSAGES
-MSMessageEmitter*
-MSNet::getMsgEmitter(const std::string& whatemit) {
-    msgEmitVec.clear();
-    msgEmitVec = myMsgEmitter.buildAndGetStaticVector();
-    for (std::vector<MSMessageEmitter*>::iterator it = msgEmitVec.begin(); it != msgEmitVec.end(); ++it) {
-        if ((*it)->getEventsEnabled(whatemit)) {
-            return *it;
-        }
-    }
-    return 0;
-}
-
-
-void
-MSNet::createMsgEmitter(std::string& id,
-                        std::string& file,
-                        const std::string& base,
-                        std::string& whatemit,
-                        bool reverse,
-                        bool table,
-                        bool xy,
-                        SUMOReal step) {
-    MSMessageEmitter* msgEmitter = new MSMessageEmitter(file, base, whatemit, reverse, table, xy, step);
-    myMsgEmitter.add(id, msgEmitter);
-}
-#endif
-
-
 /****************************************************************************/
-

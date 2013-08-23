@@ -1,5 +1,5 @@
-SUMO dfrouter Version 0.17.0
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.sourceforge.net
+SUMO dfrouter Version dev-SVN-r14133
+ Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org
 Builds vehicle routes for SUMO using detector values.
 
 Usage: dfrouter [OPTION]*
@@ -65,6 +65,14 @@ Processing Options:
   --strict-sources                     
   --scale FLOAT                        Scale factor for flows
 
+Defaults Options:
+  --departlane STR                     Assigns a default depart lane
+  --departpos STR                      Assigns a default depart position
+  --departspeed STR                    Assigns a default depart speed
+  --arrivallane STR                    Assigns a default arrival lane
+  --arrivalpos STR                     Assigns a default arrival position
+  --arrivalspeed STR                   Assigns a default arrival speed
+
 Time Options:
   -b, --begin TIME                     Defines the begin time;
                                          Previous defs will be discarded
@@ -100,5 +108,5 @@ Examples:
   dfrouter -c <CONFIGURATION>
     run routing with options from file
 
-Report bugs at <http://sourceforge.net/apps/trac/sumo/>.
+Report bugs at <http://sumo-sim.org/trac/>.
 Get in contact via <sumo-user@lists.sourceforge.net>.

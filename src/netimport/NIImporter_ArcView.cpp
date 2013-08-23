@@ -10,7 +10,7 @@
 ///
 // Importer for networks stored in ArcView-shape format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -219,7 +219,7 @@ NIImporter_ArcView::load() {
         PositionVector shape;
         for (int j = 0; j < cgeom->getNumPoints(); j++) {
             Position pos((SUMOReal) cgeom->getX(j), (SUMOReal) cgeom->getY(j));
-            if (!NILoader::transformCoordinates(pos)) {
+            if (!NBNetBuilder::transformCoordinates(pos)) {
                 WRITE_WARNING("Unable to project coordinates for edge '" + id + "'.");
             }
             shape.push_back_noDoublePos(pos);

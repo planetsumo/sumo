@@ -13,7 +13,7 @@ This script reads a network and a dump file and
 
 matplotlib has to be installed for this purpose
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
@@ -296,7 +296,7 @@ class WeightsReader(handler.ContentHandler):
                     value1 = float(attrs[value1])
                     self._edge2no1[self._id] = self._edge2no1[self._id] + 1
                 else:
-                    value1 = float(value1)
+                    value1 = 0
                 self._edge2value1[self._id] = self._edge2value1[self._id] + value1
                 self._unaggEdge2value1[self._beginTime][self._id] = value1
                 value2 = self._value2
@@ -304,7 +304,7 @@ class WeightsReader(handler.ContentHandler):
                     value2 = float(attrs[value2])
                     self._edge2no2[self._id] = self._edge2no2[self._id] + 1
                 else:
-                    value2 = float(value2)
+                    value2 = 0
                 self._edge2value2[self._id] = self._edge2value2[self._id] + value2
                 self._unaggEdge2value2[self._beginTime][self._id] = value2
 

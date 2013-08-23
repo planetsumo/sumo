@@ -8,7 +8,7 @@
 ///
 // Class describing the thread that performs the loading of a simulation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -130,7 +130,7 @@ GUILoadThread::run() {
     RandHelper::initRandGlobal();
     RandHelper::initRandGlobal(&MSVehicleControl::myVehicleParamsRNG);
     MSFrame::setMSGlobals(oc);
-    gAllowTextures = !oc.getBool("disable-textures");
+    GUITexturesHelper::allowTextures(!oc.getBool("disable-textures"));
     MSVehicleControl* vehControl = 0;
 #ifdef HAVE_INTERNAL
     GUIVisualizationSettings::UseMesoSim = MSGlobals::gUseMesoSim;

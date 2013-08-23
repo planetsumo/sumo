@@ -8,7 +8,7 @@
 ///
 // -------------------
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -174,6 +174,12 @@ inline std::string joinToString(const std::set<T>& s, const T_BETWEEN& between, 
     }
     return oss.str();
 }
+
+template <>
+inline std::string toString(const std::set<std::string>& v, std::streamsize accuracy) {
+    return joinToString(v, " ", accuracy);
+}
+
 
 #endif
 

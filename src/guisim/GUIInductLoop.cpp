@@ -8,7 +8,7 @@
 ///
 // The gui-version of the MSInductLoop, together with the according
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -32,7 +32,6 @@
 
 #include <utils/gui/globjects/GUIGlObject.h>
 #include <utils/geom/PositionVector.h>
-#include "GUILaneWrapper.h"
 #include "GUIInductLoop.h"
 #include <utils/gui/div/GLHelper.h>
 #include <utils/geom/Line.h>
@@ -65,7 +64,7 @@ GUIInductLoop::~GUIInductLoop() {}
 
 GUIDetectorWrapper*
 GUIInductLoop::buildDetectorGUIRepresentation() {
-    return new MyWrapper(*this, static_cast<GUIEdge&>(getLane()->getEdge()).getLaneGeometry(getLane()), myPosition);
+    return new MyWrapper(*this, myPosition);
 }
 
 
@@ -105,16 +104,13 @@ GUIInductLoop::collectVehiclesOnDet(SUMOTime t) const {
 /* -------------------------------------------------------------------------
  * GUIInductLoop::MyWrapper-methods
  * ----------------------------------------------------------------------- */
-GUIInductLoop::MyWrapper::MyWrapper(GUIInductLoop& detector,
-                                    GUILaneWrapper& wrapper, SUMOReal pos)
+GUIInductLoop::MyWrapper::MyWrapper(GUIInductLoop& detector, SUMOReal pos)
     : GUIDetectorWrapper("induct loop", detector.getID()),
       myDetector(detector), myPosition(pos) {
-    const PositionVector& v = wrapper.getShape();
-    myFGPosition = v.positionAtOffset(pos);
-    Line l(v.front(), v.back());
+    myFGPosition = detector.getLane()->geometryPositionAtOffset(pos);
     myBoundary.add(myFGPosition.x() + (SUMOReal) 5.5, myFGPosition.y() + (SUMOReal) 5.5);
     myBoundary.add(myFGPosition.x() - (SUMOReal) 5.5, myFGPosition.y() - (SUMOReal) 5.5);
-    myFGRotation = -v.rotationDegreeAtOffset(pos);
+    myFGRotation = -detector.getLane()->getShape().rotationDegreeAtOffset(pos);
 }
 
 

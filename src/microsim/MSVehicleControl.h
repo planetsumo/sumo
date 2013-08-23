@@ -8,7 +8,7 @@
 ///
 // The class responsible for building and deletion of vehicles
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -367,9 +367,8 @@ public:
     void setState(int runningVehNo, int endedVehNo, SUMOReal totalDepartureDelay, SUMOReal totalTravelTime);
 
     /** @brief Saves the current state into the given stream
-     * @todo Does not work for microsim
      */
-    virtual void saveState(OutputDevice& out);
+    void saveState(OutputDevice& out);
     /// @}
 
 
@@ -391,7 +390,6 @@ private:
      * @return Whether the type (distribution) may be added
      */
     bool checkVType(const std::string& id);
-
 
 protected:
     /// @name Vehicle statistics (always accessable)

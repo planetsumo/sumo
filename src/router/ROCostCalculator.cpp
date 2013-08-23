@@ -7,7 +7,7 @@
 ///
 // Calculators for route costs and probabilities
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -241,7 +241,7 @@ ROLogitCalculator::getThetaForCLogit(const std::vector<RORoute*> alternatives) c
     const SUMOReal cvCost = sqrt(diff / SUMOReal(alternatives.size())) / meanCost;
     // @todo re-evaluate function
 //    if (cvCost > 0.04) { // Magic numbers from Lohse book
-    return PI / (sqrt(6.) * cvCost * (min + 1.1)) / 3600.;
+    return M_PI / (sqrt(6.) * cvCost * (min + 1.1)) / 3600.;
 //    }
 //    return 1./3600.;
 }

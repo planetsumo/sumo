@@ -1,5 +1,5 @@
-SUMO netconvert Version dev-SVN-rUNKNOWN
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.sourceforge.net
+SUMO netconvert Version dev-SVN-r14341
+ Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org
 Road network importer / builder for the road traffic simulation SUMO.
 
 Usage: netconvert [OPTION]*
@@ -115,6 +115,11 @@ Edge Removal Options:
                                         CARTESIAN corner coordinates
                                         <xmin,ymin,xmax,ymax> or as polygon
                                         <x0,y0,x1,y1,...>)
+  --keep-edges.in-geo-boundary STR    Only keep edges which are located within
+                                        the given boundary (given either as
+                                        GEODETIC corner coordinates
+                                        <lon-min,lat-min,lon-max,lat-max> or as
+                                        polygon <lon0,lat0,lon1,lat1,...>)
   --keep-edges.by-vclass STR          Only keep edges which allow one of the
                                         vclasss in STR
   --remove-edges.by-vclass STR        Remove edges which allow only vclasses
@@ -132,6 +137,7 @@ Processing Options:
   --ignore-errors                     Continue on broken input
   --ignore-errors.connections         Continue on invalid connections
   --show-errors.connections-first-try  Show errors in connections at parsing
+  --ignore-errors.edge-type           Continue on unknown edge types
   --lanes-from-capacity.norm FLOAT    The factor for flow to no. lanes
                                         conversion.
   --speed-in-kmh                      vmax is parsed as given in km/h (some)
@@ -165,6 +171,8 @@ Processing Options:
                                         due to VISUM misbehaviour
   --osm.skip-duplicates-check         Skips the check for duplicate nodes and
                                         edges.
+  --osm.railway.oneway-default        Imports railway edges as one-way by
+                                        default
   --opendrive.import-all-lanes        Imports all lane types.
   --opendrive.import-widths           Whether lane widths shall be imported.
   --no-internal-links                 Omits internal links
@@ -181,6 +189,14 @@ Processing Options:
   --geometry.max-segment-length FLOAT  splits geometry to restrict segment
                                         length
   --geometry.min-dist FLOAT           reduces too similar geometry points
+  --geometry.max-angle FLOAT          Warn about edge geometries with an angle
+                                        above DEGREES in successive segments
+  --geometry.min-radius FLOAT         Warn about edge geometries with a turning
+                                        radius less than METERS at the start or
+                                        end
+  --geometry.min-radius.fix           Straighten edge geometries to avoid
+                                        turning radii less than
+                                        geometry.min-radius
   --offset.disable-normalization      Turn off normalizing node positions
   --offset.x FLOAT                    Adds FLOAT to net x-positions
   --offset.y FLOAT                    Adds FLOAT to net y-positions
@@ -196,6 +212,12 @@ Processing Options:
   --speed.offset FLOAT                Modifies all edge speeds by adding FLOAT
   --speed.factor FLOAT                Modifies all edge speeds by multiplying
                                         FLOAT
+  --check-lane-foes.roundabout        Allow driving onto a multi-lane road if
+                                        there are foes on other lanes (at
+                                        roundabouts)
+  --check-lane-foes.all               Allow driving onto a multi-lane road if
+                                        there are foes on other lanes
+                                        (everywhere)
   --tls.join-dist FLOAT               Determines the maximal distance for
                                         joining traffic lights (defaults to 20)
 
@@ -230,5 +252,5 @@ Examples:
   netconvert -n ./nodes.xml -e ./edges.xml -v -t ./owntypes.xml
     generate net with given nodes, edges, and edge types doing verbose output
 
-Report bugs at <http://sourceforge.net/apps/trac/sumo/>.
+Report bugs at <http://sumo-sim.org/trac/>.
 Get in contact via <sumo-user@lists.sourceforge.net>.

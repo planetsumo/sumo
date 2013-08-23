@@ -9,7 +9,7 @@
 ///
 // Parser and container for routes during their loading
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -91,7 +91,6 @@ MSRouteHandler::myStartElement(int element,
             const std::string pid = myVehicleParameter->id;
             bool ok = true;
             MSEdge* from = 0;
-            SUMOReal departPos = 0;
             const std::string desc = attrs.get<std::string>(SUMO_ATTR_LINES, pid.c_str(), ok);
             StringTokenizer st(desc);
             std::string bsID = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
@@ -101,7 +100,6 @@ MSRouteHandler::myStartElement(int element,
                 if (bs == 0) {
                     throw ProcessError("Unknown bus stop '" + bsID + "' for person '" + myVehicleParameter->id + "'.");
                 }
-                departPos = bs->getBeginLanePosition();
             }
             if (attrs.hasAttribute(SUMO_ATTR_FROM)) {
                 const std::string fromID = attrs.get<std::string>(SUMO_ATTR_FROM, pid.c_str(), ok);
@@ -215,7 +213,7 @@ MSRouteHandler::myStartElement(int element,
             break;
     }
     // parse embedded vtype information
-    if (myCurrentVType != 0 && element != SUMO_TAG_VTYPE) {
+    if (myCurrentVType != 0 && element != SUMO_TAG_VTYPE && element != SUMO_TAG_PARAM) {
         SUMOVehicleParserHelper::parseVTypeEmbedded(*myCurrentVType, element, attrs);
         return;
     }
@@ -308,13 +306,9 @@ MSRouteHandler::myEndElement(int element) {
             if (!MSNet::getInstance()->getVehicleControl().addVType(vehType)) {
                 const std::string id = vehType->getID();
                 delete vehType;
-#ifdef HAVE_INTERNAL
                 if (!MSGlobals::gStateLoaded) {
-#endif
                     throw ProcessError("Another vehicle type (or distribution) with the id '" + id + "' exists.");
-#ifdef HAVE_INTERNAL
                 }
-#endif
             } else {
                 if (myCurrentVTypeDistribution != 0) {
                     myCurrentVTypeDistribution->add(vehType->getDefaultProbability(), vehType);
@@ -351,9 +345,7 @@ MSRouteHandler::closeRoute(const bool /* mayBeDisconnected */) {
     myActiveRoute.clear();
     if (!MSRoute::dictionary(myActiveRouteID, route)) {
         delete route;
-#ifdef HAVE_INTERNAL
         if (!MSGlobals::gStateLoaded) {
-#endif
             if (myVehicleParameter != 0) {
                 if (MSNet::getInstance()->getVehicleControl().getVehicle(myVehicleParameter->id) == 0) {
                     throw ProcessError("Another route for vehicle '" + myVehicleParameter->id + "' exists.");
@@ -363,9 +355,7 @@ MSRouteHandler::closeRoute(const bool /* mayBeDisconnected */) {
             } else {
                 throw ProcessError("Another route (or distribution) with the id '" + myActiveRouteID + "' exists.");
             }
-#ifdef HAVE_INTERNAL
         }
-#endif
     } else {
         if (myCurrentRouteDistribution != 0) {
             myCurrentRouteDistribution->add(myActiveRouteProbability, route);
@@ -498,18 +488,14 @@ MSRouteHandler::closeVehicle() {
         }
     } else {
         // strange: another vehicle with the same id already exists
-#ifdef HAVE_INTERNAL
         if (!MSGlobals::gStateLoaded) {
-#endif
             // and was not loaded while loading a simulation state
             // -> error
             throw ProcessError("Another vehicle with the id '" + myVehicleParameter->id + "' exists.");
-#ifdef HAVE_INTERNAL
         } else {
             // ok, it seems to be loaded previously while loading a simulation state
             vehicle = 0;
         }
-#endif
     }
     // check whether the vehicle shall be added directly to the network or
     //  shall stay in the internal buffer
@@ -662,6 +648,13 @@ MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         WRITE_ERROR("Invalid bool for 'triggered' or 'parking' for stop on lane '" + stop.lane + "'" + errorSuffix);
         return;
     }
+
+    // expected persons
+    std::string expectedStr = attrs.getOpt<std::string>(SUMO_ATTR_EXPECTED, 0, ok, "");
+    std::set<std::string> personIDs;
+    SUMOSAXAttributes::parseStringSet(expectedStr, personIDs);
+    stop.awaitedPersons = personIDs;
+
     const std::string idx = attrs.getOpt<std::string>(SUMO_ATTR_INDEX, 0, ok, "end");
     if (idx == "end") {
         stop.index = STOP_INDEX_END;

@@ -10,7 +10,7 @@
 ///
 // A road/street connecting two junctions
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -298,7 +298,7 @@ public:
     /** @brief Computes and returns the current travel time for this edge
      *
      * The mean speed of all lanes is used to compute the travel time.
-     * To avoid inifinte travel times, the given minimum speed is used.
+     * To avoid infinite travel times, the given minimum speed is used.
      *
      * @param[in] minSpeed The minimumSpeed to assume if traffic on this edge is stopped
      * @return The current effort (travel time) to pass the edge

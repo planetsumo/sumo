@@ -9,7 +9,7 @@
 ///
 // Storage for edges, including some functionality operating on multiple edges
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -40,6 +40,7 @@
 #include <iomanip>
 #include <utils/geom/Boundary.h>
 #include <utils/geom/GeomHelper.h>
+#include <utils/geom/GeoConvHelper.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/ToString.h>
 #include <utils/common/TplConvert.h>
@@ -113,8 +114,9 @@ NBEdgeCont::applyOptions(OptionsCont& oc) {
         myTypes2Remove.insert(types.begin(), types.end());
     }
 
-    if (oc.isSet("keep-edges.in-boundary")) {
-        std::vector<std::string> polyS = oc.getStringVector("keep-edges.in-boundary");
+    if (oc.isSet("keep-edges.in-boundary") || oc.isSet("keep-edges.in-geo-boundary")) {
+        std::vector<std::string> polyS = oc.getStringVector(oc.isSet("keep-edges.in-boundary") ?
+                "keep-edges.in-boundary" : "keep-edges.in-geo-boundary");
         // !!! throw something if length<4 || length%2!=0?
         std::vector<SUMOReal> poly;
         for (std::vector<std::string>::iterator i = polyS.begin(); i != polyS.end(); ++i) {
@@ -136,6 +138,9 @@ NBEdgeCont::applyOptions(OptionsCont& oc) {
                 SUMOReal y = *j++;
                 myPrunningBoundary.push_back(Position(x, y));
             }
+        }
+        if (oc.isSet("keep-edges.in-geo-boundary")) {
+            NBNetBuilder::transformCoordinates(myPrunningBoundary, false);
         }
     }
 }
@@ -511,6 +516,16 @@ NBEdgeCont::reduceGeometries(const SUMOReal minDist) {
 }
 
 
+void
+NBEdgeCont::checkGeometries(const SUMOReal maxAngle, const SUMOReal minRadius, bool fix) {
+    if (maxAngle > 0 || minRadius > 0) {
+        for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
+            (*i).second->checkGeometry(maxAngle, minRadius, fix);
+        }
+    }
+}
+
+
 // ----- processing methods
 void
 NBEdgeCont::clearControllingTLInformation() const {
@@ -874,13 +889,24 @@ NBEdgeCont::generateStreetSigns() {
         //continue
         const SUMOReal offset = e->getLength() - 3;
         switch (e->getToNode()->getType()) {
-            case NODETYPE_PRIORITY_JUNCTION:
+            case NODETYPE_PRIORITY:
                 // yield or major?
                 if (e->getJunctionPriority(e->getToNode()) > 0) {
                     e->addSign(NBSign(NBSign::SIGN_TYPE_PRIORITY, offset));
                 } else {
                     e->addSign(NBSign(NBSign::SIGN_TYPE_YIELD, offset));
                 }
+                break;
+            case NODETYPE_PRIORITY_STOP:
+                // yield or major?
+                if (e->getJunctionPriority(e->getToNode()) > 0) {
+                    e->addSign(NBSign(NBSign::SIGN_TYPE_PRIORITY, offset));
+                } else {
+                    e->addSign(NBSign(NBSign::SIGN_TYPE_STOP, offset));
+                }
+                break;
+            case NODETYPE_ALLWAY_STOP:
+                e->addSign(NBSign(NBSign::SIGN_TYPE_ALLWAY_STOP, offset));
                 break;
             case NODETYPE_RIGHT_BEFORE_LEFT:
                 e->addSign(NBSign(NBSign::SIGN_TYPE_RIGHT_BEFORE_LEFT, offset));

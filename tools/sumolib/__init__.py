@@ -7,11 +7,11 @@
 
 Python interface to SUMO especially for parsing xml input and output files.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
-import net, shapes, output
+import net, shapes, output, files
 
 import os, subprocess
 from xml.sax import parseString, handler

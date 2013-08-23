@@ -9,7 +9,7 @@
 ///
 // A storage for options (typed value containers)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -71,7 +71,7 @@ OptionsCont::getOptions() {
 
 OptionsCont::OptionsCont()
     : myAddresses(), myValues(), myDeprecatedSynonymes(), myHaveInformedAboutDeprecatedDivider(false) {
-    myCopyrightNotices.push_back("Copyright (C) 2001-2013 DLR and contributors; http://sumo.sourceforge.net");
+    myCopyrightNotices.push_back("Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org");
 }
 
 
@@ -713,7 +713,7 @@ OptionsCont::printHelp(std::ostream& os) {
         }
     }
     os << std::endl;
-    os << "Report bugs at <http://sourceforge.net/apps/trac/sumo/>." << std::endl;
+    os << "Report bugs at <http://sumo-sim.org/trac/>." << std::endl;
     os << "Get in contact via <sumo-user@lists.sourceforge.net>." << std::endl;
 }
 

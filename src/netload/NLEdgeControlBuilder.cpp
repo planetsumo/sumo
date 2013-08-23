@@ -8,7 +8,7 @@
 ///
 // Interface for building edges
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -86,17 +86,7 @@ NLEdgeControlBuilder::addLane(const std::string& id,
                               SUMOReal maxSpeed, SUMOReal length,
                               const PositionVector& shape, SUMOReal width,
                               SVCPermissions permissions) {
-    MSLane* lane = 0;
-    switch (myActiveEdge->getPurpose()) {
-        case MSEdge::EDGEFUNCTION_INTERNAL:
-        case MSEdge::EDGEFUNCTION_NORMAL:
-        case MSEdge::EDGEFUNCTION_CONNECTOR:
-            lane = new MSLane(id, maxSpeed, length, myActiveEdge,
-                              myCurrentNumericalLaneID++, shape, width, permissions);
-            break;
-        default:
-            throw InvalidArgument("Unrecognised edge type.");
-    }
+    MSLane* lane = new MSLane(id, maxSpeed, length, myActiveEdge, myCurrentNumericalLaneID++, shape, width, permissions);
     myLaneStorage->push_back(lane);
     return lane;
 }
@@ -129,9 +119,6 @@ NLEdgeControlBuilder::build() {
 
 MSEdge*
 NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, const std::string& streetName) {
-    if (function == MSEdge::EDGEFUNCTION_INTERNAL) {
-        return new MSEdge(id, -1, function, streetName);
-    }
     return new MSEdge(id, myCurrentNumericalEdgeID++, function, streetName);
 }
 

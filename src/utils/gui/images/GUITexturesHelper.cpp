@@ -7,7 +7,7 @@
 ///
 // Global storage for textures; manages and draws them
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -47,13 +47,21 @@
 // ===========================================================================
 // definition of static variables
 // ===========================================================================
-bool gAllowTextures;
 std::map<std::string, int> GUITexturesHelper::myTextures;
+bool GUITexturesHelper::myAllowTextures = true;
 
 
 // ===========================================================================
 // method definitions
 // ===========================================================================
+int
+GUITexturesHelper::getMaxTextureSize() {
+    int max;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+    return max;
+}
+
+
 GUIGlID
 GUITexturesHelper::add(FXImage* i) {
     GUIGlID id;
@@ -81,7 +89,7 @@ void
 GUITexturesHelper::drawTexturedBox(unsigned int which,
                                    SUMOReal sizeX1, SUMOReal sizeY1,
                                    SUMOReal sizeX2, SUMOReal sizeY2) {
-    if (!gAllowTextures) {
+    if (!myAllowTextures) {
         return;
     }
     glEnable(GL_TEXTURE_2D);
@@ -112,19 +120,12 @@ GUITexturesHelper::drawTexturedBox(unsigned int which,
 }
 
 
-
-void
-GUITexturesHelper::clearTextures() {
-    myTextures.clear();
-}
-
-
 int
 GUITexturesHelper::getTextureID(const std::string& filename) {
     if (myTextures.count(filename) == 0) {
         try {
             FXImage* i = MFXImageHelper::loadImage(GUIMainWindow::getInstance()->getApp(), filename);
-            if (MFXImageHelper::scalePower2(i)) {
+            if (MFXImageHelper::scalePower2(i, getMaxTextureSize())) {
                 WRITE_WARNING("Scaling '" + filename + "'.");
             }
             GUIGlID id = add(i);
@@ -136,6 +137,12 @@ GUITexturesHelper::getTextureID(const std::string& filename) {
         }
     }
     return myTextures[filename];
+}
+
+
+void
+GUITexturesHelper::clearTextures() {
+    myTextures.clear();
 }
 
 /****************************************************************************/

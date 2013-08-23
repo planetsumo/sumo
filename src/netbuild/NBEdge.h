@@ -8,7 +8,7 @@
 ///
 // The representation of a single edge during network building
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -36,7 +36,6 @@
 #include <vector>
 #include <string>
 #include <set>
-#include "NBCont.h"
 #include <utils/common/Named.h>
 #include <utils/common/Parameterised.h>
 #include <utils/common/UtilExceptions.h>
@@ -46,6 +45,7 @@
 #include <utils/geom/Line.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
+#include "NBCont.h"
 #include "NBHelpers.h"
 #include "NBSign.h"
 
@@ -138,8 +138,7 @@ public:
         SUMOReal width;
         /// @brief An original ID, if given (@todo: is only seldom used, should be stored somewhere else, probably)
         std::string origID;
-        /// @brief The lateral offset; computed
-        SUMOReal _latOffset;
+
     };
 
 
@@ -199,7 +198,8 @@ public:
     static const SUMOReal UNSPECIFIED_OFFSET;
     /// @brief no length override given
     static const SUMOReal UNSPECIFIED_LOADED_LENGTH;
-
+    /// @brief the distance at which to take the default anglen
+    static const SUMOReal ANGLE_LOOKAHEAD;
 
 public:
     /** @brief Constructor
@@ -359,17 +359,32 @@ public:
     }
 
 
-    /** @brief Returns the angle of the edge
-     *
-     * The angle is computed within the constructor using NBHelpers::angle
-     *
-     * @return This edge's angle
-     * @see NBHelpers::angle
+    /** @brief Returns the angle at the start of the edge
+     * The angle is computed in computeAngle()
+     * @return This edge's start angle
      */
-    SUMOReal getAngle() const {
-        return myAngle;
+    inline SUMOReal getStartAngle() const {
+        return myStartAngle;
     }
 
+
+    /** @brief Returns the angle at the end of the edge
+     * The angle is computed in computeAngle()
+     * @return This edge's end angle
+     */
+    inline SUMOReal getEndAngle() const {
+        return myEndAngle;
+    }
+
+
+    /// @brief get the angle as measure from the start to the end of this edge
+    /** @brief Returns the angle at the start of the edge
+     * The angle is computed in computeAngle()
+     * @return This edge's angle
+     */
+    inline SUMOReal getTotalAngle() const {
+        return myTotalAngle;
+    }
 
     /** @brief Returns the computed length of the edge
      * @return The edge's computed length
@@ -414,12 +429,17 @@ public:
     }
 
 
-    /** @brief Returns the width of lanes of this edge
+    /** @brief Returns the default width of lanes of this edge
      * @return The width of lanes of this edge
      */
     SUMOReal getLaneWidth() const {
         return myLaneWidth;
     }
+
+    /** @brief Returns the width of the lane of this edge
+     * @return The width of the lane of this edge
+     */
+    SUMOReal getLaneWidth(int lane) const;
 
 
     /** @brief Returns the street name of this edge
@@ -440,6 +460,11 @@ public:
     SUMOReal getOffset() const {
         return myOffset;
     }
+
+    /** @brief Returns the offset to the destination node a the specified lane
+     * @return The offset to the destination node
+     */
+    SUMOReal getOffset(int lane) const;
 
 
     /** @brief Returns the type name
@@ -559,6 +584,14 @@ public:
      * @param[in] minDist The minimum distance between two position to keep the second
      */
     void reduceGeometry(const SUMOReal minDist);
+
+
+    /** @brief Check the angles of successive geometry segments
+     * @param[in] maxAngle The maximum angle allowed
+     * @param[in] minRadius The minimum turning radius allowed at the start and end
+     * @param[in] fix Whether to prune geometry points to avoid sharp turns at start and end
+     */
+    void checkGeometry(const SUMOReal maxAngle, const SUMOReal minRadius, bool fix);
     //@}
 
 
@@ -940,9 +973,6 @@ public:
     /// @brief set lane specific width (negative lane implies set for all lanes)
     void setLaneWidth(int lane, SUMOReal width);
 
-    /// @brief
-    SUMOReal getLaneWidth(int lane) const;
-
     /// @brief set lane specific end-offset (negative lane implies set for all lanes)
     void setOffset(int lane, SUMOReal offset);
 
@@ -1122,6 +1152,9 @@ private:
      */
     PositionVector startShapeAt(const PositionVector& laneShape, const NBNode* startNode) const;
 
+    /// @brief computes the angle of this edge and stores it in myAngle
+    void computeAngle();
+
 private:
     /** @brief The building step
      * @see EdgeBuildingStep
@@ -1137,8 +1170,10 @@ private:
     /// @brief The length of the edge
     SUMOReal myLength;
 
-    /// @brief The angle of the edge
-    SUMOReal myAngle;
+    /// @brief The angles of the edge
+    SUMOReal myStartAngle;
+    SUMOReal myEndAngle;
+    SUMOReal myTotalAngle;
 
     /// @brief The priority of the edge
     int myPriority;
@@ -1352,29 +1387,15 @@ public:
     class connections_relative_edgelane_sorter {
     public:
         /// constructor
-        explicit connections_relative_edgelane_sorter(NBEdge* e, NBNode* n)
-            : myEdge(e), myNode(n) {}
+        explicit connections_relative_edgelane_sorter(NBEdge* e) : myEdge(e) {}
 
     public:
         /// comparing operation
-        int operator()(const Connection& c1, const Connection& c2) const {
-            if (c1.toEdge != c2.toEdge) {
-                SUMOReal relAngle1 = NBHelpers::normRelAngle(
-                                         myEdge->getAngle(), c1.toEdge->getAngle());
-                SUMOReal relAngle2 = NBHelpers::normRelAngle(
-                                         myEdge->getAngle(), c2.toEdge->getAngle());
-                return relAngle1 > relAngle2;
-            }
-            return c1.toLane < c2.toLane;
-        }
+        int operator()(const Connection& c1, const Connection& c2) const;
 
     private:
         /// the edge to compute the relative angle of
         NBEdge* myEdge;
-
-        /// the node to use
-        NBNode* myNode;
-
     };
 
 private:

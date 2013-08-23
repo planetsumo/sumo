@@ -10,7 +10,7 @@
 ///
 // APIs for getting/setting vehicle values via TraCI
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -334,7 +334,8 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
             }
             break;
 			case VAR_STOPSTATE:{
-					char b = (v->isStopped() ? 1 : 0 +
+					char b = (
+                            1 * (v->isStopped() ? 1 : 0) +
                             2 * (v->isParking() ? 1 : 0) +
                             4 * (v->isStoppedTriggered() ? 1 : 0));
 					tempMsg.writeUnsignedByte(TYPE_UBYTE);
@@ -544,7 +545,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             MSNet::getInstance()->getRouterTT().compute(
                 currentEdge, destEdge, (const MSVehicle * const) v, MSNet::getInstance()->getCurrentTimeStep(), newRoute);
             // replace the vehicle's route by the new one
-            if (!v->replaceRouteEdges(newRoute)) {
+            if (!v->replaceRouteEdges(newRoute, v->getLane() == 0)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Route replacement failed for " + v->getID(), outputStorage);
             }
         }
@@ -558,7 +559,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             if (r == 0) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The route '" + rid + "' is not known.", outputStorage);
             }
-            if (!v->replaceRoute(r)) {
+            if (!v->replaceRoute(r, v->getLane() == 0)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Route replacement failed for " + v->getID(), outputStorage);
             }
         }
@@ -570,7 +571,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             }
             std::vector<const MSEdge*> edges;
             MSEdge::parseEdgesList(edgeIDs, edges, "<unknown>");
-            if (!v->replaceRouteEdges(edges)) {
+            if (!v->replaceRouteEdges(edges, v->getLane() == 0)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Route replacement failed for " + v->getID(), outputStorage);
             }
         }
@@ -941,7 +942,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 default:
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Unknown removal status.", outputStorage);
             }
-            if(v->hasDeparted()) {
+            if (v->hasDeparted()) {
                 v->onRemovalFromNet(n);
                 if(v->getLane()!=0) {
                     v->getLane()->removeVehicle(v, n);

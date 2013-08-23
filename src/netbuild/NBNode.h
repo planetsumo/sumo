@@ -9,7 +9,7 @@
 ///
 // The representation of a single node
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -167,6 +167,10 @@ public:
     }
 
 
+    /** @brief Returns a position that is guaranteed to lie within the node shape */
+    Position getCenter() const;
+
+
     /** @brief Returns this node's incoming edges
      * @return The edges which yield in this node
      */
@@ -238,6 +242,10 @@ public:
     const std::set<NBTrafficLightDefinition*>& getControllingTLS() const {
         return myTrafficLights;
     }
+
+
+    /// @brief causes the traffic light to be computed anew
+    void invalidateTLS(NBTrafficLightLogicCont& tlCont);
     /// @}
 
 
@@ -288,7 +296,7 @@ public:
 
     /** writes the XML-representation of the logic as a bitset-logic
         XML representation */
-    bool writeLogic(OutputDevice& into) const;
+    bool writeLogic(OutputDevice& into, const bool checkLaneFoes) const;
 
     /** @brief Returns something like the most unused direction
         Should only be used to add source or sink nodes */

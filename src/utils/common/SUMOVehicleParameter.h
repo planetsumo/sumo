@@ -9,7 +9,7 @@
 ///
 // Structure representing possible vehicle parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -37,6 +37,7 @@
 #include "SUMOVehicleClass.h"
 #include "RGBColor.h"
 #include "SUMOTime.h"
+#include <utils/common/Parameterised.h>
 
 
 // ===========================================================================
@@ -73,6 +74,7 @@ const int STOP_END_SET = 1;
 const int STOP_START_SET = 2;
 const int STOP_TRIGGER_SET = 2 << 1;
 const int STOP_PARKING_SET = 2 << 2;
+const int STOP_EXPECTED_SET = 2 << 3;
 
 
 // ===========================================================================
@@ -225,7 +227,7 @@ enum ArrivalSpeedDefinition {
  * @see DepartPosDefinition
  * @see DepartSpeedDefinition
  */
-class SUMOVehicleParameter {
+class SUMOVehicleParameter : public Parameterised {
 public:
     /** @brief Constructor
      *
@@ -456,6 +458,8 @@ public:
         bool triggered;
         /// @brief whether the vehicle is removed from the net while stopping
         bool parking;
+        /// @brief IDs of persons the vehicle has to wait for until departing
+        std::set<std::string> awaitedPersons;
         /// @brief at which position in the stops list
         int index;
         /// @brief Information for the output which parameter were set

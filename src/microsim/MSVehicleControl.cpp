@@ -8,7 +8,7 @@
 ///
 // The class responsible for building and deletion of vehicles
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -164,7 +164,22 @@ MSVehicleControl::setState(int runningVehNo, int endedVehNo, SUMOReal totalDepar
 
 
 void
-MSVehicleControl::saveState(OutputDevice& /*out*/) {
+MSVehicleControl::saveState(OutputDevice& out) {
+    out.openTag(SUMO_TAG_DELAY).writeAttr(SUMO_ATTR_NUMBER, myRunningVehNo).writeAttr(SUMO_ATTR_END, myEndedVehNo);
+    out.writeAttr(SUMO_ATTR_DEPART, myTotalDepartureDelay).writeAttr(SUMO_ATTR_TIME, myTotalTravelTime).closeTag();
+    // save vehicle types
+    for (VTypeDictType::iterator it = myVTypeDict.begin(); it != myVTypeDict.end(); ++it) {
+        it->second->getParameter().write(out);
+    }
+    for (VTypeDistDictType::iterator it = myVTypeDistDict.begin(); it != myVTypeDistDict.end(); ++it) {
+        out.openTag(SUMO_TAG_VTYPE_DISTRIBUTION).writeAttr(SUMO_ATTR_ID, it->first);
+        out.writeAttr(SUMO_ATTR_VTYPES, (*it).second->getVals());
+        out.writeAttr(SUMO_ATTR_PROBS, (*it).second->getProbs());
+        out.closeTag();
+    }
+    for (VehicleDictType::iterator it = myVehicleDict.begin(); it != myVehicleDict.end(); ++it) {
+        (*it).second->saveState(out);
+    }
 }
 
 

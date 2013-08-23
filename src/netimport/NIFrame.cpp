@@ -8,7 +8,7 @@
 ///
 // Sets and checks options for netimport
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -146,6 +146,9 @@ NIFrame::fillOptions() {
     oc.doRegister("show-errors.connections-first-try", new Option_Bool(false));
     oc.addDescription("show-errors.connections-first-try", "Processing", "Show errors in connections at parsing");
 
+    oc.doRegister("ignore-errors.edge-type", new Option_Bool(false));
+    oc.addDescription("ignore-errors.edge-type", "Processing", "Continue on unknown edge types");
+
     oc.doRegister("lanes-from-capacity.norm", new Option_Float((SUMOReal) 1800));
     oc.addSynonyme("lanes-from-capacity.norm", "capacity-norm");
     oc.addDescription("lanes-from-capacity.norm", "Processing", "The factor for flow to no. lanes conversion.");
@@ -246,6 +249,9 @@ NIFrame::fillOptions() {
     // register osm options
     oc.doRegister("osm.skip-duplicates-check", new Option_Bool(false));
     oc.addDescription("osm.skip-duplicates-check", "Processing", "Skips the check for duplicate nodes and edges.");
+
+    oc.doRegister("osm.railway.oneway-default", new Option_Bool(true));
+    oc.addDescription("osm.railway.oneway-default", "Processing", "Imports railway edges as one-way by default");
 
 
     // register opendrive options

@@ -8,7 +8,7 @@
 ///
 // static methods for processing the coordinates conversion for the current net
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -228,7 +228,9 @@ GeoConvHelper::cartesian2geo(Position& cartesian) const {
 
 bool
 GeoConvHelper::x2cartesian(Position& from, bool includeInBoundary) {
-    myOrigBoundary.add(from);
+    if (includeInBoundary) {
+        myOrigBoundary.add(from);
+    }
     // init projection parameter on first use
 #ifdef HAVE_PROJ
     if (myProjection == 0) {
@@ -296,7 +298,7 @@ GeoConvHelper::x2cartesian_const(Position& from) const {
 #endif
         if (myProjectionMethod == SIMPLE) {
             double ys = y;
-            x *= 111320. * cos(ys * PI / 180.0);
+            x *= 111320. * cos(DEG2RAD(ys));
             y *= 111136.;
             from.set((SUMOReal)x, (SUMOReal)y);
             //!!! recheck whether the axes are mirrored

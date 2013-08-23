@@ -9,7 +9,7 @@
 ///
 // A vehicle route
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -41,6 +41,7 @@
 #include <utils/common/RandomDistributor.h>
 #include <utils/common/RGBColor.h>
 #include <utils/common/SUMOVehicleParameter.h>
+#include <utils/common/Parameterised.h>
 
 
 // ===========================================================================
@@ -51,6 +52,9 @@ class BinaryInputDevice;
 class OutputDevice;
 
 
+// ===========================================================================
+// types definitions
+// ===========================================================================
 typedef std::vector<const MSEdge*> MSEdgeVector;
 typedef MSEdgeVector::const_iterator MSRouteIterator;
 
@@ -61,7 +65,7 @@ typedef MSEdgeVector::const_iterator MSRouteIterator;
 /**
  * @class MSRoute
  */
-class MSRoute : public Named {
+class MSRoute : public Named, public Parameterised {
 public:
     /// Constructor
     MSRoute(const std::string& id, const MSEdgeVector& edges,
@@ -105,7 +109,6 @@ public:
 
     const MSEdge* operator[](unsigned index) const;
 
-#ifdef HAVE_INTERNAL
     /// @name State I/O (mesosim only)
     /// @{
 
@@ -115,7 +118,6 @@ public:
      */
     static void dict_saveState(OutputDevice& out);
     /// @}
-#endif
 
     const MSEdgeVector& getEdges() const {
         return myEdges;

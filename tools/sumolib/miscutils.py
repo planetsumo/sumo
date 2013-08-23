@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 @file    miscutils.py
 @author  Jakob.Erdmann@dlr.de
@@ -7,7 +6,7 @@
 
 Common utility functions
 
-Copyright (C) 2007 DLR/FS, Germany
+Copyright (C) 2007-2013 DLR/FS, Germany
 All rights reserved
 
 This is a duplicate of tools/util/miscutils.py from the VABENE repository
@@ -90,20 +89,53 @@ class Statistics:
         return len(self.values)
 
     def avg(self):
-        return sum(self.values) / float(len(self.values))
+        """return the mean value"""
+        # XXX rename this method
+        if len(self.values) > 0:
+            return sum(self.values) / float(len(self.values))
+        else:
+            return None
 
     def avg_abs(self):
-        return sum(map(abs, self.values)) / float(len(self.values))
+        """return the mean of absolute values"""
+        # XXX rename this method
+        if len(self.values) > 0:
+            return sum(map(abs, self.values)) / float(len(self.values))
+        else:
+            return None
 
     def mean(self):
+        """return the median value"""
+        # XXX rename this method
         if len(self.values) > 0:
             return sorted(self.values)[len(self.values) / 2]
         else:
             return None
 
     def mean_abs(self):
+        """return the median of absolute values"""
+        # XXX rename this method
         if len(self.values) > 0:
             return sorted(map(abs,self.values))[len(self.values) / 2]
+        else:
+            return None
+
+    def average_absolute_deviation_from_mean(self):
+        if len(self.values) > 0:
+            m = self.avg()
+            return sum([abs(v - m) for v in self.values]) / len(self.values)
+        else:
+            return None
+
+    def median(self):
+        return self.mean()
+
+    def median_abs(self):
+        return self.mean_abs()
+
+    def rank(self, fraction):
+        if len(self.values) > 0:
+            return sorted(self.values)[int(round(len(self.values) * fraction + 0.5))]
         else:
             return None
 
@@ -129,4 +161,16 @@ def geh(m,c):
     else:
         return math.sqrt(2 * (m-c) * (m-c) / (m+c))
 
+
+# temporarily change working directory using 'with' statement
+class working_dir:
+    def __init__(self, dir):
+        self.dir = dir
+        self.origdir = os.getcwd()
+
+    def __enter__(self):
+        os.chdir(self.dir)
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self.origdir)
 

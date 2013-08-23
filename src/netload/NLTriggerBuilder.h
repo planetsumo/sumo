@@ -9,7 +9,7 @@
 ///
 // Builds trigger objects for microsim
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -206,7 +206,7 @@ protected:
      * @param[in] file The file to read the flows from
      * @todo Is the position correct/needed
      */
-    MSCalibrator* buildCalibrator(MSNet& net,
+    virtual MSCalibrator* buildCalibrator(MSNet& net,
                                   const std::string& id, MSEdge* edge, SUMOReal pos,
                                   const std::string& file, const std::string& outfile,
                                   const SUMOTime freq);
@@ -222,7 +222,7 @@ protected:
      * @param[in] file The file to read the flows from
      * @todo Is the position correct/needed
      */
-    METriggeredCalibrator* buildMECalibrator(MSNet& net,
+    virtual METriggeredCalibrator* buildMECalibrator(MSNet& net,
             const std::string& id, const MSEdge* edge, SUMOReal pos,
             const std::string& file, const std::string& outfile,
             const SUMOTime freq);

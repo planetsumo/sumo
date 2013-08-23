@@ -9,7 +9,7 @@
 ///
 // The car-following model and parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -206,6 +206,14 @@ public:
     SUMOReal getSpeedDeviation() const {
         return myParameter.speedDev;
     }
+
+
+    /** @brief Returns this type's impatience
+     * @return The impatience of this type
+     */
+    SUMOReal getImpatience() const {
+        return myParameter.impatience;
+    }
     /// @}
 
 
@@ -348,6 +356,12 @@ public:
      * @param[in] shape The new shape of this type
      */
     void setShape(SUMOVehicleShape shape);
+
+
+    /** @brief Set a new value for this type's impatience
+     * @param[in] impatience The new impatience of this type
+     */
+    void setImpatience(const SUMOReal impatience);
     /// @}
 
 
@@ -377,6 +391,11 @@ public:
      */
     bool amVehicleSpecific() const {
         return myOriginalType != 0;
+    }
+
+
+    const SUMOVTypeParameter& getParameter() const {
+        return myParameter;
     }
 
 

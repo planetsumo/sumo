@@ -8,7 +8,7 @@
 ///
 // Some conversion methods (from strings to other)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -284,7 +284,7 @@ public:
             throw EmptyData();
         }
         std::string s = _2str(data);
-        std::transform(s.begin(), s.end(), s.begin(), tolower);
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
         if (s == "1" || s == "yes" || s == "true" || s == "on" || s == "x" || s == "t") {
             return true;
         } else if (s == "0" || s == "no" || s == "false" || s == "off" || s == "-" || s == "f") {

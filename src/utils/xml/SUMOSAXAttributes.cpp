@@ -8,7 +8,7 @@
 ///
 // Encapsulated SAX-Attributes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -181,6 +181,21 @@ SUMOSAXAttributes::parseStringVector(const std::string& def, std::vector<std::st
 }
 
 
+void
+SUMOSAXAttributes::parseStringSet(const std::string& def, std::set<std::string>& into) {
+    if (def.find(';') != std::string::npos || def.find(',') != std::string::npos) {
+        if (!myHaveInformedAboutDeprecatedDivider) {
+            WRITE_WARNING("Please note that using ';' and ',' as XML list separators is deprecated.\n From 1.0 onwards, only ' ' will be accepted.");
+            myHaveInformedAboutDeprecatedDivider = true;
+        }
+    }
+    StringTokenizer st(def, ";, ", true);
+    while (st.hasNext()) {
+        into.insert(st.next());
+    }
+}
+
+
 template<> const int invalid_return<int>::value = -1;
 template<> const std::string invalid_return<int>::type = "int";
 template<>
@@ -228,7 +243,7 @@ std::string SUMOSAXAttributes::getInternal(const int attr) const {
 template<> const RGBColor invalid_return<RGBColor>::value = RGBColor();
 template<> const std::string invalid_return<RGBColor>::type = "color";
 template<>
-RGBColor SUMOSAXAttributes::getInternal(const int attr) const {
+RGBColor SUMOSAXAttributes::getInternal(const int /* attr */) const {
     return getColor();
 }
 

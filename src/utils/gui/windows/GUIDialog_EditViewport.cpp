@@ -7,7 +7,7 @@
 ///
 // A dialog to change the viewport
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -238,6 +238,8 @@ GUIDialog_EditViewport::setValues(const Position& lookFrom, const Position& look
     myLookAtX->setValue(lookAt.x());
     myLookAtY->setValue(lookAt.y());
     myLookAtZ->setValue(lookAt.z());
+#else
+    UNUSED_PARAMETER(lookAt);
 #endif
 }
 

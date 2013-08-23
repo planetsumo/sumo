@@ -8,8 +8,8 @@
 
 Python implementation of the TraCI interface.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2011 DLR (http://www.dlr.de/) and contributors
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
 import struct, traci
@@ -31,9 +31,9 @@ def _readLinks(result):
         result.read("!B")                           # Type Byte
         hasFoe = bool(result.read("!B"))
         result.read("!B")                           # Type String
-        state = result.readString() #not implemented
+        state = result.readString() 
         result.read("!B")                           # Type String
-        direction = result.readString() #not implemented
+        direction = result.readString() 
         result.read("!B")                           # Type Float
         length = result.readDouble()
         links.append((approachedLane, hasPrio, isOpen, hasFoe))
@@ -206,7 +206,7 @@ def getLastStepOccupancy(laneID):
 def getLastStepLength(laneID):
     """getLastStepLength(string) -> double
     
-    Returns the total vehicle length in m for the last time step on the given lane.
+    Returns the mean vehicle length in m for the last time step on the given lane.
     """
     return _getUniversal(tc.LAST_STEP_LENGTH, laneID)
 

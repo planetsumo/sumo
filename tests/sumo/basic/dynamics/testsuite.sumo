@@ -15,3 +15,18 @@ approach_slow_lane
 
 # one vehicle approaching a lane with a lower max speed
 approach_slow_lane_dawdle
+
+# avoid spill back of jams onto a junction (checkRewindLinkLanes)
+avoid_spill_back
+
+# tests for driver impatience
+impatience
+
+# test proper behavior at junctions (collision avoidance, efficent usage)
+junction
+
+# test behavior when vehicles cannot drive
+deadlock
+
+# tests for dynamics at ramps leading to and from motorways
+ramps

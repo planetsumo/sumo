@@ -8,7 +8,7 @@
 ///
 // The gui-version of a MS_E2_ZS_CollectorOverLanes.
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -40,12 +40,6 @@
 #include <utils/common/ValueSource.h>
 #include "GUI_E2_ZS_Collector.h"
 #include "GUIDetectorWrapper.h"
-
-
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class GUILaneWrapper;
 
 
 // ===========================================================================

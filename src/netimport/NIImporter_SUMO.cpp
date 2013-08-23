@@ -8,7 +8,7 @@
 ///
 // Importer for networks stored in SUMO format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -83,7 +83,8 @@ NIImporter_SUMO::NIImporter_SUMO(NBNetBuilder& nb)
       myCurrentTL(0),
       myLocation(0),
       mySuspectKeepShape(false),
-      myHaveSeenInternalEdge(false) {}
+      myHaveSeenInternalEdge(false)
+{}
 
 
 NIImporter_SUMO::~NIImporter_SUMO() {
@@ -179,9 +180,12 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
                 if (toEdge == 0) { // removed by explicit list, vclass, ...
                     continue;
                 }
+                if (nbe->hasConnectionTo(toEdge, c.toLaneIdx)) {
+                    WRITE_WARNING("Target lane '" + toEdge->getLaneID(c.toLaneIdx) + "' has multiple connections from '" + nbe->getID() + "'.");
+                }
                 nbe->addLane2LaneConnection(
                     fromLaneIndex, toEdge, c.toLaneIdx, NBEdge::L2L_VALIDATED,
-                    false, c.mayDefinitelyPass);
+                    true, c.mayDefinitelyPass);
 
                 // maybe we have a tls-controlled connection
                 if (c.tlID != "") {
@@ -209,6 +213,12 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
             nbe->setSpeed(fromLaneIndex, lane->maxSpeed);
         }
         nbe->declareConnectionsAsLoaded();
+        if (!nbe->hasLaneSpecificWidth() && nbe->getLanes()[0].width != NBEdge::UNSPECIFIED_WIDTH) {
+            nbe->setLaneWidth(-1, nbe->getLaneWidth(0));
+        }
+        if (!nbe->hasLaneSpecificOffset() && nbe->getOffset(0) != NBEdge::UNSPECIFIED_OFFSET) {
+            nbe->setOffset(-1, nbe->getOffset(0));
+        }
     }
     // insert loaded prohibitions
     for (std::vector<Prohibition>::const_iterator it = myProhibitions.begin(); it != myProhibitions.end(); it++) {
@@ -344,10 +354,13 @@ NIImporter_SUMO::addEdge(const SUMOSAXAttributes& attrs) {
     myCurrentEdge->priority = attrs.getOpt<int>(SUMO_ATTR_PRIORITY, id.c_str(), ok, -1);
     myCurrentEdge->type = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, "");
     myCurrentEdge->shape = attrs.getOpt<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok, PositionVector());
-    NILoader::transformCoordinates(myCurrentEdge->shape, true, myLocation);
+    NBNetBuilder::transformCoordinates(myCurrentEdge->shape, true, myLocation);
     myCurrentEdge->length = attrs.getOpt<SUMOReal>(SUMO_ATTR_LENGTH, id.c_str(), ok, NBEdge::UNSPECIFIED_LOADED_LENGTH);
     myCurrentEdge->maxSpeed = 0;
     myCurrentEdge->streetName = attrs.getOpt<std::string>(SUMO_ATTR_NAME, id.c_str(), ok, "");
+    if (myCurrentEdge->streetName != "" && OptionsCont::getOptions().isDefault("output.street-names")) {
+        OptionsCont::getOptions().set("output.street-names", "true");
+    }
 
     std::string lsfS = toString(LANESPREAD_RIGHT);
     lsfS = attrs.getOpt<std::string>(SUMO_ATTR_SPREADTYPE, id.c_str(), ok, lsfS);
@@ -392,7 +405,7 @@ NIImporter_SUMO::addLane(const SUMOSAXAttributes& attrs) {
     myCurrentLane->offset = attrs.getOpt<SUMOReal>(SUMO_ATTR_ENDOFFSET, id.c_str(), ok, (SUMOReal) NBEdge::UNSPECIFIED_OFFSET);
     myCurrentLane->shape = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok);
     // lane coordinates are derived (via lane spread) do not include them in convex boundary
-    NILoader::transformCoordinates(myCurrentLane->shape, false, myLocation);
+    NBNetBuilder::transformCoordinates(myCurrentLane->shape, false, myLocation);
 }
 
 
@@ -409,14 +422,16 @@ NIImporter_SUMO::addJunction(const SUMOSAXAttributes& attrs) {
     }
     SumoXMLNodeType type = attrs.getNodeType(ok);
     if (ok) {
-        if (type == NODETYPE_DEAD_END_DEPRECATED) { // patch legacy type
-            type = NODETYPE_DEAD_END;
+        if (type == NODETYPE_DEAD_END_DEPRECATED || type == NODETYPE_DEAD_END) { 
+            // dead end is a computed status. Reset this to unknown so it will
+            // be corrected if additional connections are loaded
+            type = NODETYPE_UNKNOWN;
         }
     } else {
         WRITE_WARNING("Unknown node type for junction '" + id + "'.");
     }
     Position pos = readPosition(attrs, id, ok);
-    NILoader::transformCoordinates(pos, true, myLocation);
+    NBNetBuilder::transformCoordinates(pos, true, myLocation);
     // the network may have non-default edge geometry.
     // accurate reconstruction of legacy networks is not possible. We ought to warn about this
     if (attrs.hasAttribute(SUMO_ATTR_SHAPE)) {
@@ -453,16 +468,9 @@ NIImporter_SUMO::addConnection(const SUMOSAXAttributes& attrs) {
     conn.toLaneIdx = attrs.get<int>(SUMO_ATTR_TO_LANE, 0, ok);
     conn.tlID = attrs.getOpt<std::string>(SUMO_ATTR_TLID, 0, ok, "");
     conn.mayDefinitelyPass = attrs.getOpt<bool>(SUMO_ATTR_PASS, 0, ok, false);
-    const size_t suffixSize = NBRampsComputer::ADDED_ON_RAMP_EDGE.size();
-    if (!conn.mayDefinitelyPass && conn.toEdgeID.size() > suffixSize &&
-            conn.toEdgeID.substr(conn.toEdgeID.size() - suffixSize) == NBRampsComputer::ADDED_ON_RAMP_EDGE) {
-        WRITE_MESSAGE("Infering connection attribute pass=\"1\" from to-edge id '" + conn.toEdgeID + "'");
-        conn.mayDefinitelyPass = true;
-    }
     if (conn.tlID != "") {
         conn.tlLinkNo = attrs.get<int>(SUMO_ATTR_TLLINKINDEX, 0, ok);
     }
-
     if (from->lanes.size() <= (size_t) fromLaneIdx) {
         WRITE_ERROR("Invalid lane index '" + toString(fromLaneIdx) + "' for connection from '" + fromID + "'.");
         return;

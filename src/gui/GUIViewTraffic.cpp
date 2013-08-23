@@ -10,7 +10,7 @@
 ///
 // A view on the simulation; this view is a microscopic one
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -58,7 +58,6 @@
 #include <foreign/polyfonts/polyfonts.h>
 #include <utils/gui/windows/GUIDialog_ViewSettings.h>
 #include <utils/gui/settings/GUICompleteSchemeStorage.h>
-#include <utils/gui/images/GUITexturesHelper.h>
 #include <utils/foxtools/MFXImageHelper.h>
 #include <utils/gui/globjects/GUIGlObjectStorage.h>
 #include <foreign/rtree/SUMORTree.h>
@@ -206,7 +205,7 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
     glLoadIdentity();
     glTranslated(1.-.2, 1.-.5, 0.);
     glScaled(.2, .5, 1.);
-    GUIColoringSchemesMap<GUILaneWrapper> &sm = GUIViewTraffic::getLaneSchemesMap(); //!!!
+    GUIColoringSchemesMap<GUILane> &sm = GUIViewTraffic::getLaneSchemesMap(); //!!!
     sm.getColorer(myVisualizationSettings->laneEdgeMode)->drawLegend();
     */
     return hits2;

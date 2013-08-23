@@ -8,7 +8,7 @@
 ///
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -49,6 +49,7 @@ class NBNetBuilder;
 class NBTrafficLightLogicCont;
 class NBNode;
 class NBDistrict;
+class NBEdgeControl;
 
 
 // ===========================================================================
@@ -142,8 +143,9 @@ protected:
     /** @brief Writes a junction (<junction ...)
      * @param[in] into The device to write the edge into
      * @param[in] n The junction/node to write
+     * @param[in] checkLaneFoes Whether laneConflicts shall be checked at this junction
      */
-    static void writeJunction(OutputDevice& into, const NBNode& n);
+    static void writeJunction(OutputDevice& into, const NBNode& n, const bool checkLaneFoes);
 
 
     /** @brief Writes internal junctions (<junction with id[0]==':' ...) of the given node
@@ -163,8 +165,10 @@ protected:
     /** @brief Writes a roundabout
      * @param[in] into The device to write the edge into
      * @param[in] r The roundabout to write
+     * @param[in] ec The edge control to retrieve named edges from
      */
-    static void writeRoundabout(OutputDevice& into, const EdgeVector& r);
+    static void writeRoundabout(OutputDevice& into, const std::vector<std::string>& r,
+        const NBEdgeCont &ec);
 
 
     /** @brief Writes a district

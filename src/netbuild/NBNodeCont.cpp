@@ -12,7 +12,7 @@
 ///
 // Container for nodes during the netbuilding process
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -913,20 +913,26 @@ NBNodeCont::printBuiltNodesStatistics() const {
     int numDeadEndJunctions = 0;
     int numPriorityJunctions = 0;
     int numRightBeforeLeftJunctions = 0;
+    int numAllWayStopJunctions = 0;
     for (NodeCont::const_iterator i = myNodes.begin(); i != myNodes.end(); i++) {
         switch ((*i).second->getType()) {
             case NODETYPE_NOJUNCTION:
+            case NODETYPE_TRAFFIC_LIGHT_NOJUNCTION:
                 ++numUnregulatedJunctions;
                 break;
             case NODETYPE_DEAD_END:
                 ++numDeadEndJunctions;
                 break;
-            case NODETYPE_PRIORITY_JUNCTION:
+            case NODETYPE_PRIORITY:
+            case NODETYPE_PRIORITY_STOP:
             case NODETYPE_TRAFFIC_LIGHT:
                 ++numPriorityJunctions;
                 break;
             case NODETYPE_RIGHT_BEFORE_LEFT:
                 ++numRightBeforeLeftJunctions;
+                break;
+            case NODETYPE_ALLWAY_STOP:
+                ++numAllWayStopJunctions;
                 break;
             case NODETYPE_DISTRICT:
                 ++numRightBeforeLeftJunctions;
@@ -944,6 +950,9 @@ NBNodeCont::printBuiltNodesStatistics() const {
     }
     WRITE_MESSAGE("  Priority junctions          : " + toString(numPriorityJunctions));
     WRITE_MESSAGE("  Right-before-left junctions : " + toString(numRightBeforeLeftJunctions));
+    if (numAllWayStopJunctions > 0) {
+        WRITE_MESSAGE("  All-way stop junctions      : " + toString(numAllWayStopJunctions));
+    }
 }
 
 

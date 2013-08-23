@@ -1,5 +1,5 @@
 SUMO sumo Version dev-SVN-rUNKNOWN
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.sourceforge.net
+ Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org
 A microscopic road traffic simulation.
 
 Usage: sumo [OPTION]*
@@ -20,6 +20,9 @@ Input Options:
                                         rerouting from FILE
   -x, --weight-attribute STR          Name of the xml attribute which gives the
                                         edge weight
+  --load-state FILE                   Loads a network state from FILE
+  --load-state.offset TIME            Sets the time offset for vehicle segment
+                                        exit times.
 
 Output Options:
   --netstate-dump FILE                Save complete network states into FILE
@@ -29,6 +32,8 @@ Output Options:
   --fcd-output FILE                   Save the Floating Car Data
   --fcd-output.geo                    Save the Floating Car Data using
                                         geo-coordinates (lon/lat)
+  --fcd-output.signals                Add the vehicle signal state to the FCD
+                                        output (brake lights etc.)
   --full-output FILE                  Save a lot of information for each
                                         timestep (very redundant)
   --queue-output FILE                 Save the vehicle queues at the junctions
@@ -46,6 +51,10 @@ Output Options:
   --vehroute-output.write-unfinished  Write vehroute output for vehicles which
                                         have not arrived at simulation end
   --link-output FILE                  Save links states into FILE
+  --save-state.times INT[]            Use INT[] as times at which a network
+                                        state written
+  --save-state.prefix FILE            Prefix for network states
+  --save-state.files FILE             Files for network states
 
 Time Options:
   -b, --begin TIME                    Defines the begin time;
@@ -70,11 +79,14 @@ Processing Options:
   --time-to-teleport TIME             Specify how long a vehicle may wait until
                                         being teleported, defaults to 300,
                                         non-positive values disable teleporting
+  --time-to-teleport.highways TIME    The teleport time on highways
   --max-depart-delay TIME             How long vehicles wait for departure
                                         before being skipped, defaults to -1
                                         which means vehicles are never skipped
   --sloppy-insert                     Whether insertion on an edge shall not be
                                         repeated in same step once failed.
+  --eager-insert                      Whether each vehicle is checked
+                                        separately for insertion on an edge.
   --lanechange.allow-swap             Whether blocking vehicles trying to
                                         change lanes may be swapped.
   --lanechange.duration TIME          Duration of a lane change maneuver
@@ -101,12 +113,20 @@ Report Options:
   --no-step-log                       Disable console output of current
                                         simulation step
 
+Emissions Options:
+  --device.hbefa.probability FLOAT    The probability for a vehicle to have a
+                                        'hbefa' device
+  --device.hbefa.explicit STR         Assign a 'hbefa' device to named vehicles
+  --device.hbefa.deterministic        The 'hbefa' devices are set deterministic
+                                        using a fraction of 1000
+
 Routing Options:
   --device.rerouting.probability FLOAT  The probability for a vehicle to have a
-                                        routing device
-  --device.rerouting.explicit STR     Assign a device to named vehicles
-  --device.rerouting.deterministic    The devices are set deterministic using a
-                                        fraction of 1000
+                                        'rerouting' device
+  --device.rerouting.explicit STR     Assign a 'rerouting' device to named
+                                        vehicles
+  --device.rerouting.deterministic    The 'rerouting' devices are set
+                                        deterministic using a fraction of 1000
   --device.rerouting.period TIME      The period with which the vehicle shall
                                         be rerouted
   --device.rerouting.pre-period TIME  The rerouting period before depart
@@ -118,12 +138,10 @@ Routing Options:
   --device.rerouting.init-with-loaded-weights  Use given weight files for
                                         initializing edge weights
 
-Emissions Options:
-  --device.hbefa.probability FLOAT    The probability for a vehicle to have an
-                                        emission logging device
-  --device.hbefa.explicit STR         Assign a device to named vehicles
-  --device.hbefa.deterministic        The devices are set deterministic using a
-                                        fraction of 1000
+Example Device Options:
+  --device.example.explicit STR       Assign a device to named vehicles
+  --device.example.parameter FLOAT    An exemplary parameter which can be used
+                                        by all instances of the example device
 
 TraCI Server Options:
   --remote-port INT                   Enables TraCI Server if set
@@ -150,5 +168,5 @@ Examples:
   sumo --help
     print help
 
-Report bugs at <http://sourceforge.net/apps/trac/sumo/>.
+Report bugs at <http://sumo-sim.org/trac/>.
 Get in contact via <sumo-user@lists.sourceforge.net>.

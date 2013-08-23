@@ -14,7 +14,7 @@
 ///
 // Representation of a vehicle in the micro simulation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -41,6 +41,7 @@
 #include <list>
 #include <deque>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include "MSVehicleType.h"
@@ -52,6 +53,7 @@
 // ===========================================================================
 // class declarations
 // ===========================================================================
+class SUMOSAXAttributes;
 class MSMoveReminder;
 class MSLaneChanger;
 class MSVehicleTransfer;
@@ -63,9 +65,6 @@ class MSEdgeWeightsStorage;
 class OutputDevice;
 class Position;
 class MSDevice_Person;
-#ifdef _MESSAGES
-class MSMessageEmitter;
-#endif
 
 
 // ===========================================================================
@@ -552,6 +551,8 @@ public:
         bool parking;
         /// @brief Information whether the stop has been reached
         bool reached;
+        /// @brief IDs of persons the vehicle has to wait for until departing
+        std::set<std::string> awaitedPersons;
     };
 
 
@@ -673,6 +674,8 @@ public:
      */
     unsigned int getPersonNumber() const;
 
+    /// @brief Returns this vehicles impatience
+    SUMOReal getImpatience() const;
 
     /// @name Access to bool signals
     /// @{
@@ -916,6 +919,17 @@ public:
 
 #endif
 
+    /// @name state io
+    //@{
+
+    /// Saves the states of a vehicle
+    void saveState(OutputDevice& out);
+
+    /** @brief Loads the state of this vehicle from the given description
+     */
+    void loadState(const SUMOSAXAttributes& attrs, const SUMOTime offset);
+    //@}
+
 protected:
 
     SUMOReal getSpaceTillLastStanding(const MSLane* l, bool& foundStopped) const;
@@ -948,13 +962,6 @@ protected:
 
     /// @brief The time the vehicle waits (is not faster than 0.1m/s) in seconds
     SUMOTime myWaitingTime;
-
-#ifdef _MESSAGES
-    /// The message emitters
-    MSMessageEmitter* myLCMsgEmitter;
-    MSMessageEmitter* myBMsgEmitter;
-    MSMessageEmitter* myHBMsgEmitter;
-#endif
 
     /// @brief This Vehicles driving state (pos and speed)
     State myState;
@@ -1000,16 +1007,33 @@ protected:
         bool mySetRequest;
         SUMOTime myArrivalTime;
         SUMOReal myArrivalSpeed;
+        SUMOTime myArrivalTimeBraking;
+        SUMOReal myArrivalSpeedBraking;
         SUMOReal myDistance;
         SUMOReal accelV;
         bool hadVehicle;
         SUMOReal availableSpace;
+
         DriveProcessItem(MSLink* link, SUMOReal vPass, SUMOReal vWait, bool setRequest,
-                         SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal distance,
+                         SUMOTime arrivalTime, SUMOReal arrivalSpeed, 
+                         SUMOTime arrivalTimeBraking, SUMOReal arrivalSpeedBraking, 
+                         SUMOReal distance,
                          SUMOReal leaveSpeed=-1.) :
             myLink(link), myVLinkPass(vPass), myVLinkWait(vWait), mySetRequest(setRequest),
-            myArrivalTime(arrivalTime), myArrivalSpeed(arrivalSpeed), myDistance(distance),
+            myArrivalTime(arrivalTime), myArrivalSpeed(arrivalSpeed), 
+            myArrivalTimeBraking(arrivalTimeBraking), myArrivalSpeedBraking(arrivalSpeedBraking), 
+            myDistance(distance),
             accelV(leaveSpeed), hadVehicle(false), availableSpace(-1.) { };
+
+        /// @brief constructor if the link shall not be passed
+        DriveProcessItem(SUMOReal vWait, SUMOReal distance) :
+            myLink(0), myVLinkPass(vWait), myVLinkWait(vWait), mySetRequest(false),
+            myArrivalTime(0), myArrivalSpeed(0), 
+            myArrivalTimeBraking(0), myArrivalSpeedBraking(0), 
+            myDistance(distance),
+            accelV(-1), hadVehicle(false), availableSpace(-1.) { };
+
+
         inline void adaptLeaveSpeed(const SUMOReal v) {
             if (accelV < 0) {
                 accelV = v;
@@ -1036,18 +1060,20 @@ protected:
         // l=linkLength, a=accel, t=continuousTime, v=vLeave
         // l=v*t + 0.5*a*t^2, solve for t and multiply with a, then add v
         return MIN2(link->getViaLaneOrLane()->getVehicleMaxSpeed(this),
-                    estimateSpeedAfterDistance(link->getLength(), vLinkPass));
+                    estimateSpeedAfterDistance(link->getLength(), vLinkPass, getVehicleType().getCarFollowModel().getMaxAccel()));
     }
 
     /* @brief estimate speed while accelerating for the given distance
      * @param[in] dist The distance during which accelerating takes place
      * @param[in] v The initial speed
+     * @param[in] accel The acceleration
      */
-    inline SUMOReal estimateSpeedAfterDistance(const SUMOReal dist, const SUMOReal v) const {
+    inline SUMOReal estimateSpeedAfterDistance(const SUMOReal dist, const SUMOReal v, const SUMOReal accel) const {
         // dist=v*t + 0.5*accel*t^2, solve for t and multiply with accel, then add v
         return MIN2(getVehicleType().getMaxSpeed(),
-                    (SUMOReal)sqrt(2 * dist * getVehicleType().getCarFollowModel().getMaxAccel() + v * v));
+                    (SUMOReal)sqrt(2 * dist * accel + v * v));
     }
+
 
     /* @brief estimate speed while accelerating for the given distance
      * @param[in] leaderInfo The leading vehicle and the (virtual) distance to it
@@ -1060,6 +1086,11 @@ protected:
     void adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
                        const SUMOReal seen, DriveProcessItem* const lastLink,
                        const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass) const;
+
+#ifdef HAVE_INTERNAL_LANES
+    /// @brief ids of vehicles being followed across a link (for resolving priority)
+    mutable std::set<std::string> myLinkLeaders;
+#endif
 
 private:
     /* @brief The vehicle's knowledge about edge efforts/travel times; @see MSEdgeWeightsStorage
@@ -1075,8 +1106,6 @@ private:
 #endif
 
 #ifdef HAVE_INTERNAL_LANES
-    /// @brief ids of vehicles being followed across a link (for resolving priority)
-    mutable std::set<std::string> myLinkLeaders;
     /// @brief map from the links to link leader ids
     mutable std::map<const MSLink*, std::string> myLeaderForLink;
 #endif

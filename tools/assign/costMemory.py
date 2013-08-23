@@ -1,53 +1,53 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@file    duaIterate.py
+@file    costMemory.py
 @author  Jakob Erdmann
 @date    2012-03-14
 @version $Id$
 
 Perform smoothing of edge costs across successive iterations of duaIterate
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
-
+from __future__ import print_function
 import os,sys
 from collections import defaultdict
 from xml.sax import saxutils, make_parser, handler
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from sumolib.net import readNet
+
 
 class EdgeMemory:
     def __init__(self, cost):
         self.cost = cost
         self.seen = True
 
-    def update(self, cost, memory_factor):
+    def update(self, cost, memory_weight, new_weight, pessimism):
+        p = (cost / self.cost) ** pessimism if self.cost > 0 else 1
+        memory_factor = memory_weight / (memory_weight + new_weight * p)
         self.cost = self.cost * memory_factor + cost * (1 - memory_factor) 
         self.seen = True
 
-    def decay_unseen(self, memory_factor):
-        if not self.seen:
-            self.update(0, memory_factor)
-            return True
-        return False
-
-
 class CostMemory(handler.ContentHandler):
     # memorize the weighted average of edge costs
-    def __init__(self, cost_attribute):
+    def __init__(self, cost_attribute, pessimism=0, network_file=None):
         # the cost attribute to parse (i.e. 'traveltime')
         self.cost_attribute = cost_attribute.decode('utf8')
         # the duaIterate iteration index
         self.iteration = None
         # the main data store: for every interval and edge id we store costs and
         # whether data was seen in the last call of load_costs()
-        # (start,end) -> (edge_id -> EdgeMemory)
+        # start -> (edge_id -> EdgeMemory)
         self.intervals = defaultdict(dict) 
+        # the intervall length (only known for certain if multiple intervals have been seen)
+        self.interval_length = 214748 # SUMOTIME_MAXSTRING
         # the intervall currently being parsed
         self.current_interval = None
         # the combined weigth of all previously loaded costs
-        self.memory_weight = 0
+        self.memory_weight = 0.0
         # update is done according to: memory * memory_factor + new * (1 - memory_factor)
         self.memory_factor = None
         # differences between the previously loaded costs and the memorized costs
@@ -55,12 +55,18 @@ class CostMemory(handler.ContentHandler):
         # some statistics
         self.num_loaded = 0
         self.num_decayed = 0
+        # travel times without obstructing traffic
+        self.traveltime_free = defaultdict(lambda:0) # XXX could use the minimum known traveltime
+        if network_file is not None:
+            # build a map of default weights for decaying edges assuming the attribute is traveltime
+            self.traveltime_free = dict([(e.getID(), e.getLength() / e.getSpeed()) 
+                for e in readNet(network_file).getEdges()])
+        self.pessimism = pessimism
 
 
     def startElement(self, name, attrs):
         if name == 'interval':
-            interval_key = (float(attrs['begin']), float(attrs['end']))
-            self.current_interval = self.intervals[interval_key]
+            self.current_interval = self.intervals[float(attrs['begin'])]
         if name == 'edge':
             id = attrs['id']
             if attrs.has_key(self.cost_attribute): # may be missing for some
@@ -69,7 +75,10 @@ class CostMemory(handler.ContentHandler):
                 if id in self.current_interval:
                     edgeMemory = self.current_interval[id]
                     self.errors.append(edgeMemory.cost - cost)
-                    edgeMemory.update(cost, self.memory_factor)
+                    edgeMemory.update(cost, self.memory_weight, self.new_weight, self.pessimism)
+                    #if id == "4.3to4.4":
+                    #    with open('debuglog', 'a') as f:
+                    #        print(self.memory_factor, edgeMemory.cost, file=f)
                 else:
                     self.errors.append(0)
                     self.current_interval[id] = EdgeMemory(cost)
@@ -82,10 +91,9 @@ class CostMemory(handler.ContentHandler):
             return
         assert(weight > 0)
         if self.iteration == None and iteration != 0:
-            print "Warning: continuing with empty memory"
+            print("Warning: continuing with empty memory")
         # update memory weights. memory is a weighted average across all runs
-        self.memory_factor = self.memory_weight / (self.memory_weight + weight)
-        self.memory_weight += weight
+        self.new_weight = float(weight)
         self.iteration = iteration
         self.errors = []
         # mark all edges as unseen
@@ -100,16 +108,25 @@ class CostMemory(handler.ContentHandler):
         # decay costs of unseen edges
         self.num_decayed = 0
         for edges in self.intervals.itervalues():
-            for edgeMemory in edges.itervalues():
-                if edgeMemory.decay_unseen(self.memory_factor):
+            for id, edgeMemory in edges.iteritems():
+                if not edgeMemory.seen:
+                    edgeMemory.update(self.traveltime_free[id], self.memory_weight, self.new_weight, self.pessimism)
                     self.num_decayed += 1
+                    #if id == "4.3to4.4":
+                    #    with open('debuglog', 'a') as f:
+                    #            print(self.memory_factor, 'decay', edgeMemory.cost, file=f)
+        # figure out the interval length
+        if len(self.intervals.keys()) > 1:
+            sorted_begin_times = sorted(self.intervals.keys())
+            self.interval_length = sorted_begin_times[1] - sorted_begin_times[0]
+        self.memory_weight += self.new_weight
 
 
     def write_costs(self, weight_file):
         with open(weight_file, 'w') as f:
             f.write('<netstats>\n')
-            for (start, end), edge_costs in self.intervals.iteritems():
-                f.write('    <interval begin="%d" end="%d">\n' % (start,end))
+            for start, edge_costs in self.intervals.iteritems():
+                f.write('    <interval begin="%d" end="%d">\n' % (start, start + self.interval_length))
                 for id, edgeMemory in edge_costs.iteritems():
                     f.write('        <edge id="%s" %s="%s"/>\n' % (id, self.cost_attribute, edgeMemory.cost))
                 f.write('    </interval>\n')

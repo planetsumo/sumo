@@ -23,3 +23,7 @@ malformed_boundary1
 
 # uneven numbers
 malformed_boundary2
+geo_boundary
+
+# keep edges in a triangular boundary
+polygon

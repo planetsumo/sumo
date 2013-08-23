@@ -8,7 +8,7 @@
 ///
 // -------------------
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -38,7 +38,7 @@
 #include <utils/geom/GeomHelper.h>
 #include <utils/geom/Line.h>
 #include <utils/geom/GeoConvHelper.h>
-#include <netimport/NILoader.h>
+#include <netbuild/NBNetBuilder.h>
 #include "NIVissimAbstractEdge.h"
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -54,7 +54,7 @@ NIVissimAbstractEdge::NIVissimAbstractEdge(int id,
     // convert/publicate geometry
     for (PositionVector::const_iterator i = geom.begin(); i != geom.end(); ++i) {
         Position p = *i;
-        if (!NILoader::transformCoordinates(p)) {
+        if (!NBNetBuilder::transformCoordinates(p)) {
             WRITE_WARNING("Unable to project coordinates for edge '" + toString(id) + "'.");
         }
         myGeom.push_back_noDoublePos(p);
