@@ -52,7 +52,7 @@ SUMOReal
 HelpersPHEMlight::computeCO(SUMOEmissionClass c, double v, double a, double slope) {
 	PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
 	double power = CalcPower(v, a, slope, *currCep, currCep->GetVehicleLoading());
-	return currCep->GetEmission("CO", power) / SECONDS_PER_HOUR;
+	return currCep->GetEmission("CO", power) / SECONDS_PER_HOUR / 1000.;
 }
 
 
@@ -60,7 +60,7 @@ SUMOReal
 HelpersPHEMlight::computeCO2(SUMOEmissionClass c, double v, double a, double slope) {
 	PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
 	double power = CalcPower(v, a, slope, *currCep, currCep->GetVehicleLoading());
-	return currCep->GetEmission("FC", power) * 3.15 / SECONDS_PER_HOUR;
+	return currCep->GetEmission("FC", power) * 3.15 / SECONDS_PER_HOUR / 1000.;
 }
 
 
@@ -68,15 +68,16 @@ SUMOReal
 HelpersPHEMlight::computeHC(SUMOEmissionClass c, double v, double a, double slope) {
 	PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
 	double power = CalcPower(v, a, slope, *currCep, currCep->GetVehicleLoading());
-	return currCep->GetEmission("HC", power) / SECONDS_PER_HOUR;
-}
+    a
+	return currCep->GetEmission("HC", power) / SECONDS_PER_HOUR / 1000.;
+} 
 
 
 SUMOReal
 HelpersPHEMlight::computeNOx(SUMOEmissionClass c, double v, double a, double slope) {
 	PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
 	double power = CalcPower(v, a, slope, *currCep, currCep->GetVehicleLoading());
-	return currCep->GetEmission("NOx", power) / SECONDS_PER_HOUR;
+	return currCep->GetEmission("NOx", power) / SECONDS_PER_HOUR / 1000.;
 }
 
 
@@ -84,7 +85,7 @@ SUMOReal
 HelpersPHEMlight::computePMx(SUMOEmissionClass c, double v, double a, double slope) {
 	PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
 	double power = CalcPower(v, a, slope, *currCep, currCep->GetVehicleLoading());
-	return currCep->GetEmission("PM", power) / SECONDS_PER_HOUR;
+	return currCep->GetEmission("PM", power) / SECONDS_PER_HOUR / 1000.;
 }
 
 
@@ -92,7 +93,7 @@ SUMOReal
 HelpersPHEMlight::computeFuel(SUMOEmissionClass c, double v, double a, double slope) {
 	PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
 	double power = CalcPower(v, a, slope, *currCep, currCep->GetVehicleLoading());
-	return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR;
+	return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR / 1000.;
 }
 
 
@@ -104,7 +105,7 @@ HelpersPHEMlight::CalcPower(double v, double a, double slope, const PHEMCEP &veh
 	power += (vehicleCep.GetCrossSectionalArea() * vehicleCep.GetCdValue() * AIR_DENSITY_CONST /2 ) * pow(v,3);
 	power += (vehicleCep.GetMassVehicle() + vehicleCep.GetMassRot() + loading) * a * v;
 	power += (vehicleCep.GetMassVehicle() + loading) * slope * 0.01 * v;
-	return power/950;
+	return power/950.;
 }
 
 /****************************************************************************/
