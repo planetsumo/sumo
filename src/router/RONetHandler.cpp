@@ -108,46 +108,62 @@ RONetHandler::parseEdge(const SUMOSAXAttributes& attrs) {
     if (!ok) {
         throw ProcessError();
     }
-    // get the edge
-    myCurrentEdge = 0;
-    if (myCurrentName[0] == ':') {
-        // this is an internal edge - we will not use it
-        //  !!! recheck this; internal edges may be of importance during the dua
-        return;
-    }
-    const std::string from = attrs.get<std::string>(SUMO_ATTR_FROM, myCurrentName.c_str(), ok);
-    const std::string to = attrs.get<std::string>(SUMO_ATTR_TO, myCurrentName.c_str(), ok);
-    const std::string type = attrs.hasAttribute(SUMO_ATTR_FUNCTION) ? attrs.get<std::string>(SUMO_ATTR_FUNCTION, myCurrentName.c_str(), ok) : "";
-    const int priority = attrs.get<int>(SUMO_ATTR_PRIORITY, myCurrentName.c_str(), ok);
+    const SumoXMLEdgeFunc type = attrs.getEdgeFunc(ok);
     if (!ok) {
+        WRITE_ERROR("Edge '" + myCurrentName + "' has an unknown type.");
         return;
     }
-    RONode* fromNode = myNet.getNode(from);
-    if (fromNode == 0) {
-        fromNode = new RONode(from);
-        myNet.addNode(fromNode);
-    }
-    RONode* toNode = myNet.getNode(to);
-    if (toNode == 0) {
-        toNode = new RONode(to);
-        myNet.addNode(toNode);
+    // get the edge
+    RONode* fromNode;
+    RONode* toNode;
+    int priority;
+    myCurrentEdge = 0;
+    if (type == EDGEFUNC_INTERNAL) {
+        // this is an internal edge - for now we only us it the ensure a match
+        // between numerical edge ids in router and simulation
+        //  !!! recheck this; internal edges may be of importance during the dua
+        fromNode = 0;
+        toNode = 0;
+        priority = 0;
+    } else { 
+        const std::string from = attrs.get<std::string>(SUMO_ATTR_FROM, myCurrentName.c_str(), ok);
+        const std::string to = attrs.get<std::string>(SUMO_ATTR_TO, myCurrentName.c_str(), ok);
+        priority = attrs.get<int>(SUMO_ATTR_PRIORITY, myCurrentName.c_str(), ok);
+        if (!ok) {
+            return;
+        }
+        fromNode = myNet.getNode(from);
+        if (fromNode == 0) {
+            fromNode = new RONode(from);
+            myNet.addNode(fromNode);
+        }
+        toNode = myNet.getNode(to);
+        if (toNode == 0) {
+            toNode = new RONode(to);
+            myNet.addNode(toNode);
+        }
     }
     // build the edge
     myCurrentEdge = myEdgeBuilder.buildEdge(myCurrentName, fromNode, toNode, priority);
     if (myNet.addEdge(myCurrentEdge)) {
         // get the type of the edge
         myProcess = true;
-        if (type == "" || type == "normal" || type == "connector") {
-            myCurrentEdge->setType(ROEdge::ET_NORMAL);
-        } else if (type == "source") {
-            myCurrentEdge->setType(ROEdge::ET_SOURCE);
-        } else if (type == "sink") {
-            myCurrentEdge->setType(ROEdge::ET_SINK);
-        } else if (type == "internal") {
-            myProcess = false;
-        } else {
-            WRITE_ERROR("Edge '" + myCurrentName + "' has an unknown type.");
-            return;
+        switch (type) {
+            case EDGEFUNC_CONNECTOR:
+            case EDGEFUNC_NORMAL:
+                myCurrentEdge->setType(ROEdge::ET_NORMAL);
+                break;
+            case EDGEFUNC_SOURCE:
+                myCurrentEdge->setType(ROEdge::ET_SOURCE);
+                break;
+            case EDGEFUNC_SINK:
+                myCurrentEdge->setType(ROEdge::ET_SINK);
+                break;
+            case EDGEFUNC_INTERNAL:
+                myProcess = false;
+                break;
+            default:
+                throw ProcessError("Unhandled EdgeFunk " + toString(type));
         }
     } else {
         myCurrentEdge = 0;
