@@ -127,26 +127,6 @@ MSVehicleControl::scheduleVehicleRemoval(SUMOVehicle* veh) {
 
 
 void
-MSVehicleControl::printMeanWaitingTime(OutputDevice& od) const {
-    if (getDepartedVehicleNo() == 0) {
-        od << -1.;
-    } else {
-        od << (myTotalDepartureDelay / (SUMOReal) getDepartedVehicleNo());
-    }
-}
-
-
-void
-MSVehicleControl::printMeanTravelTime(OutputDevice& od) const {
-    if (myEndedVehNo == 0) {
-        od << -1.;
-    } else {
-        od << (myTotalTravelTime / (SUMOReal) myEndedVehNo);
-    }
-}
-
-
-void
 MSVehicleControl::vehicleDeparted(const SUMOVehicle& v) {
     ++myRunningVehNo;
     myTotalDepartureDelay += STEPS2TIME(v.getDeparture() - STEPFLOOR(v.getParameter().depart));
@@ -273,7 +253,7 @@ MSVehicleControl::hasVTypeDistribution(const std::string& id) const {
 
 
 MSVehicleType*
-MSVehicleControl::getVType(const std::string& id) {
+MSVehicleControl::getVType(const std::string& id, bool freezeDefault) {
     VTypeDictType::iterator it = myVTypeDict.find(id);
     if (it == myVTypeDict.end()) {
         VTypeDistDictType::iterator it2 = myVTypeDistDict.find(id);
@@ -282,7 +262,7 @@ MSVehicleControl::getVType(const std::string& id) {
         }
         return it2->second->get(&myVehicleParamsRNG);
     }
-    if (id == DEFAULT_VTYPE_ID) {
+    if (id == DEFAULT_VTYPE_ID && freezeDefault) {
         myDefaultVTypeMayBeDeleted = false;
     }
     return it->second;

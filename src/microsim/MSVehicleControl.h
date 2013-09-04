@@ -240,6 +240,7 @@ public:
         return myLoadedVehNo - (myWaitingForPerson + myEndedVehNo);
     }
 
+
     /// @brief return the number of collisions
     unsigned int getCollisionCount() const {
         return myCollisions;
@@ -250,26 +251,23 @@ public:
     unsigned int getTeleportCount() const {
         return myTeleports;
     }
-    /// @}
 
 
-    /// @name Retrieval of vehicle statistics (availability depends on simulation settings)
-    /// @{
-
-    /** @brief Prints the mean waiting time of vehicles.
-     *  The mean time vehicles had to wait for being inserted (-1 if no vehicle was inserted, yet)
-     * @todo Enable this for guisim?
+    /** @brief Returns the total departure delay
+     * @return Sum of steps vehicles had to wait until being inserted
      */
-    void printMeanWaitingTime(OutputDevice& od) const;
+    SUMOReal getTotalDepartureDelay() const {
+        return myTotalDepartureDelay;
+    }
 
 
-    /** @brief Returns the mean travel time of vehicles
-     * The mean travel time of ended vehicles (-1 if no vehicle has ended, yet)
-     * @todo Enable this for guisim?
+    /** @brief Returns the total travel time
+     * @return Sum of travel times of arrived vehicles
      */
-    void printMeanTravelTime(OutputDevice& od) const;
+    SUMOReal getTotalTravelTime() const {
+        return myTotalTravelTime;
+    }
     /// @}
-
 
 
 
@@ -319,9 +317,10 @@ public:
 
     /** @brief Returns the named vehicle type or a sample from the named distribution
      * @param[in] id The id of the vehicle type to return. If left out, the default type is returned.
+     * @param[in] id freezeDefault whether a request for DEFAULT_VTYPE_ID should prevent this type from being modified in the future
      * @return The named vehicle type, or 0 if no such type exists
      */
-    MSVehicleType* getVType(const std::string& id = DEFAULT_VTYPE_ID);
+    MSVehicleType* getVType(const std::string& id = DEFAULT_VTYPE_ID, bool freezeDefault=true);
 
 
     /** @brief Inserts ids of all known vehicle types and vehicle type distributions to the given vector
@@ -358,6 +357,8 @@ public:
     void registerTeleport() {
         myTeleports++;
     }
+
+
 
     /// @name State I/O (mesosim only)
     /// @{

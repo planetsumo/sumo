@@ -75,10 +75,10 @@ public:
     static bool getPosition(const std::string& id, Position& p);
 
 
-    /** @brief Returns a tree filled with inductive loop instances
-     * @return The rtree of inductive loop
+    /** @brief Returns a tree filled with PoI instances
+     * @return The rtree of PoIs
      */
-    static TraCIRTree* getTree();
+    static NamedRTree* getTree();
 
 
 private:

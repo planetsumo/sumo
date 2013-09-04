@@ -66,9 +66,9 @@ public:
 
 
     /** @brief Returns a tree filled with inductive loop instances
-     * @return The rtree of inductive loop
+     * @return The rtree of inductive loops
      */
-    static TraCIRTree* getTree();
+    static NamedRTree* getTree();
 
 
 private:
