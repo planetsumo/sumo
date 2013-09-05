@@ -59,6 +59,7 @@ void
 MSVehicleTransfer::addVeh(const SUMOTime t, MSVehicle* veh) {
     veh->getLaneChangeModel().endLaneChangeManeuver();
     if (veh->isParking()) {
+        MSNet::getInstance()->informVehicleStateListener(veh, MSNet::VEHICLE_STATE_STARTING_PARKING);
         myParkingVehicles[veh->getLane()].insert(veh); // initialized to empty set on first use
         veh->onRemovalFromNet(MSMoveReminder::NOTIFICATION_PARKING);
     } else {
@@ -103,6 +104,7 @@ MSVehicleTransfer::checkInsertions(SUMOTime time) {
         if (desc.myParking) {
             // handle parking vehicles
             if (l->isInsertionSuccess(desc.myVeh, 0, desc.myVeh->getPositionOnLane(), false, MSMoveReminder::NOTIFICATION_PARKING)) {
+                MSNet::getInstance()->informVehicleStateListener(desc.myVeh, MSNet::VEHICLE_STATE_ENDING_PARKING);
                 myParkingVehicles[desc.myVeh->getLane()].erase(desc.myVeh);
                 i = myVehicles.erase(i);
             } else {
@@ -117,7 +119,7 @@ MSVehicleTransfer::checkInsertions(SUMOTime time) {
             } else {
                 // could not insert. maybe we should proceed in virtual space
                 if (desc.myProceedTime < time) {
-                    // active move reminders
+                    // active move reminders (i.e. rerouters)
                     desc.myVeh->leaveLane(MSMoveReminder::NOTIFICATION_TELEPORT);
                     // let the vehicle move to the next edge
                     const bool hasArrived = (desc.myVeh->succEdge(1) == 0 ||
