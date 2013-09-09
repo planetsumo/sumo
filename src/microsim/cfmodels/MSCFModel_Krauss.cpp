@@ -92,6 +92,7 @@ MSCFModel_Krauss::_vsafe(SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel
         if (gap < 0.01) {
             return 0;
         }
+        // g = t * x + x^2 / (2 * b)
         return (SUMOReal)(-myTauDecel + sqrt(myTauDecel * myTauDecel + 2. * myDecel * gap));
     }
     // follow the leader
@@ -108,7 +109,7 @@ MSCFModel_Krauss::_vsafe(SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel
                                            4.0 * egoDecel * (2.0 * gap + predSpeed * predSpeed / predMaxDecel - predSpeed - 1.0)
                                            + (egoDecel * (2.0 * myHeadwayTime - 1.0))
                                            * (egoDecel * (2.0 * myHeadwayTime - 1.0)))
-                                       + myDecel * (0.5 - myHeadwayTime));
+                                       + egoDecel * (0.5 - myHeadwayTime));
     if (ISNAN(result)) {
         return 0;
     } else {
