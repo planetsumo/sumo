@@ -59,6 +59,8 @@
 // static members
 // ===========================================================================
 bool MSDevice_BTreceiver::myWasInitialised = false;
+MTRand MSDevice_BTreceiver::myRecognitionRNG;
+MSDevice_BTreceiver::BTreceiverUpdate *MSDevice_BTreceiver::myUpdater = 0;
 
 
 // ===========================================================================
@@ -73,6 +75,9 @@ MSDevice_BTreceiver::insertOptions(OptionsCont& oc) {
 
     oc.doRegister("device.btreceiver.range", new Option_Float(300));
     oc.addDescription("device.btreceiver.range", "Communication", "The range of the bt receiver");
+
+    oc.doRegister("device.btreceiver.all-recognitions", new Option_Bool(false));
+    oc.addDescription("device.btreceiver.all-recognitions", "Communication", "Whether all recognition point shall be written");
 }
 
 
@@ -83,8 +88,9 @@ MSDevice_BTreceiver::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>&
         MSDevice_BTreceiver* device = new MSDevice_BTreceiver(v, "btreceiver_" + v.getID(), oc.getFloat("device.btreceiver.range"));
         into.push_back(device);
         if(!myWasInitialised) {
-            new BTreceiverUpdate();
+            myUpdater = new BTreceiverUpdate();
             myWasInitialised = true;
+            myRecognitionRNG.seed(oc.getInt("seed"));
         }
     }
 }
@@ -123,6 +129,7 @@ MSDevice_BTreceiver::BTreceiverUpdate::vehicleStateChanged(const SUMOVehicle* co
             MSDevice_BTreceiver *device = static_cast<MSDevice_BTreceiver*>(vehicle->getDevice(typeid(MSDevice_BTreceiver)));
             myArrivedReceiverVehicles.insert(new ArrivedVehicleInformation(vehicle->getID(), 
                 vehicle->getSpeed(), vehicle->getPosition(), device->getCurrentlySeen(), device->getSeen()));
+            device->unref();
             myRunningReceiverVehicles.erase(i);
         }
         i = myRunningSenderVehicles.find(vehicle);
@@ -161,6 +168,9 @@ MSDevice_BTreceiver::BTreceiverUpdate::execute(SUMOTime /*currentTime*/) {
     myArrivedSenderVehicles.clear();
 
     // process arrived receiver
+    OptionsCont &oc = OptionsCont::getOptions();
+    bool allRecognitions = oc.getBool("device.btreceiver.all-recognitions");
+    bool haveOutput = oc.isSet("bt-output");
     for (std::set<ArrivedVehicleInformation*>::iterator i = myArrivedReceiverVehicles.begin(); i != myArrivedReceiverVehicles.end(); ++i) {
         // remove all (running) senders
         std::map<std::string, SeenDevice*> &currentlySeen = (*i)->currentlySeen;
@@ -170,24 +180,10 @@ MSDevice_BTreceiver::BTreceiverUpdate::execute(SUMOTime /*currentTime*/) {
             leaveRange(currentlySeen, seen, (*i)->position, (*i)->speed, (*j).first, vehicle->getPosition(), vehicle->getSpeed(), 0, true);
         }
         // write results
-        if(OptionsCont::getOptions().isSet("bt-output")) {
-            OutputDevice& os = OutputDevice::getDeviceByOption("bt-output");
-            os.openTag("bt").writeAttr("id", (*i)->id);
-            for(std::map<std::string, std::vector<SeenDevice*> >::const_iterator j=seen.begin(); j!=seen.end(); ++j) {
-                const std::vector<SeenDevice*> &sts = (*j).second;
-                for(std::vector<SeenDevice*>::const_iterator k=sts.begin(); k!=sts.end(); ++k) {
-                    os.openTag("seen").writeAttr("id", (*j).first);
-                    os.writeAttr("tBeg", (*k)->meetingBegin.t)
-                        .writeAttr("observerPosBeg", (*k)->meetingBegin.observerPos).writeAttr("observerSpeedBeg", (*k)->meetingBegin.observerSpeed)
-                        .writeAttr("seenPosBeg", (*k)->meetingBegin.seenPos).writeAttr("seenSpeedBeg", (*k)->meetingBegin.seenSpeed);
-                    os.writeAttr("tEnd", (*k)->meetingEnd.t)
-                        .writeAttr("observerPosEnd", (*k)->meetingEnd.observerPos).writeAttr("observerSpeedEnd", (*k)->meetingEnd.observerSpeed)
-                        .writeAttr("seenPosEnd", (*k)->meetingEnd.seenPos).writeAttr("seenSpeedEnd", (*k)->meetingEnd.seenSpeed);
-                    os.closeTag();
-                }
-            }
-            os.closeTag();
+        if(haveOutput) {
+            writeOutput((*i)->id, seen, allRecognitions);
         }
+        MSDevice_BTreceiver::cleanUp((*i)->currentlySeen, (*i)->seen);
         delete *i;
     }
     myArrivedReceiverVehicles.clear();
@@ -213,6 +209,25 @@ MSDevice_BTreceiver::MSDevice_BTreceiver(SUMOVehicle& holder, const std::string&
 
 
 MSDevice_BTreceiver::~MSDevice_BTreceiver() {
+    // @todo: consider still recievers still running when the simulation is closed
+    //myUpdater->vehicleStateChanged(&myHolder, MSNet::VEHICLE_STATE_ARRIVED);
+    cleanUp(myCurrentlySeen, mySeen);
+}
+
+
+void
+MSDevice_BTreceiver::cleanUp(std::map<std::string, MSDevice_BTreceiver::SeenDevice*> &c, 
+                             std::map<std::string, std::vector<MSDevice_BTreceiver::SeenDevice*> > &s) {
+    for(std::map<std::string, SeenDevice*>::iterator i=c.begin(); i!=c.end(); ++i) {
+        delete (*i).second;
+    }
+    c.clear();
+    for(std::map<std::string, std::vector<SeenDevice*> >::iterator i=s.begin(); i!=s.end(); ++i) {
+        for(std::vector<SeenDevice*>::iterator j=(*i).second.begin(); j!=(*i).second.end(); ++j) {
+            delete *j;
+        }
+    }
+    s.clear();
 }
 
 
@@ -242,7 +257,12 @@ void
 MSDevice_BTreceiver::leaveRange(std::map<std::string, SeenDevice*> &currentlySeen, std::map<std::string, std::vector<SeenDevice*> > &seen,
                                 const Position &thisPos, SUMOReal thisSpeed,
                                 const std::string &otherID, const Position &otherPos, SUMOReal otherSpeed, SUMOReal tOffset, bool remove) {
-
+    // check whether the other was recognized
+    SUMOReal rp = recognizedAt(otherID, STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())+tOffset, currentlySeen);
+    if(rp>0) {
+        addRecognitionPoint(thisPos, thisSpeed, otherID, otherPos, otherSpeed, rp, currentlySeen);
+    }
+    // build leaving point
     MeetingPoint mp(STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())+tOffset, thisPos, thisSpeed, otherPos, otherSpeed);
     std::map<std::string, SeenDevice*>::iterator i = currentlySeen.find(otherID);
     (*i).second->meetingEnd = mp;
@@ -250,6 +270,7 @@ MSDevice_BTreceiver::leaveRange(std::map<std::string, SeenDevice*> &currentlySee
         seen[otherID] = std::vector<SeenDevice*>();
     }
     seen[otherID].push_back((*i).second);
+    // 
     if(remove) {
         currentlySeen.erase(i);
     }
@@ -375,6 +396,12 @@ MSDevice_BTreceiver::updateNeighbors() {
     for (std::map<std::string, SeenDevice*>::iterator i = myCurrentlySeen.begin(); i != myCurrentlySeen.end();) {
         if (seen.find((*i).first) != seen.end()) {
             // skip those which are still visible
+            MSVehicle *v = static_cast<MSVehicle*>(MSNet::getInstance()->getVehicleControl().getVehicle((*i).first));
+            const Position p(static_cast<const MSVehicle&>(myHolder).getPosition());
+            SUMOReal rp = recognizedAt(v->getID(), STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())+1., myCurrentlySeen);
+            if(rp>0) {
+                addRecognitionPoint(p, myHolder.getSpeed(), v->getID(), v->getPosition(), v->getSpeed(), rp, myCurrentlySeen);
+            }
             ++i;
             continue;
         }
@@ -382,6 +409,10 @@ MSDevice_BTreceiver::updateNeighbors() {
         const Position p(static_cast<const MSVehicle&>(myHolder).getPosition());
         if(v->getPosition().distanceTo(p)<myRange) {
             // still in range
+            SUMOReal rp = recognizedAt(v->getID(), STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())+1., myCurrentlySeen);
+            if(rp>0) {
+                addRecognitionPoint(p, myHolder.getSpeed(), v->getID(), v->getPosition(), v->getSpeed(), rp, myCurrentlySeen);
+            }
             ++i;
         } else {
             // leaving range
@@ -391,6 +422,57 @@ MSDevice_BTreceiver::updateNeighbors() {
         }
     }
 }
+
+
+SUMOReal
+MSDevice_BTreceiver::recognizedAt(const std::string &otherID, SUMOReal tEnd, std::map<std::string, SeenDevice*> &currentlySeen) {
+    SUMOReal t = tEnd - currentlySeen.find(otherID)->second->lastView;
+    if(myRecognitionRNG.rand() <= 1-exp(-0.24*pow(t, 2.68))) {
+        currentlySeen.find(otherID)->second->lastView = tEnd;
+        return tEnd;
+    }
+    return -1;
+}
+
+
+void 
+MSDevice_BTreceiver::addRecognitionPoint(const Position &thisPos, SUMOReal thisSpeed, 
+                                         const std::string &otherID, const Position &otherPos, SUMOReal otherSpeed, SUMOReal t, 
+                                         std::map<std::string, SeenDevice*> &currentlySeen) {
+    MeetingPoint *mp = new MeetingPoint(t, thisPos, thisSpeed, otherPos, otherSpeed);
+    currentlySeen.find(otherID)->second->recognitionPoints.push_back(mp);
+}
+
+
+void 
+MSDevice_BTreceiver::writeOutput(const std::string &id, const std::map<std::string, std::vector<SeenDevice*> > &seen, bool allRecognitions) {
+            OutputDevice& os = OutputDevice::getDeviceByOption("bt-output");
+            os.openTag("bt").writeAttr("id", id);
+            for(std::map<std::string, std::vector<SeenDevice*> >::const_iterator j=seen.begin(); j!=seen.end(); ++j) {
+                const std::vector<SeenDevice*> &sts = (*j).second;
+                for(std::vector<SeenDevice*>::const_iterator k=sts.begin(); k!=sts.end(); ++k) {
+                    os.openTag("seen").writeAttr("id", (*j).first);
+                    os.writeAttr("tBeg", (*k)->meetingBegin.t)
+                        .writeAttr("observerPosBeg", (*k)->meetingBegin.observerPos).writeAttr("observerSpeedBeg", (*k)->meetingBegin.observerSpeed)
+                        .writeAttr("seenPosBeg", (*k)->meetingBegin.seenPos).writeAttr("seenSpeedBeg", (*k)->meetingBegin.seenSpeed);
+                    os.writeAttr("tEnd", (*k)->meetingEnd.t)
+                        .writeAttr("observerPosEnd", (*k)->meetingEnd.observerPos).writeAttr("observerSpeedEnd", (*k)->meetingEnd.observerSpeed)
+                        .writeAttr("seenPosEnd", (*k)->meetingEnd.seenPos).writeAttr("seenSpeedEnd", (*k)->meetingEnd.seenSpeed);
+                    for(std::vector<MeetingPoint*>::iterator l=(*k)->recognitionPoints.begin(); l!=(*k)->recognitionPoints.end(); ++l) {
+                        os.openTag("recognitionPoint").writeAttr("t", (*l)->t)
+                            .writeAttr("observerPos", (*l)->observerPos).writeAttr("observerSpeed", (*l)->observerSpeed)
+                            .writeAttr("seenPos", (*l)->seenPos).writeAttr("seenSpeed", (*l)->seenSpeed)
+                            .closeTag();
+                        if(!allRecognitions) {
+                            break;
+                        }
+                    }
+                    os.closeTag();
+                }
+            }
+            os.closeTag();
+}
+
 
 
 /****************************************************************************/

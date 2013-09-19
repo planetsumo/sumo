@@ -34,6 +34,7 @@
 #include <microsim/MSNet.h>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Command.h>
+#include <utils/common/RandHelper.h>
 
 
 // ===========================================================================
@@ -124,10 +125,15 @@ public:
          * @param[in] meetingBegin_ Description of the meeting's begin
          */
         SeenDevice(const MeetingPoint& meetingBegin_)
-            : meetingBegin(meetingBegin_), meetingEnd(meetingBegin_) {}
+            : meetingBegin(meetingBegin_), meetingEnd(meetingBegin_), lastView(meetingBegin_.t) {}
 
         /// @brief Destructor
-        ~SeenDevice() {}
+        ~SeenDevice() {
+            for(std::vector<MeetingPoint*>::iterator i=recognitionPoints.begin(); i!=recognitionPoints.end(); ++i) {
+                delete *i;
+            }
+            recognitionPoints.clear();
+        }
 
 
     public:
@@ -135,6 +141,10 @@ public:
         MeetingPoint meetingBegin;
         /// @brief Description of the meeting's end
         MeetingPoint meetingEnd;
+        /// @brief Last recognition point
+        SUMOReal lastView;
+        /// @brief List of recognition points
+        std::vector<MeetingPoint*> recognitionPoints;
 
     };
 
@@ -151,10 +161,24 @@ public:
     /** @brief Returns the list of meetings so far
      * @return the map from ID of holder to the list of meetings
      */
-    const std::map<std::string, std::vector<SeenDevice*> > getSeen() const {
+    const std::map<std::string, std::vector<SeenDevice*> > &getSeen() const {
         return mySeen;
     }
 
+
+    /** @brief Clears the given containers deleting the stored items
+     * @param[in] c The currently seen container to clear
+     * @param[in] s The seen container to clear
+     */
+    static void cleanUp(std::map<std::string, SeenDevice*> &c, std::map<std::string, std::vector<SeenDevice*> > &s);
+
+
+    /** @brief Clears containers after copying them
+     */
+    void unref() {
+        myCurrentlySeen.clear();
+        mySeen.clear();
+    }
 
 
 protected:
@@ -204,6 +228,37 @@ protected:
         const std::string &otherID, const Position &otherPos, SUMOReal otherSpeed, 
         SUMOReal tOffset, bool remove);
 
+
+    /** @brief Determines whether the other vehicle got visible until the given time
+     * @param[in] otherID The ID of the other vehicle
+     * @param[in] tEnd The end of contact
+     * @param[changed] currentlySeen Contact information, updated if the sender was recognized
+     * @return The recognition time
+     */
+    static SUMOReal recognizedAt(const std::string &otherID, SUMOReal tEnd, std::map<std::string, SeenDevice*> &currentlySeen);
+
+
+    /** @brief Adds a point of recognition
+     * @param[in] thisPos The receiver's position at the time
+     * @param[in] thisSpeed The receiver's speed at the time
+     * @param[in] otherID The ID of the entering sender
+     * @param[in] otherPos The position of the entering sender
+     * @param[in] otherSpeed The speed of the entering sender
+     * @param[in] tOffset The time offset to the current time step
+     * @param[filled] currentlySeen The contact information storage for saving the contact point
+     */
+    static void addRecognitionPoint(const Position &thisPos, SUMOReal thisSpeed, 
+        const std::string &otherID, const Position &otherPos, SUMOReal otherSpeed, SUMOReal t, 
+        std::map<std::string, SeenDevice*> &currentlySeen);
+
+
+    /** @brief Writes the output
+     * @param[in] id The id of the receiver
+     * @param[in] seen The information about seen senders
+     * @param[in] allRecognitions Whether all recognitions shall be written
+     */
+    static void writeOutput(const std::string &id, const std::map<std::string, std::vector<SeenDevice*> > &seen, 
+        bool allRecognitions);
 
 
 private:
@@ -303,6 +358,11 @@ private:
     };
 
 
+    /// @brief A random number generator used to determine whether the opposite was recognized
+    static MTRand myRecognitionRNG;
+
+    /// @brief The static updater
+    static BTreceiverUpdate *myUpdater;
 
 private:
     /// @brief Invalidated copy constructor.
