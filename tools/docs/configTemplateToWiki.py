@@ -15,8 +15,10 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-import sys
+import os, sys
 from xml.sax import parse, handler
+
+from mirrorWiki import readParseEditPage
 
 class ConfigReader(handler.ContentHandler):
 
@@ -49,15 +51,16 @@ class ConfigReader(handler.ContentHandler):
             title = "===%s===" % name.replace("_", " ").title()
             if title in self._intro:
                 begin, end = self._intro[title]
-                title = ("".join(self._mergeWiki[begin:end])).strip()
-            print """%s
-{| cellspacing="0" border="1" width="90%%" align="center"
+                title = ("".join(self._mergeWiki[begin:end]))
+            else:
+                title += "\n"
+            print """%s{| class="wikitable" style="width:90%%"
 |-
-! style="background:#ddffdd;" valign="top" | Option
-! style="background:#ddffdd;" valign="top" | Description""" % title
+! style="background:#ddffdd; vertical-align:top; width:350px" | Option
+! style="background:#ddffdd; vertical-align:top" | Description""" % title
         if self._level == 2:
             # entry
-            print '|-\n| valign="top" |',
+            print '|-\n| style="vertical-align:top" |',
             a = ""
             for s in attrs.get('synonymes', '').split():
                 if len(s) == 1:
@@ -67,8 +70,8 @@ class ConfigReader(handler.ContentHandler):
             print '{{Option|--%s {{DT_%s}}}}' % (name, attrs['type'])
             suffix = ""
             if attrs['value']:
-                suffix = "; ''default: %s''" % attrs['value']
-            print '| valign="top" | %s%s' % (attrs['help'], suffix)
+                suffix = "; ''default: '''%s'''''" % attrs['value']
+            print '| style="vertical-align:top" | %s%s' % (attrs['help'], suffix)
         self._level += 1
 
     def endElement(self, name):
@@ -81,4 +84,13 @@ class ConfigReader(handler.ContentHandler):
         print ("".join(self._mergeWiki[self._end:])).strip()
 
 if __name__ == "__main__":
-    parse(sys.argv[1], ConfigReader(open(sys.argv[2]).readlines()))
+    if len(sys.argv) == 2:
+        app = sys.argv[1].lower()
+        if app == "netgenerate":
+            app = "netgen"
+        cfg = os.path.join(os.path.dirname(__file__), "..", "..", "tests", app, "meta", "write_template_full", "cfg." + app)
+        parse(cfg, ConfigReader(readParseEditPage(sys.argv[1].upper()).splitlines(True)))
+    elif len(sys.argv) == 3:
+        parse(sys.argv[1], ConfigReader(open(sys.argv[2]).readlines()))
+    else:
+        print >> sys.stderr, "Usage: %s <template> <wikisrc>\n   or: %s <app>" % (os.path.basename(__file__), os.path.basename(__file__))
