@@ -49,6 +49,7 @@
 #include <microsim/traffic_lights/MSSOTLPhaseTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSSOTLPlatoonTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSSwarmTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSSOTLWaveTrafficLightLogic.h>
 #include <microsim/MSEventControl.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/traffic_lights/MSAgentbasedTrafficLightLogic.h>
@@ -257,6 +258,9 @@ NLJunctionControlBuilder::closeTrafficLightLogic() {
 			break;
 		case TLTYPE_SOTL_PLATOON:
 			tlLogic = new MSSOTLPlatoonTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			break;
+		case TLTYPE_SOTL_WAVE:
+			tlLogic = new MSSOTLWaveTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
 			break;
 		case TLTYPE_SOTL_PHASE:
 			tlLogic = new MSSOTLPhaseTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);

@@ -109,9 +109,6 @@
     <ClCompile Include="..\..\..\src\microsim\MSStateHandler.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Emissions.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.h">
@@ -214,9 +211,6 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\MSStateHandler.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Emissions.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -20,9 +20,6 @@
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Example.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_HBEFA.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Person.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
@@ -30,6 +27,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Tripinfo.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Emissions.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -43,9 +43,6 @@
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Example.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_HBEFA.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Person.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
@@ -53,6 +50,9 @@
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Tripinfo.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Emissions.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>

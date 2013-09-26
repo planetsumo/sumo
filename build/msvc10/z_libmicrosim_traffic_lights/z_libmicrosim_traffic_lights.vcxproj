@@ -32,21 +32,27 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Fastbuild|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Fastbuild|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -151,6 +157,7 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLSensors.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLTrafficLightLogic.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLWaveTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSwarmTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTLLogicControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.cpp" />
@@ -169,6 +176,7 @@
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLSensors.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLTrafficLightLogic.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLWaveTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSwarmTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSTLLogicControl.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.h" />
