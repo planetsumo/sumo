@@ -77,6 +77,9 @@ public:
     /// @brief The duration of the phase
     SUMOTime duration;
 
+	/// @brief The previous duration of the phase
+	SUMOTime lastDuration;
+
     /// @brief The minimum duration of the phase
     SUMOTime minDuration;
 

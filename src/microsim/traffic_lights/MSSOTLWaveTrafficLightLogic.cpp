@@ -25,30 +25,34 @@ MSSOTLWaveTrafficLightLogic::MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcon
                               const std::string &id, const std::string &subid,
 							  const Phases &phases, unsigned int step, SUMOTime delay) throw() : MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay) {
 								  MsgHandler::getMessageInstance()->inform("*** Intersection " + id + " will run using MSSOTLWaveTrafficLightLogic ***");
-								  lastDuration = (getCurrentPhaseDef().duration);
+								  (*myPhases[getCurrentPhaseIndex()]).lastDuration = (getCurrentPhaseDef().duration);
 }
 
 MSSOTLWaveTrafficLightLogic::MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcontrol,
                               const std::string &id, const std::string &subid,
 							  const Phases &phases, unsigned int step, SUMOTime delay, MSSOTLSensors *sensors) throw() : MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, sensors){
-								  lastDuration = (getCurrentPhaseDef().duration);
+								  (*myPhases[getCurrentPhaseIndex()]).lastDuration = (getCurrentPhaseDef().duration);
 }
 
 bool 
 MSSOTLWaveTrafficLightLogic::canRelease() throw() {
 
-	//1s for testing purpose, it must be changed to some sort of % of lastDuration
-	SUMOTime delta =1000;
+	//% of lastDuration
+	SUMOTime delta =5*(*myPhases[getCurrentPhaseIndex()]).lastDuration/100;
+	
+	//this allows a minimum variation of +-10ms
+	if(delta<10)
+		delta=10;
 
 	if(getCurrentPhaseElapsed() >= getCurrentPhaseDef().minDuration){
-		if(getCurrentPhaseElapsed() >= lastDuration-delta){
+		if(getCurrentPhaseElapsed() >= (*myPhases[getCurrentPhaseIndex()]).lastDuration-delta){
 			if(
 				(countVehicles(getCurrentPhaseDef())==0)							//no other vehicles approaching green lights
-				||(getCurrentPhaseElapsed()>= lastDuration+delta)					//maximum value of the window surrounding lastDuration
+				||(getCurrentPhaseElapsed()>= (*myPhases[getCurrentPhaseIndex()]).lastDuration+delta)					//maximum value of the window surrounding lastDuration
 				||(getCurrentPhaseElapsed()>= getCurrentPhaseDef().maxDuration)		//declared maximum duration has been reached
 				) {
 
-				lastDuration=getCurrentPhaseElapsed();
+				(*myPhases[getCurrentPhaseIndex()]).lastDuration=getCurrentPhaseElapsed();
 				return true;
 			}
 		}

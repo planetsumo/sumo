@@ -68,10 +68,6 @@ protected:
 	 */
 	bool canRelease() throw();
 
-private:
-
-	SUMOTime lastDuration;
-
 };
 
 #endif
