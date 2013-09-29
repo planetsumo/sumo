@@ -30,6 +30,8 @@ MSSOTLWaveTrafficLightLogic::MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcon
 								  {
 									  (*myPhases[i]).lastDuration = (*myPhases[i]).duration;
 								  }
+								  //only for evaluation purpose
+								  MsgHandler::getMessageInstance()->inform("*** The following data serves only for evaluation purpose ***\nid,state,duration,simulation time");
 }
 
 MSSOTLWaveTrafficLightLogic::MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcontrol,
@@ -62,6 +64,8 @@ MSSOTLWaveTrafficLightLogic::canRelease() throw() {
 				) {
 
 				(*myPhases[getCurrentPhaseIndex()]).lastDuration=getCurrentPhaseElapsed();
+				//only for evaluation purpose
+				MsgHandler::getMessageInstance()->inform(getID()+","+getCurrentPhaseDef().getState()+","+time2string(getCurrentPhaseElapsed())+","+time2string(MSNet::getInstance()->getCurrentTimeStep()));
 				return true;
 			}
 		}
