@@ -372,49 +372,43 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
 
     std::string type = e->myHighWayType;
     if (!tc.knows(type)) {
-        if (type.find(compoundTypeSeparator) != std::string::npos) {
-            // this edge has a combination type which does not yet exist in the TypeContainer
+        if (myUnusableTypes.count(type) > 0) {
+            return newIndex;
+        } else {
+            // this edge has a type which does not yet exist in the TypeContainer
             StringTokenizer tok = StringTokenizer(type, compoundTypeSeparator);
             std::set<std::string> types;
             while (tok.hasNext()) {
                 std::string t = tok.next();
                 if (tc.knows(t)) {
                     types.insert(t);
-                } else {
-                    WRITE_WARNING("Discarding unknown compound \"" + t + "\" for edge " + id + " with type \"" + type + "\".");
+                } else if (tok.size() > 1) {
+                    WRITE_WARNING("Discarding unknown compound \"" + t + "\" in type \"" + type + "\" (first occurence for edge \"" + id + "\").");
                 }
             }
-            switch (types.size()) {
-                case 0:
-                    WRITE_WARNING("Discarding edge " + id + " with type unknown compound type \"" + type + "\".");
-                    return newIndex;
-                    break;
-                case 1: {
-                    type = *(types.begin());
-                    break;
+            if (types.size() == 0) {
+                WRITE_WARNING("Discarding unusable type \"" + type + "\" (first occurence for edge \"" + id + "\").");
+                myUnusableTypes.insert(type);
+                return newIndex;
+            } else {
+                // build a new type by merging all values
+                int numLanes = 0;
+                SUMOReal maxSpeed = 0;
+                int prio = 0;
+                SUMOReal width = NBEdge::UNSPECIFIED_WIDTH;
+                bool defaultIsOneWay = false;
+                SVCPermissions permissions = 0;
+                for (std::set<std::string>::iterator it = types.begin(); it != types.end(); it++) {
+                    numLanes = MAX2(numLanes, tc.getNumLanes(*it));
+                    maxSpeed = MAX2(maxSpeed, tc.getSpeed(*it));
+                    prio = MAX2(prio, tc.getPriority(*it));
+                    defaultIsOneWay &= tc.getIsOneWay(*it);
+                    permissions |= tc.getPermissions(*it);
                 }
-                default:
-                    // build a new type by merging all values
-                    int numLanes = 0;
-                    SUMOReal maxSpeed = 0;
-                    int prio = 0;
-                    SUMOReal width = NBEdge::UNSPECIFIED_WIDTH;
-                    bool defaultIsOneWay = false;
-                    for (std::set<std::string>::iterator it = types.begin(); it != types.end(); it++) {
-                        numLanes = MAX2(numLanes, tc.getNumLanes(*it));
-                        maxSpeed = MAX2(maxSpeed, tc.getSpeed(*it));
-                        prio = MAX2(prio, tc.getPriority(*it));
-                        defaultIsOneWay &= tc.getIsOneWay(*it);
-                    }
-                    WRITE_MESSAGE("Adding new compound type \"" + type + "\" for edge " + id + ".");
-                    // @todo use the propper bitsets instead of SVC_UNKNOWN (see #675)
-                    tc.insert(type, numLanes, maxSpeed, prio, width, SVC_UNKNOWN, defaultIsOneWay);
+                WRITE_MESSAGE("Adding new type \"" + type + "\" (first occurence for edge \"" + id + "\").");
+                tc.insert(type, numLanes, maxSpeed, prio, permissions, width, defaultIsOneWay);
             }
-        } else {
-            // we do not know the type -> something else, ignore
-            //WRITE_WARNING("Discarding edge " + id + " with unknown type \"" + type + "\".");
-            return newIndex;
-        }
+        } 
     }
 
     // otherwise it is not an edge and will be ignored
@@ -578,11 +572,8 @@ NIImporter_OpenStreetMap::NodesHandler::myStartElement(int element, const SUMOSA
             return;
         }
         bool ok = true;
-        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myLastNodeID).c_str(), ok);
+        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myLastNodeID).c_str(), ok, false);
         std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myLastNodeID).c_str(), ok, false);
-        if (!ok) {
-            return;
-        }
         if (key == "highway" && value.find("traffic_signal") != std::string::npos) {
             myToFill[myLastNodeID]->tlsControlled = true;
         }
@@ -667,11 +658,9 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
             return;
         }
         bool ok = true;
-        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentEdge->id).c_str(), ok);
+        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentEdge->id).c_str(), ok, false);
         std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myCurrentEdge->id).c_str(), ok, false);
-        if (!ok) {
-            return;
-        }
+
         if (key == "highway" || key == "railway") {
             if (myCurrentEdge->myHighWayType != "") {
                 // osm-ways may be used by more than one mode (eg railway.tram + highway.residential. this is relevant for multimodal traffic)
@@ -844,11 +833,9 @@ NIImporter_OpenStreetMap::RelationHandler::myStartElement(int element,
     // parse values
     if (element == SUMO_TAG_TAG) {
         bool ok = true;
-        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentRelation).c_str(), ok);
+        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentRelation).c_str(), ok, false);
         std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myCurrentRelation).c_str(), ok, false);
-        if (!ok) {
-            return;
-        }
+
         if (key == "type" && value == "restriction") {
             myIsRestriction = true;
             return;
