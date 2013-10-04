@@ -47,6 +47,8 @@ MSSOTLWaveTrafficLightLogic::MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcon
 bool 
 MSSOTLWaveTrafficLightLogic::canRelease() throw() {
 
+	//check if isTarget -> salvare targetlane OPPURE cerco le linee col verde
+
 	//10% of lastDuration
 	SUMOTime delta =10*getCurrentPhaseDef().lastDuration/100;
 	
@@ -57,8 +59,14 @@ MSSOTLWaveTrafficLightLogic::canRelease() throw() {
 	myID;
 	if(getCurrentPhaseElapsed() >= getCurrentPhaseDef().minDuration){
 		if(getCurrentPhaseElapsed() >= getCurrentPhaseDef().lastDuration-delta){
+	//		cout << getID()<<"\n";
+	//		countVehicles();
+	//		cout << "vehicles on "<< getID()<<":"<< countVehicles()<<"\n";
+	//		if(getCurrentPhaseDef().isTarget()){
+	//				cout << getID()<<" "<<MSSOTLTrafficLightLogic::countVehicles(getCurrentPhaseDef())<<" "<<countVehicles()<<"\n";
+	//			}
 			if(
-				(countVehicles(getCurrentPhaseDef())==0)							//no other vehicles approaching green lights
+				(countVehicles()==0)							//no other vehicles approaching green lights
 				||(getCurrentPhaseElapsed()>= getCurrentPhaseDef().lastDuration+delta)					//maximum value of the window surrounding lastDuration
 				||(getCurrentPhaseElapsed()>= getCurrentPhaseDef().maxDuration)		//declared maximum duration has been reached
 				) {
@@ -71,4 +79,24 @@ MSSOTLWaveTrafficLightLogic::canRelease() throw() {
 		}
 	}
 	return false;
+}
+
+unsigned int
+	MSSOTLWaveTrafficLightLogic::countVehicles(){
+
+		string state = getCurrentPhaseDef().getState();
+		int vehicles = 0;
+		for(int i=0; i<getLanes().size();i++){
+			if(i>0 && ((getLanes()[i][0]->getID()).compare(getLanes()[i-1][0]->getID())==0)){
+				continue;
+			}
+			if(state[i]!='r'){
+				vehicles += getSensors()->countVehicles(getLanes()[i][0]);
+			//	cout << getLanes()[i][j]->getID()<<"\n";
+			}	
+		//	cout << state[i]<<"->"<<getLanes()[i][0]->getID()<<"\n";
+
+		}
+		cout <<"\n";
+		return vehicles;
 }

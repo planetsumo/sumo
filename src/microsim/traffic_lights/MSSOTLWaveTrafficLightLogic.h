@@ -68,6 +68,13 @@ protected:
 	 */
 	bool canRelease() throw();
 
+private:
+
+	/*
+	 * @brief Counts the vehicles on the green lanes of this phase
+	 */
+	unsigned int countVehicles();
+
 };
 
 #endif
