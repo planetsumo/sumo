@@ -7,3 +7,6 @@ netextract
 # tests tools\net\netcheck.py
 netcheck
 netdiff
+
+# check whether network generation
+generator
