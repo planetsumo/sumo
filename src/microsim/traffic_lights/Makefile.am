@@ -14,6 +14,7 @@ MSSOTLPlatoonTrafficLightLogic.cpp MSSOTLPlatoonTrafficLightLogic.h \
 MSSOTLRequestTrafficLightLogic.cpp MSSOTLRequestTrafficLightLogic.h \
 MSSOTLSensors.cpp MSSOTLSensors.h \
 MSSOTLTrafficLightLogic.cpp MSSOTLTrafficLightLogic.h \
+MSSOTLWaveTrafficLightLogic.cpp MSSOTLWaveTrafficLightLogic.h \
 MSSwarmTrafficLightLogic.cpp MSSwarmTrafficLightLogic.h \
 MSTLLogicControl.cpp MSTLLogicControl.h \
 MSTrafficLightLogic.cpp MSTrafficLightLogic.h
