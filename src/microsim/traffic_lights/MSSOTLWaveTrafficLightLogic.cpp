@@ -52,9 +52,9 @@ MSSOTLWaveTrafficLightLogic::canRelease() throw() {
 	//10% of lastDuration
 	SUMOTime delta =10*getCurrentPhaseDef().lastDuration/100;
 	
-	//this allows a minimum variation of +-10ms
-	if(delta<10)
-		delta=10;
+	//this allows a minimum variation of +-1s
+	if(delta<1000)
+		delta=1000;
 	//here for debugging purpose
 	myID;
 	if(getCurrentPhaseElapsed() >= getCurrentPhaseDef().minDuration){
