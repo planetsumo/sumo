@@ -30,7 +30,6 @@ def corridor():
     net.connectNodes(str(i)+"/1", str(i+1)+"/1", True)
     net.connectNodes(str(i+1)+"/0", str(i+1)+"/1", True)
     net.connectNodes(str(i+1)+"/1", str(i+1)+"/2", True)
-  #net.addNode(network.Node(str(numIntersections)+"/1", (numIntersections)*500, 0, "priority"))
   net.addNode(network.Node(str(numIntersections+1)+"/1", (numIntersections+1)*500, 500, "priority"))
   net.connectNodes(str(numIntersections)+"/1", str(numIntersections+1)+"/1", True)
   net.build()

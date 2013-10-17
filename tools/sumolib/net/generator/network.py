@@ -53,10 +53,10 @@ class Net:
     self._nodes = {}
     self._edges = {}
     self._connections = []
+    self._defaultEdge = Edge(None, None, None, 2, 13.89)
 
   def addNode(self, n):
     self._nodes[n.id] = n
-    print n.id
 
   def getNode(self, id):
     if id in self._nodes:
@@ -70,6 +70,11 @@ class Net:
     if id in self._edges:
       return self._edges[id]
     return None 
+    
+  def buildEdge(self, id, node1, node2):
+    numLanes = getValue(id, "numLanes", self._defaultEdge.numLanes)
+    maxSpeed = getValue(id, "maxSpeed", self._defaultEdge.maxSpeed)    
+    
     
   def connectNodes(self, node1, node2, bidi):
     self.addEdge(Edge(node1+"_to_"+node2, self._nodes[node1], self._nodes[node2], 2, 13.89))
@@ -118,11 +123,11 @@ class Net:
     
     netconvert = sumolib.checkBinary("netconvert")
     
-    retCode = subprocess.call(" ".join([netconvert, "-n %s -e %s -x %s -o net.net.xml" % (nodesFile, edgesFile, connectionsFile)]))
-    #retCode = subprocess.call(command, stdout=log, stderr=log)
+    retCode = subprocess.call(" ".join([netconvert, "-v -n %s -e %s -x %s -o net.net.xml" % (nodesFile, edgesFile, connectionsFile)]))
     os.remove(nodesFile)
     os.remove(edgesFile)
     os.remove(connectionsFile)
     
+
 
     
