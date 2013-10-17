@@ -57,8 +57,11 @@ meandata:lane-mean-data.add.xml
 connections:connections.con.xml
 turndefs:turn-defs.xml
 changednet:input_net.net.xml.chg
+edges:edges.edg.xml
+nodes:nodes.nod.xml
 edges:edges.xml
 nodes:nodes.xml
+net:net.net.xml
 fixed:routes.rou.xml.fixed
 activityfile:activityfile.tcl
 mobilityfile:mobilityfile.tcl
@@ -89,6 +92,7 @@ output:<!-- generated on
 output:.* files checked{REPLACE <number> files checked}
 trips:<!-- generated on
 pois:<!--
+net:<!--
 errors:Execution of .*duarouter.*'{REPLACE Execution of <path-to>duarouter'}
 errors:Leaked object at 
 errors:*** 9 leaks found
