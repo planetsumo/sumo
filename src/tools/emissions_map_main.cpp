@@ -61,38 +61,18 @@
 /* -------------------------------------------------------------------------
  * main
  * ----------------------------------------------------------------------- */
-int
-main(int argc, char **argv) {
-    // build options
-    OptionsCont &oc = OptionsCont::getOptions();
-    //  give some application descriptions
-    oc.setApplicationDescription("Builds and writes an emissions map.");
-    oc.setApplicationName("emissionsMap", "SUMO emissionsMap Version " + (std::string)VERSION_STRING);
-    //  add options
-    oc.addOptionSubTopic("Emissions");
-    oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
-    oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
-    // run
-    int ret = 0;
-    try {
-        // initialise the application system (messaging, xml, options)
-        XMLSubSys::init();
-        OptionsIO::getOptions(true, argc, argv);
-
-		SUMOReal vmin = 0.;
-		SUMOReal vmax = 50.;
-		SUMOReal vstep = 2.;
-		SUMOReal amin = -5.;
-		SUMOReal amax = 3.;
-		SUMOReal astep = .2;
-		SUMOReal smin = -10.;
-		SUMOReal smax = 10.;
-		SUMOReal sstep = 1;
-		SUMOEmissionClass c = SVE_LSZ_D_EU3;
-		std::ofstream o("D:\\SVE_LSZ_D_EU3.txt");
-		for(SUMOReal v=vmin; v<vmax; v+=vstep) {
-			for(SUMOReal a=amin; a<amax; a+=astep) {
-    			for(SUMOReal s=smin; s<smax; s+=sstep) {
+void single(const std::string &of, const std::string &className, SUMOEmissionClass c, 
+            SUMOReal vMin, SUMOReal vMax, SUMOReal vStep,
+            SUMOReal aMin, SUMOReal aMax, SUMOReal aStep,
+            SUMOReal sMin, SUMOReal sMax, SUMOReal sStep,
+            bool verbose) {
+            if(verbose) {
+                MsgHandler::getMessageInstance()->inform("Writing map of '" + className + "' into '" + of + "'.");
+            }
+		std::ofstream o(of.c_str());
+		for(SUMOReal v=vMin; v<vMax; v+=vStep) {
+			for(SUMOReal a=aMin; a<aMax; a+=aStep) {
+    			for(SUMOReal s=sMin; s<sMax; s+=sStep) {
                     o << v << ";" << a << ";" << s << ";" << "CO" << ";" << PollutantsInterface::computeCO(c, v, a, s) << std::endl;
                     o << v << ";" << a << ";" << s << ";" << "CO2" << ";" << PollutantsInterface::computeCO2(c, v, a, s) << std::endl;
                     o << v << ";" << a << ";" << s << ";" << "HC" << ";" << PollutantsInterface::computeHC(c, v, a, s) << std::endl;
@@ -102,7 +82,102 @@ main(int argc, char **argv) {
                 }
 			}
 		}
+}
 
+
+
+
+int
+main(int argc, char **argv) {
+    // build options
+    OptionsCont &oc = OptionsCont::getOptions();
+    //  give some application descriptions
+    oc.setApplicationDescription("Builds and writes an emissions map.");
+    oc.setApplicationName("emissionsMap", "SUMO emissionsMap Version " + (std::string)VERSION_STRING);
+    //  add options
+    oc.addOptionSubTopic("Processing");
+    oc.doRegister("iterate", 'i', new Option_Bool(false));
+    oc.addDescription("iterate", "Processing", "");
+
+    oc.doRegister("verbose", 'v', new Option_Bool(false));
+    oc.addDescription("verbose", "Processing", "");
+
+    oc.doRegister("emission-class", 'e', new Option_String());
+    oc.addDescription("emission-class", "Processing", "");
+
+    oc.doRegister("v-min", new Option_Float(0.));
+    oc.addDescription("v-min", "Processing", "");
+    oc.doRegister("v-max", new Option_Float(50.));
+    oc.addDescription("v-max", "Processing", "");
+    oc.doRegister("v-step", new Option_Float(2.));
+    oc.addDescription("v-step", "Processing", "");
+    oc.doRegister("a-min", new Option_Float(-5.));
+    oc.addDescription("a-min", "Processing", "");
+    oc.doRegister("a-max", new Option_Float(2.));
+    oc.addDescription("a-max", "Processing", "");
+    oc.doRegister("a-step", new Option_Float(.2));
+    oc.addDescription("a-step", "Processing", "");
+    oc.doRegister("s-min", new Option_Float(-10.));
+    oc.addDescription("s-min", "Processing", "");
+    oc.doRegister("s-max", new Option_Float(10.));
+    oc.addDescription("s-max", "Processing", "");
+    oc.doRegister("s-step", new Option_Float(1.));
+    oc.addDescription("s-step", "Processing", "");
+
+    oc.addOptionSubTopic("Emissions");
+    oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
+    oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
+
+    oc.addOptionSubTopic("Output");
+    oc.doRegister("output-file", 'o', new Option_String());
+    oc.addSynonyme("output", "output-file");
+    oc.addDescription("emission-class", "Output", "");
+
+    // run
+    int ret = 0;
+    try {
+        // initialise the application system (messaging, xml, options)
+        XMLSubSys::init();
+        OptionsIO::getOptions(true, argc, argv);
+        OptionsCont &oc = OptionsCont::getOptions();
+
+
+        SUMOReal vMin = oc.getFloat("v-min");
+		SUMOReal vMax = oc.getFloat("v-max");
+		SUMOReal vStep = oc.getFloat("v-step");
+		SUMOReal aMin = oc.getFloat("a-min");
+		SUMOReal aMax = oc.getFloat("a-max");
+		SUMOReal aStep = oc.getFloat("a-step");
+		SUMOReal sMin = oc.getFloat("s-min");
+		SUMOReal sMax = oc.getFloat("s-max");
+		SUMOReal sStep = oc.getFloat("s-step");
+        if(!oc.getBool("iterate")) {
+            if(!oc.isSet("emission-class")) {
+                throw ProcessError("The emission class (-e) must be given.");
+            }
+            if(!oc.isSet("output-file")) {
+                throw ProcessError("The output file (-o) must be given.");
+            }
+    		SUMOEmissionClass c = getVehicleEmissionTypeID(oc.getString("emission-class"));
+            single(oc.getString("output-file"), oc.getString("emission-class"), 
+                c, vMin, vMax, vStep, aMin, aMax, aStep, sMin, sMax, sStep, oc.getBool("verbose"));
+        } else {
+            if(!oc.isSet("output-file")) {
+                oc.set("output-file", "./");
+            }
+            // let's assume it's an old, plain enum
+            for(int ci=SVE_UNKNOWN; ci!=SVE_META_PHEMLIGHT_END; ++ci) {
+                SUMOEmissionClass c = (SUMOEmissionClass) ci;
+                if (SumoEmissionClassStrings.has(c)) {
+                    single(oc.getString("output-file")+getVehicleEmissionTypeName(c)+".csv", getVehicleEmissionTypeName(c), 
+                        c, vMin, vMax, vStep, aMin, aMax, aStep, sMin, sMax, sStep, oc.getBool("verbose"));
+                }
+            }
+        }
+    } catch (InvalidArgument &e) {
+        MsgHandler::getErrorInstance()->inform(e.what());
+        MsgHandler::getErrorInstance()->inform("Quitting (on error).", false);
+        ret = 1;
     } catch (ProcessError &e) {
         if (std::string(e.what())!=std::string("Process Error") && std::string(e.what())!=std::string("")) {
             MsgHandler::getErrorInstance()->inform(e.what());
