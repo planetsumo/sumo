@@ -391,6 +391,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLWaveTrafficLightLogic.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSSwarmTrafficLightLogic.cpp"
 				>
 			</File>
@@ -457,6 +461,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLTrafficLightLogic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLWaveTrafficLightLogic.h"
 				>
 			</File>
 			<File
