@@ -70,9 +70,9 @@ void single(const std::string &of, const std::string &className, SUMOEmissionCla
                 MsgHandler::getMessageInstance()->inform("Writing map of '" + className + "' into '" + of + "'.");
             }
 		std::ofstream o(of.c_str());
-		for(SUMOReal v=vMin; v<vMax; v+=vStep) {
-			for(SUMOReal a=aMin; a<aMax; a+=aStep) {
-    			for(SUMOReal s=sMin; s<sMax; s+=sStep) {
+		for(SUMOReal v=vMin; v<=vMax; v+=vStep) {
+			for(SUMOReal a=aMin; a<=aMax; a+=aStep) {
+    			for(SUMOReal s=sMin; s<=sMax; s+=sStep) {
                     o << v << ";" << a << ";" << s << ";" << "CO" << ";" << PollutantsInterface::computeCO(c, v, a, s) << std::endl;
                     o << v << ";" << a << ";" << s << ";" << "CO2" << ";" << PollutantsInterface::computeCO2(c, v, a, s) << std::endl;
                     o << v << ";" << a << ";" << s << ";" << "HC" << ";" << PollutantsInterface::computeHC(c, v, a, s) << std::endl;
@@ -111,11 +111,11 @@ main(int argc, char **argv) {
     oc.addDescription("v-max", "Processing", "");
     oc.doRegister("v-step", new Option_Float(2.));
     oc.addDescription("v-step", "Processing", "");
-    oc.doRegister("a-min", new Option_Float(-5.));
+    oc.doRegister("a-min", new Option_Float(-4.));
     oc.addDescription("a-min", "Processing", "");
-    oc.doRegister("a-max", new Option_Float(2.));
+    oc.doRegister("a-max", new Option_Float(4.));
     oc.addDescription("a-max", "Processing", "");
-    oc.doRegister("a-step", new Option_Float(.2));
+    oc.doRegister("a-step", new Option_Float(.5));
     oc.addDescription("a-step", "Processing", "");
     oc.doRegister("s-min", new Option_Float(-10.));
     oc.addDescription("s-min", "Processing", "");
@@ -125,7 +125,7 @@ main(int argc, char **argv) {
     oc.addDescription("s-step", "Processing", "");
 
     oc.addOptionSubTopic("Emissions");
-    oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
+    oc.doRegister("phemlight-path", 'p', new Option_FileName("./PHEMlight/"));
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
 
     oc.addOptionSubTopic("Output");
