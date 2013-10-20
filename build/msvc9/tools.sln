@@ -20,11 +20,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_options", "z_lib
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_xml", "z_libutils_xml\z_libutils_xml.vcproj", "{508F0BFF-83FE-444C-9509-A359BCA83BC4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TraciTestClient", "traci-testclient\Traci_TestClient.vcproj", "{46274B55-07FE-4911-B4C0-D8B43A203B4A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{72CDB11A-EC19-4BE2-BBE9-1FA33DECCB20} = {72CDB11A-EC19-4BE2-BBE9-1FA33DECCB20}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_shapes", "z_libutils_shapes\z_libutils_shapes.vcproj", "{7327F7CB-C41D-4F9D-99C2-8A3B673F182C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_emissions", "z_libutils_emissions\z_libutils_emissions.vcproj", "{7EB5568E-360F-4A66-BB6D-7598C5F99572}"
@@ -158,21 +153,6 @@ Global
 		{508F0BFF-83FE-444C-9509-A359BCA83BC4}.Unittest|Win32.ActiveCfg = Release|x64
 		{508F0BFF-83FE-444C-9509-A359BCA83BC4}.Unittest|x64.ActiveCfg = Release|x64
 		{508F0BFF-83FE-444C-9509-A359BCA83BC4}.Unittest|x64.Build.0 = Release|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Debug|Win32.ActiveCfg = Debug|Win32
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Debug|Win32.Build.0 = Debug|Win32
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Debug|x64.ActiveCfg = Debug|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Debug|x64.Build.0 = Debug|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Fastbuild|Win32.ActiveCfg = Release|Win32
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Fastbuild|Win32.Build.0 = Release|Win32
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Fastbuild|x64.ActiveCfg = Release|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Fastbuild|x64.Build.0 = Release|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Release|Win32.ActiveCfg = Release|Win32
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Release|Win32.Build.0 = Release|Win32
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Release|x64.ActiveCfg = Release|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Release|x64.Build.0 = Release|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Unittest|Win32.ActiveCfg = Release|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Unittest|x64.ActiveCfg = Release|x64
-		{46274B55-07FE-4911-B4C0-D8B43A203B4A}.Unittest|x64.Build.0 = Release|x64
 		{7327F7CB-C41D-4F9D-99C2-8A3B673F182C}.Debug|Win32.ActiveCfg = Debug|Win32
 		{7327F7CB-C41D-4F9D-99C2-8A3B673F182C}.Debug|Win32.Build.0 = Debug|Win32
 		{7327F7CB-C41D-4F9D-99C2-8A3B673F182C}.Debug|x64.ActiveCfg = Debug|Win32
