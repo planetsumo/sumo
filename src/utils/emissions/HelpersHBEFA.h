@@ -111,7 +111,7 @@ public:
 private:
     /** @brief Computes the emitted pollutant amount using the given speed and acceleration
      *
-     * As the functions are defining emissions(in g)/hour, the function's result is normed
+     * As the functions are defining emissions in g/hour, the function's result is normed
      *  by 3.6 (seconds in an hour/1000) yielding mg/s. Negative acceleration
      *  results directly in zero emission.
      *
