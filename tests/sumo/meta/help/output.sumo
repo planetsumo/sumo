@@ -1,4 +1,4 @@
-SUMO sumo Version dev-SVN-rUNKNOWN
+SUMO sumo Version dev-SVN-r14895
  Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org
 A microscopic road traffic simulation.
 
@@ -114,10 +114,12 @@ Report Options:
                                         simulation step
 
 Emissions Options:
-  --device.hbefa.probability FLOAT    The probability for a vehicle to have an
+  --phemlight-path FILE               Determines where to load PHEMlight
+                                        definitions from.
+  --device.emissions.probability FLOAT  The probability for a vehicle to have an
                                         emission logging device
-  --device.hbefa.explicit STR         Assign a device to named vehicles
-  --device.hbefa.deterministic        The devices are set deterministic using a
+  --device.emissions.explicit STR     Assign a device to named vehicles
+  --device.emissions.deterministic    The devices are set deterministic using a
                                         fraction of 1000
 
 Routing Options:
