@@ -16,6 +16,10 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
+import os, subprocess, sys, random
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'tools'))
+sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.dirname(__file__), '..', '..', '..', '..')), 'tools'))
+
 import network
 import demand
 

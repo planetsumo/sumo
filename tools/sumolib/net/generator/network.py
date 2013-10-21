@@ -56,7 +56,8 @@ class Net:
     self._defaultEdge = Edge(None, None, None, 2, 13.89)
 
   def addNode(self, n):
-    self._nodes[n.id] = n
+    if self.getNode(n.id)==None:
+        self._nodes[n.id] = n
 
   def getNode(self, id):
     if id in self._nodes:
@@ -64,17 +65,13 @@ class Net:
     return None 
 
   def addEdge(self, e):
-    self._edges[e.id] = e
+    if self.getEdge(e.id)==None:
+        self._edges[e.id] = e
 
   def getEdge(self, id):
     if id in self._edges:
       return self._edges[id]
     return None 
-    
-  def buildEdge(self, id, node1, node2):
-    numLanes = getValue(id, "numLanes", self._defaultEdge.numLanes)
-    maxSpeed = getValue(id, "maxSpeed", self._defaultEdge.maxSpeed)    
-    
     
   def connectNodes(self, node1, node2, bidi):
     self.addEdge(Edge(node1+"_to_"+node2, self._nodes[node1], self._nodes[node2], 2, 13.89))
