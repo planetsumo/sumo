@@ -23,7 +23,7 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.di
 import network
 import demand
 
-def grid(numIntersectionsX=10, numIntersectionsY=5, defaultNode=None, defaultEdge=None):
+def grid(numIntersectionsX=10, numIntersectionsY=5, defaultNode=None, defaultEdge=None, centralReservation=0):
   net = network.Net(defaultNode, defaultEdge)
   for x in range(0, numIntersectionsX):
     net.addNode(network.Node(str(x+1)+"/0", (x+1)*500, 0, "priority"))
@@ -36,12 +36,12 @@ def grid(numIntersectionsX=10, numIntersectionsY=5, defaultNode=None, defaultEdg
       net.addNode(network.Node(str(x+1)+"/"+str(y+1), (x+1)*500, (y+1)*500, "traffic_light"))
   for x in range(0, numIntersectionsX):
     for y in range(0, numIntersectionsY):
-      net.connectNodes(str(x)+"/"+str(y+1), str(x+1)+"/"+str(y+1), True)
-      net.connectNodes(str(x+1)+"/"+str(y), str(x+1)+"/"+str(y+1), True)
+      net.connectNodes(str(x)+"/"+str(y+1), str(x+1)+"/"+str(y+1), True, centralReservation)
+      net.connectNodes(str(x+1)+"/"+str(y), str(x+1)+"/"+str(y+1), True, centralReservation)
   for x in range(0, numIntersectionsX):
-    net.connectNodes(str(x+1)+"/"+str(numIntersectionsY), str(x+1)+"/"+str(numIntersectionsY+1), True)
+    net.connectNodes(str(x+1)+"/"+str(numIntersectionsY), str(x+1)+"/"+str(numIntersectionsY+1), True, centralReservation)
   for y in range(0, numIntersectionsY):
-    net.connectNodes(str(numIntersectionsX)+"/"+str(y+1), str(numIntersectionsX+1)+"/"+str(y+1), True)
+    net.connectNodes(str(numIntersectionsX)+"/"+str(y+1), str(numIntersectionsX+1)+"/"+str(y+1), True, centralReservation)
   return net  
 #  d = demand.Demand()
 #  d.addStream(demand.Stream("1/0_to_1/2", 10, "1/0 1/2"))

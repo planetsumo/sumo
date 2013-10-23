@@ -136,7 +136,7 @@ class Net:
     e = Edge(n1.nid+"_to_"+n2.nid, n1, n2, numLanes=numLanes, maxSpeed=maxSpeed, lanes=lanes, splits=splits)
     return e   
 
-  def connectNodes(self, node1, node2, bidi):
+  def connectNodes(self, node1, node2, bidi, centralReservation):
     n1 = self._nodes[node1]
     n2 = self._nodes[node2] 
     self.addEdge(self.buildEdge(n1, n2))

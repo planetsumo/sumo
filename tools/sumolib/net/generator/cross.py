@@ -24,17 +24,17 @@ import network
 import demand
 
 
-def cross(defaultNode=None, defaultEdge=None):
+def cross(defaultNode=None, defaultEdge=None, centralReservation=0):
   net = network.Net(defaultNode, defaultEdge)
   net.addNode(network.Node("1/0", 500, 0, "priority"))
   net.addNode(network.Node("0/1", 0, 500, "priority"))
   net.addNode(network.Node("1/1", 500, 500, "traffic_light"))
   net.addNode(network.Node("2/1", 1000, 500, "priority"))
   net.addNode(network.Node("1/2", 500, 1000, "priority"))
-  net.connectNodes("1/0", "1/1", True)
-  net.connectNodes("0/1", "1/1", True)
-  net.connectNodes("2/1", "1/1", True)
-  net.connectNodes("1/2", "1/1", True)
+  net.connectNodes("1/0", "1/1", True, centralReservation)
+  net.connectNodes("0/1", "1/1", True, centralReservation)
+  net.connectNodes("2/1", "1/1", True, centralReservation)
+  net.connectNodes("1/2", "1/1", True, centralReservation)
   return net
          
 if __name__ == "__main__":
