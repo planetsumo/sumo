@@ -23,10 +23,10 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.di
 import network
 import demand
 
-def grid():
+def grid(net=None):
   numIntersectionsX = 10
   numIntersectionsY = 5
-  net = network.Net()
+  if net==None: net = network.Net()
   for x in range(0, numIntersectionsX):
     net.addNode(network.Node(str(x+1)+"/0", (x+1)*500, 0, "priority"))
     net.addNode(network.Node(str(x+1)+"/"+str(numIntersectionsY+1), (x+1)*500, (numIntersectionsY+1)*500, "priority"))
@@ -44,11 +44,11 @@ def grid():
     net.connectNodes(str(x+1)+"/"+str(numIntersectionsY), str(x+1)+"/"+str(numIntersectionsY+1), True)
   for y in range(0, numIntersectionsY):
     net.connectNodes(str(numIntersectionsX)+"/"+str(y+1), str(numIntersectionsX+1)+"/"+str(y+1), True)
-  net.build()
-  
-  d = demand.Demand()
-  d.addStream(demand.Stream("1/0_to_1/2", 10, "1/0 1/2"))
-  d.build(3600)
+  return net  
+#  d = demand.Demand()
+#  d.addStream(demand.Stream("1/0_to_1/2", 10, "1/0 1/2"))
+#  d.build(3600)
 
 if __name__ == "__main__":
-    grid()         
+  net = grid()         
+  net.build()

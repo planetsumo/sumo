@@ -23,9 +23,9 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.di
 import network
 import demand
 
-def corridor():
+def corridor(net=None):
   numIntersections = 10
-  net = network.Net()
+  if net==None: net = network.Net()
   net.addNode(network.Node("0/1", 0, 500, "priority"))
   for i in range(0, numIntersections):
     net.addNode(network.Node(str(i+1)+"/0", (i+1)*500, 0, "priority"))
@@ -36,11 +36,11 @@ def corridor():
     net.connectNodes(str(i+1)+"/1", str(i+1)+"/2", True)
   net.addNode(network.Node(str(numIntersections+1)+"/1", (numIntersections+1)*500, 500, "priority"))
   net.connectNodes(str(numIntersections)+"/1", str(numIntersections+1)+"/1", True)
-  net.build()
-  
-  d = demand.Demand()
-  d.addStream(demand.Stream("1/0_to_1/2", 10, "1/0 1/2"))
-  d.build(3600)
+  return net  
+#  d = demand.Demand()
+#  d.addStream(demand.Stream("1/0_to_1/2", 10, "1/0 1/2"))
+#  d.build(3600)
 
 if __name__ == "__main__":
-    corridor()         
+  net = corridor()         
+  net.build()
