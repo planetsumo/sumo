@@ -38,6 +38,11 @@ class Lane:
     if self.dirs==None: 
       self.dirs = []
 
+class Split:
+  def __init__(self, distance, lanes):
+    self.distance = distance
+    self.lanes = lanes
+    
 class Edge:
   def __init__(self, eid=None, fromNode=None, toNode=None, numLanes=None, maxSpeed=None, lanes=None, splits=None):
     self.eid = eid
@@ -46,17 +51,36 @@ class Edge:
     self.numLanes = numLanes
     self.maxSpeed = maxSpeed
     self.lanes = lanes
-    if self.lanes==None: self.lanes = []
+    if self.lanes==None: 
+      self.lanes = []
+      for i in range(0, self.numLanes):
+        self.lanes.append(Lane())
     self.splits = splits
     if self.splits==None: self.splits = []
-  def addSplit(self, s):
-    self.split.append(s)
+  def addSplit(self, distance, lanesToRight=None, lanesToLeft=None):
+    if len(self.splits)==0:
+      if lanesToRight==None: lanesToRight = 0
+      if lanesToLeft==None: lanesToLeft = 0
+      lanes = range(lanesToRight, self.numLanes+lanesToRight)
+      self.splits.append(Split(0, lanes))
+      lanes = range(0, self.numLanes+lanesToRight+lanesToLeft)
+      self.splits.append(Split(distance, lanes))
+      for i in range(0, lanesToRight):
+        self.lanes.insert(0, Lane())
+      for i in range(0, lanesToLeft):
+        self.lanes.append(Lane())
   def getConnections(self, net):
     ret = []
+    
+    seen = {}
+    seenRight = 0
+    seenLeft = 0
     for i,l in enumerate(self.lanes):
       for d in l.dirs:
-        c = net.dir2connection(d, self, i, i, i)
+        if d not in seen: seen[d] = 0
+        c = net.dir2connection(d, self, i, seen[d])
         if c!=None: ret.append(c)
+        seen[d] = seen[d] + 1
     return ret
   def getDirection(self):
     n1c = self.fromNode.getNetworkCoordinates()
@@ -100,13 +124,16 @@ class Net:
     return self._defaultEdge
     
   def buildEdge(self, n1, n2):
-    numLanes = self.getDefaultEdge(n1, n2).numLanes
-    maxSpeed = self.getDefaultEdge(n1, n2).maxSpeed 
-    e = Edge(n1.nid+"_to_"+n2.nid, n1, n2, numLanes, maxSpeed)
-    for s in self.getDefaultEdge(n1, n2).splits:
-        e.splits.append(s)
-    for l in self.getDefaultEdge(n1, n2).lanes:
-        e.lanes.append(Lane(l.dirs))
+    defEdge = self.getDefaultEdge(n1, n2)
+    splits = []
+    for s in defEdge.splits:
+      splits.append(s)
+    lanes = []
+    for l in defEdge.lanes:
+      lanes.append(l)
+    numLanes = defEdge.numLanes
+    maxSpeed = defEdge.maxSpeed 
+    e = Edge(n1.nid+"_to_"+n2.nid, n1, n2, numLanes=numLanes, maxSpeed=maxSpeed, lanes=lanes, splits=splits)
     return e   
 
   def connectNodes(self, node1, node2, bidi):
@@ -119,7 +146,6 @@ class Net:
   def getDirectionFromNode(self, n, dir):
     nc = n.getNetworkCoordinates()
     eid = n.nid + "_to_" + str(nc[0]+dir[0]) + "/" + str(nc[1]+dir[1])
-    #print "%s %s %s" % (n.nid, dir, eid)
     if eid in self._edges:
       return self._edges[eid]
     return None
@@ -146,10 +172,10 @@ class Net:
     else:
       raise "Unrecognized direction '%s'" % direction
     
-  def dir2connection(self, direction, edge, lane, seenRight, leftLeft):
+  def dir2connection(self, direction, edge, lane, seen):
     toEdge = self.getMatchingOutgoing(edge, direction)
     if toEdge!=None:    
-      return Connection(edge, lane, toEdge, seenRight)
+      return Connection(edge, lane, toEdge, seen)
     return None
 
 
@@ -171,7 +197,7 @@ class Net:
       e = self._edges[eid]
       print >> fdo, '    <edge id="%s" from="%s" to="%s" numLanes="%s" speed="%s">' % (e.eid, e.fromNode.nid, e.toNode.nid, e.numLanes, e.maxSpeed)
       for s in e.splits:
-        print >> fdo, '        <split pos="%s" lanes="%s">' % (s.pos, s.lanes)
+        print >> fdo, '        <split pos="%s" lanes="%s"/>' % (-s.distance, str(s.lanes)[1:-1].replace(",", ""))
       connections.extend(e.getConnections(self))
       print >> fdo, '    </edge>'
     print >> fdo, "</edges>"
@@ -181,7 +207,10 @@ class Net:
     fdo = open(connectionsFile, "w")
     print >> fdo, "<connections>"
     for c in connections:
-      print >> fdo, '    <connection from="%s" to="%s" fromLane="%s" toLane="%s"/>' % (c.fromEdge.eid, c.toEdge.eid, c.fromLane, c.toLane)
+      eid = c.fromEdge.eid
+      if len(c.fromEdge.splits)>1:
+        eid = eid + ".-" + str(c.fromEdge.splits[-1].distance)
+      print >> fdo, '    <connection from="%s" to="%s" fromLane="%s" toLane="%s"/>' % (eid, c.toEdge.eid, c.fromLane, c.toLane)
     print >> fdo, "</connections>"
     fdo.close()
     
