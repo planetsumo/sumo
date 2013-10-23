@@ -24,9 +24,8 @@ import network
 import demand
 
 
-def cross(net=None):
-  if net==None: net = network.Net()
-  #net._defaultEdge.numLanes = 3
+def cross(defaultNode=None, defaultEdge=None):
+  net = network.Net(defaultNode, defaultEdge)
   net.addNode(network.Node("1/0", 500, 0, "priority"))
   net.addNode(network.Node("0/1", 0, 500, "priority"))
   net.addNode(network.Node("1/1", 500, 500, "traffic_light"))
@@ -42,7 +41,3 @@ if __name__ == "__main__":
   net = cross()
   net.build()
   
-#  d = demand.Demand()
-#  d.addStream(demand.Stream("1/0_to_1/2", 10, "1/0 1/2"))
-#  d.build(3600)
-           

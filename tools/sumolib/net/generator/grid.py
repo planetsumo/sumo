@@ -23,10 +23,8 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.di
 import network
 import demand
 
-def grid(net=None):
-  numIntersectionsX = 10
-  numIntersectionsY = 5
-  if net==None: net = network.Net()
+def grid(numIntersectionsX=10, numIntersectionsY=5, defaultNode=None, defaultEdge=None):
+  net = network.Net(defaultNode, defaultEdge)
   for x in range(0, numIntersectionsX):
     net.addNode(network.Node(str(x+1)+"/0", (x+1)*500, 0, "priority"))
     net.addNode(network.Node(str(x+1)+"/"+str(numIntersectionsY+1), (x+1)*500, (numIntersectionsY+1)*500, "priority"))

@@ -24,14 +24,14 @@ import subprocess
 
 class Node:
   def __init__(self, id, x, y, nodeType):
-    self.id = id
+    self.nid = id
     self.x = x
     self.y = y
     self.nodeType = nodeType
 
 class Edge:
-  def __init__(self, id, fromNode, toNode, numLanes, maxSpeed):
-    self.id = id
+  def __init__(self, eid=None, fromNode=None, toNode=None, numLanes=None, maxSpeed=None):
+    self.eid = eid
     self.fromNode = fromNode
     self.toNode = toNode
     self.numLanes = numLanes
@@ -49,14 +49,17 @@ class Connection:
   
 
 class Net:
-  def __init__(self):
+  def __init__(self, defaultNode, defaultEdge):
     self._nodes = {}
     self._edges = {}
     self._connections = []
-    self._defaultEdge = Edge(None, None, None, 2, 13.89)
+    self._defaultEdge = defaultEdge
+    if self._defaultEdge==None: self._defaultEdge = Edge(None, None, None, 2, 13.89)
+    self._defaultNode = defaultNode
+    if self._defaultNode==None: self._defaultNode = Node(None, None, None, "traffic_light")
 
   def addNode(self, n):
-    self._nodes[n.id] = n
+    self._nodes[n.nid] = n
 
   def getNode(self, id):
     if id in self._nodes:
@@ -64,7 +67,7 @@ class Net:
     return None 
 
   def addEdge(self, e):
-    self._edges[e.id] = e
+    self._edges[e.eid] = e
 
   def getEdge(self, id):
     if id in self._edges:
@@ -77,7 +80,7 @@ class Net:
   def buildEdge(self, n1, n2):
     numLanes = self.getDefaultEdge(n1, n2).numLanes
     maxSpeed = self.getDefaultEdge(n1, n2).maxSpeed 
-    e = Edge(n1.id+"_to_"+n2.id, n1, n2, numLanes, maxSpeed)
+    e = Edge(n1.nid+"_to_"+n2.nid, n1, n2, numLanes, maxSpeed)
     for s in self.getDefaultEdge(n1, n2).splits:
         e.splits.append(s)
     return e   
@@ -99,13 +102,13 @@ class Net:
     self.hack_addConnection(fromEdge, lEdge, lEdgeLanes)
         
 
-  def build(self):
+  def build(self, netName="net.net.xml"):
     nodesFile = "nodes.nod.xml"
     fdo = open(nodesFile, "w")
     print >> fdo, "<nodes>"
     for nid in self._nodes:
       n = self._nodes[nid]
-      print >> fdo, '    <node id="%s" x="%s" y="%s" type="%s"/>' % (n.id, n.x, n.y, n.nodeType)
+      print >> fdo, '    <node id="%s" x="%s" y="%s" type="%s"/>' % (n.nid, n.x, n.y, n.nodeType)
     print >> fdo, "</nodes>"
     fdo.close()
     
@@ -114,7 +117,7 @@ class Net:
     print >> fdo, "<edges>"
     for eid in self._edges:
       e = self._edges[eid]
-      print >> fdo, '    <edge id="%s" from="%s" to="%s" numLanes="%s" speed="%s">' % (e.id, e.fromNode.id, e.toNode.id, e.numLanes, e.maxSpeed)
+      print >> fdo, '    <edge id="%s" from="%s" to="%s" numLanes="%s" speed="%s">' % (e.eid, e.fromNode.nid, e.toNode.nid, e.numLanes, e.maxSpeed)
       for s in e.splits:
         print >> fdo, '        <split pos="%s" lanes="%s">' % (s.pos, s.lanes)
       print >> fdo, '    </edge>'
@@ -125,13 +128,13 @@ class Net:
     fdo = open(connectionsFile, "w")
     print >> fdo, "<connections>"
     for c in self._connections:
-      print >> fdo, '    <connection from="%s" to="%s" fromLane="%s" toLane="%s"/>' % (c.fromEdge.id, c.toEdge.id, c.fromLane, c.toLane)
+      print >> fdo, '    <connection from="%s" to="%s" fromLane="%s" toLane="%s"/>' % (c.fromEdge.eid, c.toEdge.eid, c.fromLane, c.toLane)
     print >> fdo, "</connections>"
     fdo.close()
     
     netconvert = sumolib.checkBinary("netconvert")
     
-    retCode = subprocess.call(" ".join([netconvert, "-v -n %s -e %s -x %s -o net.net.xml" % (nodesFile, edgesFile, connectionsFile)]))
+    retCode = subprocess.call(" ".join([netconvert, "-v -n %s -e %s -x %s -o %s" % (nodesFile, edgesFile, connectionsFile, netName)]))
     os.remove(nodesFile)
     os.remove(edgesFile)
     os.remove(connectionsFile)

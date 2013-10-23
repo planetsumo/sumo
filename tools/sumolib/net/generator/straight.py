@@ -23,8 +23,8 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.di
 import network
 import demand
 
-def straight(net=None):
-  if net==None: net = network.Net()
+def straight(defaultNode=None, defaultEdge=None):
+  net = network.Net(defaultNode, defaultEdge)
   net.addNode(network.Node("0/1", 0, 500, "priority"))
   net.addNode(network.Node("1/1", 500, 500, "traffic_light"))
   net.addNode(network.Node("2/1", 1000, 500, "priority"))
