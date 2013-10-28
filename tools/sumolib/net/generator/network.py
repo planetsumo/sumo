@@ -216,11 +216,7 @@ class Net:
     
     netconvert = sumolib.checkBinary("netconvert")
     
-    retCode = subprocess.call(" ".join([netconvert, "-v -n %s -e %s -x %s -o %s" % (nodesFile, edgesFile, connectionsFile, netName)]))
+    retCode = subprocess.call([netconvert, "-v", "-n", nodesFile, "-e", edgesFile, "-x", connectionsFile, "-o", netName])
     os.remove(nodesFile)
     os.remove(edgesFile)
     os.remove(connectionsFile)
-    
-
-
-    

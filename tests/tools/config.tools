@@ -101,5 +101,8 @@ errors:Traceback{->}XMLSyntaxError
 omnet:<!-- generated on
 shawn:<!-- generated on
 
+[floating_point_tolerance]
+net:0.0101
+
 [unordered_text]
 errors:ERROR:SCHEMA
