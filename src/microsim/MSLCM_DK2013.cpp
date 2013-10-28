@@ -6,7 +6,7 @@
 /// @author  Michael Behrisch
 /// @author  Jakob Erdmann
 /// @date    Fri, 08.10.2013
-/// @version $Id: MSLCM_DK2013.cpp 14890 2013-10-21 12:16:27Z namdre $
+/// @version $Id$
 ///
 // A lane change model developed by D. Krajzewicz et al. between 2004 and 2013
 /****************************************************************************/
@@ -136,8 +136,6 @@ MSLCM_DK2013::patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMORe
 
 SUMOReal
 MSLCM_DK2013::_patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOReal max, const MSCFModel& cfModel) {
-
-    const SUMOReal time = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
 
     int state = myOwnState;
 
@@ -341,7 +339,6 @@ MSLCM_DK2013::_wantsChange(
     const int lca = (right ? LCA_RIGHT : LCA_LEFT);
     const int myLca = (right ? LCA_MRIGHT : LCA_MLEFT);
     const int lcaCounter = (right ? LCA_LEFT : LCA_RIGHT);
-    const int myLcaCounter = (right ? LCA_MLEFT : LCA_MRIGHT);
     const bool changeToBest = (right && bestLaneOffset < 0) || (!right && bestLaneOffset > 0);
     // keep information about being a leader/follower
     int ret = (myOwnState & 0x00ffff00);

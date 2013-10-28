@@ -26,6 +26,8 @@ import math
 from xml.sax import saxutils, parse, handler
 from copy import copy
 from itertools import *
+
+import sumolib
 from . import lane, edge, node, connection, roundabout
 from .lane import Lane
 from .edge import Edge
@@ -69,7 +71,7 @@ class TLS:
 
     def addProgram(self, program):
         self._programs[program._id] = program
-        
+
     def toXML(self):
         ret = ""
         for p in self._programs:
@@ -166,7 +168,7 @@ class Net:
 
     def hasEdge(self, id):
         return id in self._id2edge
-        
+
     def getEdge(self, id):
         return self._id2edge[id]
 
@@ -178,11 +180,19 @@ class Net:
             self._rtree.add(ri, edge.getBoundingBox(includeJunctions))
 
     def getNeighboringEdges(self, x, y, r=0.1, includeJunctions=True):
-        if self._rtree == None:
-            self._initRTree()
         edges = []
-        for e in self._rtree.intersection((x - r, y - r, x + r, y + r)):
-            edges.append(self._edges[e])
+        try:
+            if self._rtree == None:
+                self._initRTree(includeJunctions)
+            for e in self._rtree.intersection((x - r, y - r, x + r, y + r)):
+                d = sumolib.geomhelper.distancePointToPolygon((x,y), self._edges[e].getShape(includeJunctions))
+                if d < r:
+                    edges.append((self._edges[e], d))
+        except ImportError:
+            for edge in self._edges:
+                d = sumolib.geomhelper.distancePointToPolygon((x,y), edge.getShape(includeJunctions))
+                if d < r:
+                    edges.append((edge,d))
         return edges
 
     def hasNode(self, id):
@@ -281,14 +291,13 @@ class Net:
 
     def move(self, dx, dy):
         for n in self._nodes:
-            n._coord[0] += dx
-            n._coord[1] += dy
+            n._coord = (n._coord[0] + dx, n._coord[1] + dy)
         for e in self._edges:
             for l in e._lanes:
                 l._shape = [(p[0] + dx, p[1] + dy) for p in l._shape]
             e.rebuildShape()
 
-    
+
 class NetReader(handler.ContentHandler):
     """Reads a network, storing the edge geometries, lane numbers and max. speeds"""
 
@@ -330,7 +339,7 @@ class NetReader(handler.ContentHandler):
                 self._currentShape = ""
         if name == 'junction':
             if attrs['id'][0]!=':':
-                self._currentNode = self._net.addNode(attrs['id'], attrs['type'], [ float(attrs['x']), float(attrs['y']) ], attrs['incLanes'].split(" ") )
+                self._currentNode = self._net.addNode(attrs['id'], attrs['type'], (float(attrs['x']), float(attrs['y'])), attrs['incLanes'].split(" ") )
         if name == 'succ' and self._withConnections: # deprecated
             if attrs['edge'][0]!=':':
                 self._currentEdge = self._net.getEdge(attrs['edge'])
