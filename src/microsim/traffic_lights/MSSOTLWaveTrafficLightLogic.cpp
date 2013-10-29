@@ -30,8 +30,6 @@ MSSOTLWaveTrafficLightLogic::MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcon
 								  {
 									  (*myPhases[i]).lastDuration = (*myPhases[i]).duration;
 								  }
-								  //only for evaluation purpose
-								  MsgHandler::getMessageInstance()->inform("*** The following data serves only for evaluation purpose ***\nid,state,duration,simulation time");
 }
 
 MSSOTLWaveTrafficLightLogic::MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcontrol,
@@ -47,24 +45,14 @@ MSSOTLWaveTrafficLightLogic::MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcon
 bool 
 MSSOTLWaveTrafficLightLogic::canRelease() throw() {
 
-	//check if isTarget -> salvare targetlane OPPURE cerco le linee col verde
-
 	//10% of lastDuration
 	SUMOTime delta =10*getCurrentPhaseDef().lastDuration/100;
 	
 	//this allows a minimum variation of +-1s
 	if(delta<1000)
 		delta=1000;
-	//here for debugging purpose
-	myID;
 	if(getCurrentPhaseElapsed() >= getCurrentPhaseDef().minDuration){
 		if(getCurrentPhaseElapsed() >= getCurrentPhaseDef().lastDuration-delta){
-	//		cout << getID()<<"\n";
-	//		countVehicles();
-	//		cout << "vehicles on "<< getID()<<":"<< countVehicles()<<"\n";
-	//		if(getCurrentPhaseDef().isTarget()){
-	//				cout << getID()<<" "<<MSSOTLTrafficLightLogic::countVehicles(getCurrentPhaseDef())<<" "<<countVehicles()<<"\n";
-	//			}
 			if(
 				(countVehicles()==0)							//no other vehicles approaching green lights
 				||(getCurrentPhaseElapsed()>= getCurrentPhaseDef().lastDuration+delta)					//maximum value of the window surrounding lastDuration
@@ -72,8 +60,6 @@ MSSOTLWaveTrafficLightLogic::canRelease() throw() {
 				) {
 
 				(*myPhases[getCurrentPhaseIndex()]).lastDuration=getCurrentPhaseElapsed();
-				//only for evaluation purpose
-				MsgHandler::getMessageInstance()->inform(getID()+","+getCurrentPhaseDef().getState()+","+time2string(getCurrentPhaseElapsed())+","+time2string(MSNet::getInstance()->getCurrentTimeStep()));
 				return true;
 			}
 		}
@@ -92,11 +78,8 @@ unsigned int
 			}
 			if(state[i]!='r'){
 				vehicles += getSensors()->countVehicles(getLanes()[i][0]);
-			//	cout << getLanes()[i][j]->getID()<<"\n";
 			}	
-		//	cout << state[i]<<"->"<<getLanes()[i][0]->getID()<<"\n";
 
 		}
-		cout <<"\n";
 		return vehicles;
 }
