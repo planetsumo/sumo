@@ -27,12 +27,14 @@ tripinfo:tripinfo.xml
 net:net.net.xml
 vss:vss.xml
 results:results.csv
+trips:trips.trips.xml
 
 [run_dependent_text]
 output:\r{REPLACE \n}
 output:\([0-9]*ms\){REPLACE (TIME)}
 output:^Performance:{->}^Vehicles:
 net:<!--{[->]}-->
+trips:<!--{[->]}-->
 vehroutes:<!--{[->]}-->
 tripinfo:<!--{[->]}-->
 state:<!--{[->]}-->
