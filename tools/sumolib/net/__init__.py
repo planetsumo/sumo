@@ -21,6 +21,7 @@ from xml.sax import saxutils, parse, handler
 from copy import copy
 from itertools import *
 import lane, edge, node, connection, roundabout
+import generator
 from lane import Lane
 from edge import Edge
 from node import Node

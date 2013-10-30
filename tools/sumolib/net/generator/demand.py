@@ -20,7 +20,30 @@ import random
 import sumolib          
 import os
 import subprocess
+import math
 
+
+
+class LinearChange:
+  def __init__(self, beginFlow, endFlow, beginTime, endTime):
+    self.beginFlow = beginFlow /3600.
+    self.endFlow = endFlow /3600.
+    self.beginTime = beginTime
+    self.endTime = endTime
+  def depart(self, t):
+    return random.random()<(self.beginFlow+(self.endFlow-self.beginFlow)/(self.endTime-self.beginTime)*(t-self.beginTime))
+
+class WaveComposition:
+  def __init__(self, offset, curves):
+    self.offset = offset
+    self.curves = curves
+  def depart(self, t):
+    v = self.offset
+    for c in self.curves:
+      dt = t-c[3]
+      v = v + c[0]*math.sin(2*math.pi*dt*c[2]) + c[1]*math.cos(2*math.pi*dt*c[2])
+    v = v/3600.
+    return random.random()<v
 
 
 class Vehicle:
@@ -32,22 +55,35 @@ class Vehicle:
     self.vType = vType
 
 class Stream:
-  def __init__(self, sid, numberModel, departEdgeModel, arrivalEdgeModel, vTypeModel, timeSpan=3600):
+  def __init__(self, sid, validFrom, validUntil, numberModel, departEdgeModel, arrivalEdgeModel, vTypeModel):
     self.sid = sid
-    self._timeSpan = timeSpan
     self._numberModel = numberModel
     self._departEdgeModel = departEdgeModel
     self._arrivalEdgeModel = arrivalEdgeModel
     self._vTypeModel = vTypeModel
+    self._validFrom = validFrom
+    self._validUntil = validUntil
 
-  def getVehicleNumer(self, b, e):
-    number = int(self.getFrom(self._numberModel))
-    return number * (e-b) / self._timeSpan
+  def getVehicleDepartures(self, b, e):
+    if self._validFrom!=None and self._validUntil!=None and (e<self._validFrom or b>self._validUntil):
+      return []
+    ret = []
+    for i in range(b, e):
+      if self._validFrom!=None and self._validUntil!=None and (i<self._validFrom or i>self._validUntil):
+        continue
+      if isinstance(self._numberModel, int) or isinstance(self._numberModel, float): 
+        if random.random()<float(self._numberModel)/3600.:
+          ret.append(i)
+      elif self._numberModel.depart(i):
+        ret.append(i)
+    return ret
+         
 
-  def getFrom(self, what):
+  def getFrom(self, what, i, number):
     if isinstance(what, str): return what
     if isinstance(what, int): return what
     if isinstance(what, float): return what
+    if isinstance(what, list): return what[i%len(what)]
     if isinstance(what, dict):
       r = random.random()
       s = 0 
@@ -59,15 +95,16 @@ class Stream:
           
   def toVehicles(self, b, e):
     vehicles = []
-    number = self.getVehicleNumer(b, e)
-    for i in range(0, number):
-        fromEdge = self.getFrom(self._departEdgeModel)
-        toEdge = self.getFrom(self._arrivalEdgeModel)
-        vType = self.getFrom(self._vTypeModel)
+    departures = self.getVehicleDepartures(b, e)
+    number = len(departures)
+    for i,d in enumerate(departures):
+        fromEdge = self.getFrom(self._departEdgeModel, i, number)
+        toEdge = self.getFrom(self._arrivalEdgeModel, i, number)
+        vType = self.getFrom(self._vTypeModel, i, number)
         sid = self.sid   
         if sid==None:
-          sid = fromEdge + "to" + toEdge
-        vehicles.append(Vehicle(sid+"#"+str(i), int(random.random()*(e-b)+b), fromEdge, toEdge, vType))  
+          sid = fromEdge + "_to_" + toEdge + "_" + str(i)
+        vehicles.append(Vehicle(sid+"#"+str(i), int(d), fromEdge, toEdge, vType))  
     return vehicles
 
 
