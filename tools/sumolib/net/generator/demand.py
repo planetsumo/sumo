@@ -17,25 +17,61 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 import random
+import sumolib          
+import os
+import subprocess
+
 
 
 class Vehicle:
-  def __init__(self, id, depart, route):
+  def __init__(self, id, depart, fromEdge, toEdge, vType):
     self.id = id
     self.depart = depart
-    self.route = route
+    self.fromEdge = fromEdge
+    self.toEdge = toEdge
+    self.vType = vType
 
 class Stream:
-  def __init__(self, id, flow, route):
-    self.id = id
-    self.flow = flow
-    self.route = route
-  def toVehicles(self, t):
+  def __init__(self, sid, numberModel, departEdgeModel, arrivalEdgeModel, vTypeModel, timeSpan=3600):
+    self.sid = sid
+    self._timeSpan = timeSpan
+    self._numberModel = numberModel
+    self._departEdgeModel = departEdgeModel
+    self._arrivalEdgeModel = arrivalEdgeModel
+    self._vTypeModel = vTypeModel
+
+  def getVehicleNumer(self, b, e):
+    number = int(self.getFrom(self._numberModel))
+    return number * (e-b) / self._timeSpan
+
+  def getFrom(self, what):
+    if isinstance(what, str): return what
+    if isinstance(what, int): return what
+    if isinstance(what, float): return what
+    if isinstance(what, dict):
+      r = random.random()
+      s = 0 
+      for k in what:
+        s = s + k
+        if s>r: return what[k]
+      return None
+    return what.get()
+          
+  def toVehicles(self, b, e):
     vehicles = []
-    numVehicles = t*self.flow/3600
-    for j in range(0, numVehicles):
-      vehicles.append(Vehicle(self.id+"#"+str(j), int(random.random()*t), self.route))
+    number = self.getVehicleNumer(b, e)
+    for i in range(0, number):
+        fromEdge = self.getFrom(self._departEdgeModel)
+        toEdge = self.getFrom(self._arrivalEdgeModel)
+        vType = self.getFrom(self._vTypeModel)
+        sid = self.sid   
+        if sid==None:
+          sid = fromEdge + "to" + toEdge
+        vehicles.append(Vehicle(sid+"#"+str(i), int(random.random()*(e-b)+b), fromEdge, toEdge, vType))  
     return vehicles
+
+
+
 
 class Demand:
   def __init__(self):
@@ -44,14 +80,19 @@ class Demand:
   def addStream(self, s):
     self.streams.append(s)
   
-  def build(self, t):
+  def build(self, b, e, netName, routesName="input_routes.rou.xml"):
     vehicles = []
     for s in self.streams:
-      vehicles.extend(s.toVehicles(t))
-    fdo = open("input_routes.rou.xml", "w")
+      vehicles.extend(s.toVehicles(b, e))
+    fdo = open("input_trips.rou.xml", "w")
     fdo.write("<routes>\n")
     for v in sorted(vehicles, key=lambda veh: veh.depart):
-      fdo.write('    <vehicle id="%s" depart="%s" departSpeed="max"><route edges="%s"/></vehicle>\n' % (v.id, v.depart, v.route))  
+      fdo.write('    <trip id="%s" depart="%s" from="%s" to="%s" type="%s"/>\n' % (v.id, v.depart, v.fromEdge, v.toEdge, v.vType))
     fdo.write("</routes>")
     fdo.close()
-    
+
+    duarouter = sumolib.checkBinary("duarouter")
+    retCode = subprocess.call([duarouter, "-v", "-n", netName,  "-t", "input_trips.rou.xml", "-o", routesName])
+    os.remove(nodesFile)
+    os.remove(edgesFile)
+    os.remove(connectionsFile)
