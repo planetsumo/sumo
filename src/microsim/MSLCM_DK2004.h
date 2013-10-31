@@ -47,25 +47,58 @@ class MSLCM_DK2004 : public MSAbstractLaneChangeModel {
 public:
 
     enum MyLCAEnum {
-        LCA_AMBLOCKINGLEADER = 256,                             //  8
-        LCA_AMBLOCKINGFOLLOWER = 512,                           //  9
-        LCA_MRIGHT = 1024,                                      // 10
-        LCA_MLEFT = 2048,                                       // 11
-        // !!! never set LCA_UNBLOCK = 4096,                    // 12
-        LCA_AMBLOCKINGFOLLOWER_DONTBRAKE = 8192,                // 13
-        // !!! never used LCA_AMBLOCKINGSECONDFOLLOWER = 16384, // 14
+        LCA_AMBLOCKINGLEADER = 1 << 16,
+        LCA_AMBLOCKINGFOLLOWER = 1 << 17,                          
+        LCA_MRIGHT = 1 << 18,                                     
+        LCA_MLEFT = 1 << 19,                                      
+        // !!! never set LCA_UNBLOCK = 1 << 20,                   
+        LCA_AMBLOCKINGFOLLOWER_DONTBRAKE = 1 << 21,               
+        // !!! never used LCA_AMBLOCKINGSECONDFOLLOWER = 1 << 22,
         
-        // !!! never read LCA_KEEP1 = 65536,                    // 16
-        // !!! never used LCA_KEEP2 = 131072,                   // 17
-        LCA_AMBACKBLOCKER = 262144,                             // 18
-        LCA_AMBACKBLOCKER_STANDING = 524288                     // 19
-
+        // !!! never read LCA_KEEP1 = 1 << 24,                   
+        // !!! never used LCA_KEEP2 = 1 << 25,                  
+        LCA_AMBACKBLOCKER = 1 << 26,                            
+        LCA_AMBACKBLOCKER_STANDING = 1 << 27                    
     };
 
     MSLCM_DK2004(MSVehicle& v);
 
     virtual ~MSLCM_DK2004();
 
+    /** @brief Called to examine whether the vehicle wants to change 
+     * using the given laneOffset. 
+     * This method gets the information about the surrounding vehicles
+     * and whether another lane may be more preferable */
+    int wantsChange(
+        int laneOffset,
+        MSAbstractLaneChangeModel::MSLCMessager& msgPass, int blocked,
+        const std::pair<MSVehicle*, SUMOReal>& leader,
+        const std::pair<MSVehicle*, SUMOReal>& neighLead,
+        const std::pair<MSVehicle*, SUMOReal>& neighFollow,
+        const MSLane& neighLane,
+        const std::vector<MSVehicle::LaneQ>& preb,
+        MSVehicle** lastBlocked,
+        MSVehicle** firstBlocked);
+
+    virtual void* inform(void* info, MSVehicle* sender);
+
+    /** @brief Called to adapt the speed in order to allow a lane change.
+     *
+     * @param min The minimum resulting speed
+     * @param wanted The aspired speed of the car following model
+     * @param max The maximum resulting speed
+     * @param cfModel The model used
+     * @return the new speed of the vehicle as proposed by the lane changer
+     */
+    virtual SUMOReal patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOReal max,
+                                const MSCFModel& cfModel);
+
+    virtual void changed();
+
+    virtual void prepareStep();
+
+
+protected:
     /** @brief Called to examine whether the vehicle wants to change to right
         This method gets the information about the surrounding vehicles
         and whether another lane may be more preferable */
@@ -92,30 +125,6 @@ public:
         MSVehicle** lastBlocked,
         MSVehicle** firstBlocked);
 
-    virtual void* inform(void* info, MSVehicle* sender);
-
-    /** @brief Called to adapt the speed in order to allow a lane change.
-     *
-     * @param min The minimum resulting speed
-     * @param wanted The aspired speed of the car following model
-     * @param max The maximum resulting speed
-     * @param cfModel The model used
-     * @return the new speed of the vehicle as proposed by the lane changer
-     */
-    virtual SUMOReal patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOReal max,
-                                const MSCFModel& cfModel);
-
-    virtual void changed();
-
-    SUMOReal getProb() const;
-    virtual void prepareStep();
-
-    SUMOReal getChangeProbability() const {
-        return myChangeProbability;
-    }
-
-
-protected:
     void informBlocker(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
                        int& blocked, int dir,
                        const std::pair<MSVehicle*, SUMOReal>& neighLead,

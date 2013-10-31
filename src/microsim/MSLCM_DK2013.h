@@ -49,42 +49,30 @@ class MSLCM_DK2013 : public MSAbstractLaneChangeModel {
 public:
 
     enum MyLCAEnum {
-        LCA_AMBLOCKINGLEADER = 256,                             //  8
-        LCA_AMBLOCKINGFOLLOWER = 512,                           //  9
-        LCA_MRIGHT = 1024,                                      // 10
-        LCA_MLEFT = 2048,                                       // 11
-        // !!! never set LCA_UNBLOCK = 4096,                    // 12
-        LCA_AMBLOCKINGFOLLOWER_DONTBRAKE = 8192,                // 13
-        // !!! never used LCA_AMBLOCKINGSECONDFOLLOWER = 16384, // 14
-        LCA_CHANGE_TO_HELP = 32768,                             // 15 
-        // !!! never read LCA_KEEP1 = 65536,                    // 16
-        // !!! never used LCA_KEEP2 = 131072,                   // 17
-        LCA_AMBACKBLOCKER = 262144,                             // 18
-        LCA_AMBACKBLOCKER_STANDING = 524288                     // 19
-
+        LCA_AMBLOCKINGLEADER = 1 << 16,
+        LCA_AMBLOCKINGFOLLOWER = 1 << 17,                          
+        LCA_MRIGHT = 1 << 18,                                     
+        LCA_MLEFT = 1 << 19,                                      
+        // !!! never set LCA_UNBLOCK = 1 << 20,                   
+        LCA_AMBLOCKINGFOLLOWER_DONTBRAKE = 1 << 21,               
+        // !!! never used LCA_AMBLOCKINGSECONDFOLLOWER = 1 << 22,
+        LCA_CHANGE_TO_HELP = 1 << 23,
+        // !!! never read LCA_KEEP1 = 1 << 24,                   
+        // !!! never used LCA_KEEP2 = 1 << 25,                  
+        LCA_AMBACKBLOCKER = 1 << 26,                            
+        LCA_AMBACKBLOCKER_STANDING = 1 << 27                    
     };
 
     MSLCM_DK2013(MSVehicle& v);
 
     virtual ~MSLCM_DK2013();
 
-    /** @brief Called to examine whether the vehicle wants to change to right
-        This method gets the information about the surrounding vehicles
-        and whether another lane may be more preferable */
-    virtual int wantsChangeToRight(
-        MSAbstractLaneChangeModel::MSLCMessager& msgPass, int blocked,
-        const std::pair<MSVehicle*, SUMOReal>& leader,
-        const std::pair<MSVehicle*, SUMOReal>& neighLead,
-        const std::pair<MSVehicle*, SUMOReal>& neighFollow,
-        const MSLane& neighLane,
-        const std::vector<MSVehicle::LaneQ>& preb,
-        MSVehicle** lastBlocked,
-        MSVehicle** firstBlocked);
-
-    /** @brief Called to examine whether the vehicle wants to change to left
-        This method gets the information about the surrounding vehicles
-        and whether another lane may be more preferable */
-    virtual int wantsChangeToLeft(
+    /** @brief Called to examine whether the vehicle wants to change 
+     * using the given laneOffset. 
+     * This method gets the information about the surrounding vehicles
+     * and whether another lane may be more preferable */
+    int wantsChange(
+        int laneOffset,
         MSAbstractLaneChangeModel::MSLCMessager& msgPass, int blocked,
         const std::pair<MSVehicle*, SUMOReal>& leader,
         const std::pair<MSVehicle*, SUMOReal>& neighLead,
@@ -112,28 +100,10 @@ public:
 
     void changed();
 
-    SUMOReal getProb() const;
     void prepareStep();
-
-    SUMOReal getChangeProbability() const {
-        return myChangeProbability;
-    }
 
 
 protected:
-    /** @brief Called to examine whether the vehicle wants to change 
-     * using the given laneOffset. 
-     * This method gets the information about the surrounding vehicles
-     * and whether another lane may be more preferable */
-    int wantsChange(
-        int laneOffset,
-        MSAbstractLaneChangeModel::MSLCMessager& msgPass, int blocked,
-        const std::pair<MSVehicle*, SUMOReal>& leader,
-        const std::pair<MSVehicle*, SUMOReal>& neighLead,
-        const std::pair<MSVehicle*, SUMOReal>& neighFollow,
-        const MSLane& neighLane,
-        const std::vector<MSVehicle::LaneQ>& preb,
-        MSVehicle** lastBlocked);
 
     // @brief helper function for doing the actual work
     int _wantsChange(
@@ -179,7 +149,8 @@ protected:
 
 
 protected:
-    SUMOReal myChangeProbability;
+    /// @brief a value for tracking the probability that a change to the offset with the same sign is beneficial
+    SUMOReal mySpeedGainProbability;
 
     SUMOReal myLeadingBlockerLength;
     SUMOReal myLeftSpace;
