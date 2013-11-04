@@ -1239,11 +1239,9 @@ GUIVehicle::getColorValue(size_t activeScheme) const {
         case 20:
             return gSelected.isSelected(GLO_VEHICLE, getGlID());
         case 21: 
-            if (myBestLanes.empty() || myBestLanes[0].empty()) {
-                return 0;
-            } else {
-                return (*myCurrentLaneInBestLanes).bestLaneOffset;
-            }
+            return getBestLaneOffset();
+        case 22: 
+            return getAcceleration();
     }
     return 0;
 }

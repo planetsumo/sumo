@@ -85,8 +85,7 @@ MSLCM_JE2013::MSLCM_JE2013(MSVehicle& v) :
     mySpeedGainProbability(0),
     myKeepRightProbability(0),
     myLeadingBlockerLength(0), 
-    myLeftSpace(0),
-    myLastAccel(0)
+    myLeftSpace(0)
 {}
 
 MSLCM_JE2013::~MSLCM_JE2013() {
@@ -111,6 +110,13 @@ MSLCM_JE2013::wantsChange(
     //MSGlobals::gDebugFlag2 = (myVehicle.getID() == "lkw15304" || myVehicle.getID() == "pkw71405"); 
     //MSGlobals::gDebugFlag2 = (myVehicle.getID() == "A");
 
+    if (MSGlobals::gDebugFlag2) {
+        std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
+            << " veh=" << myVehicle.getID()
+            << " considerChangeTo=" << (laneOffset == -1  ? "right" : "left")
+            << "\n";
+    }
+
     const int result = _wantsChange(laneOffset, msgPass, blocked, leader, neighLead, neighFollow, neighLane, preb, lastBlocked, firstBlocked);
     if (MSGlobals::gDebugFlag2) {
         if (result & LCA_WANTS_LANECHANGE) {
@@ -118,8 +124,13 @@ MSLCM_JE2013::wantsChange(
                 << " veh=" << myVehicle.getID()
                 << " wantsChangeTo=" << (laneOffset == -1  ? "right" : "left")
                 << ((result & LCA_URGENT) ? " (urgent)" : "")
-                << ((result & LCA_SPEEDGAIN) ? " (speedgain)" : "")
                 << ((result & LCA_CHANGE_TO_HELP) ? " (toHelp)" : "")
+                << ((result & LCA_STRATEGIC) ? " (strat)" : "")
+                << ((result & LCA_COOPERATIVE) ? " (coop)" : "")
+                << ((result & LCA_SPEEDGAIN) ? " (speed)" : "")
+                << ((result & LCA_KEEPRIGHT) ? " (right)" : "")
+                << ((result & LCA_BLOCKED) ? " (blocked)" : "")
+                << ((result & LCA_OVERLAPPING) ? " (overlap)" : "")
                 << "\n";
         }
     }
@@ -146,7 +157,6 @@ MSLCM_JE2013::patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMORe
             << patched 
             << "\n";
     }
-    myLastAccel = SPEED2ACCEL(newSpeed - myVehicle.getSpeed());
     MSGlobals::gDebugFlag1 = false;
     return newSpeed;
 }
@@ -317,7 +327,7 @@ MSLCM_JE2013::informBlocker(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
         const SUMOReal helpDecel = nv->getCarFollowModel().getMaxDecel();
 
         // change in the gap between ego and blocker over 1 second (not STEP!)
-        const SUMOReal egoNewSpeed = myVehicle.getSpeed() + myLastAccel;
+        const SUMOReal egoNewSpeed = myVehicle.getSpeed() + myVehicle.getAcceleration();
         const SUMOReal neighNewSpeed = MAX2((SUMOReal)0, nv->getSpeed() - helpDecel);
         const SUMOReal deltaGap =  egoNewSpeed - neighNewSpeed; 
         // new gap between follower and self in case the follower does brake
