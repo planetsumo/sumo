@@ -7,7 +7,7 @@
 ///
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -80,6 +80,9 @@ public:
 
     static bool commandDistanceRequest(traci::TraCIServer& server, tcpip::Storage& inputStorage,
                                        tcpip::Storage& outputStorage, int commandId);
+
+    static void writeVehicleStateNumber(traci::TraCIServer& server, tcpip::Storage& outputStorage, MSNet::VehicleState state);
+    static void writeVehicleStateIDs(traci::TraCIServer& server, tcpip::Storage& outputStorage, MSNet::VehicleState state);
 
 private:
     /// @brief invalidated copy constructor

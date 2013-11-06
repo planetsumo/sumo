@@ -8,7 +8,7 @@
 ///
 // Structure representing possible vehicle parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -64,6 +64,8 @@ const int VTYPEPARS_HEIGHT_SET = 2 << 10;
 const int VTYPEPARS_SHAPE_SET = 2 << 11;
 const int VTYPEPARS_OSGFILE_SET = 2 << 12;
 const int VTYPEPARS_IMGFILE_SET = 2 << 13;
+const int VTYPEPARS_IMPATIENCE_SET = 2 << 14;
+const int VTYPEPARS_LCM_SET = 2 << 15;
 
 
 // ===========================================================================
@@ -132,6 +134,8 @@ public:
     RGBColor color;
     /// @brief The vehicle's class
     SUMOVehicleClass vehicleClass;
+    /// @brief The vehicle's impatience (willingness to obstruct others)
+    SUMOReal impatience;
 
 
     /// @name Values for drawing this class' vehicles
@@ -161,8 +165,8 @@ public:
     typedef std::map<SumoXMLAttr, SUMOReal> CFParams;
     CFParams cfParameter;
 
-    /// @brief The name of the lane-change model to use
-    std::string lcModel;
+    /// @brief The lane-change model to use
+    LaneChangeModel lcModel;
 
     /// @brief Information for the router which parameter were set
     int setParameter;

@@ -10,7 +10,7 @@
 ///
 // The base class for a view
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -88,6 +88,8 @@ FXDEFMAP(GUISUMOAbstractView) GUISUMOAbstractViewMap[] = {
     FXMAPFUNC(SEL_PAINT,               0,                 GUISUMOAbstractView::onPaint),
     FXMAPFUNC(SEL_LEFTBUTTONPRESS,     0,                 GUISUMOAbstractView::onLeftBtnPress),
     FXMAPFUNC(SEL_LEFTBUTTONRELEASE,   0,                 GUISUMOAbstractView::onLeftBtnRelease),
+    FXMAPFUNC(SEL_MIDDLEBUTTONPRESS,   0,                 GUISUMOAbstractView::onMiddleBtnPress),
+    FXMAPFUNC(SEL_MIDDLEBUTTONRELEASE, 0,                 GUISUMOAbstractView::onMiddleBtnRelease),
     FXMAPFUNC(SEL_RIGHTBUTTONPRESS,    0,                 GUISUMOAbstractView::onRightBtnPress),
     FXMAPFUNC(SEL_RIGHTBUTTONRELEASE,  0,                 GUISUMOAbstractView::onRightBtnRelease),
     FXMAPFUNC(SEL_MOUSEWHEEL,          0,                 GUISUMOAbstractView::onMouseWheel),
@@ -613,8 +615,7 @@ GUISUMOAbstractView::onMouseMove(FXObject*, FXSelector , void* data) {
     }
     if (myViewportChooser != 0 &&
             (xpos != myChanger->getXPos() || ypos != myChanger->getYPos() || zoom != myChanger->getZoom())) {
-        myViewportChooser->setValues(
-            myChanger->getXPos(), myChanger->getYPos(), myChanger->getZoom());
+        myViewportChooser->setValues(myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos());
     }
     updatePositionInformation();
     return 1;
@@ -767,7 +768,7 @@ GUISUMOAbstractView::makeSnapshot(const std::string& destFile) {
         glGetIntegerv(GL_VIEWPORT, viewport);
         while (state == GL2PS_OVERFLOW) {
             buffsize += 1024 * 1024;
-            gl2psBeginPage(destFile.c_str(), "sumo-gui; http://sumo.sf.net", viewport, format, GL2PS_SIMPLE_SORT,
+            gl2psBeginPage(destFile.c_str(), "sumo-gui; http://sumo-sim.org", viewport, format, GL2PS_SIMPLE_SORT,
                            GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT,
                            GL_RGBA, 0, NULL, 0, 0, 0, buffsize, fp, "out.eps");
             glMatrixMode(GL_MODELVIEW);

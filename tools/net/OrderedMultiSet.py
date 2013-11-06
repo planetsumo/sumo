@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 """
-@file    netdiff.py
+@file    OrderedMultiSet.py
 @author  Jakob Erdmann
 @date    2011-10-04
 @version $Id$
@@ -9,9 +8,14 @@ multi set with insertion-order iteration
 based on OrderedSet by Raymond Hettinger (c) , MIT-License
 [http://code.activestate.com/recipes/576694/]
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2011 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
 import collections

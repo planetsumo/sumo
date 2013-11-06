@@ -9,7 +9,7 @@
 ///
 // Helper methods for parsing vehicle attributes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -166,9 +166,6 @@ public:
      * @todo Recheck how errors are handled and what happens if they occure
      */
     static SUMOVehicleShape parseGuiShape(const SUMOSAXAttributes& attrs, const std::string& id);
-
-
-    static void parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs);
 
 private:
     /** @brief Parses attributes common to vehicles and flows

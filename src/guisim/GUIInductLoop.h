@@ -9,7 +9,7 @@
 ///
 // The gui-version of the MSInductLoop, together with the according
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -124,8 +124,9 @@ protected:
      * Locks the internal mutex before calling MSInductLoop::leaveDetectorByLaneChange()
      * @see MSInductLoop::leaveDetectorByLaneChange()
      * @param veh The leaving vehicle.
+     * @param lastPos The last position of the leaving vehicle.
      */
-    void leaveDetectorByLaneChange(SUMOVehicle& veh);
+    void leaveDetectorByLaneChange(SUMOVehicle& veh, SUMOReal lastPos);
     /// @}
 
 

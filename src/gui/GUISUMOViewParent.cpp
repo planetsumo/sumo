@@ -10,7 +10,7 @@
 ///
 // A single child window which contains a view of the simulation area
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -240,10 +240,10 @@ GUISUMOViewParent::isSelected(GUIGlObject* o) const {
             // hmph, just some security stuff
             return false;
         }
-        const std::vector<MSLane*> &lanes = edge->getLanes();
+        const std::vector<MSLane*>& lanes = edge->getLanes();
         for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-            GUILane *l = dynamic_cast<GUILane*>(*j);
-            if(l!=0 && gSelected.isSelected(GLO_LANE, l->getGlID())) {
+            GUILane* l = dynamic_cast<GUILane*>(*j);
+            if (l != 0 && gSelected.isSelected(GLO_LANE, l->getGlID())) {
                 return true;
             }
         }

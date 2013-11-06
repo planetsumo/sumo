@@ -1,17 +1,24 @@
+#!/usr/bin/env python
 """
-@file    convert_fcd2phem.py
+A script for converting SUMO's fcd-output into files readable by PHEM and communication simulators.
+
+@file    traceExporter.py
 @author  Daniel Krajzewicz
 @date    2013-01-15
 @version $Id$
 
-A script for converting SUMO's fcd-output into files readable by PHEM.
-
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
-import os, subprocess, sys, random
+from __future__ import print_function
+import os, sys, random, datetime
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'tools'))
 sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.dirname(__file__), '..', '..')), 'tools'))
 
@@ -21,8 +28,6 @@ import sumolib.output.convert.omnet as omnet
 import sumolib.output.convert.shawn as shawn
 import sumolib.output.convert.ns2 as ns2
 import sumolib.output.convert.gpsdat as gpsdat
-from random import gauss, random
-from datetime import datetime, timedelta
 
 class FCDVehicleEntry:
   def __init__(self, id, x, y, z, speed, typev, lane, slope):
@@ -44,8 +49,8 @@ class FCDTimeEntry:
 def disturb_gps(x, y, deviation):
     if deviation == 0:
         return x, y
-    x += gauss(0, deviation)
-    y += gauss(0, deviation)
+    x += random.gauss(0, deviation)
+    y += random.gauss(0, deviation)
     return x, y
 
 def _getOutputStream(name):
@@ -79,7 +84,8 @@ def procFCDStream(fcdstream, options):
     e = FCDTimeEntry(lt)
     if q.vehicle:
       for v in q.vehicle:
-        if v not in chosen: chosen[v] = random()<options.penetration
+        if v not in chosen:
+          chosen[v] = random.random() < options.penetration
         if chosen[v]:
           x, y = disturb_gps(float(v.x), float(v.y), options.blur)
           if v.z: z = v.z
@@ -91,8 +97,10 @@ def procFCDStream(fcdstream, options):
 
 def runMethod(inputFile, outputFile, writer, options, further={}):
     further["app"] = os.path.split(__file__)[1]
-    if options.base>=0: further["base-date"] = datetime.fromtimestamp(options.base)
-    else: further["base-date"] = datetime.now()
+    if options.base >= 0:
+        further["base-date"] = datetime.datetime.fromtimestamp(options.base)
+    else:
+        further["base-date"] = datetime.datetime.now()
     o = _getOutputStream(outputFile)
     fcdStream = sumolib.output.parse(inputFile, "timestep")
     ret = writer(procFCDStream(fcdStream, options), o, further)
@@ -156,18 +164,18 @@ def main(args=None):
   net = None
   ## ----- check needed values
   if options.delta and options.delta<=0:
-    print "delta-t must be a positive value."
+    print("delta-t must be a positive value.")
     return 1
   # phem
   if (options.dri or options.fzp or options.flt) and not options.fcd:
-    print "A fcd-output from SUMO must be given using the --fcd-input."
+    print("A fcd-output from SUMO must be given using the --fcd-input.")
     return 1
   if (options.str or options.fzp or options.flt) and not options.net:
-    print "A SUMO network must be given using the --net-input option."
+    print("A SUMO network must be given using the --net-input option.")
     return 1
   # omnet
   if options.omnet and not options.fcd:
-    print "A fcd-output from SUMO must be given using the --fcd-input."
+    print("A fcd-output from SUMO must be given using the --fcd-input.")
     return 1
   ## ----- check needed values
   
@@ -202,7 +210,7 @@ def main(args=None):
   # .str (we need the net for other outputs, too)
   if options.str or options.fzp or options.flt:
     if not options.net:
-      print "A SUMO network must be given using the --net-input option."
+      print("A SUMO network must be given using the --net-input option.")
       return 1
     if not net: net = sumolib.net.readNet(options.net)
     o = _getOutputStream(options.str)

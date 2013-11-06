@@ -9,7 +9,7 @@
 ///
 // A list of positions
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -996,7 +996,7 @@ PositionVector::move2side(SUMOReal amount) {
 
 Line
 PositionVector::lineAt(int pos) const {
-    assert(size() > pos + 1);
+    assert((int)size() > pos + 1);
     return Line((*this)[pos], (*this)[pos + 1]);
 }
 
@@ -1049,7 +1049,7 @@ PositionVector::insertAt(int index, const Position& p) {
 void
 PositionVector::replaceAt(int index, const Position& p) {
     assert(index < static_cast<int>(size()));
-    assert(index + size() >= 0);
+    assert(index + static_cast<int>(size()) >= 0);
     if (index >= 0) {
         (*this)[index] = p;
     } else {

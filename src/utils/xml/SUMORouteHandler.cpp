@@ -9,7 +9,7 @@
 ///
 // Parser for routes during their loading
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -140,6 +140,9 @@ SUMORouteHandler::myStartElement(int element,
             myEndDefault = attrs.getSUMOTimeReporting(SUMO_ATTR_END, 0, ok);
             break;
         }
+        case SUMO_TAG_PARAM:
+            addParam(attrs);
+            break;
         default:
             break;
     }
@@ -183,6 +186,9 @@ SUMORouteHandler::myEndElement(int element) {
             myBeginDefault = string2time(OptionsCont::getOptions().getString("begin"));
             myEndDefault = string2time(OptionsCont::getOptions().getString("end"));
             break;
+        case SUMO_TAG_TRIP:
+            delete myVehicleParameter;
+            myVehicleParameter = 0;
         default:
             break;
     }
@@ -221,6 +227,86 @@ SUMORouteHandler::checkStopPos(SUMOReal& startPos, SUMOReal& endPos, const SUMOR
         }
         if (startPos > endPos - minLength) {
             startPos = endPos - minLength;
+        }
+    }
+    return true;
+}
+
+
+void
+SUMORouteHandler::addParam(const SUMOSAXAttributes& attrs) {
+    bool ok = true;
+    std::string key = attrs.get<std::string>(SUMO_ATTR_KEY, 0, ok);
+    std::string val = attrs.get<std::string>(SUMO_ATTR_VALUE, 0, ok);
+    if (myVehicleParameter != 0) {
+        myVehicleParameter->addParameter(key, val);
+    } else if (myCurrentVType != 0) {
+        myCurrentVType->addParameter(key, val);
+    }
+}
+
+
+bool
+SUMORouteHandler::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs, std::string errorSuffix, MsgHandler* const errorOutput) {
+    stop.setParameter = 0;
+    if (attrs.hasAttribute(SUMO_ATTR_ENDPOS)) {
+        stop.setParameter |= STOP_END_SET;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_STARTPOS)) {
+        stop.setParameter |= STOP_START_SET;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_TRIGGERED)) {
+        stop.setParameter |= STOP_TRIGGER_SET;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_PARKING)) {
+        stop.setParameter |= STOP_PARKING_SET;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_EXPECTED)) {
+        stop.setParameter |= STOP_EXPECTED_SET;
+    }
+    bool ok = true;
+    stop.busstop = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
+    if (stop.busstop != "") {
+        errorSuffix = " at '" + stop.busstop + "'" + errorSuffix;
+    } else {
+        errorSuffix = " on lane '" + stop.busstop + "'" + errorSuffix;
+    }
+    // get the standing duration
+    if (!attrs.hasAttribute(SUMO_ATTR_DURATION) && !attrs.hasAttribute(SUMO_ATTR_UNTIL)) {
+        stop.triggered = attrs.getOpt<bool>(SUMO_ATTR_TRIGGERED, 0, ok, true);
+        stop.duration = -1;
+        stop.until = -1;
+    } else {
+        stop.duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, 0, ok, -1);
+        stop.until = attrs.getOptSUMOTimeReporting(SUMO_ATTR_UNTIL, 0, ok, -1);
+        if (!ok || (stop.duration < 0 && stop.until < 0)) {
+            errorOutput->inform("Invalid duration or end time is given for a stop" + errorSuffix);
+            return false;
+        }
+        stop.triggered = attrs.getOpt<bool>(SUMO_ATTR_TRIGGERED, 0, ok, false);
+    }
+    stop.parking = attrs.getOpt<bool>(SUMO_ATTR_PARKING, 0, ok, stop.triggered);
+    if (!ok) {
+        errorOutput->inform("Invalid bool for 'triggered' or 'parking' for stop" + errorSuffix);
+        return false;
+    }
+
+    // expected persons
+    std::string expectedStr = attrs.getOpt<std::string>(SUMO_ATTR_EXPECTED, 0, ok, "");
+    std::set<std::string> personIDs;
+    SUMOSAXAttributes::parseStringSet(expectedStr, personIDs);
+    stop.awaitedPersons = personIDs;
+
+    const std::string idx = attrs.getOpt<std::string>(SUMO_ATTR_INDEX, 0, ok, "end");
+    if (idx == "end") {
+        stop.index = STOP_INDEX_END;
+    } else if (idx == "fit") {
+        stop.index = STOP_INDEX_FIT;
+    } else {
+        stop.index = attrs.get<int>(SUMO_ATTR_INDEX, 0, ok);
+        if (!ok || stop.index < 0) {
+            errorOutput->inform("Invalid 'index' for stop" + errorSuffix);
+            return false;
         }
     }
     return true;

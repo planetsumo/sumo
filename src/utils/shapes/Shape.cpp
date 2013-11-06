@@ -6,7 +6,7 @@
 ///
 // A 2D- or 3D-Shape
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -37,6 +37,7 @@
 // ===========================================================================
 // static member definitions
 // ===========================================================================
+const std::string Shape::DEFAULT_TYPE = "";
 const SUMOReal Shape::DEFAULT_LAYER = 128;
 const SUMOReal Shape::DEFAULT_ANGLE = 0;
 const std::string Shape::DEFAULT_IMG_FILE = "";

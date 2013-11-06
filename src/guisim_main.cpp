@@ -9,7 +9,7 @@
 ///
 // Main for GUISIM
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -95,7 +95,7 @@ main(int argc, char** argv) {
 
         // build the main window
         GUIApplicationWindow* window =
-        new GUIApplicationWindow(&application, "*.sumo.cfg,*.sumocfg");
+            new GUIApplicationWindow(&application, "*.sumo.cfg,*.sumocfg");
         window->dependentBuild(oc.getBool("game"));
         gSchemeStorage.init(&application);
         // Create app

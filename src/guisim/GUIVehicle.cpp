@@ -8,7 +8,7 @@
 ///
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -238,7 +238,6 @@ long
 GUIVehicle::GUIVehiclePopupMenu::onCmdShowFoes(FXObject*, FXSelector, void*) {
     assert(myObject->getType() == GLO_VEHICLE);
     static_cast<GUIVehicle*>(myObject)->selectBlockingFoes();
-    GUIVehicle* veh = dynamic_cast<GUIVehicle*>(myObject);
     return 1;
 }
 
@@ -248,8 +247,8 @@ GUIVehicle::GUIVehiclePopupMenu::onCmdShowFoes(FXObject*, FXSelector, void*) {
  * ----------------------------------------------------------------------- */
 GUIVehicle::GUIVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
                        const MSVehicleType* type,
-                       SUMOReal speedFactor, int vehicleIndex) :
-    MSVehicle(pars, route, type, speedFactor, vehicleIndex),
+                       SUMOReal speedFactor) :
+    MSVehicle(pars, route, type, speedFactor),
     GUIGlObject(GLO_VEHICLE, pars->id) {
     // as it is possible to show all vehicle routes, we have to store them... (bug [ 2519761 ])
     myRoutes = MSDevice_Vehroutes::buildVehicleDevices(*this, myDevices, 5);
@@ -450,14 +449,13 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             drawPoly(vehiclePoly_PassengerFrontGlass, 4.5);
             break;
         case SVS_PEDESTRIAN:
-            //glScaled(1./(lenght)), 1, 1.);
             glTranslated(0, 0, .045);
-            GLHelper::drawFilledCircle(1);
+            GLHelper::drawFilledCircle(0.25);
             glTranslated(0, 0, -.045);
             glScaled(.7, 2, 1);
             glTranslated(0, 0, .04);
             GLHelper::setColor(lighter);
-            GLHelper::drawFilledCircle(1);
+            GLHelper::drawFilledCircle(0.25);
             glTranslated(0, 0, -.04);
             break;
         case SVS_BICYCLE:
@@ -1041,7 +1039,8 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     */
     glPopMatrix();
     drawName(getPosition(-MIN2(getVehicleType().getLength() / 2, SUMOReal(5))),
-            s.scale, s.vehicleName);
+             s.scale,
+             getVehicleType().getGuiShape() == SVS_PEDESTRIAN ? s.personName : s.vehicleName);
     glPopName();
     if (myPersonDevice != 0) {
         const std::vector<MSPerson*>& ps = myPersonDevice->getPersons();
@@ -1239,6 +1238,10 @@ GUIVehicle::getColorValue(size_t activeScheme) const {
             return getNumberReroutes();
         case 20:
             return gSelected.isSelected(GLO_VEHICLE, getGlID());
+        case 21: 
+            return getBestLaneOffset();
+        case 22: 
+            return getAcceleration();
     }
     return 0;
 }
@@ -1291,11 +1294,11 @@ GUIVehicle::drawRoute(const GUIVisualizationSettings& s, int routeNo, SUMOReal d
     }
     glColor3dv(colors);
     if (routeNo == 0) {
-        draw(*myRoute);
+        drawRouteHelper(*myRoute, s.vehicleExaggeration);
         return;
     }
     --routeNo; // only prior routes are stored
-    draw(*myRoutes->getRoute(routeNo));
+    drawRouteHelper(*myRoutes->getRoute(routeNo), s.vehicleExaggeration);
 }
 
 
@@ -1337,11 +1340,11 @@ GUIVehicle::drawBestLanes() const {
 
 
 void
-GUIVehicle::draw(const MSRoute& r) const {
+GUIVehicle::drawRouteHelper(const MSRoute& r, SUMOReal exaggeration) const {
     MSRouteIterator i = r.begin();
     for (; i != r.end(); ++i) {
         const GUILane* lane = static_cast<GUILane*>((*i)->getLanes()[0]);
-        GLHelper::drawBoxLines(lane->getShape(), lane->getShapeRotations(), lane->getShapeLengths(), 1.0);
+        GLHelper::drawBoxLines(lane->getShape(), lane->getShapeRotations(), lane->getShapeLengths(), exaggeration);
     }
 }
 
@@ -1482,13 +1485,13 @@ GUIVehicle::computeSeats(const Position& front, const Position& back, int& requi
 }
 
 
-SUMOReal 
+SUMOReal
 GUIVehicle::getLastLaneChangeOffset() const {
     return STEPS2TIME(getLaneChangeModel().getLastLaneChangeOffset());
 }
 
 
-std::string 
+std::string
 GUIVehicle::getStopInfo() const {
     std::string result = "";
     if (isParking()) {
@@ -1507,7 +1510,7 @@ GUIVehicle::getStopInfo() const {
 }
 
 
-void 
+void
 GUIVehicle::selectBlockingFoes() const {
     if (myLFLinkLanes.size() == 0) {
         return;
@@ -1516,11 +1519,23 @@ GUIVehicle::selectBlockingFoes() const {
     if (dpi.myLink == 0) {
         return;
     }
-    std::vector<const SUMOVehicle*> blockingFoes = dpi.myLink->getBlockingFoes(
-            dpi.myArrivalTime, dpi.myArrivalSpeed, dpi.getLeaveSpeed(), getVehicleType().getLengthWithGap());
+    std::vector<const SUMOVehicle*> blockingFoes;
+    dpi.myLink->opened(dpi.myArrivalTime, dpi.myArrivalSpeed, dpi.getLeaveSpeed(), getVehicleType().getLengthWithGap(),
+                       getImpatience(), getCarFollowModel().getMaxDecel(), getWaitingTime(), &blockingFoes);
     for (std::vector<const SUMOVehicle*>::const_iterator it = blockingFoes.begin(); it != blockingFoes.end(); ++it) {
         gSelected.select(static_cast<const GUIVehicle*>(*it)->getGlID());
     }
+#ifdef HAVE_INTERNAL_LANES
+    const MSLink::LinkLeaders linkLeaders = (dpi.myLink)->getLeaderInfo(myLane->getLength() - getPositionOnLane() - getVehicleType().getMinGap());
+    for (MSLink::LinkLeaders::const_iterator it = linkLeaders.begin(); it != linkLeaders.end(); ++it) {
+        // the vehicle to enter the junction first has priority
+        const MSVehicle* leader = it->first;
+        if ((static_cast<const GUIVehicle*>(leader))->myLinkLeaders.count(getID()) == 0) {
+            // leader isn't already following us, now we follow it
+            gSelected.select(static_cast<const GUIVehicle*>(leader)->getGlID());
+        }
+    }
+#endif
 }
 
 

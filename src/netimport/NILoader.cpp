@@ -9,7 +9,7 @@
 ///
 // Perfoms network import
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -152,10 +152,12 @@ NILoader::loadXML(OptionsCont& oc) {
     loadXMLType(new NIXMLEdgesHandler(myNetBuilder.getNodeCont(),
                                       myNetBuilder.getEdgeCont(),
                                       myNetBuilder.getTypeCont(),
-                                      myNetBuilder.getDistrictCont(), oc),
+                                      myNetBuilder.getDistrictCont(),
+                                      myNetBuilder.getTLLogicCont(),
+                                      oc),
                 oc.getStringVector("edge-files"), "edges");
     // load the connections
-    loadXMLType(new NIXMLConnectionsHandler(myNetBuilder.getEdgeCont()),
+    loadXMLType(new NIXMLConnectionsHandler(myNetBuilder.getEdgeCont(), myNetBuilder.getTLLogicCont()),
                 oc.getStringVector("connection-files"), "connections");
     // load traffic lights (needs to come last, references loaded edges and connections)
     loadXMLType(new NIXMLTrafficLightsHandler(

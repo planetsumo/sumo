@@ -12,9 +12,14 @@
 Run duarouter and sumo alternating to perform a dynamic user assignment.
 Based on the Perl script dua_iterate.pl.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import os, sys, subprocess, types, shutil
 import StringIO
@@ -60,10 +65,15 @@ def addGenericOptions(optParser):
     optParser.add_option("-Q", "--eco-measure", dest="ecomeasure", type="choice",
                          choices=('CO', 'CO2', 'PMx', 'HC', 'NOx', 'fuel', 'noise'),
                          help="define the applied eco measure, e.g. fuel, CO2, noise")
-    optParser.add_option("-s", "--sloppy-insert", action="store_true",
-                         default=False, help="sloppy insertion tests (may speed up the sim considerably)")
+    optParser.add_option("--eager-insert", action="store_true",
+                         default=False, help="eager insertion tests (may slow down the sim considerably)")
     optParser.add_option("--time-to-teleport", dest="timetoteleport", type="int", default=300,
                          help="Delay before blocked vehicles are teleported where -1 means no teleporting")
+    optParser.add_option("--time-to-teleport.highways", dest="timetoteleport_highways", type="int", default=0,
+                         help="Delay before blocked vehicles are teleported on wrong highway lanes")
+    optParser.add_option("--cost-modifier", dest="costmodifier", type="choice",
+                         choices=('grohnde', 'isar', 'None'), 
+                         default='None', help="Whether to modify link travel costs of the given routes")
 
 def initOptions():
     optParser = OptionParser()
@@ -131,6 +141,7 @@ def initOptions():
                          default=False, help="calculate the old route probabilities with the free-flow travel times when using the external gawron calculation")   
     optParser.add_option("--weight-memory", action="store_true", default=False, dest="weightmemory",
                          help="smoothe edge weights across iterations")    
+    optParser.add_option("--pessimism", default=1, type="float", help="give traffic jams a higher weight")
     optParser.add_option("--clean-alt", action="store_true", dest="clean_alt",
                          default=False, help="Whether old rou.alt.xml files shall be removed")
     optParser.add_option("--binary", action="store_true",
@@ -180,6 +191,7 @@ def writeRouteConf(step, options, file, output, routesInfo, initial_type):
         <keep-all-routes value="%s"/>
         <routing-algorithm value="%s"/>%s
         <max-alternatives value="%s"/>
+        <weights.expand value="true"/>
         <logit value="%s"/>
         <logit.beta value="%s"/>
         <logit.gamma value="%s"/>""" % (
@@ -249,8 +261,9 @@ def writeSUMOConf(sumoBinary, step, options, additional_args, route_files):
         '--route-steps', options.routeSteps,
         '--no-internal-links', options.internallink,
         '--lanechange.allow-swap', options.lanechangeallowed,
-        '--sloppy-insert', options.sloppy_insert,
+        '--eager-insert', options.eager_insert,
         '--time-to-teleport', options.timetoteleport,
+        '--time-to-teleport.highways', options.timetoteleport_highways,
         '--verbose',
         '--no-warnings', options.noWarnings,
         ] + additional_args
@@ -419,7 +432,10 @@ def main(args=None):
         print 'use externalgawron'
         edgesMap = {}
     if options.weightmemory:
-        costmemory = CostMemory('traveltime')
+        costmemory = CostMemory('traveltime'
+                ,pessimism=options.pessimism
+                ,network_file=options.net
+                )
     routesSuffix = ".xml"
     if options.binary:
         routesSuffix = ".sbx"
@@ -443,7 +459,7 @@ def main(args=None):
         if not (options.skipFirstRouting and step == 0):
             simulation_demands = [get_basename(f) + "_%03i.rou%s" % (step, routesSuffix) for f in input_demands]
         if not ((options.skipFirstRouting and step == 1) or step == 0):
-            router_demands = [get_basename(f) + "_%03i.rou.alt%s" % (step-1, routesSuffix) for fr in input_demands]
+            router_demands = [get_basename(f) + "_%03i.rou.alt%s" % (step-1, routesSuffix) for f in input_demands]
 
         if not (options.skipFirstRouting and step == options.firstStep):
             # call duarouter

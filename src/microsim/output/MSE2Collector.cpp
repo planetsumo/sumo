@@ -10,7 +10,7 @@
 ///
 // An areal (along a single lane) detector
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -51,8 +51,8 @@ MSE2Collector::MSE2Collector(const std::string& id, DetectorUsage usage,
                              MSLane* const lane, SUMOReal startPos, SUMOReal detLength,
                              SUMOTime haltingTimeThreshold,
                              SUMOReal haltingSpeedThreshold,
-                             SUMOReal jamDistThreshold) : 
-    MSMoveReminder(id, lane), 
+                             SUMOReal jamDistThreshold) :
+    MSMoveReminder(id, lane),
     MSDetectorFileOutput(id),
     myJamHaltingSpeedThreshold(haltingSpeedThreshold),
     myJamHaltingTimeThreshold(haltingTimeThreshold),
@@ -390,7 +390,7 @@ MSE2Collector::writeXMLOutput(OutputDevice& dev, SUMOTime startTime, SUMOTime st
 
 void
 MSE2Collector::writeXMLDetectorProlog(OutputDevice& dev) const {
-    dev.writeXMLHeader("detector", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.sf.net/xsd/det_e2_file.xsd\"");
+    dev.writeXMLHeader("detector", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo-sim.org/xsd/det_e2_file.xsd\"");
 }
 
 

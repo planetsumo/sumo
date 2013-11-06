@@ -6,7 +6,7 @@
 ///
 // Output formatter for plain XML output
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -118,7 +118,10 @@ public:
      * @param[in] attr The attribute (name)
      * @param[in] val The attribute value
      */
-    void writeAttr(std::ostream& into, const std::string& attr, const std::string& val);
+    template <class T>
+    static void writeAttr(std::ostream& into, const std::string& attr, const T& val) {
+        into << " " << attr << "=\"" << toString(val, into.precision()) << "\"";
+    }
 
 
     /** @brief writes a named attribute

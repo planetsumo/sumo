@@ -9,7 +9,7 @@
 ///
 // The main window of the SUMO-gui.
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -478,8 +478,8 @@ GUIApplicationWindow::buildToolBars() {
                                    LAYOUT_DOCK_SAME | LAYOUT_SIDE_TOP | FRAME_RAISED);
         new FXToolBarGrip(myToolBar3, myToolBar3, FXToolBar::ID_TOOLBARGRIP,
                           TOOLBARGRIP_DOUBLE);
-        new FXButton(myToolBar3, "Time:\t\tToggle between seconds and hour:minute:seconds display", 0, this, MID_TIME_TOOGLE, 
-                BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
+        new FXButton(myToolBar3, "Time:\t\tToggle between seconds and hour:minute:seconds display", 0, this, MID_TIME_TOOGLE,
+                     BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
         myLCDLabel = new FXEX::FXLCDLabel(myToolBar3, 13, 0, 0, JUSTIFY_RIGHT);
         myLCDLabel->setHorizontal(2);
         myLCDLabel->setVertical(6);
@@ -495,7 +495,7 @@ GUIApplicationWindow::buildToolBars() {
         new FXToolBarGrip(myToolBar4, myToolBar4, FXToolBar::ID_TOOLBARGRIP,
                           TOOLBARGRIP_DOUBLE);
         new FXButton(myToolBar4, "Delay (ms):\t\tToggle between alternative delay values", 0, this, MID_DELAY_TOOGLE,
-                BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
+                     BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
         mySimDelayTarget =
             new FXRealSpinDial(myToolBar4, 7, 0, MID_SIMDELAY,
                                LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y);
@@ -532,7 +532,7 @@ GUIApplicationWindow::onCmdQuit(FXObject*, FXSelector, void*) {
     getApp()->reg().writeIntEntry("SETTINGS", "height", getHeight());
     getApp()->reg().writeStringEntry("SETTINGS", "basedir", gCurrentFolder.text());
     getApp()->reg().writeIntEntry("SETTINGS", "maximized", isMaximized() ? 1 : 0);
-    getApp()->reg().writeIntEntry("gui", "timeasHMS", myShowTimeAsHMS ? 1 :0);
+    getApp()->reg().writeIntEntry("gui", "timeasHMS", myShowTimeAsHMS ? 1 : 0);
     getApp()->reg().writeIntEntry("gui", "alternateSimDelay", myAlternateSimDelay);
     getApp()->exit(0);
     return 1;
@@ -916,54 +916,59 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
             getApp()->exit(1);
         }
     } else {
-        // report success
-        setStatusBarText("'" + ec->myFile + "' loaded.");
         // initialise simulation thread
-        myRunThread->init(ec->myNet, ec->myBegin, ec->myEnd);
-        myWasStarted = false;
-        // initialise views
-        myViewNumber = 0;
-        const GUISUMOViewParent::ViewType defaultType = ec->myOsgView ? GUISUMOViewParent::VIEW_3D_OSG : GUISUMOViewParent::VIEW_2D_OPENGL;
-        if (ec->mySettingsFiles.size() > 0) {
-            // open a view for each file and apply settings
-            for (std::vector<std::string>::const_iterator it = ec->mySettingsFiles.begin();
-                    it != ec->mySettingsFiles.end(); ++it) {
-                GUISettingsHandler settings(*it);
-                GUISUMOViewParent::ViewType vt = defaultType;
-                if (settings.getViewType() == "osg" || settings.getViewType() == "3d") {
-                    vt = GUISUMOViewParent::VIEW_3D_OSG;
-                }
-                if (settings.getViewType() == "opengl" || settings.getViewType() == "2d") {
-                    vt = GUISUMOViewParent::VIEW_2D_OPENGL;
-                }
-                GUISUMOAbstractView* view = openNewView(vt);
-                if (view == 0) {
-                    break;
-                }
-                std::string settingsName = settings.addSettings(view);
-                view->addDecals(settings.getDecals());
-                settings.setViewport(view);
-                settings.setSnapshots(view);
-                if (settings.getDelay() > 0) {
-                    mySimDelayTarget->setValue(settings.getDelay());
-                }
-                if (settings.getBreakpoints().size() > 0) {
-                    GUIGlobals::gBreakpoints = settings.getBreakpoints();
-                }
+        if(!myRunThread->init(ec->myNet, ec->myBegin, ec->myEnd)) {
+            if (GUIGlobals::gQuitOnEnd) {
+                closeAllWindows();
+                getApp()->exit(1);
             }
         } else {
-            openNewView(defaultType);
-        }
+            // report success
+            setStatusBarText("'" + ec->myFile + "' loaded.");
+            myWasStarted = false;
+            // initialise views
+            myViewNumber = 0;
+            const GUISUMOViewParent::ViewType defaultType = ec->myOsgView ? GUISUMOViewParent::VIEW_3D_OSG : GUISUMOViewParent::VIEW_2D_OPENGL;
+            if (ec->mySettingsFiles.size() > 0) {
+                // open a view for each file and apply settings
+                for (std::vector<std::string>::const_iterator it = ec->mySettingsFiles.begin(); it != ec->mySettingsFiles.end(); ++it) {
+                    GUISettingsHandler settings(*it);
+                    GUISUMOViewParent::ViewType vt = defaultType;
+                    if (settings.getViewType() == "osg" || settings.getViewType() == "3d") {
+                        vt = GUISUMOViewParent::VIEW_3D_OSG;
+                    }
+                    if (settings.getViewType() == "opengl" || settings.getViewType() == "2d") {
+                        vt = GUISUMOViewParent::VIEW_2D_OPENGL;
+                    }
+                    GUISUMOAbstractView* view = openNewView(vt);
+                    if (view == 0) {
+                        break;
+                    }
+                    std::string settingsName = settings.addSettings(view);
+                    view->addDecals(settings.getDecals());
+                    settings.setViewport(view);
+                    settings.setSnapshots(view);
+                    if (settings.getDelay() > 0) {
+                        mySimDelayTarget->setValue(settings.getDelay());
+                    }
+                    if (settings.getBreakpoints().size() > 0) {
+                        GUIGlobals::gBreakpoints = settings.getBreakpoints();
+                    }
+                }
+            } else {
+                openNewView(defaultType);
+            }
 
-        if (isGaming()) {
-            setTitle("SUMO Traffic Light Game");
-        } else {
-            // set simulation name on the caption
-            std::string caption = "SUMO " + std::string(VERSION_STRING);
-            setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
+            if (isGaming()) {
+                setTitle("SUMO Traffic Light Game");
+            } else {
+                // set simulation name on the caption
+                std::string caption = "SUMO " + std::string(VERSION_STRING);
+                setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
+            }
+            // set simulation step begin information
+            updateTimeLCD(ec->myNet->getCurrentTimeStep());
         }
-        // set simulation step begin information
-        updateTimeLCD(ec->myNet->getCurrentTimeStep());
     }
     getApp()->endWaitCursor();
     // start if wished
@@ -1119,7 +1124,7 @@ GUIApplicationWindow::setStatusBarText(const std::string& text) {
 }
 
 
-void 
+void
 GUIApplicationWindow::updateTimeLCD(const SUMOTime time) {
     SUMOReal fracSeconds = STEPS2TIME(time);
     const bool hideFraction = myAmGaming || fmod(TS, 1.) == 0.;
@@ -1130,11 +1135,11 @@ GUIApplicationWindow::updateTimeLCD(const SUMOTime time) {
         const int minutes = ((int)fracSeconds % 3600) / 60;
         fracSeconds = fracSeconds - 3600 * hours - 60 * minutes;
         const std::string format = (hideFraction ?
-                 "%02d-%02d-%02.0f" : "%02d-%02d-%06.3f");
+                                    "%02d-%02d-%02.0f" : "%02d-%02d-%06.3f");
         snprintf(buffer, BuffSize, format.c_str(), hours, minutes, fracSeconds);
     } else {
         const std::string format = (hideFraction ?
-                 "%13.0f" : "%13.3f");
+                                    "%13.0f" : "%13.3f");
         snprintf(buffer, BuffSize, format.c_str(), fracSeconds);
     }
     myLCDLabel->setText(buffer);

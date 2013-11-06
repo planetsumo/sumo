@@ -10,7 +10,7 @@
 ///
 // The car-following model and parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -70,12 +70,11 @@ MSVehicleType::~MSVehicleType() {
 
 
 SUMOReal
-MSVehicleType::computeChosenSpeedDeviation(MTRand& rng) const {
+MSVehicleType::computeChosenSpeedDeviation(MTRand& rng, const SUMOReal minDevFactor) const {
     // for speedDev = 0.1, most 95% of the vehicles will drive between 80% and 120% of speedLimit * speedFactor
     const SUMOReal devA = MIN2(SUMOReal(2.), RandHelper::randNorm(0, 1., rng));
     // avoid voluntary speeds below 20% of the requested speedFactor
-    return MAX2(0.2 * myParameter.speedFactor,
-                (devA * myParameter.speedDev + 1.) * myParameter.speedFactor);
+    return MAX2(minDevFactor, SUMOReal(devA * myParameter.speedDev + 1.)) * myParameter.speedFactor;
 }
 
 
@@ -164,6 +163,16 @@ MSVehicleType::setWidth(const SUMOReal& width) {
         myParameter.width = myOriginalType->getWidth();
     } else {
         myParameter.width = width;
+    }
+}
+
+
+void
+MSVehicleType::setImpatience(const SUMOReal impatience) {
+    if (myOriginalType != 0 && impatience < 0) {
+        myParameter.impatience = myOriginalType->getImpatience();
+    } else {
+        myParameter.impatience = impatience;
     }
 }
 

@@ -8,7 +8,7 @@
 ///
 // Encapsulated Xerces-SAX-attributes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -249,17 +249,6 @@ SUMOSAXAttributesImpl_Xerces::getStringVector(int attr) const {
     std::string def = getString(attr);
     std::vector<std::string> ret;
     parseStringVector(def, ret);
-    return ret;
-}
-
-
-std::vector<SUMOReal>
-SUMOSAXAttributesImpl_Xerces::getFloatVector(int attr) const {
-    std::vector<SUMOReal> ret;
-    StringTokenizer st(getString(attr));
-    while (st.hasNext()) {
-        ret.push_back(TplConvert::_2SUMOReal(st.next().c_str()));
-    }
     return ret;
 }
 

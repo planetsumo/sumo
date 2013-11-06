@@ -8,7 +8,7 @@
 ///
 // A vehicle route
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -59,10 +59,10 @@ unsigned int MSRoute::MaxRouteDistSize = std::numeric_limits<unsigned int>::max(
 // ===========================================================================
 MSRoute::MSRoute(const std::string& id,
                  const MSEdgeVector& edges,
-                 unsigned int references, const RGBColor* const c,
+                 const bool isPermanent, const RGBColor* const c,
                  const std::vector<SUMOVehicleParameter::Stop>& stops)
-    : Named(id), myEdges(edges),
-      myReferenceCounter(references),
+    : Named(id), myEdges(edges), myAmPermanent(isPermanent), 
+      myReferenceCounter(isPermanent ? 1 : 0),
       myColor(c), myStops(stops) {}
 
 
@@ -220,12 +220,11 @@ MSRoute::operator[](unsigned index) const {
 }
 
 
-#ifdef HAVE_INTERNAL
 void
 MSRoute::dict_saveState(OutputDevice& out) {
     for (RouteDict::iterator it = myDict.begin(); it != myDict.end(); ++it) {
         out.openTag(SUMO_TAG_ROUTE).writeAttr(SUMO_ATTR_ID, (*it).second->getID());
-        out.writeAttr(SUMO_ATTR_STATE, (*it).second->myReferenceCounter);
+        out.writeAttr(SUMO_ATTR_STATE, (*it).second->myAmPermanent);
         out.writeAttr(SUMO_ATTR_EDGES, (*it).second->myEdges).closeTag();
     }
     for (RouteDistDict::iterator it = myDistDict.begin(); it != myDistDict.end(); ++it) {
@@ -235,7 +234,6 @@ MSRoute::dict_saveState(OutputDevice& out) {
         out.closeTag();
     }
 }
-#endif
 
 
 SUMOReal
@@ -258,9 +256,14 @@ MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* from
         // start or destination not contained in route
         return std::numeric_limits<SUMOReal>::max();
     }
-    if (fromEdge == toEdge && fromPos <= toPos) {
+    if (fromEdge == toEdge) {
         // destination position is on start edge
-        return (toPos - fromPos);
+        if (fromPos <= toPos) {
+            return toPos - fromPos;
+        } else if (std::find(it + 1, myEdges.end(), toEdge) == myEdges.end()) {
+            // we don't visit the edge again
+            return std::numeric_limits<SUMOReal>::max();
+        }
     }
     for (; it != end(); ++it) {
         if ((*it) == toEdge && !isFirstIteration) {

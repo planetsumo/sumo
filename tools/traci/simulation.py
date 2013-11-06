@@ -7,9 +7,14 @@
 
 Python implementation of the TraCI interface.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import traci, struct
 import traci.constants as tc
@@ -21,7 +26,16 @@ _RETURN_VALUE_FUNC = {tc.VAR_TIME_STEP:                         traci.Storage.re
                       tc.VAR_DEPARTED_VEHICLES_IDS:             traci.Storage.readStringList,
                       tc.VAR_ARRIVED_VEHICLES_NUMBER:           traci.Storage.readInt,
                       tc.VAR_ARRIVED_VEHICLES_IDS:              traci.Storage.readStringList,
+                      tc.VAR_PARKING_STARTING_VEHICLES_NUMBER:  traci.Storage.readInt,
+                      tc.VAR_PARKING_STARTING_VEHICLES_IDS:     traci.Storage.readStringList,
+                      tc.VAR_PARKING_ENDING_VEHICLES_NUMBER:    traci.Storage.readInt,
+                      tc.VAR_PARKING_ENDING_VEHICLES_IDS:       traci.Storage.readStringList,
+                      tc.VAR_STOP_STARTING_VEHICLES_NUMBER:     traci.Storage.readInt,
+                      tc.VAR_STOP_STARTING_VEHICLES_IDS:        traci.Storage.readStringList,
+                      tc.VAR_STOP_ENDING_VEHICLES_NUMBER:       traci.Storage.readInt,
+                      tc.VAR_STOP_ENDING_VEHICLES_IDS:          traci.Storage.readStringList,
                       tc.VAR_MIN_EXPECTED_VEHICLES:             traci.Storage.readInt,
+                      tc.VAR_BUS_STOP_WAITING:                  traci.Storage.readInt,
                       tc.VAR_TELEPORT_STARTING_VEHICLES_NUMBER: traci.Storage.readInt,
                       tc.VAR_TELEPORT_STARTING_VEHICLES_IDS:    traci.Storage.readStringList,
                       tc.VAR_TELEPORT_ENDING_VEHICLES_NUMBER:   traci.Storage.readInt,
@@ -37,80 +51,147 @@ def _getUniversal(varID):
 def getCurrentTime():
     """getCurrentTime() -> integer
     
-    .
+    Returns the current simulation time in ms.
     """
     return _getUniversal(tc.VAR_TIME_STEP)
 
 def getLoadedNumber():
     """getLoadedNumber() -> integer
     
-    .
+    Returns the number of vehicles which were loaded in this time step.
     """
     return _getUniversal(tc.VAR_LOADED_VEHICLES_NUMBER)
 
 def getLoadedIDList():
     """getLoadedIDList() -> list(string)
     
-    .
+    Returns a list of ids of vehicles which were loaded in this time step. 
     """
     return _getUniversal(tc.VAR_LOADED_VEHICLES_IDS)
 
 def getDepartedNumber():
     """getDepartedNumber() -> integer
-    returns the number vehicles which departed in the last time step.
+    
+    Returns the number of vehicles which departed (were inserted into the road network) in this time step.
     """
     return _getUniversal(tc.VAR_DEPARTED_VEHICLES_NUMBER)
 
 def getDepartedIDList():
     """getDepartedIDList() -> list(string)
-    returns the list of ids of all vehicles which departed in the last time step.
+    
+    Returns a list of ids of vehicles which departed (were inserted into the road network) in this time step. 
     """
     return _getUniversal(tc.VAR_DEPARTED_VEHICLES_IDS)
 
 def getArrivedNumber():
     """getArrivedNumber() -> integer
-    returns the number vehicles which arrived in the last time step.
+    
+    Returns the number of vehicles which arrived (have reached their destination and are removed from the road network) in this time step. 
     """
     return _getUniversal(tc.VAR_ARRIVED_VEHICLES_NUMBER)
 
 def getArrivedIDList():
     """getArrivedIDList() -> list(string)
-    returns the list of ids of all vehicles which arrived in the last time step.
+    
+    Returns a list of ids of vehicles which arrived (have reached their destination and are removed from the road network) in this time step. 
     """
     return _getUniversal(tc.VAR_ARRIVED_VEHICLES_IDS)
 
+def getParkingStartingVehiclesNumber():
+    """getParkingStartingVehiclesNumber() -> integer
+    
+    . 
+    """
+    return _getUniversal(tc.VAR_PARKING_STARTING_VEHICLES_NUMBER)   
+
+def getParkingStartingVehiclesIDList():
+    """getParkingStartingVehiclesIDList() -> list(string)
+    
+    . 
+    """
+    return _getUniversal(tc.VAR_PARKING_STARTING_VEHICLES_IDS)
+
+def getParkingEndingVehiclesNumber():
+    """getParkingEndingVehiclesNumber() -> integer
+    
+    . 
+    """
+    return _getUniversal(tc.VAR_PARKING_ENDING_VEHICLES_NUMBER)   
+
+def getParkingEndingVehiclesIDList():
+    """getParkingEndingVehiclesIDList() -> list(string)
+    
+    . 
+    """
+    return _getUniversal(tc.VAR_PARKING_ENDING_VEHICLES_IDS)
+ 
+def getStopStartingVehiclesNumber():
+    """getStopStartingVehiclesNumber() -> integer
+    
+    . 
+    """
+    return _getUniversal(tc.VAR_STOP_STARTING_VEHICLES_NUMBER)   
+
+def getStopStartingVehiclesIDList():
+    """getStopStartingVehiclesIDList() -> list(string)
+    
+    . 
+    """
+    return _getUniversal(tc.VAR_STOP_STARTING_VEHICLES_IDS)
+
+def getStopEndingVehiclesNumber():
+    """getStopEndingVehiclesNumber() -> integer
+    
+    . 
+    """
+    return _getUniversal(tc.VAR_STOP_ENDING_VEHICLES_NUMBER)   
+
+def getStopEndingVehiclesIDList():
+    """getStopEndingVehiclesIDList() -> list(string)
+    
+    . 
+    """
+    return _getUniversal(tc.VAR_STOP_ENDING_VEHICLES_IDS)
+    
 def getMinExpectedNumber():
     """getMinExpectedNumber() -> integer
     
-    .
+    Returns the number of vehicles which are in the net plus the ones still waiting to start. This number may be smaller than the actual number of vehicles still to come because of delayed route file parsing. If the number is 0 however, it is guaranteed that all route files have been parsed completely.
     """
     return _getUniversal(tc.VAR_MIN_EXPECTED_VEHICLES)
 
+def getBusStopWaiting():
+    """getBusStopWaiting() -> integer
+    
+    .
+    """
+    return _getUniversal(tc.VAR_BUS_STOP_WAITING)    
+    
 def getStartingTeleportNumber():
     """getStartingTeleportNumber() -> integer
     
-    .
+    Returns the number of vehicles which started to teleport in this time step. 
     """
     return _getUniversal(tc.VAR_TELEPORT_STARTING_VEHICLES_NUMBER)
 
 def getStartingTeleportIDList():
     """getStartingTeleportIDList() -> list(string)
     
-    .
+    Returns a list of ids of vehicles which started to teleport in this time step. 
     """
     return _getUniversal(tc.VAR_TELEPORT_STARTING_VEHICLES_IDS)
 
 def getEndingTeleportNumber():
     """getEndingTeleportNumber() -> integer
     
-    .
+    Returns the number of vehicles which ended to be teleported in this time step. 
     """
     return _getUniversal(tc.VAR_TELEPORT_ENDING_VEHICLES_NUMBER)
 
 def getEndingTeleportIDList():
     """getEndingTeleportIDList() -> list(string)
     
-    .
+    Returns a list of ids of vehicles which ended to be teleported in this time step. 
     """
     return _getUniversal(tc.VAR_TELEPORT_ENDING_VEHICLES_IDS)
 
@@ -124,14 +205,14 @@ def getDeltaT():
 def getNetBoundary():
     """getNetBoundary() -> ((double, double), (double, double))
     
-    .
+    The boundary box of the simulation network.
     """
     return _getUniversal(tc.VAR_NET_BOUNDING_BOX)
 
 def convert2D(edgeID, pos, laneIndex=0, toGeo=False):
     posType = tc.POSITION_2D
     if toGeo:
-        posType = tc.POSITION_LAT_LON
+        posType = tc.POSITION_LON_LAT
     traci._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1+4 + 1+4+len(edgeID)+8+1 + 1+1)
     traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
     traci._message.string += struct.pack("!Bi", tc.POSITION_ROADMAP, len(edgeID)) + edgeID
@@ -141,7 +222,7 @@ def convert2D(edgeID, pos, laneIndex=0, toGeo=False):
 def convertRoad(x, y, isGeo=False):
     posType = tc.POSITION_2D
     if isGeo:
-        posType = tc.POSITION_LAT_LON
+        posType = tc.POSITION_LON_LAT
     traci._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1+4 + 1+8+8 + 1+1)
     traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
     traci._message.string += struct.pack("!Bdd", posType, x, y)
@@ -151,9 +232,9 @@ def convertRoad(x, y, isGeo=False):
 
 def convertGeo(x, y, fromGeo=False):
     fromType = tc.POSITION_2D
-    toType = tc.POSITION_LAT_LON
+    toType = tc.POSITION_LON_LAT
     if fromGeo:
-        fromType = tc.POSITION_LAT_LON
+        fromType = tc.POSITION_LON_LAT
         toType = tc.POSITION_2D
     traci._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1+4 + 1+8+8 + 1+1)
     traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
@@ -164,11 +245,11 @@ def convertGeo(x, y, fromGeo=False):
 def getDistance2D(x1, y1, x2, y2, isGeo=False, isDriving=False):
     """getDistance2D(double, double, double, double, boolean, boolean) -> double
     
-    .
+    Reads two coordinate pairs and an indicator whether the air or the driving distance shall be computed. Returns the according distance.
     """
     posType = tc.POSITION_2D
     if isGeo:
-        posType = tc.POSITION_LAT_LON
+        posType = tc.POSITION_LON_LAT
     distType = tc.REQUEST_AIRDIST
     if isDriving:
         distType = tc.REQUEST_DRIVINGDIST
@@ -181,7 +262,7 @@ def getDistance2D(x1, y1, x2, y2, isGeo=False, isDriving=False):
 def getDistanceRoad(edgeID1, pos1, edgeID2, pos2, isDriving=False):
     """getDistanceRoad(string, double, string, double, boolean) -> double
     
-    .
+    Reads two positions on the road network and an indicator whether the air or the driving distance shall be computed. Returns the according distance.
     """
     distType = tc.REQUEST_AIRDIST
     if isDriving:

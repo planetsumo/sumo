@@ -6,7 +6,7 @@
 ///
 // A class representing a street sign
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -45,6 +45,8 @@
 StringBijection<NBSign::SignType>::Entry signTypeStringsInitializaer[] = {
     {"speed limit",       NBSign::SIGN_TYPE_SPEED},
     {"yield",             NBSign::SIGN_TYPE_YIELD},
+    {"stop",              NBSign::SIGN_TYPE_STOP},
+    {"allway_stop",       NBSign::SIGN_TYPE_ALLWAY_STOP},
     {"on ramp",           NBSign::SIGN_TYPE_ON_RAMP},
     {"priority",          NBSign::SIGN_TYPE_PRIORITY},
     {"right before left", NBSign::SIGN_TYPE_RIGHT_BEFORE_LEFT},
@@ -62,6 +64,8 @@ StringBijection<NBSign::SignType> NBSign::SignTypeStrings(
 StringBijection<NBSign::SignType>::Entry SignTypeColorsInitializaer[] = {
     {"0.5,0.5,0.5", NBSign::SIGN_TYPE_SPEED},
     {"1.0,0.0,0.0", NBSign::SIGN_TYPE_YIELD},
+    {"1.0,0.0,0.0", NBSign::SIGN_TYPE_STOP},
+    {"1.0,0.0,0.0", NBSign::SIGN_TYPE_ALLWAY_STOP},
     {"1.0,0.0,0.0", NBSign::SIGN_TYPE_ON_RAMP},
     {"1.0,1.0,0.0", NBSign::SIGN_TYPE_PRIORITY},
     {"1.0,0.6,0.0", NBSign::SIGN_TYPE_RIGHT_BEFORE_LEFT},

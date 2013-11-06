@@ -9,7 +9,7 @@
 ///
 // Stores all persons in the net and handles their waiting for cars.
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -76,17 +76,14 @@ MSPersonControl::erase(MSPerson* person) {
     const std::string& id = person->getID();
     if (OptionsCont::getOptions().isSet("tripinfo-output")) {
         OutputDevice& od = OutputDevice::getDeviceByOption("tripinfo-output");
-        od.openTag("personinfo") << " id=\"" << id << "\" ";
-        od << "depart=\"" << time2string(person->getDesiredDepart()) << "\"";
+        od.openTag("personinfo").writeAttr("id", id).writeAttr("depart", time2string(person->getDesiredDepart()));
         person->tripInfoOutput(od);
         od.closeTag();
     }
     if (OptionsCont::getOptions().isSet("vehroute-output")) {
         OutputDevice& od = OutputDevice::getDeviceByOption("vehroute-output");
-        od.openTag("person") << " id=\"" << id
-                             << "\" depart=\"" << time2string(person->getDesiredDepart())
-                             << "\" arrival=\"" << time2string(MSNet::getInstance()->getCurrentTimeStep())
-                             << "\"";
+        od.openTag("person").writeAttr("id", id).writeAttr("depart", time2string(person->getDesiredDepart())).writeAttr("arrival", time2string(MSNet::getInstance()->getCurrentTimeStep()));
+        person->routeOutput(od);
         od.closeTag();
         od << "\n";
     }

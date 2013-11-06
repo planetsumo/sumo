@@ -8,7 +8,7 @@
 ///
 // The gui-version of the MSInductLoop, together with the according
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -88,9 +88,9 @@ GUIInductLoop::leaveDetectorByMove(SUMOVehicle& veh, SUMOReal leaveTimestep) {
 }
 
 void
-GUIInductLoop::leaveDetectorByLaneChange(SUMOVehicle& veh) {
+GUIInductLoop::leaveDetectorByLaneChange(SUMOVehicle& veh, SUMOReal lastPos) {
     AbstractMutex::ScopedLocker locker(myLock);
-    MSInductLoop::leaveDetectorByLaneChange(veh);
+    MSInductLoop::leaveDetectorByLaneChange(veh, lastPos);
 }
 
 

@@ -9,7 +9,7 @@
 ///
 // Storage for edges, including some functionality operating on multiple edges
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -67,10 +67,11 @@
 // method definitions
 // ===========================================================================
 NBEdgeCont::NBEdgeCont(NBTypeCont& tc) :
+    myTypeCont(tc),
     myEdgesSplit(0),
     myVehicleClasses2Keep(0),
     myVehicleClasses2Remove(0),
-    myTypeCont(tc)
+    myNeedGeoTransformedPrunningBoundary(false)
 {}
 
 
@@ -116,7 +117,7 @@ NBEdgeCont::applyOptions(OptionsCont& oc) {
 
     if (oc.isSet("keep-edges.in-boundary") || oc.isSet("keep-edges.in-geo-boundary")) {
         std::vector<std::string> polyS = oc.getStringVector(oc.isSet("keep-edges.in-boundary") ?
-                "keep-edges.in-boundary" : "keep-edges.in-geo-boundary");
+                                         "keep-edges.in-boundary" : "keep-edges.in-geo-boundary");
         // !!! throw something if length<4 || length%2!=0?
         std::vector<SUMOReal> poly;
         for (std::vector<std::string>::iterator i = polyS.begin(); i != polyS.end(); ++i) {
@@ -139,9 +140,7 @@ NBEdgeCont::applyOptions(OptionsCont& oc) {
                 myPrunningBoundary.push_back(Position(x, y));
             }
         }
-        if (oc.isSet("keep-edges.in-geo-boundary")) {
-            NBNetBuilder::transformCoordinates(myPrunningBoundary, false);
-        }
+        myNeedGeoTransformedPrunningBoundary = oc.isSet("keep-edges.in-geo-boundary");
     }
 }
 
@@ -225,6 +224,18 @@ NBEdgeCont::ignoreFilterMatch(NBEdge* edge) {
     }
     // check whether the edge is within the prunning boundary
     if (myPrunningBoundary.size() != 0) {
+        if (myNeedGeoTransformedPrunningBoundary) {
+            if (GeoConvHelper::getProcessing().usingGeoProjection()) {
+                NBNetBuilder::transformCoordinates(myPrunningBoundary, false);
+            } else if (GeoConvHelper::getLoaded().usingGeoProjection()) { 
+                // XXX what if input file with different projections are loaded?
+                for (int i = 0; i < (int) myPrunningBoundary.size(); i++) {
+                    GeoConvHelper::getLoaded().x2cartesian_const(myPrunningBoundary[i]);
+                }
+            } else {
+                WRITE_ERROR("Cannot prune edges using a geo-boundary because no projection has been loaded");
+            }
+        }
         if (!(edge->getGeometry().getBoxBoundary().grow((SUMOReal) POSITION_EPS).overlapsWith(myPrunningBoundary))) {
             return true;
         }
@@ -512,6 +523,16 @@ void
 NBEdgeCont::reduceGeometries(const SUMOReal minDist) {
     for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
         (*i).second->reduceGeometry(minDist);
+    }
+}
+
+
+void
+NBEdgeCont::checkGeometries(const SUMOReal maxAngle, const SUMOReal minRadius, bool fix) {
+    if (maxAngle > 0 || minRadius > 0) {
+        for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
+            (*i).second->checkGeometry(maxAngle, minRadius, fix);
+        }
     }
 }
 
@@ -863,6 +884,7 @@ NBEdgeCont::guessRoundabouts(std::vector<EdgeVector>& marked) {
                 }
                 // let the connections to succeeding roundabout edge have a higher priority
                 (*j)->setJunctionPriority(node, 1000);
+                node->setRoundabout();
             }
             marked.push_back(loopEdges);
         }
@@ -879,13 +901,24 @@ NBEdgeCont::generateStreetSigns() {
         //continue
         const SUMOReal offset = e->getLength() - 3;
         switch (e->getToNode()->getType()) {
-            case NODETYPE_PRIORITY_JUNCTION:
+            case NODETYPE_PRIORITY:
                 // yield or major?
                 if (e->getJunctionPriority(e->getToNode()) > 0) {
                     e->addSign(NBSign(NBSign::SIGN_TYPE_PRIORITY, offset));
                 } else {
                     e->addSign(NBSign(NBSign::SIGN_TYPE_YIELD, offset));
                 }
+                break;
+            case NODETYPE_PRIORITY_STOP:
+                // yield or major?
+                if (e->getJunctionPriority(e->getToNode()) > 0) {
+                    e->addSign(NBSign(NBSign::SIGN_TYPE_PRIORITY, offset));
+                } else {
+                    e->addSign(NBSign(NBSign::SIGN_TYPE_STOP, offset));
+                }
+                break;
+            case NODETYPE_ALLWAY_STOP:
+                e->addSign(NBSign(NBSign::SIGN_TYPE_ALLWAY_STOP, offset));
                 break;
             case NODETYPE_RIGHT_BEFORE_LEFT:
                 e->addSign(NBSign(NBSign::SIGN_TYPE_RIGHT_BEFORE_LEFT, offset));

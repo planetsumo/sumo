@@ -7,7 +7,7 @@
 ///
 // Something on a lane to be noticed about vehicle movement
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -36,10 +36,9 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MSMoveReminder::MSMoveReminder(const std::string& description, MSLane* const lane, const bool doAdd) : 
+MSMoveReminder::MSMoveReminder(const std::string& description, MSLane* const lane, const bool doAdd) :
     myLane(lane),
-    myDescription(description)
-{
+    myDescription(description) {
     if (myLane != 0 && doAdd) {
         // add reminder to lane
         myLane->addMoveReminder(this);

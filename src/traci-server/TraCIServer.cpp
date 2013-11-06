@@ -14,7 +14,7 @@
 ///
 /// TraCI server used to control sumo by a remote TraCI client (e.g., ns2)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -78,6 +78,8 @@
 #include "TraCIServerAPI_Junction.h"
 #include "TraCIServerAPI_Lane.h"
 #include "TraCIServerAPI_MeMeDetector.h"
+#include "TraCIServerAPI_ArealDetector.h"
+
 #include "TraCIServerAPI_TLS.h"
 #include "TraCIServerAPI_Vehicle.h"
 #include "TraCIServerAPI_VehicleType.h"
@@ -107,8 +109,8 @@ bool TraCIServer::myDoCloseConnection = false;
 // ===========================================================================
 // method definitions
 // ===========================================================================
-TraCIServer::TraCIServer(int port)
-    : mySocket(0), myTargetTime(0), myDoingSimStep(false), myHaveWarnedDeprecation(false), myAmEmbedded(port == 0) {
+TraCIServer::TraCIServer(const SUMOTime begin, const int port)
+    : mySocket(0), myTargetTime(begin), myDoingSimStep(false), myHaveWarnedDeprecation(false), myAmEmbedded(port == 0) {
 
     myVehicleStateChanges[MSNet::VEHICLE_STATE_BUILT] = std::vector<std::string>();
     myVehicleStateChanges[MSNet::VEHICLE_STATE_DEPARTED] = std::vector<std::string>();
@@ -116,10 +118,16 @@ TraCIServer::TraCIServer(int port)
     myVehicleStateChanges[MSNet::VEHICLE_STATE_ENDING_TELEPORT] = std::vector<std::string>();
     myVehicleStateChanges[MSNet::VEHICLE_STATE_ARRIVED] = std::vector<std::string>();
     myVehicleStateChanges[MSNet::VEHICLE_STATE_NEWROUTE] = std::vector<std::string>();
+    myVehicleStateChanges[MSNet::VEHICLE_STATE_STARTING_PARKING] = std::vector<std::string>();
+    myVehicleStateChanges[MSNet::VEHICLE_STATE_ENDING_PARKING] = std::vector<std::string>();
+    myVehicleStateChanges[MSNet::VEHICLE_STATE_STARTING_STOP] = std::vector<std::string>();
+    myVehicleStateChanges[MSNet::VEHICLE_STATE_ENDING_STOP] = std::vector<std::string>();
     MSNet::getInstance()->addVehicleStateListener(this);
 
     myExecutors[CMD_GET_INDUCTIONLOOP_VARIABLE] = &TraCIServerAPI_InductionLoop::processGet;
-    myExecutors[CMD_GET_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE] = &TraCIServerAPI_MeMeDetector::processGet;
+	myExecutors[CMD_GET_AREAL_DETECTOR_VARIABLE] = &TraCIServerAPI_ArealDetector::processGet;
+	myExecutors[CMD_GET_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE] = &TraCIServerAPI_MeMeDetector::processGet;
+
     myExecutors[CMD_GET_TL_VARIABLE] = &TraCIServerAPI_TLS::processGet;
     myExecutors[CMD_SET_TL_VARIABLE] = &TraCIServerAPI_TLS::processSet;
     myExecutors[CMD_GET_LANE_VARIABLE] = &TraCIServerAPI_Lane::processGet;
@@ -167,7 +175,7 @@ TraCIServer::~TraCIServer() {
         mySocket->close();
         delete mySocket;
     }
-    for (std::map<int, TraCIRTree*>::const_iterator i = myObjects.begin(); i != myObjects.end(); ++i) {
+    for (std::map<int, NamedRTree*>::const_iterator i = myObjects.begin(); i != myObjects.end(); ++i) {
         delete(*i).second;
     }
 }
@@ -178,7 +186,8 @@ void
 TraCIServer::openSocket(const std::map<int, CmdExecutor>& execs) {
     if (myInstance == 0) {
         if (!myDoCloseConnection && OptionsCont::getOptions().getInt("remote-port") != 0) {
-            myInstance = new traci::TraCIServer(OptionsCont::getOptions().getInt("remote-port"));
+            myInstance = new traci::TraCIServer(string2time(OptionsCont::getOptions().getString("begin")),
+                                                OptionsCont::getOptions().getInt("remote-port"));
             for (std::map<int, CmdExecutor>::const_iterator i = execs.begin(); i != execs.end(); ++i) {
                 myInstance->myExecutors[i->first] = i->second;
             }
@@ -233,10 +242,9 @@ TraCIServer::vtdDebug() const {
 
 void
 TraCIServer::vehicleStateChanged(const SUMOVehicle* const vehicle, MSNet::VehicleState to) {
-    if (myDoCloseConnection || OptionsCont::getOptions().getInt("remote-port") == 0) {
-        return;
+    if (!myDoCloseConnection) {
+        myVehicleStateChanges[to].push_back(vehicle->getID());
     }
-    myVehicleStateChanges[to].push_back(vehicle->getID());
 }
 
 
@@ -245,7 +253,8 @@ TraCIServer::processCommandsUntilSimStep(SUMOTime step) {
     try {
         if (myInstance == 0) {
             if (!myDoCloseConnection && OptionsCont::getOptions().getInt("remote-port") != 0) {
-                myInstance = new traci::TraCIServer(OptionsCont::getOptions().getInt("remote-port"));
+                myInstance = new traci::TraCIServer(string2time(OptionsCont::getOptions().getString("begin")),
+                                                    OptionsCont::getOptions().getInt("remote-port"));
             } else {
                 return;
             }
@@ -337,7 +346,7 @@ TraCIServer::execute(std::string cmd) {
     try {
         if (myInstance == 0) {
             if (!myDoCloseConnection) {
-                myInstance = new traci::TraCIServer();
+                myInstance = new traci::TraCIServer(string2time(OptionsCont::getOptions().getString("begin")));
             } else {
                 return "";
             }
@@ -365,7 +374,18 @@ TraCIServer::runEmbedded(std::string pyFile) {
     Py_Initialize();
     Py_InitModule("traciemb", EmbMethods);
     if (pyFile.length() > 3 && !pyFile.compare(pyFile.length() - 3, 3, ".py")) {
+        PyObject *sys_path, *path;
+        sys_path = PySys_GetObject("path");
+        if (sys_path == NULL || !PyList_Check(sys_path)) {   
+            throw ProcessError("Could not access python sys.path!");
+        }
+        path = PyString_FromString(FileHelpers::getFilePath(pyFile).c_str());
+        PyList_Insert(sys_path, 0, path);
+        Py_DECREF(path);
         FILE* pFile = fopen(pyFile.c_str(), "r");
+        if (pFile == NULL) {
+            throw ProcessError("Failed to load \"" + pyFile + "\"!");
+        }
         PyRun_SimpleFile(pFile, pyFile.c_str());
         fclose(pFile);
     } else {
@@ -412,6 +432,9 @@ TraCIServer::dispatchCommand() {
                 if (myAmEmbedded) {
                     MSNet::getInstance()->simulationStep();
                     postProcessSimulationStep2();
+                    for (std::map<MSNet::VehicleState, std::vector<std::string> >::iterator i = myInstance->myVehicleStateChanges.begin(); i != myInstance->myVehicleStateChanges.end(); ++i) {
+                        (*i).second.clear();
+                    }
                 }
                 return commandId;
             }
@@ -500,7 +523,7 @@ bool
 TraCIServer::commandCloseConnection() {
     myDoCloseConnection = true;
     // write answer
-    writeStatusCmd(CMD_CLOSE, RTYPE_OK, "Goodbye");
+    writeStatusCmd(CMD_CLOSE, RTYPE_OK, "");
     return true;
 }
 
@@ -512,7 +535,8 @@ TraCIServer::postProcessSimulationStep2() {
     int noActive = 0;
     for (std::vector<Subscription>::iterator i = mySubscriptions.begin(); i != mySubscriptions.end();) {
         const Subscription& s = *i;
-        bool isArrivedVehicle = (s.commandId == CMD_SUBSCRIBE_VEHICLE_VARIABLE) && (find(myVehicleStateChanges[MSNet::VEHICLE_STATE_ARRIVED].begin(), myVehicleStateChanges[MSNet::VEHICLE_STATE_ARRIVED].end(), s.id) != myVehicleStateChanges[MSNet::VEHICLE_STATE_ARRIVED].end());
+        bool isArrivedVehicle = (s.commandId == CMD_SUBSCRIBE_VEHICLE_VARIABLE || s.commandId == CMD_SUBSCRIBE_VEHICLE_CONTEXT) 
+            && (find(myVehicleStateChanges[MSNet::VEHICLE_STATE_ARRIVED].begin(), myVehicleStateChanges[MSNet::VEHICLE_STATE_ARRIVED].end(), s.id) != myVehicleStateChanges[MSNet::VEHICLE_STATE_ARRIVED].end());
         if ((s.endTime < t) || isArrivedVehicle) {
             i = mySubscriptions.erase(i);
             continue;
@@ -524,15 +548,21 @@ TraCIServer::postProcessSimulationStep2() {
         ++noActive;
     }
     myOutputStorage.writeInt(noActive);
-    for (std::vector<Subscription>::iterator i = mySubscriptions.begin(); i != mySubscriptions.end(); ++i) {
+    for (std::vector<Subscription>::iterator i = mySubscriptions.begin(); i != mySubscriptions.end(); ) {
         const Subscription& s = *i;
         if (s.beginTime > t) {
+            ++i;
             continue;
         }
         tcpip::Storage into;
         std::string errors;
-        processSingleSubscription(s, into, errors);
+        bool ok = processSingleSubscription(s, into, errors);
         myOutputStorage.writeStorage(into);
+        if(ok) {
+            ++i;
+        } else {
+            i = mySubscriptions.erase(i);
+        }
     }
 }
 
@@ -688,58 +718,58 @@ TraCIServer::findObjectShape(int domain, const std::string& id, PositionVector& 
         case CMD_SUBSCRIBE_INDUCTIONLOOP_CONTEXT:
             if (TraCIServerAPI_InductionLoop::getPosition(id, p)) {
                 shape.push_back(p);
-                break;
+                return true;
             }
-            return false;
+            break;
         case CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT:
-            return false;
+            break;
         case CMD_SUBSCRIBE_TL_CONTEXT:
-            return false;
+            break;
         case CMD_SUBSCRIBE_LANE_CONTEXT:
             if (TraCIServerAPI_Lane::getShape(id, shape)) {
-                break;
+                return true;
             }
-            return false;
+            break;
         case CMD_SUBSCRIBE_VEHICLE_CONTEXT:
             if (TraCIServerAPI_Vehicle::getPosition(id, p)) {
                 shape.push_back(p);
-                break;
+                return true;
             }
-            return false;
+            break;
         case CMD_SUBSCRIBE_VEHICLETYPE_CONTEXT:
-            return false;
+            break;
         case CMD_SUBSCRIBE_ROUTE_CONTEXT:
-            return false;
+            break;
         case CMD_SUBSCRIBE_POI_CONTEXT:
             if (TraCIServerAPI_POI::getPosition(id, p)) {
                 shape.push_back(p);
-                break;
+                return true;
             }
             return false;
         case CMD_SUBSCRIBE_POLYGON_CONTEXT:
             if (TraCIServerAPI_Polygon::getShape(id, shape)) {
-                break;
+                return true;
             }
-            return false;
+            break;
         case CMD_SUBSCRIBE_JUNCTION_CONTEXT:
             if (TraCIServerAPI_Junction::getPosition(id, p)) {
                 shape.push_back(p);
-                break;
+                return true;
             }
-            return false;
+            break;
         case CMD_SUBSCRIBE_EDGE_CONTEXT:
             if (TraCIServerAPI_Edge::getShape(id, shape)) {
-                break;
+               return true;
             }
-            return false;
+            break;
         case CMD_SUBSCRIBE_SIM_CONTEXT:
             return false;
         case CMD_SUBSCRIBE_GUI_CONTEXT:
-            return false;
+            break;
         default:
-            return false;
+            break;
     }
-    return true;
+    return false;
 }
 
 void
@@ -755,11 +785,14 @@ TraCIServer::collectObjectsInRange(int domain, const PositionVector& shape, SUMO
             case CMD_GET_TL_VARIABLE:
                 break;
             case CMD_GET_LANE_VARIABLE:
-                myObjects[CMD_GET_LANE_VARIABLE] = TraCIServerAPI_Lane::getTree();
+                myObjects[CMD_GET_LANE_VARIABLE] = new NamedRTree();
+                MSLane::fill(*myObjects[CMD_GET_LANE_VARIABLE]);
                 break;
             case CMD_GET_VEHICLE_VARIABLE:
                 if (myObjects.find(CMD_GET_LANE_VARIABLE) == myObjects.end()) {
-                    myObjects[CMD_GET_LANE_VARIABLE] = TraCIServerAPI_Lane::getTree();
+                    myObjects[CMD_GET_LANE_VARIABLE] = new NamedRTree();
+                    MSLane::fill(*myObjects[CMD_GET_LANE_VARIABLE]);
+                    myObjects[CMD_GET_VEHICLE_VARIABLE] = 0;
                 }
                 break;
             case CMD_GET_VEHICLETYPE_VARIABLE:

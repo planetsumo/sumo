@@ -8,7 +8,7 @@
 ///
 // Sets and checks options for routing
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -65,9 +65,11 @@ ROFrame::fillOptions(OptionsCont& oc, bool forDuarouter) {
     oc.addSynonyme("net-file", "net");
     oc.addDescription("net-file", "Input", "Use FILE as SUMO-network to route on");
 
-    oc.doRegister("taz-files", 'd', new Option_FileName());
-    oc.addSynonyme("taz-files", "districts", true);
-    oc.addDescription("taz-files", "Input", "Read (additional) districts from FILE");
+    oc.doRegister("additional-files", 'd', new Option_FileName());
+    oc.addSynonyme("additional-files", "additional");
+    oc.addSynonyme("additional-files", "taz-files");
+    oc.addSynonyme("additional-files", "districts", true);
+    oc.addDescription("additional-files", "Input", "Read additional network data (districts, bus stops) from FILE");
 
     oc.doRegister("alternative-files", 'a', new Option_FileName());
     oc.addSynonyme("alternative-files", "alternatives-files");

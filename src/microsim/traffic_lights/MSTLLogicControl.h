@@ -10,7 +10,7 @@
 ///
 // A class that stores and controls tls and switching of their programs
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -121,8 +121,18 @@ public:
         bool isActive(const MSTrafficLightLogic* tl) const;
         MSTrafficLightLogic* getActive() const;
         void switchTo(MSTLLogicControl& tlc, const std::string& programID);
+
+        /* @brief get logic by programID. For the special case "off"
+         * instantiate an MSOffTrafficLightLogic */
         MSTrafficLightLogic* getLogicInstantiatingOff(MSTLLogicControl& tlc,
                 const std::string& programID);
+
+        /* @brief sets the state to the given string get for the special program "online"
+         * this program is instantiated only once */
+        void setStateInstantiatingOnline(MSTLLogicControl& tlc,
+                const std::string& state);
+
+
         void executeOnSwitchActions() const;
         void addLink(MSLink* link, MSLane* lane, unsigned int pos);
 

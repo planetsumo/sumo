@@ -9,7 +9,7 @@
 ///
 // A MSNet extended by some values for usage within the gui
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -508,8 +508,8 @@ void
 GUINet::updateColor(const GUIVisualizationSettings& s) {
     for (std::vector<GUIEdge*>::const_iterator i = myEdgeWrapper.begin(); i != myEdgeWrapper.end(); ++i) {
         if ((*i)->getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
-            const std::vector<MSLane*> &lanes = (*i)->getLanes();
-            for (std::vector<MSLane*>::const_iterator j=lanes.begin(); j!=lanes.end(); ++j) {
+            const std::vector<MSLane*>& lanes = (*i)->getLanes();
+            for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
                 static_cast<GUILane*>(*j)->updateColor(s);
             }
         }

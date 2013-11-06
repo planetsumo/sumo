@@ -8,7 +8,7 @@
 ///
 // A point-of-interest (2D)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -70,11 +70,15 @@ public:
         myHalfImgHeight(height / 2.0)
     {}
 
+
     /// @brief Destructor
     virtual ~PointOfInterest() { }
 
+
+
     /// @name Getter
     /// @{
+
     /// @brief Returns whether the image width of the POI
     inline SUMOReal getWidth() const {
         return myHalfImgWidth * 2.0;
@@ -87,8 +91,10 @@ public:
     /// @}
 
 
+
     /// @name Setter
     /// @{
+
     /// @brief set the image width of the POI
     inline void setWidth(SUMOReal width) {
         myHalfImgWidth = width / 2.0;
@@ -99,6 +105,7 @@ public:
         myHalfImgHeight = height / 2.0;
     }
     /// @}
+
 
 
 protected:

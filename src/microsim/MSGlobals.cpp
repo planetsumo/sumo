@@ -7,7 +7,7 @@
 ///
 // Some static variables for faster access
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -42,8 +42,10 @@
 bool MSGlobals::gOmitEmptyEdgesOnDump;
 
 bool MSGlobals::gUsingInternalLanes;
+SUMOTime MSGlobals::gIgnoreJunctionBlocker;
 
 SUMOTime MSGlobals::gTimeToGridlock;
+SUMOTime MSGlobals::gTimeToGridlockHighways;
 
 bool MSGlobals::gCheck4Accidents;
 
@@ -51,8 +53,8 @@ bool MSGlobals::gCheckRoutes;
 
 SUMOTime MSGlobals::gLaneChangeDuration;
 
-#ifdef HAVE_INTERNAL
 bool MSGlobals::gStateLoaded;
+#ifdef HAVE_INTERNAL
 bool MSGlobals::gUseMesoSim;
 bool MSGlobals::gMesoLimitedJunctionControl;
 MELoop* MSGlobals::gMesoNet;
@@ -60,10 +62,8 @@ MELoop* MSGlobals::gMesoNet;
 const bool MSGlobals::gUseMesoSim = false;
 #endif
 
-#ifdef _DEBUG
 bool MSGlobals::gDebugFlag1 = false;
 bool MSGlobals::gDebugFlag2 = false;
-#endif
 
 /****************************************************************************/
 

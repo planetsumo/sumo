@@ -7,7 +7,7 @@
 ///
 // APIs for getting/setting polygon values via TraCI
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -76,10 +76,10 @@ public:
     static bool getShape(const std::string& id, PositionVector& shape);
 
 
-    /** @brief Returns a tree filled with inductive loop instances
-     * @return The rtree of inductive loop
+    /** @brief Returns a tree filled with polygon instances
+     * @return The rtree of polygons
      */
-    static TraCIRTree* getTree();
+    static NamedRTree* getTree();
 
 
 private:

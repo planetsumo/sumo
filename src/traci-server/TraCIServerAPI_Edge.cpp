@@ -10,7 +10,7 @@
 ///
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -68,7 +68,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
     // check variable
     if (variable != ID_LIST && variable != VAR_EDGE_TRAVELTIME && variable != VAR_EDGE_EFFORT && variable != VAR_CURRENT_TRAVELTIME
             && variable != VAR_CO2EMISSION && variable != VAR_COEMISSION && variable != VAR_HCEMISSION && variable != VAR_PMXEMISSION
-            && variable != VAR_NOXEMISSION && variable != VAR_FUELCONSUMPTION && variable != VAR_NOISEEMISSION
+            && variable != VAR_NOXEMISSION && variable != VAR_FUELCONSUMPTION && variable != VAR_NOISEEMISSION && variable != VAR_WAITING_TIME
             && variable != LAST_STEP_VEHICLE_NUMBER && variable != LAST_STEP_MEAN_SPEED && variable != LAST_STEP_OCCUPANCY
             && variable != LAST_STEP_VEHICLE_HALTING_NUMBER && variable != LAST_STEP_LENGTH
             && variable != LAST_STEP_VEHICLE_ID_LIST && variable != ID_COUNT) {
@@ -131,6 +131,16 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(e->getCurrentTravelTime());
                 break;
+            case VAR_WAITING_TIME:{
+                SUMOReal wtime = 0;
+                const std::vector<MSLane*>& lanes = e->getLanes();
+                for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
+                        wtime += (*i)->getWaitingSeconds();
+                }
+                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
+                tempMsg.writeDouble(wtime); 
+            }
+            break;
             case LAST_STEP_VEHICLE_ID_LIST: {
                 std::vector<std::string> vehIDs;
                 const std::vector<MSLane*>& lanes = e->getLanes();
@@ -243,7 +253,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 SUMOReal sum = 0;
                 const std::vector<MSLane*>& lanes = e->getLanes();
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                    sum += (*i)->getOccupancy();
+                    sum += (*i)->getNettoOccupancy();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(sum / (SUMOReal) lanes.size());
@@ -439,9 +449,9 @@ TraCIServerAPI_Edge::getShape(const std::string& id, PositionVector& shape) {
 }
 
 
-TraCIRTree*
+NamedRTree*
 TraCIServerAPI_Edge::getTree() {
-    TraCIRTree* t = new TraCIRTree();
+    NamedRTree* t = new NamedRTree();
     const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
     for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
         const std::vector<MSLane*>& lanes = (*i)->getLanes();
@@ -449,7 +459,9 @@ TraCIServerAPI_Edge::getTree() {
         for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
             b.add((*j)->getShape().getBoxBoundary());
         }
-        t->addObject(*i, b);
+        const float cmin[2] = {(float) b.xmin(), (float) b.ymin()};
+        const float cmax[2] = {(float) b.xmax(), (float) b.ymax()};
+        t->Insert(cmin, cmax, *i);
     }
     return t;
 }

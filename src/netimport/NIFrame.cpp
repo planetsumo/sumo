@@ -8,7 +8,7 @@
 ///
 // Sets and checks options for netimport
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -107,7 +107,7 @@ NIFrame::fillOptions() {
 
     oc.doRegister("opendrive-files", new Option_FileName());
     oc.addSynonyme("opendrive-files", "opendrive");
-    oc.addDescription("opendrive-files", "Input", "Read openDrive-network from FILE");
+    oc.addDescription("opendrive-files", "Input", "Read OpenDRIVE-network from FILE");
 
     oc.doRegister("visum-file", new Option_FileName());
     oc.addSynonyme("visum-file", "visum");
@@ -146,9 +146,12 @@ NIFrame::fillOptions() {
     oc.doRegister("show-errors.connections-first-try", new Option_Bool(false));
     oc.addDescription("show-errors.connections-first-try", "Processing", "Show errors in connections at parsing");
 
+    oc.doRegister("ignore-errors.edge-type", new Option_Bool(false));
+    oc.addDescription("ignore-errors.edge-type", "Processing", "Continue on unknown edge types");
+
     oc.doRegister("lanes-from-capacity.norm", new Option_Float((SUMOReal) 1800));
     oc.addSynonyme("lanes-from-capacity.norm", "capacity-norm");
-    oc.addDescription("lanes-from-capacity.norm", "Processing", "The factor for flow to no. lanes conversion.");
+    oc.addDescription("lanes-from-capacity.norm", "Processing", "The factor for flow to no. lanes conversion");
 
     oc.doRegister("speed-in-kmh", new Option_Bool(false));
     oc.addDescription("speed-in-kmh", "Processing", "vmax is parsed as given in km/h (some)");
@@ -163,10 +166,10 @@ NIFrame::fillOptions() {
 
     // register matsim options
     oc.doRegister("matsim.keep-length", new Option_Bool(false));
-    oc.addDescription("matsim.keep-length", "Processing", "The edge lengths given in the MATSIM-file will be kept.");
+    oc.addDescription("matsim.keep-length", "Processing", "The edge lengths given in the MATSIM-file will be kept");
 
     oc.doRegister("matsim.lanes-from-capacity", new Option_Bool(false));
-    oc.addDescription("matsim.lanes-from-capacity", "Processing", "The lane number will be computed from the capacity.");
+    oc.addDescription("matsim.lanes-from-capacity", "Processing", "The lane number will be computed from the capacity");
 
 
     // register shapefile options
@@ -212,7 +215,7 @@ NIFrame::fillOptions() {
     oc.addDescription("vissim.speed-norm", "Processing", "Factor for edge velocity");
 
     oc.doRegister("vissim.report-unset-speeds", new Option_Bool(false));
-    oc.addDescription("vissim.report-unset-speeds", "Processing", "Writes lanes without an explicit speed set.");
+    oc.addDescription("vissim.report-unset-speeds", "Processing", "Writes lanes without an explicit speed set");
 
 
     // register visum options
@@ -245,14 +248,17 @@ NIFrame::fillOptions() {
 
     // register osm options
     oc.doRegister("osm.skip-duplicates-check", new Option_Bool(false));
-    oc.addDescription("osm.skip-duplicates-check", "Processing", "Skips the check for duplicate nodes and edges.");
+    oc.addDescription("osm.skip-duplicates-check", "Processing", "Skips the check for duplicate nodes and edges");
+
+    oc.doRegister("osm.railway.oneway-default", new Option_Bool(true));
+    oc.addDescription("osm.railway.oneway-default", "Processing", "Imports railway edges as one-way by default");
 
 
     // register opendrive options
     oc.doRegister("opendrive.import-all-lanes", new Option_Bool(false));
-    oc.addDescription("opendrive.import-all-lanes", "Processing", "Imports all lane types.");
-    oc.doRegister("opendrive.ignore-widths", new Option_Bool(false));
-    oc.addDescription("opendrive.ignore-widths", "Processing", "Whether lane widths shall be ignored.");
+    oc.addDescription("opendrive.import-all-lanes", "Processing", "Imports all lane types");
+    oc.doRegister("opendrive.import-widths", new Option_Bool(false));
+    oc.addDescription("opendrive.import-widths", "Processing", "Whether lane widths shall be imported");
 
 
 

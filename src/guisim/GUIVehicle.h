@@ -9,7 +9,7 @@
 ///
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -82,7 +82,7 @@ public:
      * @exception ProcessError If a value is wrong
      */
     GUIVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
-               const MSVehicleType* type, SUMOReal speedFactor, int vehicleIndex);
+               const MSVehicleType* type, SUMOReal speedFactor);
 
 
     /// @brief destructor
@@ -265,7 +265,7 @@ public:
     /** @brief Draws the route
      * @param[in] r The route to draw
      */
-    void draw(const MSRoute& r) const;
+    void drawRouteHelper(const MSRoute& r, SUMOReal exaggeration) const;
 
 
     /** @brief Chooses the route to draw and draws it, darkening it as given

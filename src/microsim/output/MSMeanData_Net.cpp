@@ -7,7 +7,7 @@
 ///
 // Network state mean data collector for edges/lanes
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -63,8 +63,9 @@ MSMeanData_Net::MSLaneMeanDataValues::MSLaneMeanDataValues(MSLane* const lane,
         const MSMeanData_Net* parent)
     : MSMeanData::MeanDataValues(lane, length, doAdd, vTypes),
       nVehDeparted(0), nVehArrived(0), nVehEntered(0), nVehLeft(0),
-      nVehVaporized(0), nVehLaneChangeFrom(0), nVehLaneChangeTo(0),
-      waitSeconds(0), vehLengthSum(0), myParent(parent) {}
+      nVehVaporized(0), waitSeconds(0),
+      nVehLaneChangeFrom(0), nVehLaneChangeTo(0),
+      vehLengthSum(0), myParent(parent) {}
 
 
 MSMeanData_Net::MSLaneMeanDataValues::~MSLaneMeanDataValues() {
@@ -173,17 +174,13 @@ MSMeanData_Net::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime pe
         const SUMOReal numLanes, const SUMOReal defaultTravelTime, const int numVehicles) const {
     if (myParent == 0) {
         if (sampleSeconds > 0) {
-            dev << "\" density=\"" << sampleSeconds / STEPS2TIME(period) *(SUMOReal) 1000 / myLaneLength <<
-                "\" occupancy=\"" << vehLengthSum / STEPS2TIME(period) / myLaneLength / numLanes *(SUMOReal) 100 <<
-                "\" waitingTime=\"" << waitSeconds <<
-                "\" speed=\"" << travelledDistance / sampleSeconds;
+            dev.writeAttr("density", sampleSeconds / STEPS2TIME(period) *(SUMOReal) 1000 / myLaneLength)
+                .writeAttr("occupancy", vehLengthSum / STEPS2TIME(period) / myLaneLength / numLanes *(SUMOReal) 100)
+                .writeAttr("waitingTime", waitSeconds).writeAttr("speed", travelledDistance / sampleSeconds);
         }
-        dev << "\" departed=\"" << nVehDeparted <<
-            "\" arrived=\"" << nVehArrived <<
-            "\" entered=\"" << nVehEntered <<
-            "\" left=\"" << nVehLeft << "\"";
+        dev.writeAttr("departed", nVehDeparted).writeAttr("arrived", nVehArrived).writeAttr("entered", nVehEntered).writeAttr("left", nVehLeft);
         if (nVehVaporized > 0) {
-            dev << " vaporized=\"" << nVehVaporized << "\"";
+            dev.writeAttr("vaporized", nVehVaporized);
         }
         dev.closeTag();
         return;
@@ -194,28 +191,20 @@ MSMeanData_Net::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime pe
             traveltime = MIN2(traveltime, myLaneLength * sampleSeconds / travelledDistance);
         }
         if (numVehicles > 0) {
-            dev << "\" traveltime=\"" << sampleSeconds / numVehicles <<
-                "\" waitingTime=\"" << waitSeconds <<
-                "\" speed=\"" << travelledDistance / sampleSeconds;
+            dev.writeAttr("traveltime", sampleSeconds / numVehicles).writeAttr("waitingTime", waitSeconds).writeAttr("speed", travelledDistance / sampleSeconds);
         } else {
-            dev << "\" traveltime=\"" << traveltime <<
-                "\" density=\"" << sampleSeconds / STEPS2TIME(period) *(SUMOReal) 1000 / myLaneLength <<
-                "\" occupancy=\"" << vehLengthSum / STEPS2TIME(period) / myLaneLength / numLanes *(SUMOReal) 100 <<
-                "\" waitingTime=\"" << waitSeconds <<
-                "\" speed=\"" << travelledDistance / sampleSeconds;
+            dev.writeAttr("traveltime", traveltime)
+                .writeAttr("density", sampleSeconds / STEPS2TIME(period) *(SUMOReal) 1000 / myLaneLength)
+                .writeAttr("occupancy", vehLengthSum / STEPS2TIME(period) / myLaneLength / numLanes *(SUMOReal) 100)
+                .writeAttr("waitingTime", waitSeconds).writeAttr("speed", travelledDistance / sampleSeconds);
         }
     } else if (defaultTravelTime >= 0.) {
-        dev << "\" traveltime=\"" << defaultTravelTime <<
-            "\" speed=\"" << myLaneLength / defaultTravelTime;
+        dev.writeAttr("traveltime", defaultTravelTime).writeAttr("speed", myLaneLength / defaultTravelTime);
     }
-    dev << "\" departed=\"" << nVehDeparted <<
-        "\" arrived=\"" << nVehArrived <<
-        "\" entered=\"" << nVehEntered <<
-        "\" left=\"" << nVehLeft <<
-        "\" laneChangedFrom=\"" << nVehLaneChangeFrom <<
-        "\" laneChangedTo=\"" << nVehLaneChangeTo << "\"";
+    dev.writeAttr("departed", nVehDeparted).writeAttr("arrived", nVehArrived).writeAttr("entered", nVehEntered).writeAttr("left", nVehLeft)
+        .writeAttr("laneChangedFrom", nVehLaneChangeFrom).writeAttr("laneChangedTo", nVehLaneChangeTo);
     if (nVehVaporized > 0) {
-        dev << " vaporized=\"" << nVehVaporized << "\"";
+        dev.writeAttr("vaporized", nVehVaporized);
     }
     dev.closeTag();
 }

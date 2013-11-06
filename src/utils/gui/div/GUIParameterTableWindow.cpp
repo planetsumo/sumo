@@ -8,7 +8,7 @@
 ///
 // The window that holds the table of an object's parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -169,20 +169,18 @@ GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
 
 void
 GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
+                                ValueSource<int>* src) {
+    GUIParameterTableItemInterface* i = new GUIParameterTableItem<int>(myTable, myCurrentPos++, name, dynamic, src);
+    myItems.push_back(i);
+}
+
+
+void
+GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
                                 ValueSource<SUMOReal>* src) {
     GUIParameterTableItemInterface* i = new GUIParameterTableItem<SUMOReal>(myTable, myCurrentPos++, name, dynamic, src);
     myItems.push_back(i);
 }
-
-
-#ifndef HAVE_SUBSECOND_TIMESTEPS
-void
-GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
-                                ValueSource<SUMOTime>* src) {
-    GUIParameterTableItemInterface* i = new GUIParameterTableItem<SUMOTime>(myTable, myCurrentPos++, name, dynamic, src);
-    myItems.push_back(i);
-}
-#endif
 
 
 void
@@ -210,14 +208,12 @@ GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
 }
 
 
-#ifndef HAVE_SUBSECOND_TIMESTEPS
 void
 GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
-                                SUMOTime value) {
-    GUIParameterTableItemInterface* i = new GUIParameterTableItem<SUMOTime>(myTable, myCurrentPos++, name, dynamic, value);
+                                int value) {
+    GUIParameterTableItemInterface* i = new GUIParameterTableItem<int>(myTable, myCurrentPos++, name, dynamic, value);
     myItems.push_back(i);
 }
-#endif
 
 
 void

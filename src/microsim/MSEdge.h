@@ -10,7 +10,7 @@
 ///
 // A road/street connecting two junctions
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -151,6 +151,7 @@ public:
      */
     MSLane* rightLane(const MSLane* const lane) const;
 
+
     /** @brief Returns the lane with the given offset parallel to the given lane one or 0 if it does not exist
      *
      * @param[in] lane The base lane
@@ -247,6 +248,7 @@ public:
     unsigned int getNoFollowing() const {
         return (unsigned int) mySuccessors.size();
     }
+
 
     /** @brief Returns the n-th of the following edges
      * @param[in] n The index within following edges of the edge to return

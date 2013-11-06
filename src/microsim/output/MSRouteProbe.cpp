@@ -8,7 +8,7 @@
 ///
 // Writes route distributions at a certain edge
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -52,11 +52,10 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MSRouteProbe::MSRouteProbe(const std::string& id, const MSEdge* edge, SUMOTime begin) : 
-    MSDetectorFileOutput(id), 
+MSRouteProbe::MSRouteProbe(const std::string& id, const MSEdge* edge, SUMOTime begin) :
+    MSDetectorFileOutput(id),
     MSMoveReminder(id),
-    myCurrentRouteDistribution(0) 
-{
+    myCurrentRouteDistribution(0) {
     const std::string distID = id + "_" + toString(begin);
     myCurrentRouteDistribution = MSRoute::distDictionary(distID);
     if (myCurrentRouteDistribution == 0) {

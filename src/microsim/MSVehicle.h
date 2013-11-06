@@ -14,7 +14,7 @@
 ///
 // Representation of a vehicle in the micro simulation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -41,6 +41,7 @@
 #include <list>
 #include <deque>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include "MSVehicleType.h"
@@ -52,6 +53,7 @@
 // ===========================================================================
 // class declarations
 // ===========================================================================
+class SUMOSAXAttributes;
 class MSMoveReminder;
 class MSLaneChanger;
 class MSVehicleTransfer;
@@ -63,9 +65,6 @@ class MSEdgeWeightsStorage;
 class OutputDevice;
 class Position;
 class MSDevice_Person;
-#ifdef _MESSAGES
-class MSMessageEmitter;
-#endif
 
 
 // ===========================================================================
@@ -139,11 +138,10 @@ public:
      * @param[in] route The vehicle's route
      * @param[in] type The vehicle's type
      * @param[in] speedFactor The factor for driven lane's speed limits
-     * @param[in] vehicleIndex The vehicle's running index
      * @exception ProcessError If a value is wrong
      */
     MSVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
-              const MSVehicleType* type, SUMOReal speedFactor, int vehicleIndex);
+              const MSVehicleType* type, SUMOReal speedFactor);
 
     /// @brief Destructor.
     virtual ~MSVehicle();
@@ -295,7 +293,7 @@ public:
     }
 
 
-    /** @brief Returns the vehicle's acceleration
+    /** @brief Returns the vehicle's acceleration in m/s
      * @return The acceleration
      */
     SUMOReal getAcceleration() const {
@@ -315,7 +313,7 @@ public:
      * @return The current position (in cartesian coordinates)
      * @see myLane
      */
-    Position getPosition(SUMOReal offset=0) const;
+    Position getPosition(SUMOReal offset = 0) const;
 
 
     /** @brief Returns the lane the vehicle is on
@@ -362,8 +360,6 @@ public:
     SUMOReal getAngle() const;
     //@}
 
-
-    class Influencer;
 
     /** Returns true if the two vehicles overlap. */
     static bool overlap(const MSVehicle* veh1, const MSVehicle* veh2) {
@@ -484,6 +480,8 @@ public:
      */
     const std::vector<MSLane*>& getBestLanesContinuation(const MSLane* const l) const;
 
+    /// @brief returns the current offset from the best lane
+    int getBestLaneOffset() const;
 
     /// @brief repair errors in bestLanes after changing between internal edges
     bool fixContinuations();
@@ -552,6 +550,8 @@ public:
         bool parking;
         /// @brief Information whether the stop has been reached
         bool reached;
+        /// @brief IDs of persons the vehicle has to wait for until departing
+        std::set<std::string> awaitedPersons;
     };
 
 
@@ -673,6 +673,8 @@ public:
      */
     unsigned int getPersonNumber() const;
 
+    /// @brief Returns this vehicles impatience
+    SUMOReal getImpatience() const;
 
     /// @name Access to bool signals
     /// @{
@@ -711,6 +713,17 @@ public:
         VEH_SIGNAL_EMERGENCY_RED = 4096,
         /// @brief A yellow emergency light is on
         VEH_SIGNAL_EMERGENCY_YELLOW = 8192
+    };
+
+
+    /* @brief modes for resolving conflicts between external control (traci)
+     * and vehicle control over lane changing. Each level of the lane-changing
+     * hierarchy (strategic, cooperative, speedGain, keepRight) can be controlled
+     * separately */
+    enum LaneChangeMode {
+        LC_NEVER      = 0,  // lcModel shall never trigger changes at this level
+        LC_NOCONFLICT = 1,  // lcModel may trigger changes if not in conflict with TraCI request
+        LC_ALWAYS     = 2   // lcModel may always trigger changes of this level regardless of requests
     };
 
 
@@ -787,11 +800,13 @@ public:
      * @brief Changes the wished vehicle speed / lanes
      *
      * The class is used for passing velocities or velocity profiles obtained via TraCI to the vehicle.
-     *
-     * The adaptation is controlled by the stored time line of speeds/lanes.
+     * The speed adaptation is controlled by the stored speedTimeLine
      * Additionally, the variables myConsiderSafeVelocity, myConsiderMaxAcceleration, and myConsiderMaxDeceleration
-     *  control whether the safe velocity, the maximum acceleration, and the maximum deceleration
-     *  have to be regarded.
+     * control whether the safe velocity, the maximum acceleration, and the maximum deceleration
+     * have to be regarded.
+     *
+     * Furthermore this class is used to affect lane changing decisions according to
+     * LaneChangeMode and any given laneTimeLine
      */
     class Influencer {
     public:
@@ -828,9 +843,22 @@ public:
          */
         SUMOReal influenceSpeed(SUMOTime currentTime, SUMOReal speed, SUMOReal vSafe, SUMOReal vMin, SUMOReal vMax);
 
+        /// @brief check for valid change requests in the current laneTimeLine
+        void checkForLaneChanges(SUMOTime currentTime, const MSEdge& currentEdge, unsigned int currentLaneIndex); 
 
-        ChangeRequest checkForLaneChanges(SUMOTime currentTime, const MSEdge& currentEdge, unsigned int currentLaneIndex);
+        /** @brief Applies stored LaneChangeMode information and laneTimeLine
+         *
+         * @param[in] state The LaneChangeAction flags as computed by the laneChangeModel
+         * @param[in] currentTime The current simulation time
+         * @param[in] currentEdge The current edge the vehicle is on
+         * @param[in] currentLaneIndex The index of the lane the vehicle is currently on
+         * @return The new LaneChangeAction flags to use
+         */
+        int influenceChangeDecision(int state);
 
+        inline ChangeRequest getCurrentChangeRequest() {
+            return myChangeRequest;
+        }
 
         /** @brief Sets whether the safe velocity shall be regarded
          * @param[in] value Whether the safe velocity shall be regarded
@@ -850,7 +878,13 @@ public:
         void setConsiderMaxDeceleration(bool value);
 
 
-        /** @brief Returns the originally longitudianl speed to use
+        /** @brief Sets lane changing behavior
+         * @param[in] value a bitset controlling the different modes
+         */
+        void setLaneChangeMode(int value);
+
+
+        /** @brief Returns the originally longitudinal speed to use
          * @return The speed given before influence
          */
         SUMOReal getOriginalSpeed() const {
@@ -867,8 +901,12 @@ public:
 
         void postProcessVTD(MSVehicle* v);
 
-        bool isVTDControlled() const {
+        inline bool isVTDControlled() const {
             return myAmVTDControlled;
+        }
+
+        inline ChangeRequest getChangeRequest() const {
+            return myChangeRequest;
         }
 
     private:
@@ -899,6 +937,27 @@ public:
         int myVTDEdgeOffset;
         MSEdgeVector myVTDRoute;
 
+        /// @brief the currently active change request
+        ChangeRequest myChangeRequest;
+
+    /// @name Flags for managing conflicts between the laneChangeModel and TraCI laneTimeLine 
+    //@{
+        /// @brief lane changing which is necessary to follow the current route
+        LaneChangeMode myStrategicLC;
+        /// @brief lane changing with the intent to help other vehicles
+        LaneChangeMode myCooperativeLC;
+        /// @brief lane changing to travel with higher speed
+        LaneChangeMode mySpeedGainLC;
+        /// @brief changing to the rightmost lane 
+        LaneChangeMode myRightDriveLC;
+    //@}
+        /* @brief flags for influencing security precautions when following a TraCI change-request
+         * LC_NEVER : ignore other drivers
+         * LC_NOCONFLICT : avoid immediate collisions
+         * LC_ALWAYS : perform full security checks (front and rear gap)
+         */
+        LaneChangeMode myRespectGapLC;
+
     };
 
 
@@ -915,6 +974,17 @@ public:
 
 
 #endif
+
+    /// @name state io
+    //@{
+
+    /// Saves the states of a vehicle
+    void saveState(OutputDevice& out);
+
+    /** @brief Loads the state of this vehicle from the given description
+     */
+    void loadState(const SUMOSAXAttributes& attrs, const SUMOTime offset);
+    //@}
 
 protected:
 
@@ -949,13 +1019,6 @@ protected:
     /// @brief The time the vehicle waits (is not faster than 0.1m/s) in seconds
     SUMOTime myWaitingTime;
 
-#ifdef _MESSAGES
-    /// The message emitters
-    MSMessageEmitter* myLCMsgEmitter;
-    MSMessageEmitter* myBMsgEmitter;
-    MSMessageEmitter* myHBMsgEmitter;
-#endif
-
     /// @brief This Vehicles driving state (pos and speed)
     State myState;
 
@@ -975,7 +1038,7 @@ protected:
     /// @brief The passengers this vehicle may have
     MSDevice_Person* myPersonDevice;
 
-    /// @brief The current acceleration before dawdling
+    /// @brief The current acceleration after dawdling in m/s
     SUMOReal myAcceleration;
 
     /// @brief The information into which lanes the vehicle laps into
@@ -1000,16 +1063,40 @@ protected:
         bool mySetRequest;
         SUMOTime myArrivalTime;
         SUMOReal myArrivalSpeed;
+        SUMOTime myArrivalTimeBraking;
+        SUMOReal myArrivalSpeedBraking;
         SUMOReal myDistance;
         SUMOReal accelV;
         bool hadVehicle;
         SUMOReal availableSpace;
+
         DriveProcessItem(MSLink* link, SUMOReal vPass, SUMOReal vWait, bool setRequest,
-                         SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal distance,
-                         SUMOReal leaveSpeed=-1.) :
+                         SUMOTime arrivalTime, SUMOReal arrivalSpeed,
+                         SUMOTime arrivalTimeBraking, SUMOReal arrivalSpeedBraking,
+                         SUMOReal distance,
+                         SUMOReal leaveSpeed = -1.) :
             myLink(link), myVLinkPass(vPass), myVLinkWait(vWait), mySetRequest(setRequest),
-            myArrivalTime(arrivalTime), myArrivalSpeed(arrivalSpeed), myDistance(distance),
-            accelV(leaveSpeed), hadVehicle(false), availableSpace(-1.) { };
+            myArrivalTime(arrivalTime), myArrivalSpeed(arrivalSpeed),
+            myArrivalTimeBraking(arrivalTimeBraking), myArrivalSpeedBraking(arrivalSpeedBraking),
+            myDistance(distance),
+            accelV(leaveSpeed), hadVehicle(false), availableSpace(-1.) 
+        { 
+            assert(vWait >= 0);
+            assert(vPass >= 0);
+        };
+
+        /// @brief constructor if the link shall not be passed
+        DriveProcessItem(SUMOReal vWait, SUMOReal distance) :
+            myLink(0), myVLinkPass(vWait), myVLinkWait(vWait), mySetRequest(false),
+            myArrivalTime(0), myArrivalSpeed(0),
+            myArrivalTimeBraking(0), myArrivalSpeedBraking(0),
+            myDistance(distance),
+            accelV(-1), hadVehicle(false), availableSpace(-1.) 
+        {
+            assert(vWait >= 0);
+        };
+
+
         inline void adaptLeaveSpeed(const SUMOReal v) {
             if (accelV < 0) {
                 accelV = v;
@@ -1036,18 +1123,20 @@ protected:
         // l=linkLength, a=accel, t=continuousTime, v=vLeave
         // l=v*t + 0.5*a*t^2, solve for t and multiply with a, then add v
         return MIN2(link->getViaLaneOrLane()->getVehicleMaxSpeed(this),
-                    estimateSpeedAfterDistance(link->getLength(), vLinkPass));
+                    estimateSpeedAfterDistance(link->getLength(), vLinkPass, getVehicleType().getCarFollowModel().getMaxAccel()));
     }
 
     /* @brief estimate speed while accelerating for the given distance
      * @param[in] dist The distance during which accelerating takes place
      * @param[in] v The initial speed
+     * @param[in] accel The acceleration
      */
-    inline SUMOReal estimateSpeedAfterDistance(const SUMOReal dist, const SUMOReal v) const {
+    inline SUMOReal estimateSpeedAfterDistance(const SUMOReal dist, const SUMOReal v, const SUMOReal accel) const {
         // dist=v*t + 0.5*accel*t^2, solve for t and multiply with accel, then add v
         return MIN2(getVehicleType().getMaxSpeed(),
-                    (SUMOReal)sqrt(2 * dist * getVehicleType().getCarFollowModel().getMaxAccel() + v * v));
+                    (SUMOReal)sqrt(2 * dist * accel + v * v));
     }
+
 
     /* @brief estimate speed while accelerating for the given distance
      * @param[in] leaderInfo The leading vehicle and the (virtual) distance to it
@@ -1060,6 +1149,11 @@ protected:
     void adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
                        const SUMOReal seen, DriveProcessItem* const lastLink,
                        const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass) const;
+
+#ifdef HAVE_INTERNAL_LANES
+    /// @brief ids of vehicles being followed across a link (for resolving priority)
+    mutable std::set<std::string> myLinkLeaders;
+#endif
 
 private:
     /* @brief The vehicle's knowledge about edge efforts/travel times; @see MSEdgeWeightsStorage
@@ -1075,8 +1169,6 @@ private:
 #endif
 
 #ifdef HAVE_INTERNAL_LANES
-    /// @brief ids of vehicles being followed across a link (for resolving priority)
-    mutable std::set<std::string> myLinkLeaders;
     /// @brief map from the links to link leader ids
     mutable std::map<const MSLink*, std::string> myLeaderForLink;
 #endif

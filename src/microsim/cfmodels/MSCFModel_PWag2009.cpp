@@ -8,7 +8,7 @@
 ///
 // Scalable model based on Krauﬂ by Peter Wagner
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -87,7 +87,7 @@ MSCFModel_PWag2009::followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMO
 
 // uses the safe speed and preferred acceleration with the same NORMAL tau to compute stopSpeed
 SUMOReal
-MSCFModel_PWag2009::stopSpeed(const MSVehicle* const veh, const SUMOReal speed, SUMOReal gap) const {
+MSCFModel_PWag2009::stopSpeed(const MSVehicle* const /* veh */, const SUMOReal speed, SUMOReal gap) const {
     if (gap < 0.01) {
         return 0;
     }

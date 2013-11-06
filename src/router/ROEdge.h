@@ -9,7 +9,7 @@
 ///
 // A basic edge for routing applications
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -78,7 +78,9 @@ public:
         /// @brief An edge where vehicles are inserted at (no vehicle may come from back)
         ET_SOURCE,
         /// @brief An edge where vehicles disappear (no vehicle may leave this edge)
-        ET_SINK
+        ET_SINK,
+        /// @brief An internal edge which models driving across a junction. This is currently not used for routing
+        ET_INTERNAL
     };
 
 

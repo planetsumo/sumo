@@ -10,7 +10,7 @@
 ///
 // Krauss car-following model, with acceleration decrease and faster start
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -34,6 +34,7 @@
 
 #include <microsim/MSVehicle.h>
 #include <microsim/MSLane.h>
+#include <microsim/MSGlobals.h>
 #include "MSCFModel_Krauss.h"
 #include <microsim/MSAbstractLaneChangeModel.h>
 #include <utils/common/RandHelper.h>
@@ -91,7 +92,10 @@ MSCFModel_Krauss::_vsafe(SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel
         if (gap < 0.01) {
             return 0;
         }
-        return (SUMOReal)(-myTauDecel + sqrt(myTauDecel * myTauDecel + 2. * myDecel * gap));
+        // g = t * x + x^2 / (2 * b)
+        const SUMOReal result = (SUMOReal)(-myTauDecel + sqrt(myTauDecel * myTauDecel + 2. * myDecel * gap));
+        assert(result >= 0);
+        return result;
     }
     // follow the leader
     // g=gap, t=myHeadwayTime, a=predMaxDecel, b=myDecel, v=predSpeed, x=vSafe
@@ -103,11 +107,17 @@ MSCFModel_Krauss::_vsafe(SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel
     // As a workaround we lower the value of b to get a collision free model
     // This approach should be refined to get a higher (still safe) following speed.
     const SUMOReal egoDecel = MIN2(myDecel, predMaxDecel);
-    return (SUMOReal)(0.5 * sqrt(
-                          4.0 * egoDecel * (2.0 * gap + predSpeed * predSpeed / predMaxDecel - predSpeed - 1.0)
-                          + (egoDecel * (2.0 * myHeadwayTime - 1.0))
-                          * (egoDecel * (2.0 * myHeadwayTime - 1.0)))
-                      + myDecel * (0.5 - myHeadwayTime));
+    const SUMOReal result = (SUMOReal)(0.5 * sqrt(
+                                           4.0 * egoDecel * (2.0 * gap + predSpeed * predSpeed / predMaxDecel - predSpeed - 1.0)
+                                           + (egoDecel * (2.0 * myHeadwayTime - 1.0))
+                                           * (egoDecel * (2.0 * myHeadwayTime - 1.0)))
+                                       + egoDecel * (0.5 - myHeadwayTime));
+    // XXX recheck use of both branches of the quadratic forumula
+    if (ISNAN(result)) {
+        return 0;
+    } else {
+        return MAX2((SUMOReal)0, result);
+    }
 }
 
 

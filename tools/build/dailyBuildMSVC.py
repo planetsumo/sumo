@@ -12,12 +12,17 @@ studio build. The script is also used for the meso build.
 Some paths especially for the temp dir and the compiler are
 hard coded into this script.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 from __future__ import with_statement
-import re
+import re, io
 from datetime import date
 import optparse, os, glob, subprocess, zipfile, shutil, datetime, sys
 import status, wix
@@ -34,7 +39,7 @@ optParser.add_option("-t", "--tests-dir", dest="testsDir", default=r"trunk\sumo\
                      help="directory containg the tests, relative to the root dir")
 optParser.add_option("-e", "--sumo-exe", dest="sumoExe", default="sumo",
                      help="name of the sumo executable")
-optParser.add_option("-m", "--remote-dir", dest="remoteDir",
+optParser.add_option("-m", "--remote-dir", dest="remoteDir", default=r"O:\Daten\Sumo\daily",
                      help="directory to move the results to")
 optParser.add_option("-a", "--add-build-config-prefix", dest="addConf",
                      help="prefix of an additional configuration to build")
@@ -48,14 +53,12 @@ import runInternalTests
 env = os.environ
 env["SMTP_SERVER"]="smtprelay.dlr.de"
 env["TEMP"]=env["TMP"]=r"D:\Delphi\texttesttmp"
-nightlyDir=r"M:\Daten\Sumo\Nightly"
+nightlyDir=r"O:\Daten\Sumo\Nightly"
 compiler=r"D:\Programme\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe"
 svnrev=""
 for platform in ["Win32", "x64"]:
     env["FILEPREFIX"]="msvc10" + options.suffix + platform
-    prefix = os.path.join(options.rootDir, env["FILEPREFIX"])
-    if options.remoteDir:
-        prefix = os.path.join(options.remoteDir, env["FILEPREFIX"])
+    prefix = os.path.join(options.remoteDir, env["FILEPREFIX"])
     makeLog = prefix + "Release.log"
     makeAllLog = prefix + "Debug.log"
     statusLog = prefix + "status.log"
@@ -99,7 +102,8 @@ for platform in ["Win32", "x64"]:
     if platform == "x64":
         envSuffix="_64"
         programSuffix="64"
-    log = open(makeLog, 'a')
+    # we need to use io.open here due to http://bugs.python.org/issue16273
+    log = io.open(makeLog, 'a')
     try:
         maxTime = 0
         for fname in glob.glob(os.path.join(nightlyDir, "sumo-src-*.zip")):
@@ -150,6 +154,7 @@ for platform in ["Win32", "x64"]:
                     print >> log, "I/O error(%s): %s" % (errno, strerror)
         zipf.close()
         wix.buildMSI(binaryZip, binaryZip.replace(".zip", ".msi"), platformSuffix=programSuffix)
+        shutil.copy2(binaryZip, options.remoteDir)
     except IOError, (errno, strerror):
         print >> log, "Warning: Could not zip to %s!" % binaryZip
         print >> log, "I/O error(%s): %s" % (errno, strerror)
@@ -188,13 +193,10 @@ for platform in ["Win32", "x64"]:
         subprocess.call("texttest.py -b "+env["FILEPREFIX"]+nameopt, stdout=log, stderr=subprocess.STDOUT, shell=True)
     subprocess.call("texttest.py -a sumo.gui -b "+env["FILEPREFIX"]+nameopt, stdout=log, stderr=subprocess.STDOUT, shell=True)
     subprocess.call("texttest.py -b "+env["FILEPREFIX"]+" -coll", stdout=log, stderr=subprocess.STDOUT, shell=True)
-    ago = datetime.datetime.now() - datetime.timedelta(30)
-    subprocess.call('texttest.py -s "batch.ArchiveRepository session='+env["FILEPREFIX"]+' before=%s"' % ago.strftime("%d%b%Y"),
-                    stdout=log, stderr=subprocess.STDOUT, shell=True)
+#    ago = datetime.datetime.now() - datetime.timedelta(30)
+#    subprocess.call('texttest.py -s "batch.ArchiveRepository session='+env["FILEPREFIX"]+' before=%s"' % ago.strftime("%d%b%Y"),
+#                    stdout=log, stderr=subprocess.STDOUT, shell=True)
     log.close()
     log = open(statusLog, 'w')
     status.printStatus(makeLog, makeAllLog, env["TEXTTEST_TMP"], env["SMTP_SERVER"], log)
     log.close()
-    if not options.remoteDir:
-        toPut = " ".join([env["SUMO_REPORT"], makeLog, makeAllLog, testLog, statusLog, binaryZip, binaryZip.replace(".zip", ".msi")])
-        subprocess.call('WinSCP3.com behrisch,sumo@web.sourceforge.net /privatekey=%s\\key.ppk /command "option batch on" "option confirm off" "put %s /home/groups/s/su/sumo/htdocs/daily/" "exit"' % (options.rootDir, toPut))

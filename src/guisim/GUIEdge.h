@@ -9,7 +9,7 @@
 ///
 // A road/street connecting two junctions (gui-version)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -151,7 +151,7 @@ public:
 #ifdef HAVE_INTERNAL
     unsigned int getVehicleNo() const;
     std::string getVehicleIDs() const;
-    SUMOReal getOccupancy() const;
+    SUMOReal getBruttoOccupancy() const;
     SUMOReal getMeanSpeed() const;
     SUMOReal getAllowedSpeed() const;
     /// @brief return flow based on meanSpead @note: may produced incorrect results when jammed
