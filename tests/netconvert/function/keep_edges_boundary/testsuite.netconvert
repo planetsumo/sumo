@@ -24,3 +24,9 @@ malformed_boundary1
 # uneven numbers
 malformed_boundary2
 geo_boundary
+
+# test with sumo net as input
+geo_boundary2
+
+# keep edges in a triangular boundary
+polygon
