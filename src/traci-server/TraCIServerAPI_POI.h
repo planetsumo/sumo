@@ -7,7 +7,7 @@
 ///
 // APIs for getting/setting POI values via TraCI
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -75,10 +75,10 @@ public:
     static bool getPosition(const std::string& id, Position& p);
 
 
-    /** @brief Returns a tree filled with inductive loop instances
-     * @return The rtree of inductive loop
+    /** @brief Returns a tree filled with PoI instances
+     * @return The rtree of PoIs
      */
-    static TraCIRTree* getTree();
+    static NamedRTree* getTree();
 
 
 private:

@@ -7,7 +7,7 @@
 ///
 // A device which collects vehicular emissions (using HBEFA-reformulation)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -63,8 +63,9 @@ class MSLane;
 class MSDevice_HBEFA : public MSDevice {
 public:
     /** @brief Inserts MSDevice_HBEFA-options
+     * @param[filled] oc The options container to add the options to
      */
-    static void insertOptions();
+    static void insertOptions(OptionsCont& oc);
 
 
     /** @brief Build devices for the given vehicle, if needed
@@ -77,12 +78,18 @@ public:
      * The built device is stored in the given vector.
      *
      * @param[in] v The vehicle for which a device may be built
-     * @param[in, filled] into The vector to store the built device in
+     * @param[filled] into The vector to store the built device in
      */
     static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
 
 
+
 public:
+    /// @brief Destructor.
+    ~MSDevice_HBEFA();
+
+
+
     /// @name Methods called on vehicle movement / state change, overwriting MSDevice
     /// @{
 
@@ -104,6 +111,7 @@ public:
     /// @}
 
 
+
     /** @brief Called on writing tripinfo output
      *
      * @param[in] os The stream to write the information into
@@ -111,10 +119,6 @@ public:
      * @see MSDevice::tripInfoOutput
      */
     void generateOutput() const;
-
-
-    /// @brief Destructor.
-    ~MSDevice_HBEFA();
 
 
 private:
@@ -131,7 +135,6 @@ private:
     /// @{
 
     SUMOReal myCO2, myCO, myHC, myPMx, myNOx, myFuel;
-
     /// @}
 
 

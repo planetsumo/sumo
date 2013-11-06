@@ -7,7 +7,7 @@
 ///
 // A device which collects info on the vehicle trip
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -60,12 +60,18 @@ public:
      * The built device is stored in the given vector.
      *
      * @param[in] v The vehicle for which a device may be built
-     * @param[in, filled] into The vector to store the built device in
+     * @param[filled] into The vector to store the built device in
      */
     static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
 
 
+
 public:
+    /// @brief Destructor.
+    ~MSDevice_Tripinfo();
+
+
+
     /// @name Methods called on vehicle movement / state change, overwriting MSDevice
     /// @{
 
@@ -75,11 +81,9 @@ public:
      * @param[in] oldPos Position before move.
      * @param[in] newPos Position after move with newSpeed.
      * @param[in] newSpeed Moving speed.
-     *
      * @return True (always).
      */
-    bool notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
-                    SUMOReal newPos, SUMOReal newSpeed);
+    bool notifyMove(SUMOVehicle& veh, SUMOReal oldPos, SUMOReal newPos, SUMOReal newSpeed);
 
 
     /** @brief Saves departure info on insertion
@@ -101,9 +105,9 @@ public:
      * @param[in] isLaneChange whether the vehicle changed from the lane
      * @return True if it did not leave the net.
      */
-    bool notifyLeave(SUMOVehicle& veh, SUMOReal lastPos,
-                     MSMoveReminder::Notification reason);
+    bool notifyLeave(SUMOVehicle& veh, SUMOReal lastPos, MSMoveReminder::Notification reason);
     /// @}
+
 
 
     /** @brief Called on writing tripinfo output
@@ -115,9 +119,6 @@ public:
     void generateOutput() const;
 
 
-    /// @brief Destructor.
-    ~MSDevice_Tripinfo();
-
 
 private:
     /** @brief Constructor
@@ -128,16 +129,36 @@ private:
     MSDevice_Tripinfo(SUMOVehicle& holder, const std::string& id);
 
 
-private:
+    /// @brief dummy constructor
+    MSDevice_Tripinfo();
 
+
+private:
+    /// @brief The lane the vehicle departed at
     std::string myDepartLane;
+
+    /// @brief The position on the lane the vehicle departed at
     SUMOReal myDepartPos;
+
+    /// @brief The speed on departure
     SUMOReal myDepartSpeed;
+
+    /// @brief The overall number of waiting steps
     unsigned int myWaitingSteps;
+
+    /// @brief The vehicle's arrival time
     SUMOTime myArrivalTime;
+
+    /// @brief The lane the vehicle arrived at
     std::string myArrivalLane;
+
+    /// @brief The position on the lane the vehicle arrived at
     SUMOReal myArrivalPos;
+
+    /// @brief The speed when arriving
     SUMOReal myArrivalSpeed;
+
+
 
 private:
     /// @brief Invalidated copy constructor.

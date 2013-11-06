@@ -8,7 +8,7 @@
 ///
 // A lane area vehicles can halt at (gui-version)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -49,7 +49,6 @@
 #include <gui/GUIGlobals.h>
 #include <utils/gui/div/GUIParameterTableWindow.h>
 #include <gui/GUIApplicationWindow.h>
-#include <utils/gui/images/GUITexturesHelper.h>
 #include <microsim/logging/FunctionBinding.h>
 #include <utils/gui/div/GUIGlobalSelection.h>
 #include <foreign/polyfonts/polyfonts.h>

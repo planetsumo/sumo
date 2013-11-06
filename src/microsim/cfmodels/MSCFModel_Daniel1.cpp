@@ -6,7 +6,7 @@
 ///
 // The original Krauss (1998) car-following model and parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -75,8 +75,8 @@ MSCFModel_Daniel1::followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOR
 
 
 SUMOReal
-MSCFModel_Daniel1::stopSpeed(const MSVehicle* const veh, SUMOReal gap) const {
-    return MIN2(_vsafe(gap, 0), maxNextSpeed(veh->getSpeed(), veh));
+MSCFModel_Daniel1::stopSpeed(const MSVehicle* const veh, const SUMOReal speed, SUMOReal gap) const {
+    return MIN2(_vsafe(gap, 0), maxNextSpeed(speed, veh));
 }
 
 

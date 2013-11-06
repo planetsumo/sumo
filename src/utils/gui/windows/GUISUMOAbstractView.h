@@ -9,7 +9,7 @@
 ///
 // The base class for a view
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -138,6 +138,12 @@ public:
     virtual long onPaint(FXObject*, FXSelector, void*);
     virtual long onLeftBtnPress(FXObject*, FXSelector, void*);
     virtual long onLeftBtnRelease(FXObject*, FXSelector, void*);
+    virtual long onMiddleBtnPress(FXObject*, FXSelector, void*) {
+        return 1;
+    }
+    virtual long onMiddleBtnRelease(FXObject*, FXSelector, void*) {
+        return 1;
+    }
     virtual long onRightBtnPress(FXObject*, FXSelector, void*);
     virtual long onRightBtnRelease(FXObject*, FXSelector, void*);
     virtual long onMouseWheel(FXObject*, FXSelector, void*);
@@ -338,6 +344,10 @@ protected:
 
 
 protected:
+    /** @brief check whether we can read image data or position with gdal
+     */
+    FXImage* checkGDALImage(Decal& d);
+
     /** @brief Draws the stored decals
      */
     void drawDecals();

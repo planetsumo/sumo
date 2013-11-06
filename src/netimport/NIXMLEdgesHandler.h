@@ -8,7 +8,7 @@
 ///
 // Importer for network edges stored in XML
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -78,7 +78,9 @@ public:
      * @param[in] options The options to use while building edges
      */
     NIXMLEdgesHandler(NBNodeCont& nc, NBEdgeCont& ec,
-                      NBTypeCont& tc, NBDistrictCont& dc, OptionsCont& options);
+                      NBTypeCont& tc, NBDistrictCont& dc,
+                      NBTrafficLightLogicCont& tlc,
+                      OptionsCont& options);
 
 
     /// @brief Destructor
@@ -183,9 +185,6 @@ private:
     /// @brief Information about lane permissions
     SVCPermissions myPermissions;
 
-    /// @brief Whether the edge shape shall be kept generally
-    bool myKeepEdgeShape;
-
     /// @brief Whether the edge shape shall be kept at reinitilization
     bool myReinitKeepEdgeShape;
 
@@ -210,6 +209,10 @@ private:
 
     /// @brief The districts container (needed if an edge must be split)
     NBDistrictCont& myDistrictCont;
+
+    /** @brief The traffic lights container to add built tls to (when
+     * invalidating tls because of splits) */
+    NBTrafficLightLogicCont& myTLLogicCont;
     /// @}
 
 
@@ -274,6 +277,9 @@ private:
     bool myHaveReportedAboutOverwriting;
 
     bool myHaveWarnedAboutDeprecatedLaneId;
+
+    /// @brief Whether the edge shape shall be kept generally
+    const bool myKeepEdgeShape;
 
 
 private:

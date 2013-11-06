@@ -6,7 +6,7 @@
 ///
 // Importer for traffic lights stored in XML
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -137,7 +137,7 @@ NIXMLTrafficLightsHandler::initTrafficLightLogic(const SUMOSAXAttributes& attrs,
         type = SUMOXMLDefinitions::TrafficLightTypes.get(typeS);
     } else {
         WRITE_ERROR("Unknown traffic light type '" + typeS + "' for tlLogic '" + id + "'.");
-        ok = false;
+        return 0;
     }
     // there are two scenarios to consider
     // 1) the tll.xml is loaded to update traffic lights defined in a net.xml:

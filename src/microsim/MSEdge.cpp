@@ -12,7 +12,7 @@
 ///
 // A road/street connecting two junctions
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -173,7 +173,7 @@ MSEdge::rightLane(const MSLane* const lane) const {
 }
 
 
-MSLane* 
+MSLane*
 MSEdge::parallelLane(const MSLane* const lane, int offset) const {
     const int index = (int)(find(myLanes->begin(), myLanes->end(), lane) - myLanes->begin());
     if (index == (int)myLanes->size()) {
@@ -463,12 +463,10 @@ MSEdge::dictionary(const std::string& id, MSEdge* ptr) {
     if (it == myDict.end()) {
         // id not in myDict.
         myDict[id] = ptr;
-        if (ptr->getNumericalID() != -1) {
-            while ((int)myEdges.size() < ptr->getNumericalID() + 1) {
-                myEdges.push_back(0);
-            }
-            myEdges[ptr->getNumericalID()] = ptr;
+        while ((int)myEdges.size() < ptr->getNumericalID() + 1) {
+            myEdges.push_back(0);
         }
+        myEdges[ptr->getNumericalID()] = ptr;
         return true;
     }
     return false;

@@ -8,7 +8,7 @@
 ///
 // Parser for routes during their loading
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -41,6 +41,7 @@
 // ===========================================================================
 // class declarations
 // ===========================================================================
+class MsgHandler;
 class SUMOVTypeParameter;
 
 
@@ -66,8 +67,8 @@ public:
     SUMOTime getLastDepart() const;
 
     /// check start and end position of a stop
-    bool checkStopPos(SUMOReal& startPos, SUMOReal& endPos, const SUMOReal laneLength,
-                      const SUMOReal minLength, const bool friendlyPos);
+    static bool checkStopPos(SUMOReal& startPos, SUMOReal& endPos, const SUMOReal laneLength,
+                             const SUMOReal minLength, const bool friendlyPos);
 
 protected:
     /// @name inherited from GenericSAXHandler
@@ -133,6 +134,12 @@ protected:
 
     /// save last depart (only to be used if vehicle is not discarded)
     void registerLastDepart();
+
+    /// @brief assign arbitrary vehicle parameters
+    void addParam(const SUMOSAXAttributes& attrs);
+
+    /// @brief parses attributes common to all stops
+    bool parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs, std::string errorSuffix, MsgHandler* const errorOutput);
 
 protected:
     /// @brief Parameter of the current vehicle, trip, person, or flow

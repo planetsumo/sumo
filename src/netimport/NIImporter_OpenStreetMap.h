@@ -9,7 +9,7 @@
 ///
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -159,6 +159,12 @@ private:
 
     /** @brief the map from OSM way ids to edge objects */
     std::map<SUMOLong, Edge*> myEdges;
+
+    /// @brief The compounds types that do not contain known types
+    std::set<std::string> myUnusableTypes;
+
+    /// @brief The compound types that have already been mapped to other known types
+    std::map<std::string, std::string> myKnownCompoundTypes;
 
     /** @brief Builds an NBNode
      *
@@ -418,7 +424,7 @@ protected:
             /// @brief The only invalid connection is declared
             RESTRICTION_NO,
             /// @brief The relation tag was missing
-            RESTRICTION_UNKNOWN,
+            RESTRICTION_UNKNOWN
         };
         RestrictionType myRestrictionType;
 

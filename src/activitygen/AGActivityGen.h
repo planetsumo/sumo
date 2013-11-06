@@ -8,7 +8,7 @@
 ///
 // Main class that handles City, Activities and Trips
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
@@ -55,7 +55,7 @@ public:
      * @param[in] output xml file in which we'll write the routes generated
      * @param[in] net network of the city
      */
-    AGActivityGen(std::string input, std::string output, RONet* net) :
+    AGActivityGen(std::string input, OutputDevice &output, RONet* net) :
         inputFile(input),
         outputFile(output),
         net(net),
@@ -84,8 +84,10 @@ public:
     void makeActivityTrips(int days = 1, int beginTime = 0, int endTime = 0);
 
 protected:
-    // @brief xml files: statistics on the city and generated routes
-    std::string inputFile, outputFile;
+    // @brief xml file statistics on the city and generated routes
+    std::string inputFile;
+    /// @brief The generated routes
+    OutputDevice &outputFile;
     // @brief network of the city
     RONet* net;
     //Activities activities;

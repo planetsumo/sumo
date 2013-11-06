@@ -44,9 +44,6 @@
     <ClCompile Include="..\..\..\src\guisim\GUILaneSpeedTrigger.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\guisim\GUILaneWrapper.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\guisim\GUINet.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
@@ -72,6 +69,9 @@
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\guisim\GUIPersonControl.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\guisim\GUICalibrator.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -109,9 +109,6 @@
     <ClInclude Include="..\..\..\src\guisim\GUILaneSpeedTrigger.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\guisim\GUILaneWrapper.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\guisim\GUINet.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
@@ -137,6 +134,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\guisim\GUIPersonControl.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\guisim\GUICalibrator.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

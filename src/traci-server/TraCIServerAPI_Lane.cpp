@@ -9,7 +9,7 @@
 ///
 // APIs for getting/setting lane values via TraCI
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -64,11 +64,12 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
     if (variable != ID_LIST && variable != LANE_LINK_NUMBER && variable != LANE_EDGE_ID && variable != VAR_LENGTH
             && variable != VAR_MAXSPEED && variable != LANE_LINKS && variable != VAR_SHAPE
             && variable != VAR_CO2EMISSION && variable != VAR_COEMISSION && variable != VAR_HCEMISSION && variable != VAR_PMXEMISSION
-            && variable != VAR_NOXEMISSION && variable != VAR_FUELCONSUMPTION && variable != VAR_NOISEEMISSION
+            && variable != VAR_NOXEMISSION && variable != VAR_FUELCONSUMPTION && variable != VAR_NOISEEMISSION && variable != VAR_WAITING_TIME
             && variable != LAST_STEP_MEAN_SPEED && variable != LAST_STEP_VEHICLE_NUMBER
             && variable != LAST_STEP_VEHICLE_ID_LIST && variable != LAST_STEP_OCCUPANCY && variable != LAST_STEP_VEHICLE_HALTING_NUMBER
             && variable != LAST_STEP_LENGTH && variable != VAR_CURRENT_TRAVELTIME
-            && variable != LANE_ALLOWED && variable != LANE_DISALLOWED && variable != VAR_WIDTH && variable != ID_COUNT) {
+            && variable != LANE_ALLOWED && variable != LANE_DISALLOWED && variable != VAR_WIDTH && variable != ID_COUNT
+            ) {
         return server.writeErrorStatusCmd(CMD_GET_LANE_VARIABLE, "Get Lane Variable: unsupported variable specified", outputStorage);
     }
     // begin response building
@@ -117,6 +118,7 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 const MSLinkCont& links = lane->getLinkCont();
                 tempContent.writeInt((int) links.size());
                 ++cnt;
+                const SUMOTime currTime = MSNet::getInstance()->getCurrentTimeStep();
                 for (MSLinkCont::const_iterator i = links.begin(); i != links.end(); ++i) {
                     MSLink* link = (*i);
                     // approached non-internal lane (if any)
@@ -137,17 +139,18 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                     ++cnt;
                     // opened
                     tempContent.writeUnsignedByte(TYPE_UBYTE);
-                    tempContent.writeUnsignedByte(link->opened(MSNet::getInstance()->getCurrentTimeStep(), 0, 0, 0.) ? 1 : 0);
+                    const SUMOReal speed = MIN2(lane->getSpeedLimit(), link->getLane()->getSpeedLimit());
+                    tempContent.writeUnsignedByte(link->opened(currTime, speed, speed, DEFAULT_VEH_LENGTH, 0.0, DEFAULT_VEH_DECEL, 0) ? 1 : 0);
                     ++cnt;
                     // approaching foe
                     tempContent.writeUnsignedByte(TYPE_UBYTE);
-                    tempContent.writeUnsignedByte(link->hasApproachingFoe(MSNet::getInstance()->getCurrentTimeStep(), MSNet::getInstance()->getCurrentTimeStep(), 0) ? 1 : 0);
+                    tempContent.writeUnsignedByte(link->hasApproachingFoe(currTime, currTime, 0) ? 1 : 0);
                     ++cnt;
                     // state (not implemented, yet)
                     tempContent.writeUnsignedByte(TYPE_STRING);
                     tempContent.writeString(SUMOXMLDefinitions::LinkStates.getString(link->getState()));
                     ++cnt;
-                    // direction 
+                    // direction
                     tempContent.writeUnsignedByte(TYPE_STRING);
                     tempContent.writeString(SUMOXMLDefinitions::LinkDirections.getString(link->getDirection()));
                     ++cnt;
@@ -230,7 +233,7 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case LAST_STEP_OCCUPANCY:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(lane->getOccupancy());
+                tempMsg.writeDouble(lane->getNettoOccupancy());
                 break;
             case LAST_STEP_VEHICLE_HALTING_NUMBER: {
                 int halting = 0;
@@ -258,6 +261,11 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                     tempMsg.writeDouble(lengthSum / (SUMOReal) vehs.size());
                 }
                 lane->releaseVehicles();
+            }
+            break;
+            case VAR_WAITING_TIME: {
+                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
+                tempMsg.writeDouble(lane->getWaitingSeconds());
             }
             break;
             case VAR_CURRENT_TRAVELTIME: {
@@ -354,20 +362,6 @@ TraCIServerAPI_Lane::getShape(const std::string& id, PositionVector& shape) {
 }
 
 
-TraCIRTree*
-TraCIServerAPI_Lane::getTree() {
-    TraCIRTree* t = new TraCIRTree();
-    const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
-    for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
-        const std::vector<MSLane*>& lanes = (*i)->getLanes();
-        for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-            Boundary b = (*j)->getShape().getBoxBoundary();
-            b.grow(3.);
-            t->addObject(*j, b);
-        }
-    }
-    return t;
-}
 
 #endif
 

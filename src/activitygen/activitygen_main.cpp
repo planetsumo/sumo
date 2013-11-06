@@ -10,7 +10,7 @@
 ///
 // Main object of the ActivityGen application
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
@@ -54,6 +54,7 @@
 #include <utils/common/SystemFrame.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/iodevices/OutputDevice.h>
+#include <utils/iodevices/OutputDevice.h>
 //ActivityGen
 #include "AGFrame.h"
 #include "AGActivityGen.h"
@@ -69,15 +70,15 @@
 // ===========================================================================
 
 /// Loads the network
-void loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
+void 
+loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     OptionsCont& oc = OptionsCont::getOptions();
     std::string file = oc.getString("net-file");
     if (file == "") {
         throw ProcessError("Missing definition of network to load!");
     }
     if (!FileHelpers::exists(file)) {
-        throw ProcessError("The network file '" + file
-                           + "' could not be found.");
+        throw ProcessError("The network file '" + file + "' could not be found.");
     }
     PROGRESS_BEGIN_MESSAGE("Loading net");
     RONetHandler handler(toFill, eb);
@@ -90,9 +91,9 @@ void loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     }
 }
 
-/****************************************************************************/
 
-int main(int argc, char* argv[]) {
+int 
+main(int argc, char* argv[]) {
     int ret = 0;
     OptionsCont& oc = OptionsCont::getOptions();
     RONet* net = 0;
@@ -113,13 +114,13 @@ int main(int argc, char* argv[]) {
         net = new RONet();
         RODUAEdgeBuilder builder(oc.getBool("weights.expand"), oc.getBool("weights.interpolate"));
         loadNet(*net, builder);
-        WRITE_MESSAGE("Loaded " + toString(net->getEdgeNo()) + " edges.");
+        WRITE_MESSAGE("Loaded " + toString(net->getEdgeNoWithoutInternal()) + " edges.");
         if (oc.getBool("debug")) {
             WRITE_MESSAGE("\n\t ---- begin AcitivtyGen ----\n");
         }
 
         std::string statFile = oc.getString("stat-file");
-        std::string routeFile = oc.getString("output-file");
+        OutputDevice::createDeviceByOption("output-file", "routes");
         AGTime duration(1, 0, 0);
         AGTime begin(0);
         AGTime end(0);
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
         if (oc.isSet("end")) {
             end.addSeconds(oc.getInt("end") % 86400);
         }
-        AGActivityGen actiGen(statFile, routeFile, net);
+        AGActivityGen actiGen(statFile, OutputDevice::getDevice(oc.getString("output-file")), net);
         actiGen.importInfoCity();
         actiGen.makeActivityTrips(duration.getDay(), begin.getTime(), end.getTime());
 

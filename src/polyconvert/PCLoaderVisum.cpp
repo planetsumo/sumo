@@ -9,7 +9,7 @@
 ///
 // A reader of pois and polygons stored in VISUM-format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -157,8 +157,6 @@ PCLoaderVisum::load(const std::string& file, OptionsCont& oc, PCPolyContainer& t
             lineParser.parseLine(line);
             SUMOLong id = TplConvert::_2long(lineParser.get("FLAECHEID").c_str());
             SUMOLong tid = TplConvert::_2long(lineParser.get("TFLAECHEID").c_str());
-            int enklave = TplConvert::_2int(lineParser.get("ENKLAVE").c_str()); // !!! unused
-            enklave = 0;
             flaechenelemente[id] = tid;
             continue;
         }

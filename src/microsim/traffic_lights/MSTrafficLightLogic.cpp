@@ -8,7 +8,7 @@
 ///
 // The parent class for traffic light logics
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -100,14 +100,9 @@ MSTrafficLightLogic::SwitchCommand::deschedule(MSTrafficLightLogic* tlLogic) {
 /* -------------------------------------------------------------------------
  * member method definitions
  * ----------------------------------------------------------------------- */
-MSTrafficLightLogic::MSTrafficLightLogic(
-    MSTLLogicControl& tlcontrol,
-    const std::string& id,
-    const std::string& programID,
-    SUMOTime delay,
-    const ParameterMap& parameters) :
-    myParameter(parameters),
-    myID(id),
+MSTrafficLightLogic::MSTrafficLightLogic(MSTLLogicControl& tlcontrol, const std::string& id,
+        const std::string& programID, SUMOTime delay, const std::map<std::string, std::string>& parameters) :
+    Named(id), Parameterised(parameters),
     myProgramID(programID),
     myCurrentDurationIncrement(-1),
     myDefaultCycleTime(0) {
@@ -229,24 +224,6 @@ MSTrafficLightLogic::addOverridingDuration(SUMOTime duration) {
 void
 MSTrafficLightLogic::setCurrentDurationIncrement(SUMOTime delay) {
     myCurrentDurationIncrement = delay;
-}
-
-
-
-
-// ----------- Algorithm parameter handling
-void
-MSTrafficLightLogic::setParameter(const ParameterMap& params) {
-    myParameter = params;
-}
-
-
-std::string
-MSTrafficLightLogic::getParameterValue(const std::string& key) const {
-    if (myParameter.find(key) == myParameter.end()) {
-        return "";
-    }
-    return myParameter.find(key)->second;
 }
 
 

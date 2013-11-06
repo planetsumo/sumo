@@ -8,7 +8,7 @@
 ///
 // -------------------
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -179,7 +179,7 @@ NIVissimNodeCluster::buildNBNode(NBNodeCont& nc) {
                     "actuated_traffic_light");
             }
         }*/
-    NBNode* node = new NBNode(getNodeName(), pos, NODETYPE_PRIORITY_JUNCTION);
+    NBNode* node = new NBNode(getNodeName(), pos, NODETYPE_PRIORITY);
     if (!nc.insert(node)) {
         delete node;
         throw 1;

@@ -13,7 +13,7 @@
 ///
 /// TraCI server used to control sumo by a remote TraCI client
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -57,7 +57,7 @@
 #include <microsim/MSNet.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include "TraCIException.h"
-#include "TraCIRTree.h"
+#include <utils/common/NamedRTree.h>
 
 #include <map>
 #include <string>
@@ -265,7 +265,7 @@ private:
     /** @brief Constructor
      * @param[in] port The port to listen to (to open)
      */
-    TraCIServer(int port = 0);
+    TraCIServer(const SUMOTime begin, const int port = 0);
 
 
     /// @brief Destructor
@@ -391,7 +391,7 @@ private:
     std::map<MSNet::VehicleState, std::vector<std::string> > myVehicleStateChanges;
 
     /// @brief A storage of objects
-    std::map<int, TraCIRTree*> myObjects;
+    std::map<int, NamedRTree*> myObjects;
 
 
 private:

@@ -9,7 +9,7 @@
 ///
 // Something on a lane to be noticed about vehicle movement
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -206,6 +206,9 @@ public:
         UNUSED_PARAMETER(&veh);
     }
 
+    void setDescription(const std::string& description) {
+        myDescription = description;
+    }
 
     const std::string& getDescription() const {
         return myDescription;
@@ -216,7 +219,7 @@ protected:
     /// @brief Lane on which the reminder works
     MSLane* const myLane;
     /// @brief a description of this moveReminder
-    const std::string myDescription;
+    std::string myDescription;
 
 #ifdef HAVE_INTERNAL
     std::map<SUMOVehicle*, std::pair<SUMOTime, SUMOReal> > myLastVehicleUpdateValues;

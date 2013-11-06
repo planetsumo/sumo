@@ -18,9 +18,14 @@ All other vehicles are kept, but if they pass one of the mapped edges, the
 
 Attention! The routes are not sorted in time!
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import os, string, sys, StringIO
 from xml.sax import saxutils, make_parser, handler

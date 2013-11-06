@@ -7,9 +7,14 @@
 
 Python implementation of the TraCI interface.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2011 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import struct, traci
 import traci.constants as tc
@@ -17,6 +22,7 @@ import traci.constants as tc
 _RETURN_VALUE_FUNC = {tc.ID_LIST:                   traci.Storage.readStringList,
                       tc.ID_COUNT:                  traci.Storage.readInt,
                       tc.VAR_EDGE_TRAVELTIME:       traci.Storage.readDouble,
+                      tc.VAR_WAITING_TIME:          traci.Storage.readDouble,
                       tc.VAR_EDGE_EFFORT:           traci.Storage.readDouble,
                       tc.VAR_CO2EMISSION:           traci.Storage.readDouble,
                       tc.VAR_COEMISSION:            traci.Storage.readDouble,
@@ -64,6 +70,13 @@ def getAdaptedTraveltime(edgeID, time):
                                          traci._TIME2STEPS(time))
     return traci._checkResult(tc.CMD_GET_EDGE_VARIABLE,
                               tc.VAR_EDGE_TRAVELTIME, edgeID).readDouble()
+
+def getWaitingTime(edgeID):
+    """getWaitingTime() -> double
+    
+    .
+    """
+    return _getUniversal(tc.VAR_WAITING_TIME, edgeID) 
 
 def getEffort(edgeID, time):
     """getEffort(string, double) -> double
@@ -144,7 +157,7 @@ def getLastStepOccupancy(edgeID):
 def getLastStepLength(edgeID):
     """getLastStepLength(string) -> double
     
-    Returns the total vehicle length in m for the last time step on the given edge.
+    Returns the mean vehicle length in m for the last time step on the given edge.
     """
     return _getUniversal(tc.LAST_STEP_LENGTH, edgeID)
 
@@ -237,6 +250,6 @@ def setEffort(edgeID, effort):
 def setMaxSpeed(edgeID, speed):
     """setMaxSpeed(string, double) -> None
     
-    Set a new maximum speed (in m/s) for all lanes of the edge..
+    Set a new maximum speed (in m/s) for all lanes of the edge.
     """
     traci._sendDoubleCmd(tc.CMD_SET_EDGE_VARIABLE, tc.VAR_MAXSPEED, edgeID, speed)

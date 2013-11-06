@@ -8,7 +8,7 @@
 ///
 // Class containing all information of a given trip (car, bus)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
@@ -125,13 +125,8 @@ AGTrip::getTimeTrip(SUMOReal secPerKm) {
     }
     positions.push_back(myTo);
 
-    bool firstPass = true;
-    AGPosition* temp;
-    for (it = positions.begin(); it != positions.end(); ++it) {
-        if (firstPass) {
-            temp = &*it;
-            continue;
-        }
+	AGPosition* temp = &positions.front();
+    for (it = positions.begin(), ++it; it != positions.end(); ++it) {
         dist += temp->distanceTo(*it);
         temp = &*it;
     }

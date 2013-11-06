@@ -7,7 +7,7 @@
 ///
 // Importer for networks stored in Elmar's format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -224,10 +224,10 @@ protected:
             SPECIAL_RESTRICTIONS,
             EXTENDED_NUMBER_OF_LANES,
             ISRAMP,
-            CONNECTION,
+            CONNECTION
         };
 
-    std::string getColumn(const StringTokenizer& st, ColumnName name, const std::string fallback="");
+        std::string getColumn(const StringTokenizer& st, ColumnName name, const std::string fallback = "");
 
     private:
         /// @brief build the street name for the given ids

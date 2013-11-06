@@ -8,7 +8,7 @@
 ///
 // The class responsible for building and deletion of vehicles (gui-version)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -60,7 +60,7 @@ SUMOVehicle*
 GUIVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                 const MSRoute* route, const MSVehicleType* type) {
     myLoadedVehNo++;
-    MSVehicle* built = new GUIVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG), myLoadedVehNo - 1);
+    MSVehicle* built = new GUIVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG));
     MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
     return built;
 }

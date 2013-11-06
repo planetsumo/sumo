@@ -8,9 +8,14 @@
 
 Python implementation of the TraCI interface.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 from __future__ import print_function
 import socket, time, struct
@@ -129,6 +134,9 @@ class SubscriptionResults:
         if refID == None:
             return self._contextResults
         return self._contextResults.get(refID, None)
+    
+    def __repr__(self):
+        return "<%s, %s>" % (self._results, self._contextResults)
 
 
 from . import constants
@@ -275,7 +283,7 @@ def _checkResult(cmdID, varID, objID):
     return result
 
 def _readSubscription(result):
-#    result.printDebug() # to enable this you also need to set _DEBUG to True
+    result.printDebug() # to enable this you also need to set _DEBUG to True
     result.readLength()
     response = result.read("!B")[0]
     isVariableSubscription = response>=constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE and response<=constants.RESPONSE_SUBSCRIBE_GUI_VARIABLE
@@ -307,7 +315,7 @@ def _readSubscription(result):
                     _modules[response].subscriptionResults.addContext(objectID, _modules[domain].subscriptionResults, oid, varID, result)
                 else:
                     raise FatalTraCIError("Cannot handle subscription response %02x for %s." % (response, objectID))
-    return response, objectID
+    return objectID, response
 
 def _subscribe(cmdID, begin, end, objID, varIDs):
     _message.queue.append(cmdID)
@@ -321,7 +329,7 @@ def _subscribe(cmdID, begin, end, objID, varIDs):
     for v in varIDs:
         _message.string += struct.pack("!B", v)
     result = _sendExact()
-    response, objectID = _readSubscription(result)
+    objectID, response = _readSubscription(result)
     if response - cmdID != 16 or objectID != objID:
         raise FatalTraCIError("Received answer %02x,%s for subscription command %02x,%s." % (response, objectID, cmdID, objID))
 
@@ -337,7 +345,7 @@ def _subscribeContext(cmdID, begin, end, objID, domain, dist, varIDs):
     for v in varIDs:
         _message.string += struct.pack("!B", v)
     result = _sendExact()
-    response, objectID = _readSubscription(result)
+    objectID, response = _readSubscription(result)
     if response - cmdID != 16 or objectID != objID:
         raise FatalTraCIError("Received answer %02x,%s for context subscription command %02x,%s." % (response, objectID, cmdID, objID))
 
@@ -367,8 +375,7 @@ def simulationStep(step=0):
     numSubs = result.readInt()
     responses = []
     while numSubs > 0:
-        response, objectID = _readSubscription(result)
-        responses.append((objectID, response))
+        responses.append(_readSubscription(result))
         numSubs -= 1
     return responses
 

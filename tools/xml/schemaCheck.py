@@ -9,12 +9,17 @@
 Checks schema for files matching certain file names using either
 lxml or SAX2Count.exe depending on availability.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
-import os, sys, subprocess, glob, traceback
+import os, sys, subprocess, glob, traceback, urllib
 try:
     from lxml import etree
     haveLxml = True
@@ -31,11 +36,11 @@ def validate(root, f):
             localSchema = os.path.join(os.path.dirname(__file__), '..', '..', 'docs', 'internet', 'xsd', os.path.basename(schemaLoc))
             if os.path.exists(localSchema):
                 schemaLoc = localSchema
-            if schemaLoc not in schemes:
-                schemes[schemaLoc] = etree.XMLSchema(etree.parse(schemaLoc))
+#            if schemaLoc not in schemes: // temporarily disabled due to lxml bug https://bugs.launchpad.net/lxml/+bug/1222132
+            schemes[schemaLoc] = etree.XMLSchema(etree.parse(schemaLoc))
             schemes[schemaLoc].validate(doc)
             for entry in schemes[schemaLoc].error_log:
-                s = str(entry)
+                s = urllib.unquote(str(entry))
                 s = s[s.find(f.replace('\\', '/'))+len(f):] # remove everything before (and including) the filename
                 print >> sys.stderr, os.path.abspath(f)[len(root)+1:].replace('\\', '/') + s
     except:

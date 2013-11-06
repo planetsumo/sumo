@@ -8,7 +8,7 @@
 ///
 // The thread that runs the simulation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -69,7 +69,7 @@ public:
     virtual ~GUIRunThread();
 
     /// initialises the thread with the new simulation
-    virtual void init(GUINet* net, SUMOTime start, SUMOTime end);
+    virtual bool init(GUINet* net, SUMOTime start, SUMOTime end);
 
     /// starts the execution
     virtual FXint run();

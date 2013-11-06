@@ -8,7 +8,7 @@
 ///
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -49,6 +49,7 @@ class NBNetBuilder;
 class NBTrafficLightLogicCont;
 class NBNode;
 class NBDistrict;
+class NBEdgeControl;
 
 
 // ===========================================================================
@@ -126,24 +127,24 @@ protected:
 
     /** @brief Writes a lane (<lane ...) of an edge
      * @param[in] into The device to write the edge into
-     * @param[in] e The edge to write
      * @param[in] lID The ID of the lane
      * @param[in] eID The ID of the edge
-     * @param[in] lane Lane definition
      * @param[in] length Lane's length
      * @param[in] index The index of the lane within the edge
      * @param[in] origNames Whether original names shall be written as parameter
      */
-    static void writeLane(OutputDevice& into, const std::string& lID, const std::string& eID,
-                          const NBEdge::Lane& lane, SUMOReal length, unsigned int index,
-                          bool origNames);
+    static void writeLane(OutputDevice& into, const std::string& eID, const std::string& lID, 
+            SUMOReal speed, SVCPermissions permissions, SVCPermissions preferred,
+            SUMOReal offset, SUMOReal width, const PositionVector& shape,
+            const std::string& origID, SUMOReal length, unsigned int index, bool origNames);
 
 
     /** @brief Writes a junction (<junction ...)
      * @param[in] into The device to write the edge into
      * @param[in] n The junction/node to write
+     * @param[in] checkLaneFoes Whether laneConflicts shall be checked at this junction
      */
-    static void writeJunction(OutputDevice& into, const NBNode& n);
+    static void writeJunction(OutputDevice& into, const NBNode& n, const bool checkLaneFoes);
 
 
     /** @brief Writes internal junctions (<junction with id[0]==':' ...) of the given node
@@ -163,8 +164,10 @@ protected:
     /** @brief Writes a roundabout
      * @param[in] into The device to write the edge into
      * @param[in] r The roundabout to write
+     * @param[in] ec The edge control to retrieve named edges from
      */
-    static void writeRoundabout(OutputDevice& into, const EdgeVector& r);
+    static void writeRoundabout(OutputDevice& into, const std::vector<std::string>& r,
+                                const NBEdgeCont& ec);
 
 
     /** @brief Writes a district
@@ -175,15 +178,6 @@ protected:
 
 
 private:
-    /** @brief Writes a single internal edge
-     * @param[in] into The device to write the edges into
-     * @param[in] id The id of the edge
-     * @param[in] vmax The maximum speed of the edge
-     * @param[in] shape The shape of the edge
-     */
-    static void writeInternalEdge(OutputDevice& into, const std::string& id, SUMOReal vmax, const PositionVector& shape,
-                                  const std::string& origID);
-
     /** @brief Writes a single internal connection
      * @param[in] from The id of the from-edge
      * @param[in] to The id of the to-edge
@@ -191,7 +185,8 @@ private:
      * @param[in] via The (optional) via edge
      */
     static void writeInternalConnection(OutputDevice& into,
-                                        const std::string& from, const std::string& to, int toLane, const std::string& via);
+                                        const std::string& from, const std::string& to, 
+                                        int fromLane, int toLane, const std::string& via);
 
     /// @brief writes a SUMOTime as int if possible, otherwise as a float
     static std::string writeSUMOTime(SUMOTime time);

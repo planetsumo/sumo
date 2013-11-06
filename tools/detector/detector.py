@@ -7,9 +7,14 @@
 
 <documentation missing>
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import sys
 
@@ -34,8 +39,13 @@ class DetectorGroupData:
         self.totalFlow += flow
         count = self.entryCount
         if flow > 0:
-            self.avgSpeed = (self.avgSpeed * oldFlow + speed) / self.totalFlow
+            self.avgSpeed = (self.avgSpeed * oldFlow + speed * flow) / self.totalFlow
         self.entryCount += 1
+
+    def clearFlow(self):
+        self.totalFlow = 0
+        self.avgSpeed = 0
+        self.entryCount = 0
 
 
 class DetectorReader(handler.ContentHandler):
@@ -95,11 +105,33 @@ class DetectorReader(handler.ContentHandler):
                     group.addDetFlow(flow, speed)
                     break
 
-    def readFlows(self, flowFile):
-        headerSeen = False
-        for l in file(flowFile):
-            flowDef = l.split(';')
-            if not headerSeen and flowDef[0] == "Detector":
-                headerSeen = True
-            else:
-                self.addFlow(flowDef[0], float(flowDef[2]))
+    def clearFlows(self):
+        for groupList in self._edge2DetData.itervalues():
+            for group in groupList:
+                group.clearFlow()
+
+    def readFlows(self, flowFile, det="Detector", flow="qPKW", speed=None, time=None, timeVal=None):
+        detIdx = -1
+        flowIdx = -1
+        speedIdx = -1
+        timeIdx = -1
+        hadFlow = False
+        with open(flowFile) as f:
+            for l in f:
+                flowDef = [e.strip() for e in l.split(';')]
+                if detIdx == -1 and det in flowDef:
+                    detIdx = flowDef.index(det)
+                    if flow in flowDef:
+                        flowIdx = flowDef.index(flow)
+                    if speed in flowDef:
+                        speedIdx = flowDef.index(speed)
+                    if time in flowDef:
+                        timeIdx = flowDef.index(time)
+                elif flowIdx != -1:
+                    if timeIdx == -1 or timeVal is None or float(flowDef[timeIdx]) == timeVal:
+                        hadFlow = True
+                        if speedIdx != -1:
+                            self.addFlow(flowDef[detIdx], float(flowDef[flowIdx]), float(flowDef[speedIdx]))
+                        else:
+                            self.addFlow(flowDef[detIdx], float(flowDef[flowIdx]))
+        return hadFlow

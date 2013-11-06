@@ -9,7 +9,7 @@
 ///
 // The car-following model and parameter
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -144,6 +144,11 @@ public:
     }
 
 
+    inline LaneChangeModel getLaneChangeModel() const {
+        return myParameter.lcModel;
+    }
+
+
     /** @brief Get vehicle's maximum speed [m/s].
      * @return The maximum speed (in m/s) of vehicles of this class
      */
@@ -155,7 +160,7 @@ public:
     /** @brief Computes and returns the speed deviation
      * @return A new, random speed deviation
      */
-    SUMOReal computeChosenSpeedDeviation(MTRand& rng) const;
+    SUMOReal computeChosenSpeedDeviation(MTRand& rng, const SUMOReal minDevFactor=0.2) const;
 
 
     /** @brief Get the default probability of this vehicle type
@@ -205,6 +210,14 @@ public:
      */
     SUMOReal getSpeedDeviation() const {
         return myParameter.speedDev;
+    }
+
+
+    /** @brief Returns this type's impatience
+     * @return The impatience of this type
+     */
+    SUMOReal getImpatience() const {
+        return myParameter.impatience;
     }
     /// @}
 
@@ -271,7 +284,7 @@ public:
      * If the given value<0 then the one from the original type will
      *  be used.
      *
-     * @param[in] offset The new minimum gap of this type
+     * @param[in] minGap The new minimum gap of this type
      */
     void setMinGap(const SUMOReal& minGap);
 
@@ -348,6 +361,12 @@ public:
      * @param[in] shape The new shape of this type
      */
     void setShape(SUMOVehicleShape shape);
+
+
+    /** @brief Set a new value for this type's impatience
+     * @param[in] impatience The new impatience of this type
+     */
+    void setImpatience(const SUMOReal impatience);
     /// @}
 
 
@@ -377,6 +396,11 @@ public:
      */
     bool amVehicleSpecific() const {
         return myOriginalType != 0;
+    }
+
+
+    const SUMOVTypeParameter& getParameter() const {
+        return myParameter;
     }
 
 

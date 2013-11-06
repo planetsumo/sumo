@@ -8,7 +8,7 @@
 ///
 // Reroutes vehicles passing an edge (gui version)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -49,7 +49,6 @@
 #include <gui/GUIGlobals.h>
 #include <utils/gui/div/GUIParameterTableWindow.h>
 #include <gui/GUIApplicationWindow.h>
-#include <utils/gui/images/GUITexturesHelper.h>
 #include <microsim/logging/FunctionBinding.h>
 #include <utils/gui/div/GUIGlobalSelection.h>
 #include <foreign/polyfonts/polyfonts.h>
@@ -318,15 +317,14 @@ GUITriggeredRerouter::GUITriggeredRerouterEdge::GUITriggeredRerouterEdge(GUIEdge
     myEdge(edge),
     myAmClosedEdge(closed) {
     const std::vector<MSLane*>& lanes = edge->getLanes();
-    const size_t noLanes = lanes.size();
-    myFGPositions.reserve(noLanes);
-    myFGRotations.reserve(noLanes);
-    for (size_t i = 0; i < noLanes; ++i) {
-        const PositionVector& v = edge->getLaneGeometry(i).getShape();
-        SUMOReal pos = closed ? 3 : v.length() - (SUMOReal) 6.;
-        myFGPositions.push_back(v.positionAtOffset(pos));
+    myFGPositions.reserve(lanes.size());
+    myFGRotations.reserve(lanes.size());
+    for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
+        const PositionVector& v = (*i)->getShape();
+        const SUMOReal pos = closed ? 3 : v.length() - (SUMOReal) 6.;
+        myFGPositions.push_back((*i)->geometryPositionAtOffset(pos));
         myFGRotations.push_back(-v.rotationDegreeAtOffset(pos));
-        myBoundary.add(v.positionAtOffset(pos));
+        myBoundary.add(myFGPositions.back());
     }
 }
 

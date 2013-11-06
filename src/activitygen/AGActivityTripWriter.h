@@ -8,7 +8,7 @@
 ///
 // Class for writing Trip objects in a SUMO-route file.
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
@@ -36,9 +36,9 @@
 
 #include "activities/AGTrip.h"
 #include <iostream>
-#include <fstream>
 #include <map>
 #include <string>
+#include <utils/iodevices/OutputDevice.h>
 
 
 // ===========================================================================
@@ -46,22 +46,27 @@
 // ===========================================================================
 class AGActivityTripWriter {
 public:
-    AGActivityTripWriter(std::string file) :
-        fileName(file),
-        routes(file.c_str()) {
+    AGActivityTripWriter(OutputDevice &file) :
+        routes(file) {
         initialize();
     }
 
     void initialize();
     void addTrip(AGTrip trip);
-    void writeOutputFile();
 
 private:
-    std::string fileName;
-    std::ofstream routes;
+    OutputDevice &routes;
     std::map<std::string, std::string> colors;
 
     void vtypes();
+
+private:
+    /// @brief Invalidated copy constructor.
+    AGActivityTripWriter(const AGActivityTripWriter&);
+
+    /// @brief Invalidated assignment operator.
+    AGActivityTripWriter& operator=(const AGActivityTripWriter&);
+
 };
 
 

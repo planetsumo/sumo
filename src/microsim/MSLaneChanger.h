@@ -8,7 +8,7 @@
 ///
 // Performs lane changing of vehicles
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -80,6 +80,8 @@ public:
         MSVehicle*                hoppedVeh;
         /// the vehicle that really wants to change to this lane
         MSVehicle*                lastBlocked;
+        /// the first vehicle on this edge that wants to change to this lane
+        MSVehicle*                firstBlocked;
 
         SUMOReal dens;
 
@@ -142,18 +144,12 @@ protected:
         If there is none, myChanger.end() is returned. */
     ChangerIt findCandidate();
 
-    int change2right(
+    /* @brief check whether lane changing in the given direction is desirable
+     * and possible */
+    int checkChange(
+        int laneOffset,
         const std::pair<MSVehicle* const, SUMOReal>& leader,
-        const std::pair<MSVehicle* const, SUMOReal>& rLead,
-        const std::pair<MSVehicle* const, SUMOReal>& rFollow,
         const std::vector<MSVehicle::LaneQ>& preb) const;
-
-    int change2left(
-        const std::pair<MSVehicle* const, SUMOReal>& leader,
-        const std::pair<MSVehicle* const, SUMOReal>& rLead,
-        const std::pair<MSVehicle* const, SUMOReal>& rFollow,
-        const std::vector<MSVehicle::LaneQ>& preb) const;
-
 
     ///  @brief start the lane change maneuver (and finish it instantly if gLaneChangeDuration == 0)
     void startChange(MSVehicle* vehicle, ChangerIt& from, int direction);

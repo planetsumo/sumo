@@ -6,7 +6,7 @@
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -85,8 +85,8 @@ public:
 
     class TraCIPhase {
     public:
-        TraCIPhase(SUMOTime _duration, const std::string& _phase, SUMOTime _duration1, SUMOTime _duration2)
-            : duration(_duration), phase(_phase), duration1(_duration1), duration2(_duration2) {}
+        TraCIPhase(const SUMOTime _duration, const SUMOTime _duration1, const SUMOTime _duration2, const std::string& _phase)
+            : duration(_duration), duration1(_duration1), duration2(_duration2), phase(_phase) {}
         ~TraCIPhase() {}
 
         SUMOTime duration, duration1, duration2;
@@ -381,7 +381,26 @@ public:
     };
 
 
+	 /** @class AreaScope
+     * @brief Scope for interaction with areal detectors
+     */
+    class AreaScope : public TraCIScopeWrapper {
+    public:
+        AreaScope(TraCIAPI& parent) : TraCIScopeWrapper(parent) {}
+        virtual ~AreaScope() {}
 
+        std::vector<std::string> getIDList() const;
+        int getJamLengthVehicle(const std::string& laneID) const;
+        SUMOReal getJamLengthMeters(const std::string& laneID) const;
+
+    private:
+        /// @brief invalidated copy constructor
+        AreaScope(const AreaScope& src);
+
+        /// @brief invalidated assignment operator
+        AreaScope& operator=(const AreaScope& src);
+
+    };
 
 
     /** @class MeMeScope

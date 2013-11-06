@@ -2,7 +2,7 @@
 /// @file    LayeredRTree.h
 /// @author  Jakob Erdmann
 /// @date    16.10.2012
-/// @version $Id: LayeredRTree.h 12652 2012-09-03 11:11:04Z dkrajzew $
+/// @version $Id$
 ///
 // A wrapper around RT-trees for for efficient storing of SUMO's GL-objects and
 // accessing them ordered by their layer
@@ -12,7 +12,7 @@
 // The search order returns layer 2 first because it must be drawn before layer
 // 1 for alpha blending to work
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -98,9 +98,9 @@ public:
      * @param a_context User context to pass as parameter to a_resultCallback
      * @return Returns the number of entries found
      */
-    int Search(const float a_min[2], const float a_max[2], const GUIVisualizationSettings& c) {
+    int Search(const float a_min[2], const float a_max[2], const GUIVisualizationSettings& c) const {
         int result = 0;
-        for (std::vector<SUMORTree*>::iterator it = myLayers.begin(); it != myLayers.end(); ++it) {
+        for (std::vector<SUMORTree*>::const_iterator it = myLayers.begin(); it != myLayers.end(); ++it) {
             result += (*it)->Search(a_min, a_max, c);
         }
         return result;

@@ -9,7 +9,7 @@
 ///
 // The class for modelling person-movements
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -110,6 +110,7 @@ MSPerson::MSPersonStage::getEdgeAngle(const MSEdge* e, SUMOReal at) const {
 }
 
 
+
 /* -------------------------------------------------------------------------
  * MSPerson::MSPersonStage_Walking - methods
  * ----------------------------------------------------------------------- */
@@ -174,16 +175,6 @@ MSPerson::MSPersonStage_Walking::getAngle(SUMOTime now) const {
 }
 
 
-bool
-MSPerson::MSPersonStage_Walking::checkNoDuration(MSNet* /* net */, MSPerson* /* person */, SUMOTime duration, SUMOTime /* now */) {
-    if (duration == 0) {
-
-        return true;
-    }
-    return false;
-}
-
-
 void
 MSPerson::MSPersonStage_Walking::proceed(MSNet* net, MSPerson* person, SUMOTime now,
         MSEdge* previousEdge, const SUMOReal at) {
@@ -227,31 +218,33 @@ MSPerson::MSPersonStage_Walking::computeWalkingTime(const MSEdge* const e, SUMOR
 
 void
 MSPerson::MSPersonStage_Walking::tripInfoOutput(OutputDevice& os) const {
-    (os.openTag("walk") <<
-     " arrival=\"" << time2string(myArrived) <<
-     "\"").closeTag();
+    os.openTag("walk").writeAttr("arrival", time2string(myArrived)).closeTag();
+}
+
+
+void
+MSPerson::MSPersonStage_Walking::routeOutput(OutputDevice& os) const {
+    os.openTag("walk").writeAttr(SUMO_ATTR_EDGES, myRoute);
+    if (myWalkingTime > 0) {
+        os.writeAttr(SUMO_ATTR_DURATION, time2string(myWalkingTime));
+    } else if (mySpeed > 0) {
+        os.writeAttr(SUMO_ATTR_SPEED, mySpeed);
+    }
+    os.closeTag();
 }
 
 
 void
 MSPerson::MSPersonStage_Walking::beginEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const {
-    (os.openTag("event") <<
-     " time=\"" << time2string(t) <<
-     "\" type=\"departure" <<
-     "\" agent=\"" << p.getID() <<
-     "\" link=\"" << myRoute.front()->getID() <<
-     "\"").closeTag();
+    os.openTag("event").writeAttr("time", time2string(t)).writeAttr("type", "departure")
+        .writeAttr("agent", p.getID()).writeAttr("link", myRoute.front()->getID()).closeTag();
 }
 
 
 void
 MSPerson::MSPersonStage_Walking::endEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const {
-    (os.openTag("event") <<
-     " time=\"" << time2string(t) <<
-     "\" type=\"arrival" <<
-     "\" agent=\"" << p.getID() <<
-     "\" link=\"" << myRoute.back()->getID() <<
-     "\"").closeTag();
+    os.openTag("event").writeAttr("time", time2string(t)).writeAttr("type", "arrival")
+        .writeAttr("agent", p.getID()).writeAttr("link", myRoute.back()->getID()).closeTag();
 }
 
 
@@ -343,10 +336,11 @@ MSPerson::MSPersonStage_Driving::getAngle(SUMOTime /* now */) const {
 
 
 void
-MSPerson::MSPersonStage_Driving::proceed(MSNet* net, MSPerson* person, SUMOTime /* now */,
+MSPerson::MSPersonStage_Driving::proceed(MSNet* net, MSPerson* person, SUMOTime now,
         MSEdge* previousEdge, const SUMOReal at) {
     myWaitingEdge = previousEdge;
     myWaitingPos = at;
+    myWaitingSince = now;
     myVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines);
     if (myVehicle != 0 && myVehicle->getParameter().departProcedure == DEPART_TRIGGERED) {
         previousEdge->removePerson(person);
@@ -373,6 +367,12 @@ MSPerson::MSPersonStage_Driving::isWaiting4Vehicle() const {
 }
 
 
+SUMOTime
+MSPerson::MSPersonStage_Driving::timeWaiting4Vehicle(SUMOTime now) const {
+    return isWaiting4Vehicle() ? now - myWaitingSince : 0;
+}
+
+
 std::string
 MSPerson::MSPersonStage_Driving::getStageTypeName() const {
     return isWaiting4Vehicle() ? "waiting for " + joinToString(myLines, ",") : "driving";
@@ -381,33 +381,28 @@ MSPerson::MSPersonStage_Driving::getStageTypeName() const {
 
 void
 MSPerson::MSPersonStage_Driving::tripInfoOutput(OutputDevice& os) const {
-    (os.openTag("ride") <<
-     " depart=\"" << time2string(myDeparted) <<
-     "\" arrival=\"" << time2string(myArrived) <<
-     "\"").closeTag();
+    os.openTag("ride").writeAttr("depart", time2string(myDeparted)).writeAttr("arrival", time2string(myArrived)).closeTag();
+}
+
+
+void
+MSPerson::MSPersonStage_Driving::routeOutput(OutputDevice& os) const {
+    os.openTag("ride").writeAttr(SUMO_ATTR_FROM, getFromEdge()->getID()).writeAttr(SUMO_ATTR_TO, getDestination().getID());
+    os.writeAttr(SUMO_ATTR_LINES, myLines).closeTag();
 }
 
 
 void
 MSPerson::MSPersonStage_Driving::beginEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const {
-    (os.openTag("event") <<
-     " time=\"" << time2string(t) <<
-     "\" type=\"arrival" <<
-     "\" agent=\"" << p.getID() <<
-     "\" link=\"" << getEdge(t)->getID() <<
-     "\"").closeTag();
+    os.openTag("event").writeAttr("time", time2string(t)).writeAttr("type", "arrival").writeAttr("agent", p.getID()).writeAttr("link", getEdge(t)->getID()).closeTag();
 }
 
 
 void
 MSPerson::MSPersonStage_Driving::endEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const {
-    (os.openTag("event") <<
-     " time=\"" << time2string(t) <<
-     "\" type=\"arrival" <<
-     "\" agent=\"" << p.getID() <<
-     "\" link=\"" << getEdge(t)->getID() <<
-     "\"").closeTag();
+    os.openTag("event").writeAttr("time", time2string(t)).writeAttr("type", "arrival").writeAttr("agent", p.getID()).writeAttr("link", getEdge(t)->getID()).closeTag();
 }
+
 
 
 /* -------------------------------------------------------------------------
@@ -445,6 +440,13 @@ MSPerson::MSPersonStage_Waiting::getEdgePos(SUMOTime /* now */) const {
     return myStartPos;
 }
 
+
+SUMOTime
+MSPerson::MSPersonStage_Waiting::getUntil() const {
+    return myWaitingUntil;
+}
+
+
 Position
 MSPerson::MSPersonStage_Waiting::getPosition(SUMOTime /* now */) const {
     return getEdgePosition(&myDestination, myStartPos, SIDEWALK_OFFSET);
@@ -468,32 +470,37 @@ MSPerson::MSPersonStage_Waiting::proceed(MSNet* net, MSPerson* person, SUMOTime 
 
 void
 MSPerson::MSPersonStage_Waiting::tripInfoOutput(OutputDevice& os) const {
-    (os.openTag("stop") <<
-     " arrival=\"" << time2string(myArrived) <<
-     "\"").closeTag();
+    os.openTag("stop").writeAttr("arrival", time2string(myArrived)).closeTag();
+}
+
+
+void
+MSPerson::MSPersonStage_Waiting::routeOutput(OutputDevice& os) const {
+    os.openTag("stop").writeAttr(SUMO_ATTR_LANE, getDestination().getID());
+    if (myWaitingDuration >= 0) {
+        os.writeAttr(SUMO_ATTR_DURATION, time2string(myWaitingDuration));
+    }
+    if (myWaitingUntil >= 0) {
+        os.writeAttr(SUMO_ATTR_UNTIL, time2string(myWaitingUntil));
+    }
+    os.closeTag();
 }
 
 
 void
 MSPerson::MSPersonStage_Waiting::beginEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const {
-    (os.openTag("event") <<
-     " time=\"" << time2string(t) <<
-     "\" type=\"actstart " << myActType <<
-     "\" agent=\"" << p.getID() <<
-     "\" link=\"" << getEdge(t)->getID() <<
-     "\"").closeTag();
+    os.openTag("event").writeAttr("time", time2string(t)).writeAttr("type", "actstart " + myActType)
+        .writeAttr("agent", p.getID()).writeAttr("link", getEdge(t)->getID()).closeTag();
 }
 
 
 void
 MSPerson::MSPersonStage_Waiting::endEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const {
-    (os.openTag("event") <<
-     " time=\"" << time2string(t) <<
-     "\" type=\"actend " << myActType <<
-     "\" agent=\"" << p.getID() <<
-     "\" link=\"" << getEdge(t)->getID() <<
-     "\"").closeTag();
+    os.openTag("event").writeAttr("time", time2string(t)).writeAttr("type", "actend " + myActType).writeAttr("agent", p.getID())
+        .writeAttr("link", getEdge(t)->getID()).closeTag();
 }
+
+
 
 /* -------------------------------------------------------------------------
  * MSPerson - methods
@@ -563,6 +570,18 @@ void
 MSPerson::tripInfoOutput(OutputDevice& os) const {
     for (MSPersonPlan::const_iterator i = myPlan->begin(); i != myPlan->end(); ++i) {
         (*i)->tripInfoOutput(os);
+    }
+}
+
+
+void
+MSPerson::routeOutput(OutputDevice& os) const {
+    MSPersonPlan::const_iterator i = myPlan->begin();
+    if ((*i)->getStageType() == WAITING && getDesiredDepart() == static_cast<MSPersonStage_Waiting*>(*i)->getUntil()) {
+        ++i;
+    }
+    for (; i != myPlan->end(); ++i) {
+        (*i)->routeOutput(os);
     }
 }
 

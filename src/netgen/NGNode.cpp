@@ -9,7 +9,7 @@
 ///
 // A netgen-representation of a node
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -92,7 +92,7 @@ NGNode::buildNBNode(NBNetBuilder& nb) const {
         node = new NBNode(myID, pos, type);
 
         // check whether it is a traffic light junction
-        if (type == NODETYPE_TRAFFIC_LIGHT) {
+        if (type == NODETYPE_TRAFFIC_LIGHT || type == NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
             TrafficLightType type = SUMOXMLDefinitions::TrafficLightTypes.get(
                                         OptionsCont::getOptions().getString("tls.default-type"));
             NBTrafficLightDefinition* tlDef = new NBOwnTLDef(myID, node, 0, type);
@@ -104,7 +104,7 @@ NGNode::buildNBNode(NBNetBuilder& nb) const {
         }
     } else {
         // otherwise netbuild may guess NODETYPE_TRAFFIC_LIGHT without actually building one
-        node = new NBNode(myID, pos, NODETYPE_PRIORITY_JUNCTION);
+        node = new NBNode(myID, pos, NODETYPE_PRIORITY);
     }
 
     return node;

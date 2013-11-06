@@ -10,7 +10,7 @@
 ///
 // The handler for parsing the statistics file.
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
@@ -185,8 +185,14 @@ AGActivityGenHandler::parseStreets(const SUMOSAXAttributes& attrs) {
         if (attrs.hasAttribute(AGEN_ATTR_OUT_WORKPOSITION)) {
             work = attrs.getFloat(AGEN_ATTR_OUT_WORKPOSITION);
         }
+        std::string eid = attrs.getString(SUMO_ATTR_EDGE);
+        ROEdge* e = net->getEdge(eid);
+        if (e == 0) {
+            WRITE_ERROR("Edge '" + eid + "' is not known.");
+            return;
+        }
 
-        AGStreet str(net->getEdge(attrs.getString(SUMO_ATTR_EDGE)), pop, work);
+        AGStreet str(e, pop, work);
         myCity.streets.push_back(str);
 
     } catch (const exception& e) {

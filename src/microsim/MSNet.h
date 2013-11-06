@@ -12,7 +12,7 @@
 ///
 // The simulated network and simulation perfomer
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -56,6 +56,8 @@
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/DijkstraRouterEffort.h>
 #include <utils/common/AStarRouter.h>
+#include <utils/common/NamedRTree.h>
+
 
 // ===========================================================================
 // class declarations
@@ -75,9 +77,6 @@ class ShapeContainer;
 class BinaryInputDevice;
 class MSEdgeWeightsStorage;
 class SUMOVehicle;
-#ifdef _MESSAGES
-class MSMessageEmitter;
-#endif
 
 
 // ===========================================================================
@@ -177,6 +176,10 @@ public:
     void simulationStep();
 
 
+    /** @brief loads routes for the next few steps */
+    void loadRoutes();
+
+
     /** @brief Closes the simulation (all files, connections, etc.)
      *
      * Writes also performance output
@@ -219,6 +222,7 @@ public:
     bool logSimulationDuration() const;
 
 
+
     /// @name Output during the simulation
     //@{
 
@@ -235,6 +239,7 @@ public:
      */
     void postSimStepOutput() const;
     //}
+
 
 
     /// @name Retrieval of references to substructures
@@ -395,9 +400,6 @@ public:
 
 
 
-
-
-
     /// @name Notification about vehicle state changes
     /// @{
 
@@ -414,7 +416,15 @@ public:
         /// @brief The vehicle arrived at his destination (is deleted)
         VEHICLE_STATE_ARRIVED,
         /// @brief The vehicle got a new route
-        VEHICLE_STATE_NEWROUTE
+        VEHICLE_STATE_NEWROUTE,
+        /// @brief The vehicles starts to park
+        VEHICLE_STATE_STARTING_PARKING,
+        /// @brief The vehicle ends to park
+        VEHICLE_STATE_ENDING_PARKING,
+        /// @brief The vehicles starts to stop
+        VEHICLE_STATE_STARTING_STOP,
+        /// @brief The vehicle ends to stop
+        VEHICLE_STATE_ENDING_STOP
     };
 
 
@@ -459,6 +469,7 @@ public:
     /// @}
 
 
+
     /** @brief Returns the travel time to pass an edge
      * @param[in] e The edge for which the travel time to be passed shall be returned
      * @param[in] v The vehicle that is rerouted
@@ -488,32 +499,11 @@ public:
         const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
 
 
-#ifdef _MESSAGES
-    /// @brief Map of MSMsgEmitter by ID
-    typedef NamedObjectCont< MSMessageEmitter* > MsgEmitterDict;
-
-    // TODO
-    /**
-     * @brief Returns the Message Emitter needed
-     *
-     * @param whatemit std::string defining the requested MSMessageEmitter.
-     * @return the first MessageEmitter found, which has the requested element enabled
+    /** @brief Returns an RTree that contains lane IDs
+     * @return An Rtree containing lane IDs
      */
-    MSMessageEmitter* getMsgEmitter(const std::string& whatemit);
+    const NamedRTree &getLanesRTree() const;
 
-    /**
-     *
-     *
-     */
-    void createMsgEmitter(std::string& id,
-                          std::string& file,
-                          const std::string& base,
-                          std::string& whatemit,
-                          bool reverse,
-                          bool table,
-                          bool xy,
-                          SUMOReal step);
-#endif
 
 protected:
     /// @brief Unique instance of MSNet
@@ -589,9 +579,9 @@ protected:
     /// @}
 
 
+
     /// @brief Storage for maximum vehicle number
     int myTooManyVehicles;
-
 
     /// @brief Dictionary of bus stops
     NamedObjectCont<MSBusStop*> myBusStopDict;
@@ -599,14 +589,6 @@ protected:
     /// @brief Container for vehicle state listener
     std::vector<VehicleStateListener*> myVehicleStateListeners;
 
-
-#ifdef _MESSAGES
-    /// @brief The message emitter map
-    MsgEmitterDict myMsgEmitter;
-
-    /// @brief List of message emitters
-    std::vector<MSMessageEmitter*> msgEmitVec;
-#endif
 
     /* @brief The router instance for routing by trigger and by traci
      * @note MSDevice_Routing has its own instance since it uses a different weight function
@@ -616,6 +598,10 @@ protected:
     mutable DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTDijkstra;
     mutable AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
     mutable DijkstraRouterEffort_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterEffort;
+
+
+    /// @brief An RTree structure holding lane IDs
+    mutable std::pair<bool, NamedRTree> myLanesRTree;
 
 
 private:

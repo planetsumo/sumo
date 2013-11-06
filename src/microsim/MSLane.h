@@ -12,7 +12,7 @@
 ///
 // Representation of a lane in the micro simulation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -43,6 +43,7 @@
 #include <utils/common/Parameterised.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/SUMOVehicle.h>
+#include <utils/common/NamedRTree.h>
 #include <utils/geom/PositionVector.h>
 #include "MSLinkCont.h"
 #include "MSMoveReminder.h"
@@ -55,8 +56,8 @@ class MSEdge;
 class MSVehicle;
 class MSLaneChanger;
 class MSLink;
-class GUILaneWrapper;
 class MSVehicleTransfer;
+class MSVehicleControl;
 class OutputDevice;
 
 
@@ -74,8 +75,6 @@ class MSLane : public Named, public Parameterised {
 public:
     /// needs access to myTmpVehicles (this maybe should be done via double-buffering!!!)
     friend class MSLaneChanger;
-
-    friend class GUILaneWrapper;
 
     friend class MSXMLRawOut;
 
@@ -194,6 +193,7 @@ public:
                                     bool recheckNextLanes,
                                     MSMoveReminder::Notification notification = MSMoveReminder::NOTIFICATION_DEPARTED);
 
+    bool checkFailure(MSVehicle* aVehicle, SUMOReal& speed, SUMOReal& dist, const SUMOReal nspeed, const bool patchSpeed, const std::string errorMsg) const;
     bool pWagGenericInsertion(MSVehicle& veh, SUMOReal speed, SUMOReal maxPos, SUMOReal minPos);
     bool pWagSimpleInsertion(MSVehicle& veh, SUMOReal speed, SUMOReal maxPos, SUMOReal minPos);
     bool maxSpeedGapInsertion(MSVehicle& veh, SUMOReal mspeed);
@@ -309,7 +309,7 @@ public:
     /** @brief Returns this lane's numerical id
      * @return This lane's numerical id
      */
-    size_t getNumericalID() const {
+    inline size_t getNumericalID() const {
         return myNumericalID;
     }
 
@@ -317,18 +317,24 @@ public:
     /** @brief Returns this lane's shape
      * @return This lane's shape
      */
-    const PositionVector& getShape() const {
+    inline const PositionVector& getShape() const {
         return myShape;
     }
 
     /* @brief fit the given lane position to a visibly suitable geometry position
-     * (lane length might differ from geometry length */
+     * (lane length might differ from geometry length) */
     inline SUMOReal interpolateLanePosToGeometryPos(SUMOReal lanePos) const {
         return lanePos * myLengthGeometryFactor;
     }
 
+    /* @brief fit the given lane position to a visibly suitable geometry position
+     * and return the coordinates */
+    inline const Position geometryPositionAtOffset(SUMOReal offset) const {
+        return myShape.positionAtOffset(interpolateLanePosToGeometryPos(offset));
+    }
+
     /* @brief fit the given geomtry position to a valid lane position
-     * (lane length might differ from geometry length */
+     * (lane length might differ from geometry length) */
     inline SUMOReal interpolateGeometryPosToLanePos(SUMOReal geometryPos) const {
         return geometryPos / myLengthGeometryFactor;
     }
@@ -439,23 +445,59 @@ public:
         return *myEdge;
     }
 
+
+
+    /// @brief Static (sic!) container methods 
+    /// {
+
     /** @brief Inserts a MSLane into the static dictionary
-        Returns true if the key id isn't already in the dictionary.
-        Otherwise returns false. */
-    static bool dictionary(std::string id, MSLane* lane);
+     * 
+     * Returns true if the key id isn't already in the dictionary.
+     *  Otherwise returns false. 
+     * @param[in] id The id of the lane 
+     * @param[in] lane The lane itself
+     * @return Whether the lane was added
+     * @todo make non-static
+     * @todo why is the id given? The lane is named
+     */
+    static bool dictionary(const std::string &id, MSLane* lane);
 
-    /** @brief Returns the MSLane associated to the key id if exists
-       Otherwise returns 0. */
-    static MSLane* dictionary(std::string id);
 
-    /** Clears the dictionary */
+    /** @brief Returns the MSLane associated to the key id 
+     *
+     * The lane is returned if exists, otherwise 0 is returned.
+     * @param[in] id The id of the lane 
+     * @return The lane
+     */
+    static MSLane* dictionary(const std::string &id);
+
+
+    /** @brief Clears the dictionary */
     static void clear();
 
+
+    /** @brief Returns the number of stored lanes
+     * @return The number of stored lanes
+     */
     static size_t dictSize() {
         return myDict.size();
     }
 
+
+    /** @brief Adds the ids of all stored lanes into the given vector
+     * @param[in, filled] into The vector to add the IDs into
+     */
     static void insertIDs(std::vector<std::string>& into);
+
+
+    /** @brief Fills the given NamedRTree with lane instances
+     * @param[in, filled] into The NamedRTree to fill
+     * @see NamedRTree
+     */
+    static void fill(NamedRTree& into);
+    /// @}
+
+
 
     /** Same as succLink, but does not throw any assertions when
         the succeeding link could not be found;
@@ -481,9 +523,6 @@ public:
 
 
 
-
-    // valid for gui-version only
-    virtual GUILaneWrapper* buildLaneWrapper(unsigned int index);
 
     /// @brief remove the vehicle from this lane
     virtual MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification);
@@ -578,17 +617,28 @@ public:
      */
     SUMOReal getMeanSpeed() const;
 
+	 /** @brief Returns the overall waiting time on this lane
+     * @return The sum of the waiting time of all vehicles during the last step;
+     */
+    SUMOReal getWaitingSeconds() const;
 
-    /** @brief Returns the occupancy of this lane during the last step
+
+    /** @brief Returns the brutto (including minGaps) occupancy of this lane during the last step 
      * @return The occupancy during the last step
      */
-    SUMOReal getOccupancy() const;
+    SUMOReal getBruttoOccupancy() const;
 
 
-    /** @brief Returns the sum of lengths of vehicles which were on the lane during the last step
+    /** @brief Returns the netto (excluding minGaps) occupancy of this lane during the last step (including minGaps)
+     * @return The occupancy during the last step
+     */
+    SUMOReal getNettoOccupancy() const;
+
+
+    /** @brief Returns the sum of lengths of vehicles, including their minGaps, which were on the lane during the last step
      * @return The sum of vehicle lengths of vehicles in the last step
      */
-    SUMOReal getVehLenSum() const;
+    SUMOReal getBruttoVehLenSum() const;
 
 
     /** @brief Returns the sum of last step CO2 emissions
@@ -632,6 +682,34 @@ public:
      */
     SUMOReal getHarmonoise_NoiseEmissions() const;
     /// @}
+
+
+    /// @name State saving/loading
+    /// @{
+
+    /** @brief Saves the state of this lane into the given stream
+     *
+     * Basically, a list of vehicle ids
+     *
+     * @param[in, filled] out The (possibly binary) device to write the state into
+     * @todo What about throwing an IOError?
+     */
+    void saveState(OutputDevice& out);
+
+    /** @brief Loads the state of this segment with the given parameters
+     *
+     * This method is called for every internal que the segment has.
+     *  Every vehicle is retrieved from the given MSVehicleControl and added to this
+     *  lane.
+     *
+     * @param[in] vehIDs The vehicle ids for the current que
+     * @param[in] vc The vehicle control to retrieve references vehicles from
+     * @todo What about throwing an IOError?
+     * @todo What about throwing an error if something else fails (a vehicle can not be referenced)?
+     */
+    void loadState(std::vector<std::string>& vehIDs, MSVehicleControl& vc);
+    /// @}
+
 
 
 protected:
@@ -693,8 +771,11 @@ protected:
     mutable MSLane* myLogicalPredecessorLane;
 
 
-    /// @brief The current length of all vehicles on this lane
-    SUMOReal myVehicleLengthSum;
+    /// @brief The current length of all vehicles on this lane, including their minGaps
+    SUMOReal myBruttoVehicleLengthSum;
+
+    /// @brief The current length of all vehicles on this lane, excluding their minGaps
+    SUMOReal myNettoVehicleLengthSum;
 
     /// @brief End position of a vehicle which laps into this lane
     SUMOReal myInlappingVehicleEnd;

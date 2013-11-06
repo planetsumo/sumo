@@ -8,7 +8,7 @@
 ///
 // A device which collects info on the vehicle trip
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -216,8 +216,9 @@ MSDevice_Vehroutes::generateOutput() const {
         od.writeAttr(SUMO_ATTR_TYPE, myHolder.getVehicleType().getID());
     }
     od.writeAttr(SUMO_ATTR_DEPART, time2string(myHolder.getDeparture()));
-    od.writeAttr("arrival", (myHolder.hasArrived() ?
-                             time2string(MSNet::getInstance()->getCurrentTimeStep()) : ""));
+    if (myHolder.hasArrived()) {
+        od.writeAttr("arrival", time2string(MSNet::getInstance()->getCurrentTimeStep()));
+    }
     if (myWithTaz) {
         od.writeAttr(SUMO_ATTR_FROM_TAZ, myHolder.getParameter().fromTaz).writeAttr(SUMO_ATTR_TO_TAZ, myHolder.getParameter().toTaz);
     }
@@ -284,6 +285,7 @@ MSDevice_Vehroutes::generateOutputForUnfinished() {
         }
     }
 }
+
 
 /****************************************************************************/
 

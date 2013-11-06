@@ -7,7 +7,7 @@
 ///
 // A detector which joins E2Collectors over consecutive lanes (backward)
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -53,7 +53,7 @@ MS_E2_ZS_CollectorOverLanes::MS_E2_ZS_CollectorOverLanes(const std::string& id,
     : MSDetectorFileOutput(id),
       startPosM(startPos), haltingTimeThresholdM(haltingTimeThreshold),
       haltingSpeedThresholdM(haltingSpeedThreshold), jamDistThresholdM(jamDistThreshold),
-      myID(id), myStartLaneID(lane->getID()), myUsage(usage) {}
+      myStartLaneID(lane->getID()), myUsage(usage) {}
 
 
 void
@@ -253,12 +253,6 @@ MS_E2_ZS_CollectorOverLanes::makeID(const std::string& baseID ,
     }
     std::string ret =  baseID + add + toString<size_t>(bla++);
     return ret;
-}
-
-
-const std::string&
-MS_E2_ZS_CollectorOverLanes::getID() const {
-    return myID;
 }
 
 

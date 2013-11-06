@@ -1,10 +1,12 @@
 /****************************************************************************/
 /// @file    MSFCDExport.h
 /// @author  Mario Krumnow
+/// @date    2012-04-26
+/// @version $Id$
 ///
 // Realises dumping Floating Car Data (FCD) Data
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -85,7 +87,7 @@ private:
 ///
 // Realises dumping Floating Car Data (FCD) Data
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
