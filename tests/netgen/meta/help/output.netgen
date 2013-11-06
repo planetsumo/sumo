@@ -1,5 +1,5 @@
-SUMO netgenerate Version dev-SVN-r14017
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.sourceforge.net
+SUMO netgenerate Version dev-SVN-r14516
+ Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org
 Road network generator for the microscopic road traffic simulation SUMO.
 
 Usage: netgenerate [OPTION]*
@@ -67,16 +67,16 @@ Output Options:
                                         node-file to reproduce joins
   -M, --map-output FILE               Writes joined edges information to FILE
   --matsim-output FILE                The generated net will be written to FILE
-                                        using MATsim format.
+                                        using MATsim format
   --opendrive-output FILE             The generated net will be written to FILE
-                                        using openDRIVE format.
+                                        using OpenDRIVE format
   --dlr-navteq-output FILE            The generated net will be written to
-                                        dlr-navteq files with the given PREFIX.
+                                        dlr-navteq files with the given PREFIX
   --output.street-names               Street names will be included in the
-                                        output (if available).
+                                        output (if available)
   --output.original-names             Writes original names, if given, as
-                                        parameter.
-  --street-sign-output FILE           Writes street signs as POIs to FILE.
+                                        parameter
+  --street-sign-output FILE           Writes street signs as POIs to FILE
 
 TLS Building Options:
   --tls.set STR                       Interprets STR as list of junctions to be
@@ -96,7 +96,7 @@ TLS Building Options:
   --tls.quarter-offset STR            TLSs in STR will be shifted by
                                         quarter-phase
   --tls.default-type STR              TLSs with unspecified type will use STR
-                                        as their algorithm.
+                                        as their algorithm
 
 Edge Removal Options:
   --keep-edges.min-speed FLOAT        Only keep edges with speed in
@@ -136,6 +136,12 @@ Processing Options:
                                         other (recommended for OSM import)
   --junctions.join-dist FLOAT         Determines the maximal distance for
                                         joining junctions (defaults to 10)
+  --check-lane-foes.roundabout        Allow driving onto a multi-lane road if
+                                        there are foes on other lanes (at
+                                        roundabouts)
+  --check-lane-foes.all               Allow driving onto a multi-lane road if
+                                        there are foes on other lanes
+                                        (everywhere)
   --tls.join-dist FLOAT               Determines the maximal distance for
                                         joining traffic lights (defaults to 20)
 
@@ -175,5 +181,5 @@ Examples:
   netgenerate --rand [random-network options] -o <OUTPUTFILE>
     create random net
 
-Report bugs at <http://sourceforge.net/apps/trac/sumo/>.
+Report bugs at <http://sumo-sim.org/trac/>.
 Get in contact via <sumo-user@lists.sourceforge.net>.

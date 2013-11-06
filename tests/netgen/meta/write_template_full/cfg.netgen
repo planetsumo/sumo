@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/netgenerateConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netgenerateConfiguration.xsd">
 
     <configuration>
         <configuration-file value="" synonymes="c configuration" type="FILE" help="Loads the named config on startup"/>
@@ -51,12 +51,12 @@
         <plain-output-prefix value="" synonymes="plain plain-output" type="FILE" help="Prefix of files to write plain xml nodes, edges and connections to"/>
         <junctions.join-output value="" type="FILE" help="Writes information about joined junctions to FILE (can be loaded as additional node-file to reproduce joins"/>
         <map-output value="" synonymes="M" type="FILE" help="Writes joined edges information to FILE"/>
-        <matsim-output value="" type="FILE" help="The generated net will be written to FILE using MATsim format."/>
-        <opendrive-output value="" type="FILE" help="The generated net will be written to FILE using openDRIVE format."/>
-        <dlr-navteq-output value="" type="FILE" help="The generated net will be written to dlr-navteq files with the given PREFIX."/>
-        <output.street-names value="false" type="BOOL" help="Street names will be included in the output (if available)."/>
-        <output.original-names value="false" type="BOOL" help="Writes original names, if given, as parameter."/>
-        <street-sign-output value="" type="FILE" help="Writes street signs as POIs to FILE."/>
+        <matsim-output value="" type="FILE" help="The generated net will be written to FILE using MATsim format"/>
+        <opendrive-output value="" type="FILE" help="The generated net will be written to FILE using OpenDRIVE format"/>
+        <dlr-navteq-output value="" type="FILE" help="The generated net will be written to dlr-navteq files with the given PREFIX"/>
+        <output.street-names value="false" type="BOOL" help="Street names will be included in the output (if available)"/>
+        <output.original-names value="false" type="BOOL" help="Writes original names, if given, as parameter"/>
+        <street-sign-output value="" type="FILE" help="Writes street signs as POIs to FILE"/>
     </output>
 
     <tls_building>
@@ -71,7 +71,7 @@
         <tls.yellow.time value="" synonymes="traffic-light-yellow" type="INT" help="Set INT as fixed time for yellow phase durations"/>
         <tls.half-offset value="" synonymes="tl-logics.half-offset" type="STR" help="TLSs in STR will be shifted by half-phase"/>
         <tls.quarter-offset value="" synonymes="tl-logics.quarter-offset" type="STR" help="TLSs in STR will be shifted by quarter-phase"/>
-        <tls.default-type value="static" type="STR" help="TLSs with unspecified type will use STR as their algorithm."/>
+        <tls.default-type value="static" type="STR" help="TLSs with unspecified type will use STR as their algorithm"/>
     </tls_building>
 
     <edge_removal>
@@ -102,6 +102,8 @@
         <lefthand value="false" type="BOOL" help="Assumes left-hand traffic on the network"/>
         <junctions.join value="false" type="BOOL" help="Joins junctions that are close to each other (recommended for OSM import)"/>
         <junctions.join-dist value="10" type="FLOAT" help="Determines the maximal distance for joining junctions (defaults to 10)"/>
+        <check-lane-foes.roundabout value="true" type="BOOL" help="Allow driving onto a multi-lane road if there are foes on other lanes (at roundabouts)"/>
+        <check-lane-foes.all value="false" type="BOOL" help="Allow driving onto a multi-lane road if there are foes on other lanes (everywhere)"/>
         <tls.join-dist value="20" type="FLOAT" help="Determines the maximal distance for joining traffic lights (defaults to 20)"/>
     </processing>
 
