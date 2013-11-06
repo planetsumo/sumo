@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/dfrouterConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/dfrouterConfiguration.xsd">
 
     <configuration>
         <!-- Loads the named config on startup -->
@@ -47,6 +47,9 @@
 
         <!-- Saves emitter definitions for source detectors to FILE -->
         <emitters-output value="" type="FILE"/>
+
+        <!-- Add vehicle types to the emitters file (PKW, LKW) -->
+        <vtype value="false" type="BOOL"/>
 
         <!-- Saves emitter positions as pois to FILE -->
         <emitters-poi-output value="" type="FILE"/>
@@ -102,7 +105,7 @@
         <!-- Allow turnarounds as route continuations -->
         <keep-turnarounds value="false" type="BOOL"/>
 
-        <!-- Minimum distance in meters between start and end node of every route. -->
+        <!-- Minimum distance in meters between start and end node of every route -->
         <min-route-length value="-1" synonymes="min-dist min-distance" type="FLOAT"/>
 
         <!-- Multiply flow times with TIME to get seconds -->
@@ -133,6 +136,27 @@
         <scale value="1" type="FLOAT"/>
 
     </processing>
+
+    <defaults>
+        <!-- Assigns a default depart lane -->
+        <departlane value="" type="STR"/>
+
+        <!-- Assigns a default depart position -->
+        <departpos value="" type="STR"/>
+
+        <!-- Assigns a default depart speed -->
+        <departspeed value="" type="STR"/>
+
+        <!-- Assigns a default arrival lane -->
+        <arrivallane value="" type="STR"/>
+
+        <!-- Assigns a default arrival position -->
+        <arrivalpos value="" type="STR"/>
+
+        <!-- Assigns a default arrival speed -->
+        <arrivalspeed value="" type="STR"/>
+
+    </defaults>
 
     <time>
         <!-- Defines the begin time; Previous defs will be discarded -->
