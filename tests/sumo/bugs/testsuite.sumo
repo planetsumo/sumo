@@ -65,6 +65,9 @@ ticket604
 ticket609
 ticket611
 ticket651
+
+# test junction deadlock
+ticket699
 ticket720
 ticket747
 
@@ -118,3 +121,17 @@ ticket881b
 ticket881c
 ticket882
 ticket889
+ticket925
+ticket929
+ticket941
+ticket963
+ticket967
+ticket1026
+
+# vehicles stop to help other vehicles to change langes even though they are 500 meters apart
+ticket1044
+
+# ticket1047 (automatically commented due to no test directory being found)
+
+ticket1050
+ticket1054
