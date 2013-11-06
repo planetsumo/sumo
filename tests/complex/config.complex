@@ -19,6 +19,7 @@ copy_test_path:sumo.sumocfg
 copy_test_path:sumo_log.sumocfg
 copy_test_path:osm.xml
 copy_test_path:data
+test_data_ignore:.svn
 
 [collate_file]
 vehroutes:vehroutes.xml
@@ -29,6 +30,9 @@ vss:vss.xml
 results:results.csv
 
 [run_dependent_text]
+output:\r{REPLACE \n}
+output:\([0-9]*ms\){REPLACE (TIME)}
+output:^Performance:{->}^Vehicles:
 net:<!--{[->]}-->
 vehroutes:<!--{[->]}-->
 tripinfo:<!--{[->]}-->
@@ -38,7 +42,10 @@ output:visible boundary
 errors:Die Adresse wird bereits verwendet{REPLACE Address already in use}
 output:\r{REPLACE \n}
 output:\([0-9]*ms\){REPLACE (TIME)}
-output:\([0-9]* ms\){REPLACE (TIME)}
+output:[0-9]* ms{REPLACE TIME}
+output: UPS:
+output: time factor:
+output:uncheck:
 output:TEXTTEST_IGNORE
 errors:Leaked object at 
 errors:*** 9 leaks found
@@ -53,3 +60,7 @@ vss:0.0001
 meso:meso
 msvc10mesox64:meso
 msvc10mesoWin32:meso
+gcc4:perf
+gcc4_64:perf
+msvc10Win32:perf
+msvc10x64:perf

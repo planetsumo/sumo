@@ -88,11 +88,11 @@ def runSingle(traciEndTime, viewRange, module, objID):
     print "Print ended at step %s" % (traci.simulation.getCurrentTime() / DELTA_T)
     traci.close()
     sys.stdout.flush()
+    print "uncheck: seen %s vehicles via subscription, %s in surrounding" % (seen1, seen2)
     if seen1==seen2:
-        print "Seen all vehicles in both cases."
+        print "Ok: Subscription and computed are same"
     else:
-        print "Error: the numbers of seen vehicles are different."
-    print "TEXTTEST_IGNORE: seen %s vehicles via subscription, %s in surrounding" % (seen1, seen2)
+        print "Error: subscribed number and computed number differ"
 
 sys.stdout.flush()
 if sys.argv[3] == "vehicle":
