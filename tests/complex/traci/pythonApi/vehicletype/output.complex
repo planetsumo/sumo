@@ -3,6 +3,7 @@ step 0
 step 1
 step 2
 vehicletypes ['DEFAULT_VEHTYPE']
+vehicletype count 1
 examining DEFAULT_VEHTYPE
 length 5.0
 maxSpeed 70.0
@@ -39,4 +40,3 @@ shape bicycle
 MinGap 1.1
 width 1.1
 color (1, 0, 0, 1)
-(14, 127, 0) OK Goodbye

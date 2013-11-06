@@ -1,0 +1,60 @@
+# tests for command <StopNode>
+StopNode
+
+# Tests for command <SlowDown>
+SlowDown
+
+# tests for command <changeLane>
+ChangeLane
+
+# different lane change modi
+LaneChangeMode
+
+# Test command <ChangeTarget>
+ChangeTarget
+
+# VAR_ROUTE
+ChangeRoute
+
+# VAR_ROUTE for a Bus
+ChangeRouteBus
+
+# VAR_ROUTE_ID
+ChangeRouteByID
+
+# for changing edge travel times
+EdgeTravelTimeInfo
+
+# for changing edge efforts
+EdgeEffortInfo
+
+# for changing signals' state
+Signalling
+
+# for setting vehicle speed
+SetSpeed
+
+# for moving the vehicle to a different place
+MoveTo
+
+# for adding a vehicle
+ADD
+
+# for removing vehicles
+REMOVE
+
+# rerouting tests
+rerouting
+
+# some tests for simply setting/getting values
+zSimpleSetGet
+
+# further tests for changing vehicle type values
+VehicleTypeRelated
+
+# checking SlowDown and SetSpeed
+SlowDownAndSetSpeed
+
+# check whether a vehicle may be forced to run at red light
+runs_at_red_forced
+resume_from_stop

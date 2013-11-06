@@ -1,9 +1,0 @@
-TraCITestClient output file. Date: Tue Apr 05 09:45:04 2011
-
-
--> Command sent: <GetVariable>:
-  domID=171 varID=130 objID=0
-.. Answered with error to command (171), [description: Position on lane invalid]
-
--> Command sent: <Close>:
-.. Command acknowledged (127), [description: Goodbye]
