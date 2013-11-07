@@ -14,6 +14,7 @@ copy_test_path:sumo.sumocfg
 copy_test_path:settings.xml
 copy_test_path:dlr.gif
 copy_test_path:input_state.xml
+copy_test_path:input_meso_state.xml
 
 [collate_file]
 detector:detector.xml
@@ -25,6 +26,7 @@ aggregated60:aggregated_60.xml
 aggregated300:aggregated_300.xml
 aggregated900:aggregated_900.xml
 rawdump:rawdump.xml
+bt:bt.xml
 tripinfos:tripinfos.xml
 vtypeprobe:vtypeprobe.xml
 vehroutes:vehroutes.xml
@@ -35,6 +37,10 @@ tls_state_switch:tls_state_switch.xml
 physstates:physstates.xml
 cfg:config.cfg
 fcd:fcd.xml
+full:full.xml
+vtk:vtk.txt
+queue:queue.xml
+emissions:emissions.xml
 tol_sql:tol_sql.txt
 tol_plain:tol_plain.txt
 tol_la_sql:tol_la_sql.txt
@@ -50,6 +56,8 @@ c2x_saved_info_freq:c2x_saved_info_freq.xml
 c2x_edge_near_info:c2x_edge_near_info.xml
 log:log.txt
 state:state.xml
+state2:state2.xml
+binstate:state.sbx
 calibrator_log:calibrator.log.xml
 links:linkstate.xml
 
@@ -57,6 +65,7 @@ links:linkstate.xml
 output:\r{REPLACE \n}
 output:\([0-9]*ms\){REPLACE (TIME)}
 output:^Performance:{->}^Vehicles:
+output:ms answering queries
 log:\([0-9]*ms\){REPLACE (TIME)}
 calibrator_log:<!--{[->]}-->
 detector:<!--{[->]}-->
@@ -68,15 +77,23 @@ aggregated60:<!--{[->]}-->
 aggregated300:<!--{[->]}-->
 aggregated900:<!--{[->]}-->
 rawdump:<!--{[->]}-->
+bt:<!--{[->]}-->
 tripinfos:<!--{[->]}-->
 vtypeprobe:<!--{[->]}-->
 vehroutes:<!--{[->]}-->
 fcd:<!--{[->]}-->
+full:<!--{[->]}-->
+queue:<!--{[->]}-->
+emissions:<!--{[->]}-->
 links:<!--{[->]}-->
+vtk:<!--{[->]}-->
 vehroutes_ignore_arrival:<!--{[->]}-->
 vehroutes_ignore_arrival:arrival="[^"]*"{REPLACE arrival="<ignored>"}
 state:<!--{[->]}-->
-state:<snapshot version="[^"]*"{REPLACE<snapshot version="<version>"}
+state:<snapshot version="[^"]*"{REPLACE <snapshot version="<version>"}
+state2:<!--{[->]}-->
+state2:<snapshot version="[^"]*"{REPLACE <snapshot version="<version>"}
+binstate:dev-SVN-r\d+{REPLACE dev-SVN-r<version>}
 tls_state:<!--{[->]}-->
 tls_switch:<!--{[->]}-->
 tls_state_switch:<!--{[->]}-->
@@ -91,6 +108,7 @@ errors:Leaked object at
 errors:\*\*\* \d+ leaks found
 errors:delete: freed
 errors:warning: debug_new used with placement new
+errors:Warning: State was written with sumo version
 
 [floating_point_tolerance]
 detector:0.0101
@@ -106,6 +124,7 @@ links:0.0101
 tripinfos:0.0101
 rawdump:0.0101
 errors:0.0101
+full:0.0101
 
 [relative_float_tolerance]
 aggregated1:0.00001

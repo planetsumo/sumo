@@ -1,0 +1,37 @@
+initialized device 'example_veh0' with myCustomValue1=23.00, myCustomValue2=42.00, myCustomValue3=113.00
+device 'example_veh0' notifyEnter: reason=0 currentEdge=right2end
+device 'example_veh0' notifyMove: newSpeed=2.60
+device 'example_veh0' notifyMove: newSpeed=5.20
+device 'example_veh0' notifyMove: newSpeed=7.80
+device 'example_veh0' notifyMove: newSpeed=10.40
+device 'example_veh0' notifyMove: newSpeed=13.00
+device 'example_veh0' notifyMove: newSpeed=13.90
+device 'example_veh0' notifyMove: newSpeed=13.90
+device 'example_veh0' notifyMove: newSpeed=11.45
+device 'example_veh0' notifyMove: newSpeed=7.80
+device 'example_veh0' notifyMove: newSpeed=4.50
+device 'example_veh0' notifyLeave: reason=1 currentEdge=right2end
+device 'example_veh0' notifyEnter: reason=1 currentEdge=end
+device 'example_veh0' notifyMove: newSpeed=7.10
+device 'example_veh0' notifyMove: newSpeed=9.70
+device 'example_veh0' notifyMove: newSpeed=12.30
+device 'example_veh0' notifyMove: newSpeed=14.90
+device 'example_veh0' notifyMove: newSpeed=17.50
+device 'example_veh0' notifyMove: newSpeed=20.10
+device 'example_veh0' notifyMove: newSpeed=22.70
+device 'example_veh0' notifyMove: newSpeed=25.30
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyMove: newSpeed=27.80
+device 'example_veh0' notifyLeave: reason=6 currentEdge=end
