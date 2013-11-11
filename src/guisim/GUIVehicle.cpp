@@ -335,7 +335,6 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
     if (getChosenSpeedFactor() != 1) {
         ret->mkItem("speed factor", false, getChosenSpeedFactor());
     }
-    ret->mkItem("insertion period [s]", false, time2string(getParameter().repetitionOffset));
     ret->mkItem("waiting time [s]", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &MSVehicle::getWaitingSeconds));
     ret->mkItem("last lane change [s]", true,
@@ -1526,7 +1525,7 @@ GUIVehicle::selectBlockingFoes() const {
         gSelected.select(static_cast<const GUIVehicle*>(*it)->getGlID());
     }
 #ifdef HAVE_INTERNAL_LANES
-    const MSLink::LinkLeaders linkLeaders = (dpi.myLink)->getLeaderInfo(myLane->getLength() - getPositionOnLane() - getVehicleType().getMinGap());
+    const MSLink::LinkLeaders linkLeaders = (dpi.myLink)->getLeaderInfo(myLane->getLength() - getPositionOnLane(), getVehicleType().getMinGap());
     for (MSLink::LinkLeaders::const_iterator it = linkLeaders.begin(); it != linkLeaders.end(); ++it) {
         // the vehicle to enter the junction first has priority
         const MSVehicle* leader = it->first;

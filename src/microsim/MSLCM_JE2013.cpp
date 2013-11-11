@@ -80,8 +80,8 @@
 
 #define URGENCY (SUMOReal)2.0 
 
-//#define DEBUG_COND (myVehicle.getID() == "1503_46013333" || myVehicle.getID() == "1501_46020000") // fail change to right
-//#define DEBUG_COND (myVehicle.getID() == "1502_46165263" || myVehicle.getID() == "1502_46114285") // fail change to right and change to left, deadlock?
+//#define DEBUG_COND (myVehicle.getID() == "pkw22806" || myVehicle.getID() == "pkw22823")
+//#define DEBUG_COND (myVehicle.getID() == "emitter_SST92-150 FG 1 DE 3_26966400" || myVehicle.getID() == "emitter_SST92-150 FG 1 DE 1_26932941" || myVehicle.getID() == "emitter_SST92-175 FG 1 DE 129_27105000") 
 //#define DEBUG_COND (myVehicle.getID() == "1502_46117142") // fail change to left
 //#define DEBUG_COND (myVehicle.getID() == "overtaking_right") // test stops_overtaking
 #define DEBUG_COND false
@@ -129,6 +129,8 @@ MSLCM_JE2013::wantsChange(
         std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
             << " veh=" << myVehicle.getID()
             << " lane=" << myVehicle.getLane()->getID()
+            << " pos=" << myVehicle.getPositionOnLane()
+            << " speed=" << myVehicle.getSpeed()
             << " considerChangeTo=" << (laneOffset == -1  ? "right" : "left")
             << "\n";
     }
@@ -145,8 +147,8 @@ MSLCM_JE2013::wantsChange(
                 << ((result & LCA_COOPERATIVE) ? " (coop)" : "")
                 << ((result & LCA_SPEEDGAIN) ? " (speed)" : "")
                 << ((result & LCA_KEEPRIGHT) ? " (keepright)" : "")
-                << ((result & LCA_BLOCKED) ? " (blocked)" : "")
-                << ((result & LCA_OVERLAPPING) ? " (overlap)" : "")
+                << ((blocked & LCA_BLOCKED) ? " (blocked)" : "")
+                << ((blocked & LCA_OVERLAPPING) ? " (overlap)" : "")
                 << "\n";
         }
     }
@@ -195,7 +197,7 @@ MSLCM_JE2013::_patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOR
             // if we are approaching this place
             if (safe < wanted) {
                 // return this speed as the speed to use
-                if (MSGlobals::gDebugFlag1) std::cout << time << " veh=" << myVehicle.getID() << " slowing down for leading blocker\n";
+                if (MSGlobals::gDebugFlag1) std::cout << time << " veh=" << myVehicle.getID() << " slowing down for leading blocker" << (safe < min ? " (not enough)": "") << "\n";
                 return MAX2(min, safe);
             }
         }
@@ -297,7 +299,7 @@ MSLCM_JE2013::inform(void* info, MSVehicle* sender) {
     myVSafes.push_back(pinfo->first);
     //myOwnState &= 0xffffffff; // reset all bits of MyLCAEnum but only those
     myOwnState |= pinfo->second;
-    if (MSGlobals::gDebugFlag2) {
+    if (MSGlobals::gDebugFlag2 || DEBUG_COND) {
         std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
             << " veh=" << myVehicle.getID()
             << " informedBy=" << sender->getID()
@@ -333,14 +335,19 @@ MSLCM_JE2013::informLeader(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
             << myVehicle.getCarFollowModel().getSecureGap(myVehicle.getSpeed(), nv->getSpeed(), nv->getCarFollowModel().getMaxDecel()) << "\n";
         // decide whether we want to overtake the leader or follow it
         const SUMOReal dv = plannedSpeed - nv->getSpeed();
+        const SUMOReal overtakeDist = (neighLead.second // drive to back of follower
+                + nv->getVehicleType().getLengthWithGap() // drive to front of follower
+                + myVehicle.getVehicleType().getLength() // ego back reaches follower front
+                + nv->getCarFollowModel().getSecureGap( // save gap to follower
+                    nv->getSpeed(), myVehicle.getSpeed(), myVehicle.getCarFollowModel().getMaxDecel()));
+
         if (dv < 0 
                 // overtaking on the right on an uncongested highway is forbidden (noOvertakeLCLeft)
                 || (dir == LCA_MLEFT && !myVehicle.congested())
+                // not enough space to overtake?
+                || myLeftSpace < overtakeDist
                 // not enough time to overtake?
-                || dv * remainingSeconds < ( 
-                    neighLead.second + nv->getVehicleType().getLengthWithGap() + nv->getCarFollowModel().getSecureGap(
-                        nv->getSpeed(), myVehicle.getSpeed(), myVehicle.getCarFollowModel().getMaxDecel()))
-                ) {
+                || dv * remainingSeconds < overtakeDist) {
             // cannot overtake
             msgPass.informNeighLeader(new Info(-1, dir | LCA_AMBLOCKINGLEADER), &myVehicle);
             // slow down smoothly to follow leader 
@@ -475,12 +482,12 @@ MSLCM_JE2013::informFollower(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
             msgPass.informNeighFollower(new Info(neighNewSpeed, dir | LCA_AMBLOCKINGFOLLOWER), &myVehicle);
             if (MSGlobals::gDebugFlag2) std::cout << " wants to cut in before nv=" << nv->getID() << " (eventually)\n";
         } else { 
-            SUMOReal vhelp = nv->getSpeed();
+            SUMOReal vhelp = MAX2(nv->getSpeed(), myVehicle.getSpeed() + HELP_OVERTAKE);
             if (dir == LCA_MRIGHT && myVehicle.getWaitingSeconds() > LCA_RIGHT_IMPATIENCE &&
                     nv->getSpeed() > myVehicle.getSpeed()) {
                 // let the follower slow down to increase the likelyhood that later vehicles will be slow enough to help
                 // follower should still be fast enough to open a gap
-                const SUMOReal vhelp = MAX2(neighNewSpeed, myVehicle.getSpeed() + HELP_OVERTAKE);
+                vhelp = MAX2(neighNewSpeed, myVehicle.getSpeed() + HELP_OVERTAKE);
                 if (MSGlobals::gDebugFlag2) std::cout << " wants right follower to slow down a bit\n";
                 if ((nv->getSpeed() - myVehicle.getSpeed()) / helpDecel < remainingSeconds) {
                     if (MSGlobals::gDebugFlag2) std::cout << " wants to cut in before right follower nv=" << nv->getID() << " (eventually)\n";
@@ -490,22 +497,24 @@ MSLCM_JE2013::informFollower(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
             }
             msgPass.informNeighFollower(new Info(vhelp, dir | LCA_AMBLOCKINGFOLLOWER), &myVehicle);
             // this follower is supposed to overtake us. slow down smoothly to allow this
-            const SUMOReal overtakeGap = myVehicle.getCarFollowModel().getSecureGap(plannedSpeed, vhelp, nv->getCarFollowModel().getMaxDecel());
-            const SUMOReal needDV = (neighFollow.second + overtakeGap + myVehicle.getVehicleType().getLengthWithGap()) / remainingSeconds;
-            myVSafes.push_back(vhelp - needDV);
-
-            const SUMOReal targetSpeed = myCarFollowModel.followSpeed(
-                    &myVehicle, myVehicle.getSpeed(), neighFollow.second, nv->getSpeed(), nv->getCarFollowModel().getMaxDecel());
-            const SUMOReal nextSpeed = myVehicle.getSpeed() + (myVehicle.getSpeed() - targetSpeed) / remainingSeconds;
+            const SUMOReal overtakeDist = (neighFollow.second // follower reaches ego back
+                    + myVehicle.getVehicleType().getLengthWithGap() // follower reaches ego front
+                    + nv->getVehicleType().getLength() // follower back at ego front
+                    + myVehicle.getCarFollowModel().getSecureGap( // follower has safe dist to ego
+                        plannedSpeed, vhelp, nv->getCarFollowModel().getMaxDecel()));
+            // speed difference to create a sufficiently large gap
+            const SUMOReal needDV = overtakeDist / remainingSeconds;
+            // make sure the deceleration is not to strong
+            myVSafes.push_back(MAX2(vhelp - needDV, myVehicle.getSpeed() - myVehicle.getCarFollowModel().getMaxDecel()));
 
             if (MSGlobals::gDebugFlag2) {
                 std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
                     << " veh=" << myVehicle.getID()
                     << " wants to be overtaken by=" << nv->getID()
-                    << " overtakeGap=" << overtakeGap
+                    << " overtakeDist=" << overtakeDist
                     << " vneigh=" << nv->getSpeed()
                     << " vhelp=" << vhelp
-                    << " vsafe=" << vhelp - needDV
+                    << " vsafe=" << myVSafes.back()
                     << "\n";
             }
         }
@@ -705,7 +714,9 @@ MSLCM_JE2013::_wantsChange(
         // letting vehicles merge in at the end of the lane in case of counter-lane change, step#1
         //   if there is a leader and he wants to change to the opposite direction
         saveBlockerLength(neighLead.first, lcaCounter);
-        saveBlockerLength(*firstBlocked, lcaCounter);
+        if (*firstBlocked != neighLead.first) {
+            saveBlockerLength(*firstBlocked, lcaCounter);
+        }
         if (MSGlobals::gDebugFlag2) {
             std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
                 << " veh=" << myVehicle.getID()
@@ -946,8 +957,31 @@ MSLCM_JE2013::slowDownForBlocked(MSVehicle** blocked, int state) {
 void 
 MSLCM_JE2013::saveBlockerLength(MSVehicle* blocker, int lcaCounter) {
     if (blocker != 0 && (blocker->getLaneChangeModel().getOwnState() & lcaCounter) != 0) {
-        // save at least his length in myLeadingBlockerLength
-        myLeadingBlockerLength = MAX2(blocker->getVehicleType().getLengthWithGap(), myLeadingBlockerLength);
+        // is there enough space in front of us for the blocker?
+        const SUMOReal potential = myLeftSpace - myVehicle.getCarFollowModel().brakeGap(
+                myVehicle.getSpeed(), myVehicle.getCarFollowModel().getMaxDecel(), 0);
+        if (blocker->getVehicleType().getLengthWithGap() <= potential) {
+            // save at least his length in myLeadingBlockerLength
+            myLeadingBlockerLength = MAX2(blocker->getVehicleType().getLengthWithGap(), myLeadingBlockerLength);
+            if (MSGlobals::gDebugFlag2) {
+                std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
+                    << " veh=" << myVehicle.getID()
+                    << " blocker=" << tryID(blocker)
+                    << " saving myLeadingBlockerLength=" << myLeadingBlockerLength
+                    << "\n";
+            }
+        } else {
+            // we cannot save enough space for the blocker. It needs to save
+            // space for ego instead
+            if (MSGlobals::gDebugFlag2) {
+                std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
+                    << " veh=" << myVehicle.getID()
+                    << " blocker=" << tryID(blocker)
+                    << " cannot save space=" << blocker->getVehicleType().getLengthWithGap()
+                    << "\n";
+            }
+            blocker->getLaneChangeModel().saveBlockerLength(myVehicle.getVehicleType().getLengthWithGap());
+        }
     }
 }
 /****************************************************************************/
