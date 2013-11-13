@@ -80,9 +80,11 @@
 
 #define URGENCY (SUMOReal)2.0 
 
+#define ROUNDABOUT_DIST_BONUS (SUMOReal)80.0 
+
 //#define DEBUG_COND (myVehicle.getID() == "pkw22806" || myVehicle.getID() == "pkw22823")
 //#define DEBUG_COND (myVehicle.getID() == "emitter_SST92-150 FG 1 DE 3_26966400" || myVehicle.getID() == "emitter_SST92-150 FG 1 DE 1_26932941" || myVehicle.getID() == "emitter_SST92-175 FG 1 DE 129_27105000") 
-//#define DEBUG_COND (myVehicle.getID() == "1502_46117142") // fail change to left
+//#define DEBUG_COND (myVehicle.getID() == "Costa_200_153" || myVehicle.getID() == "Costa_12_154") // fail change to left
 //#define DEBUG_COND (myVehicle.getID() == "overtaking_right") // test stops_overtaking
 #define DEBUG_COND false
 
@@ -203,13 +205,6 @@ MSLCM_JE2013::_patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOR
         }
     }
 
-    // just to make sure to be notified about lane chaning end
-    if (myVehicle.getLane()->getEdge().getLanes().size() == 1 || myVehicle.getLane()->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
-        // remove chaning information if on a road with a single lane
-        changed();
-        return wanted;
-    }
-
     SUMOReal nVSafe = wanted;
     bool gotOne = false;
     for (std::vector<SUMOReal>::const_iterator i = myVSafes.begin(); i != myVSafes.end(); ++i) {
@@ -289,6 +284,10 @@ MSLCM_JE2013::_patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOR
         return (min + wanted) / (SUMOReal) 2.0;
         */
     }
+    if (myVehicle.getLane()->getEdge().getLanes().size() == 1) {
+        // remove chaning information if on a road with a single lane
+        changed();
+    }
     return wanted;
 }
 
@@ -319,7 +318,8 @@ MSLCM_JE2013::informLeader(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
                             const std::pair<MSVehicle*, SUMOReal>& neighLead,
                             SUMOReal remainingSeconds) 
 {
-    SUMOReal plannedSpeed = myVehicle.getSpeed();
+    SUMOReal plannedSpeed = MIN2(myVehicle.getSpeed(), 
+            myVehicle.getCarFollowModel().stopSpeed(&myVehicle, myVehicle.getSpeed(), myLeftSpace - myLeadingBlockerLength));
     for (std::vector<SUMOReal>::const_iterator i = myVSafes.begin(); i != myVSafes.end(); ++i) {
         SUMOReal v = (*i);
         if (v >= myVehicle.getSpeed() - ACCEL2SPEED(myVehicle.getCarFollowModel().getMaxDecel())) {
@@ -680,6 +680,25 @@ MSLCM_JE2013::_wantsChange(
     //        best.lane->getSpeedLimit());
     // @note: while this lets vehicles change earlier into the correct direction
     // it also makes the vehicles more "selfish" and prevents changes which are necessary to help others
+    
+    // VARIANT_15 (insideRoundabout)
+    int roundaboutEdgesAhead = 0;
+    for (std::vector<MSLane*>::iterator it = curr.bestContinuations.begin(); it != curr.bestContinuations.end(); ++it) {
+        if ((*it) != 0 && (*it)->getEdge().isRoundabout()) {
+            roundaboutEdgesAhead += 1;
+        } else if (roundaboutEdgesAhead > 0) {
+            // only check the next roundabout
+            break;
+        }
+    }
+    if (roundaboutEdgesAhead > 1) {
+        const SUMOReal roundaboutDistBonus = roundaboutEdgesAhead * ROUNDABOUT_DIST_BONUS;
+        currentDist += roundaboutDistBonus;
+        neighDist += roundaboutDistBonus;
+    }
+    if (roundaboutEdgesAhead > 0) {
+        if (MSGlobals::gDebugFlag2) std::cout << " roundaboutEdgesAhead=" << roundaboutEdgesAhead << "\n";
+    }
 
     const SUMOReal usableDist = (currentDist - myVehicle.getPositionOnLane() - best.occupation *  JAM_FACTOR);
             //- (best.lane->getVehicleNumber() * neighSpeed)); // VARIANT 9 jfSpeed
@@ -701,13 +720,6 @@ MSLCM_JE2013::_wantsChange(
 
         // save the left space
         myLeftSpace = currentDist - myVehicle.getPositionOnLane();
-        const SUMOReal remainingSeconds = MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY);
-        const SUMOReal plannedSpeed = informLeader(msgPass, blocked, myLca, neighLead, remainingSeconds);
-        if (plannedSpeed >= 0) {
-            // maybe we need to deal with a blocking follower
-            informFollower(msgPass, blocked, myLca, neighFollow, remainingSeconds, plannedSpeed);
-        }
-
         // VARIANT_14 (furtherBlock)
         if (changeToBest && abs(bestLaneOffset) > 1) {
             // there might be a vehicle which needs to counter-lane-change one lane further and we cannot see it yet
@@ -715,13 +727,20 @@ MSLCM_JE2013::_wantsChange(
             myLeadingBlockerLength = MAX2((SUMOReal)(right ? 20.0 : 40.0), myLeadingBlockerLength);
         }
 
-        //}
         // letting vehicles merge in at the end of the lane in case of counter-lane change, step#1
         //   if there is a leader and he wants to change to the opposite direction
         saveBlockerLength(neighLead.first, lcaCounter);
         if (*firstBlocked != neighLead.first) {
             saveBlockerLength(*firstBlocked, lcaCounter);
         }
+
+        const SUMOReal remainingSeconds = MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY);
+        const SUMOReal plannedSpeed = informLeader(msgPass, blocked, myLca, neighLead, remainingSeconds);
+        if (plannedSpeed >= 0) {
+            // maybe we need to deal with a blocking follower
+            informFollower(msgPass, blocked, myLca, neighFollow, remainingSeconds, plannedSpeed);
+        }
+
         if (MSGlobals::gDebugFlag2) {
             std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
                 << " veh=" << myVehicle.getID()
@@ -778,6 +797,17 @@ MSLCM_JE2013::_wantsChange(
         if (MSGlobals::gDebugFlag2) std::cout << " veh=" << myVehicle.getID() << " could not change back and forth in time (2) currExtDist=" << currExtDist << " neighExtDist=" << neighExtDist << " neighLeftPlace=" << neighLeftPlace << "\n";
         return ret | LCA_STAY | LCA_STRATEGIC;
     }
+
+    // VARIANT_15
+    if (roundaboutEdgesAhead > 1) {
+        // try to use the inner lanes of a roundabout to increase throughput
+        // unless we are approaching the exit
+        if (lca == LCA_LEFT) {
+            return ret | lca | LCA_COOPERATIVE;
+        } else {
+            return ret | LCA_STAY | LCA_COOPERATIVE;
+        }
+    } 
 
     // let's also regard the case where the vehicle is driving on a highway...
     //  in this case, we do not want to get to the dead-end of an on-ramp
