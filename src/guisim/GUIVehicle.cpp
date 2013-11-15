@@ -323,7 +323,7 @@ GUIParameterTableWindow*
 GUIVehicle::getParameterWindow(GUIMainWindow& app,
                                GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 28);
+        new GUIParameterTableWindow(app, *this, 33);
     // add items
     ret->mkItem("lane [id]", false, myLane->getID());
     ret->mkItem("position [m]", true,
@@ -1361,7 +1361,7 @@ GUIVehicle::drawRouteHelper(const MSRoute& r, SUMOReal exaggeration) const {
     size_t bestLaneIndex = (&r == myRoute ? 0 : bestLaneConts.size());
     for (; i != r.end(); ++i) {
         const GUILane* lane;
-        if (bestLaneIndex < bestLaneConts.size() && (*i) == &(bestLaneConts[bestLaneIndex]->getEdge())) {
+        if (bestLaneIndex < bestLaneConts.size() && bestLaneConts[bestLaneIndex] != 0 && (*i) == &(bestLaneConts[bestLaneIndex]->getEdge())) {
             lane = static_cast<GUILane*>(bestLaneConts[bestLaneIndex]);
             ++bestLaneIndex;
         } else {
