@@ -390,6 +390,7 @@ MSLCM_LC2013::_wantsChange(
         MSVehicle** firstBlocked) 
 {
     assert(laneOffset == 1 || laneOffset == -1);
+    const SUMOTime currentTime = MSNet::getInstance()->getCurrentTimeStep(); 
     // compute bestLaneOffset
     MSVehicle::LaneQ curr, neigh, best;
     int bestLaneOffset = 0;
@@ -405,6 +406,7 @@ MSLCM_LC2013::_wantsChange(
     }
     for (int p = 0; p < (int) preb.size(); ++p) {
         if (preb[p].lane == prebLane && p + laneOffset >= 0) {
+            assert(p + laneOffset < preb.size());
             curr = preb[p];
             neigh = preb[p + laneOffset];
             currentDist = curr.length;
@@ -417,6 +419,7 @@ MSLCM_LC2013::_wantsChange(
             }
             best = preb[p + bestLaneOffset];
             currIdx = p;
+            break;
         }
     }
     // direction specific constants
@@ -486,8 +489,10 @@ MSLCM_LC2013::_wantsChange(
 
     const SUMOReal usableDist = (currentDist - myVehicle.getPositionOnLane() - best.occupation *  JAM_FACTOR);
 
-    if (changeToBest && bestLaneOffset == curr.bestLaneOffset
-            && currentDistDisallows(usableDist, bestLaneOffset, laDist)) {
+    const bool urgentStrat = (changeToBest && bestLaneOffset == curr.bestLaneOffset 
+            && currentDistDisallows(usableDist, bestLaneOffset, laDist)); 
+    ret = myVehicle.influenceChangeDecision(urgentStrat ? (ret | lca | LCA_STRATEGIC | LCA_URGENT) : ret); 
+    if ((ret & LCA_URGENT) != 0) { 
 
         // save the left space
         myLeftSpace = currentDist - myVehicle.getPositionOnLane();
@@ -503,14 +508,16 @@ MSLCM_LC2013::_wantsChange(
             saveBlockerLength(*firstBlocked, lcaCounter);
         }
 
-        const SUMOReal remainingSeconds = MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY);
+        const SUMOReal remainingSeconds = ((ret & LCA_TRACI) == 0 ? 
+                MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY) : 
+                myVehicle.getInfluencer().changeRequestRemainingSeconds(currentTime)); 
         const SUMOReal plannedSpeed = informLeader(msgPass, blocked, myLca, neighLead, remainingSeconds);
         if (plannedSpeed >= 0) {
             // maybe we need to deal with a blocking follower
             informFollower(msgPass, blocked, myLca, neighFollow, remainingSeconds, plannedSpeed);
         }
 
-        return ret | lca | LCA_STRATEGIC | LCA_URGENT;
+        return ret;
     }
 
     if (!right && !myVehicle.congested() && neighLead.first !=0) {
