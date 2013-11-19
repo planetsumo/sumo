@@ -218,10 +218,14 @@ AGActivities::generateInOutTraffic() {
     for (itA = myCity->peopleIncoming.begin(); itA != myCity->peopleIncoming.end(); ++itA) {
         int posi = myCity->statData.getRandomCityGateByIncoming();
         std::string nom(generateName(num, "carIn"));
-        AGTrip wayTrip(myCity->cityGates[posi], itA->getWorkPosition().getPosition(), nom, itA->getWorkPosition().getOpening());
+        // @todo: insert a proper departure model
+        int ro = RandHelper::rand(itA->getWorkPosition().getOpening()-1800, itA->getWorkPosition().getOpening()+1800);
+        AGTrip wayTrip(myCity->cityGates[posi], itA->getWorkPosition().getPosition(), nom, ro);
         //now we put the estimated time of entrance in the city.
         wayTrip.setDepTime(wayTrip.estimateDepTime(wayTrip.getTime(), myCity->statData.speedTimePerKm));
-        AGTrip retTrip(itA->getWorkPosition().getPosition(), myCity->cityGates[posi], nom, itA->getWorkPosition().getClosing());
+        // @todo: insert a proper departure model
+        ro = RandHelper::rand(itA->getWorkPosition().getClosing()-1800, itA->getWorkPosition().getClosing()+1800);
+        AGTrip retTrip(itA->getWorkPosition().getPosition(), myCity->cityGates[posi], nom, ro);
         trips.push_back(wayTrip);
         trips.push_back(retTrip);
         ++num;

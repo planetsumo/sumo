@@ -203,7 +203,9 @@ AGActivityGen::makeActivityTrips(int days, int beginSec, int endSec) {
     for (it = acts.trips.begin(); it != acts.trips.end(); ++it) {
         if (it->isDaily()) {
             for (int currday = 1; currday < durationInDays + 2; ++currday) {
-                AGTrip tr(it->getDep(), it->getArr(), it->getVehicleName(), it->getTime(), currday);
+                // @todo: once again, blurring the times...
+                int ro = RandHelper::rand(it->getTime()-900, it->getTime()+900);
+                AGTrip tr(it->getDep(), it->getArr(), it->getVehicleName(), ro, currday);
                 tr.setType(it->getType());
                 if (carUsed.find(tr.getVehicleName()) != carUsed.end()) {
                     ++carUsed.find(tr.getVehicleName())->second;

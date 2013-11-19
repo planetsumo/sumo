@@ -161,20 +161,27 @@ AGWorkAndSchool::carsToTrips() {
         if (itCar == myHousehold->getCars().end()) {
             return false;
         }
-        AGTrip trip(myHousehold->getPosition(), itDriA->getWorkPosition().getPosition(), *itCar, depHour(myHousehold->getPosition(), itDriA->getWorkPosition().getPosition(), itDriA->getWorkPosition().getOpening()));
+        // @todo: well, similar to closing hours: not using a random depart yields in peaks
+        //  but the approach used here is a hack only
+        int ro = RandHelper::rand(itDriA->getWorkPosition().getOpening()-1800, itDriA->getWorkPosition().getOpening()+1800);
+        AGTrip trip(myHousehold->getPosition(), itDriA->getWorkPosition().getPosition(), *itCar, depHour(myHousehold->getPosition(), itDriA->getWorkPosition().getPosition(), ro));
         ++itCar;
         tempTrip.push_back(trip);
     }
 
     std::list<AGAdult>::iterator itAccA;
     for (itAccA = adultNeedingCarAccompaniment.begin(); itAccA != adultNeedingCarAccompaniment.end(); ++itAccA) {
-        AGTrip trip(myHousehold->getPosition(), itAccA->getWorkPosition().getPosition(), depHour(myHousehold->getPosition(), itAccA->getWorkPosition().getPosition(), itAccA->getWorkPosition().getOpening()));
+        /// @todo: see above
+        int ro = RandHelper::rand(itAccA->getWorkPosition().getOpening()-1800, itAccA->getWorkPosition().getOpening()+1800);
+        AGTrip trip(myHousehold->getPosition(), itAccA->getWorkPosition().getPosition(), depHour(myHousehold->getPosition(), itAccA->getWorkPosition().getPosition(), ro));
         tempAccTrip.push_back(trip);
     }
 
     std::list<AGChild>::iterator itAccC;
     for (itAccC = childrenNeedingCarAccompaniment.begin(); itAccC != childrenNeedingCarAccompaniment.end(); ++itAccC) {
-        AGTrip trip(myHousehold->getPosition(), itAccC->getSchoolLocation(), depHour(myHousehold->getPosition(), itAccC->getSchoolLocation(), itAccC->getSchoolOpening()));
+        /// @todo: see above
+        int ro = RandHelper::rand(itAccC->getSchoolOpening()-900, itAccC->getSchoolOpening()+900);
+        AGTrip trip(myHousehold->getPosition(), itAccC->getSchoolLocation(), depHour(myHousehold->getPosition(), itAccC->getSchoolLocation(), ro));
         tempAccTrip.push_back(trip);
     }
 
@@ -333,7 +340,14 @@ AGWorkAndSchool::generateListTrips() {
     for (itA = personsDrivingCars.begin(); itA != personsDrivingCars.end(); ++itA) {
         for (itDriT = tempTrip.begin(); itDriT != tempTrip.end(); ++itDriT) {
             if (itA->getWorkPosition().getPosition() == itDriT->getArr()) {
-                AGTrip trip(itA->getWorkPosition().getPosition(), myHousehold->getPosition(), itDriT->getVehicleName(), itA->getWorkPosition().getClosing());
+                // @todo: look, the original code used "itA->getWorkPosition().getClosing()" only
+                //  this turned out to yield in very high peaks at every hour's begin yielding in
+                //  jams and inhomogenous time lines, not observable in reality
+                //  On the other hand but, simply spreading the back home departures across the closing
+                //  hour does not seem to be a proper model to, neither. We may keep it for now, but 
+                //  should discuss this.
+                int ro = RandHelper::rand(itA->getWorkPosition().getClosing()-1800, itA->getWorkPosition().getClosing()+1800);
+                AGTrip trip(itA->getWorkPosition().getPosition(), myHousehold->getPosition(), itDriT->getVehicleName(), ro);
                 myPartialActivityTrips.push_back(trip);
                 tempTrip.erase(itDriT);
                 break;
