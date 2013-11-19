@@ -51,6 +51,13 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
+AGCity::~AGCity() {
+    for(std::map<std::string, AGStreet*>::iterator i=streets.begin(); i!=streets.end(); ++i) {
+        delete (*i).second;
+    }
+}
+
+
 void
 AGCity::completeStreets() {
     if (streetsCompleted) {
@@ -60,11 +67,11 @@ AGCity::completeStreets() {
     }
 
     SUMOReal pop = 0, work = 0;
-    std::vector<AGStreet>::iterator it;
+    std::map<std::string, AGStreet*>::iterator it;
 
     for (it = streets.begin(); it != streets.end(); ++it) {
-        pop += it->getPopulation();
-        work += it->getWorkplaceNumber();
+        pop += (*it).second->getPopulation();
+        work += (*it).second->getWorkplaceNumber();
     }
     statData.factorInhabitants = (SUMOReal)statData.inhabitants / pop;
     //can be improved with other input data
@@ -78,8 +85,8 @@ AGCity::completeStreets() {
     statData.factorWorkPositions = neededWorkPositionsInCity / (SUMOReal) work;
 
     for (it = streets.begin(); it != streets.end(); ++it) {
-        it->setPopulation(it->getPopulation() * statData.factorInhabitants);
-        it->setWorkplaceNumber(it->getWorkplaceNumber() * statData.factorWorkPositions);
+        (*it).second->setPopulation((*it).second->getPopulation() * statData.factorInhabitants);
+        (*it).second->setWorkplaceNumber((*it).second->getWorkplaceNumber() * statData.factorWorkPositions);
         //it->print();
     }
 
@@ -88,6 +95,9 @@ AGCity::completeStreets() {
     std::vector<AGStreet>::iterator itS;
 
     for (itE = net->getEdgeMap().begin(); itE != net->getEdgeMap().end(); ++itE) {
+        std::map<std::string, AGStreet*>::iterator itS = streets.find(itE->second->getID());
+        if(itS==streets.end() && itE->second->getType() != ROEdge::ET_INTERNAL) {
+            /*
         for (itS = streets.begin(); itS != streets.end(); ++itS) {
             if (itS->getName() == itE->second->getID()) {
                 break;
@@ -95,21 +105,27 @@ AGCity::completeStreets() {
         }
         //if this edge isn't represented by a street
         if (itS == streets.end() && itE->second->getType() != ROEdge::ET_INTERNAL) {
-            streets.push_back(AGStreet(itE->second));
+        */
+            streets[itE->second->getID()] = new AGStreet(itE->second);
         }
+    }
+    // @todo: we should already have a class that realises the access to a random member of what is originally a map;
+    //  not today, hack a new one 
+    for(std::map<std::string, AGStreet*>::const_iterator i=streets.begin(); i!=streets.end(); ++i) {
+        streetsVector.push_back((*i).second);
     }
 }
 
 void
 AGCity::generateWorkPositions() {
-    std::vector<AGStreet>::iterator it;
+    std::map<std::string, AGStreet*>::iterator it;
     int workPositionCounter = 0;
 
     try {
         for (it = streets.begin(); it != streets.end(); ++it) {
             //std::cout << "number of work positions in street: " << it->getWorkplaceNumber() << std::endl;
-            for (int i = 0; i < it->getWorkplaceNumber(); ++i) {
-                workPositions.push_back(AGWorkPosition(&statData, *it));
+            for (int i = 0; i < it->second->getWorkplaceNumber(); ++i) {
+                workPositions.push_back(AGWorkPosition(&statData, *it->second));
                 ++workPositionCounter;
             }
         }
@@ -166,7 +182,7 @@ AGCity::completeBusLines() {
 
 void
 AGCity::generatePopulation() {
-    std::vector<AGStreet>::iterator it;
+    std::map<std::string, AGStreet*>::iterator it;
     SUMOReal people = 0;
     nbrCars = 0;
     unsigned int idHouseholds = 0;
@@ -195,11 +211,11 @@ AGCity::generatePopulation() {
         }
     }
     for (it = streets.begin(); it != streets.end(); ++it) {
-        people += it->getPopulation();
+        people += it->second->getPopulation();
         while (people > 0 && idHouseholds < (unsigned int)numAdults.size()) {
             size_t i = RandHelper::rand(numAdults.size() - idHouseholds);
             ++idHouseholds;
-            households.push_back(AGHousehold(&*it, this, idHouseholds));
+            households.push_back(AGHousehold(it->second, this, idHouseholds));
             households.back().generatePeople(abs(numAdults[i]), numChilds[i], numAdults[i] < 0); //&statData
             //households.back().generateCars(statData.carRate);
             people -= households.back().getPeopleNbr();
@@ -398,12 +414,9 @@ AGCity::getStreet(const std::string& edge) {
         std::cout << "first completed in getStreet() of City: Consolidation of data not needed in ActivityGen any more" << std::endl;
     }
     //rest of the function
-    std::vector<AGStreet>::iterator it = streets.begin();
-    while (it != streets.end()) {
-        if (it->getName() == edge) {
-            return *it;
-        }
-        ++it;
+    std::map<std::string, AGStreet*>::iterator it = streets.find(edge);
+    if(it!=streets.end()) {
+        return *it->second;
     }
     std::cout << "===> ERROR: WRONG STREET EDGE (" << edge << ") given and not found in street set." << std::endl;
     throw(std::runtime_error("Street not found with edge id " + edge));
@@ -414,7 +427,7 @@ AGCity::getRandomStreet() {
     if (streets.empty()) {
         throw(std::runtime_error("No street found in this city"));
     }
-    return streets[RandHelper::rand(streets.size())];
+    return *streetsVector[RandHelper::rand(streetsVector.size())];
 }
 
 /****************************************************************************/

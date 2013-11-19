@@ -192,8 +192,7 @@ AGActivityGenHandler::parseStreets(const SUMOSAXAttributes& attrs) {
             return;
         }
 
-        AGStreet str(e, pop, work);
-        myCity.streets.push_back(str);
+        myCity.streets[e->getID()] = new AGStreet(e, pop, work);
 
     } catch (const exception& e) {
         WRITE_ERROR("Error while parsing the element " +

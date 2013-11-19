@@ -63,6 +63,8 @@ public:
         net(net),
         streetsCompleted(false) {};
 
+    ~AGCity();
+
     /**
      * generates streets: complete the "streets" vector using the DataAndStat's map edges.
      */
@@ -85,7 +87,8 @@ public:
     const AGStreet& getRandomStreet();
 
     AGDataAndStatistics& statData;
-    std::vector<AGStreet> streets;
+    std::map<std::string, AGStreet*> streets;
+    std::vector<AGStreet*> streetsVector;
     std::vector<AGWorkPosition> workPositions;
     std::list<AGSchool> schools;
     std::list<AGBusLine> busLines;
