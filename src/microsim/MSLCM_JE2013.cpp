@@ -85,7 +85,7 @@
 //#define DEBUG_COND (myVehicle.getID() == "pkw22806" || myVehicle.getID() == "pkw22823")
 //#define DEBUG_COND (myVehicle.getID() == "emitter_SST92-150 FG 1 DE 3_26966400" || myVehicle.getID() == "emitter_SST92-150 FG 1 DE 1_26932941" || myVehicle.getID() == "emitter_SST92-175 FG 1 DE 129_27105000") 
 //#define DEBUG_COND (myVehicle.getID() == "Costa_200_153" || myVehicle.getID() == "Costa_12_154") // fail change to left
-//#define DEBUG_COND (myVehicle.getID() == "veh1") // test stops_overtaking
+//#define DEBUG_COND (myVehicle.getID() == "150_3_36013043") // test stops_overtaking
 #define DEBUG_COND false
 
 // debug function
@@ -149,6 +149,7 @@ MSLCM_JE2013::wantsChange(
                 << ((result & LCA_COOPERATIVE) ? " (coop)" : "")
                 << ((result & LCA_SPEEDGAIN) ? " (speed)" : "")
                 << ((result & LCA_KEEPRIGHT) ? " (keepright)" : "")
+                << ((result & LCA_TRACI) ? " (traci)" : "")
                 << ((blocked & LCA_BLOCKED) ? " (blocked)" : "")
                 << ((blocked & LCA_OVERLAPPING) ? " (overlap)" : "")
                 << "\n";
@@ -214,7 +215,11 @@ MSLCM_JE2013::_patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOR
             gotOne = true;
             if (MSGlobals::gDebugFlag1) std::cout << time << " veh=" << myVehicle.getID() << " got nVSafe=" << nVSafe << "\n";
         } else {
-            if (MSGlobals::gDebugFlag1) std::cout << time << " veh=" << myVehicle.getID() << " ignoring nVSafe=" << v << "\n";
+            if (v < min) {
+                if (MSGlobals::gDebugFlag1) std::cout << time << " veh=" << myVehicle.getID() << " ignoring low nVSafe=" << v << " min=" << min << "\n";
+            } else {
+                if (MSGlobals::gDebugFlag1) std::cout << time << " veh=" << myVehicle.getID() << " ignoring high nVSafe=" << v << " max=" << max << "\n";
+            }
         }
     }
 
@@ -304,7 +309,9 @@ MSLCM_JE2013::_patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOR
 void*
 MSLCM_JE2013::inform(void* info, MSVehicle* sender) {
     Info* pinfo = (Info*) info;
-    myVSafes.push_back(pinfo->first);
+    if (pinfo->first >= 0) {
+        myVSafes.push_back(pinfo->first);
+    }
     //myOwnState &= 0xffffffff; // reset all bits of MyLCAEnum but only those
     myOwnState |= pinfo->second;
     if (MSGlobals::gDebugFlag2 || DEBUG_COND) {
@@ -723,6 +730,8 @@ MSLCM_JE2013::_wantsChange(
 
     const SUMOReal usableDist = (currentDist - myVehicle.getPositionOnLane() - best.occupation *  JAM_FACTOR);
             //- (best.lane->getVehicleNumber() * neighSpeed)); // VARIANT 9 jfSpeed
+    const SUMOReal maxJam = MAX2(preb[currIdx + laneOffset].occupation, preb[currIdx].occupation);
+    const SUMOReal neighLeftPlace = MAX2((SUMOReal) 0, neighDist - myVehicle.getPositionOnLane() - maxJam);
 
     if (MSGlobals::gDebugFlag2) {
         std::cout << STEPS2TIME(currentTime)
@@ -736,13 +745,59 @@ MSLCM_JE2013::_wantsChange(
             << "\n";
     }
 
-    const bool urgentStrat = (changeToBest && bestLaneOffset == curr.bestLaneOffset
-            && currentDistDisallows(usableDist, bestLaneOffset, laDist));
-    ret = myVehicle.influenceChangeDecision(urgentStrat ? (ret | lca | LCA_STRATEGIC | LCA_URGENT) : ret);
-    if ((ret & LCA_URGENT) != 0) {
+    if (changeToBest && bestLaneOffset == curr.bestLaneOffset 
+            && currentDistDisallows(usableDist, bestLaneOffset, laDist)) {
+        /// @brief we urgently need to change lanes to follow our route
+        ret = ret | lca | LCA_STRATEGIC | LCA_URGENT;
+    } else {
+        // VARIANT_20 (noOvertakeRight)
+        if (!right && !myVehicle.congested() && neighLead.first !=0) {
+            // check for slower leader on the left. we should not overtake but
+            // rather move left ourselves (unless congested)
+            MSVehicle* nv = neighLead.first;
+            if (nv->getSpeed() < myVehicle.getSpeed()) {
+                mySpeedGainProbability += 0.3;
+                myVSafes.push_back(myCarFollowModel.followSpeed(
+                            &myVehicle, myVehicle.getSpeed(), neighLead.second, nv->getSpeed(), nv->getCarFollowModel().getMaxDecel()));
+                if (MSGlobals::gDebugFlag2) {
+                    std::cout << STEPS2TIME(currentTime)
+                        << " avoid overtaking on the right nv=" << nv->getID()
+                        << " nvSpeed=" << nv->getSpeed()
+                        << " mySpeedGainProbability=" << mySpeedGainProbability
+                        << " plannedSpeed=" << myVSafes.back()
+                        << "\n";
+                }
+            }
+        }
+
+        if (!changeToBest && (currentDistDisallows(neighLeftPlace, abs(bestLaneOffset) + 2, laDist))) {
+            // the opposite lane-changing direction should be done than the one examined herein
+            //  we'll check whether we assume we could change anyhow and get back in time...
+            //
+            // this rule prevents the vehicle from moving in opposite direction of the best lane
+            //  unless the way till the end where the vehicle has to be on the best lane
+            //  is long enough
+            if (MSGlobals::gDebugFlag2) std::cout << " veh=" << myVehicle.getID() << " could not change back and forth in time (1) neighLeftPlace=" << neighLeftPlace << "\n";
+            ret = ret | LCA_STAY | LCA_STRATEGIC;
+        } else if (bestLaneOffset == 0 && (neighLeftPlace * 2. < laDist)) {
+            // the current lane is the best and a lane-changing would cause a situation
+            //  of which we assume we will not be able to return to the lane we have to be on.
+            // this rule prevents the vehicle from leaving the current, best lane when it is
+            //  close to this lane's end
+            if (MSGlobals::gDebugFlag2) std::cout << " veh=" << myVehicle.getID() << " could not change back and forth in time (2) currExtDist=" << currExtDist << " neighExtDist=" << neighExtDist << " neighLeftPlace=" << neighLeftPlace << "\n";
+            ret = ret | LCA_STAY | LCA_STRATEGIC;
+        }
+    }
+    // check for overriding TraCI requests
+    ret = myVehicle.influenceChangeDecision(ret); 
+
+    if ((ret & LCA_STAY) != 0) {
+        return ret;
+    }
+    if ((ret & LCA_URGENT) != 0) { 
+        // prepare urgent lane change maneuver
         // save the left space
         myLeftSpace = currentDist - myVehicle.getPositionOnLane();
-        // VARIANT_14 (furtherBlock)
         if (changeToBest && abs(bestLaneOffset) > 1) {
             // there might be a vehicle which needs to counter-lane-change one lane further and we cannot see it yet
             if (MSGlobals::gDebugFlag2) std::cout << "  reserving space for unseen blockers\n";
@@ -756,9 +811,9 @@ MSLCM_JE2013::_wantsChange(
             saveBlockerLength(*firstBlocked, lcaCounter);
         }
 
-        const SUMOReal remainingSeconds = ((ret & LCA_TRACI) == 0 ?
-                MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY) :
-                myVehicle.getInfluencer().changeRequestRemainingSeconds(currentTime));
+        const SUMOReal remainingSeconds = ((ret & LCA_TRACI) == 0 ? 
+                MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY) : 
+                myVehicle.getInfluencer().changeRequestRemainingSeconds(currentTime)); 
         const SUMOReal plannedSpeed = informLeader(msgPass, blocked, myLca, neighLead, remainingSeconds);
         if (plannedSpeed >= 0) {
             // maybe we need to deal with a blocking follower
@@ -773,53 +828,7 @@ MSLCM_JE2013::_wantsChange(
                 << " plannedSpeed=" << plannedSpeed
                 << "\n";
         }
-        //
         return ret;
-    }
-
-    // VARIANT_20 (noOvertakeRight)
-    if (!right && !myVehicle.congested() && neighLead.first !=0) {
-        // check for slower leader on the left. we should not overtake but
-        // rather move left ourselves (unless congested)
-        MSVehicle* nv = neighLead.first;
-        if (nv->getSpeed() < myVehicle.getSpeed()) {
-            myVSafes.push_back(myCarFollowModel.followSpeed(
-                    &myVehicle, myVehicle.getSpeed(), neighLead.second, nv->getSpeed(), nv->getCarFollowModel().getMaxDecel()));
-            mySpeedGainProbability += 0.3;
-            if (MSGlobals::gDebugFlag2) {
-                std::cout << STEPS2TIME(currentTime)
-                    << " avoid overtaking on the right nv=" << nv->getID()
-                    << " nvSpeed=" << nv->getSpeed()
-                    << " mySpeedGainProbability=" << mySpeedGainProbability
-                    << " plannedSpeed=" << myVSafes.back()
-                    << "\n";
-            }
-        }
-    }
-
-    // the opposite lane-changing direction should be done than the one examined herein
-    //  we'll check whether we assume we could change anyhow and get back in time...
-    //
-    // this rule prevents the vehicle from moving in opposite direction of the best lane
-    //  unless the way till the end where the vehicle has to be on the best lane
-    //  is long enough
-    SUMOReal maxJam = MAX2(preb[currIdx + laneOffset].occupation, preb[currIdx].occupation);
-    SUMOReal neighLeftPlace = MAX2((SUMOReal) 0, neighDist - myVehicle.getPositionOnLane() - maxJam);
-    if (!changeToBest && (currentDistDisallows(neighLeftPlace, abs(bestLaneOffset) + 2, laDist))) {
-        // ...we will not change the lane if not
-        if (MSGlobals::gDebugFlag2) std::cout << " veh=" << myVehicle.getID() << " could not change back and forth in time (1) neighLeftPlace=" << neighLeftPlace << "\n";
-        return ret | LCA_STAY | LCA_STRATEGIC;
-    }
-
-
-    // if the current lane is the best and a lane-changing would cause a situation
-    //  of which we assume we will not be able to return to the lane we have to be on...
-    //
-    // this rule prevents the vehicle from leaving the current, best lane when it is
-    //  close to this lane's end
-    if (bestLaneOffset == 0 && (neighLeftPlace * 2. < laDist)) {
-        if (MSGlobals::gDebugFlag2) std::cout << " veh=" << myVehicle.getID() << " could not change back and forth in time (2) currExtDist=" << currExtDist << " neighExtDist=" << neighExtDist << " neighLeftPlace=" << neighLeftPlace << "\n";
-        return ret | LCA_STAY | LCA_STRATEGIC;
     }
 
     // VARIANT_15
