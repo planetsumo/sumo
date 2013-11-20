@@ -66,6 +66,7 @@
 //#define JAM_FACTOR 2. // VARIANT_8 (makes vehicles more focused but also more "selfish")
 
 #define LCA_RIGHT_IMPATIENCE (SUMOReal)-1.
+#define CUT_IN_LEFT_SPEED_THRESHOLD (SUMOReal)27.
 
 #define LOOK_AHEAD_MIN_SPEED (SUMOReal)0.0
 #define LOOK_AHEAD_SPEED_MEMORY (SUMOReal)0.9
@@ -85,7 +86,7 @@
 //#define DEBUG_COND (myVehicle.getID() == "pkw22806" || myVehicle.getID() == "pkw22823")
 //#define DEBUG_COND (myVehicle.getID() == "emitter_SST92-150 FG 1 DE 3_26966400" || myVehicle.getID() == "emitter_SST92-150 FG 1 DE 1_26932941" || myVehicle.getID() == "emitter_SST92-175 FG 1 DE 129_27105000") 
 //#define DEBUG_COND (myVehicle.getID() == "Costa_200_153" || myVehicle.getID() == "Costa_12_154") // fail change to left
-//#define DEBUG_COND (myVehicle.getID() == "150_3_36013043") // test stops_overtaking
+//#define DEBUG_COND (myVehicle.getID() == "150_2_36000000") // test stops_overtaking
 #define DEBUG_COND false
 
 // debug function
@@ -371,8 +372,8 @@ MSLCM_JE2013::informLeader(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
                     &myVehicle, myVehicle.getSpeed(), neighLead.second, nv->getSpeed(), nv->getCarFollowModel().getMaxDecel());
             if (targetSpeed < myVehicle.getSpeed()) {
                 // slow down smoothly to follow leader 
-                const SUMOReal decel = MIN2(myVehicle.getCarFollowModel().getMaxDecel(), 
-                        MAX2(MIN_FALLBEHIND, (myVehicle.getSpeed() - targetSpeed) / remainingSeconds));
+                const SUMOReal decel = ACCEL2SPEED(MIN2(myVehicle.getCarFollowModel().getMaxDecel(), 
+                        MAX2(MIN_FALLBEHIND, (myVehicle.getSpeed() - targetSpeed) / remainingSeconds)));
                 const SUMOReal nextSpeed = MIN2(plannedSpeed, myVehicle.getSpeed() - decel);
                 if (MSGlobals::gDebugFlag2) {
                     std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
@@ -471,16 +472,18 @@ MSLCM_JE2013::informFollower(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
         const SUMOReal helpDecel = nv->getCarFollowModel().getMaxDecel() * HELP_DECEL_FACTOR ;
 
         // change in the gap between ego and blocker over 1 second (not STEP!)
-        const SUMOReal neighNewSpeed = MAX2((SUMOReal)0, nv->getSpeed() - helpDecel);
-        const SUMOReal dv = plannedSpeed - neighNewSpeed; 
+        const SUMOReal neighNewSpeed = MAX2((SUMOReal)0, nv->getSpeed() - ACCEL2SPEED(helpDecel));
+        const SUMOReal neighNewSpeed1s = MAX2((SUMOReal)0, nv->getSpeed() - helpDecel);
+        const SUMOReal dv = plannedSpeed - neighNewSpeed1s;
         // new gap between follower and self in case the follower does brake for 1s
         const SUMOReal decelGap = neighFollow.second + dv;
-        const SUMOReal secureGap = nv->getCarFollowModel().getSecureGap(neighNewSpeed, plannedSpeed, myVehicle.getCarFollowModel().getMaxDecel());
+        const SUMOReal secureGap = nv->getCarFollowModel().getSecureGap(neighNewSpeed1s, plannedSpeed, myVehicle.getCarFollowModel().getMaxDecel());
         if (MSGlobals::gDebugFlag2) {
             std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
                 << " egoV=" << myVehicle.getSpeed()
                 << " egoNV=" << plannedSpeed
                 << " nvNewSpeed=" << neighNewSpeed
+                << " nvNewSpeed1s=" << neighNewSpeed1s
                 << " deltaGap=" << dv
                 << " decelGap=" << decelGap
                 << " secGap=" << secureGap
@@ -499,8 +502,10 @@ MSLCM_JE2013::informFollower(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
             if (MSGlobals::gDebugFlag2) std::cout << " wants to cut in before nv=" << nv->getID() << " (eventually)\n";
         } else { 
             SUMOReal vhelp = MAX2(nv->getSpeed(), myVehicle.getSpeed() + HELP_OVERTAKE);
-            if (dir == LCA_MRIGHT && myVehicle.getWaitingSeconds() > LCA_RIGHT_IMPATIENCE &&
-                    nv->getSpeed() > myVehicle.getSpeed()) {
+            if (nv->getSpeed() > myVehicle.getSpeed() && 
+                    ((dir == LCA_MRIGHT && myVehicle.getWaitingSeconds() > LCA_RIGHT_IMPATIENCE)
+                     || (dir == LCA_MLEFT && plannedSpeed > CUT_IN_LEFT_SPEED_THRESHOLD) // VARIANT_22 (slowDownLeft)
+                     )) {
                 // let the follower slow down to increase the likelyhood that later vehicles will be slow enough to help
                 // follower should still be fast enough to open a gap
                 vhelp = MAX2(neighNewSpeed, myVehicle.getSpeed() + HELP_OVERTAKE);
@@ -521,7 +526,7 @@ MSLCM_JE2013::informFollower(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
             // speed difference to create a sufficiently large gap
             const SUMOReal needDV = overtakeDist / remainingSeconds;
             // make sure the deceleration is not to strong
-            myVSafes.push_back(MAX2(vhelp - needDV, myVehicle.getSpeed() - myVehicle.getCarFollowModel().getMaxDecel()));
+            myVSafes.push_back(MAX2(vhelp - needDV, myVehicle.getSpeed() - ACCEL2SPEED(myVehicle.getCarFollowModel().getMaxDecel())));
 
             if (MSGlobals::gDebugFlag2) {
                 std::cout << STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())
@@ -599,7 +604,7 @@ MSLCM_JE2013::_wantsChange(
     }
     for (int p = 0; p < (int) preb.size(); ++p) {
         if (preb[p].lane == prebLane && p + laneOffset >= 0) {
-            assert(p + laneOffset < preb.size());
+            assert(p + laneOffset < (int)preb.size());
             curr = preb[p];
             neigh = preb[p + laneOffset];
             currentDist = curr.length;
@@ -789,7 +794,13 @@ MSLCM_JE2013::_wantsChange(
         }
     }
     // check for overriding TraCI requests
+    if (MSGlobals::gDebugFlag2) std::cout << STEPS2TIME(currentTime) << " veh=" << myVehicle.getID() << " ret=" << ret;
     ret = myVehicle.influenceChangeDecision(ret); 
+    if ((ret & lcaCounter) != 0) {
+        // we are not interested in traci requests for the opposite direction here
+        ret &= ~(LCA_TRACI | lcaCounter | LCA_URGENT); 
+    }
+    if (MSGlobals::gDebugFlag2) std::cout << " retAfterInfluence=" << ret << "\n";
 
     if ((ret & LCA_STAY) != 0) {
         return ret;
