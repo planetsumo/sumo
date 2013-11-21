@@ -385,6 +385,7 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
     myAmOnNet(false),
     myAmRegisteredAsWaitingForPerson(false),
     myHaveToWaitOnNextLink(false),
+    myCachedPosition(Position::INVALID),
     myEdgeWeights(0)
 #ifndef NO_TRACI
     , myInfluencer(0)
@@ -573,7 +574,7 @@ MSVehicle::adaptLaneEntering2MoveReminder(const MSLane& enteredLane) {
 
 // ------------ Other getter methods
 Position
-MSVehicle::getPosition(SUMOReal offset) const {
+MSVehicle::getPosition(const SUMOReal offset) const {
     if (myLane == 0) {
         return Position::INVALID;
     }
@@ -582,8 +583,15 @@ MSVehicle::getPosition(SUMOReal offset) const {
         shp.move2side(SUMO_const_laneWidth);
         return shp.positionAtOffset(myLane->interpolateLanePosToGeometryPos(getPositionOnLane() + offset));
     }
+    const bool changingLanes = getLaneChangeModel().isChangingLanes();
+    if (offset == 0. && !changingLanes) {
+        if (myCachedPosition == Position::INVALID) {
+            myCachedPosition = myLane->geometryPositionAtOffset(myState.myPos);
+        }
+        return myCachedPosition;
+    }
     Position result = myLane->geometryPositionAtOffset(getPositionOnLane() + offset);
-    if (getLaneChangeModel().isChangingLanes()) {
+    if (changingLanes) {
         const Position other = getLaneChangeModel().getShadowLane()->geometryPositionAtOffset(getPositionOnLane() + offset);
         Line line = getLaneChangeModel().isLaneChangeMidpointPassed() ?  Line(other, result) : Line(result, other);
         return line.getPositionAtDistance(getLaneChangeModel().getLaneChangeCompletion() * line.length());
@@ -805,6 +813,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         }
     }
     lfLinks.clear();
+    myLinkLeaders.clear();
     //
     const MSCFModel& cfModel = getCarFollowModel();
     const SUMOReal vehicleLength = getVehicleType().getLength();
@@ -935,13 +944,12 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
             const MSVehicle* leader = it->first;
             if (leader->myLinkLeaders.count(getID()) == 0) {
                 // leader isn't already following us, now we follow it
-                myLeaderForLink[*link] = leader->getID();
                 myLinkLeaders.insert(leader->getID());
                 adaptToLeader(*it, seen, lastLink, lane, v, vLinkPass);
-                if (view > 0) {
+                if (lastLink != 0) {
                     // we are not yet on the junction with this linkLeader.
-                    // at least we can drive up to the junction and stop there
-                    v = MAX2(v, vLinkWait);
+                    // at least we can drive up to the previous link and stop there
+                    v = MAX2(v, lastLink->myVLinkWait);
                 }
             }
         }
@@ -1015,6 +1023,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         vLinkPass = MIN2(estimateSpeedAfterDistance(lane->getLength(), v, getVehicleType().getCarFollowModel().getMaxAccel()), laneMaxV); // upper bound
         lastLink = &lfLinks.back();
     }
+
 }
 
 
@@ -1109,6 +1118,9 @@ MSVehicle::executeMove() {
             // have waited; may pass if opened...
             if (opened) {
                 vSafe = (*i).myVLinkPass;
+                if (vSafe <= (*i).myVLinkWait) {
+                    myHaveToWaitOnNextLink = true;
+                }
                 lastWasGreenCont = link->isCont() && (ls == LINKSTATE_TL_GREEN_MAJOR);
             } else {
                 lastWasGreenCont = false;
@@ -1175,6 +1187,7 @@ MSVehicle::executeMove() {
     myAcceleration = SPEED2ACCEL(vNext - myState.mySpeed);
     myState.myPos += SPEED2DIST(vNext);
     myState.mySpeed = vNext;
+    myCachedPosition = Position::INVALID;
     std::vector<MSLane*> passedLanes;
     for (std::vector<MSLane*>::reverse_iterator i = myFurtherLanes.rbegin(); i != myFurtherLanes.rend(); ++i) {
         passedLanes.push_back(*i);
@@ -1218,13 +1231,6 @@ MSVehicle::executeMove() {
                             getLaneChangeModel().endLaneChangeManeuver();
                         }
                     }
-#ifdef HAVE_INTERNAL_LANES
-                    // erase leader for the past link
-                    if (myLeaderForLink.find(link) != myLeaderForLink.end()) {
-                        myLinkLeaders.erase(myLeaderForLink[link]);
-                        myLeaderForLink.erase(link);
-                    }
-#endif
                     moved = true;
                     if (approachedLane->getEdge().isVaporizing()) {
                         leaveLane(MSMoveReminder::NOTIFICATION_VAPORIZED);
@@ -1512,6 +1518,7 @@ MSVehicle::enterLaneAtMove(MSLane* enteredLane, bool onTeleporting) {
         activateReminders(MSMoveReminder::NOTIFICATION_TELEPORT);
         // normal move() isn't called so reset position here
         myState.myPos = 0;
+        myCachedPosition = Position::INVALID;
     }
     return hasArrived();
 }
@@ -1572,6 +1579,7 @@ MSVehicle::enterLaneAtLaneChange(MSLane* enteredLane) {
 void
 MSVehicle::enterLaneAtInsertion(MSLane* enteredLane, SUMOReal pos, SUMOReal speed, MSMoveReminder::Notification notification) {
     myState = State(pos, speed);
+    myCachedPosition = Position::INVALID;
     assert(myState.myPos >= 0);
     assert(myState.mySpeed >= 0);
     myWaitingTime = 0;
@@ -1671,7 +1679,7 @@ MSVehicle::getBestLanes(bool forceRebuild, MSLane* startLane) const {
         }
         return *myBestLanes.begin();
     }
-    if (startLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL && myBestLanes.size() > 0) {
+    if (startLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
         if (myBestLanes.size() == 0 || forceRebuild) {
             // rebuilt from previous non-internal lane (may backtrack twice if behind an internal junction)
             getBestLanes(true, startLane->getLogicalPredecessorLane());
@@ -1954,6 +1962,7 @@ bool
 MSVehicle::fixPosition() {
     if (getPositionOnLane() > myLane->getLength()) {
         myState.myPos = myLane->getLength();
+        myCachedPosition = Position::INVALID;
         return true;
     }
     return false;
@@ -2213,6 +2222,7 @@ MSVehicle::loadState(const SUMOSAXAttributes& attrs, const SUMOTime offset) {
     }
     myState.myPos = attrs.getFloat(SUMO_ATTR_POSITION);
     myState.mySpeed = attrs.getFloat(SUMO_ATTR_SPEED);
+    // no need to reset myCachedPosition here since state loading happens directly after creation
 }
 
 
