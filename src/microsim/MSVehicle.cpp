@@ -677,6 +677,21 @@ MSVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffs
     if (myCurrEdge == stop.edge && myState.myPos > stop.endPos - getCarFollowModel().brakeGap(myState.mySpeed)) {
         return false;
     }
+    if (!hasDeparted() && myCurrEdge == stop.edge) {
+        SUMOReal pos = -1;
+        if (myParameter->departPosProcedure == DEPART_POS_GIVEN) {
+            pos = myParameter->departPos;
+            if (pos < 0.) {
+                pos += (*myCurrEdge)->getLength();
+            }
+        }
+        if (myParameter->departPosProcedure == DEPART_POS_BASE || myParameter->departPosProcedure == DEPART_POS_DEFAULT) {
+            pos = MIN2(static_cast<SUMOReal>(getVehicleType().getLength() + POSITION_EPS), (*myCurrEdge)->getLength());
+        }
+        if (pos > stop.endPos) {
+            return false;
+        }
+    }
     myStops.insert(iter, stop);
     return true;
 }
@@ -813,7 +828,9 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         }
     }
     lfLinks.clear();
+#ifdef HAVE_INTERNAL_LANES
     myLinkLeaders.clear();
+#endif
     //
     const MSCFModel& cfModel = getCarFollowModel();
     const SUMOReal vehicleLength = getVehicleType().getLength();
@@ -1118,7 +1135,8 @@ MSVehicle::executeMove() {
             // have waited; may pass if opened...
             if (opened) {
                 vSafe = (*i).myVLinkPass;
-                if (vSafe <= (*i).myVLinkWait) {
+                if (vSafe < getCarFollowModel().getMaxDecel() && vSafe <= (*i).myVLinkWait & vSafe < getCarFollowModel().maxNextSpeed(getSpeed(), this)) {
+                    // this vehicle is probably not gonna drive accross the next junction (heuristic)
                     myHaveToWaitOnNextLink = true;
                 }
                 lastWasGreenCont = link->isCont() && (ls == LINKSTATE_TL_GREEN_MAJOR);
@@ -1936,11 +1954,16 @@ MSVehicle::getBestLanesContinuation() const {
 
 const std::vector<MSLane*>&
 MSVehicle::getBestLanesContinuation(const MSLane* const l) const {
+    const MSLane* lane = l;
+    if (lane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
+        // internal edges are not kept inside the bestLanes structure
+        lane = lane->getLinkCont()[0]->getLane();
+    }
     if (myBestLanes.size() == 0) {
         return myEmptyLaneVector;
     }
     for (std::vector<LaneQ>::const_iterator i = myBestLanes[0].begin(); i != myBestLanes[0].end(); ++i) {
-        if ((*i).lane == l) {
+        if ((*i).lane == lane) {
             return (*i).bestContinuations;
         }
     }
