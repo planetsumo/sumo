@@ -681,7 +681,7 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
             continue;
         }
         SUMOReal gap = (*pred)->getPositionOnLane() - (*pred)->getVehicleType().getLength() - (*veh)->getPositionOnLane() - (*veh)->getVehicleType().getMinGap();
-        if (gap < -0.001) {
+        if (gap < -NUMERICAL_EPS) {
             MSVehicle* vehV = *veh;
             if (vehV->getLane() == this) {
                 WRITE_WARNING("Teleporting vehicle '" + vehV->getID() + "'; collision with '"
@@ -763,10 +763,12 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
             veh->leaveLane(MSMoveReminder::NOTIFICATION_JUNCTION);
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         } else if (veh->getPositionOnLane() > getLength()) {
-            // for any reasons the vehicle is beyond its lane... error
-            WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; beyond lane (2), targetLane='" + getID() + "', time=" +
+            // for any reasons the vehicle is beyond its lane... 
+            // this should never happen because it is handled in MSVehicle::executeMove
+            assert(false);
+            WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; beyond end of lane, targetLane='" + getID() + "', time=" +
                           time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-            MSNet::getInstance()->getVehicleControl().registerTeleport();
+            MSNet::getInstance()->getVehicleControl().registerCollision();
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         } else {
             ++i;
@@ -796,7 +798,13 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
                                   + reason
                                   + (r2 ? " (highway)" : "")
                                   + ", lane='" + getID() + "', time=" + time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-                    MSNet::getInstance()->getVehicleControl().registerTeleport();
+                    if (wrongLane) {
+                        MSNet::getInstance()->getVehicleControl().registerTeleportWrongLane();
+                    } else if (minorLink) {
+                        MSNet::getInstance()->getVehicleControl().registerTeleportYield();
+                    } else {
+                        MSNet::getInstance()->getVehicleControl().registerTeleportJam();
+                    }
                     MSVehicleTransfer::getInstance()->addVeh(t, veh);
                 }
             } // else look for a vehicle that isn't stopped?
@@ -862,7 +870,7 @@ MSLane::fill(RTREE& into) {
 
 template void MSLane::fill<NamedRTree>(NamedRTree& into);
 #ifndef NO_TRACI
-template void MSLane::fill<RTree<MSLane*, MSLane, float, 2, TraCIServerAPI_Lane::StoringVisitor> >(RTree<MSLane*, MSLane, float, 2, TraCIServerAPI_Lane::StoringVisitor>& into);
+template void MSLane::fill<LANE_RTREE_QUAL>(LANE_RTREE_QUAL& into);
 #endif
 
 // ------   ------
@@ -1097,7 +1105,7 @@ SUMOReal MSLane::getMissingRearGap(
 
 
 std::pair<MSVehicle* const, SUMOReal>
-MSLane::getFollowerOnConsecutive(SUMOReal dist, SUMOReal seen, SUMOReal leaderSpeed,
+MSLane::getFollowerOnConsecutive(SUMOReal dist, SUMOReal leaderSpeed,
                                  SUMOReal backOffset, SUMOReal leaderMaxDecel) const 
 {
     // do a tree search among all follower lanes and check for the most

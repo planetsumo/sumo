@@ -323,7 +323,7 @@ GUIParameterTableWindow*
 GUIVehicle::getParameterWindow(GUIMainWindow& app,
                                GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 33);
+        new GUIParameterTableWindow(app, *this, 34);
     // add items
     ret->mkItem("lane [id]", false, myLane->getID());
     ret->mkItem("position [m]", true,
@@ -371,6 +371,7 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
     ret->mkItem("minGap", false, myType->getMinGap());
     ret->mkItem("vehicle class", false, SumoVehicleClassStrings.getString(myType->getVehicleClass()));
     ret->mkItem("emission class", false, SumoEmissionClassStrings.getString(myType->getEmissionClass()));
+    ret->mkItem("maximum speed [m/s]", false, getMaxSpeed());
     ret->mkItem("maximum acceleration [m/s^2]", false, getCarFollowModel().getMaxAccel());
     ret->mkItem("maximum deceleration [m/s^2]", false, getCarFollowModel().getMaxDecel());
     ret->mkItem("imperfection (sigma)", false, getCarFollowModel().getImperfection());
@@ -529,7 +530,6 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             break;
         case SVS_BUS:
         case SVS_BUS_TROLLEY:
-        case SVS_BUS_CITY_FLEXIBLE:
         case SVS_BUS_CITY: {
             SUMOReal ml = length;
             glScaled(1. / (length), 1, 1.);
@@ -576,24 +576,15 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             glTranslated(0, 0, -.045);
         }
         break;
+        case SVS_BUS_CITY_FLEXIBLE:
         case SVS_BUS_OVERLAND:
         case SVS_RAIL:
-            drawAction_drawRailCarriages(s, 25.0, 1);
-            break;
         case SVS_RAIL_LIGHT:
-            drawAction_drawRailCarriages(s, 38.0);
-            break;
         case SVS_RAIL_CITY:
-            drawAction_drawRailCarriages(s, 25.0);
-            break;
         case SVS_RAIL_SLOW:
-            drawAction_drawRailCarriages(s, 15.0, 1);
-            break;
         case SVS_RAIL_FAST:
-            drawAction_drawRailCarriages(s, 40.0, 1);
-            break;
         case SVS_RAIL_CARGO:
-            drawAction_drawRailCarriages(s, 20.0);
+            drawAction_drawCarriageClass(s, shape, false);
             break;
         case SVS_E_VEHICLE:
             drawPoly(vehiclePoly_EVehicleBody, 4);
@@ -855,6 +846,37 @@ GUIVehicle::drawAction_drawVehicleAsImage(const GUIVisualizationSettings& s, SUM
 }
 
 
+bool 
+GUIVehicle::drawAction_drawCarriageClass(const GUIVisualizationSettings& s, SUMOVehicleShape guiShape, bool asImage) const {
+    switch (guiShape) {
+        case SVS_BUS_CITY_FLEXIBLE:
+        case SVS_BUS_OVERLAND:
+            drawAction_drawRailCarriages(s, 8.25, 0, 0, asImage); // 16.5 overall, 2 modules http://de.wikipedia.org/wiki/Ikarus_180
+            break;
+        case SVS_RAIL:
+            drawAction_drawRailCarriages(s, 24.5, 1, 1, asImage); // http://de.wikipedia.org/wiki/UIC-Y-Wagen_%28DR%29
+            break;
+        case SVS_RAIL_LIGHT:
+            drawAction_drawRailCarriages(s, 16.85, 1, 0, asImage); // 67.4m overall, 4 carriages http://de.wikipedia.org/wiki/DB-Baureihe_423
+            break;
+        case SVS_RAIL_CITY:
+            drawAction_drawRailCarriages(s, 5.71, 0, 0, asImage); // 40.0m overall, 7 modules http://de.wikipedia.org/wiki/Bombardier_Flexity_Berlin
+            break;
+        case SVS_RAIL_SLOW:
+            drawAction_drawRailCarriages(s, 9.44, 1, 1, asImage); // actually length of the locomotive http://de.wikipedia.org/wiki/KJI_Nr._20_und_21
+            break;
+        case SVS_RAIL_FAST:
+            drawAction_drawRailCarriages(s, 24.775, 0, 0, asImage); // http://de.wikipedia.org/wiki/ICE_3
+            break;
+        case SVS_RAIL_CARGO:
+            drawAction_drawRailCarriages(s, 13.86, 1, 0, asImage); // UIC 571-1 http://de.wikipedia.org/wiki/Flachwagen
+            break;
+        default:
+            return false;
+    }
+    return true;
+}
+
 #define BLINKER_POS_FRONT .5
 #define BLINKER_POS_BACK .5
 
@@ -946,32 +968,12 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
         case 3:
         default:
             // draw as image but take special care for drawing trains
-            // XXX handle default carriage lenghts someplace else
-            switch (getVehicleType().getGuiShape()) {
-                case SVS_RAIL:
-                    drawAction_drawRailCarriages(s, 25.0, 1, true);
-                    break;
-                case SVS_RAIL_LIGHT:
-                    drawAction_drawRailCarriages(s, 38.0, true);
-                    break;
-                case SVS_RAIL_CITY:
-                    drawAction_drawRailCarriages(s, 25.0, true);
-                    break;
-                case SVS_RAIL_SLOW:
-                    drawAction_drawRailCarriages(s, 15.0, 1, true);
-                    break;
-                case SVS_RAIL_FAST:
-                    drawAction_drawRailCarriages(s, 40.0, 1, true);
-                    break;
-                case SVS_RAIL_CARGO:
-                    drawAction_drawRailCarriages(s, 20.0, true);
-                    break;
-                default:
-                    // draw normal vehicle
-                    if (!drawAction_drawVehicleAsImage(s)) {
-                        drawAction_drawVehicleAsPoly(s);
-                    };
-            };
+            // fallback to simple shapes
+            if (!drawAction_drawCarriageClass(s, getVehicleType().getGuiShape(), true)) {
+                if (!drawAction_drawVehicleAsImage(s)) {
+                    drawAction_drawVehicleAsPoly(s);
+                };
+            }
             break;
     }
     if (s.drawMinGap) {
@@ -1373,35 +1375,17 @@ GUIVehicle::drawRouteHelper(const MSRoute& r, SUMOReal exaggeration) const {
 
 
 MSLane*
-GUIVehicle::getPreviousLane(MSLane* current, int& routeIndex) const {
-    const bool isInternal = current->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL;
-    if (isInternal) {
-        // route pointer still points to the previous lane
-        return myRoute->getEdges()[routeIndex]->getLanes()[0];
-    } else if (routeIndex == 0) {
-        // there is no previous lane because the route has just begun
-        return current;
+GUIVehicle::getPreviousLane(MSLane* current, int& furtherIndex) const {
+    if (furtherIndex < myFurtherLanes.size()) {
+        return myFurtherLanes[furtherIndex++];
     } else {
-        // retrieve the previous internal edge
-        routeIndex -= 1;
-        const MSEdge* previous = myRoute->getEdges()[routeIndex];
-#ifdef HAVE_INTERNAL_LANES
-        const MSEdge* previousInternal = previous->getInternalFollowingEdge(&current->getEdge());
-#else
-        const MSEdge* previousInternal = 0;
-#endif
-        if (previousInternal != 0) {
-            return previousInternal->getLanes()[0];
-        } else {
-            // network without internal links, use previous edge instead
-            return previous->getLanes()[0];
-        }
+        return current;
     }
 }
 
 
 void
-GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, int firstPassengerCarriage, bool asImage) const {
+GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, SUMOReal carriageGap, int firstPassengerCarriage, bool asImage) const {
     RGBColor current = GLHelper::getColor();
     RGBColor darker = current.changedBrightness(-51);
     const SUMOReal length = getVehicleType().getLength() * s.vehicleExaggeration;
@@ -1411,7 +1395,6 @@ GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMO
     glPushMatrix();
     glPushMatrix();
     GLHelper::setColor(darker);
-    const SUMOReal carriageGap = 1;
     const SUMOReal xCornerCut = 0.3;
     const SUMOReal yCornerCut = 0.4;
     // round to closest integer
@@ -1421,10 +1404,10 @@ GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMO
     const SUMOReal carriageLength = carriageLengthWithGap - carriageGap;
     // lane on which the carriage front is situated
     MSLane* lane = myLane;
-    int routeIndex = myCurrEdge - myRoute->begin();
+    int furtherIndex = 0;
     // lane on which the carriage back is situated
     MSLane* backLane = myLane;
-    int backRouteIndex = routeIndex;
+    int backFurtherIndex = furtherIndex;
     // offsets of front and back
     SUMOReal carriageOffset = myState.pos();
     SUMOReal carriageBackOffset = myState.pos() - carriageLength;
@@ -1436,11 +1419,11 @@ GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMO
     // draw individual carriages
     for (int i = 0; i < numCarriages; ++i) {
         while (carriageOffset < 0) {
-            lane = getPreviousLane(lane, routeIndex);
+            lane = getPreviousLane(lane, furtherIndex);
             carriageOffset += lane->getLength();
         }
         while (carriageBackOffset < 0) {
-            backLane = getPreviousLane(backLane, backRouteIndex);
+            backLane = getPreviousLane(backLane, backFurtherIndex);
             carriageBackOffset += backLane->getLength();
         }
         const Position front = lane->getShape().positionAtOffset2D(carriageOffset);
