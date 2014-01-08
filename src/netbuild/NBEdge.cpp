@@ -985,7 +985,6 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
     NBEdge* toEdge = 0;
     unsigned int edgeIndex = linkIndex;
     unsigned int internalLaneIndex = 0;
-    // connection index -> list of foe internal lane indices
     for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
         Connection& con = *i;
         con.haveVia = false; // reset first since this may be called multiple times
@@ -993,7 +992,8 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
             continue;
         }
         if (con.toEdge != toEdge) {
-            // skip indices to keep some correspondence between edge ids and link indices
+            // skip indices to keep some correspondence between edge ids and link indices:
+            // internalEdgeIndex + internalLaneIndex = linkIndex
             edgeIndex = linkIndex;
             toEdge = (*i).toEdge;
             internalLaneIndex = 0;
@@ -1002,6 +1002,7 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
         std::vector<unsigned int> foeInternalLinks;
 
         LinkDirection dir = n.getDirection(this, con.toEdge);
+        // crossingPosition, list of foe link indices
         std::pair<SUMOReal, std::vector<unsigned int> > crossingPositions(-1, std::vector<unsigned int>());
         std::set<std::string> tmpFoeIncomingLanes;
         switch (dir) {
