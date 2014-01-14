@@ -44,7 +44,13 @@
 // ===========================================================================
 SUMOReal
 PollutantsInterface::getMaxAccel(SUMOEmissionClass c, double v, double a, double slope) {
-    return -1;
+    if(c<SVE_META_HBEFA21_END) {
+        return -1;
+    } else if(c>SVE_META_HBEFA21_END && c<SVE_META_PHEMLIGHT_END) {
+        return HelpersPHEMlight::getMaxAccel(c, v, a, slope);
+    } else {
+        return 0;
+    }
 }
 
 
