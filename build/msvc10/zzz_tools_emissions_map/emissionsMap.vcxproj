@@ -196,9 +196,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\tools\emissions_map_main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\zz_foreign_nvwa\zz_foreign_nvwa.vcxproj">
       <Project>{fc5b65e0-a0b1-40d7-8687-c2fc79e3da47}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -233,6 +230,9 @@
       <Project>{508f0bff-83fe-444c-9509-a359bca83bc4}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\tools\emissionsMap_main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
