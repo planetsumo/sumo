@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 11/12/13 13:06:46 by SUMO dfrouter Version dev-SVN-r15093
+<!-- generated on 11/12/13 13:06:48 by SUMO dfrouter Version dev-SVN-r15093
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/dfrouterConfiguration.xsd">
@@ -16,9 +16,9 @@
         <emitters-output value="emitters.add.xml"/>
     </output>
 
-    <time>
-        <begin value="25200"/>
-    </time>
+    <processing>
+        <respect-concurrent-inflows value="true"/>
+    </processing>
 
 </configuration>
 -->
@@ -561,29 +561,29 @@
     <vehicle id="emitter_2_28740000" depart="28740.00" departLane="1" departPos="10.00" departSpeed="14.44" route="33_to_35"/>
     <vehicle id="emitter_2_28770000" depart="28770.00" departLane="1" departPos="10.00" departSpeed="14.44" route="33_to_35"/>
     <routeDistribution id="24">
-        <route refId="17_to_18" probability="0.01"/>
-        <route refId="17_to_-33" probability="0.64"/>
-        <route refId="17_to_35" probability="0.27"/>
-        <route refId="17_to_19" probability="0.08"/>
-        <route refId="17_to_20" probability="0.27"/>
+        <route refId="17_to_18" probability="0.00"/>
+        <route refId="17_to_-33" probability="0.97"/>
+        <route refId="17_to_35" probability="0.02"/>
+        <route refId="17_to_19" probability="0.01"/>
+        <route refId="17_to_20" probability="0.02"/>
     </routeDistribution>
-    <vehicle id="emitter_24_25500000" depart="25500.00" departLane="0" departPos="10.00" departSpeed="7.22" route="17_to_20"/>
+    <vehicle id="emitter_24_25500000" depart="25500.00" departLane="0" departPos="10.00" departSpeed="7.22" route="17_to_35"/>
     <vehicle id="emitter_24_25680000" depart="25680.00" departLane="0" departPos="10.00" departSpeed="5.56" route="17_to_-33"/>
-    <vehicle id="emitter_24_26100000" depart="26100.00" departLane="0" departPos="10.00" departSpeed="4.44" route="17_to_35"/>
+    <vehicle id="emitter_24_26100000" depart="26100.00" departLane="0" departPos="10.00" departSpeed="4.44" route="17_to_-33"/>
     <vehicle id="emitter_24_26220000" depart="26220.00" departLane="0" departPos="10.00" departSpeed="5.83" route="17_to_-33"/>
     <vehicle id="emitter_24_26460000" depart="26460.00" departLane="0" departPos="10.00" departSpeed="6.39" route="17_to_-33"/>
     <vehicle id="emitter_24_27660000" depart="27660.00" departLane="0" departPos="10.00" departSpeed="5.83" route="17_to_20"/>
     <vehicle id="emitter_24_28380000" depart="28380.00" departLane="0" departPos="10.00" departSpeed="5.83" route="17_to_-33"/>
     <routeDistribution id="25">
-        <route refId="17_to_18" probability="0.01"/>
-        <route refId="17_to_-33" probability="0.64"/>
-        <route refId="17_to_35" probability="0.27"/>
-        <route refId="17_to_19" probability="0.08"/>
-        <route refId="17_to_20" probability="0.27"/>
+        <route refId="17_to_18" probability="0.00"/>
+        <route refId="17_to_-33" probability="0.97"/>
+        <route refId="17_to_35" probability="0.02"/>
+        <route refId="17_to_19" probability="0.01"/>
+        <route refId="17_to_20" probability="0.02"/>
     </routeDistribution>
-    <vehicle id="emitter_25_25500000" depart="25500.00" departLane="1" departPos="10.00" departSpeed="8.06" route="17_to_35"/>
-    <vehicle id="emitter_25_26100000" depart="26100.00" departLane="1" departPos="10.00" departSpeed="5.00" route="17_to_35"/>
-    <vehicle id="emitter_25_26220000" depart="26220.00" departLane="1" departPos="10.00" departSpeed="9.17" route="17_to_19"/>
+    <vehicle id="emitter_25_25500000" depart="25500.00" departLane="1" departPos="10.00" departSpeed="8.06" route="17_to_-33"/>
+    <vehicle id="emitter_25_26100000" depart="26100.00" departLane="1" departPos="10.00" departSpeed="5.00" route="17_to_-33"/>
+    <vehicle id="emitter_25_26220000" depart="26220.00" departLane="1" departPos="10.00" departSpeed="9.17" route="17_to_-33"/>
     <routeDistribution id="37">
         <route refId="-19_to_35" probability="0.33"/>
         <route refId="-19_to_18" probability="0.01"/>
