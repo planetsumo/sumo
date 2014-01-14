@@ -67,7 +67,7 @@ void single(const std::string &of, const std::string &className, SUMOEmissionCla
             SUMOReal sMin, SUMOReal sMax, SUMOReal sStep,
             bool verbose) {
             if(verbose) {
-                MsgHandler::getMessageInstance()->inform("Writing map of '" + className + "' into '" + of + "'.");
+                WRITE_MESSAGE("Writing map of '" + className + "' into '" + of + "'.");
             }
 		std::ofstream o(of.c_str());
 		for(SUMOReal v=vMin; v<=vMax; v+=vStep) {
@@ -97,41 +97,42 @@ main(int argc, char **argv) {
     //  add options
     oc.addOptionSubTopic("Processing");
     oc.doRegister("iterate", 'i', new Option_Bool(false));
-    oc.addDescription("iterate", "Processing", "");
-
-    oc.doRegister("verbose", 'v', new Option_Bool(false));
-    oc.addDescription("verbose", "Processing", "");
+    oc.addDescription("iterate", "Processing", "If set, maps for all available emissions are written.");
 
     oc.doRegister("emission-class", 'e', new Option_String());
-    oc.addDescription("emission-class", "Processing", "");
+    oc.addDescription("emission-class", "Processing", "Defines the name of the emission class to generate the map for.");
 
     oc.doRegister("v-min", new Option_Float(0.));
-    oc.addDescription("v-min", "Processing", "");
+    oc.addDescription("v-min", "Processing", "Defines the minimum velocity boundary of the map to generate (in [m/s]).");
     oc.doRegister("v-max", new Option_Float(50.));
-    oc.addDescription("v-max", "Processing", "");
+    oc.addDescription("v-max", "Processing", "Defines the maximum velocity boundary of the map to generate (in [m/s]).");
     oc.doRegister("v-step", new Option_Float(2.));
-    oc.addDescription("v-step", "Processing", "");
+    oc.addDescription("v-step", "Processing", "Defines the velocity step size (in [m/s]).");
     oc.doRegister("a-min", new Option_Float(-4.));
-    oc.addDescription("a-min", "Processing", "");
+    oc.addDescription("a-min", "Processing", "Defines the minimum acceleration boundary of the map to generate (in [m/s^2]).");
     oc.doRegister("a-max", new Option_Float(4.));
-    oc.addDescription("a-max", "Processing", "");
+    oc.addDescription("a-max", "Processing", "Defines the maximum acceleration boundary of the map to generate (in [m/s^2]).");
     oc.doRegister("a-step", new Option_Float(.5));
-    oc.addDescription("a-step", "Processing", "");
+    oc.addDescription("a-step", "Processing", "Defines the acceleration step size (in [m/s^2]).");
     oc.doRegister("s-min", new Option_Float(-10.));
-    oc.addDescription("s-min", "Processing", "");
+    oc.addDescription("s-min", "Processing", "Defines the minimum slope boundary of the map to generate (in [°]).");
     oc.doRegister("s-max", new Option_Float(10.));
-    oc.addDescription("s-max", "Processing", "");
+    oc.addDescription("s-max", "Processing", "Defines the maximum slope boundary of the map to generate (in [°]).");
     oc.doRegister("s-step", new Option_Float(1.));
-    oc.addDescription("s-step", "Processing", "");
+    oc.addDescription("s-step", "Processing", "Defines the slope step size (in [°]).");
+
+    oc.addOptionSubTopic("Output");
+    oc.doRegister("output-file", 'o', new Option_String());
+    oc.addSynonyme("output", "output-file");
+    oc.addDescription("emission-class", "Output", "Defines the file (or the path if --iterate was set) to write the map(s) into.");
 
     oc.addOptionSubTopic("Emissions");
     oc.doRegister("phemlight-path", 'p', new Option_FileName("./PHEMlight/"));
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
 
-    oc.addOptionSubTopic("Output");
-    oc.doRegister("output-file", 'o', new Option_String());
-    oc.addSynonyme("output", "output-file");
-    oc.addDescription("emission-class", "Output", "");
+    oc.addOptionSubTopic("Report");
+    oc.doRegister("verbose", 'v', new Option_Bool(false));
+    oc.addDescription("verbose", "Report", "Switches to verbose output.");
 
     // run
     int ret = 0;

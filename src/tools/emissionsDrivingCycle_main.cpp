@@ -73,39 +73,44 @@ main(int argc, char **argv) {
     oc.setApplicationDescription("Computes emission by driving a time line.");
     oc.setApplicationName("emissionsTimeline", "SUMO emissionsTimeline Version " + (std::string)VERSION_STRING);
     //  add options
-    oc.addOptionSubTopic("Processing");
-    oc.doRegister("verbose", 'v', new Option_Bool(false));
-    oc.addDescription("verbose", "Processing", "");
 
-    oc.doRegister("compute-a", 'a', new Option_Bool(false));
-    oc.addDescription("compute-a", "Processing", "");
-
-    oc.doRegister("skip-first", 's', new Option_Bool(false));
-    oc.addDescription("skip-first", "Processing", "");
-
-    oc.doRegister("kmh", new Option_Bool(false));
-    oc.addDescription("kmh", "Processing", "");
-
-    oc.doRegister("have-slope", new Option_Bool(false));
-    oc.addDescription("have-slope", "Processing", "");
-
-    oc.doRegister("slope", new Option_Float(0));
-    oc.addDescription("slope", "Processing", "");
-
+    oc.addOptionSubTopic("Input");
     oc.doRegister("timeline-file", 't', new Option_FileName());
     oc.addSynonyme("timeline", "timeline-file");
-    oc.addDescription("timeline-file", "Processing", "Determines the trace file to read.");
-
-    oc.doRegister("phemlight-path", 'p', new Option_FileName("./PHEMlight/"));
-    oc.addDescription("phemlight-path", "Processing", "Determines where to load PHEMlight definitions from.");
+    oc.addDescription("timeline-file", "Input", "Defines the file to read the driving cycle from.");
 
     oc.doRegister("emission-class", 'e', new Option_String());
-    oc.addDescription("emission-class", "Processing", "");
+    oc.addDescription("emission-class", "Input", "Defines for which emission class the emissions shall be generated. ");
     
+
+    oc.addOptionSubTopic("Processing");
+    oc.doRegister("compute-a", 'a', new Option_Bool(false));
+    oc.addDescription("compute-a", "Processing", "If set, the acceleration is computed instead of being read from the file. ");
+
+    oc.doRegister("skip-first", 's', new Option_Bool(false));
+    oc.addDescription("skip-first", "Processing", "If set, the first line of the read file is skipped.");
+
+    oc.doRegister("kmh", new Option_Bool(false));
+    oc.addDescription("kmh", "Processing", "If set, the given speed is interpreted as being given in km/h.");
+
+    oc.doRegister("have-slope", new Option_Bool(false));
+    oc.addDescription("have-slope", "Processing", "If set, the fourth column is read and used as slope (in [°]).");
+
+    oc.doRegister("slope", new Option_Float(0));
+    oc.addDescription("slope", "Processing", "Sets a global slope (in [°]) that is used if the file does not contain slope information.");
+
     oc.addOptionSubTopic("Output");
     oc.doRegister("output-file", 'o', new Option_String());
     oc.addSynonyme("output", "output-file");
-    oc.addDescription("emission-class", "Output", "");
+    oc.addDescription("emission-class", "Output", "Defines the file to write the emission cycle results into. ");
+
+    oc.addOptionSubTopic("Emissions");
+    oc.doRegister("phemlight-path", 'p', new Option_FileName("./PHEMlight/"));
+    oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
+
+    oc.addOptionSubTopic("Report");
+    oc.doRegister("verbose", 'v', new Option_Bool(false));
+    oc.addDescription("verbose", "Report", "Switches to verbose output.");
 
     // run
     int ret = 0;
