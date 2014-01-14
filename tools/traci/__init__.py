@@ -39,8 +39,21 @@ def _TIME2STEPS(time):
     """Conversion from (float) time in seconds to milliseconds as int"""
     return int(time*1000)
 
+class TraCIException(Exception):
+    """Exception class for all TraCI errors which keep the connection intact"""
+    def __init__(self, command, errorType, desc):
+        Exception.__init__(self, desc)
+        self._command = command
+        self._type = errorType
+    
+    def getCommand(self):
+        return self._command
+
+    def getType(self):
+        return self._type
+
 class FatalTraCIError(Exception):
-    """Exception class for all TraCI errors"""
+    """Exception class for all TraCI errors which do not allow for continuation"""
     def __init__(self, desc):
         Exception.__init__(self, desc)
 
@@ -123,12 +136,13 @@ class SubscriptionResults:
             return self._results
         return self._results.get(refID, None)
 
-    def addContext(self, refID, domain, objID, varID, data):
+    def addContext(self, refID, domain, objID, varID=None, data=None):
         if refID not in self._contextResults:
             self._contextResults[refID] = {}
         if objID not in self._contextResults[refID]:
             self._contextResults[refID][objID] = {}
-        self._contextResults[refID][objID][varID] = domain._parse(varID, data)
+        if varID != None and data != None:
+            self._contextResults[refID][objID][varID] = domain._parse(varID, data)
         
     def getContext(self, refID=None):
         if refID == None:
@@ -141,12 +155,13 @@ class SubscriptionResults:
 
 from . import constants
 from . import inductionloop, multientryexit, trafficlights
-from . import lane, vehicle, vehicletype, route
+from . import lane, vehicle, vehicletype, route, areal
 from . import poi, polygon, junction, edge, simulation, gui
 
 _modules = {constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE: inductionloop,
             constants.RESPONSE_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE:\
             multientryexit,
+            constants.RESPONSE_SUBSCRIBE_AREAL_DETECTOR_VARIABLE: areal,
             constants.RESPONSE_SUBSCRIBE_TL_VARIABLE: trafficlights,
             constants.RESPONSE_SUBSCRIBE_LANE_VARIABLE: lane,
             constants.RESPONSE_SUBSCRIBE_VEHICLE_VARIABLE: vehicle,
@@ -162,6 +177,7 @@ _modules = {constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE: inductionloop,
             constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_CONTEXT: inductionloop,
             constants.RESPONSE_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT:\
             multientryexit,
+            constants.RESPONSE_SUBSCRIBE_AREAL_DETECTOR_CONTEXT: areal,
             constants.RESPONSE_SUBSCRIBE_TL_CONTEXT: trafficlights,
             constants.RESPONSE_SUBSCRIBE_LANE_CONTEXT: lane,
             constants.RESPONSE_SUBSCRIBE_VEHICLE_CONTEXT: vehicle,
@@ -177,6 +193,7 @@ _modules = {constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE: inductionloop,
             constants.CMD_GET_INDUCTIONLOOP_VARIABLE: inductionloop,
             constants.CMD_GET_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE:\
             multientryexit,
+            constants.CMD_GET_AREAL_DETECTOR_VARIABLE: areal,
             constants.CMD_GET_TL_VARIABLE: trafficlights,
             constants.CMD_GET_LANE_VARIABLE: lane,
             constants.CMD_GET_VEHICLE_VARIABLE: vehicle,
@@ -225,7 +242,9 @@ def _sendExact():
         prefix = result.read("!BBB")
         err = result.readString()
         if prefix[2] or err:
-            print(prefix, _RESULTS[prefix[2]], err)
+            _message.string = ""
+            _message.queue = []
+            raise TraCIException(prefix[1], _RESULTS[prefix[2]], err)
         elif prefix[1] != command:
             raise FatalTraCIError("Received answer %s for command %s." % (prefix[1],
                                                                  command))
@@ -304,9 +323,11 @@ def _readSubscription(result):
             numVars -= 1
     else:
         objectNo = result.read("!i")[0]
-        for o in range(0, objectNo):
+        for o in range(objectNo):
             oid = result.readString()
-            for v in range(0, numVars):
+            if numVars == 0:
+                _modules[response].subscriptionResults.addContext(objectID, _modules[domain].subscriptionResults, oid)
+            for v in range(numVars):
                 varID = result.read("!B")[0]
                 status, varType = result.read("!BB")
                 if status:
@@ -317,10 +338,14 @@ def _readSubscription(result):
                     raise FatalTraCIError("Cannot handle subscription response %02x for %s." % (response, objectID))
     return objectID, response
 
-def _subscribe(cmdID, begin, end, objID, varIDs):
+def _subscribe(cmdID, begin, end, objID, varIDs, parameters=None):
     _message.queue.append(cmdID)
     length = 1+1+4+4+4+len(objID)+1+len(varIDs)
-    if length<=255:
+    if parameters:
+        for v in varIDs:
+            if v in parameters:
+                length += len(parameters[v])
+    if length <= 255:
         _message.string += struct.pack("!B", length)
     else:
         _message.string += struct.pack("!Bi", 0, length+4)
@@ -328,6 +353,8 @@ def _subscribe(cmdID, begin, end, objID, varIDs):
     _message.string += struct.pack("!B", len(varIDs))
     for v in varIDs:
         _message.string += struct.pack("!B", v)
+        if parameters and v in parameters:
+            _message.string += parameters[v]
     result = _sendExact()
     objectID, response = _readSubscription(result)
     if response - cmdID != 16 or objectID != objID:

@@ -156,7 +156,12 @@ def getStopEndingVehiclesIDList():
 def getMinExpectedNumber():
     """getMinExpectedNumber() -> integer
     
-    Returns the number of vehicles which are in the net plus the ones still waiting to start. This number may be smaller than the actual number of vehicles still to come because of delayed route file parsing. If the number is 0 however, it is guaranteed that all route files have been parsed completely.
+    Returns the number of vehicles which are in the net plus the
+    ones still waiting to start. This number may be smaller than
+    the actual number of vehicles still to come because of delayed
+    route file parsing. If the number is 0 however, it is
+    guaranteed that all route files have been parsed completely
+    and all vehicles have left the network.
     """
     return _getUniversal(tc.VAR_MIN_EXPECTED_VEHICLES)
 
@@ -219,6 +224,16 @@ def convert2D(edgeID, pos, laneIndex=0, toGeo=False):
     traci._message.string += struct.pack("!dBBB", pos, laneIndex, tc.TYPE_UBYTE, posType)
     return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!dd")
 
+def convert3D(edgeID, pos, laneIndex=0, toGeo=False):
+    posType = tc.POSITION_3D
+    if toGeo:
+        posType = tc.POSITION_LON_LAT_ALT
+    traci._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1+4 + 1+4+len(edgeID)+8+1 + 1+1)
+    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
+    traci._message.string += struct.pack("!Bi", tc.POSITION_ROADMAP, len(edgeID)) + edgeID
+    traci._message.string += struct.pack("!dBBB", pos, laneIndex, tc.TYPE_UBYTE, posType)
+    return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!ddd")
+
 def convertRoad(x, y, isGeo=False):
     posType = tc.POSITION_2D
     if isGeo:
@@ -279,9 +294,7 @@ def subscribe(varIDs=(tc.VAR_DEPARTED_VEHICLES_IDS,), begin=0, end=2**31-1):
     """subscribe(list(integer), double, double) -> None
     
     Subscribe to one or more simulation values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_SIM_VARIABLE, begin, end, "x", varIDs)
 
 def getSubscriptionResults():
@@ -292,3 +305,10 @@ def getSubscriptionResults():
     from the last time step.
     """
     return subscriptionResults.get("x")
+
+
+def clearPending(routeID=""):
+    traci._beginMessage(tc.CMD_SET_SIM_VARIABLE, tc.CMD_CLEAR_PENDING_VEHICLES, "",
+                        1+4+len(routeID))
+    traci._message.string += struct.pack("!Bi", tc.TYPE_STRING, len(routeID)) + routeID
+    traci._sendExact()

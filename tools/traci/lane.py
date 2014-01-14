@@ -265,9 +265,7 @@ def subscribe(laneID, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more lane values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_LANE_VARIABLE, begin, end, laneID, varIDs)
 
 def getSubscriptionResults(laneID=None):
@@ -283,7 +281,6 @@ def getSubscriptionResults(laneID=None):
     return subscriptionResults.get(laneID)
 
 def subscribeContext(laneID, domain, dist, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_LANE_CONTEXT, begin, end, laneID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(laneID=None):
@@ -295,6 +292,8 @@ def setAllowed(laneID, allowedClasses):
     
     Sets a list of allowed vehicle classes. Setting an empty list means all vehicles are allowed.
     """
+    if isinstance(allowedClasses, str):
+        allowedClasses= [allowedClasses]
     traci._beginMessage(tc.CMD_SET_LANE_VARIABLE, tc.LANE_ALLOWED, laneID, 1+4+sum(map(len, allowedClasses))+4*len(allowedClasses))
     traci._message.string += struct.pack("!Bi", tc.TYPE_STRINGLIST, len(allowedClasses))
     for c in allowedClasses:
@@ -306,6 +305,8 @@ def setDisallowed(laneID, disallowedClasses):
     
     Sets a list of disallowed vehicle classes.
     """
+    if isinstance(disallowedClasses, str):
+        disallowedClasses= [disallowedClasses]
     traci._beginMessage(tc.CMD_SET_LANE_VARIABLE, tc.LANE_DISALLOWED, laneID, 1+4+sum(map(len, disallowedClasses))+4*len(disallowedClasses))
     traci._message.string += struct.pack("!Bi", tc.TYPE_STRINGLIST, len(disallowedClasses))
     for c in disallowedClasses:

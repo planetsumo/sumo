@@ -72,9 +72,9 @@ def getAdaptedTraveltime(edgeID, time):
                               tc.VAR_EDGE_TRAVELTIME, edgeID).readDouble()
 
 def getWaitingTime(edgeID):
-    """getWaitingTime() -> double
-    
-    .
+    """getWaitingTime() -> double 
+    Returns the sum of the waiting time of all vehicles currently on
+    that edge (see traci.vehicle.getWaitingTime).
     """
     return _getUniversal(tc.VAR_WAITING_TIME, edgeID) 
 
@@ -195,9 +195,7 @@ def subscribe(edgeID, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more edge values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_EDGE_VARIABLE, begin, end, edgeID, varIDs)
 
 def getSubscriptionResults(edgeID=None):
@@ -213,7 +211,6 @@ def getSubscriptionResults(edgeID=None):
     return subscriptionResults.get(edgeID)
 
 def subscribeContext(edgeID, domain, dist, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_EDGE_CONTEXT, begin, end, edgeID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(edgeID=None):

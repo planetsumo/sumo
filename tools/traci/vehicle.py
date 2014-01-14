@@ -39,9 +39,18 @@ def _readBestLanes(result):
         lanes.append( [laneID, length, occupation, offset, allowsContinuation, nextLanes ] )
     return lanes
 
+def _readLeader(result):
+    result.read("!iB")
+    vehicleID = result.readString()
+    result.read("!B")
+    dist = result.readDouble()
+    if vehicleID:
+        return vehicleID, dist
+    return None
+
 
 _RETURN_VALUE_FUNC = {tc.ID_LIST:             traci.Storage.readStringList,
-                      tc.ID_COUNT:                  traci.Storage.readInt,
+                      tc.ID_COUNT:            traci.Storage.readInt,
                       tc.VAR_SPEED:           traci.Storage.readDouble,
                       tc.VAR_SPEED_WITHOUT_TRACI: traci.Storage.readDouble,
                       tc.VAR_POSITION:        lambda result: result.read("!dd"),
@@ -67,6 +76,7 @@ _RETURN_VALUE_FUNC = {tc.ID_LIST:             traci.Storage.readStringList,
                       tc.VAR_SIGNALS:         traci.Storage.readInt,
                       tc.VAR_LENGTH:          traci.Storage.readDouble,
                       tc.VAR_MAXSPEED:        traci.Storage.readDouble,
+                      tc.VAR_ALLOWED_SPEED:   traci.Storage.readDouble,
                       tc.VAR_VEHICLECLASS:    traci.Storage.readString,
                       tc.VAR_SPEED_FACTOR:    traci.Storage.readDouble,
                       tc.VAR_SPEED_DEVIATION: traci.Storage.readDouble,
@@ -80,7 +90,10 @@ _RETURN_VALUE_FUNC = {tc.ID_LIST:             traci.Storage.readStringList,
                       tc.VAR_IMPERFECTION:    traci.Storage.readDouble,
                       tc.VAR_TAU:             traci.Storage.readDouble,
                       tc.VAR_BEST_LANES:      _readBestLanes,
-                      tc.DISTANCE_REQUEST:    traci.Storage.readDouble}
+                      tc.VAR_LEADER:          _readLeader,
+                      tc.DISTANCE_REQUEST:    traci.Storage.readDouble,
+                      tc.VAR_DISTANCE:        traci.Storage.readDouble}
+
 subscriptionResults = traci.SubscriptionResults(_RETURN_VALUE_FUNC)
 
 def _getUniversal(varID, vehID):
@@ -239,7 +252,7 @@ def getPersonNumber(vehID):
     
     .
     """
-    return _getUniversal(tc.VAR_PERSONNUMBER, vehID)
+    return _getUniversal(tc.VAR_PERSON_NUMBER, vehID)
 
 def getAdaptedTraveltime(vehID, time, edgeID):
     """getAdaptedTraveltime(string, double, string) -> double
@@ -285,6 +298,13 @@ def getMaxSpeed(vehID):
     """
     return _getUniversal(tc.VAR_MAXSPEED, vehID)
 
+def getAllowedSpeed(vehID):
+    """getAllowedSpeed(string) -> double
+    
+    Returns the maximum allowed speed on the current lane regarding speed factor in m/s for this vehicle.
+    """
+    return _getUniversal(tc.VAR_ALLOWED_SPEED, vehID)
+
 def getVehicleClass(vehID):
     """getVehicleClass(string) -> string
     
@@ -295,14 +315,14 @@ def getVehicleClass(vehID):
 def getSpeedFactor(vehID):
     """getSpeedFactor(string) -> double
     
-    .
+    Returns the chosen speed factor for this vehicle.
     """
     return _getUniversal(tc.VAR_SPEED_FACTOR, vehID)
 
 def getSpeedDeviation(vehID):
     """getSpeedDeviation(string) -> double
     
-    Returns the maximum speed defiation of this vehicle.
+    Returns the maximum speed deviation of the vehicle type.
     """
     return _getUniversal(tc.VAR_SPEED_DEVIATION, vehID)
 
@@ -315,8 +335,9 @@ def getEmissionClass(vehID):
 
 def getWaitingTime(vehID):
     """getWaitingTime() -> double
-    
-    .
+    The waiting time of a vehicle is defined as the time (in seconds) spent with a
+    speed below 0.1m/s since the last time it was faster than 0.1m/s.
+    (basically, the waiting time of a vehicle is reset to 0 every time it moves). 
     """
     return _getUniversal(tc.VAR_WAITING_TIME, vehID)
 
@@ -376,6 +397,25 @@ def getBestLanes(vehID):
     """
     return _getUniversal(tc.VAR_BEST_LANES, vehID)
 
+def getLeader(vehID, dist=0.):
+    """getLeader(string, double) -> (string, double)
+    
+    Return the leading vehicle id together with the distance.
+    The dist parameter defines the maximum lookahead, 0 calculates a lookahead from the brake gap.
+    """
+    traci._beginMessage(tc.CMD_GET_VEHICLE_VARIABLE, tc.VAR_LEADER, vehID, 1+8)
+    traci._message.string += struct.pack("!Bd", tc.TYPE_DOUBLE, dist)
+    return _readLeader(traci._checkResult(tc.CMD_GET_VEHICLE_VARIABLE, tc.VAR_LEADER, vehID))
+
+def subscribeLeader(vehID, dist=0., begin=0, end=2**31-1):
+    """subscribeLeader(string, double) -> None
+    
+    Subscribe for the leading vehicle id together with the distance.
+    The dist parameter defines the maximum lookahead, 0 calculates a lookahead from the brake gap.
+    """
+    traci._subscribe(tc.CMD_SUBSCRIBE_VEHICLE_VARIABLE, begin, end, vehID,
+                     (tc.VAR_LEADER,), {tc.VAR_LEADER: struct.pack("!Bd", tc.TYPE_DOUBLE, dist)})
+
 def getDrivingDistance(vehID, edgeID, pos, laneID=0):
     """getDrivingDistance(string, string, double, integer) -> double
     
@@ -397,14 +437,18 @@ def getDrivingDistance2D(vehID, x, y):
                                          tc.POSITION_2D, x, y, tc.REQUEST_DRIVINGDIST)
     return traci._checkResult(tc.CMD_GET_VEHICLE_VARIABLE, tc.DISTANCE_REQUEST, vehID).readDouble()
 
+def getDistance(vehID):
+    """getDistance(string) -> double
+    
+    Returns the distance to the starting point like an odometer
+    """
+    return _getUniversal(tc.VAR_DISTANCE, vehID)
 
 def subscribe(vehID, varIDs=(tc.VAR_ROAD_ID, tc.VAR_LANEPOSITION), begin=0, end=2**31-1):
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more vehicle values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_VEHICLE_VARIABLE, begin, end, vehID, varIDs)
 
 def getSubscriptionResults(vehID=None):
@@ -420,7 +464,6 @@ def getSubscriptionResults(vehID=None):
     return subscriptionResults.get(vehID)
 
 def subscribeContext(vehID, domain, dist, varIDs=(tc.VAR_ROAD_ID, tc.VAR_LANEPOSITION), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_VEHICLE_CONTEXT, begin, end, vehID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(vehID=None):
@@ -470,6 +513,8 @@ def setRouteID(vehID, routeID):
 
 def setRoute(vehID, edgeList):
     """
+    setRoute(string, list) ->  None
+    
     changes the vehicle route to given edges list.
     The first edge in the list has to be the one that the vehicle is at at the moment.
     
@@ -478,6 +523,8 @@ def setRoute(vehID, edgeList):
     
     this changes route for vehicle id 1 to edges 1-2-4-6-7
     """
+    if isinstance(edgeList, str):
+        edgeList= [edgeList]
     traci._beginMessage(tc.CMD_SET_VEHICLE_VARIABLE, tc.VAR_ROUTE, vehID,
                         1+4+sum(map(len, edgeList))+4*len(edgeList))
     traci._message.string += struct.pack("!Bi", tc.TYPE_STRINGLIST, len(edgeList))
@@ -507,7 +554,16 @@ def setEffort(vehID, begTime, endTime, edgeID, effort):
     traci._message.string += struct.pack("!Bd", tc.TYPE_DOUBLE, effort)
     traci._sendExact()
 
-def rerouteTraveltime(vehID):
+def rerouteTraveltime(vehID, currentTravelTimes = True):
+    """rerouteTraveltime(string, bool) -> None
+    
+    Reroutes a vehicle according to the loaded travel times. If loadTravelTimes is False  
+    then the travel times of a loaded weight file or the minimum travel time is used.
+    If loadTravelTimes is True (default) then the current traveltime of the edges is loaded and used for rerouting.
+    """
+    if currentTravelTimes:
+        for edge in traci.edge.getIDList():
+            traci.edge.adaptTraveltime(edge, traci.edge.getTraveltime(edge)) 
     traci._beginMessage(tc.CMD_SET_VEHICLE_VARIABLE, tc.CMD_REROUTE_TRAVELTIME, vehID, 1+4)
     traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 0)
     traci._sendExact()
@@ -650,6 +706,23 @@ def add(vehID, routeID, depart=DEPART_NOW, pos=0, speed=0, lane=0, typeID="DEFAU
     traci._message.string += struct.pack("!Bi", tc.TYPE_INTEGER, depart)
     traci._message.string += struct.pack("!BdBd", tc.TYPE_DOUBLE, pos, tc.TYPE_DOUBLE, speed)
     traci._message.string += struct.pack("!BB", tc.TYPE_BYTE, lane)
+    traci._sendExact()
+
+def addFull(vehID, routeID, typeID="DEFAULT_VEHTYPE", depart=None,
+            departLane="0", departPos="base", departSpeed="0",
+            arrivalLane="current", arrivalPos="max", arrivalSpeed="current",
+            fromTaz="", toTaz="", line="", personCapacity=0, personNumber=0):
+    messageString = struct.pack("!Bi", tc.TYPE_COMPOUND, 14)
+    if depart is None:
+        depart = str(traci.simulation.getCurrentTime() / 1000.)
+    for val in (routeID, typeID, depart, departLane, departPos, departSpeed,
+                arrivalLane, arrivalPos, arrivalSpeed, fromTaz, toTaz, line):
+        messageString += struct.pack("!Bi", tc.TYPE_STRING, len(val)) + val
+    messageString += struct.pack("!Bi", tc.TYPE_INTEGER, personCapacity)
+    messageString += struct.pack("!Bi", tc.TYPE_INTEGER, personNumber)
+
+    traci._beginMessage(tc.CMD_SET_VEHICLE_VARIABLE, tc.ADD_FULL, vehID, len(messageString))
+    traci._message.string += messageString
     traci._sendExact()
 
 def remove(vehID, reason=tc.REMOVE_VAPORIZED):
