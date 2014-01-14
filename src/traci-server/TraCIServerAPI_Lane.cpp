@@ -38,17 +38,12 @@
 #include <microsim/MSLane.h>
 #include <microsim/MSNet.h>
 #include "TraCIConstants.h"
+#include "TraCIServer.h"
 #include "TraCIServerAPI_Lane.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-
-
-// ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
 
 
 // ===========================================================================
@@ -69,7 +64,7 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             && variable != LAST_STEP_VEHICLE_ID_LIST && variable != LAST_STEP_OCCUPANCY && variable != LAST_STEP_VEHICLE_HALTING_NUMBER
             && variable != LAST_STEP_LENGTH && variable != VAR_CURRENT_TRAVELTIME
             && variable != LANE_ALLOWED && variable != LANE_DISALLOWED && variable != VAR_WIDTH && variable != ID_COUNT
-            ) {
+       ) {
         return server.writeErrorStatusCmd(CMD_GET_LANE_VARIABLE, "Get Lane Variable: unsupported variable specified", outputStorage);
     }
     // begin response building
@@ -361,6 +356,37 @@ TraCIServerAPI_Lane::getShape(const std::string& id, PositionVector& shape) {
     return true;
 }
 
+
+void
+TraCIServerAPI_Lane::StoringVisitor::add(const MSLane* const l) const {
+    switch (myDomain) {
+        case CMD_GET_VEHICLE_VARIABLE: {
+            const MSLane::VehCont& vehs = l->getVehiclesSecure();
+            for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
+                if (myShape.distance((*j)->getPosition()) <= myRange) {
+                    myIDs.insert((*j)->getID());
+                }
+            }
+            l->releaseVehicles();
+        }
+        break;
+        case CMD_GET_EDGE_VARIABLE: {
+            if (myShape.size() != 1 || l->getShape().distance(myShape[0]) <= myRange) {
+                myIDs.insert(l->getEdge().getID());
+            }
+        }
+        break;
+        case CMD_GET_LANE_VARIABLE: {
+            if (myShape.size() != 1 || l->getShape().distance(myShape[0]) <= myRange) {
+                myIDs.insert(l->getID());
+            }
+        }
+        break;
+        default:
+            break;
+
+    }
+}
 
 
 #endif

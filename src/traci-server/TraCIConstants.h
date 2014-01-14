@@ -31,7 +31,7 @@
 // ****************************************
 // VERSION
 // ****************************************
-#define TRACI_VERSION 6
+#define TRACI_VERSION 7
 
 
 // ****************************************
@@ -58,9 +58,6 @@
 // command: change target
 #define CMD_CHANGETARGET 0x31
 
-// command: add vehicle
-#define CMD_ADDVEHICLE 0x74
-
 // command: close sumo
 #define CMD_CLOSE 0x7F
 
@@ -85,7 +82,7 @@
 #define RESPONSE_SUBSCRIBE_AREAL_DETECTOR_CONTEXT 0x9D
 // command: get areal detector (e2) variable
 #define CMD_GET_AREAL_DETECTOR_VARIABLE 0x8E
-// response: get areal detector (e3) variable
+// response: get areal detector (e2) variable
 #define RESPONSE_GET_AREAL_DETECTOR_VARIABLE 0x9E
 // command: subscribe areal detector (e2) variable
 #define CMD_SUBSCRIBE_AREAL_DETECTOR_VARIABLE 0x8F
@@ -93,17 +90,17 @@
 #define RESPONSE_SUBSCRIBE_AREAL_DETECTOR_VARIABLE 0x9F
 
 
-// command: subscribe areal detector (e3) context
+// command: subscribe multi-entry/multi-exit detector (e3) context
 #define CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT 0x81
-// response: subscribe areal detector (e3) context
+// response: subscribe multi-entry/multi-exit detector (e3) context
 #define RESPONSE_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT 0x91
 // command: get multi-entry/multi-exit detector (e3) variable
 #define CMD_GET_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE 0xa1
-// response: get areal detector (e3) variable
+// response: get multi-entry/multi-exit detector (e3) variable
 #define RESPONSE_GET_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE 0xb1
 // command: subscribe multi-entry/multi-exit detector (e3) variable
 #define CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE 0xd1
-// response: subscribe areal detector (e3) variable
+// response: subscribe multi-entry/multi-exit detector (e3) variable
 #define RESPONSE_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE 0xe1
 
 
@@ -589,6 +586,10 @@
 // how lane changing is performed (set: vehicle)
 #define VAR_LANECHANGE_MODE 0xb6
 
+// maximum speed regarding max speed on the current lane and speed factor (get: vehicle)
+#define VAR_ALLOWED_SPEED 0xb7
+
+
 // current CO2 emission of a node (get: vehicle, lane, edge)
 #define VAR_CO2EMISSION 0x60
 
@@ -613,7 +614,11 @@
 // current person number (get: vehicle)
 #define VAR_PERSON_NUMBER 0x67
 
+// number of persons waiting at a defined bus stop (get: simulation)
 #define VAR_BUS_STOP_WAITING 0x67
+
+// current leader together with gap (get: vehicle)
+#define VAR_LEADER 0x68
 
 //current waiting time (get: vehicle, lane)
 #define VAR_WAITING_TIME 0x7a
@@ -684,13 +689,16 @@
 // ids of vehicles ending to park (get: simulation)
 #define VAR_PARKING_ENDING_VEHICLES_IDS 0x6f
 
+// clears the simulation of all not inserted vehicles (set: simulation)
+#define CMD_CLEAR_PENDING_VEHICLES 0x94
+
 
 
 
 // add an instance (poi, polygon, vehicle, route)
 #define ADD 0x80
 
-// remove an instance (poi, polygon)
+// remove an instance (poi, polygon, vehicle)
 #define REMOVE 0x81
 
 // convert coordinates
@@ -701,6 +709,9 @@
 
 //the current driving distance
 #define VAR_DISTANCE 0x84
+
+// add a fully specified instance (vehicle)
+#define ADD_FULL 0x85
 
 // force rerouting based on travel time (vehicles)
 #define CMD_REROUTE_TRAVELTIME 0x90

@@ -334,6 +334,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_NUMBER,
     SUMO_ATTR_DURATION,
     SUMO_ATTR_UNTIL,
+    SUMO_ATTR_ROUTEPROBE,
     /** trigger: the time of the step */
     SUMO_ATTR_TIME,
     /** weights: time range begin */
@@ -660,7 +661,7 @@ enum TrafficLightType {
  */
 enum LaneChangeModel {
     LCM_DK2008,
-    LCM_DK2013,
+    LCM_LC2013,
     LCM_JE2013
 };
 

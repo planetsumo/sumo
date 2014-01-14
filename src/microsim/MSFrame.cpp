@@ -249,9 +249,6 @@ MSFrame::fillOptions() {
     oc.addDescription("routing-algorithm", "Processing",
                       "Select among routing algorithms ['dijkstra', 'astar']");
 
-    oc.doRegister("routeDist.maxsize", new Option_Integer());
-    oc.addDescription("routeDist.maxsize", "Processing", "Restrict the maximum size of route distributions");
-
     // devices
     oc.addOptionSubTopic("Emissions");
     oc.addOptionSubTopic("Communication");
@@ -344,8 +341,8 @@ MSFrame::buildStreams() {
     OutputDevice::createDeviceByOption("emission-output", "emission-export");
     OutputDevice::createDeviceByOption("full-output", "full-export");
     OutputDevice::createDeviceByOption("queue-output", "queue-export");
-    
-	//OutputDevice::createDeviceByOption("vtk-output", "vtk-export");
+
+    //OutputDevice::createDeviceByOption("vtk-output", "vtk-export");
     OutputDevice::createDeviceByOption("link-output", "link-output");
     OutputDevice::createDeviceByOption("bt-output", "bt-output");
 
@@ -387,10 +384,6 @@ MSFrame::checkOptions() {
             !oc.isUsableFileList("gui-settings-file")) {
         ok = false;
     }
-    if (oc.isSet("routeDist.maxsize") && oc.getInt("routeDist.maxsize") <= 0) {
-        WRITE_ERROR("routeDist.maxsize must be positive");
-        ok = false;
-    }
 #ifdef HAVE_INTERNAL
     if (oc.getBool("meso-junction-control.limited") && !oc.getBool("meso-junction-control")) {
         oc.set("meso-junction-control", "true");
@@ -423,8 +416,8 @@ MSFrame::setMSGlobals(OptionsCont& oc) {
 #ifdef HAVE_INTERNAL_LANES
     // set whether internal lanes shall be used
     MSGlobals::gUsingInternalLanes = !oc.getBool("no-internal-links");
-    MSGlobals::gIgnoreJunctionBlocker = string2time(oc.getString("ignore-junction-blocker")) < 0 ? 
-            std::numeric_limits<SUMOTime>::max() : string2time(oc.getString("ignore-junction-blocker"));
+    MSGlobals::gIgnoreJunctionBlocker = string2time(oc.getString("ignore-junction-blocker")) < 0 ?
+                                        std::numeric_limits<SUMOTime>::max() : string2time(oc.getString("ignore-junction-blocker"));
 #else
     MSGlobals::gUsingInternalLanes = false;
     MSGlobals::gIgnoreJunctionBlocker = 0;
@@ -447,9 +440,6 @@ MSFrame::setMSGlobals(OptionsCont& oc) {
 #ifdef HAVE_SUBSECOND_TIMESTEPS
     DELTA_T = string2time(oc.getString("step-length"));
 #endif
-    if (oc.isSet("routeDist.maxsize")) {
-        MSRoute::setMaxRouteDistSize(oc.getInt("routeDist.maxsize"));
-    }
 #ifdef _DEBUG
     if (oc.isSet("movereminder-output")) {
         MSBaseVehicle::initMoveReminderOutput(oc);

@@ -100,6 +100,7 @@ GUIRunThread::init(GUINet* net, SUMOTime start, SUMOTime end) {
     // preload the routes especially for TraCI
     mySimulationLock.lock();
     try {
+        net->setCurrentTimeStep(start);
         net->loadRoutes();
     } catch (ProcessError& e2) {
         if (std::string(e2.what()) != std::string("Process Error") && std::string(e2.what()) != std::string("")) {
@@ -185,7 +186,7 @@ GUIRunThread::makeStep() {
         MSNet::SimulationState state = myNet->simulationState(mySimEndTime);
 #ifndef NO_TRACI
         if (state != MSNet::SIMSTATE_RUNNING) {
-            if (OptionsCont::getOptions().getInt("remote-port") != 0 && !traci::TraCIServer::wasClosed()) {
+            if (OptionsCont::getOptions().getInt("remote-port") != 0 && !TraCIServer::wasClosed()) {
                 state = MSNet::SIMSTATE_RUNNING;
             }
         }

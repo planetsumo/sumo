@@ -110,6 +110,10 @@
 // ===========================================================================
 MSNet* MSNet::myInstance = 0;
 
+const std::string MSNet::STAGE_EVENTS("events");
+const std::string MSNet::STAGE_MOVEMENTS("move");
+const std::string MSNet::STAGE_LANECHANGE("laneChange");
+const std::string MSNet::STAGE_INSERTIONS("insertion");
 
 // ===========================================================================
 // member method definitions
@@ -267,7 +271,7 @@ MSNet::simulate(SUMOTime start, SUMOTime stop) {
 #ifndef NO_TRACI
 #ifdef HAVE_PYTHON
     if (OptionsCont::getOptions().isSet("python-script")) {
-        traci::TraCIServer::runEmbedded(OptionsCont::getOptions().getString("python-script"));
+        TraCIServer::runEmbedded(OptionsCont::getOptions().getString("python-script"));
         closeSimulation(start);
         WRITE_MESSAGE("Simulation ended at time: " + time2string(getCurrentTimeStep()));
         WRITE_MESSAGE("Reason: Script ended");
@@ -286,7 +290,7 @@ MSNet::simulate(SUMOTime start, SUMOTime stop) {
         state = simulationState(stop);
 #ifndef NO_TRACI
         if (state != SIMSTATE_RUNNING) {
-            if (OptionsCont::getOptions().getInt("remote-port") != 0 && !traci::TraCIServer::wasClosed()) {
+            if (OptionsCont::getOptions().getInt("remote-port") != 0 && !TraCIServer::wasClosed()) {
                 state = SIMSTATE_RUNNING;
             }
         }
@@ -311,6 +315,7 @@ MSNet::closeSimulation(SUMOTime start) {
     if (myLogExecutionTime) {
         long duration = SysUtils::getCurrentMillis() - mySimBeginMillis;
         std::ostringstream msg;
+        // print performance notice
         msg << "Performance: " << "\n" << " Duration: " << duration << " ms" << "\n";
         if (duration != 0) {
             msg << " Real time factor: " << (STEPS2TIME(myStep - start) * 1000. / (SUMOReal)duration) << "\n";
@@ -318,21 +323,31 @@ MSNet::closeSimulation(SUMOTime start) {
             msg.setf(std::ios::showpoint);    // print decimal point
             msg << " UPS: " << ((SUMOReal)myVehiclesMoved / ((SUMOReal)duration / 1000)) << "\n";
         }
-        // prepare optional statistics
+        // print vehicle statistics
         const std::string discardNotice = ((myVehicleControl->getLoadedVehicleNo() != myVehicleControl->getDepartedVehicleNo()) ?
                                            " (Loaded: " + toString(myVehicleControl->getLoadedVehicleNo()) + ")" : "");
-        const std::string collisionNotice = (
-                                                myVehicleControl->getCollisionCount() > 0 ?
-                                                " (Collisions: " + toString(myVehicleControl->getCollisionCount()) + ")" : "");
-        const std::string teleportNotice = (
-                                               myVehicleControl->getTeleportCount() > 0 ?
-                                               "Teleports: " + toString(myVehicleControl->getTeleportCount()) + collisionNotice + "\n" : "");
-        // print statistics
         msg << "Vehicles: " << "\n"
-            << " Emitted: " << myVehicleControl->getDepartedVehicleNo() << discardNotice << "\n"
+            << " Inserted: " << myVehicleControl->getDepartedVehicleNo() << discardNotice << "\n"
             << " Running: " << myVehicleControl->getRunningVehicleNo() << "\n"
-            << " Waiting: " << myInserter->getWaitingVehicleNo() << "\n"
-            << teleportNotice;
+            << " Waiting: " << myInserter->getWaitingVehicleNo() << "\n";
+
+        if (myVehicleControl->getTeleportCount() > 0) {
+            // print optional teleport statistics
+            std::vector<std::string> reasons;
+            if (myVehicleControl->getCollisionCount() > 0) {
+                reasons.push_back("Collisions: " + toString(myVehicleControl->getCollisionCount()));
+            }
+            if (myVehicleControl->getTeleportsJam() > 0) {
+                reasons.push_back("Jam: " + toString(myVehicleControl->getTeleportsJam()));
+            }
+            if (myVehicleControl->getTeleportsYield() > 0) {
+                reasons.push_back("Yield: " + toString(myVehicleControl->getTeleportsYield()));
+            }
+            if (myVehicleControl->getTeleportsWrongLane() > 0) {
+                reasons.push_back("Wrong Lane: " + toString(myVehicleControl->getTeleportsWrongLane()));
+            }
+            msg << "Teleports: " << myVehicleControl->getTeleportCount() << " (" << joinToString(reasons, ", ") << ")\n";
+        }
         WRITE_MESSAGE(msg.str());
     }
     myDetectorControl->close(myStep);
@@ -340,7 +355,7 @@ MSNet::closeSimulation(SUMOTime start) {
         MSDevice_Vehroutes::generateOutputForUnfinished();
     }
 #ifndef NO_TRACI
-    traci::TraCIServer::close();
+    TraCIServer::close();
 #endif
 }
 
@@ -348,8 +363,8 @@ MSNet::closeSimulation(SUMOTime start) {
 void
 MSNet::simulationStep() {
 #ifndef NO_TRACI
-    traci::TraCIServer::processCommandsUntilSimStep(myStep);
-    traci::TraCIServer* t = traci::TraCIServer::getInstance();
+    TraCIServer::processCommandsUntilSimStep(myStep);
+    TraCIServer* t = TraCIServer::getInstance();
     if (t != 0 && t->getTargetTime() != 0 && t->getTargetTime() < myStep) {
         return;
     }
@@ -366,7 +381,7 @@ MSNet::simulationStep() {
     }
     myBeginOfTimestepEvents->execute(myStep);
     if (MSGlobals::gCheck4Accidents) {
-        myEdges->detectCollisions(myStep, 0);
+        myEdges->detectCollisions(myStep, STAGE_EVENTS);
     }
     // check whether the tls programs need to be switched
     myLogics->check2Switch(myStep);
@@ -387,14 +402,14 @@ MSNet::simulationStep() {
         // decide right-of-way and execute movements
         myEdges->executeMovements(myStep);
         if (MSGlobals::gCheck4Accidents) {
-            myEdges->detectCollisions(myStep, 1);
+            myEdges->detectCollisions(myStep, STAGE_MOVEMENTS);
         }
 
         // Vehicles change Lanes (maybe)
         myEdges->changeLanes(myStep);
 
         if (MSGlobals::gCheck4Accidents) {
-            myEdges->detectCollisions(myStep, 2);
+            myEdges->detectCollisions(myStep, STAGE_LANECHANGE);
         }
 #ifdef HAVE_INTERNAL
     }
@@ -405,11 +420,11 @@ MSNet::simulationStep() {
     if (myPersonControl != 0) {
         myPersonControl->checkWaitingPersons(this, myStep);
     }
-    // emit Vehicles
+    // insert Vehicles
     myInsertionEvents->execute(myStep);
     myInserter->emitVehicles(myStep);
     if (MSGlobals::gCheck4Accidents) {
-        myEdges->detectCollisions(myStep, 3);
+        myEdges->detectCollisions(myStep, STAGE_INSERTIONS);
     }
     MSVehicleTransfer::getInstance()->checkInsertions(myStep);
 
@@ -417,8 +432,8 @@ MSNet::simulationStep() {
     myEndOfTimestepEvents->execute(myStep);
 
 #ifndef NO_TRACI
-    if (traci::TraCIServer::getInstance() != 0) {
-        traci::TraCIServer::getInstance()->postProcessVTD();
+    if (TraCIServer::getInstance() != 0) {
+        TraCIServer::getInstance()->postProcessVTD();
     }
 #endif
     // update and write (if needed) detector values
@@ -439,7 +454,7 @@ MSNet::simulationState(SUMOTime stopTime) const {
         return SIMSTATE_TOO_MANY_VEHICLES;
     }
 #ifndef NO_TRACI
-    if (traci::TraCIServer::wasClosed()) {
+    if (TraCIServer::wasClosed()) {
         return SIMSTATE_CONNECTION_CLOSED;
     }
     if (stopTime < 0 && OptionsCont::getOptions().getInt("remote-port") == 0) {
@@ -498,12 +513,6 @@ MSNet::clearAll() {
 }
 
 
-SUMOTime
-MSNet::getCurrentTimeStep() const {
-    return myStep;
-}
-
-
 void
 MSNet::writeOutput() {
     // update detector values
@@ -556,13 +565,13 @@ MSNet::writeOutput() {
     if (OptionsCont::getOptions().isSet("summary-output")) {
         OutputDevice& od = OutputDevice::getDeviceByOption("summary-output");
         unsigned int departedVehiclesNumber = myVehicleControl->getDepartedVehicleNo();
-        const SUMOReal meanWaitingTime = departedVehiclesNumber!=0 ? myVehicleControl->getTotalDepartureDelay() / (SUMOReal) departedVehiclesNumber : -1.;
+        const SUMOReal meanWaitingTime = departedVehiclesNumber != 0 ? myVehicleControl->getTotalDepartureDelay() / (SUMOReal) departedVehiclesNumber : -1.;
         unsigned int endedVehicleNumber = myVehicleControl->getEndedVehicleNo();
-        const SUMOReal meanTravelTime = endedVehicleNumber!=0 ? myVehicleControl->getTotalTravelTime() / (SUMOReal) endedVehicleNumber : -1.;
+        const SUMOReal meanTravelTime = endedVehicleNumber != 0 ? myVehicleControl->getTotalTravelTime() / (SUMOReal) endedVehicleNumber : -1.;
         od.openTag("step").writeAttr("time", time2string(myStep)).writeAttr("loaded", myVehicleControl->getLoadedVehicleNo())
-            .writeAttr("inserted", myVehicleControl->getDepartedVehicleNo()).writeAttr("running", myVehicleControl->getRunningVehicleNo())
-            .writeAttr("waiting", myInserter->getWaitingVehicleNo()).writeAttr("ended", myVehicleControl->getEndedVehicleNo())
-            .writeAttr("meanWaitingTime", meanWaitingTime).writeAttr("meanTravelTime", meanTravelTime);
+        .writeAttr("inserted", myVehicleControl->getDepartedVehicleNo()).writeAttr("running", myVehicleControl->getRunningVehicleNo())
+        .writeAttr("waiting", myInserter->getWaitingVehicleNo()).writeAttr("ended", myVehicleControl->getEndedVehicleNo())
+        .writeAttr("meanWaitingTime", meanWaitingTime).writeAttr("meanTravelTime", meanTravelTime);
         if (myLogExecutionTime) {
             od.writeAttr("duration", mySimStepDuration);
         }
@@ -737,9 +746,9 @@ MSNet::getRouterEffort(const std::vector<MSEdge*>& prohibited) const {
 }
 
 
-const NamedRTree &
+const NamedRTree&
 MSNet::getLanesRTree() const {
-    if(!myLanesRTree.first) {
+    if (!myLanesRTree.first) {
         MSLane::fill(myLanesRTree.second);
         myLanesRTree.first = true;
     }

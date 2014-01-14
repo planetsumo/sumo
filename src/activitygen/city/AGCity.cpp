@@ -105,8 +105,7 @@ AGCity::completeStreets() {
         }
         //if this edge isn't represented by a street
         if (itS == streets.end() && itE->second->getType() != ROEdge::ET_INTERNAL) {
-        */
-            streets[itE->second->getID()] = new AGStreet(itE->second);
+            streets.push_back(AGStreet(itE->second));
         }
     }
     // @todo: we should already have a class that realises the access to a random member of what is originally a map;

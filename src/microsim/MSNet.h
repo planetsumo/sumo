@@ -204,10 +204,20 @@ public:
     static std::string getStateMessage(SimulationState state);
 
 
-    /** @brief Returns the current simulation step (in s)
+    /** @brief Returns the current simulation step
      * @return the current simulation step
      */
-    SUMOTime getCurrentTimeStep() const;
+    inline SUMOTime getCurrentTimeStep() const {
+        return myStep;
+    }
+
+
+    /** @brief Sets the current simulation step (used by state loading)
+     * @param step the current simulation step
+     */
+    inline void setCurrentTimeStep(const SUMOTime step) {
+        myStep = step;
+    }
 
 
     /** @brief Write netstate, summary and detector output
@@ -502,7 +512,7 @@ public:
     /** @brief Returns an RTree that contains lane IDs
      * @return An Rtree containing lane IDs
      */
-    const NamedRTree &getLanesRTree() const;
+    const NamedRTree& getLanesRTree() const;
 
 
 protected:
@@ -603,6 +613,12 @@ protected:
     /// @brief An RTree structure holding lane IDs
     mutable std::pair<bool, NamedRTree> myLanesRTree;
 
+
+    /// @brief string constants for simstep stages
+    static const std::string STAGE_EVENTS;
+    static const std::string STAGE_MOVEMENTS;
+    static const std::string STAGE_LANECHANGE;
+    static const std::string STAGE_INSERTIONS;
 
 private:
     /// @brief Invalidated copy constructor.

@@ -320,14 +320,18 @@ private:
     /* @brief draw train with individual carriages. The number of carriages is
      * determined from defaultLength of carriages and vehicle length
      * passengerSeats are computed beginning at firstPassengerCarriage */
-    void drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, int firstPassengerCarriage = 0, bool asImage = false) const;
+    void drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, SUMOReal carriageGap, 
+            int firstPassengerCarriage, bool asImage) const;
     /// @}
+
+    /// @brief draws the given guiShape if it has distinc carriages/modules and eturns true if so
+    bool drawAction_drawCarriageClass(const GUIVisualizationSettings& s, SUMOVehicleShape guiShape, bool asImage) const;
 
     /* @brief return the previous lane in this vehicles route including internal lanes
      * @param[in] current The lane of which the predecessor should be returned
      * @param[in,out] routeIndex The index of the current or previous non-internal edge in the route
      */
-    MSLane* getPreviousLane(MSLane* current, int& routeIndex) const;
+    MSLane* getPreviousLane(MSLane* current, int& furtherIndex) const;
 
     /// @brief returns the seat position for the person with the given index
     const Position& getSeatPosition(size_t personIndex) const;
@@ -346,6 +350,9 @@ private:
 private:
     /// The mutex used to avoid concurrent updates of the vehicle buffer
     mutable MFXMutex myLock;
+
+    /// Variable to set with the length of the last drawn carriage or the vehicle length
+    mutable SUMOReal myCarriageLength;
 
     MSDevice_Vehroutes* myRoutes;
 

@@ -190,6 +190,9 @@ NLHandler::myStartElement(int element,
             case SUMO_TAG_TAZSINK:
                 addDistrictEdge(attrs, false);
                 break;
+            case SUMO_TAG_ROUNDABOUT:
+                addRoundabout(attrs);
+                break;
             default:
                 break;
         }
@@ -384,6 +387,9 @@ NLHandler::openJunction(const SUMOSAXAttributes& attrs) {
     if (attrs.hasAttribute(SUMO_ATTR_SHAPE)) {
         // inner junctions have no shape
         shape = attrs.getOpt<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok, PositionVector());
+        if (shape.size() > 2) {
+            shape.closePolygon();
+        }
     }
     SUMOReal x = attrs.get<SUMOReal>(SUMO_ATTR_X, id.c_str(), ok);
     SUMOReal y = attrs.get<SUMOReal>(SUMO_ATTR_Y, id.c_str(), ok);
@@ -1137,6 +1143,24 @@ NLHandler::addDistrictEdge(const SUMOSAXAttributes& attrs, bool isSource) {
         }
     } else {
         WRITE_ERROR("At district '" + myCurrentDistrictID + "': succeeding edge '" + id + "' does not exist.");
+    }
+}
+
+
+void
+NLHandler::addRoundabout(const SUMOSAXAttributes& attrs) {
+    if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
+        std::vector<std::string> edgeIDs = attrs.getStringVector(SUMO_ATTR_EDGES);
+        for (std::vector<std::string>::iterator it = edgeIDs.begin(); it != edgeIDs.end(); ++it) {
+            MSEdge* edge = MSEdge::dictionary(*it);
+            if (edge == 0) {
+                WRITE_ERROR("Unknown edge '" + (*it) + "' in roundabout");
+            } else {
+                edge->markAsRoundabout();
+            }
+        }
+    } else {
+        WRITE_ERROR("Empty edges in roundabout.");
     }
 }
 

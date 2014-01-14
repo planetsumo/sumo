@@ -227,7 +227,7 @@ NBEdgeCont::ignoreFilterMatch(NBEdge* edge) {
         if (myNeedGeoTransformedPrunningBoundary) {
             if (GeoConvHelper::getProcessing().usingGeoProjection()) {
                 NBNetBuilder::transformCoordinates(myPrunningBoundary, false);
-            } else if (GeoConvHelper::getLoaded().usingGeoProjection()) { 
+            } else if (GeoConvHelper::getLoaded().usingGeoProjection()) {
                 // XXX what if input file with different projections are loaded?
                 for (int i = 0; i < (int) myPrunningBoundary.size(); i++) {
                     GeoConvHelper::getLoaded().x2cartesian_const(myPrunningBoundary[i]);
@@ -261,6 +261,25 @@ NBEdgeCont::retrieve(const std::string& id, bool retrieveExtracted) const {
         }
     }
     return (*i).second;
+}
+
+
+NBEdge*
+NBEdgeCont::retrievePossiblySplit(const std::string& id, bool downstream) const {
+    NBEdge* edge = retrieve(id);
+    if (edge == 0) {
+        return 0;
+    }
+    const EdgeVector* candidates = downstream ? &edge->getToNode()->getOutgoingEdges() : &edge->getFromNode()->getIncomingEdges();
+    while (candidates->size() == 1) {
+        const std::string& nextID = candidates->front()->getID();
+        if (nextID.find(id) != 0 || nextID.size() <= id.size() + 1 || (nextID[id.size()] != '.' && nextID[id.size()] != '-')) {
+            break;
+        }
+        edge = candidates->front();
+        candidates = downstream ? &edge->getToNode()->getOutgoingEdges() : &edge->getFromNode()->getIncomingEdges();
+    }
+    return edge;
 }
 
 
@@ -718,8 +737,8 @@ NBEdgeCont::addPostProcessConnection(const std::string& from, int fromLane, cons
 void
 NBEdgeCont::recheckPostProcessConnections() {
     for (std::vector<PostProcessConnection>::const_iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
-        NBEdge* from = retrieve((*i).from);
-        NBEdge* to = retrieve((*i).to);
+        NBEdge* from = retrievePossiblySplit((*i).from, true);
+        NBEdge* to = retrievePossiblySplit((*i).to, false);
         if (from != 0 && to != 0) {
             if (!from->addLane2LaneConnection((*i).fromLane, to, (*i).toLane, NBEdge::L2L_USER, false, (*i).mayDefinitelyPass)) {
                 WRITE_WARNING("Could not insert connection between '" + (*i).from + "' and '" + (*i).to + "' after build.");

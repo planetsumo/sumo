@@ -309,11 +309,11 @@ public:
     /** @brief Return current position (x/y, cartesian)
      *
      * If the vehicle's myLane is 0, Position::INVALID.
-     * @param[in] offset optional offset in longitudianl direction
+     * @param[in] offset optional offset in longitudinal direction
      * @return The current position (in cartesian coordinates)
      * @see myLane
      */
-    Position getPosition(SUMOReal offset = 0) const;
+    Position getPosition(const SUMOReal offset = 0) const;
 
 
     /** @brief Returns the lane the vehicle is on
@@ -483,8 +483,6 @@ public:
     /// @brief returns the current offset from the best lane
     int getBestLaneOffset() const;
 
-    /// @brief repair errors in bestLanes after changing between internal edges
-    bool fixContinuations();
     /// @}
 
     /// @brief repair errors in vehicle position after changing between internal edges
@@ -611,6 +609,23 @@ public:
      */
     SUMOReal processNextStop(SUMOReal currentVelocity);
 
+    /** @brief Returns the leader of the vehicle looking for a fixed distance.
+     *
+     * If the distance is not given it is calculated from the brake gap.
+     * The gap returned does not include the minGap.
+     * @param dist		up to which distance to look for a leader
+     * @return The leading vehicle together with the gap; (0, -1) if no leader was found.
+     */
+    std::pair<const MSVehicle* const, SUMOReal> getLeader(SUMOReal dist=0) const;
+
+    /** @brief Returns the time gap in seconds to the leader of the vehicle looking for a fixed distance.
+     *
+     * If the distance is too big -1 is returned.
+     * The gap returned takes the minGap into account.
+     * @return The time gap in seconds; -1 if no leader was found or speed is 0.
+     */
+    SUMOReal getTimeGap() const;
+
 
     /// @name Emission retrieval
     //@{
@@ -673,9 +688,6 @@ public:
      */
     unsigned int getPersonNumber() const;
 
-    /// @brief Returns this vehicles impatience
-    SUMOReal getImpatience() const;
-
     /// @name Access to bool signals
     /// @{
 
@@ -716,7 +728,7 @@ public:
     };
 
 
-    /* @brief modes for resolving conflicts between external control (traci)
+    /** @brief modes for resolving conflicts between external control (traci)
      * and vehicle control over lane changing. Each level of the lane-changing
      * hierarchy (strategic, cooperative, speedGain, keepRight) can be controlled
      * separately */
@@ -724,6 +736,15 @@ public:
         LC_NEVER      = 0,  // lcModel shall never trigger changes at this level
         LC_NOCONFLICT = 1,  // lcModel may trigger changes if not in conflict with TraCI request
         LC_ALWAYS     = 2   // lcModel may always trigger changes of this level regardless of requests
+    };
+
+
+    /// @brief modes for prioritizing traci lane change requests
+    enum TraciLaneChangePriority {
+        LCP_ALWAYS        = 0,  // change regardless of blockers, adapt own speed and speed of blockers
+        LCP_NOOVERLAP     = 1,  // change unless overlapping with blockers, adapt own speed and speed of blockers
+        LCP_URGENT        = 2,  // change if not blocked, adapt own speed and speed of blockers
+        LCP_OPPORTUNISTIC = 3   // change if not blocked
     };
 
 
@@ -843,22 +864,22 @@ public:
          */
         SUMOReal influenceSpeed(SUMOTime currentTime, SUMOReal speed, SUMOReal vSafe, SUMOReal vMin, SUMOReal vMax);
 
-        /// @brief check for valid change requests in the current laneTimeLine
-        void checkForLaneChanges(SUMOTime currentTime, const MSEdge& currentEdge, unsigned int currentLaneIndex); 
-
         /** @brief Applies stored LaneChangeMode information and laneTimeLine
-         *
-         * @param[in] state The LaneChangeAction flags as computed by the laneChangeModel
          * @param[in] currentTime The current simulation time
          * @param[in] currentEdge The current edge the vehicle is on
          * @param[in] currentLaneIndex The index of the lane the vehicle is currently on
+         * @param[in] state The LaneChangeAction flags as computed by the laneChangeModel
          * @return The new LaneChangeAction flags to use
          */
-        int influenceChangeDecision(int state);
+        int influenceChangeDecision(const SUMOTime currentTime, const MSEdge& currentEdge, const unsigned int currentLaneIndex, int state);
 
-        inline ChangeRequest getCurrentChangeRequest() {
-            return myChangeRequest;
-        }
+
+        /** @brief Return the remaining number of seconds of the current
+         * laneTimeLine assuming one exists
+         * @param[in] currentTime The current simulation time
+         * @return The remaining seconds to change lanes
+         */
+        SUMOReal changeRequestRemainingSeconds(const SUMOTime currentTime) const;
 
         /** @brief Sets whether the safe velocity shall be regarded
          * @param[in] value Whether the safe velocity shall be regarded
@@ -937,26 +958,19 @@ public:
         int myVTDEdgeOffset;
         MSEdgeVector myVTDRoute;
 
-        /// @brief the currently active change request
-        ChangeRequest myChangeRequest;
-
-    /// @name Flags for managing conflicts between the laneChangeModel and TraCI laneTimeLine 
-    //@{
+        /// @name Flags for managing conflicts between the laneChangeModel and TraCI laneTimeLine
+        //@{
         /// @brief lane changing which is necessary to follow the current route
         LaneChangeMode myStrategicLC;
         /// @brief lane changing with the intent to help other vehicles
         LaneChangeMode myCooperativeLC;
         /// @brief lane changing to travel with higher speed
         LaneChangeMode mySpeedGainLC;
-        /// @brief changing to the rightmost lane 
+        /// @brief changing to the rightmost lane
         LaneChangeMode myRightDriveLC;
-    //@}
-        /* @brief flags for influencing security precautions when following a TraCI change-request
-         * LC_NEVER : ignore other drivers
-         * LC_NOCONFLICT : avoid immediate collisions
-         * LC_ALWAYS : perform full security checks (front and rear gap)
-         */
-        LaneChangeMode myRespectGapLC;
+        //@}
+        ///* @brief flags for determining the priority of traci lane change requests
+        TraciLaneChangePriority myTraciLaneChangePriority;
 
     };
 
@@ -971,6 +985,9 @@ public:
     bool hasInfluencer() const {
         return myInfluencer != 0;
     }
+
+    /// @brief allow TraCI to influence a lane change decision
+    int influenceChangeDecision(int state);
 
 
 #endif
@@ -1028,6 +1045,8 @@ protected:
     MSAbstractLaneChangeModel* myLaneChangeModel;
 
     mutable const MSEdge* myLastBestLanesEdge;
+    mutable const MSLane* myLastBestLanesInternalLane;
+
     mutable std::vector<std::vector<LaneQ> > myBestLanes;
     mutable std::vector<LaneQ>::iterator myCurrentLaneInBestLanes;
     static std::vector<MSLane*> myEmptyLaneVector;
@@ -1055,6 +1074,8 @@ protected:
 
     bool myHaveToWaitOnNextLink;
 
+    mutable Position myCachedPosition;
+
 protected:
     struct DriveProcessItem {
         MSLink* myLink;
@@ -1079,8 +1100,7 @@ protected:
             myArrivalTime(arrivalTime), myArrivalSpeed(arrivalSpeed),
             myArrivalTimeBraking(arrivalTimeBraking), myArrivalSpeedBraking(arrivalSpeedBraking),
             myDistance(distance),
-            accelV(leaveSpeed), hadVehicle(false), availableSpace(-1.) 
-        { 
+            accelV(leaveSpeed), hadVehicle(false), availableSpace(-1.) {
             assert(vWait >= 0);
             assert(vPass >= 0);
         };
@@ -1091,8 +1111,7 @@ protected:
             myArrivalTime(0), myArrivalSpeed(0),
             myArrivalTimeBraking(0), myArrivalSpeedBraking(0),
             myDistance(distance),
-            accelV(-1), hadVehicle(false), availableSpace(-1.) 
-        {
+            accelV(-1), hadVehicle(false), availableSpace(-1.) {
             assert(vWait >= 0);
         };
 
@@ -1164,13 +1183,8 @@ private:
     MSCFModel::VehicleVariables* myCFVariables;
 
 #ifndef NO_TRACI
-    /// @brief An instance of a velicty/lane influencing instance; built in "getInfluencer"
+    /// @brief An instance of a velocity/lane influencing instance; built in "getInfluencer"
     Influencer* myInfluencer;
-#endif
-
-#ifdef HAVE_INTERNAL_LANES
-    /// @brief map from the links to link leader ids
-    mutable std::map<const MSLink*, std::string> myLeaderForLink;
 #endif
 
 private:

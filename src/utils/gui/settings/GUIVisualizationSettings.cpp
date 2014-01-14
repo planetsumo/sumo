@@ -79,8 +79,13 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme = GUIColorScheme("by selection (lane-/streetwise)", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
     laneColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by vclass", RGBColor::BLACK, "all", true);
-    scheme.addColor(RGBColor(0, 26, 128, 255), 1, "public");
+    scheme = GUIColorScheme("by vclass", RGBColor(240,240,240), "nobody");
+    scheme.addColor(RGBColor(10, 10, 10), (SUMOReal)SVC_PASSENGER, "passenger");
+    scheme.addColor(RGBColor(128, 128, 128), (SUMOReal)SVC_PEDESTRIAN, "pedestrian");
+    scheme.addColor(RGBColor(192, 66, 44), (SUMOReal)SVC_BICYCLE, "bicycle");
+    scheme.addColor(RGBColor(40, 100, 40), (SUMOReal)SVC_BUS, "bus");
+    scheme.addColor(RGBColor(166, 147, 26), (SUMOReal)SVC_TAXI, "taxi");
+    scheme.addColor(RGBColor::BLACK, (SUMOReal)SVCFreeForAll, "all");
     laneColorer.addScheme(scheme);
     // ... traffic states ...
     scheme = GUIColorScheme("by allowed speed (lanewise)", RGBColor::RED);
@@ -92,8 +97,11 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme = GUIColorScheme("by current occupancy (lanewise, netto)", RGBColor::BLUE);
     scheme.addColor(RGBColor::RED, (SUMOReal)0.95);
     laneColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by first vehicle waiting time (lanewise)", RGBColor::GREEN);
-    scheme.addColor(RGBColor::RED, (SUMOReal)200);
+    scheme = GUIColorScheme("by first vehicle waiting time (lanewise)", RGBColor::BLUE);
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)30);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)100);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)200);
+    scheme.addColor(RGBColor::RED, (SUMOReal)300);
     laneColorer.addScheme(scheme);
     scheme = GUIColorScheme("by lane number (streetwise)", RGBColor::RED);
     scheme.addColor(RGBColor::BLUE, (SUMOReal)5);
@@ -149,10 +157,17 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     vehicleColorer.addScheme(GUIColorScheme("arrival position as HSV", RGBColor::YELLOW, "", true));
     vehicleColorer.addScheme(GUIColorScheme("direction/distance as HSV", RGBColor::YELLOW, "", true));
     scheme = GUIColorScheme("by speed", RGBColor::RED);
-    scheme.addColor(RGBColor::BLUE, (SUMOReal)(150.0 / 3.6));
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)(30 / 3.6));
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)(55 / 3.6));
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)(80 / 3.6));
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)(120 / 3.6));
+    scheme.addColor(RGBColor::BLACK, (SUMOReal)(150 / 3.6));
     vehicleColorer.addScheme(scheme);
     scheme = GUIColorScheme("by waiting time", RGBColor::BLUE);
-    scheme.addColor(RGBColor::RED, (SUMOReal)(5 * 60));
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)30);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)100);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)200);
+    scheme.addColor(RGBColor::RED, (SUMOReal)300);
     vehicleColorer.addScheme(scheme);
     scheme = GUIColorScheme("by time since last lanechange", RGBColor::WHITE);
     scheme.addColor(RGBColor::GREY, (SUMOReal)(5 * 60));
@@ -200,6 +215,11 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor(255, 255, 0, 255), -0.1);
     scheme.addColor(RGBColor(0, 255, 255, 255),  0.1);
     scheme.addColor(RGBColor(0,   0, 255, 255),  DEFAULT_VEH_ACCEL);
+    vehicleColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by time gap", RGBColor(255, 255, 0, 255), "0");
+    scheme.addColor(RGBColor(179, 179, 179, 255), -1);
+    scheme.addColor(RGBColor(0, 255, 255, 255), 1);
+    scheme.addColor(RGBColor(0,   0, 255, 255), 2);
     vehicleColorer.addScheme(scheme);
 
     /// add person coloring schemes

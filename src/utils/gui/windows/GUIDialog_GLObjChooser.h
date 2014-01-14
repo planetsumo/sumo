@@ -109,10 +109,15 @@ public:
     long onCmdFilter(FXObject*, FXSelector, void*);
     /// @}
 
+    /// @brief sets the focus after the window is created to work-around bug in libfox
+    void show();
 
 private:
     /// @brief The list that holds the ids
     FXList* myList;
+
+    /// @brief The button that triggers centering on the select object
+    FXButton* myCenterButton;
 
     /// @brief The artifact to choose
     GUIGlObjectType myObjectType;

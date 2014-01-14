@@ -69,7 +69,7 @@ const SUMOReal NBEdge::ANGLE_LOOKAHEAD = 10.0;
 // ===========================================================================
 // method definitions
 // ===========================================================================
-std::string 
+std::string
 NBEdge::Connection:: getInternalLaneID() const {
     return id + "_" + toString(internalLaneIndex);
 }
@@ -290,6 +290,7 @@ NBEdge::reinitNodes(NBNode* from, NBNode* to) {
         myTo = to;
         myTo->addIncomingEdge(this);
     }
+    computeAngle();
 }
 
 
@@ -426,6 +427,7 @@ NBEdge::computeEdgeShape() {
         avgLength += myLanes[i].shape.length();
     }
     myLength = avgLength / (SUMOReal) myLanes.size();
+    computeAngle(); // update angles using the finalized node and lane shapes
 }
 
 
@@ -990,7 +992,6 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
     NBEdge* toEdge = 0;
     unsigned int edgeIndex = linkIndex;
     unsigned int internalLaneIndex = 0;
-    // connection index -> list of foe internal lane indices
     for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
         Connection& con = *i;
         con.haveVia = false; // reset first since this may be called multiple times
@@ -998,7 +999,8 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
             continue;
         }
         if (con.toEdge != toEdge) {
-            // skip indices to keep some correspondence between edge ids and link indices
+            // skip indices to keep some correspondence between edge ids and link indices:
+            // internalEdgeIndex + internalLaneIndex = linkIndex
             edgeIndex = linkIndex;
             toEdge = (*i).toEdge;
             internalLaneIndex = 0;
@@ -1007,6 +1009,7 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
         std::vector<unsigned int> foeInternalLinks;
 
         LinkDirection dir = n.getDirection(this, con.toEdge);
+        // crossingPosition, list of foe link indices
         std::pair<SUMOReal, std::vector<unsigned int> > crossingPositions(-1, std::vector<unsigned int>());
         std::set<std::string> tmpFoeIncomingLanes;
         switch (dir) {
@@ -1265,14 +1268,27 @@ NBEdge::computeAngle() {
     // taking the angle at the first might be unstable, thus we take the angle
     // at a certain distance. (To compare two edges, additional geometry
     // segments are considered to resolve ambiguities)
-    const Position referencePosStart = myGeom.positionAtOffset2D(ANGLE_LOOKAHEAD);
+
+    const Position fromCenter = (myFrom->getShape().size() > 0 ? myFrom->getShape().getCentroid() : myFrom->getPosition());
+    const Position toCenter = (myTo->getShape().size() > 0 ? myTo->getShape().getCentroid() : myTo->getPosition());
+    PositionVector shape = myGeom;
+    // maybe the edge is actually somewhere else now
+    // we do not want to use lane shapes here because the spreadtype could interfere
+    if (myFrom->getShape().size() > 0) {
+        shape = startShapeAt(shape, myFrom);
+        if (shape.size() >= 2) {
+            shape = startShapeAt(shape.reverse(), myTo).reverse();
+        }
+    }
+
+    const Position referencePosStart = shape.positionAtOffset2D(ANGLE_LOOKAHEAD);
     myStartAngle = NBHelpers::angle(
-                       myFrom->getPosition().x(), myFrom->getPosition().y(),
+                       fromCenter.x(), fromCenter.y(),
                        referencePosStart.x(), referencePosStart.y());
-    const Position referencePosEnd = myGeom.positionAtOffset2D(myGeom.length() - ANGLE_LOOKAHEAD);
+    const Position referencePosEnd = shape.positionAtOffset2D(myGeom.length() - ANGLE_LOOKAHEAD);
     myEndAngle = NBHelpers::angle(
                      referencePosEnd.x(), referencePosEnd.y(),
-                     myTo->getPosition().x(), myTo->getPosition().y());
+                     toCenter.x(), toCenter.y());
     myTotalAngle = NBHelpers::angle(
                        myFrom->getPosition().x(), myFrom->getPosition().y(),
                        myTo->getPosition().x(), myTo->getPosition().y());
@@ -1850,10 +1866,8 @@ NBEdge::append(NBEdge* e) {
     myTurnDestination = e->myTurnDestination;
     // set the node
     myTo = e->myTo;
+    computeAngle(); // myEndAngle may be different now
 }
-
-
-
 
 
 bool

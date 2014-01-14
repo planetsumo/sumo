@@ -96,9 +96,9 @@ GUIDialog_GLObjChooser::GUIDialog_GLObjChooser(
     }
     // build the buttons
     FXVerticalFrame* layout = new FXVerticalFrame(hbox, LAYOUT_TOP, 0, 0, 0, 0, 4, 4, 4, 4);
-    new FXButton(layout, "Center\t\t", GUIIconSubSys::getIcon(ICON_RECENTERVIEW),
-                 this, MID_CHOOSER_CENTER, ICON_BEFORE_TEXT | LAYOUT_FILL_X | FRAME_THICK | FRAME_RAISED,
-                 0, 0, 0, 0, 4, 4, 4, 4);
+    myCenterButton = new FXButton(layout, "Center\t\t", GUIIconSubSys::getIcon(ICON_RECENTERVIEW),
+                                  this, MID_CHOOSER_CENTER, ICON_BEFORE_TEXT | LAYOUT_FILL_X | FRAME_THICK | FRAME_RAISED,
+                                  0, 0, 0, 0, 4, 4, 4, 4);
     new FXHorizontalSeparator(layout, SEPARATOR_GROOVE | LAYOUT_FILL_X);
     new FXButton(layout, "Hide Unselected\t\t", GUIIconSubSys::getIcon(ICON_FLAG),
                  this, MID_CHOOSER_FILTER, ICON_BEFORE_TEXT | LAYOUT_FILL_X | FRAME_THICK | FRAME_RAISED,
@@ -109,12 +109,18 @@ GUIDialog_GLObjChooser::GUIDialog_GLObjChooser(
                  0, 0, 0, 0, 4, 4, 4, 4);
 
     myParent->getParent()->addChild(this);
-    myTextEntry->setFocus();
 }
 
 
 GUIDialog_GLObjChooser::~GUIDialog_GLObjChooser() {
     myParent->getParent()->removeChild(this);
+}
+
+
+void
+GUIDialog_GLObjChooser::show() {
+    FXMainWindow::show();
+    myTextEntry->setFocus();
 }
 
 
@@ -139,12 +145,17 @@ long
 GUIDialog_GLObjChooser::onChgText(FXObject*, FXSelector, void*) {
     int id = myList->findItem(myTextEntry->getText(), -1, SEARCH_PREFIX);
     if (id < 0) {
+        if (myList->getNumItems() > 0) {
+            myList->deselectItem(myList->getCurrentItem());
+        }
+        myCenterButton->disable();
         return 1;
     }
     myList->deselectItem(myList->getCurrentItem());
     myList->makeItemVisible(id);
     myList->selectItem(id);
     myList->setCurrentItem(id, true);
+    myCenterButton->enable();
     return 1;
 }
 

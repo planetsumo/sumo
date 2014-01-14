@@ -72,7 +72,7 @@ MSEdge::MSEdge(const std::string& id, int numericalID,
                const std::string& streetName) :
     Named(id), myNumericalID(numericalID), myLanes(0),
     myLaneChanger(0), myFunction(function), myVaporizationRequests(0),
-    myLastFailedInsertionTime(-1), myStreetName(streetName) {}
+    myLastFailedInsertionTime(-1), myStreetName(streetName), myAmRoundabout(false) {}
 
 
 MSEdge::~MSEdge() {
@@ -94,12 +94,33 @@ void
 MSEdge::initialize(std::vector<MSLane*>* lanes) {
     assert(myFunction == EDGEFUNCTION_DISTRICT || lanes != 0);
     myLanes = lanes;
-    if (myLanes && myLanes->size() > 1 && myFunction != EDGEFUNCTION_INTERNAL) {
+    if (myLanes && myLanes->size() > 1) {
         myLaneChanger = new MSLaneChanger(myLanes, OptionsCont::getOptions().getBool("lanechange.allow-swap"));
     }
     if (myFunction == EDGEFUNCTION_DISTRICT) {
         myCombinedPermissions = SVCFreeForAll;
     }
+}
+
+
+bool
+MSEdge::laneChangeAllowed() const {
+    if (myLanes == 0 || myLanes->size() < 2) {
+        return false;
+    }
+    if (myFunction != EDGEFUNCTION_INTERNAL) {
+        return true;
+    }
+    // allow changing only if all links leading to this internal lane have priority
+    for (std::vector<MSLane*>::iterator it = myLanes->begin(); it != myLanes->end(); ++it) {
+        MSLane* pred = (*it)->getLogicalPredecessorLane();
+        MSLink* link = MSLinkContHelper::getConnectingLink(*pred, **it);
+        assert(link != 0);
+        if (!link->havePriority()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -181,21 +202,6 @@ MSEdge::parallelLane(const MSLane* const lane, int offset) const {
     }
     const int resultIndex = index + offset;
     if (resultIndex >= (int)myLanes->size() || resultIndex < 0) {
-        // check for parallel running internal lanes
-        if (getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
-            const MSLane* pred = lane->getLogicalPredecessorLane();
-            const MSLane* next = lane->getLinkCont()[0]->getLane();
-            assert(pred != 0);
-            assert(next != 0);
-            const MSLane* predParallel = pred->getParallelLane(offset);
-            const MSLane* nextParallel = next->getParallelLane(offset);
-            if (predParallel != 0 && nextParallel != 0) {
-                const MSLink* connecting = MSLinkContHelper::getConnectingLink(*predParallel, *nextParallel);
-                if (connecting != 0) {
-                    return connecting->getViaLaneOrLane();
-                }
-            }
-        }
         return 0;
     } else {
         return (*myLanes)[resultIndex];
@@ -397,11 +403,9 @@ MSEdge::insertVehicle(SUMOVehicle& v, SUMOTime time) const {
 
 void
 MSEdge::changeLanes(SUMOTime t) {
-    if (myFunction == EDGEFUNCTION_INTERNAL) {
-        return;
+    if (laneChangeAllowed()) {
+        myLaneChanger->laneChange(t);
     }
-    assert(myLaneChanger != 0);
-    myLaneChanger->laneChange(t);
 }
 
 

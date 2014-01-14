@@ -47,6 +47,9 @@
 #include <utils/geom/PositionVector.h>
 #include "MSLinkCont.h"
 #include "MSMoveReminder.h"
+#ifndef NO_TRACI
+#include <traci-server/TraCIServerAPI_Lane.h>
+#endif
 
 
 // ===========================================================================
@@ -321,6 +324,11 @@ public:
         return myShape;
     }
 
+    /// @brief return shape.length() / myLength
+    inline SUMOReal getLengthGeometryFactor() const {
+        return myLengthGeometryFactor;
+    }
+
     /* @brief fit the given lane position to a visibly suitable geometry position
      * (lane length might differ from geometry length) */
     inline SUMOReal interpolateLanePosToGeometryPos(SUMOReal lanePos) const {
@@ -411,7 +419,7 @@ public:
 
 
     /// Check if vehicles are too close.
-    virtual void detectCollisions(SUMOTime timestep, int stage);
+    virtual void detectCollisions(SUMOTime timestep, const std::string& stage);
 
 
     /** Returns the information whether this lane may be used to continue
@@ -447,29 +455,29 @@ public:
 
 
 
-    /// @brief Static (sic!) container methods 
+    /// @brief Static (sic!) container methods
     /// {
 
     /** @brief Inserts a MSLane into the static dictionary
-     * 
+     *
      * Returns true if the key id isn't already in the dictionary.
-     *  Otherwise returns false. 
-     * @param[in] id The id of the lane 
+     *  Otherwise returns false.
+     * @param[in] id The id of the lane
      * @param[in] lane The lane itself
      * @return Whether the lane was added
      * @todo make non-static
      * @todo why is the id given? The lane is named
      */
-    static bool dictionary(const std::string &id, MSLane* lane);
+    static bool dictionary(const std::string& id, MSLane* lane);
 
 
-    /** @brief Returns the MSLane associated to the key id 
+    /** @brief Returns the MSLane associated to the key id
      *
      * The lane is returned if exists, otherwise 0 is returned.
-     * @param[in] id The id of the lane 
+     * @param[in] id The id of the lane
      * @return The lane
      */
-    static MSLane* dictionary(const std::string &id);
+    static MSLane* dictionary(const std::string& id);
 
 
     /** @brief Clears the dictionary */
@@ -490,11 +498,12 @@ public:
     static void insertIDs(std::vector<std::string>& into);
 
 
-    /** @brief Fills the given NamedRTree with lane instances
-     * @param[in, filled] into The NamedRTree to fill
-     * @see NamedRTree
+    /** @brief Fills the given RTree with lane instances
+     * @param[in, filled] into The RTree to fill
+     * @see TraCILaneRTree
      */
-    static void fill(NamedRTree& into);
+    template<class RTREE>
+    static void fill(RTREE& into);
     /// @}
 
 
@@ -503,10 +512,10 @@ public:
         the succeeding link could not be found;
         Returns the myLinks.end() instead; Further, the number of edges to
         look forward may be given */
-    virtual MSLinkCont::const_iterator succLinkSec(const SUMOVehicle& veh,
+    static MSLinkCont::const_iterator succLinkSec(const SUMOVehicle& veh,
             unsigned int nRouteSuccs,
             const MSLane& succLinkSource,
-            const std::vector<MSLane*>& conts) const;
+            const std::vector<MSLane*>& conts);
 
 
     /** Returns the information whether the given link shows at the end
@@ -571,7 +580,7 @@ public:
 
 
 
-    std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(SUMOReal dist, SUMOReal seen,
+    std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(SUMOReal dist,
             SUMOReal leaderSpeed, SUMOReal backOffset, SUMOReal predMaxDecel) const;
 
 
@@ -617,13 +626,13 @@ public:
      */
     SUMOReal getMeanSpeed() const;
 
-	 /** @brief Returns the overall waiting time on this lane
-     * @return The sum of the waiting time of all vehicles during the last step;
-     */
+    /** @brief Returns the overall waiting time on this lane
+    * @return The sum of the waiting time of all vehicles during the last step;
+    */
     SUMOReal getWaitingSeconds() const;
 
 
-    /** @brief Returns the brutto (including minGaps) occupancy of this lane during the last step 
+    /** @brief Returns the brutto (including minGaps) occupancy of this lane during the last step
      * @return The occupancy during the last step
      */
     SUMOReal getBruttoOccupancy() const;
@@ -711,6 +720,18 @@ public:
     /// @}
 
 
+#ifndef NO_TRACI
+    /** @brief Callback for visiting the lane when traversing an RTree
+     *
+     * This is used in the TraCIServerAPI_Lane for context subscriptions.
+     *
+     * @param[in] cont The context doing all the work
+     * @see TraCIServerAPI_Lane::StoringVisitor::add
+     */
+    void visit(const TraCIServerAPI_Lane::StoringVisitor& cont) const {
+        cont.add(this);
+    }
+#endif
 
 protected:
     /// moves myTmpVehicles int myVehicles after a lane change procedure
