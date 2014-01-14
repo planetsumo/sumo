@@ -41,6 +41,7 @@
     <xsd:complexType name="edgeType">
         <xsd:sequence>
             <xsd:element name="lane" type="laneType" minOccurs="1" maxOccurs="63"/>
+            <xsd:element name="param" type="paramType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="required"/>
         <xsd:attribute name="function" use="optional">
@@ -70,6 +71,9 @@
     </xsd:complexType>
 
     <xsd:complexType name="laneType">
+        <xsd:sequence>
+            <xsd:element name="param" type="paramType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string" use="required"/>
         <xsd:attribute name="index" type="xsd:nonNegativeInteger" use="required"/>
         <xsd:attribute name="allow" type="xsd:string" use="optional"/>
@@ -98,6 +102,9 @@
                     <xsd:enumeration value="priority"/>
                     <xsd:enumeration value="dead_end"/>
                     <xsd:enumeration value="unregulated"/>
+                    <xsd:enumeration value="traffic_light_unregulated"/>
+                    <xsd:enumeration value="allway_stop"/>
+                    <xsd:enumeration value="priority_stop"/>
                     <xsd:enumeration value="internal"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -159,6 +166,8 @@
                     <xsd:enumeration value="o"/>
                     <xsd:enumeration value="="/>
                     <xsd:enumeration value="-"/>
+                    <xsd:enumeration value="s"/>
+                    <xsd:enumeration value="w"/>
                 </xsd:restriction>
             </xsd:simpleType>
         </xsd:attribute>

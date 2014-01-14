@@ -12,8 +12,10 @@
             <xsd:element name="time" type="timeType" minOccurs="0"/>
             <xsd:element name="processing" type="processingType" minOccurs="0"/>
             <xsd:element name="report" type="reportType" minOccurs="0"/>
-            <xsd:element name="routing" type="routingType" minOccurs="0"/>
             <xsd:element name="emissions" type="emissionsType" minOccurs="0"/>
+            <xsd:element name="communication" type="communicationType" minOccurs="0"/>
+            <xsd:element name="routing" type="routingType" minOccurs="0"/>
+            <xsd:element name="example_device" type="example_deviceType" minOccurs="0"/>
             <xsd:element name="traci_server" type="traci_serverType" minOccurs="0"/>
             <xsd:element name="mesoscopic" type="mesoscopicType" minOccurs="0"/>
             <xsd:element name="random_number" type="random_numberType" minOccurs="0"/>
@@ -40,6 +42,7 @@
             <xsd:element name="emission-output" type="fileOptionType" minOccurs="0"/>
             <xsd:element name="fcd-output" type="fileOptionType" minOccurs="0"/>
             <xsd:element name="fcd-output.geo" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="fcd-output.signals" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="full-output" type="fileOptionType" minOccurs="0"/>
             <xsd:element name="queue-output" type="fileOptionType" minOccurs="0"/>
             <xsd:element name="vtk-output" type="fileOptionType" minOccurs="0"/>
@@ -50,6 +53,8 @@
             <xsd:element name="vehroute-output.last-route" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="vehroute-output.sorted" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="vehroute-output.write-unfinished" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="link-output" type="fileOptionType" minOccurs="0"/>
+            <xsd:element name="bt-output" type="fileOptionType" minOccurs="0"/>
             <xsd:element name="save-state.times" type="intArrayOptionType" minOccurs="0"/>
             <xsd:element name="save-state.prefix" type="fileOptionType" minOccurs="0"/>
             <xsd:element name="save-state.files" type="fileOptionType" minOccurs="0"/>
@@ -68,6 +73,7 @@
         <xsd:all>
             <xsd:element name="route-steps" type="timeOptionType" minOccurs="0"/>
             <xsd:element name="no-internal-links" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="ignore-junction-blocker" type="timeOptionType" minOccurs="0"/>
             <xsd:element name="ignore-accidents" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="ignore-route-errors" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="max-num-vehicles" type="intOptionType" minOccurs="0"/>
@@ -75,11 +81,13 @@
             <xsd:element name="incremental-dua-base" type="intOptionType" minOccurs="0"/>
             <xsd:element name="scale" type="floatOptionType" minOccurs="0"/>
             <xsd:element name="time-to-teleport" type="timeOptionType" minOccurs="0"/>
+            <xsd:element name="time-to-teleport.highways" type="timeOptionType" minOccurs="0"/>
             <xsd:element name="max-depart-delay" type="timeOptionType" minOccurs="0"/>
             <xsd:element name="sloppy-insert" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="eager-insert" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="lanechange.allow-swap" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="lanechange.duration" type="timeOptionType" minOccurs="0"/>
             <xsd:element name="routing-algorithm" type="strOptionType" minOccurs="0"/>
-            <xsd:element name="routeDist.maxsize" type="intOptionType" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -99,6 +107,27 @@
         </xsd:all>
     </xsd:complexType>
 
+    <xsd:complexType name="emissionsType">
+        <xsd:all>
+            <xsd:element name="device.hbefa.probability" type="floatOptionType" minOccurs="0"/>
+            <xsd:element name="device.hbefa.explicit" type="strOptionType" minOccurs="0"/>
+            <xsd:element name="device.hbefa.deterministic" type="boolOptionType" minOccurs="0"/>
+        </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="communicationType">
+        <xsd:all>
+            <xsd:element name="device.btreceiver.probability" type="floatOptionType" minOccurs="0"/>
+            <xsd:element name="device.btreceiver.explicit" type="strOptionType" minOccurs="0"/>
+            <xsd:element name="device.btreceiver.deterministic" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="device.btreceiver.range" type="floatOptionType" minOccurs="0"/>
+            <xsd:element name="device.btreceiver.all-recognitions" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="device.btsender.probability" type="floatOptionType" minOccurs="0"/>
+            <xsd:element name="device.btsender.explicit" type="strOptionType" minOccurs="0"/>
+            <xsd:element name="device.btsender.deterministic" type="boolOptionType" minOccurs="0"/>
+        </xsd:all>
+    </xsd:complexType>
+
     <xsd:complexType name="routingType">
         <xsd:all>
             <xsd:element name="device.rerouting.probability" type="floatOptionType" minOccurs="0"/>
@@ -113,11 +142,10 @@
         </xsd:all>
     </xsd:complexType>
 
-    <xsd:complexType name="emissionsType">
+    <xsd:complexType name="example_deviceType">
         <xsd:all>
-            <xsd:element name="device.hbefa.probability" type="floatOptionType" minOccurs="0"/>
-            <xsd:element name="device.hbefa.explicit" type="strOptionType" minOccurs="0"/>
-            <xsd:element name="device.hbefa.deterministic" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="device.example.explicit" type="strOptionType" minOccurs="0"/>
+            <xsd:element name="device.example.parameter" type="floatOptionType" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>
 
@@ -157,6 +185,7 @@
             <xsd:element name="game" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="start" type="boolOptionType" minOccurs="0"/>
             <xsd:element name="disable-textures" type="boolOptionType" minOccurs="0"/>
+            <xsd:element name="osg-view" type="boolOptionType" minOccurs="0"/>
         </xsd:all>
     </xsd:complexType>
 
