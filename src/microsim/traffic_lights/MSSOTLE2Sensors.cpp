@@ -17,6 +17,7 @@
 //
 /****************************************************************************/
 
+#include <microsim/output/MSDetectorControl.h>
 #include "MSSOTLE2Sensors.h"
 
 MSSOTLE2Sensors::MSSOTLE2Sensors(std::string tlLogicID, const MSTrafficLightLogic::Phases *phases)
@@ -56,6 +57,7 @@ MSSOTLE2Sensors::buildSensorForLane(MSLane* lane, NLDetectorBuilder &nb) {
 		lensorLength = SENSOR_LENGTH <= (lane->getLength() - sensorPos) ? SENSOR_LENGTH : (lane->getLength() - sensorPos);
 		//Create sensor for lane and insert it into the map<MSLane*, MSE2Collector*>
 		newSensor = nb.buildSingleLaneE2Det("SOTL_E2_lane:"+lane->getID()+"_tl:"+tlLogicID, DU_TL_CONTROL, lane, (lane->getLength() - sensorPos - lensorLength), lensorLength, HALTING_TIME_THRS, HALTING_SPEED_THRS, DIST_THRS);
+        MSNet::getInstance()->getDetectorControl().add(SUMO_TAG_LANE_AREA_DETECTOR, newSensor);
 		mySensorsMap.insert(MSLane_MSE2Collector(lane, newSensor));
 		mySensorsIDMap.insert(MSLaneID_MSE2Collector(lane->getID(), newSensor));
 		myMaxSpeedMap.insert(MSLaneID_MaxSpeed(lane->getID(), lane->getSpeedLimit()));
