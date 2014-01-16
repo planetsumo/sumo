@@ -20,6 +20,8 @@ import sys
 import time
 import os
 import math
+import colorsys
+from random import random
 from collections import defaultdict
 
 # append import path stanca:
@@ -185,4 +187,20 @@ class working_dir:
 
     def __exit__(self, type, value, traceback):
         os.chdir(self.origdir)
+
+
+class Colorgen:
+    def __init__(self, hsv):
+        self.hsv = hsv 
+
+    def get_value(self, opt):
+        if opt == 'random':
+            return random()
+        else:
+            return float(opt)
+        
+    def __call__(self):
+        """return constant or randomized rgb-color string"""
+        return ','.join([str(int(round(255 * x))) for x in colorsys.hsv_to_rgb(*map(self.get_value, self.hsv))])
+
 
