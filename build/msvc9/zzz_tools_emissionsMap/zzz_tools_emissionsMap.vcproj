@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="zzz_tools_emissions_map"
+	Name="zzz_tools_emissionsMap"
 	ProjectGUID="{015EB7EF-818B-41C0-8434-C32F994201B9}"
 	Keyword="MFCProj"
 	TargetFrameworkVersion="131072"

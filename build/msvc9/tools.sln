@@ -24,7 +24,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_shapes", "z_libu
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_emissions", "z_libutils_emissions\z_libutils_emissions.vcproj", "{7EB5568E-360F-4A66-BB6D-7598C5F99572}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zzz_tools_emissions_map", "zzz_tools_emissions_map\zzz_tools_emissions_map.vcproj", "{015EB7EF-818B-41C0-8434-C32F994201B9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zzz_tools_emissionsMap", "zzz_tools_emissionsMap\zzz_tools_emissionsMap.vcproj", "{015EB7EF-818B-41C0-8434-C32F994201B9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{72CDB11A-EC19-4BE2-BBE9-1FA33DECCB20} = {72CDB11A-EC19-4BE2-BBE9-1FA33DECCB20}
 		{492B0B5A-0BBE-49BA-82E6-70A82DBC242F} = {492B0B5A-0BBE-49BA-82E6-70A82DBC242F}
@@ -36,7 +36,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zzz_tools_emissions_map", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zz_foreign_tcpip", "zz_foreign_tcpip\zz_foreign_tcpip.vcproj", "{492B0B5A-0BBE-49BA-82E6-70A82DBC242F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zzz_tools_emissions_timeline", "zzz_tools_emissions_timeline\zzz_tools_emissions_timeline.vcproj", "{3176CFC9-574B-4A3F-963D-BFA1ED76D06D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zzz_tools_emissionsDrivingCycle", "zzz_tools_emissionsDrivingCycle\zzz_tools_emissionsDrivingCycle.vcproj", "{3176CFC9-574B-4A3F-963D-BFA1ED76D06D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{72CDB11A-EC19-4BE2-BBE9-1FA33DECCB20} = {72CDB11A-EC19-4BE2-BBE9-1FA33DECCB20}
 		{334DF447-D0B3-4CEA-9693-F755EB11C18F} = {334DF447-D0B3-4CEA-9693-F755EB11C18F}

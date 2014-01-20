@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="zzz_tools_emissions_timeline"
+	Name="zzz_tools_emissionsDrivingCycle"
 	ProjectGUID="{3176CFC9-574B-4A3F-963D-BFA1ED76D06D}"
 	Keyword="MFCProj"
 	TargetFrameworkVersion="131072"
@@ -53,7 +53,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="$(XERCES_DEBUG_LIB) $(NOINHERIT) ws2_32.lib"
-				OutputFile=".\Debug/emissionsTimelineD.exe"
+				OutputFile=".\Debug/emissionsDrivingCycleD.exe"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -114,7 +114,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="$(XERCES_LIB) $(NOINHERIT) ws2_32.lib"
-				OutputFile=".\Release/emissionsTimeline.exe"
+				OutputFile=".\Release/emissionsDrivingCycle.exe"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -177,7 +177,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="$(XERCES_LIB) $(NOINHERIT) ws2_32.lib"
-				OutputFile=".\Fastbuild/emissionsTimelineF.exe"
+				OutputFile=".\Fastbuild/emissionsDrivingCycleF.exe"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -238,7 +238,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="$(XERCES_DEBUG_LIB) $(NOINHERIT) ws2_32.lib"
-				OutputFile=".\Debug/emissionsTimeline64D.exe"
+				OutputFile=".\Debug/emissionsDrivingCycle64D.exe"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -299,7 +299,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="$(XERCES_LIB) $(NOINHERIT) ws2_32.lib"
-				OutputFile=".\Release/emissionsTimeline64.exe"
+				OutputFile=".\Release/emissionsDrivingCycle64.exe"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 			/>
@@ -363,7 +363,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="$(XERCES_LIB) $(NOINHERIT) ws2_32.lib"
-				OutputFile=".\Fastbuild/emissionsTimeline64F.exe"
+				OutputFile=".\Fastbuild/emissionsDrivingCycle64F.exe"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				TargetMachine="17"
