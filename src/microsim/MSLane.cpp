@@ -37,6 +37,7 @@
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/StdDefs.h>
 #include "MSVehicle.h"
+#include "MSPModel.h"
 #include "MSAbstractLaneChangeModel.h"
 #include "MSNet.h"
 #include "MSVehicleType.h"

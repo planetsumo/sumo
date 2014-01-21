@@ -978,7 +978,10 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         for (MSLink::LinkLeaders::const_iterator it = linkLeaders.begin(); it != linkLeaders.end(); ++it) {
             // the vehicle to enter the junction first has priority
             const MSVehicle* leader = (*it).first.first;
-            if (leader->myLinkLeaders.count(getID()) == 0) {
+            if (leader == 0) {
+                // leader is a pedestrian. Passing 'this' as a dummy.
+                adaptToLeader(std::make_pair(this, -1), seen, lastLink, lane, v, vLinkPass, it->second);
+            } else if (leader->myLinkLeaders.count(getID()) == 0) {
                 // leader isn't already following us, now we follow it
                 myLinkLeaders.insert(leader->getID());
                 adaptToLeader(it->first, seen, lastLink, lane, v, vLinkPass, it->second);

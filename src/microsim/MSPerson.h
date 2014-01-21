@@ -46,11 +46,13 @@
 // ===========================================================================
 class MSNet;
 class MSEdge;
+class MSLane;
 class OutputDevice;
 class SUMOVehicleParameter;
 class MSBusStop;
 class SUMOVehicle;
 class MSVehicleType;
+class MSPModel;
 
 typedef std::vector<const MSEdge*> MSEdgeVector;
 
@@ -129,6 +131,9 @@ public:
         /// @brief get position on edge e at length at with orthogonal offset
         Position getEdgePosition(const MSEdge* e, SUMOReal at, SUMOReal offset) const;
 
+        /// @brief get position on lane l at length at with orthogonal offset
+        Position getLanePosition(const MSLane* lane, SUMOReal at, SUMOReal offset) const;
+
         SUMOReal getEdgeAngle(const MSEdge* e, SUMOReal at) const;
 
         /** @brief Called on writing tripinfo output
@@ -184,6 +189,8 @@ public:
      * Only the duration is needed
      */
     class MSPersonStage_Walking : public MSPersonStage {
+        friend class MSPModel;
+
     public:
         /// constructor
         MSPersonStage_Walking(const std::vector<const MSEdge*>& route, MSBusStop* toBS, SUMOTime walkingTime, SUMOReal speed, SUMOReal departPos, SUMOReal arrivalPos);
@@ -232,7 +239,7 @@ public:
          */
         virtual void endEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const;
 
-        SUMOTime moveToNextEdge(MSPerson* person, SUMOTime currentTime);
+        SUMOTime moveToNextEdge(MSPerson* person, SUMOTime currentTime, MSEdge* nextInternal=0);
 
 
         class MoveToNextEdge : public Command {
@@ -251,6 +258,16 @@ public:
 
         };
 
+        /// @brief accessors to be used by MSPModel
+        //@{
+        inline SUMOReal getSpeed() { return mySpeed;}
+        inline SUMOReal getCurrentBeginPos() { return myCurrentBeginPos;}
+        inline SUMOReal getCurrentEndPos() { return myCurrentBeginPos + myCurrentLength;}
+        inline const MSEdge* getNextEdge() { return myRouteStep == myRoute.end() - 1 ? 0 : *(myRouteStep + 1); }
+
+        virtual void updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift);
+        //@}
+
 
     private:
         void computeWalkingTime(const MSEdge* const e, SUMOReal fromPos, SUMOReal toPos, MSBusStop* bs);
@@ -266,6 +283,9 @@ public:
 
         std::vector<const MSEdge*>::iterator myRouteStep;
 
+        /// @brief The current internal edge this person is on or 0
+        MSEdge* myCurrentInternalEdge;
+
         /// @brief A vector of computed times an edge is reached
         //std::vector<SUMOTime> myArrivalTimes;
 
@@ -278,6 +298,17 @@ public:
         SUMOReal myCurrentBeginPos, myCurrentLength, myCurrentDuration;
         //bool myDurationWasGiven;
         //SUMOReal myOverallLength;
+
+
+        /// @brief state that is to be manipulated by MSPModel
+        //@{
+        /// @brief the current lane on which this pedestrian moves or 0
+        const MSLane* myLane;
+        /// @brief the current advancement on this lane
+        SUMOReal myLanePos;
+        /// @brief the orthogonal shift from the lane
+        SUMOReal myShift;
+        //@}
 
         class arrival_finder {
         public:
@@ -496,6 +527,9 @@ public:
 
     /// destructor
     virtual ~MSPerson();
+
+    virtual void lockPerson() {};
+    virtual void unlockPerson() {};
 
     /// returns the person id
     const std::string& getID() const;

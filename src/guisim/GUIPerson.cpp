@@ -42,6 +42,7 @@
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/SUMOVehicleParameter.h>
+#include <utils/common/AbstractMutex.h>
 #include <utils/gui/images/GUITexturesHelper.h>
 #include <utils/gui/windows/GUISUMOAbstractView.h>
 #include <utils/gui/windows/GUIAppEnum.h>
@@ -306,6 +307,7 @@ GUIPerson::getColorValue(size_t activeScheme) const {
 
 Position
 GUIPerson::getPosition(SUMOTime now) const {
+    AbstractMutex::ScopedLocker locker(myLock);
     if (getCurrentStageType() == DRIVING && !isWaiting4Vehicle()) {
         return myPositionInVehicle;
     }

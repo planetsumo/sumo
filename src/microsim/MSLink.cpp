@@ -39,6 +39,7 @@
 #include "MSEdge.h"
 #include "MSGlobals.h"
 #include "MSVehicle.h"
+#include "MSPModel.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -456,6 +457,10 @@ MSLink::getLeaderInfo(SUMOReal dist, SUMOReal minGap) const {
                     }
                     result.push_back(std::make_pair(std::make_pair(leader, gap), sameTarget ? -1 : distToCrossing));
                 }
+            }
+            // check for crossing pedestrians
+            if (MSPModel::blockedAtDist(foeLane, foeDistToCrossing)) {
+                result.push_back(std::make_pair(std::make_pair((MSVehicle*)0, -1), distToCrossing - MSPModel::SAFETY_GAP));
             }
         }
     }

@@ -125,6 +125,14 @@ public:
     /// @brief overrides the base method and returns myPositionInVehicle while in driving stage
     Position getPosition(SUMOTime now) const;
 
+    void lockPerson() { 
+        myLock.lock();
+    };
+
+    void unlockPerson() { 
+        myLock.unlock();
+    };
+
     /**
      * @class GUIPersonPopupMenu
      *
