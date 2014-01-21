@@ -104,7 +104,7 @@ MSPModel::cleanup() {
 
 
 void
-MSPModel::moveToLane(Pedestrian ped, const MSLane* newLane) {
+MSPModel::addToLane(Pedestrian ped, const MSLane* newLane) {
     if (newLane != 0) {
         myActiveLanes[newLane].push_back(ped);
     } else {
@@ -131,6 +131,35 @@ int
 MSPModel::numStripes(const MSLane* lane) {
     return (int)floor(lane->getWidth() / STRIPE_WIDTH); 
 }
+
+
+const MSLane*
+MSPModel::getNextLane(const MSLane* currentLane, Pedestrian& ped) {
+    const MSLane* nextRouteLane = getSidwalk(ped.myStage->getNextEdge());
+    const MSLane* nextLane = nextRouteLane;
+    if (nextRouteLane != 0) {
+        // route continues, check for internal edge in between
+        nextLane = MSLinkContHelper::getInternalFollowingLane(currentLane, nextRouteLane);
+        if (nextLane == 0 || nextLane->getLength() <= POSITION_EPS) {
+            // no internal lane found or it's too short, jump directly to next route lane
+            nextLane = nextRouteLane;
+        }
+    }
+    return nextLane;
+}
+
+
+int
+MSPModel::countWaitingToEnter(const std::vector<Pedestrian>& pedestrians) {
+    int count = 0;
+    for (Pedestrians::const_iterator it = pedestrians.begin(); it != pedestrians.end(); ++it) {
+        if ((*it).myWaitingToEnter) {
+            count++;
+        }
+    }
+    return count;
+}
+
 
 // ===========================================================================
 // MSPModel::Pedestrian method definitions
@@ -258,40 +287,11 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
 }
 
 // ===========================================================================
-// MovePedestrians method definitions
+// MSPModel::MovePedestrians method definitions
 // ===========================================================================
 //
 MSPModel::MovePedestrians::MovePedestrians()
 {}
-
-const MSLane*
-MSPModel::MovePedestrians::getNextLane(const MSLane* currentLane, Pedestrian& ped) {
-    const MSLane* nextRouteLane = getSidwalk(ped.myStage->getNextEdge());
-    const MSLane* nextLane = nextRouteLane;
-    if (nextRouteLane != 0) {
-        // route continues, check for internal edge in between
-        nextLane = MSLinkContHelper::getInternalFollowingLane(currentLane, nextRouteLane);
-        if (nextLane == 0 || nextLane->getLength() <= POSITION_EPS) {
-            // no internal lane found or it's too short, jump directly to next route lane
-            nextLane = nextRouteLane;
-        }
-    }
-    return nextLane;
-}
-
-
-int
-MSPModel::countWaitingToEnter(const std::vector<Pedestrian>& pedestrians) {
-    int count = 0;
-    for (Pedestrians::const_iterator it = pedestrians.begin(); it != pedestrians.end(); ++it) {
-        if ((*it).myWaitingToEnter) {
-            count++;
-        }
-    }
-    return count;
-}
-
-
 
 SUMOTime 
 MSPModel::MovePedestrians::execute(SUMOTime currentTime) {
@@ -347,7 +347,7 @@ MSPModel::MovePedestrians::execute(SUMOTime currentTime) {
                     if (done != 0) {
                         p.myStage->updateLocationSecure(p.myPerson, nextLane, p.myX, p.myY);
                         //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << nextLane->getID() << " x=" << p.myX << "\n";
-                        moveToLane(p, nextLane);
+                        addToLane(p, nextLane);
                     } else {
                         myNumActivePedestrians--;
                     }

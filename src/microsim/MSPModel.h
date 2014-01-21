@@ -110,8 +110,6 @@ protected:
             ~MovePedestrians() {};
             SUMOTime execute(SUMOTime currentTime);
         private:
-            static const MSLane* getNextLane(const MSLane* currentLane, Pedestrian& ped);
-
             /// @brief Invalidated assignment operator.
             MovePedestrians& operator=(const MovePedestrians&);
     };
@@ -135,11 +133,17 @@ protected:
     /// @brief return the maximum number of pedestrians walking side by side
     static int numStripes(const MSLane* lane);
 
-    static void moveToLane(Pedestrian ped, const MSLane* newLane);
+    /// @brief adds the given pedestrian to the given lane unless the lane is 0
+    static void addToLane(Pedestrian ped, const MSLane* newLane);
 
+    /// @brief retrieves the pedestian vector for the given lane (may be empty)
     static Pedestrians& getPedestrians(const MSLane* lane);
 
+    /// @brief counts the number of pedestrians with status waitingToEnter 
     static int countWaitingToEnter(const std::vector<Pedestrian>& pedestrians);
+
+    /// @brief computes the successor lane for the given pedestrian
+    static const MSLane* getNextLane(const MSLane* currentLane, Pedestrian& ped);
 
 protected:
     static int myNumActivePedestrians;
