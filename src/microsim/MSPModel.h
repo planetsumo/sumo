@@ -39,6 +39,7 @@
 // ===========================================================================
 class MSNet;
 class MSLane;
+class MSJunction;
 
 
 // ===========================================================================
@@ -75,7 +76,7 @@ protected:
     class Pedestrian {
     public:
 
-        Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walking* stage);
+        Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, const MSLane* lane);
         ~Pedestrian() {};
         MSPerson* myPerson;
         MSPerson::MSPersonStage_Walking* myStage;
@@ -83,10 +84,23 @@ protected:
         SUMOReal myX; 
         /// @brief the orthogonal shift on the current lane
         SUMOReal myY; 
+        /// @brief the walking direction on the current and next lane (1 forward, -1 backward)
+        int myDir;
+        int myNextDir;
 
         bool myWaitingToEnter;
 
+        /// @brief return the length of the pedestrian
         SUMOReal getLength() const;
+
+        /// @brief update walking direction for lane and (and starting position if junction != 0)
+        void updateDirection(const MSLane* lane, const MSJunction* junction=0);
+
+        /// @brief the absolute distance to the end of the lane in walking direction
+        SUMOReal distToLaneEnd() const;
+
+        /// @brief return whether this pedestrian has passed the end of the current lane and update myX if so
+        bool moveToNextLane();
 
         /// @brief perform position update
         void walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower);
@@ -96,7 +110,9 @@ protected:
                 std::vector<SUMOReal>& vSafe,
                 Pedestrians::iterator maxLeader, 
                 Pedestrians::iterator minFollower, 
-                SUMOReal x, const Pedestrian& ego);
+                SUMOReal x, 
+                const Pedestrian& ego,
+                int dir);
             
     private:
         int stripe() const;
@@ -113,19 +129,24 @@ protected:
             /// @brief Invalidated assignment operator.
             MovePedestrians& operator=(const MovePedestrians&);
     };
-    friend class MovePedestrians;
 
     class by_xpos_sorter {
     public:
         /// constructor
-        by_xpos_sorter() {}
+        by_xpos_sorter(int dir): myDir(dir) {}
 
     public:
         /// comparing operation
-        int operator()(const Pedestrian& p1, const Pedestrian& p2) const {
-            return p1.myX > p2.myX;
+        bool operator()(const Pedestrian& p1, const Pedestrian& p2) const {
+            return myDir * p1.myX > myDir * p2.myX;
         }
+
+    private:
+        const int myDir;
     };
+
+    /// @brief move all pedestrians forward and advance to the next lane if applicable
+    static void moveInDirection(SUMOTime currentTime, int dir);
 
     /// @brief return the appropriate lane to walk on
     static MSLane* getSidwalk(const MSEdge* edge);
@@ -133,8 +154,8 @@ protected:
     /// @brief return the maximum number of pedestrians walking side by side
     static int numStripes(const MSLane* lane);
 
-    /// @brief adds the given pedestrian to the given lane unless the lane is 0
-    static void addToLane(Pedestrian ped, const MSLane* newLane);
+    /// @brief adds the given pedestrian to the new lane unless the lane is 0
+    static void addToLane(Pedestrian ped, const MSJunction* junction, const MSLane* newLane);
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     static Pedestrians& getPedestrians(const MSLane* lane);
@@ -143,7 +164,10 @@ protected:
     static int countWaitingToEnter(const std::vector<Pedestrian>& pedestrians);
 
     /// @brief computes the successor lane for the given pedestrian
-    static const MSLane* getNextLane(const MSLane* currentLane, Pedestrian& ped);
+    static const MSLane* getNextLane(const MSLane* currentLane, const Pedestrian& ped);
+
+    /// @brief computes the walking direction to be used on lane to reach next
+    static int getDirection(const MSEdge* edge, const MSEdge* nextEdge);
 
 protected:
     static int myNumActivePedestrians;

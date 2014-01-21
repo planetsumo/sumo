@@ -142,6 +142,7 @@ NLJunctionControlBuilder::closeJunction() {
         if (!myJunctions->add(myActiveID, junction)) {
             throw InvalidArgument("Another junction with the id '" + myActiveID + "' exists.");
         }
+        MSJunction::dictionary(junction->getID(), junction);
     }
 }
 

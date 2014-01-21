@@ -32,8 +32,11 @@
 #include <microsim/MSNet.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSLane.h>
+#include <microsim/MSJunction.h>
 #include "MSPModel.h"
 
+#define DEBUG1 "forward"
+#define DEBUG2 "invalid"
 
 // ===========================================================================
 // static members
@@ -59,7 +62,7 @@ MSPModel::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, MSNet* n
     assert(person->getCurrentStageType() == MSPerson::WALKING);
     //MSEdge* edge = dynamic_cast<MSPerson::MSPersonStage_Walking*>(person->getCurrentStage());
     const MSLane* lane = getSidwalk(person->getEdge());
-    myActiveLanes[lane].push_back(Pedestrian(person, stage));
+    myActiveLanes[lane].push_back(Pedestrian(person, stage, lane));
     if (net != 0 && myNumActivePedestrians == 0) {
         net->getBeginOfTimestepEvents().addEvent(new MovePedestrians(), net->getCurrentTimeStep() + DELTA_T, MSEventControl::ADAPT_AFTER_EXECUTION);
     }
@@ -104,8 +107,12 @@ MSPModel::cleanup() {
 
 
 void
-MSPModel::addToLane(Pedestrian ped, const MSLane* newLane) {
+MSPModel::addToLane(Pedestrian ped, const MSJunction* junction, const MSLane* newLane) {
     if (newLane != 0) {
+        if (ped.myPerson->getID() == DEBUG1) {
+            std::cout << SIMTIME << " junction=" << junction->getID() << " newLane=" << newLane->getID() << " newTo=" << newLane->getEdge().getToJunction()->getID() << "\n";
+        }
+        ped.updateDirection(newLane, junction);
         myActiveLanes[newLane].push_back(ped);
     } else {
         myNumActivePedestrians--;
@@ -134,18 +141,47 @@ MSPModel::numStripes(const MSLane* lane) {
 
 
 const MSLane*
-MSPModel::getNextLane(const MSLane* currentLane, Pedestrian& ped) {
+MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped) {
     const MSLane* nextRouteLane = getSidwalk(ped.myStage->getNextEdge());
     const MSLane* nextLane = nextRouteLane;
     if (nextRouteLane != 0) {
         // route continues, check for internal edge in between
-        nextLane = MSLinkContHelper::getInternalFollowingLane(currentLane, nextRouteLane);
+        if (ped.myDir == 1) {
+            nextLane = MSLinkContHelper::getInternalFollowingLane(currentLane, nextRouteLane);
+        } else {
+            nextLane = MSLinkContHelper::getInternalFollowingLane(nextRouteLane, currentLane);
+        }
         if (nextLane == 0 || nextLane->getLength() <= POSITION_EPS) {
             // no internal lane found or it's too short, jump directly to next route lane
             nextLane = nextRouteLane;
         }
     }
     return nextLane;
+}
+
+
+int
+MSPModel::getDirection(const MSEdge* edge, const MSEdge* nextEdge) {
+    assert(edge != 0);
+    assert(nextEdge != 0);
+    if (edge->isInternal()) {
+        assert(!nextEdge->isInternal());
+        assert(edge->getNoFollowing() == 1);
+        return edge->getFollower(0) == nextEdge ? 1 : -1;
+    }
+    if (nextEdge->isInternal()) {
+        return edge == &getSidwalk(nextEdge)->getLogicalPredecessorLane()->getEdge() ? 1 : -1;
+    }
+    // check junction topology
+    if (edge->getToJunction() == nextEdge->getFromJunction() 
+            || edge->getToJunction() == nextEdge->getToJunction() ) {
+        return 1;
+    } else if  (edge->getFromJunction() == nextEdge->getToJunction()
+            || edge->getFromJunction() == nextEdge->getFromJunction()) {
+        return -1;
+    } else {
+        return 1; // not connected it any way. just walk forward.
+    }
 }
 
 
@@ -161,18 +197,131 @@ MSPModel::countWaitingToEnter(const std::vector<Pedestrian>& pedestrians) {
 }
 
 
+void 
+MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
+    for (ActiveLanes::iterator it_lane = myActiveLanes.begin(); it_lane != myActiveLanes.end(); ++it_lane) {
+        // move forward
+        Pedestrians& pedestrians = it_lane->second;
+        const int stripes = numStripes(it_lane->first);
+        const int waitingToEnter = countWaitingToEnter(pedestrians);
+        //std::cout << SIMTIME << ">>> lane=" << it_lane->first->getID() << " waitingToEnter=" << waitingToEnter << "\n";
+        sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(dir));
+        for (int ii = 0; ii < pedestrians.size(); ++ii) {
+            Pedestrian& p = pedestrians[ii];
+            if (p.myDir != dir) {
+                continue;
+            }
+            std::vector<SUMOReal> vSafe(stripes, LOOKAHEAD);
+            const MSLane* nextLane = getNextLane(it_lane->first, p);
+            const SUMOReal dist = p.distToLaneEnd();
+            assert(dist > 0);
+            if (nextLane != 0) {
+                MSLink* link = 0;
+                if (dir == 1) {
+                    link = MSLinkContHelper::getConnectingLink(*it_lane->first, *nextLane);
+                } else {
+                    if (nextLane->getEdge().isInternal()) {
+                        link = MSLinkContHelper::getConnectingLink(*nextLane->getLogicalPredecessorLane(), *nextLane);
+                    } else {
+                        link = MSLinkContHelper::getConnectingLink(*nextLane, *it_lane->first);
+                    }
+                }
+                assert(link != 0);
+                if (link->getState() == LINKSTATE_TL_RED) {
+                    // prevent movement passed a closed link
+                    // XXX check for oncoming vehicles with priority
+                    vSafe = std::vector<SUMOReal>(stripes, dist - POSITION_EPS);
+                } else {
+                    // initialize vSafes according to link state and pedestrians on the next Lane
+                    // XXX consider waitingToEnter on nextLane
+                    Pedestrians& nextPedestrians = getPedestrians(nextLane);
+                    sort(nextPedestrians.begin(), nextPedestrians.end(), by_xpos_sorter(dir));
+                    const SUMOReal relativeX = (dir == 1 ? -dist : nextLane->getLength() + dist);
+                    Pedestrian::updateVSafe(vSafe, 
+                            nextPedestrians.end() - MIN2((int)nextPedestrians.size(), 2 * stripes),
+                            nextPedestrians.end(),
+                            relativeX, p, p.myNextDir);
+                }
+            }
+            p.walk(vSafe, pedestrians.begin() + MAX2(0, ii - 2 * stripes - waitingToEnter),
+                    pedestrians.begin() + MIN2((int)pedestrians.size(), ii + 2 * stripes + waitingToEnter));
+            //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << it_lane->first->getID() << " x=" << p.myX << "\n";
+            p.myStage->updateLocationSecure(p.myPerson, it_lane->first, p.myX, p.myY);
+        }
+        // advance to the next lane
+        const MSEdge& edge = it_lane->first->getEdge();
+        const MSJunction* junction = (dir == 1 ? edge.getToJunction() : edge.getFromJunction());
+        sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(dir));
+        bool checkAdvance = true; 
+        while (checkAdvance) {
+            checkAdvance = false;;
+            if (pedestrians.size() > 0) {
+                Pedestrian p = pedestrians.front();
+                if (p.myDir != dir) {
+                    continue;
+                }
+                if (p.moveToNextLane()) {
+                    pedestrians.erase(pedestrians.begin());
+                    checkAdvance = true;
+                    const MSLane* nextLane = getNextLane(it_lane->first, p);
+                    const bool nextIsInternal = (nextLane != 0 && nextLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL);
+                    const SUMOReal done = p.myStage->moveToNextEdge(p.myPerson, currentTime, nextIsInternal ? &nextLane->getEdge() : 0);
+                    if (done != 0) {
+                        p.myStage->updateLocationSecure(p.myPerson, nextLane, p.myX, p.myY);
+                        //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << nextLane->getID() << " x=" << p.myX << "\n";
+                        addToLane(p, junction, nextLane);
+                    } else {
+                        myNumActivePedestrians--;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 // ===========================================================================
 // MSPModel::Pedestrian method definitions
 // ===========================================================================
 
 
-MSPModel::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walking* stage): 
+MSPModel::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, const MSLane* lane): 
     myPerson(person),
     myStage(stage),
     myX(stage->getCurrentBeginPos()),
     myY(0), // XXX randomize?
     myWaitingToEnter(true)
-{ }
+{ 
+    updateDirection(lane);
+    myStage->updateLocationSecure(myPerson, lane, myX, myY);
+}
+
+
+void 
+MSPModel::Pedestrian::updateDirection(const MSLane* lane, const MSJunction* junction) {
+    const MSEdge* next = myStage->getNextEdge();
+    if (next == 0) {
+        if (lane->getEdge().getToJunction() == junction) {
+            assert(!lane->getEdge().isInternal());
+            // start at the end of newLane
+            myX = lane->getLength() - myX;
+        }
+        myDir = (myX <= myStage->getCurrentEndPos()) ? 1 : -1;
+        myNextDir = 0; // irrelevant
+    } else {
+        if (myPerson->getID() == DEBUG1) {
+            std::cout << SIMTIME << " lane=" << lane->getID() << " next=" << next->getID() << "\n";
+        }
+        myDir = getDirection(&lane->getEdge(), next);
+        const MSJunction* nextJunction = (myDir == 1 ? 
+                lane->getEdge().getToJunction() : lane->getEdge().getFromJunction());
+        myNextDir = (nextJunction == next->getToJunction() ? -1 : 1);
+        if (junction != 0 && myDir == -1) {
+            // start at the end of newLane
+            myX = lane->getLength() - myX;
+        }
+    }
+}
 
 
 SUMOReal 
@@ -200,25 +349,50 @@ MSPModel::Pedestrian::otherStripe() const {
 }
 
 
+SUMOReal 
+MSPModel::Pedestrian::distToLaneEnd() const {
+    if (myDir == 1 || myStage->getNextEdge() == 0) {
+        return myDir * (myStage->getCurrentEndPos() - myX);
+    } else {
+        return myX;
+    } 
+}
+
+
+bool
+MSPModel::Pedestrian::moveToNextLane() {
+    const SUMOReal dist = distToLaneEnd();
+    if (dist <= 0) {
+        myX = abs(dist); // always add forward and correct in updateDirection()
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 void
 MSPModel::Pedestrian::updateVSafe(
         std::vector<SUMOReal>& vSafe,
         Pedestrians::iterator maxLeader, 
         Pedestrians::iterator minFollower, 
-        SUMOReal x, const MSPModel::Pedestrian& ego) {
+        SUMOReal x, 
+        const MSPModel::Pedestrian& ego,
+        int dir) {
 
     for (Pedestrians::iterator it = maxLeader; it != minFollower; ++it) {
         const MSPModel::Pedestrian& ped = *it;
         if (ped.myPerson == ego.myPerson || (!ego.myWaitingToEnter && ped.myWaitingToEnter)) {
             continue; // ignore self and non-inserted
         }
-        if (ped.myX > x) {
-            const SUMOReal v = MAX2((SUMOReal)0, ped.myX - x - ped.myPerson->getVehicleType().getLength() - ego.myPerson->getVehicleType().getMinGap());
+        const SUMOReal gap = (ped.myX - x) * dir;
+        if (gap > 0) {
+            const SUMOReal v = MAX2((SUMOReal)0, gap - ped.getLength() - ego.myPerson->getVehicleType().getMinGap());
             int l = ped.stripe();
             vSafe[l] = MIN2(vSafe[l], v);
             l = ped.otherStripe();
             vSafe[l] = MIN2(vSafe[l], v);
-        } else if (ped.myX + ego.myPerson->getVehicleType().getLength() + ped.myPerson->getVehicleType().getMinGap() > x 
+        } else if (-gap < ego.getLength() + ped.myPerson->getVehicleType().getMinGap() 
                 && (ego.myWaitingToEnter || ped.stripe() != ego.stripe())) {
             // stripes are blocked
             vSafe[ped.stripe()] = -1;
@@ -232,7 +406,7 @@ void
 MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower) {
     const SUMOReal vMax = myStage->getSpeed();
     // compute vSafe on all stripes
-    updateVSafe(vSafe, maxLeader, minFollower, myX, *this);
+    updateVSafe(vSafe, maxLeader, minFollower, myX, *this, myDir);
     // chose stripe
     int chosen = stripe();
     // disallow stripes which are to far away
@@ -256,11 +430,14 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
             MIN2( vMax, yDist / ySteps + NUMERICAL_EPS) :
             MAX2(-vMax, yDist / ySteps + NUMERICAL_EPS));
     // DEBUG
-    if (false && (myPerson->getID() == "p20" || myPerson->getID() == "p17")) {
+    if (true && (myPerson->getID() == DEBUG1 || myPerson->getID() == DEBUG2)) {
         std::cout << SIMTIME 
             << " ped=" << myPerson->getID()
+            << " edge=" << myStage->getEdge()->getID()
             << " x=" << myX
             << " y=" << myY
+            << " dir=" << myDir
+            << " nDir=" << myNextDir
             << " c=" << chosen
             << " vx=" << xSpeed
             << " vy=" << ySpeed
@@ -279,7 +456,7 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
         }
         std::cout << "\n";
     }
-    myX += xSpeed;
+    myX += xSpeed * myDir;
     myY += ySpeed;
     if (xSpeed > 0) {
         myWaitingToEnter = false;
@@ -295,66 +472,8 @@ MSPModel::MovePedestrians::MovePedestrians()
 
 SUMOTime 
 MSPModel::MovePedestrians::execute(SUMOTime currentTime) {
-    for (ActiveLanes::iterator it_lane = myActiveLanes.begin(); it_lane != myActiveLanes.end(); ++it_lane) {
-        // move forward
-        Pedestrians& pedestrians = it_lane->second;
-        const int stripes = numStripes(it_lane->first);
-        const int waitingToEnter = countWaitingToEnter(pedestrians);
-        //std::cout << SIMTIME << ">>> lane=" << it_lane->first->getID() << " waitingToEnter=" << waitingToEnter << "\n";
-        sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter());
-        for (int ii = 0; ii < pedestrians.size(); ++ii) {
-            Pedestrian& p = pedestrians[ii];
-            std::vector<SUMOReal> vSafe(stripes, LOOKAHEAD);
-            const MSLane* nextLane = getNextLane(it_lane->first, p);
-            const SUMOReal dist = p.myStage->getCurrentEndPos() - p.myX; 
-            if (nextLane != 0) {
-                MSLink* link = MSLinkContHelper::getConnectingLink(*it_lane->first, *nextLane);
-                assert(link != 0);
-                if (link->getState() == LINKSTATE_TL_RED) {
-                    // prevent movement passed a closed link
-                    // XXX check for oncoming vehicles with priority
-                    vSafe = std::vector<SUMOReal>(stripes, dist);
-                } else {
-                    // initialize vSafes according to link state and pedestrians on the next Lane
-                    // XXX consider waitingToEnter on nextLane
-                    Pedestrians& nextPedestrians = getPedestrians(nextLane);
-                    sort(nextPedestrians.begin(), nextPedestrians.end(), by_xpos_sorter());
-                    Pedestrian::updateVSafe(vSafe, 
-                            nextPedestrians.end() - MIN2((int)nextPedestrians.size(), 2 * stripes),
-                            nextPedestrians.end(),
-                            -dist, p);
-                }
-            }
-            p.walk(vSafe, pedestrians.begin() + MAX2(0, ii - 2 * stripes - waitingToEnter),
-                    pedestrians.begin() + MIN2((int)pedestrians.size(), ii + 2 * stripes + waitingToEnter));
-            //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << it_lane->first->getID() << " x=" << p.myX << "\n";
-            p.myStage->updateLocationSecure(p.myPerson, it_lane->first, p.myX, p.myY);
-        }
-        // advance to the next lane
-        sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter());
-        bool checkAdvance = true; 
-        while (checkAdvance) {
-            checkAdvance = false;;
-            if (pedestrians.size() > 0) {
-                Pedestrian p = pedestrians.front();
-                if (p.myX > p.myStage->getCurrentEndPos()) {
-                    p.myX -= p.myStage->getCurrentEndPos();
-                    pedestrians.erase(pedestrians.begin());
-                    checkAdvance = true;
-                    const MSLane* nextLane = getNextLane(it_lane->first, p);
-                    const bool nextIsInternal = (nextLane != 0 && nextLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL);
-                    const SUMOReal done = p.myStage->moveToNextEdge(p.myPerson, currentTime, nextIsInternal ? &nextLane->getEdge() : 0);
-                    if (done != 0) {
-                        p.myStage->updateLocationSecure(p.myPerson, nextLane, p.myX, p.myY);
-                        //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << nextLane->getID() << " x=" << p.myX << "\n";
-                        addToLane(p, nextLane);
-                    } else {
-                        myNumActivePedestrians--;
-                    }
-                }
-            }
-        }
-    }
+    MSPModel::moveInDirection(currentTime, 1);
+    MSPModel::moveInDirection(currentTime, -1);
     return DELTA_T;
 }
 

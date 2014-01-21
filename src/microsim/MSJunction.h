@@ -46,6 +46,7 @@
 class MSVehicle;
 class MSLink;
 class MSLane;
+class MSEdge;
 
 // ===========================================================================
 // class definitions
@@ -93,6 +94,34 @@ public:
         return myEmptyLanes;
     }
 
+    inline std::vector<const MSEdge*>& getIncoming() {
+        return myIncoming;
+    }
+
+    inline std::vector<const MSEdge*>& getOutgoing() {
+        return myOutgoing;
+    }
+
+    void addIncoming(MSEdge* edge) {
+        myIncoming.push_back(edge);
+    }
+
+    void addOutgoing(MSEdge* edge) {
+        myOutgoing.push_back(edge);
+    }
+
+    /** @brief Inserts junction into the static dictionary
+        Returns true if the key id isn't already in the dictionary. Otherwise
+        returns false. */
+    static bool dictionary(const std::string& id, MSJunction* junction);
+
+    /** @brief Returns the MSEdge associated to the key id if exists, otherwise returns 0. */
+    static MSJunction* dictionary(const std::string& id);
+
+    static void clear() {
+        myDict.clear();
+    }
+
 protected:
     /// @brief The position of the junction
     Position myPosition;
@@ -104,7 +133,18 @@ protected:
     std::vector<MSLane*> myEmptyLanes;
 
 
+    /// @brief incoming edges
+    std::vector<const MSEdge*> myIncoming;
+    /// @brief outgoing edges
+    std::vector<const MSEdge*> myOutgoing;
 
+    /// @brief definition of the static dictionary type
+    typedef std::map<std::string, MSJunction* > DictType;
+
+    /** @brief Static dictionary to associate string-ids with objects.
+     * @deprecated Move to MSEdgeControl, make non-static
+     */
+    static DictType myDict;
 
 private:
     /// @brief Invalidated copy constructor.

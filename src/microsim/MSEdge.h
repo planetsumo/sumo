@@ -58,6 +58,7 @@ class SUMOVehicleParameter;
 class MSVehicle;
 class MSLane;
 class MSPerson;
+class MSJunction;
 
 
 // ===========================================================================
@@ -205,6 +206,10 @@ public:
         return myFunction;
     }
 
+    /// @brief return whether this edge is an internal edge
+    inline bool isInternal() const {
+        return myFunction == EDGEFUNCTION_INTERNAL;
+    }
 
     /** @brief Returns the numerical id of the edge
      * @return This edge's numerical id
@@ -256,6 +261,21 @@ public:
      */
     const MSEdge* getFollower(unsigned int n) const {
         return mySuccessors[n];
+    }
+
+
+    const MSJunction* getFromJunction() const {
+        return myFromJunction;
+    }
+
+    const MSJunction* getToJunction() const {
+        return myToJuntction;
+    }
+
+
+    void setJunctions(MSJunction* from, MSJunction* to) {
+        myFromJunction = from;
+        myToJuntction = to;
     }
     /// @}
 
@@ -563,6 +583,10 @@ protected:
 
     /// @brief The preceeding edges
     std::vector<MSEdge*> myPredeccesors;
+
+    /// @brief the junctions for this edge
+    MSJunction* myFromJunction;
+    MSJunction* myToJuntction;
 
     /// @brief Persons on the edge (only for drawing)
     mutable std::set<MSPerson*> myPersons;
