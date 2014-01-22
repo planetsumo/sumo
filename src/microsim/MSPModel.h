@@ -59,10 +59,20 @@ public:
 
     static void cleanup();
 
+    // @brief the safety gap to keep between the car and the pedestrian in all directions
     static const SUMOReal SAFETY_GAP;
+
+    // @brief the width of a pedstrian stripe
     static const SUMOReal STRIPE_WIDTH;
+
+    // @brief the distance to look ahead for changing stripes
     static const SUMOReal LOOKAHEAD;
+
+    // @brief the factor by which pedestrian width is reduced when sqeezing past each other
     static const SUMOReal SQUEEZE;
+
+    // @brief the maximum distance at which oncoming pedestrians block right turning traffic
+    static const SUMOReal BLOCKER_LOOKAHEAD;
 
 protected:
     class Pedestrian;

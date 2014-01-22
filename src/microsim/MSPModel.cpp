@@ -51,7 +51,8 @@ const SUMOReal MSPModel::SAFETY_GAP(2.0);
 const SUMOReal MSPModel::DEFAULT_SIDEWALK_WIDTH(3.0);
 const SUMOReal MSPModel::STRIPE_WIDTH(0.75);
 const SUMOReal MSPModel::LOOKAHEAD(5.0);
-const SUMOReal MSPModel::SQUEEZE(0.5);
+const SUMOReal MSPModel::SQUEEZE(0.7);
+const SUMOReal MSPModel::BLOCKER_LOOKAHEAD(10.0);
 
 // ===========================================================================
 // MSPModel method definitions
@@ -75,10 +76,11 @@ MSPModel::blockedAtDist(const MSLane* lane, SUMOReal distToCrossing) {
     const Pedestrians& pedestrians = getPedestrians(lane);
     for (Pedestrians::const_iterator it_ped = pedestrians.begin(); it_ped != pedestrians.end(); ++it_ped) {
         const Pedestrian& ped = *it_ped;
-        const SUMOReal leaderBack = ped.myX - ped.getLength() - MSPModel::SAFETY_GAP; 
-        const SUMOReal leaderBackDist = distToCrossing - leaderBack;
-        //std::cout << SIMTIME << " foe=" << foeLane->getID() << " pX=" << ped.myX << " pL=" << ped.getLength() << " fDTC=" << foeDistToCrossing << " lBD=" << leaderBackDist << "\n";
-        if (leaderBackDist >= 0) {
+        const SUMOReal leaderBackDist = (ped.myDir == 1 
+                ? distToCrossing - (ped.myX - ped.getLength() - MSPModel::SAFETY_GAP)
+                : (ped.myX + ped.getLength() + MSPModel::SAFETY_GAP) - distToCrossing); 
+        //std::cout << SIMTIME << " foe=" << foeLane->getID() << " dir=" << p.myDir << " pX=" << ped.myX << " pL=" << ped.getLength() << " fDTC=" << distToCrossing << " lBD=" << leaderBackDist << "\n";
+        if (leaderBackDist >= 0 && leaderBackDist <= BLOCKER_LOOKAHEAD) {
             // found one pedestrian that is not completely past the crossing point
             return true;
         }
@@ -221,9 +223,12 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                     link = MSLinkContHelper::getConnectingLink(*it_lane->first, *nextLane);
                 } else {
                     if (nextLane->getEdge().isInternal()) {
+                        // get the entry link to the junction
                         link = MSLinkContHelper::getConnectingLink(*nextLane->getLogicalPredecessorLane(), *nextLane);
                     } else {
-                        link = MSLinkContHelper::getConnectingLink(*nextLane, *it_lane->first);
+                        // get the exit link from the junction
+                        assert(it_lane->first->getEdge().isInternal());
+                        link = MSLinkContHelper::getConnectingLink(*it_lane->first, *it_lane->first->getLinkCont()[0]->getLane());
                     }
                 }
                 assert(link != 0);
