@@ -205,10 +205,11 @@ void
 MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
     for (ActiveLanes::iterator it_lane = myActiveLanes.begin(); it_lane != myActiveLanes.end(); ++it_lane) {
         // move forward
+        const MSLane* lane = it_lane->first;
         Pedestrians& pedestrians = it_lane->second;
-        const int stripes = numStripes(it_lane->first);
+        const int stripes = numStripes(lane);
         const int waitingToEnter = countWaitingToEnter(pedestrians);
-        //std::cout << SIMTIME << ">>> lane=" << it_lane->first->getID() << " waitingToEnter=" << waitingToEnter << "\n";
+        //std::cout << SIMTIME << ">>> lane=" << lane->getID() << " waitingToEnter=" << waitingToEnter << "\n";
         sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(dir));
         for (int ii = 0; ii < pedestrians.size(); ++ii) {
             Pedestrian& p = pedestrians[ii];
@@ -216,21 +217,27 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                 continue;
             }
             std::vector<SUMOReal> vSafe(stripes, LOOKAHEAD);
-            const MSLane* nextLane = getNextLane(it_lane->first, p);
+            const MSLane* nextLane = getNextLane(lane, p);
             const SUMOReal dist = p.distToLaneEnd();
             assert(dist > 0);
             if (nextLane != 0) {
                 MSLink* link = 0;
                 if (dir == FORWARD) {
-                    link = MSLinkContHelper::getConnectingLink(*it_lane->first, *nextLane);
+                    link = MSLinkContHelper::getConnectingLink(*lane, *nextLane);
                 } else {
                     if (nextLane->getEdge().isInternal()) {
                         // get the entry link to the junction
                         link = MSLinkContHelper::getConnectingLink(*nextLane->getLogicalPredecessorLane(), *nextLane);
                     } else {
-                        // get the exit link from the junction
-                        assert(it_lane->first->getEdge().isInternal());
-                        link = MSLinkContHelper::getConnectingLink(*it_lane->first, *it_lane->first->getLinkCont()[0]->getLane());
+                        // either we are on the junction or there is no internal
+                        // lane (network without, length <= POSITION_EPS)
+                        if (lane->getEdge().isInternal()) {
+                            // get the exit link from the junction
+                            link = MSLinkContHelper::getConnectingLink(*lane, *lane->getLinkCont()[0]->getLane());
+                        } else {
+                            link = MSLinkContHelper::getConnectingLink(*nextLane, *lane);
+                        }
+                        assert(lane->getEdge().isInternal());
                     }
                 }
                 assert(link != 0);
@@ -252,11 +259,11 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
             }
             p.walk(vSafe, pedestrians.begin() + MAX2(0, ii - 2 * stripes - waitingToEnter),
                     pedestrians.begin() + MIN2((int)pedestrians.size(), ii + 2 * stripes + waitingToEnter));
-            //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << it_lane->first->getID() << " x=" << p.myX << "\n";
-            p.updateLocation(it_lane->first);
+            //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << lane->getID() << " x=" << p.myX << "\n";
+            p.updateLocation(lane);
         }
         // advance to the next lane
-        const MSEdge& edge = it_lane->first->getEdge();
+        const MSEdge& edge = lane->getEdge();
         const MSJunction* junction = (dir == FORWARD ? edge.getToJunction() : edge.getFromJunction());
         sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(dir));
         bool checkAdvance = true; 
@@ -270,7 +277,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                 if (p.moveToNextLane()) {
                     pedestrians.erase(pedestrians.begin());
                     checkAdvance = true;
-                    const MSLane* nextLane = getNextLane(it_lane->first, p);
+                    const MSLane* nextLane = getNextLane(lane, p);
                     const bool nextIsInternal = (nextLane != 0 && nextLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL);
                     const SUMOReal done = p.myStage->moveToNextEdge(p.myPerson, currentTime, nextIsInternal ? &nextLane->getEdge() : 0);
                     if (done != 0) {
