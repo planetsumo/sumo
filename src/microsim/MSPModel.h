@@ -85,6 +85,8 @@ public:
     // @brief the maximum distance at which oncoming pedestrians block right turning traffic
     static const SUMOReal BLOCKER_LOOKAHEAD;
 
+    // @brief the penalty for staying on a stripe with oncoming pedestrians
+    static const SUMOReal ONCOMIN_PENALTY;
 protected:
     class Pedestrian;
     typedef std::vector<Pedestrian> Pedestrians;
