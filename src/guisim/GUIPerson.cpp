@@ -163,6 +163,7 @@ GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
     const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
     Position p1 = getPosition(now);
     glTranslated(p1.x(), p1.y(), getType());
+    glRotated(90, 0, 0, 1);
     // XXX use person specific gui settings
     // set person color
     setColor(s);
@@ -320,11 +321,11 @@ GUIPerson::drawAction_drawAsTriangle(const GUIVisualizationSettings& /* s */) co
     // draw triangle pointing forward
     const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
     glRotated(getAngle(now), 0, 0, 1);
-    glScaled(getVehicleType().getWidth(), getVehicleType().getLength(), 1);
+    glScaled(getVehicleType().getLength(), getVehicleType().getWidth(), 1);
     glBegin(GL_TRIANGLES);
     glVertex2d(0., 0.);
-    glVertex2d(-.5, 1.);
-    glVertex2d(.5, 1.);
+    glVertex2d(1, -0.5);
+    glVertex2d(1, 0.5);
     glEnd();
 }
 
@@ -334,21 +335,21 @@ GUIPerson::drawAction_drawAsPoly(const GUIVisualizationSettings& /* s */) const 
     // draw pedestrian shape
     const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
     glRotated(getAngle(now), 0, 0, 1);
-    glScaled(getVehicleType().getWidth(), getVehicleType().getLength(), 1);
+    glScaled(getVehicleType().getLength(), getVehicleType().getWidth(), 1);
     RGBColor lighter = GLHelper::getColor().changedBrightness(51);
     glTranslated(0, 0, .045);
     // head
-    glScaled(0.5, 1., 1.);
+    glScaled(1, 0.5, 1.);
     GLHelper::drawFilledCircle(0.5);
     // nose
     glBegin(GL_TRIANGLES);
-    glVertex2d(-.2, 0.);
-    glVertex2d( .2, 0.);
-    glVertex2d( 0., -0.6);
+    glVertex2d( 0.0,-0.2);
+    glVertex2d( 0.0, 0.2);
+    glVertex2d(-0.6, 0.0);
     glEnd();
     glTranslated(0, 0, -.045);
     // body
-    glScaled(2., 0.9, 1);
+    glScaled(0.9, 2.0, 1);
     glTranslated(0, 0, .04);
     GLHelper::setColor(lighter);
     GLHelper::drawFilledCircle(0.5);
