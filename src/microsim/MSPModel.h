@@ -53,11 +53,22 @@ class MSJunction;
 class MSPModel {
 public:
 
+    /// @brief register the given person as a pedestrian
     static void add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, MSNet* net=0);
 
+    /// @brief whether a pedestrian is blocking the crossing of lane at offset distToCrossing
     static bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing);
 
+    /// @brief remove state at simulation end
     static void cleanup();
+
+    /// @brief return the maximum number of pedestrians walking side by side
+    static int numStripes(const MSLane* lane);
+
+
+    // @brief walking directions
+    static const int FORWARD;
+    static const int BACKWARD;
 
     // @brief the safety gap to keep between the car and the pedestrian in all directions
     static const SUMOReal SAFETY_GAP;
@@ -128,8 +139,8 @@ protected:
                 int dir);
             
     private:
-        int stripe() const;
-        int otherStripe() const;
+        int stripe(int max) const;
+        int otherStripe(int max) const;
 
     };
 
@@ -163,9 +174,6 @@ protected:
 
     /// @brief return the appropriate lane to walk on
     static MSLane* getSidwalk(const MSEdge* edge);
-
-    /// @brief return the maximum number of pedestrians walking side by side
-    static int numStripes(const MSLane* lane);
 
     /// @brief adds the given pedestrian to the new lane unless the lane is 0
     static void addToLane(Pedestrian ped, const MSJunction* junction, const MSLane* newLane);

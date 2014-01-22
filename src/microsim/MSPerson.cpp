@@ -190,7 +190,7 @@ MSPerson::MSPersonStage_Walking::getAngle(SUMOTime now) const {
         const SUMOReal off = STEPS2TIME(now - myLastEntryTime);
         return getEdgeAngle(e, myCurrentBeginPos + myCurrentLength / myCurrentDuration * off);
     } else {
-        return myLane->getShape().rotationDegreeAtOffset(myLanePos) + (myDir == -1 ? 180 : 0);
+        return myLane->getShape().rotationDegreeAtOffset(myLanePos) + (myDir == MSPModel::BACKWARD ? 180 : 0);
     }
 }
 

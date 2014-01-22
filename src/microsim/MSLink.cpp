@@ -460,7 +460,7 @@ MSLink::getLeaderInfo(SUMOReal dist, SUMOReal minGap) const {
             }
             // check for crossing pedestrians
             if (MSPModel::blockedAtDist(foeLane, foeDistToCrossing)) {
-                result.push_back(std::make_pair(std::make_pair((MSVehicle*)0, -1), distToCrossing - MSPModel::SAFETY_GAP));
+                result.push_back(std::make_pair(std::make_pair((MSVehicle*)0, -1), distToCrossing - MSPModel::SAFETY_GAP - foeLane->getWidth() * 0.5));
             }
         }
     }
