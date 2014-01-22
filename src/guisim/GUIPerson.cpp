@@ -317,7 +317,10 @@ GUIPerson::getPosition(SUMOTime now) const {
 
 void
 GUIPerson::drawAction_drawAsTriangle(const GUIVisualizationSettings& /* s */) const {
-    // draw triangle pointing down
+    // draw triangle pointing forward
+    const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
+    glRotated(getAngle(now), 0, 0, 1);
+    glScaled(getVehicleType().getWidth(), getVehicleType().getLength(), 1);
     glBegin(GL_TRIANGLES);
     glVertex2d(0., 0.);
     glVertex2d(-.5, 1.);
@@ -331,26 +334,36 @@ GUIPerson::drawAction_drawAsPoly(const GUIVisualizationSettings& /* s */) const 
     // draw pedestrian shape
     const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
     glRotated(getAngle(now), 0, 0, 1);
+    glScaled(getVehicleType().getWidth(), getVehicleType().getLength(), 1);
     RGBColor lighter = GLHelper::getColor().changedBrightness(51);
     glTranslated(0, 0, .045);
-    GLHelper::drawFilledCircle(0.3);
+    // head
+    glScaled(0.5, 1., 1.);
+    GLHelper::drawFilledCircle(0.5);
+    // nose
+    glBegin(GL_TRIANGLES);
+    glVertex2d(-.2, 0.);
+    glVertex2d( .2, 0.);
+    glVertex2d( 0., -0.6);
+    glEnd();
     glTranslated(0, 0, -.045);
-    glScaled(.7, 2, 1);
+    // body
+    glScaled(2., 0.9, 1);
     glTranslated(0, 0, .04);
     GLHelper::setColor(lighter);
-    GLHelper::drawFilledCircle(0.3);
+    GLHelper::drawFilledCircle(0.5);
     glTranslated(0, 0, -.04);
 }
 
 
 void
 GUIPerson::drawAction_drawAsImage(const GUIVisualizationSettings& s) const {
-    if (getVehicleType().getGuiShape() == SVS_PEDESTRIAN) {
-        const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
-        glRotated(getAngle(now), 0, 0, 1);
-    }
     const std::string& file = getVehicleType().getImgFile();
     if (file != "") {
+        if (getVehicleType().getGuiShape() == SVS_PEDESTRIAN) {
+            const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
+            glRotated(getAngle(now), 0, 0, 1);
+        }
         int textureID = GUITexturesHelper::getTextureID(file);
         if (textureID > 0) {
             const SUMOReal halfLength = getVehicleType().getLength() / 2.0 * s.vehicleExaggeration;

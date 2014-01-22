@@ -267,7 +267,7 @@ public:
         inline const MSEdge* getNextEdge() { return myRouteStep == myRoute.end() - 1 ? 0 : *(myRouteStep + 1); }
         inline const std::vector<const MSEdge*>& getRoute() { return myRoute; }
 
-        virtual void updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift);
+        virtual void updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift, int dir);
         //@}
 
 
@@ -310,6 +310,8 @@ public:
         SUMOReal myLanePos;
         /// @brief the orthogonal shift from the lane
         SUMOReal myShift;
+        /// @brief the walking direction (1 forward, -1 backward)
+        SUMOReal myDir;
         //@}
 
         class arrival_finder {

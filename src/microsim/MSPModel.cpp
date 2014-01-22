@@ -251,7 +251,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
             p.walk(vSafe, pedestrians.begin() + MAX2(0, ii - 2 * stripes - waitingToEnter),
                     pedestrians.begin() + MIN2((int)pedestrians.size(), ii + 2 * stripes + waitingToEnter));
             //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << it_lane->first->getID() << " x=" << p.myX << "\n";
-            p.myStage->updateLocationSecure(p.myPerson, it_lane->first, p.myX, p.myY);
+            p.updateLocation(it_lane->first);
         }
         // advance to the next lane
         const MSEdge& edge = it_lane->first->getEdge();
@@ -272,7 +272,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                     const bool nextIsInternal = (nextLane != 0 && nextLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL);
                     const SUMOReal done = p.myStage->moveToNextEdge(p.myPerson, currentTime, nextIsInternal ? &nextLane->getEdge() : 0);
                     if (done != 0) {
-                        p.myStage->updateLocationSecure(p.myPerson, nextLane, p.myX, p.myY);
+                        p.updateLocation(nextLane);
                         //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << nextLane->getID() << " x=" << p.myX << "\n";
                         addToLane(p, junction, nextLane);
                     } else {
@@ -298,7 +298,7 @@ MSPModel::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walki
     myWaitingToEnter(true)
 { 
     updateDirection(lane);
-    myStage->updateLocationSecure(myPerson, lane, myX, myY);
+    updateLocation(lane);
 }
 
 
@@ -467,6 +467,14 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
         myWaitingToEnter = false;
     }
 }
+
+
+void 
+MSPModel::Pedestrian::updateLocation(const MSLane* lane) {
+    const SUMOReal shift = myY + (STRIPE_WIDTH - lane->getWidth()) * 0.5;
+    myStage->updateLocationSecure(myPerson, lane, myX, shift, myDir);
+}
+
 
 // ===========================================================================
 // MSPModel::MovePedestrians method definitions

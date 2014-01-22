@@ -115,6 +115,9 @@ protected:
         /// @brief perform position update
         void walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower);
 
+        /// @brief update location data for MSPersonStage_Walking 
+        void updateLocation(const MSLane* lane);
+
         /// @brief compute safe speeds on all stripes and update vSafe
         static void updateVSafe(
                 std::vector<SUMOReal>& vSafe,

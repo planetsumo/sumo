@@ -188,9 +188,9 @@ MSPerson::MSPersonStage_Walking::getAngle(SUMOTime now) const {
     if (myLane == 0) {
         const MSEdge* e = getEdge();
         const SUMOReal off = STEPS2TIME(now - myLastEntryTime);
-        return getEdgeAngle(e, myCurrentBeginPos + myCurrentLength / myCurrentDuration * off) + 90;
+        return getEdgeAngle(e, myCurrentBeginPos + myCurrentLength / myCurrentDuration * off);
     } else {
-        return myLane->getShape().rotationDegreeAtOffset(myLanePos) + 90;
+        return myLane->getShape().rotationDegreeAtOffset(myLanePos) + (myDir == -1 ? 180 : 0);
     }
 }
 
@@ -302,11 +302,12 @@ MSPerson::MSPersonStage_Walking::moveToNextEdge(MSPerson* person, SUMOTime curre
 
 
 void 
-MSPerson::MSPersonStage_Walking::updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift) {
+MSPerson::MSPersonStage_Walking::updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift, int dir) {
     person->lockPerson();
     myLane = lane; 
     myLanePos = pos;
     myShift = shift;
+    myDir = dir;
     person->unlockPerson();
 }
 
