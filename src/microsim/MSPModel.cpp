@@ -416,12 +416,14 @@ MSPModel::Pedestrian::updateVSafe(
         }
         const SUMOReal gap = (ped.myX - x) * dir;
         if (gap > 0) {
-            const SUMOReal v = MAX2((SUMOReal)0, gap - ped.getLength() - ego.myPerson->getVehicleType().getMinGap() 
-                    - (ped.myDir == ego.myDir ? 0.0 : ONCOMIN_PENALTY));
+            const SUMOReal v = MAX2((SUMOReal)0, gap - ped.getLength() - ego.myPerson->getVehicleType().getMinGap());
+            const SUMOReal penalty = MIN2(v, (ped.myDir == ego.myDir ? 0.0 : ONCOMIN_PENALTY));
             int l = ped.stripe(sMax);
-            vSafe[l] = MIN2(vSafe[l], v);
+            int penaltyApplies = ((ego.myDir == FORWARD && l < sMax) || ego.myDir == BACKWARD && l > 0);
+            vSafe[l] = MIN2(vSafe[l], v - penaltyApplies * penalty);
             l = ped.otherStripe(sMax);
-            vSafe[l] = MIN2(vSafe[l], v);
+            penaltyApplies = ((ego.myDir == FORWARD && l < sMax) || ego.myDir == BACKWARD && l > 0);
+            vSafe[l] = MIN2(vSafe[l], v - penaltyApplies * penalty);
         } else if (-gap < ego.getLength() + ped.myPerson->getVehicleType().getMinGap() 
                 && (ego.myWaitingToEnter || ped.stripe(sMax) != ego.stripe(sMax))) {
             // stripes are blocked
