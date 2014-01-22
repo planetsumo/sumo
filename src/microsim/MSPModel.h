@@ -176,7 +176,7 @@ protected:
     static MSLane* getSidwalk(const MSEdge* edge);
 
     /// @brief adds the given pedestrian to the new lane unless the lane is 0
-    static void addToLane(Pedestrian ped, const MSJunction* junction, const MSLane* newLane);
+    static void addToLane(Pedestrian& ped, const MSJunction* junction, const MSLane* newLane);
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     static Pedestrians& getPedestrians(const MSLane* lane);

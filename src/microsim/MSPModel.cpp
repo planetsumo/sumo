@@ -35,7 +35,7 @@
 #include <microsim/MSJunction.h>
 #include "MSPModel.h"
 
-#define DEBUG1 "forward"
+#define DEBUG1 "bwd1"
 #define DEBUG2 "invalid"
 
 // ===========================================================================
@@ -111,12 +111,16 @@ MSPModel::cleanup() {
 
 
 void
-MSPModel::addToLane(Pedestrian ped, const MSJunction* junction, const MSLane* newLane) {
+MSPModel::addToLane(Pedestrian& ped, const MSJunction* junction, const MSLane* newLane) {
     if (newLane != 0) {
-        if (ped.myPerson->getID() == DEBUG1) {
-            std::cout << SIMTIME << " junction=" << junction->getID() << " newLane=" << newLane->getID() << " newTo=" << newLane->getEdge().getToJunction()->getID() << "\n";
-        }
+        //if (ped.myPerson->getID() == DEBUG1) {
+        //    std::cout << SIMTIME << " x=" << ped.myX << " junction=" << junction->getID() << " newLane=" << newLane->getID() << " newTo=" << newLane->getEdge().getToJunction()->getID() << "\n";
+        //}
         ped.updateDirection(newLane, junction);
+        //if (ped.myPerson->getID() == DEBUG1) {
+        //    std::cout << SIMTIME << " after update x=" << ped.myX << "\n";
+        //}
+        ped.updateLocation(newLane);
         myActiveLanes[newLane].push_back(ped);
     } else {
         myNumActivePedestrians--;
@@ -281,7 +285,6 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                     const bool nextIsInternal = (nextLane != 0 && nextLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL);
                     const SUMOReal done = p.myStage->moveToNextEdge(p.myPerson, currentTime, nextIsInternal ? &nextLane->getEdge() : 0);
                     if (done != 0) {
-                        p.updateLocation(nextLane);
                         //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << nextLane->getID() << " x=" << p.myX << "\n";
                         addToLane(p, junction, nextLane);
                     } else {
@@ -327,9 +330,9 @@ MSPModel::Pedestrian::updateDirection(const MSLane* lane, const MSJunction* junc
         myDir = (myX <= myStage->getCurrentEndPos()) ? 1 : -1;
         myNextDir = 0; // irrelevant
     } else {
-        if (myPerson->getID() == DEBUG1) {
-            std::cout << SIMTIME << " lane=" << lane->getID() << " next=" << next->getID() << "\n";
-        }
+        //if (myPerson->getID() == DEBUG1) {
+        //    std::cout << SIMTIME << " lane=" << lane->getID() << " next=" << next->getID() << "\n";
+        //}
         myDir = getDirection(&lane->getEdge(), next);
         const MSJunction* nextJunction = (myDir == FORWARD ? 
                 lane->getEdge().getToJunction() : lane->getEdge().getFromJunction());
@@ -382,6 +385,9 @@ MSPModel::Pedestrian::distToLaneEnd() const {
 bool
 MSPModel::Pedestrian::moveToNextLane() {
     const SUMOReal dist = distToLaneEnd();
+    //if (myPerson->getID() == DEBUG1) {
+    //    std::cout << SIMTIME << " myX=" << myX << " dist=" << dist << "\n";
+    //}
     if (dist <= 0) {
         myX = abs(dist); // always add forward and correct in updateDirection()
         return true;
