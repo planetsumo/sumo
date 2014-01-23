@@ -79,6 +79,9 @@ public:
     // @brief the distance to look ahead for changing stripes
     static const SUMOReal LOOKAHEAD;
 
+    // @brief the speed penalty for moving sideways
+    static const SUMOReal LATERAL_PENALTY;
+
     // @brief the factor by which pedestrian width is reduced when sqeezing past each other
     static const SUMOReal SQUEEZE;
 
@@ -87,6 +90,7 @@ public:
 
     // @brief the penalty for staying on a stripe with oncoming pedestrians
     static const SUMOReal ONCOMIN_PENALTY;
+    static const SUMOReal ONCOMIN_PENALTY_FACTOR;
 
     // @brief fraction of the leftmost lanes to reserve for oncoming traffic
     static const SUMOReal RESERVE_FOR_ONCOMING_FACTOR;
@@ -182,7 +186,7 @@ protected:
     static MSLane* getSidwalk(const MSEdge* edge);
 
     /// @brief adds the given pedestrian to the new lane unless the lane is 0
-    static void addToLane(Pedestrian& ped, const MSJunction* junction, const MSLane* newLane);
+    static void addToLane(Pedestrian& ped, int oldStripes, const MSJunction* junction, const MSLane* newLane);
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     static Pedestrians& getPedestrians(const MSLane* lane);

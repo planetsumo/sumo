@@ -35,8 +35,8 @@
 #include <microsim/MSJunction.h>
 #include "MSPModel.h"
 
-#define DEBUG1 "fwd3"
-#define DEBUG2 "invalid"
+#define DEBUG1 "disabled"
+#define DEBUG2 "disabled"
 
 // ===========================================================================
 // static members
@@ -53,9 +53,11 @@ const SUMOReal MSPModel::SAFETY_GAP(2.0);
 const SUMOReal MSPModel::DEFAULT_SIDEWALK_WIDTH(3.0);
 const SUMOReal MSPModel::STRIPE_WIDTH(0.75);
 const SUMOReal MSPModel::LOOKAHEAD(2.0);
+const SUMOReal MSPModel::LATERAL_PENALTY(-1.0);
 const SUMOReal MSPModel::SQUEEZE(0.7);
 const SUMOReal MSPModel::BLOCKER_LOOKAHEAD(10.0);
-const SUMOReal MSPModel::ONCOMIN_PENALTY(7.0);
+const SUMOReal MSPModel::ONCOMIN_PENALTY(0.0);
+const SUMOReal MSPModel::ONCOMIN_PENALTY_FACTOR(0.6);
 const SUMOReal MSPModel::RESERVE_FOR_ONCOMING_FACTOR(0.25);
 
 // ===========================================================================
@@ -113,7 +115,7 @@ MSPModel::cleanup() {
 
 
 void
-MSPModel::addToLane(Pedestrian& ped, const MSJunction* junction, const MSLane* newLane) {
+MSPModel::addToLane(Pedestrian& ped, int oldStripes, const MSJunction* junction, const MSLane* newLane) {
     if (newLane != 0) {
         //if (ped.myPerson->getID() == DEBUG1) {
         //    std::cout << SIMTIME << " x=" << ped.myX << " junction=" << junction->getID() << " newLane=" << newLane->getID() << " newTo=" << newLane->getEdge().getToJunction()->getID() << "\n";
@@ -122,6 +124,7 @@ MSPModel::addToLane(Pedestrian& ped, const MSJunction* junction, const MSLane* n
         //if (ped.myPerson->getID() == DEBUG1) {
         //    std::cout << SIMTIME << " after update x=" << ped.myX << "\n";
         //}
+        ped.myY += 0.5 * (numStripes(newLane) - oldStripes);
         ped.updateLocation(newLane);
         myActiveLanes[newLane].push_back(ped);
     } else {
@@ -233,7 +236,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                 sort(nextPedestrians.begin(), nextPedestrians.end(), by_xpos_sorter(dir));
                 const SUMOReal relativeX = (dir == FORWARD ? -dist : nextLane->getLength() + dist);
                 Pedestrian::updateVSafe(vSafe, 
-                        nextPedestrians.end() - MIN2((int)nextPedestrians.size(), 2 * stripes),
+                        nextPedestrians.end() - MIN2((int)nextPedestrians.size(), 2 * numStripes(nextLane)),
                         nextPedestrians.end(),
                         relativeX, p, p.myNextDir);
                 // check link state
@@ -289,7 +292,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                     const SUMOReal done = p.myStage->moveToNextEdge(p.myPerson, currentTime, nextIsInternal ? &nextLane->getEdge() : 0);
                     if (done != 0) {
                         //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << nextLane->getID() << " x=" << p.myX << "\n";
-                        addToLane(p, junction, nextLane);
+                        addToLane(p, stripes, junction, nextLane);
                     } else {
                         myNumActivePedestrians--;
                     }
@@ -418,8 +421,10 @@ MSPModel::Pedestrian::updateVSafe(
         const SUMOReal gap = (ped.myX - x) * dir;
         if (gap > 0) {
             const SUMOReal v = MAX2((SUMOReal)0, gap - ped.getLength() - ego.myPerson->getVehicleType().getMinGap());
-            const SUMOReal penalty = MIN2(v, (ped.myDir == ego.myDir ? 0.0 : ONCOMIN_PENALTY));
+            const SUMOReal penalty = MIN2(v, (ped.myDir == ego.myDir ? 0.0 : ONCOMIN_PENALTY + v * ONCOMIN_PENALTY_FACTOR));
             int l = ped.stripe(sMax);
+            // penalty for oncoming pedestrians only applies if ego is not
+            // already on the rightmost lane
             int penaltyApplies = ((ego.myDir == FORWARD && l < sMax) || (ego.myDir == BACKWARD && l > 0)) ? 1 : 0;
             vSafe[l] = MIN2(vSafe[l], v - penaltyApplies * penalty);
             l = ped.otherStripe(sMax);
@@ -467,11 +472,9 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
     updateVSafe(vSafe, maxLeader, minFollower, myX, *this, myDir);
     // chose stripe
     int chosen = stripe(sMax);
-    // disallow stripes which are to far away
+    // penalize lateral movement
     for (int i = 0; i < (int)vSafe.size(); ++i) {
-        if (abs(i - chosen) > 1) {
-            vSafe[i] = -1;
-        }
+        vSafe[i] += abs(i - chosen) * LATERAL_PENALTY;
     }
     // forbid a portion of the leftmost stripes (in walking direction). 
     // edges with less than 1 / RESERVE_FOR_ONCOMING_FACTOR stripes
