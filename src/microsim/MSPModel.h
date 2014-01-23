@@ -87,6 +87,10 @@ public:
 
     // @brief the penalty for staying on a stripe with oncoming pedestrians
     static const SUMOReal ONCOMIN_PENALTY;
+
+    // @brief fraction of the leftmost lanes to reserve for oncoming traffic
+    static const SUMOReal RESERVE_FOR_ONCOMING_FACTOR;
+
 protected:
     class Pedestrian;
     typedef std::vector<Pedestrian> Pedestrians;

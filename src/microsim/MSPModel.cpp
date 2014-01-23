@@ -56,6 +56,7 @@ const SUMOReal MSPModel::LOOKAHEAD(2.0);
 const SUMOReal MSPModel::SQUEEZE(0.7);
 const SUMOReal MSPModel::BLOCKER_LOOKAHEAD(10.0);
 const SUMOReal MSPModel::ONCOMIN_PENALTY(7.0);
+const SUMOReal MSPModel::RESERVE_FOR_ONCOMING_FACTOR(0.25);
 
 // ===========================================================================
 // MSPModel method definitions
@@ -419,7 +420,7 @@ MSPModel::Pedestrian::updateVSafe(
             const SUMOReal v = MAX2((SUMOReal)0, gap - ped.getLength() - ego.myPerson->getVehicleType().getMinGap());
             const SUMOReal penalty = MIN2(v, (ped.myDir == ego.myDir ? 0.0 : ONCOMIN_PENALTY));
             int l = ped.stripe(sMax);
-            int penaltyApplies = ((ego.myDir == FORWARD && l < sMax) || ego.myDir == BACKWARD && l > 0);
+            int penaltyApplies = ((ego.myDir == FORWARD && l < sMax) || (ego.myDir == BACKWARD && l > 0)) ? 1 : 0;
             vSafe[l] = MIN2(vSafe[l], v - penaltyApplies * penalty);
             l = ped.otherStripe(sMax);
             penaltyApplies = ((ego.myDir == FORWARD && l < sMax) || ego.myDir == BACKWARD && l > 0);
@@ -469,6 +470,19 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
     // disallow stripes which are to far away
     for (int i = 0; i < (int)vSafe.size(); ++i) {
         if (abs(i - chosen) > 1) {
+            vSafe[i] = -1;
+        }
+    }
+    // forbid a portion of the leftmost stripes (in walking direction). 
+    // edges with less than 1 / RESERVE_FOR_ONCOMING_FACTOR stripes
+    // may still deadlock in heavy pedestrian traffic
+    const int reserved = (int)floor(vSafe.size() * RESERVE_FOR_ONCOMING_FACTOR);
+    if (myDir == FORWARD) {
+        for (int i = 0; i < reserved; ++i) {
+            vSafe[i] = -1;
+        }
+    } else {
+        for (int i = sMax; i > sMax - reserved; --i) {
             vSafe[i] = -1;
         }
     }
