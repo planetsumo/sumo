@@ -54,7 +54,6 @@ const int MSPModel::BACKWARD(-1);
 
 // model parameters
 const SUMOReal MSPModel::SAFETY_GAP(1.0);
-const SUMOReal MSPModel::DEFAULT_SIDEWALK_WIDTH(3.0);
 const SUMOReal MSPModel::STRIPE_WIDTH(0.75);
 const SUMOReal MSPModel::LOOKAHEAD(10.0);
 const SUMOReal MSPModel::LATERAL_PENALTY(-1.0);
@@ -294,7 +293,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                     const bool nextIsInternal = (nextLane != 0 && nextLane->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL);
                     const SUMOReal done = p.myStage->moveToNextEdge(p.myPerson, currentTime, nextIsInternal ? &nextLane->getEdge() : 0);
                     if (done != 0) {
-                        //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << nextLane->getID() << " x=" << p.myX << "\n";
+                        // XXX pedestrian may move again if nextLane is handled after lane
                         addToLane(p, stripes, junction, nextLane);
                     } else {
                         myNumActivePedestrians--;
