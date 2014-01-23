@@ -37,6 +37,7 @@
 
 #define DEBUG1 "disabled"
 #define DEBUG2 "disabled"
+#define LOG_ALL false
 
 // ===========================================================================
 // static members
@@ -52,10 +53,10 @@ const int MSPModel::FORWARD(1);
 const int MSPModel::BACKWARD(-1);
 
 // model parameters
-const SUMOReal MSPModel::SAFETY_GAP(2.0);
+const SUMOReal MSPModel::SAFETY_GAP(1.0);
 const SUMOReal MSPModel::DEFAULT_SIDEWALK_WIDTH(3.0);
 const SUMOReal MSPModel::STRIPE_WIDTH(0.75);
-const SUMOReal MSPModel::LOOKAHEAD(2.0);
+const SUMOReal MSPModel::LOOKAHEAD(10.0);
 const SUMOReal MSPModel::LATERAL_PENALTY(-1.0);
 const SUMOReal MSPModel::SQUEEZE(0.7);
 const SUMOReal MSPModel::BLOCKER_LOOKAHEAD(10.0);
@@ -559,6 +560,23 @@ SUMOTime
 MSPModel::MovePedestrians::execute(SUMOTime currentTime) {
     MSPModel::moveInDirection(currentTime, 1);
     MSPModel::moveInDirection(currentTime, -1);
+    // DEBUG
+    if (LOG_ALL) {
+        for (ActiveLanes::iterator it_lane = myActiveLanes.begin(); it_lane != myActiveLanes.end(); ++it_lane) {
+            const MSLane* lane = it_lane->first;
+            Pedestrians& pedestrians = it_lane->second;
+            if (pedestrians.size() == 0) {
+                continue;
+            }
+            sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(FORWARD));
+            std::cout << SIMTIME << " lane=" << lane->getID();
+            for (int ii = 0; ii < pedestrians.size(); ++ii) {
+                Pedestrian& p = pedestrians[ii];
+                std::cout << " (" << p.myPerson->getID() << " " << p.myX << "," << p.myY << " " << p.myDir << ")";
+            }
+            std::cout << "\n";
+        }
+    }
     return DELTA_T;
 }
 
