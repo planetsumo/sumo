@@ -47,8 +47,11 @@ MSPModel::ActiveLanes MSPModel::myActiveLanes;
 
 MSPModel::Pedestrians MSPModel::noPedestrians;
 
+// named constants
 const int MSPModel::FORWARD(1);
 const int MSPModel::BACKWARD(-1);
+
+// model parameters
 const SUMOReal MSPModel::SAFETY_GAP(2.0);
 const SUMOReal MSPModel::DEFAULT_SIDEWALK_WIDTH(3.0);
 const SUMOReal MSPModel::STRIPE_WIDTH(0.75);
@@ -67,7 +70,6 @@ const SUMOReal MSPModel::RESERVE_FOR_ONCOMING_FACTOR(0.25);
 void
 MSPModel::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, MSNet* net) {
     assert(person->getCurrentStageType() == MSPerson::WALKING);
-    //MSEdge* edge = dynamic_cast<MSPerson::MSPersonStage_Walking*>(person->getCurrentStage());
     const MSLane* lane = getSidwalk(person->getEdge());
     myActiveLanes[lane].push_back(Pedestrian(person, stage, lane));
     if (net != 0 && myNumActivePedestrians == 0) {
@@ -437,6 +439,7 @@ MSPModel::Pedestrian::updateVSafe(
             vSafe[ped.otherStripe(sMax)] = -1;
         }
     }
+    // DEBUG
     if (false && (ego.myPerson->getID() == DEBUG1 || ego.myPerson->getID() == DEBUG2)) {
         std::cout << SIMTIME 
             << " updateVSafe: ego=" << ego.myPerson->getID()
@@ -477,7 +480,7 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
         vSafe[i] += abs(i - chosen) * LATERAL_PENALTY;
     }
     // forbid a portion of the leftmost stripes (in walking direction). 
-    // edges with less than 1 / RESERVE_FOR_ONCOMING_FACTOR stripes
+    // lanes with stripes less than 1 / RESERVE_FOR_ONCOMING_FACTOR
     // may still deadlock in heavy pedestrian traffic
     const int reserved = (int)floor(vSafe.size() * RESERVE_FOR_ONCOMING_FACTOR);
     if (myDir == FORWARD) {
