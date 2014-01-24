@@ -115,9 +115,8 @@ protected:
         SUMOReal myX; 
         /// @brief the orthogonal shift on the current lane
         SUMOReal myY; 
-        /// @brief the walking direction on the current and next lane (1 forward, -1 backward)
+        /// @brief the walking direction on the current lane (1 forward, -1 backward)
         int myDir;
-        int myNextDir;
 
         bool myWaitingToEnter;
 
@@ -125,7 +124,7 @@ protected:
         SUMOReal getLength() const;
 
         /// @brief update walking direction for lane and (and starting position if junction != 0)
-        void updateDirection(const MSLane* lane, const MSJunction* junction=0);
+        void updateDirection(const MSLane* lane, int newDir, const MSJunction* junction=0);
 
         /// @brief the absolute distance to the end of the lane in walking direction
         SUMOReal distToLaneEnd() const;
@@ -186,7 +185,7 @@ protected:
     static MSLane* getSidwalk(const MSEdge* edge);
 
     /// @brief adds the given pedestrian to the new lane unless the lane is 0
-    static void addToLane(Pedestrian& ped, int oldStripes, const MSJunction* junction, const MSLane* newLane);
+    static void addToLane(Pedestrian& ped, int oldStripes, const MSJunction* junction, const MSLane* newLane, int newDir);
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     static Pedestrians& getPedestrians(const MSLane* lane);
@@ -194,8 +193,16 @@ protected:
     /// @brief counts the number of pedestrians with status waitingToEnter 
     static int countWaitingToEnter(const std::vector<Pedestrian>& pedestrians);
 
-    /// @brief computes the successor lane for the given pedestrian
-    static const MSLane* getNextLane(const MSLane* currentLane, const Pedestrian& ped);
+    /** @brief computes the successor lane for the given pedestrian and sets the 
+     * link as well as the direction to use on the succesor lane
+     * @param[in] currentLane The lane the pedestrian is currently on
+     * @param[in] ped The pedestrian for which to compute the next lane
+     * @param[out] link The link between currentLane and next lane
+     * @param[out] dir The direction to use on the next lane
+     * @return The next lane or 0 if the route ends
+     */
+    static const MSLane* getNextLane(const MSLane* currentLane, const Pedestrian& ped, 
+            MSLink*& link, int& dir);
 
     /// @brief computes the walking direction to be used on lane to reach next
     static int getDirection(const MSEdge* edge, const MSEdge* nextEdge);
