@@ -94,11 +94,11 @@ public:
         return myEmptyLanes;
     }
 
-    inline std::vector<const MSEdge*>& getIncoming() {
+    inline const std::vector<const MSEdge*>& getIncoming() const {
         return myIncoming;
     }
 
-    inline std::vector<const MSEdge*>& getOutgoing() {
+    inline const std::vector<const MSEdge*>& getOutgoing() const {
         return myOutgoing;
     }
 
