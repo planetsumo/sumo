@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Mon Jan 27 16:30:54 2014 by SUMO sumo Version dev-SVN-r15441
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="net.net.xml"/>
+        <route-files value="input_routes.rou.xml"/>
+        <additional-files value="input_additional.add.xml,input_additional2.add.xml"/>
+    </input>
+
+    <output>
+        <tripinfo-output value="tripinfos.xml"/>
+    </output>
+
+    <report>
+        <xml-validation value="never"/>
+        <no-step-log value="true"/>
+    </report>
+
+</configuration>
+-->
+
+<tripinfos>
+    <tripinfo id="car_SE.0" depart="46.00" departLane="SC_3" departPos="5.10" departSpeed="0.00" departDelay="0.00" arrival="64.00" arrivalLane="CE_3" arrivalPos="86.05" arrivalSpeed="13.89" duration="18.00" routeLength="169.40" waitSteps="0" rerouteNo="0" devices="tripinfo_car_SE.0" vType="car" vaporized=""/>
+    <tripinfo id="car_SE.1" depart="50.00" departLane="SC_3" departPos="5.10" departSpeed="0.00" departDelay="0.00" arrival="72.00" arrivalLane="CE_3" arrivalPos="86.05" arrivalSpeed="13.89" duration="22.00" routeLength="169.40" waitSteps="2" rerouteNo="0" devices="tripinfo_car_SE.1" vType="car" vaporized=""/>
+    <personinfo id="p0" depart="0.00">
+        <stop arrival="0.00"/>
+        <walk arrival="136.00"/>
+    </personinfo>
+</tripinfos>

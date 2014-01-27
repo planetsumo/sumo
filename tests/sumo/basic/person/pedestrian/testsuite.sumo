@@ -1,0 +1,7 @@
+# pedestrians should block vehicle movements while crossing the street
+# 
+block_vehicles
+
+# pedestrians should use the correct internal lane for crossing the street
+# 
+internal_lane
