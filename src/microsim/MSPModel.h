@@ -123,9 +123,6 @@ protected:
         /// @brief return the length of the pedestrian
         SUMOReal getLength() const;
 
-        /// @brief update walking direction for lane and (and starting position if junction != 0)
-        void updateDirection(const MSLane* lane, int newDir, const MSJunction* junction=0);
-
         /// @brief the absolute distance to the end of the lane in walking direction
         SUMOReal distToLaneEnd() const;
 
@@ -185,7 +182,7 @@ protected:
     static MSLane* getSidwalk(const MSEdge* edge);
 
     /// @brief adds the given pedestrian to the new lane unless the lane is 0
-    static void addToLane(Pedestrian& ped, int oldStripes, const MSJunction* junction, const MSLane* newLane, int newDir);
+    static void addToLane(Pedestrian& ped, int oldStripes, const MSLane* newLane, int newDir);
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     static Pedestrians& getPedestrians(const MSLane* lane);
