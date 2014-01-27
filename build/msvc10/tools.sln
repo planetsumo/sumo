@@ -8,7 +8,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_xml", "z_libutil
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zz_foreign_nvwa", "zz_foreign_nvwa\zz_foreign_nvwa.vcxproj", "{FC5B65E0-A0B1-40D7-8687-C2FC79E3DA47}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "emissionsMap", "zzz_tools_emissions_map\emissionsMap.vcxproj", "{CEBAFD4D-0E92-4DEB-9CC9-BBCF78EBE1B5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "emissionsMap", "zzz_tools_emissionsMap\emissionsMap.vcxproj", "{CEBAFD4D-0E92-4DEB-9CC9-BBCF78EBE1B5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FA4A6C00-DCAE-43CB-A396-15DAEC3B0141} = {FA4A6C00-DCAE-43CB-A396-15DAEC3B0141}
 		{334DF447-D0B3-4CEA-9693-F755EB11C18F} = {334DF447-D0B3-4CEA-9693-F755EB11C18F}
@@ -25,7 +25,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zz_foreign_tcpip", "zz_fore
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_geom", "z_libutils_geom\z_libutils_geom.vcxproj", "{334DF447-D0B3-4CEA-9693-F755EB11C18F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "emissionsDrivingCycle", "zzz_tools_emissions_driving_cycle\emissionsDrivingCycle.vcxproj", "{B7D4E5FE-5D90-468D-BDF7-50F96E4F18C9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "emissionsDrivingCycle", "zzz_tools_emissionsDrivingCycle\emissionsDrivingCycle.vcxproj", "{B7D4E5FE-5D90-468D-BDF7-50F96E4F18C9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "z_libutils_importio", "z_libutils_importio\z_libutils_importio.vcxproj", "{9FCF1CAF-0189-4242-88BA-47706E741119}"
 EndProject
