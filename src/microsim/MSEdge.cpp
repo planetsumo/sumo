@@ -44,6 +44,7 @@
 #include "MSLaneChanger.h"
 #include "MSGlobals.h"
 #include "MSVehicle.h"
+#include "MSPerson.h"
 #include "MSEdgeWeightsStorage.h"
 
 #ifdef HAVE_INTERNAL
@@ -581,6 +582,20 @@ SUMOReal
 MSEdge::getVehicleMaxSpeed(const SUMOVehicle* const veh) const {
     // @note lanes might have different maximum speeds in theory
     return getLanes()[0]->getVehicleMaxSpeed(veh);
+}
+
+
+std::vector<MSPerson*> 
+MSEdge::getSortedPersons(SUMOTime timestep) const {
+    std::vector<MSPerson*> result(myPersons.begin(), myPersons.end());
+    sort(result.begin(), result.end(), person_by_offset_sorter(timestep));
+    return result;
+}
+
+
+int 
+MSEdge::person_by_offset_sorter::operator()(const MSPerson* const p1, const MSPerson* const p2) const {
+    return p1->getCurrentStage()->getEdgePos(myTime) < p2->getCurrentStage()->getEdgePos(myTime);
 }
 
 /****************************************************************************/

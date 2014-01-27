@@ -171,6 +171,12 @@ public:
     }
 
 
+    /** @brief Returns this edge's persons sorted by pos
+     *
+     * @return This edge's persons sorted by pos
+     */
+    std::vector<MSPerson*> getSortedPersons(SUMOTime timestep) const;
+
     /** @brief Get the allowed lanes to reach the destination-edge.
      *
      * If there is no such edge, get 0. Then you are on the wrong edge.
@@ -541,6 +547,20 @@ protected:
             return e1->getID() < e2->getID();
         }
 
+    };
+
+    /** @class person_by_offset_sorter
+     * @brief Sorts edges by their ids
+     */
+    class person_by_offset_sorter {
+    public:
+        /// @brief constructor
+        explicit person_by_offset_sorter(SUMOTime timestep): myTime(timestep) { }
+
+        /// @brief comparing operator
+        int operator()(const MSPerson* const p1, const MSPerson* const p2) const;
+    private:
+        SUMOTime myTime;
     };
 
 
