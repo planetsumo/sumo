@@ -190,6 +190,7 @@
     <ClCompile Include="..\..\..\src\microsim\MSNoLogicJunction.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSPerson.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSPersonControl.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\MSPModel.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSRightOfWayJunction.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSRoute.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSRouteHandler.cpp" />
@@ -228,6 +229,7 @@
     <ClInclude Include="..\..\..\src\microsim\MSNoLogicJunction.h" />
     <ClInclude Include="..\..\..\src\microsim\MSPerson.h" />
     <ClInclude Include="..\..\..\src\microsim\MSPersonControl.h" />
+    <ClInclude Include="..\..\..\src\microsim\MSPModel.h" />
     <ClInclude Include="..\..\..\src\microsim\MSRightOfWayJunction.h" />
     <ClInclude Include="..\..\..\src\microsim\MSRoute.h" />
     <ClInclude Include="..\..\..\src\microsim\MSRouteHandler.h" />
