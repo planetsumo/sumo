@@ -35,7 +35,7 @@
 #include <microsim/MSJunction.h>
 #include "MSPModel.h"
 
-#define DEBUG1 "serl0"
+#define DEBUG1 "disabled"
 #define DEBUG2 "disabled"
 #define DEBUGCOND(PEDID) (PEDID == DEBUG1 || PEDID == DEBUG2)
 #define LOG_ALL false
@@ -121,16 +121,17 @@ void
 MSPModel::addToLane(Pedestrian& ped, int oldStripes, const MSLane* newLane, int newDir) {
     if (newLane != 0) {
         //if (ped.myPerson->getID() == DEBUG1) {
-        //    std::cout << SIMTIME << " x=" << ped.myX << " junction=" << junction->getID() << " newLane=" << newLane->getID() << " newTo=" << newLane->getEdge().getToJunction()->getID() << "\n";
+        //    std::cout << SIMTIME << " addToLane x=" << ped.myX << " newDir=" << newDir << " newLane=" << newLane->getID() << "\n";
         //}
         if (newDir == BACKWARD) {
             ped.myX = newLane->getLength() - ped.myX;
         }
-        //if (ped.myPerson->getID() == DEBUG1) {
-        //    std::cout << SIMTIME << " after update x=" << ped.myX << "\n";
-        //}
         // adjust to differences in sidewalk width
         ped.myY += 0.5 * (numStripes(newLane) - oldStripes);
+        ped.myDir = newDir;
+        //if (ped.myPerson->getID() == DEBUG1) {
+        //    std::cout << SIMTIME << " addToLane after update x=" << ped.myX << "\n";
+        //}
         ped.updateLocation(newLane);
         myActiveLanes[newLane].push_back(ped);
     } else {
@@ -191,8 +192,7 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                     // look for nextLane between currentLane and intermediate lane
                     for (std::vector<const MSEdge*>::const_iterator it = outgoing.begin(); it != outgoing.end(); ++it) {
                         intermediate = getSidwalk(*it);
-                        if (MSLinkContHelper::getConnectingLink(*nextRouteLane, *intermediate) &&
-                                !MSLinkContHelper::getConnectingLink(*currentLane, *intermediate)) {
+                        if (MSLinkContHelper::getConnectingLink(*nextRouteLane, *intermediate)) {
                             const MSLane* cand = MSLinkContHelper::getInternalFollowingLane(currentLane, intermediate);
                             if (cand != 0) {
                                 nextLane = cand;
