@@ -166,8 +166,12 @@ MSPerson::MSPersonStage_Walking::getFromEdge() const {
 
 SUMOReal
 MSPerson::MSPersonStage_Walking::getEdgePos(SUMOTime now) const {
-    SUMOReal off = STEPS2TIME(now - myLastEntryTime);
-    return myCurrentBeginPos + myCurrentLength / myCurrentDuration * off;
+    if (myLane == 0) {
+        SUMOReal off = STEPS2TIME(now - myLastEntryTime);
+        return myCurrentBeginPos + myCurrentLength / myCurrentDuration * off;
+    } else {
+        return myLanePos;
+    }
 }
 
 
