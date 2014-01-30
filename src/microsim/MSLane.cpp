@@ -1262,6 +1262,16 @@ MSLane::enteredByLaneChange(MSVehicle* v) {
 }
 
 
+int
+MSLane::getCrossingIndex() const {
+    for (MSLinkCont::const_iterator i = myLinks.begin(); i != myLinks.end(); ++i) {
+        if ((*i)->getLane()->getEdge().isCrossing()) {
+            return i - myLinks.begin();
+        }
+    }
+    return -1;
+}
+
 // ------------ Current state retrieval
 SUMOReal
 MSLane::getBruttoOccupancy() const {

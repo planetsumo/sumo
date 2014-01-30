@@ -90,7 +90,11 @@ public:
         /// @brief The edge is an internal edge
         EDGEFUNCTION_INTERNAL = 2,
         /// @brief The edge is a district edge
-        EDGEFUNCTION_DISTRICT = 3
+        EDGEFUNCTION_DISTRICT = 3,
+        /// @brief The edge is a pedestrian crossing (a special type of internal edge)
+        EDGEFUNCTION_CROSSING = 4,
+        /// @brief The edge is a pedestrian walking area (a special type of internal edge)
+        EDGEFUNCTION_WALKINGAREA = 5
     };
 
 
@@ -217,6 +221,16 @@ public:
         return myFunction == EDGEFUNCTION_INTERNAL;
     }
 
+    /// @brief return whether this edge is a pedestrian crossing
+    inline bool isCrossing() const {
+        return myFunction == EDGEFUNCTION_CROSSING;
+    }
+
+    /// @brief return whether this edge is walking area
+    inline bool isWalkingArea() const {
+        return myFunction == EDGEFUNCTION_WALKINGAREA;
+    }
+
     /** @brief Returns the numerical id of the edge
      * @return This edge's numerical id
      */
@@ -275,13 +289,13 @@ public:
     }
 
     const MSJunction* getToJunction() const {
-        return myToJuntction;
+        return myToJunction;
     }
 
 
     void setJunctions(MSJunction* from, MSJunction* to) {
         myFromJunction = from;
-        myToJuntction = to;
+        myToJunction = to;
     }
     /// @}
 
@@ -606,7 +620,7 @@ protected:
 
     /// @brief the junctions for this edge
     MSJunction* myFromJunction;
-    MSJunction* myToJuntction;
+    MSJunction* myToJunction;
 
     /// @brief Persons on the edge (only for drawing)
     mutable std::set<MSPerson*> myPersons;

@@ -69,6 +69,7 @@ public:
     // @brief walking directions
     static const int FORWARD;
     static const int BACKWARD;
+    static const int UNDEFINED_DIRECTION;
 
     // @brief the safety gap to keep between the car and the pedestrian in all directions
     static const SUMOReal SAFETY_GAP;
@@ -133,7 +134,7 @@ protected:
         void walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower);
 
         /// @brief update location data for MSPersonStage_Walking 
-        void updateLocation(const MSLane* lane);
+        void updateLocation(const MSLane* lane, const PositionVector& walkingAreaShape=PositionVector());
 
         /// @brief compute safe speeds on all stripes and update vSafe
         static void updateVSafe(
@@ -182,7 +183,7 @@ protected:
     static MSLane* getSidwalk(const MSEdge* edge);
 
     /// @brief adds the given pedestrian to the new lane unless the lane is 0
-    static void addToLane(Pedestrian& ped, int oldStripes, const MSLane* newLane, int newDir);
+    static void addToLane(Pedestrian& ped, int oldStripes, const MSLane* newLane, int newDir, const PositionVector& walkingAreaShape);
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     static Pedestrians& getPedestrians(const MSLane* lane);
@@ -199,7 +200,12 @@ protected:
      * @return The next lane or 0 if the route ends
      */
     static const MSLane* getNextLane(const MSLane* currentLane, const Pedestrian& ped, 
-            MSLink*& link, int& dir);
+            MSLink*& link, int& nextDir);
+
+    static PositionVector getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, const Pedestrian& ped); 
+
+    /// @brief returns the direction in which these lanes are connectioned or 0 if they are not
+    static int connectedDirection(const MSLane* from, const MSLane* to);
 
     /// @brief computes the walking direction to be used on lane to reach next
     static int getDirection(const MSEdge* edge, const MSEdge* nextEdge);

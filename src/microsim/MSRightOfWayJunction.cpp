@@ -84,9 +84,14 @@ MSRightOfWayJunction::postloadInit() {
         // ... set information for every link
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
             if (myLogic->getLogicSize() <= requestPos) {
-                throw ProcessError("Found invalid logic position of a link (network error)");
+                throw ProcessError("Found invalid logic position of a link (" + toString(requestPos) + ", max " + toString(myLogic->getLogicSize()) + ") -> (network error)");
+            }
+            if ((*j)->getLane()->getEdge().isWalkingArea() ||
+                    ((*j)->getLane()->getLogicalPredecessorLane()->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
+                continue;
             }
             sortedLinks.push_back(std::make_pair(*i, *j));
+            //std::cout << "sortedLinks " << maxNo << " incomingLane=" << ((*i) == 0 ? "NULL" : (*i)->getID()) << " link to " << ((*j)->getViaLaneOrLane() == 0 ? "NULL" : (*j)->getViaLaneOrLane()->getID()) << "\n";
             ++maxNo;
         }
     }
@@ -97,7 +102,11 @@ MSRightOfWayJunction::postloadInit() {
         // ... set information for every link
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
             if (myLogic->getLogicSize() <= requestPos) {
-                throw ProcessError("Found invalid logic position of a link (network error)");
+                throw ProcessError("Found invalid logic position of a link (" + toString(requestPos) + ", max " + toString(myLogic->getLogicSize()) + ") -> (network error)");
+            }
+            if ((*j)->getLane()->getEdge().isWalkingArea() ||
+                    ((*j)->getLane()->getLogicalPredecessorLane()->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
+                continue;
             }
             const MSLogicJunction::LinkFoes& foeLinks = myLogic->getFoesFor(requestPos); // SUMO_ATTR_RESPONSE
             const std::bitset<64>& internalFoes = myLogic->getInternalFoesFor(requestPos); // SUMO_ATTR_FOES

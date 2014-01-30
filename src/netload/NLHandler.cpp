@@ -245,12 +245,11 @@ NLHandler::myEndElement(int element) {
                 MSEdge* edge = MSEdge::dictionary(it->first);
                 MSJunction* from = MSJunction::dictionary(it->second.first);
                 MSJunction* to = MSJunction::dictionary(it->second.second);
-                assert(edge != 0);
-                assert(from != 0);
-                assert(to != 0);
-                edge->setJunctions(from, to);
-                from->addOutgoing(edge);
-                to->addIncoming(edge);
+                if (edge != 0 && from != 0 && to != 0) {
+                    edge->setJunctions(from, to);
+                    from->addOutgoing(edge);
+                    to->addIncoming(edge);
+                }
             }
             break;
         default:
@@ -312,6 +311,12 @@ NLHandler::beginEdgeParsing(const SUMOSAXAttributes& attrs) {
             break;
         case EDGEFUNC_INTERNAL:
             funcEnum = MSEdge::EDGEFUNCTION_INTERNAL;
+            break;
+        case EDGEFUNC_CROSSING:
+            funcEnum = MSEdge::EDGEFUNCTION_CROSSING;
+            break;
+        case EDGEFUNC_WALKINGAREA:
+            funcEnum = MSEdge::EDGEFUNCTION_WALKINGAREA;
             break;
     }
     // get the street name

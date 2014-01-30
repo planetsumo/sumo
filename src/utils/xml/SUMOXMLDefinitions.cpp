@@ -439,6 +439,8 @@ StringBijection<SumoXMLEdgeFunc>::Entry SUMOXMLDefinitions::sumoEdgeFuncValues[]
     {"connector",    EDGEFUNC_CONNECTOR},
     {"sink",         EDGEFUNC_SINK},
     {"source",       EDGEFUNC_SOURCE},
+    {"crossing",     EDGEFUNC_CROSSING},
+    {"walkingarea",  EDGEFUNC_WALKINGAREA},
 
     {"internal",     EDGEFUNC_INTERNAL}
 };

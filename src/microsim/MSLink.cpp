@@ -62,7 +62,7 @@ MSLink::MSLink(MSLane* succLane,
     :
     myLane(succLane),
     myRequestIdx(0), myRespondIdx(0),
-    myState(state), myDirection(dir),  myLength(length) {}
+    myState(state), myDirection(dir),  myLength(length)
 #else
 MSLink::MSLink(MSLane* succLane, MSLane* via,
                LinkDirection dir, LinkState state, SUMOReal length)
@@ -71,8 +71,8 @@ MSLink::MSLink(MSLane* succLane, MSLane* via,
     myRequestIdx(0), myRespondIdx(0),
     myState(state), myDirection(dir), myLength(length),
     myJunctionInlane(via)
-{}
 #endif
+{}
 
 
 MSLink::~MSLink() {}
@@ -89,6 +89,7 @@ MSLink::setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, 
     myAmCont = isCont;
     myFoeLinks = foeLinks;
     myFoeLanes = foeLanes;
+    //std::cout << " link to " << getViaLaneOrLane()->getID() << " has foes: " << toString(foeLanes) << "\n";
 #ifdef HAVE_INTERNAL_LANES
     if (internalLaneBefore != 0) {
         // this is an exit link. compute crossing points with all foeLanes

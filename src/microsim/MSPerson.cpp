@@ -181,6 +181,10 @@ MSPerson::MSPersonStage_Walking::getPosition(SUMOTime now) const {
         const MSEdge* e = getEdge();
         SUMOReal off = STEPS2TIME(now - myLastEntryTime);
         return getEdgePosition(e, myCurrentBeginPos + myCurrentLength / myCurrentDuration * off, SIDEWALK_OFFSET);
+    } else if (myLane->getEdge().isWalkingArea()) {
+            PositionVector shp = myWalkingAreaShape;
+            shp.move2side(myShift);
+            return shp.positionAtOffset(myLanePos);
     } else {
         return getLanePosition(myLane, myLanePos, myShift);
     }
@@ -193,6 +197,8 @@ MSPerson::MSPersonStage_Walking::getAngle(SUMOTime now) const {
         const MSEdge* e = getEdge();
         const SUMOReal off = STEPS2TIME(now - myLastEntryTime);
         return getEdgeAngle(e, myCurrentBeginPos + myCurrentLength / myCurrentDuration * off);
+    } else if (myLane->getEdge().isWalkingArea()) {
+        return -myWalkingAreaShape.rotationDegreeAtOffset(myLanePos) + (myDir == MSPModel::BACKWARD ? 180 : 0);
     } else {
         return -myLane->getShape().rotationDegreeAtOffset(myLanePos) + (myDir == MSPModel::BACKWARD ? 180 : 0);
     }
@@ -306,12 +312,19 @@ MSPerson::MSPersonStage_Walking::moveToNextEdge(MSPerson* person, SUMOTime curre
 
 
 void 
-MSPerson::MSPersonStage_Walking::updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift, int dir) {
+MSPerson::MSPersonStage_Walking::updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift, int dir, 
+        const PositionVector& walkingAreaShape) {
     person->lockPerson();
+    if (myLane != lane && lane->getEdge().isWalkingArea()) {
+        myCurrentLength = walkingAreaShape.length();
+    }
     myLane = lane; 
     myLanePos = pos;
     myShift = shift;
     myDir = dir;
+    if (walkingAreaShape.size() > 0) {
+        myWalkingAreaShape = walkingAreaShape;
+    }
     person->unlockPerson();
 }
 

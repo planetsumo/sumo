@@ -224,7 +224,7 @@ GUILane::drawTLSLinkNo(const GUINet& net) const {
 void
 GUILane::drawLinkRules(const GUINet& net) const {
     unsigned int noLinks = (unsigned int)myLinks.size();
-    const PositionVector& g = getShape();
+    const PositionVector& g = (getEdge().isWalkingArea() ? myLinks[getCrossingIndex()]->getLane()->getShape() : getShape());
     const Position& end = g.back();
     const Position& f = g[-2];
     const Position& s = end;
@@ -412,7 +412,9 @@ GUILane::drawLane2LaneConnections() const {
 void
 GUILane::drawGL(const GUIVisualizationSettings& s) const {
     glPushMatrix();
-    const bool isInternal = myEdge->getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL;
+    const bool isCrossing = myEdge->getPurpose() == MSEdge::EDGEFUNCTION_CROSSING;
+    const bool isWalkingArea = myEdge->getPurpose() == MSEdge::EDGEFUNCTION_WALKINGAREA;
+    const bool isInternal = isCrossing || isWalkingArea || myEdge->getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL;
     bool mustDrawMarkings = false;
     const bool drawDetails =  s.scale * s.laneWidthExaggeration > 5;
     if (isInternal) {
@@ -442,7 +444,20 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
             glColor3d(1, 1, 1);
             glTranslated(0, 0, .1);
             GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, (halfRailWidth - 0.2) * s.laneWidthExaggeration);
-            drawCrossties(s);
+            if (!MSGlobals::gUseMesoSim) {
+                setColor(s);
+            }
+            drawCrossties(s, 0.3, 1, 1);
+        } else if (isCrossing) {
+            glColor3d(1, 1, 1);
+            glTranslated(0, 0, .2);
+            drawCrossties(s, 0.4, 0.8, 1);
+            glTranslated(0, 0, -.2);
+        } else if (isWalkingArea) {
+            glColor3d(0.3, 0.3, 1);
+            glTranslated(0, 0, .2);
+            GLHelper::drawFilledPoly(myShape, true);
+            glTranslated(0, 0, -.2);
         } else {
             const SUMOReal laneWidth = isInternal ? myQuarterLaneWidth : myHalfLaneWidth;
             mustDrawMarkings = !isInternal;
@@ -453,13 +468,13 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
         }
         glPopMatrix();
         // draw ROWs (not for inner lanes)
-        if (!isInternal && drawDetails) {
+        if ((!isInternal || isWalkingArea) && drawDetails) {
             glPushMatrix();
             glTranslated(0, 0, GLO_JUNCTION); // must draw on top of junction shape
             GUINet* net = (GUINet*) MSNet::getInstance();
             glTranslated(0, 0, .2);
             drawLinkRules(*net);
-            if (s.showLinkDecals && !isRailway(myPermissions)) {
+            if (s.showLinkDecals && !isRailway(myPermissions) && myPermissions != SVC_PEDESTRIAN) {
                 drawArrows();
             }
             if (s.showLane2Lane) {
@@ -541,12 +556,9 @@ GUILane::drawMarkings(const GUIVisualizationSettings& s) const {
 
 
 void
-GUILane::drawCrossties(const GUIVisualizationSettings& s) const {
+GUILane::drawCrossties(const GUIVisualizationSettings& s, SUMOReal length, SUMOReal spacing, SUMOReal halfWidth) const {
     glPushMatrix();
     glPushName(0);
-    if (!MSGlobals::gUseMesoSim) {
-        setColor(s);
-    }
     // draw on top of of the white area between the rails
     glTranslated(0, 0, 0.1);
     int e = (int) getShape().size() - 1;
@@ -554,12 +566,12 @@ GUILane::drawCrossties(const GUIVisualizationSettings& s) const {
         glPushMatrix();
         glTranslated(getShape()[i].x(), getShape()[i].y(), 0.1);
         glRotated(myShapeRotations[i], 0, 0, 1);
-        for (SUMOReal t = 0; t < myShapeLengths[i]; t += 1) {
+        for (SUMOReal t = 0; t < myShapeLengths[i]; t += spacing) {
             glBegin(GL_QUADS);
-            glVertex2d(-1, -t);
-            glVertex2d(-1, -t - 0.3);
-            glVertex2d(1.0, -t - 0.3);
-            glVertex2d(1.0, -t);
+            glVertex2d(-halfWidth, -t);
+            glVertex2d(-halfWidth, -t - length);
+            glVertex2d( halfWidth, -t - length);
+            glVertex2d( halfWidth, -t);
             glEnd();
         }
         glPopMatrix();

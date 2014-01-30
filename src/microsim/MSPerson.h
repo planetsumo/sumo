@@ -39,6 +39,7 @@
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Command.h>
 #include <utils/geom/Position.h>
+#include <utils/geom/PositionVector.h>
 
 
 // ===========================================================================
@@ -267,7 +268,8 @@ public:
         inline const MSEdge* getNextEdge() { return myRouteStep == myRoute.end() - 1 ? 0 : *(myRouteStep + 1); }
         inline const std::vector<const MSEdge*>& getRoute() { return myRoute; }
 
-        virtual void updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift, int dir);
+        virtual void updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift, int dir, 
+                const PositionVector& walkingAreaShape);
         //@}
 
 
@@ -312,6 +314,8 @@ public:
         SUMOReal myShift;
         /// @brief the walking direction (1 forward, -1 backward)
         SUMOReal myDir;
+        /// @brief the shape when myLane is a walkingArea (encompassing multiple paths)
+        PositionVector myWalkingAreaShape;
         //@}
 
         class arrival_finder {

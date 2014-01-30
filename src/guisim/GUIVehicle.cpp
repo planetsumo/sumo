@@ -1546,10 +1546,15 @@ GUIVehicle::selectBlockingFoes() const {
         const MSLink::LinkLeaders linkLeaders = (dpi.myLink)->getLeaderInfo(dist, getVehicleType().getMinGap());
         for (MSLink::LinkLeaders::const_iterator it = linkLeaders.begin(); it != linkLeaders.end(); ++it) {
             // the vehicle to enter the junction first has priority
-            const MSVehicle* leader = it->first.first;
-            if ((static_cast<const GUIVehicle*>(leader))->myLinkLeaders.count(getID()) == 0) {
-                // leader isn't already following us, now we follow it
-                gSelected.select(static_cast<const GUIVehicle*>(leader)->getGlID());
+            const GUIVehicle* leader = dynamic_cast<const GUIVehicle*>(it->first.first);
+            if (leader != 0) {
+                if (leader->myLinkLeaders.count(getID()) == 0) {
+                    // leader isn't already following us, now we follow it
+                    gSelected.select(leader->getGlID());
+                }
+            } else {
+                // blocked by pedestrian
+                std::cout << SIMTIME << " veh=" << getID() << " is blocked on link to " << dpi.myLink->getViaLaneOrLane()->getID() << " by pedestrian. dist=" << it->second << "\n";
             }
         }
 #endif
