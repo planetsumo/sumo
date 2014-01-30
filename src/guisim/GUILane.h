@@ -282,6 +282,7 @@ private:
     void drawLinkNo() const;
     void drawTLSLinkNo(const GUINet& net) const;
     void drawLinkRules(const GUINet& net) const;
+    void drawLinkRule(const GUINet& net, MSLink* link, const PositionVector& shape, SUMOReal x1, SUMOReal x2) const;
     void drawArrows() const;
     void drawLane2LaneConnections() const;
 

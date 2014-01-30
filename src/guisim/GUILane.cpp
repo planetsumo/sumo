@@ -224,12 +224,37 @@ GUILane::drawTLSLinkNo(const GUINet& net) const {
 void
 GUILane::drawLinkRules(const GUINet& net) const {
     unsigned int noLinks = (unsigned int)myLinks.size();
-    const PositionVector& g = (getEdge().isWalkingArea() ? myLinks[getCrossingIndex()]->getLane()->getShape() : getShape());
-    const Position& end = g.back();
-    const Position& f = g[-2];
-    const Position& s = end;
-    const SUMOReal rot = RAD2DEG(atan2((s.x() - f.x()), (f.y() - s.y())));
     if (noLinks == 0) {
+        drawLinkRule(net, 0, getShape(), 0, 0);
+        return;
+    }
+    if (getEdge().isWalkingArea()) {
+        // draw rules at the start and end of the crossing
+        MSLink* link = myLinks[getCrossingIndex()];
+        const MSLane* crossing = link->getLane();
+        drawLinkRule(net, link, crossing->getShape(), 0, myWidth);
+        drawLinkRule(net, link, crossing->getShape().reverse(), 0, myWidth);
+        return;
+    } 
+    // draw all links
+    SUMOReal w = myWidth / (SUMOReal) noLinks;
+    SUMOReal x1 = 0;
+    for (unsigned int i = 0; i < noLinks; ++i) {
+        SUMOReal x2 = x1 + w;
+        MSLink* link = myLinks[i];
+        drawLinkRule(net, myLinks[i], getShape(), x1, x2);
+        x1 = x2;
+        x2 += w;
+    }
+}
+
+
+void 
+GUILane::drawLinkRule(const GUINet& net, MSLink* link, const PositionVector& shape, SUMOReal x1, SUMOReal x2) const {
+    const Position& end = shape.back();
+    const Position& f = shape[-2];
+    const SUMOReal rot = RAD2DEG(atan2((end.x() - f.x()), (f.y() - end.y())));
+    if (link == 0) {
         glPushName(getGlID());
         GLHelper::setColor(getLinkColor(LINKSTATE_DEADEND));
         glPushMatrix();
@@ -243,18 +268,10 @@ GUILane::drawLinkRules(const GUINet& net) const {
         glEnd();
         glPopMatrix();
         glPopName();
-        return;
-    }
-    // draw all links
-    const bool railway = isRailway(myPermissions);
-    SUMOReal w = myWidth / (SUMOReal) noLinks;
-    SUMOReal x1 = 0;
-    glPushMatrix();
-    glTranslated(end.x(), end.y(), 0);
-    glRotated(rot, 0, 0, 1);
-    for (unsigned int i = 0; i < noLinks; ++i) {
-        SUMOReal x2 = x1 + w;
-        MSLink* link = myLinks[i];
+    } else {
+        glPushMatrix();
+        glTranslated(end.x(), end.y(), 0);
+        glRotated(rot, 0, 0, 1);
         // select glID
         switch (link->getState()) {
             case LINKSTATE_TL_GREEN_MAJOR:
@@ -274,7 +291,7 @@ GUILane::drawLinkRules(const GUINet& net) const {
                 break;
         }
         GLHelper::setColor(getLinkColor(link->getState()));
-        if (!railway || link->getState() != LINKSTATE_MAJOR) {
+        if (!isRailway(myPermissions) || link->getState() != LINKSTATE_MAJOR) {
             // THE WHITE BAR SHOULD BE THE DEFAULT FOR MOST RAILWAY
             // LINKS AND LOOKS UGLY SO WE DO NOT DRAW IT
             glBegin(GL_QUADS);
@@ -285,12 +302,9 @@ GUILane::drawLinkRules(const GUINet& net) const {
             glEnd();
         }
         glPopName();
-        x1 = x2;
-        x2 += w;
+        glPopMatrix();
     }
-    glPopMatrix();
 }
-
 
 void
 GUILane::drawArrows() const {
