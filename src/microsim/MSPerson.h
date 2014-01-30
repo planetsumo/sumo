@@ -131,7 +131,7 @@ public:
         /// @brief get position on edge e at length at with orthogonal offset
         Position getEdgePosition(const MSEdge* e, SUMOReal at, SUMOReal offset) const;
 
-        /// @brief get position on lane l at length at with orthogonal offset
+        /// @brief get position on lane at length at with orthogonal offset
         Position getLanePosition(const MSLane* lane, SUMOReal at, SUMOReal offset) const;
 
         SUMOReal getEdgeAngle(const MSEdge* e, SUMOReal at) const;
