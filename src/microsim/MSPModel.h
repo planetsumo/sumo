@@ -207,9 +207,6 @@ protected:
     /// @brief returns the direction in which these lanes are connectioned or 0 if they are not
     static int connectedDirection(const MSLane* from, const MSLane* to);
 
-    /// @brief computes the walking direction to be used on lane to reach next
-    static int getDirection(const MSEdge* edge, const MSEdge* nextEdge);
-
 protected:
     static int myNumActivePedestrians;
 
