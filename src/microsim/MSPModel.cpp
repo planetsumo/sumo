@@ -260,6 +260,8 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                         nextLane = currentLane->getLinkCont()[0]->getLane();
                         assert(nextLane->getEdge().isWalkingArea());
                         if DEBUGCOND(ped.myPerson->getID()) std::cout << "  normal forward1\n";
+                    } else {
+                        if DEBUGCOND(ped.myPerson->getID()) std::cout << "  forward failure: links=" << currentLane->getLinkCont().size() << "\n";
                     }
                 }
             } else {
@@ -274,6 +276,8 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                         nextLane = currentLane->getLogicalPredecessorLane();
                         assert(nextLane->getEdge().isWalkingArea());
                         if DEBUGCOND(ped.myPerson->getID()) std::cout << "  normal backward1\n";
+                    } else {
+                        if DEBUGCOND(ped.myPerson->getID()) std::cout << "  backward failure: links=" << currentLane->getLinkCont().size() << "\n";
                     }
                 }
             }
