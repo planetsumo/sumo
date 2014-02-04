@@ -378,6 +378,12 @@ bool isRailway(SVCPermissions permissions) {
     return (permissions & anyRail) > 0 && (permissions & SVC_PASSENGER) == 0;
 }
 
+
+bool isForbidden(SVCPermissions permissions) {
+    return (permissions & (2 * SUMOVehicleClass_MAX - 1)) == 0;
+}
+
+
 // ------------ Conversion of SUMOEmissionClass
 SUMOEmissionClass
 getVehicleEmissionTypeID(const std::string& name) {

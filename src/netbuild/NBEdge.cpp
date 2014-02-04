@@ -1504,6 +1504,13 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
     for (std::map<NBEdge*, std::vector<unsigned int> >::const_iterator i = l2eConns.begin(); i != l2eConns.end(); ++i) {
         const std::vector<unsigned int> lanes = (*i).second;
         for (std::vector<unsigned int>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
+            if ((getPermissions(*j) == SVC_PEDESTRIAN && myTo->hasCrossingAtIncoming(this))
+                    || isForbidden(getPermissions(*j))) {
+                // do not create normal connections from pedestrian lanes if there is a crossing at this node
+                // also, do not create connections from forbidden lanes
+                // XXX these lanes should be filtered completely from the above computation
+                continue;
+            }
             if (myAmLeftHand) {
                 myConnections.push_back(Connection(int(myLanes.size() - 1 - *j), (*i).first, -1));
             } else {
@@ -2107,5 +2114,18 @@ NBEdge::dismissVehicleClassInformation() {
     }
 }
 
+
+NBEdge::Lane 
+NBEdge::getFirstNonPedestrianLane(int direction) {
+    assert(direction == 1 || direction == -1);
+    const int start = (direction == 1 ? 0 : (int)myLanes.size() - 1);
+    const int end = (direction == 1 ? (int)myLanes.size() : - 1);
+    for (int i = start; i != end; i += direction) {
+        if (myLanes[i].permissions != SVC_PEDESTRIAN) {
+            return myLanes[i];
+        }
+    }
+    throw ProcessError("Edge " + getID() + " is only for pedestrians");
+}
 
 /****************************************************************************/

@@ -118,7 +118,26 @@ public:
 
     };
 
+    /** @struct Crossing
+     * @brief An (internal) definition of a pedestrian crossing
+     */
+    struct Crossing {
+        Crossing(const EdgeVector& _edges, SUMOReal _width) :
+            edges(_edges), width(_width)
+        {}
+        EdgeVector edges;
+        /// @brief The lane's shape
+        PositionVector shape;
+        /// @brief This lane's width
+        SUMOReal width;
+        /// @brief the (edge)-id of this crossing
+        std::string id;
+    };
+
 public:
+    /// @brief maximum number of connections allowed
+    static const int MAX_CONNECTIONS;
+
     /** @brief Constructor
      * @param[in] id The id of the node
      * @param[in] position The position of the node
@@ -446,6 +465,23 @@ public:
     /// @brief update the type of this node as a roundabout
     void setRoundabout();
 
+    /// @brief add a pedestrian crossing to this node
+    void addCrossing(EdgeVector edges, SUMOReal width);
+
+    /// @brief return whether this node has any pedestrian crossings
+    bool hasCrossingAtIncoming(NBEdge* edge);
+
+    /// @brief return this junctions pedestrian crossings
+    inline const std::vector<Crossing>& getCrossings() const {
+        return myCrossings;
+    }
+
+    /// @brief return the edges of this junctions pedestrian crossings
+    std::vector<EdgeVector> getCrossingEdges() const;
+
+    /// @brief return the number of lane-to-lane connections at this junction (excluding crossings)
+    int numNormalConnections() const;
+
     /**
      * @class nodes_by_id_sorter
      * @brief Used for sorting the cells by the begin time they describe
@@ -462,6 +498,24 @@ public:
         }
 
     };
+
+
+    /** @class edge_by_direction_sorter
+     * @brief Sorts outgoing before incoming edges 
+     */
+    class edge_by_direction_sorter {
+    public:
+        explicit edge_by_direction_sorter(NBNode* n) : myNode(n) {}
+        int operator()(NBEdge* e1, NBEdge* e2) const {
+            return e1->getFromNode() == myNode;
+        }
+
+    private:
+        /// @brief The node to compute the relative angle of
+        NBNode* myNode;
+
+    };
+
 
 private:
     bool isSimpleContinuation() const;
@@ -496,6 +550,9 @@ private:
 
     /// @brief Vector of incoming and outgoing edges
     EdgeVector myAllEdges;
+
+    /// @brief Vector of crossings
+    std::vector<Crossing> myCrossings;
 
     /// @brief The type of the junction
     SumoXMLNodeType myType;

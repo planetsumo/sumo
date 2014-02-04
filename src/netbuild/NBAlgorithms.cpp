@@ -33,6 +33,7 @@
 #include <cassert>
 #include <algorithm>
 #include <utils/common/MsgHandler.h>
+#include <utils/common/ToString.h>
 #include "NBEdge.h"
 #include "NBNodeCont.h"
 #include "NBTypeCont.h"
@@ -133,9 +134,10 @@ NBNodesEdgesSorter::sortNodesEdges(NBNodeCont& nc, bool leftHand) {
         if (n->myAllEdges.size() == 0) {
             continue;
         }
-        std::vector<NBEdge*>& allEdges = (*i).second->myAllEdges;
-        std::vector<NBEdge*>& incoming = (*i).second->myIncomingEdges;
-        std::vector<NBEdge*>& outgoing = (*i).second->myOutgoingEdges;
+        EdgeVector& allEdges = (*i).second->myAllEdges;
+        EdgeVector& incoming = (*i).second->myIncomingEdges;
+        EdgeVector& outgoing = (*i).second->myOutgoingEdges;
+        std::vector<NBNode::Crossing>& crossings = (*i).second->myCrossings;
         // sort the edges
         std::sort(allEdges.begin(), allEdges.end(), edge_by_junction_angle_sorter(n));
         std::sort(incoming.begin(), incoming.end(), edge_by_junction_angle_sorter(n));
@@ -146,6 +148,15 @@ NBNodesEdgesSorter::sortNodesEdges(NBNodeCont& nc, bool leftHand) {
         }
         if (allEdges.size() > 1 && j != allEdges.end()) {
             swapWhenReversed(n, leftHand, allEdges.end() - 1, allEdges.begin());
+        }
+        // sort the crossings
+        std::sort(crossings.begin(), crossings.end(), crossing_by_junction_angle_sorter(n));
+        // DEBUG
+        if (crossings.size() > 0) {
+            std::cout << " crossings at " << n->getID() << "\n";
+            for (std::vector<NBNode::Crossing>::iterator it = crossings.begin(); it != crossings.end(); ++it) {
+                std::cout << "  " << toString((*it).edges) << "\n";
+            }
         }
     }
 }

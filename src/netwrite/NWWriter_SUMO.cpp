@@ -37,6 +37,7 @@
 #include <utils/common/ToString.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StringUtils.h>
+#include <utils/geom/GeomConvHelper.h>
 #include <netbuild/NBEdge.h>
 #include <netbuild/NBEdgeCont.h>
 #include <netbuild/NBNode.h>
@@ -227,9 +228,12 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                 // with the wrong permissions we need to inherit them from the successor
                 const NBEdge::Lane& successor = (*k).toEdge->getLanes()[(*k).toLane];
                 const SUMOReal length = lengthSum[toEdge] / numLanes[toEdge];
+                //const SUMOReal length = MAX2((*k).shape.length(), (SUMOReal)POSITION_EPS);
+                const SUMOReal width = (successor.permissions != SVC_PEDESTRIAN ? successor.width : 
+                        (successor.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : successor.width) + 1.5);
                 writeLane(into, internalEdgeID, (*k).getInternalLaneID(), (*k).vmax,
                           successor.permissions, successor.preferred,
-                          NBEdge::UNSPECIFIED_OFFSET, successor.width, (*k).shape, (*k).origID,
+                          NBEdge::UNSPECIFIED_OFFSET, width, (*k).shape, (*k).origID,
                           length, (*k).internalLaneIndex, origNames);
                 haveVia = haveVia || (*k).haveVia;
             }
@@ -253,11 +257,36 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                               NBEdge::UNSPECIFIED_OFFSET, successor.width, (*k).viaShape, (*k).origID,
                               MAX2((*k).viaShape.length(), (SUMOReal)POSITION_EPS), // microsim needs positive length
                               0, origNames);
-                    into.closeTag(); // close the last edge
+                    into.closeTag();
                 }
             }
         }
     }
+    // write crossings and walkingAreas
+    const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
+    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+        into.openTag(SUMO_TAG_EDGE);
+        into.writeAttr(SUMO_ATTR_ID, (*it).id);
+        into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_CROSSING);
+        writeLane(into, (*it).id, (*it).id + "_0", 1, SVC_PEDESTRIAN, 0,
+                NBEdge::UNSPECIFIED_OFFSET, (*it).width, (*it).shape, "", (*it).shape.length(), 0, false);
+        into.closeTag();
+    }
+
+    /*
+    // walking areas
+    id = idPrefix + toString(index++);
+    into.openTag(SUMO_TAG_EDGE);
+    into.writeAttr(SUMO_ATTR_ID, id);
+    into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_WALKINGAREA);
+    writeLane(into, id, id + "_0", 1, SVC_PEDESTRIAN, 0,
+            NBEdge::UNSPECIFIED_OFFSET, 4.5, 
+            GeomConvHelper::parseShapeReporting(std::string("87.69,109.54 90.40,109.49 90.73,113.33 86.61,113.28"), prototype, 0, ok, false),
+            "",
+            20, 0, false);
+    into.closeTag();
+    */
+
     return ret;
 }
 
@@ -511,6 +540,8 @@ NWWriter_SUMO::writeInternalConnections(OutputDevice& into, const NBNode& n) {
             ret = true;
         }
     }
+    // write connections from/to crossings and walkingareas
+    // MONKEY PATCH
     return ret;
 }
 

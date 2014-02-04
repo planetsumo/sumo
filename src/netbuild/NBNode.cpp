@@ -73,6 +73,7 @@
 // ===========================================================================
 // static members
 // ===========================================================================
+const int NBNode::MAX_CONNECTIONS(64);
 
 // ===========================================================================
 // method definitions
@@ -570,11 +571,10 @@ NBNode::computeLogic(const NBEdgeCont& ec, OptionsCont& oc) {
     // compute the logic if necessary or split the junction
     if (myType != NODETYPE_NOJUNCTION && myType != NODETYPE_DISTRICT && myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
         // build the request
-        myRequest = new NBRequest(ec, this,
-                                  myAllEdges, myIncomingEdges, myOutgoingEdges, myBlockedConnections);
+        myRequest = new NBRequest(ec, this, myAllEdges, myIncomingEdges, myOutgoingEdges, myBlockedConnections);
         // check whether it is not too large
-        unsigned int numConnections = myRequest->getSizes().second;
-        if (numConnections >= 64) {
+        unsigned int numConnections = numNormalConnections();
+        if (numConnections >= MAX_CONNECTIONS) {
             // yep -> make it untcontrolled, warn
             WRITE_WARNING("Junction '" + getID() + "' is too complicated (#links>64); will be set to unregulated.");
             delete myRequest;
@@ -1384,6 +1384,7 @@ NBNode::isDistrict() const {
 
 void
 NBNode::buildInnerEdges() {
+    // build inner edges for vehicle movements across the junction
     unsigned int noInternalNoSplits = 0;
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
         const std::vector<NBEdge::Connection>& elv = (*i)->getConnections();
@@ -1398,6 +1399,31 @@ NBNode::buildInnerEdges() {
     unsigned int splitNo = 0;
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
         (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
+    }
+    // build crossings and walkingAreas for pedestrians
+    unsigned int crossingIndex = noInternalNoSplits + splitNo;
+    for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
+        (*it).id = ":" + getID() + "_" + toString(crossingIndex++);
+        if ((*it).edges.size() > 2) {
+            WRITE_ERROR("Crossings across more than 2 edges not yet implemented");
+            continue;
+        }
+        // compute shape
+        EdgeVector& edges = (*it).edges;
+        (*it).shape.clear();
+        std::sort(edges.begin(), edges.end(), edge_by_direction_sorter(this));
+        const int frontDir = (edges.front()->getFromNode() == this ? 1 : -1);
+        const int backDir = (edges.back()->getToNode() == this ? 1 : -1);
+        NBEdge::Lane crossingStart = edges.front()->getFirstNonPedestrianLane(frontDir);
+        NBEdge::Lane crossingEnd = edges.back()->getFirstNonPedestrianLane(backDir);
+        crossingStart.width = (crossingStart.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingStart.width);
+        crossingEnd.width = (crossingEnd.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingEnd.width);
+        crossingStart.shape.extrapolate((*it).width / 2);
+        crossingEnd.shape.extrapolate((*it).width / 2);
+        crossingStart.shape.move2side(frontDir * crossingStart.width / 2);
+        crossingEnd.shape.move2side(backDir * crossingStart.width / 2);
+        (*it).shape.push_back(crossingStart.shape[frontDir == 1 ? 0 : -1]);
+        (*it).shape.push_back(crossingEnd.shape[backDir == 1 ? -1 : 0]);
     }
 }
 
@@ -1434,6 +1460,34 @@ NBNode::setRoundabout() {
     }
 }
 
+
+void 
+NBNode::addCrossing(EdgeVector edges, SUMOReal width) {
+    myCrossings.push_back(Crossing(edges, width));
+}
+
+
+bool 
+NBNode::hasCrossingAtIncoming(NBEdge* edge) {
+    // XXX fix this
+    return myCrossings.size() > 0;
+}
+
+
+std::vector<EdgeVector> 
+NBNode::getCrossingEdges() const {
+    std::vector<EdgeVector> result;
+    for (std::vector<Crossing>::const_iterator it = myCrossings.begin(); it != myCrossings.end(); ++it) {
+        result.push_back((*it).edges);
+    }
+    return result;
+}
+
+
+int 
+NBNode::numNormalConnections() const {
+    return myRequest->getSizes().second;
+}
 
 Position
 NBNode::getCenter() const {

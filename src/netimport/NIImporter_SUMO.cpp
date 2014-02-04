@@ -121,7 +121,7 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
     for (std::map<std::string, EdgeAttrs*>::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
         EdgeAttrs* ed = (*i).second;
         // skip internal edges
-        if (ed->func == EDGEFUNC_INTERNAL) {
+        if (ed->func == EDGEFUNC_INTERNAL || ed->func == EDGEFUNC_CROSSING || ed->func == EDGEFUNC_WALKINGAREA) {
             continue;
         }
         // get and check the nodes
@@ -343,7 +343,7 @@ NIImporter_SUMO::addEdge(const SUMOSAXAttributes& attrs) {
     myCurrentEdge->id = id;
     // get the function
     myCurrentEdge->func = attrs.getEdgeFunc(ok);
-    if (myCurrentEdge->func == EDGEFUNC_INTERNAL) {
+    if (myCurrentEdge->func == EDGEFUNC_INTERNAL || myCurrentEdge->func == EDGEFUNC_CROSSING || myCurrentEdge->func == EDGEFUNC_WALKINGAREA) {
         return; // skip internal edges
     }
     // get the type
@@ -384,7 +384,7 @@ NIImporter_SUMO::addLane(const SUMOSAXAttributes& attrs) {
         return;
     }
     myCurrentLane = new LaneAttrs;
-    if (myCurrentEdge->func == EDGEFUNC_INTERNAL) {
+    if (myCurrentEdge->func == EDGEFUNC_INTERNAL || myCurrentEdge->func == EDGEFUNC_CROSSING || myCurrentEdge->func == EDGEFUNC_WALKINGAREA ) {
         myHaveSeenInternalEdge = true;
         return; // skip internal lanes
     }

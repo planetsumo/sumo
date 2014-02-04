@@ -113,6 +113,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "roundabout",       SUMO_TAG_ROUNDABOUT },
     { "join",             SUMO_TAG_JOIN },
     { "joinExclude",      SUMO_TAG_JOINEXCLUDE },
+    { "crossing",         SUMO_TAG_CROSSING },
 
     { "way",              SUMO_TAG_WAY },
     { "nd",               SUMO_TAG_ND },
@@ -214,6 +215,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "intLanes",       SUMO_ATTR_INTLANES },
 
     { "weight",         SUMO_ATTR_WEIGHT },
+    { "node",           SUMO_ATTR_NODE },
     { "edge",           SUMO_ATTR_EDGE },
     { "edges",          SUMO_ATTR_EDGES },
 

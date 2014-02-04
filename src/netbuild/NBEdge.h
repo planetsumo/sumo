@@ -488,6 +488,8 @@ public:
     }
     //@}
 
+    /// @brief return the first lane with permissions other than SVC_PEDESTRIAN
+    NBEdge::Lane getFirstNonPedestrianLane(int direction);
 
 
     /// @name Edge geometry access and computation

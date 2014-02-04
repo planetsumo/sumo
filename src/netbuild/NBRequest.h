@@ -149,6 +149,10 @@ private:
     int writeLaneResponse(OutputDevice& od, NBEdge* from, int lane,
                           int pos, const bool checkLaneFoes) const;
 
+    /** @brief writes the response of a certain crossing
+        Returns the next link index within the junction */
+    int writeCrossingResponse(OutputDevice& od, const EdgeVector& edges, int pos, int normalConnections) const; 
+
     /** @brief Writes the response of a certain link
      *
      * For the link (described by the connected edges and lanes), the response in dependence
@@ -206,6 +210,9 @@ private:
     /// @brief reset foes it the number of lanes matches (or exceeds) the number of incoming connections for an edge
     void resetCooperating();
 
+    /// @brief compute influence of crossings
+    void computeCrossings();
+
     /** @brief return whether the given laneToLane connections prohibit each other
      * under the assumption that the edge2edge connections are in conflict
      */
@@ -214,6 +221,9 @@ private:
     /** @brief return whether the given laneToLane connection is a right turn which must yield to pedestrian or bicycle crossings
      */
     bool rightTurnConflict(const NBEdge* from, const NBEdge* to, int fromLane, const NBEdge* prohibitorFrom, const NBEdge* prohibitorTo, int prohibitorFromLane) const;
+
+    /// @brief return to total number of edge-to-edge connections of this request-logic
+    inline size_t numLinks() const;
 
 private:
     /// the node the request is assigned to
@@ -227,6 +237,9 @@ private:
 
     /** edges outgoing from the junction */
     const EdgeVector& myOutgoing;
+
+    /** edges outgoing from the junction */
+    const std::vector<EdgeVector> myCrossings;
 
     /** definition of a container to store boolean informations about a link
         into */

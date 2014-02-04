@@ -132,7 +132,7 @@ private:
             return getConvAngle(e1) < getConvAngle(e2);
         }
 
-    private:
+    protected:
         /// @brief Converts the angle of the edge if it is an incoming edge
         SUMOReal getConvAngle(NBEdge* e) const {
             SUMOReal angle = e->getAngleAtNode(myNode);
@@ -157,6 +157,27 @@ private:
         /// @brief The node to compute the relative angle of
         NBNode* myNode;
 
+    };
+
+    /** @class crossing_by_junction_angle_sorter
+     * @brief Sorts crossings by minimum clockwise clockwise edge angle
+     */
+    class crossing_by_junction_angle_sorter : public edge_by_junction_angle_sorter {
+    public:
+        explicit crossing_by_junction_angle_sorter(NBNode* n) : edge_by_junction_angle_sorter(n) {}
+        int operator()(const NBNode::Crossing& c1, const NBNode::Crossing& c2) const {
+            return getMinConvAngle(c1.edges) < getMinConvAngle(c2.edges);
+        }
+
+    private:
+        /// @brief Converts the angle of the crossing
+        SUMOReal getMinConvAngle(const EdgeVector& e) const {
+            SUMOReal angle = 360;
+            for (EdgeVector::const_iterator it = e.begin(); it != e.end(); ++it) {
+                angle = MIN2(angle, getConvAngle(*it));
+            }
+            return angle;
+        }
     };
 };
 

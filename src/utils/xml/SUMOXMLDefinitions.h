@@ -155,6 +155,7 @@ enum SumoXMLTag {
     SUMO_TAG_ROUNDABOUT,
     SUMO_TAG_JOIN,
     SUMO_TAG_JOINEXCLUDE,
+    SUMO_TAG_CROSSING,
 
     SUMO_TAG_WAY,
     SUMO_TAG_ND,
@@ -277,6 +278,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_INTLANES,
     /// the weight of a district's source or sink
     SUMO_ATTR_WEIGHT,
+    SUMO_ATTR_NODE,
     SUMO_ATTR_EDGE,
     /// the edges of a route
     SUMO_ATTR_EDGES,
