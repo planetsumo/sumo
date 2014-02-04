@@ -168,8 +168,6 @@ NBRequest::buildBitfieldLogic(bool leftHanded) {
     resetSignalised();
     // reset foes it the number of lanes matches (or exceeds) the number of incoming connections
     resetCooperating();
-    // compute influence of crossings
-    computeCrossings();
 }
 
 
@@ -784,10 +782,6 @@ NBRequest::resetCooperating() {
     }
 }
 
-
-void
-NBRequest::computeCrossings() {
-}
 
 size_t 
 NBRequest::numLinks() const {

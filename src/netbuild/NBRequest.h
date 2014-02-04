@@ -210,9 +210,6 @@ private:
     /// @brief reset foes it the number of lanes matches (or exceeds) the number of incoming connections for an edge
     void resetCooperating();
 
-    /// @brief compute influence of crossings
-    void computeCrossings();
-
     /** @brief return whether the given laneToLane connections prohibit each other
      * under the assumption that the edge2edge connections are in conflict
      */
