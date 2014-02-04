@@ -126,7 +126,8 @@ MSPModel::addToLane(Pedestrian& ped, int oldStripes, const MSLane* newLane, int 
             std::cout << SIMTIME << " addToLane x=" << ped.myX << " newDir=" << newDir << " newLane=" << newLane->getID() << " walkingAreaShape=" << walkingAreaShape << "\n";
         }
         if (newDir == BACKWARD) {
-            ped.myX = newLane->getLength() - ped.myX;
+            const SUMOReal newLength = (walkingAreaShape.size() == 0 ? newLane->getLength() : walkingAreaShape.length());
+            ped.myX = newLength - ped.myX;
         }
         // adjust to differences in sidewalk width
         //std::cout << " changing to " << newLane->getID() << " myY=" << ped.myY << " oldStripes=" << oldStripes << " newStripes=" << numStripes(newLane);
@@ -490,7 +491,7 @@ MSPModel::Pedestrian::moveToNextLane() {
     //    std::cout << SIMTIME << " myX=" << myX << " dist=" << dist << "\n";
     //}
     if (dist <= 0) {
-        myX = abs(dist); // always add forward and correct in addToLane()
+        myX = -dist; // always keep forward offset and correct in addToLane()
         return true;
     } else {
         return false;
