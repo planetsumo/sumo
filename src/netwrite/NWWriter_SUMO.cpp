@@ -576,8 +576,6 @@ NWWriter_SUMO::writeInternalConnections(OutputDevice& into, const NBNode& n) {
             ret = true;
         }
     }
-    // write connections from/to crossings and walkingareas
-    // MONKEY PATCH
     return ret;
 }
 
