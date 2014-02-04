@@ -163,6 +163,8 @@ RONetHandler::parseEdge(const SUMOSAXAttributes& attrs) {
             myCurrentEdge->setType(ROEdge::ET_SINK);
             break;
         case EDGEFUNC_INTERNAL:
+        case EDGEFUNC_CROSSING:
+        case EDGEFUNC_WALKINGAREA:
             myCurrentEdge->setType(ROEdge::ET_INTERNAL);
             myProcess = false;
             break;
