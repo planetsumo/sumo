@@ -119,7 +119,7 @@ public:
     };
 
     /** @struct Crossing
-     * @brief An (internal) definition of a pedestrian crossing
+     * @brief A definition of a pedestrian crossing
      */
     struct Crossing {
         Crossing(const EdgeVector& _edges, SUMOReal _width) :
@@ -131,6 +131,20 @@ public:
         /// @brief This lane's width
         SUMOReal width;
         /// @brief the (edge)-id of this crossing
+        std::string id;
+    };
+
+
+    /** @struct WalkingArea
+     * @brief A definition of a pedestrian walking area
+     */
+    struct WalkingArea {
+        WalkingArea(const std::string& _id) : id(_id) {}
+        /// @brief The polygonal shape
+        PositionVector shape;
+        /// @brief This lane's width
+        SUMOReal width;
+        /// @brief the (edge)-id of this walkingArea
         std::string id;
     };
 
@@ -476,6 +490,11 @@ public:
         return myCrossings;
     }
 
+    /// @brief return this junctions pedestrian walking areas
+    inline const std::vector<WalkingArea>& getWalkingAreas() const {
+        return myWalkingAreas;
+    }
+
     /// @brief return the edges of this junctions pedestrian crossings
     std::vector<EdgeVector> getCrossingEdges() const;
 
@@ -553,6 +572,9 @@ private:
 
     /// @brief Vector of crossings
     std::vector<Crossing> myCrossings;
+
+    /// @brief Vector of walking areas
+    std::vector<WalkingArea> myWalkingAreas;
 
     /// @brief The type of the junction
     SumoXMLNodeType myType;

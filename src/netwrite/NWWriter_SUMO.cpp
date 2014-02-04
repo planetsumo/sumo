@@ -262,7 +262,7 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
             }
         }
     }
-    // write crossings and walkingAreas
+    // write pedestrian crossings 
     const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
     for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
         into.openTag(SUMO_TAG_EDGE);
@@ -272,21 +272,16 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                 NBEdge::UNSPECIFIED_OFFSET, (*it).width, (*it).shape, "", (*it).shape.length(), 0, false);
         into.closeTag();
     }
-
-    /*
-    // walking areas
-    id = idPrefix + toString(index++);
-    into.openTag(SUMO_TAG_EDGE);
-    into.writeAttr(SUMO_ATTR_ID, id);
-    into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_WALKINGAREA);
-    writeLane(into, id, id + "_0", 1, SVC_PEDESTRIAN, 0,
-            NBEdge::UNSPECIFIED_OFFSET, 4.5, 
-            GeomConvHelper::parseShapeReporting(std::string("87.69,109.54 90.40,109.49 90.73,113.33 86.61,113.28"), prototype, 0, ok, false),
-            "",
-            20, 0, false);
-    into.closeTag();
-    */
-
+    // write pedestrian walking areas
+    const std::vector<NBNode::WalkingArea>& WalkingAreas = n.getWalkingAreas();
+    for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
+        into.openTag(SUMO_TAG_EDGE);
+        into.writeAttr(SUMO_ATTR_ID, (*it).id);
+        into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_WALKINGAREA);
+        writeLane(into, (*it).id, (*it).id + "_0", 1, SVC_PEDESTRIAN, 0,
+                NBEdge::UNSPECIFIED_OFFSET, (*it).width, (*it).shape, "", POSITION_EPS, 0, false);
+        into.closeTag();
+    }
     return ret;
 }
 

@@ -1400,10 +1400,10 @@ NBNode::buildInnerEdges() {
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
         (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
     }
-    // build crossings and walkingAreas for pedestrians
-    unsigned int crossingIndex = noInternalNoSplits + splitNo;
+    // build pedestrian crossings 
+    unsigned int index = noInternalNoSplits + splitNo;
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
-        (*it).id = ":" + getID() + "_" + toString(crossingIndex++);
+        (*it).id = ":" + getID() + "_" + toString(index++);
         if ((*it).edges.size() > 2) {
             WRITE_ERROR("Crossings across more than 2 edges not yet implemented");
             continue;
@@ -1412,18 +1412,63 @@ NBNode::buildInnerEdges() {
         EdgeVector& edges = (*it).edges;
         (*it).shape.clear();
         std::sort(edges.begin(), edges.end(), edge_by_direction_sorter(this));
-        const int frontDir = (edges.front()->getFromNode() == this ? 1 : -1);
-        const int backDir = (edges.back()->getToNode() == this ? 1 : -1);
-        NBEdge::Lane crossingStart = edges.front()->getFirstNonPedestrianLane(frontDir);
-        NBEdge::Lane crossingEnd = edges.back()->getFirstNonPedestrianLane(backDir);
-        crossingStart.width = (crossingStart.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingStart.width);
+        const int begDir = (edges.front()->getFromNode() == this ? 1 : -1);
+        const int endDir = (edges.back()->getToNode() == this ? 1 : -1);
+        NBEdge::Lane crossingBeg = edges.front()->getFirstNonPedestrianLane(begDir);
+        NBEdge::Lane crossingEnd = edges.back()->getFirstNonPedestrianLane(endDir);
+        crossingBeg.width = (crossingBeg.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingBeg.width);
         crossingEnd.width = (crossingEnd.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingEnd.width);
-        crossingStart.shape.extrapolate((*it).width / 2);
+        crossingBeg.shape.move2side(begDir * crossingBeg.width / 2);
+        crossingEnd.shape.move2side(endDir * crossingBeg.width / 2);
+        crossingBeg.shape.extrapolate((*it).width / 2);
         crossingEnd.shape.extrapolate((*it).width / 2);
-        crossingStart.shape.move2side(frontDir * crossingStart.width / 2);
-        crossingEnd.shape.move2side(backDir * crossingStart.width / 2);
-        (*it).shape.push_back(crossingStart.shape[frontDir == 1 ? 0 : -1]);
-        (*it).shape.push_back(crossingEnd.shape[backDir == 1 ? -1 : 0]);
+        (*it).shape.push_back(crossingBeg.shape[begDir == 1 ? 0 : -1]);
+        (*it).shape.push_back(crossingEnd.shape[endDir == 1 ? -1 : 0]);
+    }
+    // build walkingAreas for pedestrians
+    myWalkingAreas.clear();
+    // walking area at start of crossing
+    for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
+        WalkingArea wa(":" + getID() + "_" + toString(index++));
+        wa.width = (*it).width;
+        // compute shape
+        EdgeVector& edges = (*it).edges;
+        const int begDir = (edges.front()->getFromNode() == this ? 1 : -1);
+        // point 0: outer lane of first edge to be crossed
+        NBEdge::Lane edgBeg = edges.front()->getLanes()[begDir == 1 ? 0 : -1];
+        edgBeg.shape.move2side(begDir * edgBeg.width / 2);
+        wa.shape.push_back(edgBeg.shape[begDir == 1 ? 0 : -1]);
+        // point 1: first lane to be crossed
+        NBEdge::Lane crossingBeg = edges.front()->getFirstNonPedestrianLane(begDir);
+        crossingBeg.width = (crossingBeg.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingBeg.width);
+        crossingBeg.shape.move2side(begDir * crossingBeg.width / 2);
+        wa.shape.push_back(crossingBeg.shape[begDir == 1 ? 0 : -1]);
+        // point 2: extension of first lane to be crossed
+        crossingBeg.shape.extrapolate((*it).width);
+        wa.shape.push_back(crossingBeg.shape[begDir == 1 ? 0 : -1]);
+        myWalkingAreas.push_back(wa);
+    }
+    // walking area at end of crossing
+    int prevWA = -1;
+    for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
+        WalkingArea& wa = myWalkingAreas[prevWA < 0 ? prevWA + myWalkingAreas.size() : prevWA];
+        // extend shape
+        EdgeVector& edges = (*it).edges;
+        const int endDir = (edges.back()->getToNode() == this ? 1 : -1);
+        // point 4: extension of last lane to be crossed
+        NBEdge::Lane crossingEnd = edges.back()->getFirstNonPedestrianLane(endDir);
+        crossingEnd.width = (crossingEnd.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingEnd.width);
+        crossingEnd.shape.move2side(endDir * crossingEnd.width / 2);
+        PositionVector tmp = crossingEnd.shape;
+        tmp.extrapolate((*it).width);
+        wa.shape.push_back(tmp[endDir == 1 ? -1 : 0]);
+        // point 5: last lane to be crossed
+        wa.shape.push_back(crossingEnd.shape[endDir == 1 ? -1 : 0]);
+        // point 6: outer lane of last edge to be croseed
+        NBEdge::Lane edgEnd = edges.back()->getLanes()[endDir == 1 ? 0 : -1];
+        edgEnd.shape.move2side(endDir * edgEnd.width / 2);
+        wa.shape.push_back(edgEnd.shape[endDir == 1 ? -1 : 0]);
+        prevWA++;
     }
 }
 
