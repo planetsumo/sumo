@@ -1488,7 +1488,7 @@ NBNode::buildInnerEdges() {
         wa.shape.push_back(edgEnd.shape[endDir == 1 ? -1 : 0]);
         // add connection from sidewalk to walking area (optional)
         if (endDir == 1 && edgEnd.permissions == SVC_PEDESTRIAN) {
-            wa.prevSidewalk = edges.front()->getID();
+            wa.prevSidewalk = edges.back()->getID();
         } else {
             wa.prevSidewalk = "";
         }
