@@ -83,9 +83,6 @@ MSRightOfWayJunction::postloadInit() {
         const MSLinkCont& links = (*i)->getLinkCont();
         // ... set information for every link
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
-            if (myLogic->getLogicSize() <= requestPos) {
-                throw ProcessError("Found invalid logic position of a link (" + toString(requestPos) + ", max " + toString(myLogic->getLogicSize()) + ") -> (network error)");
-            }
             if ((*j)->getLane()->getEdge().isWalkingArea() ||
                     ((*j)->getLane()->getLogicalPredecessorLane()->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
                 continue;
@@ -101,12 +98,12 @@ MSRightOfWayJunction::postloadInit() {
         const MSLinkCont& links = (*i)->getLinkCont();
         // ... set information for every link
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
-            if (myLogic->getLogicSize() <= requestPos) {
-                throw ProcessError("Found invalid logic position of a link (" + toString(requestPos) + ", max " + toString(myLogic->getLogicSize()) + ") -> (network error)");
-            }
             if ((*j)->getLane()->getEdge().isWalkingArea() ||
                     ((*j)->getLane()->getLogicalPredecessorLane()->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
                 continue;
+            }
+            if (myLogic->getLogicSize() <= requestPos) {
+                throw ProcessError("Found invalid logic position of a link (" + toString(requestPos) + ", max " + toString(myLogic->getLogicSize()) + ") -> (network error)");
             }
             const MSLogicJunction::LinkFoes& foeLinks = myLogic->getFoesFor(requestPos); // SUMO_ATTR_RESPONSE
             const std::bitset<64>& internalFoes = myLogic->getInternalFoesFor(requestPos); // SUMO_ATTR_FOES
