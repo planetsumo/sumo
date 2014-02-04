@@ -463,9 +463,9 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
             }
             drawCrossties(s, 0.3, 1, 1);
         } else if (isCrossing) {
-            glColor3d(1, 1, 1);
+            glColor3d(0.9, 0.9, 0.9);
             glTranslated(0, 0, .2);
-            drawCrossties(s, 0.4, 0.8, 1);
+            drawCrossties(s, 0.5, 1.0, getWidth() * 0.5);
             glTranslated(0, 0, -.2);
         } else if (isWalkingArea) {
             glColor3d(0.3, 0.3, 1);
