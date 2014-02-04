@@ -305,13 +305,14 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
         into.closeTag();
     }
     // write pedestrian walking areas
+    const SUMOReal WALKING_AREA_LENGTH = 1; // arbitrary but must be > POSITION_EPS
     const std::vector<NBNode::WalkingArea>& WalkingAreas = n.getWalkingAreas();
     for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
         into.openTag(SUMO_TAG_EDGE);
         into.writeAttr(SUMO_ATTR_ID, (*it).id);
         into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_WALKINGAREA);
         writeLane(into, (*it).id, (*it).id + "_0", 1, SVC_PEDESTRIAN, 0,
-                NBEdge::UNSPECIFIED_OFFSET, (*it).width, (*it).shape, "", POSITION_EPS, 0, false);
+                NBEdge::UNSPECIFIED_OFFSET, (*it).width, (*it).shape, "", WALKING_AREA_LENGTH, 0, false);
         into.closeTag();
     }
     return ret;
