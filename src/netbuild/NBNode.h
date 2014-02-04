@@ -132,6 +132,8 @@ public:
         SUMOReal width;
         /// @brief the (edge)-id of this crossing
         std::string id;
+        /// @brief the lane-id of the next walkingArea
+        std::string nextWalkingArea;
     };
 
 
@@ -146,6 +148,16 @@ public:
         SUMOReal width;
         /// @brief the (edge)-id of this walkingArea
         std::string id;
+        /// @brief the lane-id of the next crossing
+        std::string nextCrossing;
+        /// @brief the traffic light id of the next crossing or ""
+        std::string tlID;
+        /// @brief the traffic light index of the next crossing (if controlled)
+        int tlLinkNo;
+        /// @brief the lane-id of the next sidewalk lane or ""
+        std::string nextSidewalk;
+        /// @brief the lane-id of the previous sidewalk lane or ""
+        std::string prevSidewalk;
     };
 
 public:

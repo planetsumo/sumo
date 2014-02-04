@@ -152,6 +152,38 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             device.lf();
         }
     }
+    for (std::map<std::string, NBNode*>::const_iterator i = nc.begin(); i != nc.end(); ++i) {
+        // write connections from pedestrian crossings
+        const std::vector<NBNode::Crossing>& crossings = (*i).second->getCrossings();
+        for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+            NWWriter_SUMO::writeInternalConnection(device, (*it).id, (*it).nextWalkingArea, 0, 0, "");
+        }
+        // write connections from pedestrian walking areas
+        const std::vector<NBNode::WalkingArea>& WalkingAreas = (*i).second->getWalkingAreas();
+        for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
+            // connection to next crossing (may be tls-controlled)
+            device.openTag(SUMO_TAG_CONNECTION);
+            device.writeAttr(SUMO_ATTR_FROM, (*it).id);
+            device.writeAttr(SUMO_ATTR_TO, (*it).nextCrossing);
+            device.writeAttr(SUMO_ATTR_FROM_LANE, 0);
+            device.writeAttr(SUMO_ATTR_TO_LANE, 0);
+            if ((*it).tlID != "") {
+                device.writeAttr(SUMO_ATTR_TLID, (*it).tlID);
+                device.writeAttr(SUMO_ATTR_TLLINKINDEX, (*it).tlLinkNo);
+            }
+            device.writeAttr(SUMO_ATTR_DIR, LINKDIR_STRAIGHT);
+            device.writeAttr(SUMO_ATTR_STATE, LINKSTATE_MAJOR);
+            device.closeTag();
+            // optional connections from/to sidewalk
+            if ((*it).nextSidewalk != "") {
+                NWWriter_SUMO::writeInternalConnection(device, (*it).id, (*it).nextSidewalk, 0, 0, "");
+            }
+            if ((*it).prevSidewalk != "") {
+                NWWriter_SUMO::writeInternalConnection(device, (*it).prevSidewalk, (*it).id, 0, 0, "");
+            }
+        }
+    }
+
     // write loaded prohibitions
     for (std::map<std::string, NBNode*>::const_iterator i = nc.begin(); i != nc.end(); ++i) {
         writeProhibitions(device, i->second->getProhibitions());
@@ -398,6 +430,10 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool che
             }
         }
     }
+    const std::vector<NBNode::WalkingArea>& WalkingAreas = n.getWalkingAreas();
+    for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
+        incLanes += ' ' + (*it).id + "_0";
+    }
     into.writeAttr(SUMO_ATTR_INCLANES, incLanes);
     // write the internal lanes
     std::string intLanes;
@@ -420,6 +456,10 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool che
                 l++;
             }
         }
+    }
+    const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
+    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+        intLanes += ' ' + (*it).id + "_0";
     }
     into.writeAttr(SUMO_ATTR_INTLANES, intLanes);
     // close writing

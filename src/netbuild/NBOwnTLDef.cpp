@@ -226,6 +226,13 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
             }
         }
     }
+    // collect crossings
+    std::vector<NBNode::Crossing> crossings;
+    for (std::vector<NBNode*>::iterator i = myControlledNodes.begin(); i != myControlledNodes.end(); i++) {
+        const std::vector<NBNode::Crossing>& c = (*i)->getCrossings();
+        copy(c.begin(), c.end(), back_inserter(crossings));
+    }
+    noLinksAll += crossings.size();
 
     NBTrafficLightLogic* logic = new NBTrafficLightLogic(getID(), getProgramID(), noLinksAll, myOffset, myType);
     EdgeVector toProc = incoming;

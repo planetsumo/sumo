@@ -1402,6 +1402,7 @@ NBNode::buildInnerEdges() {
     }
     // build pedestrian crossings 
     unsigned int index = noInternalNoSplits + splitNo;
+    unsigned int tlIndex = lno;
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
         (*it).id = ":" + getID() + "_" + toString(index++);
         if ((*it).edges.size() > 2) {
@@ -1431,6 +1432,16 @@ NBNode::buildInnerEdges() {
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
         WalkingArea wa(":" + getID() + "_" + toString(index++));
         wa.width = (*it).width;
+        wa.nextCrossing = (*it).id;
+        if (isTLControlled()) {
+            if (getControllingTLS().size() > 1) {
+                WRITE_WARNING("Nodes with more than 1 traffic light not yet implemented");
+            }
+            wa.tlID = (*getControllingTLS().begin())->getID();
+            wa.tlLinkNo = tlIndex++;
+        } else {
+            wa.tlID = "";
+        }
         // compute shape
         EdgeVector& edges = (*it).edges;
         const int begDir = (edges.front()->getFromNode() == this ? 1 : -1);
@@ -1446,12 +1457,19 @@ NBNode::buildInnerEdges() {
         // point 2: extension of first lane to be crossed
         crossingBeg.shape.extrapolate((*it).width);
         wa.shape.push_back(crossingBeg.shape[begDir == 1 ? 0 : -1]);
+        // add connection from walking area to sidewalk (optional)
+        if (begDir == 1 && edgBeg.permissions == SVC_PEDESTRIAN) {
+            wa.nextSidewalk = edges.front()->getID();
+        } else {
+            wa.nextSidewalk = "";
+        }
         myWalkingAreas.push_back(wa);
     }
     // walking area at end of crossing
     int prevWA = -1;
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
         WalkingArea& wa = myWalkingAreas[prevWA < 0 ? prevWA + myWalkingAreas.size() : prevWA];
+        (*it).nextWalkingArea = wa.id;
         // extend shape
         EdgeVector& edges = (*it).edges;
         const int endDir = (edges.back()->getToNode() == this ? 1 : -1);
@@ -1468,6 +1486,12 @@ NBNode::buildInnerEdges() {
         NBEdge::Lane edgEnd = edges.back()->getLanes()[endDir == 1 ? 0 : -1];
         edgEnd.shape.move2side(endDir * edgEnd.width / 2);
         wa.shape.push_back(edgEnd.shape[endDir == 1 ? -1 : 0]);
+        // add connection from sidewalk to walking area (optional)
+        if (endDir == 1 && edgEnd.permissions == SVC_PEDESTRIAN) {
+            wa.prevSidewalk = edges.front()->getID();
+        } else {
+            wa.prevSidewalk = "";
+        }
         prevWA++;
     }
 }

@@ -281,6 +281,7 @@ private:
     /// @brief helper methods
     void drawLinkNo() const;
     void drawTLSLinkNo(const GUINet& net) const;
+    void drawTextAtEnd(const std::string& text, const PositionVector& shape, SUMOReal x) const;
     void drawLinkRules(const GUINet& net) const;
     void drawLinkRule(const GUINet& net, MSLink* link, const PositionVector& shape, SUMOReal x1, SUMOReal x2) const;
     void drawArrows() const;
