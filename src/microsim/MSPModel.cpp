@@ -309,9 +309,15 @@ MSPModel::getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int
         const MSEdge* nextRouteEdge = ped.myStage->getNextEdge();
         const MSLane* nextRouteLane = getSidwalk(nextRouteEdge);
         result.push_back(ped.myDir == FORWARD ? from->getShape().back() : from->getShape().front());
+        PositionVector fromShp = from->getShape();
+        fromShp.extrapolate(walkingArea->getWidth() / 2);
+        result.push_back(ped.myDir == FORWARD ? fromShp.back() : fromShp.front());
         MSLink* linkDummy;
         int nextDir;
         const MSLane* nextLane = getNextLane(walkingArea, ped, linkDummy, nextDir);
+        PositionVector nextShp = nextLane->getShape();
+        nextShp.extrapolate(walkingArea->getWidth() / 2);
+        result.push_back(nextDir == FORWARD ? nextShp.front() : nextShp.back());
         result.push_back(nextDir == FORWARD ? nextLane->getShape().front() : nextLane->getShape().back());
         return (walkingAreaDir == FORWARD ? result : result.reverse());
     } else {
