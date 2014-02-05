@@ -276,6 +276,10 @@ public:
     private:
         void computeWalkingTime(const MSEdge* const e, SUMOReal fromPos, SUMOReal toPos, MSBusStop* bs);
 
+        /* @brief compute average speed if the total walking duration is given 
+         * @note Must be callled when the previous stage changes myDepartPos from the default*/
+        SUMOReal computeAverageSpeed() const;
+
 
     private:
         /// the time the person is walking

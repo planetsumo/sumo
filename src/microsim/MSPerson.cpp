@@ -134,13 +134,7 @@ MSPerson::MSPersonStage_Walking::MSPersonStage_Walking(const std::vector<const M
     myArrivalPos = SUMOVehicleParameter::interpretEdgePos(
                        myArrivalPos, myRoute.back()->getLength(), SUMO_ATTR_ARRIVALPOS, "person walking to " + myRoute.back()->getID());
     if (walkingTime > 0) {
-        SUMOReal length = 0;
-        for (std::vector<const MSEdge*>::const_iterator i = route.begin(); i != route.end(); ++i) {
-            length += (*i)->getLength();
-        }
-        length -= myDepartPos;
-        length -= route.back()->getLength() - myArrivalPos;
-        mySpeed = length / STEPS2TIME(walkingTime);
+        mySpeed = computeAverageSpeed();
     }
 }
 
@@ -220,6 +214,9 @@ MSPerson::MSPersonStage_Walking::proceed(MSNet* net, MSPerson* person, SUMOTime 
     MSNet::getInstance()->getPersonControl().setWalking(person);
     if (at >= 0) {
         myDepartPos = at;
+        if (myWalkingTime > 0) {
+            mySpeed = computeAverageSpeed();
+        }
     }
     ((MSEdge*) *myRouteStep)->addPerson(person);
     myRoute.size() == 1
@@ -228,6 +225,18 @@ MSPerson::MSPersonStage_Walking::proceed(MSNet* net, MSPerson* person, SUMOTime 
     // XXX allow switching between the original "ghost" model and custom pedestrian models
     MSPModel::add(person, this, net);
     //net->getBeginOfTimestepEvents().addEvent(new MoveToNextEdge(person, *this), now + TIME2STEPS(myCurrentDuration), MSEventControl::ADAPT_AFTER_EXECUTION);
+}
+
+
+SUMOReal
+MSPerson::MSPersonStage_Walking::computeAverageSpeed() const {
+    SUMOReal length = 0;
+    for (std::vector<const MSEdge*>::const_iterator i = myRoute.begin(); i != myRoute.end(); ++i) {
+        length += (*i)->getLength();
+    }
+    length -= myDepartPos;
+    length -= myRoute.back()->getLength() - myArrivalPos;
+    return length / STEPS2TIME(myWalkingTime);
 }
 
 
@@ -593,7 +602,6 @@ MSPerson::proceed(MSNet* net, SUMOTime time) {
         (*myStep)->endEventOutput(*this, time, OutputDevice::getDeviceByOption("person-event-output"));
     }
     */
-    Position pos = (*myStep)->getPosition(time);
     myStep++;
     if (myStep != myPlan->end()) {
         (*myStep)->proceed(net, this, time, arrivedAt, atPos);
