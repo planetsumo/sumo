@@ -358,7 +358,12 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                 // XXX consider waitingToEnter on nextLane
                 Pedestrians& nextPedestrians = getPedestrians(nextLane);
                 sort(nextPedestrians.begin(), nextPedestrians.end(), by_xpos_sorter(dir));
-                const SUMOReal relativeX = (dir == FORWARD ? -dist : nextLane->getLength() + dist);
+                SUMOReal relativeX = -dist;
+                if (dir == BACKWARD) {
+                    const PositionVector walkingAreaShape = getWalkingAreaShape(lane, nextLane, nextDir, p);
+                    const SUMOReal nextLength = (walkingAreaShape.size() == 0 ? nextLane->getLength() : walkingAreaShape.length());
+                    relativeX = nextLength + dist;
+                }
                 Pedestrian::updateVSafe(vSafe, 
                         nextPedestrians.end() - MIN2((int)nextPedestrians.size(), 2 * numStripes(nextLane)),
                         nextPedestrians.end(),
