@@ -89,7 +89,7 @@ MSLink::setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, 
     myAmCont = isCont;
     myFoeLinks = foeLinks;
     myFoeLanes = foeLanes;
-    //std::cout << " link to " << getViaLaneOrLane()->getID() << " has foes: " << toString(foeLanes) << "\n";
+    //std::cout << " link " << myRequestIdx << " to " << getViaLaneOrLane()->getID() << " has foes: " << toString(foeLanes) << "\n";
 #ifdef HAVE_INTERNAL_LANES
     if (internalLaneBefore != 0) {
         // this is an exit link. compute crossing points with all foeLanes

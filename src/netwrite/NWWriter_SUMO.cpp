@@ -489,6 +489,10 @@ NWWriter_SUMO::writeInternalNodes(OutputDevice& into, const NBNode& n) {
             }
         }
     }
+    const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
+    for (std::vector<NBNode::Crossing>::const_iterator it_c = crossings.begin(); it_c != crossings.end(); ++it_c) {
+        internalLaneIDs.push_back((*it_c).id + "_0");
+    }
     // write the internal nodes
     for (std::vector<NBEdge*>::const_iterator i = incoming.begin(); i != incoming.end(); i++) {
         const std::vector<NBEdge::Connection>& elv = (*i)->getConnections();

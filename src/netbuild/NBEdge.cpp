@@ -1047,6 +1047,19 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
                         index++;
                     }
                 }
+                // foe pedestrian crossings
+                const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
+                for (std::vector<NBNode::Crossing>::const_iterator it_c = crossings.begin(); it_c != crossings.end(); ++it_c) {
+                    for (EdgeVector::const_iterator it_e = (*it_c).edges.begin(); it_e != (*it_c).edges.end(); ++it_e) {
+                        const NBEdge* edge = *it_e;
+                        // compute foe internal lanes
+                        if (this == edge || con.toEdge == edge) {
+                            foeInternalLinks.push_back(index);
+                        }
+                    }
+                    index++;
+                }
+
                 if (dir == LINKDIR_TURN && crossingPositions.first < 0 && crossingPositions.second.size() != 0) {
                     // let turnarounds wait in the middle if no other crossing point was found
                     crossingPositions.first = (SUMOReal) shape.length() / 2.;
