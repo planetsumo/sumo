@@ -299,8 +299,35 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
                 }
             }
         }
+        // pedestrian crossings
+        for (int ic = 0; ic < (int)crossings.size(); ++ic) {
+            const int i1 = pos + ic;
+            bool isForbidden = false;
+            for (unsigned int i2 = 0; i2 < pos && !isForbidden; ++i2) {
+                for (EdgeVector::const_iterator it = crossings[ic].edges.begin(); it != crossings[ic].edges.end(); ++it) {
+                    const NBEdge* edge = *it;
+                    const LinkDirection i2dir = crossings[ic].node->getDirection(fromEdges[i2], toEdges[i2]);
+                    if (state[i2] == 'G' && (edge == fromEdges[i2] || 
+                                (edge == toEdges[i2] && (i2dir == LINKDIR_STRAIGHT || i2dir == LINKDIR_PARTLEFT || i2dir == LINKDIR_PARTRIGHT)))) {
+                        isForbidden = true;
+                        break;
+                    }
+                }
+            }
+            if (!isForbidden) {
+                state[i1] = 'G';
+            } else {
+                state[i1] = 'r';
+            }
+        }
+
         // add step
         logic->addStep(greenTime, state);
+
+        // pedestrians have 'r' from here on
+        for (int i1 = pos; i1 < pos + crossings.size(); ++i1) {
+            state[i1] = 'r';
+        }
 
         if (brakingTime > 0) {
             // build yellow (straight)

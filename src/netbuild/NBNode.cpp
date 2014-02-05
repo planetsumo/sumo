@@ -1532,7 +1532,7 @@ NBNode::setRoundabout() {
 
 void 
 NBNode::addCrossing(EdgeVector edges, SUMOReal width) {
-    myCrossings.push_back(Crossing(edges, width));
+    myCrossings.push_back(Crossing(this, edges, width));
 }
 
 

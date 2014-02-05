@@ -152,12 +152,12 @@ NBNodesEdgesSorter::sortNodesEdges(NBNodeCont& nc, bool leftHand) {
         // sort the crossings
         std::sort(crossings.begin(), crossings.end(), crossing_by_junction_angle_sorter(n));
         // DEBUG
-        if (crossings.size() > 0) {
-            std::cout << " crossings at " << n->getID() << "\n";
-            for (std::vector<NBNode::Crossing>::iterator it = crossings.begin(); it != crossings.end(); ++it) {
-                std::cout << "  " << toString((*it).edges) << "\n";
-            }
-        }
+        //if (crossings.size() > 0) {
+        //    std::cout << " crossings at " << n->getID() << "\n";
+        //    for (std::vector<NBNode::Crossing>::iterator it = crossings.begin(); it != crossings.end(); ++it) {
+        //        std::cout << "  " << toString((*it).edges) << "\n";
+        //    }
+        //}
     }
 }
 

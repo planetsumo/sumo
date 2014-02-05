@@ -122,9 +122,12 @@ public:
      * @brief A definition of a pedestrian crossing
      */
     struct Crossing {
-        Crossing(const EdgeVector& _edges, SUMOReal _width) :
-            edges(_edges), width(_width)
+        Crossing(const NBNode* _node, const EdgeVector& _edges, SUMOReal _width) :
+            node(_node), edges(_edges), width(_width)
         {}
+        /// @brief The parent node of this crossing
+        const NBNode* node;
+        /// @brief The edges being crossed
         EdgeVector edges;
         /// @brief The lane's shape
         PositionVector shape;
