@@ -208,7 +208,10 @@ protected:
     static int connectedDirection(const MSLane* from, const MSLane* to);
 
 protected:
+    /// @brief the total number of active pedestrians
     static int myNumActivePedestrians;
+    /// @brief whether the MovePedestrians command is registered
+    static bool active;
 
     static ActiveLanes myActiveLanes;
     static Pedestrians noPedestrians;

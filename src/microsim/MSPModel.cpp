@@ -44,6 +44,7 @@
 // static members
 // ===========================================================================
 int MSPModel::myNumActivePedestrians(0);
+bool MSPModel::active(false);
 
 MSPModel::ActiveLanes MSPModel::myActiveLanes;
 
@@ -74,8 +75,9 @@ MSPModel::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, MSNet* n
     assert(person->getCurrentStageType() == MSPerson::WALKING);
     const MSLane* lane = getSidwalk(person->getEdge());
     myActiveLanes[lane].push_back(Pedestrian(person, stage, lane));
-    if (net != 0 && myNumActivePedestrians == 0) {
+    if (net != 0 && !active) {
         net->getBeginOfTimestepEvents().addEvent(new MovePedestrians(), net->getCurrentTimeStep() + DELTA_T, MSEventControl::ADAPT_AFTER_EXECUTION);
+        active = true;
     }
     myNumActivePedestrians++;
 }
@@ -116,6 +118,7 @@ void
 MSPModel::cleanup() {
     myActiveLanes.clear();
     myNumActivePedestrians = 0;
+    active = false;
 }
 
 
@@ -361,7 +364,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
         Pedestrians& pedestrians = it_lane->second;
         const int stripes = numStripes(lane);
         const int waitingToEnter = countWaitingToEnter(pedestrians);
-        //std::cout << SIMTIME << ">>> lane=" << lane->getID() << " waitingToEnter=" << waitingToEnter << "\n";
+        //std::cout << SIMTIME << ">>> lane=" << lane->getID() << " numPeds=" << pedestrians.size() << " waitingToEnter=" << waitingToEnter << "\n";
         sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(dir));
         for (int ii = 0; ii < pedestrians.size(); ++ii) {
             Pedestrian& p = pedestrians[ii];
@@ -649,7 +652,9 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
             << " vy=" << ySpeed
             << " ys=" << ySteps
             << " yd=" << yDist
-            << " vSafe=" << toString(vSafe) << "\n  ";
+            << " vMax=" << myStage->getSpeed()
+            << " vSafe=" << toString(vSafe) 
+            << "\n";
         for (Pedestrians::iterator it = maxLeader; it != minFollower; ++it) {
             std::cout 
                 << "(" << (*it).myPerson->getID() 
