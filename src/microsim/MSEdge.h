@@ -117,7 +117,7 @@ public:
      * @param[in] function A basic type of the edge
      * @param[in] streetName The street name for that edge
      */
-    MSEdge(const std::string& id, int numericalID, const EdgeBasicFunction function, const std::string& streetName = "");
+    MSEdge(const std::string& id, int numericalID, const EdgeBasicFunction function, const std::string& streetName = "", const std::string& edgeType = "");
 
 
     /// @brief Destructor.
@@ -243,6 +243,12 @@ public:
      */
     const std::string& getStreetName() const {
         return myStreetName;
+    }
+
+    /** @brief Returns the type of the edge
+     */
+    const std::string& getEdgeType() const {
+        return myEdgeType;
     }
     /// @}
 
@@ -643,6 +649,9 @@ protected:
 
     /// @brief the real-world name of this edge (need not be unique)
     std::string myStreetName;
+
+    /// @brief the type of the edge (optionally used during network creation)
+    std::string myEdgeType;
 
     /// @brief whether this edge belongs to a roundabout
     bool myAmRoundabout;

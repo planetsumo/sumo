@@ -321,13 +321,15 @@ NLHandler::beginEdgeParsing(const SUMOSAXAttributes& attrs) {
     }
     // get the street name
     std::string streetName = attrs.getOpt<std::string>(SUMO_ATTR_NAME, id.c_str(), ok, "");
+    // get the edge type
+    std::string edgeType = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, "");
     if (!ok) {
         myCurrentIsBroken = true;
         return;
     }
     //
     try {
-        myEdgeControlBuilder.beginEdgeParsing(id, funcEnum, streetName);
+        myEdgeControlBuilder.beginEdgeParsing(id, funcEnum, streetName, edgeType);
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
         myCurrentIsBroken = true;
