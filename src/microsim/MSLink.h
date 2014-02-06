@@ -45,6 +45,7 @@
 class MSLane;
 class SUMOVehicle;
 class MSVehicle;
+class MSPerson;
 class OutputDevice;
 
 
@@ -313,10 +314,11 @@ public:
     /** @brief Returns all potential link leaders (vehicles on foeLanes)
      * Valid during the planMove() phase
      * @param[in] dist The distance of the vehicle who is asking about the leader to this link
-     * @param[in] dist The minGap of the vehicle who is asking about the leader to this link
+     * @param[in] minGap The minGap of the vehicle who is asking about the leader to this link
+     * @param[out] blocking Return blocking pedestrians if a vector is given
      * @return The all vehicles on foeLanes and their (virtual) distances to the asking vehicle
      */
-    LinkLeaders getLeaderInfo(SUMOReal dist, SUMOReal minGap) const;
+    LinkLeaders getLeaderInfo(SUMOReal dist, SUMOReal minGap, std::vector<const MSPerson*>* collectBlockers=0) const;
 #endif
 
     /// @brief return the via lane if it exists and the lane otherwise

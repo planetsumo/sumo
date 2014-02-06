@@ -57,7 +57,7 @@ public:
     static void add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, MSNet* net=0);
 
     /// @brief whether a pedestrian is blocking the crossing of lane at offset distToCrossing
-    static bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing);
+    static bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers);
 
     /// @brief remove state at simulation end
     static void cleanup();

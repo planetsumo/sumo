@@ -305,6 +305,8 @@ GUIPerson::getColorValue(size_t activeScheme) const {
             }
         case 5:
             return STEPS2TIME(timeWaiting4Vehicle(MSNet::getInstance()->getCurrentTimeStep()));
+        case 6:
+            return gSelected.isSelected(GLO_PERSON, getGlID());
     }
     return 0;
 }

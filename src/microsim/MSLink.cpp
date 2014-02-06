@@ -36,6 +36,7 @@
 #include "MSNet.h"
 #include "MSLink.h"
 #include "MSLane.h"
+#include "MSPerson.h"
 #include "MSEdge.h"
 #include "MSGlobals.h"
 #include "MSVehicle.h"
@@ -389,7 +390,7 @@ MSLink::getViaLane() const {
 
 
 MSLink::LinkLeaders
-MSLink::getLeaderInfo(SUMOReal dist, SUMOReal minGap) const {
+MSLink::getLeaderInfo(SUMOReal dist, SUMOReal minGap, std::vector<const MSPerson*>* collectBlockers) const {
     LinkLeaders result;
     if (MSGlobals::gUsingInternalLanes && myJunctionInlane == 0 &&
             getLane()->getEdge().getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
@@ -460,7 +461,7 @@ MSLink::getLeaderInfo(SUMOReal dist, SUMOReal minGap) const {
                 }
             }
             // check for crossing pedestrians
-            if (MSPModel::blockedAtDist(foeLane, foeDistToCrossing)) {
+            if (MSPModel::blockedAtDist(foeLane, foeDistToCrossing, collectBlockers)) {
                 result.push_back(std::make_pair(std::make_pair((MSVehicle*)0, -1), distToCrossing - MSPModel::SAFETY_GAP - foeLane->getWidth() * 0.5));
             }
         }

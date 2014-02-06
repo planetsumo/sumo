@@ -84,7 +84,7 @@ MSPModel::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, MSNet* n
 
 
 bool 
-MSPModel::blockedAtDist(const MSLane* lane, SUMOReal distToCrossing) {
+MSPModel::blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers) {
     const Pedestrians& pedestrians = getPedestrians(lane);
     for (Pedestrians::const_iterator it_ped = pedestrians.begin(); it_ped != pedestrians.end(); ++it_ped) {
         const Pedestrian& ped = *it_ped;
@@ -95,10 +95,18 @@ MSPModel::blockedAtDist(const MSLane* lane, SUMOReal distToCrossing) {
         if (leaderBackDist >= 0 && leaderBackDist <= BLOCKER_LOOKAHEAD) {
             // found one pedestrian that is not completely past the crossing point
             //std::cout << SIMTIME << " blocking pedestrian foeLane=" << lane->getID() << " ped=" << ped.myPerson->getID() << " dir=" << ped.myDir << " pX=" << ped.myX << " pL=" << ped.getLength() << " fDTC=" << distToCrossing << " lBD=" << leaderBackDist << "\n";
-            return true;
+            if (collectBlockers == 0) {
+                return true;
+            } else {
+                collectBlockers->push_back(ped.myPerson);
+            }
         }
     }
-    return false;
+    if (collectBlockers == 0) {
+        return false;
+    } else {
+        return collectBlockers->size() > 0;
+    }
 }
 
 
@@ -371,7 +379,8 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
             if (p.myDir != dir) {
                 continue;
             }
-            std::vector<SUMOReal> vSafe(stripes, LOOKAHEAD * p.myStage->getSpeed());
+            const SUMOReal speed = p.myStage->getSpeed();
+            std::vector<SUMOReal> vSafe(stripes, LOOKAHEAD * speed);
             int nextDir;
             MSLink* link;
             const MSLane* nextLane = getNextLane(lane, p, link, nextDir);
@@ -392,14 +401,14 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                         nextPedestrians.end() - MIN2((int)nextPedestrians.size(), 2 * numStripes(nextLane)),
                         nextPedestrians.end(),
                         relativeX, p, nextDir);
-                // check link state
-                if (link != 0 && link->getState() == LINKSTATE_TL_RED) {
+                // check link state (XXX check impatience and waitingTime
+                if (link != 0 && dist < speed && !link->opened(
+                            currentTime, speed, speed, p.getLength(), 1, speed, 0)) {
                     // prevent movement passed a closed link
                     for (int i = 0; i < (int)vSafe.size(); ++i) {
                         vSafe[i] = MIN2(dist - POSITION_EPS, vSafe[i]);
                     }
                 }
-                // XXX check for oncoming vehicles with priority
             }
             p.walk(vSafe, pedestrians.begin() + MAX2(0, ii - 2 * stripes - waitingToEnter),
                     pedestrians.begin() + MIN2((int)pedestrians.size(), ii + 2 * stripes + waitingToEnter));

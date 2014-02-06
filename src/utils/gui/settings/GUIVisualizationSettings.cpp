@@ -235,6 +235,9 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme = GUIColorScheme("by waiting time", RGBColor::BLUE);
     scheme.addColor(RGBColor::RED, (SUMOReal)(5 * 60));
     personColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
+    scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
+    personColorer.addScheme(scheme);
 
 
 #ifdef HAVE_INTERNAL
