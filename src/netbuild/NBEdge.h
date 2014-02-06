@@ -976,7 +976,6 @@ public:
     void preferVehicleClass(int lane, SUMOVehicleClass vclass);
 
 
-
     /// @brief set lane specific width (negative lane implies set for all lanes)
     void setLaneWidth(int lane, SUMOReal width);
 

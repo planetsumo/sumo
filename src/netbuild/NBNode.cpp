@@ -1458,7 +1458,7 @@ NBNode::buildInnerEdges() {
         crossingBeg.shape.extrapolate((*it).width);
         wa.shape.push_back(crossingBeg.shape[begDir == 1 ? 0 : -1]);
         // add connection from walking area to sidewalk (optional)
-        if (begDir == 1 && edgBeg.permissions == SVC_PEDESTRIAN) {
+        if (begDir == 1 && (edgBeg.permissions & SVC_PEDESTRIAN) > 0) {
             wa.nextSidewalk = edges.front()->getID();
         } else {
             wa.nextSidewalk = "";
@@ -1487,7 +1487,7 @@ NBNode::buildInnerEdges() {
         edgEnd.shape.move2side(endDir * edgEnd.width / 2);
         wa.shape.push_back(edgEnd.shape[endDir == 1 ? -1 : 0]);
         // add connection from sidewalk to walking area (optional)
-        if (endDir == 1 && edgEnd.permissions == SVC_PEDESTRIAN) {
+        if (endDir == 1 && (edgEnd.permissions & SVC_PEDESTRIAN) > 0) {
             wa.prevSidewalk = edges.back()->getID();
         } else {
             wa.prevSidewalk = "";

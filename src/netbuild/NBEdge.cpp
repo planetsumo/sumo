@@ -2134,7 +2134,7 @@ NBEdge::getFirstNonPedestrianLane(int direction) {
     const int start = (direction == 1 ? 0 : (int)myLanes.size() - 1);
     const int end = (direction == 1 ? (int)myLanes.size() : - 1);
     for (int i = start; i != end; i += direction) {
-        if (myLanes[i].permissions != SVC_PEDESTRIAN) {
+        if ((myLanes[i].permissions & SVC_PEDESTRIAN) == 0) {
             return myLanes[i];
         }
     }

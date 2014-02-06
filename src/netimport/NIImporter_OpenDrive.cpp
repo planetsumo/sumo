@@ -153,12 +153,12 @@ NIImporter_OpenDrive::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     myImportWidths = !oc.getBool("opendrive.ignore-widths");
     NBTypeCont& tc = nb.getTypeCont();
     const SUMOReal WIDTH(3.65); // as wanted
-    tc.insert("driving", 1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true);
-    tc.insert("mwyEntry", 1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true);
-    tc.insert("mwyExit", 1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true);
-    tc.insert("stop", 1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true);
-    tc.insert("special1", 1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true);
-    tc.insert("parking", 1, (SUMOReal)(5. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true);
+    tc.insert("driving",  1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true, NBEdge::UNSPECIFIED_WIDTH);
+    tc.insert("mwyEntry", 1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true, NBEdge::UNSPECIFIED_WIDTH);
+    tc.insert("mwyExit",  1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true, NBEdge::UNSPECIFIED_WIDTH);
+    tc.insert("stop",     1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true, NBEdge::UNSPECIFIED_WIDTH);
+    tc.insert("special1", 1, (SUMOReal)(80. / 3.6), 1, ~SVC_PEDESTRIAN, WIDTH, true, NBEdge::UNSPECIFIED_WIDTH);
+    tc.insert("parking",  1, (SUMOReal)(5. / 3.6),  1, ~SVC_PEDESTRIAN, WIDTH, true, NBEdge::UNSPECIFIED_WIDTH);
     // build the handler
     std::map<std::string, OpenDriveEdge*> edges;
     NIImporter_OpenDrive handler(tc, edges);
