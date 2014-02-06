@@ -102,7 +102,7 @@ MSLink::setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, 
                 std::vector<SUMOReal> intersections1 = internalLaneBefore->getShape().intersectsAtLengths2D((*it_lane)->getShape());
                 //std::cout << " number of intersections1=" << intersections1.size() << "\n";
                 if (intersections1.size() == 0) {
-                    intersections1.push_back(0);
+                    intersections1.push_back(internalLaneBefore->getLength() + 1.0); // disregard this foe
                 } else if (intersections1.size() > 1) {
                     std::sort(intersections1.begin(), intersections1.end());
                 }
