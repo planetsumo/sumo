@@ -160,7 +160,7 @@ MSPModel::getSidwalk(const MSEdge* edge) {
     }
     const std::vector<MSLane*>& lanes = edge->getLanes();
     for (std::vector<MSLane*>::const_iterator it = lanes.begin(); it != lanes.end(); ++it) {
-        if ((*it)->getPermissions() == SVC_PEDESTRIAN) {
+        if ((*it)->allowsVehicleClass(SVC_PEDESTRIAN)) {
             return *it;
         }
     }
