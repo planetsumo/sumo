@@ -135,12 +135,16 @@ GUIParameterTableWindow*
 GUIPerson::getParameterWindow(GUIMainWindow& app,
                               GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 3);
+        new GUIParameterTableWindow(app, *this, 6);
     // add items
     //ret->mkItem("type [NAME]", false, myType->getID());
+    const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
     ret->mkItem("stage", false, getCurrentStageTypeName());
-    ret->mkItem("from", false, getFromEdge()->getID());
-    ret->mkItem("to", false, getDestination().getID());
+    ret->mkItem("start edge [id]", false, getFromEdge()->getID());
+    ret->mkItem("dest edge [id]", false, getDestination().getID());
+    ret->mkItem("edge [id]", false, getEdge()->getID());
+    ret->mkItem("position [m]", false, getEdgePos(now));
+    ret->mkItem("angle [degree]", false, getAngle(now));
     // close building
     ret->closeBuilding();
     return ret;
