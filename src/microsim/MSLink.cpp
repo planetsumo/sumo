@@ -32,6 +32,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <limits>
 #include <utils/iodevices/OutputDevice.h>
 #include "MSNet.h"
 #include "MSLink.h"
@@ -109,7 +110,7 @@ MSLink::setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, 
                 std::vector<SUMOReal> intersections1 = lane->getShape().intersectsAtLengths2D((*it_lane)->getShape());
                 //std::cout << " number of intersections1=" << intersections1.size() << "\n";
                 if (intersections1.size() == 0) {
-                    intersections1.push_back(lane->getLength() + 1.0); // disregard this foe
+                    intersections1.push_back(std::numeric_limits<SUMOReal>::max()); // disregard this foe
                 } else if (intersections1.size() > 1) {
                     std::sort(intersections1.begin(), intersections1.end());
                 }
