@@ -328,7 +328,8 @@ NIXMLConnectionsHandler::addCrossing(const SUMOSAXAttributes& attrs) {
     NBNode* node = 0;
     EdgeVector edges;
     const std::string nodeID = attrs.get<std::string>(SUMO_ATTR_NODE, 0, ok);
-    const SUMOReal width = attrs.getOpt<SUMOReal>(SUMO_ATTR_WIDTH, 0, ok, DEFAULT_CROSSING_WIDTH, true);
+    const SUMOReal width = attrs.getOpt<SUMOReal>(SUMO_ATTR_WIDTH, nodeID.c_str(), ok, DEFAULT_CROSSING_WIDTH, true);
+    bool priority = attrs.getOpt<bool>(SUMO_ATTR_PRIORITY, nodeID.c_str(), ok, false, true);
     std::vector<std::string> edgeIDs;
     SUMOSAXAttributes::parseStringVector(attrs.get<std::string>(SUMO_ATTR_EDGES, 0, ok), edgeIDs);
     for (std::vector<std::string>::const_iterator it = edgeIDs.begin(); it != edgeIDs.end(); ++it) {
@@ -354,7 +355,8 @@ NIXMLConnectionsHandler::addCrossing(const SUMOSAXAttributes& attrs) {
         }
         edges.push_back(edge);
     }
-    node->addCrossing(edges, width);
+    // traffic_light nodes always have priority crossings
+    node->addCrossing(edges, width, priority || node->isTLControlled());
 }
 
 

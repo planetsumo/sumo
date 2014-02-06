@@ -122,8 +122,8 @@ public:
      * @brief A definition of a pedestrian crossing
      */
     struct Crossing {
-        Crossing(const NBNode* _node, const EdgeVector& _edges, SUMOReal _width) :
-            node(_node), edges(_edges), width(_width)
+        Crossing(const NBNode* _node, const EdgeVector& _edges, SUMOReal _width, bool _priority) :
+            node(_node), edges(_edges), width(_width), priority(_priority)
         {}
         /// @brief The parent node of this crossing
         const NBNode* node;
@@ -137,6 +137,8 @@ public:
         std::string id;
         /// @brief the lane-id of the next walkingArea
         std::string nextWalkingArea;
+        /// @brief whether the pedestrians have priority
+        bool priority;
     };
 
 
@@ -495,7 +497,7 @@ public:
     void setRoundabout();
 
     /// @brief add a pedestrian crossing to this node
-    void addCrossing(EdgeVector edges, SUMOReal width);
+    void addCrossing(EdgeVector edges, SUMOReal width, bool priority);
 
     /// @brief return whether this node has any pedestrian crossings
     bool hasCrossingAtIncoming(NBEdge* edge);
@@ -510,8 +512,8 @@ public:
         return myWalkingAreas;
     }
 
-    /// @brief return the edges of this junctions pedestrian crossings
-    std::vector<EdgeVector> getCrossingEdges() const;
+    /// @brief return the crossing with the given id
+    const Crossing& getCrossing(const std::string& id) const;
 
     /// @brief return the number of lane-to-lane connections at this junction (excluding crossings)
     int numNormalConnections() const;

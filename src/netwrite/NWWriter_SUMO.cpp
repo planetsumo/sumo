@@ -153,13 +153,14 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         }
     }
     for (std::map<std::string, NBNode*>::const_iterator i = nc.begin(); i != nc.end(); ++i) {
+        NBNode* node = (*i).second;
         // write connections from pedestrian crossings
-        const std::vector<NBNode::Crossing>& crossings = (*i).second->getCrossings();
+        const std::vector<NBNode::Crossing>& crossings = node->getCrossings();
         for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
             NWWriter_SUMO::writeInternalConnection(device, (*it).id, (*it).nextWalkingArea, 0, 0, "");
         }
         // write connections from pedestrian walking areas
-        const std::vector<NBNode::WalkingArea>& WalkingAreas = (*i).second->getWalkingAreas();
+        const std::vector<NBNode::WalkingArea>& WalkingAreas = node->getWalkingAreas();
         for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
             // connection to next crossing (may be tls-controlled)
             device.openTag(SUMO_TAG_CONNECTION);
@@ -172,7 +173,7 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
                 device.writeAttr(SUMO_ATTR_TLLINKINDEX, (*it).tlLinkNo);
             }
             device.writeAttr(SUMO_ATTR_DIR, LINKDIR_STRAIGHT);
-            device.writeAttr(SUMO_ATTR_STATE, LINKSTATE_MAJOR);
+            device.writeAttr(SUMO_ATTR_STATE, node->getCrossing((*it).nextCrossing).priority ? LINKSTATE_MAJOR : LINKSTATE_MINOR);
             device.closeTag();
             // optional connections from/to sidewalk
             if ((*it).nextSidewalk != "") {

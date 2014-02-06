@@ -151,7 +151,7 @@ private:
 
     /** @brief writes the response of a certain crossing
         Returns the next link index within the junction */
-    int writeCrossingResponse(OutputDevice& od, const EdgeVector& edges, int pos, int normalConnections) const; 
+    int writeCrossingResponse(OutputDevice& od, const NBNode::Crossing& crossing, int pos, int normalConnections) const; 
 
     /** @brief Writes the response of a certain link
      *
@@ -236,7 +236,7 @@ private:
     const EdgeVector& myOutgoing;
 
     /** edges outgoing from the junction */
-    const std::vector<EdgeVector> myCrossings;
+    const std::vector<NBNode::Crossing>& myCrossings;
 
     /** definition of a container to store boolean informations about a link
         into */

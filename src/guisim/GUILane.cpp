@@ -467,6 +467,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
         }
         glPopMatrix();
     } else {
+        GUINet* net = (GUINet*) MSNet::getInstance();
         if (isRailway(myPermissions)) {
             // draw as railway
             const SUMOReal halfRailWidth = 0.725;
@@ -479,7 +480,13 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
             }
             drawCrossties(s, 0.3, 1, 1);
         } else if (isCrossing) {
-            glColor3d(0.9, 0.9, 0.9);
+            // determine priority to decide color
+            MSLink* link = MSLinkContHelper::getConnectingLink(*getLogicalPredecessorLane(), *this);
+            if (link->havePriority() || net->getLinkTLIndex(link) > 0) {
+                glColor3d(0.9, 0.9, 0.9);
+            } else {
+                glColor3d(0.1, 0.1, 0.1);
+            }
             glTranslated(0, 0, .2);
             drawCrossties(s, 0.5, 1.0, getWidth() * 0.5);
             glTranslated(0, 0, -.2);
@@ -501,7 +508,6 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
         if ((!isInternal || isCrossing) && drawDetails) {
             glPushMatrix();
             glTranslated(0, 0, GLO_JUNCTION); // must draw on top of junction shape
-            GUINet* net = (GUINet*) MSNet::getInstance();
             glTranslated(0, 0, .4);
             drawLinkRules(*net);
             if (s.showLinkDecals && !isRailway(myPermissions) && myPermissions != SVC_PEDESTRIAN) {

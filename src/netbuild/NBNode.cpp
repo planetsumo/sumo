@@ -1531,8 +1531,8 @@ NBNode::setRoundabout() {
 
 
 void 
-NBNode::addCrossing(EdgeVector edges, SUMOReal width) {
-    myCrossings.push_back(Crossing(this, edges, width));
+NBNode::addCrossing(EdgeVector edges, SUMOReal width, bool priority) {
+    myCrossings.push_back(Crossing(this, edges, width, priority));
 }
 
 
@@ -1543,15 +1543,15 @@ NBNode::hasCrossingAtIncoming(NBEdge* edge) {
 }
 
 
-std::vector<EdgeVector> 
-NBNode::getCrossingEdges() const {
-    std::vector<EdgeVector> result;
+const NBNode::Crossing& 
+NBNode::getCrossing(const std::string& id) const {
     for (std::vector<Crossing>::const_iterator it = myCrossings.begin(); it != myCrossings.end(); ++it) {
-        result.push_back((*it).edges);
+        if ((*it).id == id) {
+            return *it;
+        }
     }
-    return result;
+    throw ProcessError("Request for unknown crossing '" + id + "'");
 }
-
 
 int 
 NBNode::numNormalConnections() const {

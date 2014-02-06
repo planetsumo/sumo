@@ -75,7 +75,7 @@ NBRequest::NBRequest(const NBEdgeCont& ec,
     myAll(all), 
     myIncoming(incoming), 
     myOutgoing(outgoing),
-    myCrossings(junction->getCrossingEdges())
+    myCrossings(junction->getCrossings())
 {
     const size_t variations = numLinks();
     // build maps with information which forbidding connection were
@@ -346,7 +346,7 @@ NBRequest::writeLogic(std::string /* key */, OutputDevice& into, const bool chec
     }
     const int normalConnections = pos;
     // crossings
-    for (std::vector<EdgeVector>::const_iterator i = myCrossings.begin(); i != myCrossings.end(); i++) {
+    for (std::vector<NBNode::Crossing>::const_iterator i = myCrossings.begin(); i != myCrossings.end(); i++) {
         pos = writeCrossingResponse(into, *i, pos, normalConnections);
     }
 }
@@ -502,8 +502,7 @@ NBRequest::writeLaneResponse(OutputDevice& od, NBEdge* from,
 
 
 int
-NBRequest::writeCrossingResponse(OutputDevice& od, const EdgeVector& edges, int pos, int normalConnections) const {
-    std::string response(normalConnections + myCrossings.size(), '0'); // XXX only correct for crossings at signalised intersections and "real" pedestrian crossings
+NBRequest::writeCrossingResponse(OutputDevice& od, const NBNode::Crossing& crossing, int pos, int normalConnections) const {
     std::string foes(myCrossings.size(), '0');
     // conflicts with normal connections 
     for (EdgeVector::const_reverse_iterator i = myIncoming.rbegin(); i != myIncoming.rend(); i++) {
@@ -516,7 +515,7 @@ NBRequest::writeCrossingResponse(OutputDevice& od, const EdgeVector& edges, int 
             for (int k = size; k-- > 0;) {
                 const NBEdge* to = connected[k].toEdge;
                 bool foe = false;
-                for (EdgeVector::const_iterator it_e = edges.begin(); it_e != edges.end(); ++it_e) {
+                for (EdgeVector::const_iterator it_e = crossing.edges.begin(); it_e != crossing.edges.end(); ++it_e) {
                     if ((*it_e) == from || (*it_e) == to) {
                         foe = true;
                         break;
@@ -526,6 +525,7 @@ NBRequest::writeCrossingResponse(OutputDevice& od, const EdgeVector& edges, int 
             }
         }
     }
+    const std::string response = (crossing.priority ? std::string(normalConnections + myCrossings.size(), '0') : foes); 
     od.openTag(SUMO_TAG_REQUEST);
     od.writeAttr(SUMO_ATTR_INDEX, pos++);
     od.writeAttr(SUMO_ATTR_RESPONSE, response);
@@ -545,15 +545,16 @@ NBRequest::getResponseString(const NBEdge* const from, const NBEdge* const to,
     }
     std::string result;
     // crossings
-    for (std::vector<EdgeVector>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
+    for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
         bool foes = false;
-        for (EdgeVector::const_iterator it_e = i->begin(); it_e != i->end(); ++it_e) {
-            if ((*it_e) == from || (*it_e) == to) {
-                foes = true;
-                break;
+        if ((*i).priority) {
+            for (EdgeVector::const_iterator it_e = (*i).edges.begin(); it_e != (*i).edges.end(); ++it_e) {
+                if ((*it_e) == from || (*it_e) == to) {
+                    foes = true;
+                    break;
+                }
             }
         }
-        // XXX only correct for crossings at signalised intersections and "real" pedestrian crossings
         result += foes ? '1' : '0';
     }
     // normal connections 
@@ -598,15 +599,14 @@ NBRequest::getFoesString(NBEdge* from, NBEdge* to, int fromLane, int toLane, con
     // !!! move to forbidden
     std::string result;
     // crossings
-    for (std::vector<EdgeVector>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
+    for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
         bool foes = false;
-        for (EdgeVector::const_iterator it_e = i->begin(); it_e != i->end(); ++it_e) {
+        for (EdgeVector::const_iterator it_e = (*i).edges.begin(); it_e != (*i).edges.end(); ++it_e) {
             if ((*it_e) == from || (*it_e) == to) {
                 foes = true;
                 break;
             }
         }
-        // XXX only correct for crossings at signalised intersections and "real" pedestrian crossings
         result += foes ? '1' : '0';
     }
     // normal connections 
