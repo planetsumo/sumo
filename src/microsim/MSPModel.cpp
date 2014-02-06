@@ -73,7 +73,7 @@ const SUMOReal MSPModel::RESERVE_FOR_ONCOMING_FACTOR(0.25);
 void
 MSPModel::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, MSNet* net) {
     assert(person->getCurrentStageType() == MSPerson::WALKING);
-    const MSLane* lane = getSidwalk(person->getEdge());
+    const MSLane* lane = getSidewalk(person->getEdge());
     myActiveLanes[lane].push_back(Pedestrian(person, stage, lane));
     if (net != 0 && !active) {
         net->getBeginOfTimestepEvents().addEvent(new MovePedestrians(), net->getCurrentTimeStep() + DELTA_T, MSEventControl::ADAPT_AFTER_EXECUTION);
@@ -154,7 +154,7 @@ MSPModel::addToLane(Pedestrian& ped, int oldStripes, const MSLane* newLane, int 
 
 
 MSLane* 
-MSPModel::getSidwalk(const MSEdge* edge) {
+MSPModel::getSidewalk(const MSEdge* edge) {
     if (edge == 0) {
         return 0;
     }
@@ -190,7 +190,7 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
             MSLink*& link, int& nextDir) {
     const MSEdge* currentEdge = &currentLane->getEdge();
     const MSEdge* nextRouteEdge = ped.myStage->getNextEdge();
-    const MSLane* nextRouteLane = getSidwalk(nextRouteEdge);
+    const MSLane* nextRouteLane = getSidewalk(nextRouteEdge);
     const MSLane* nextLane = nextRouteLane;
     link = 0;
     nextDir = UNDEFINED_DIRECTION;
@@ -325,7 +325,7 @@ MSPModel::getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int
     if (walkingArea != 0 && walkingArea->getEdge().isWalkingArea()) {
         PositionVector result;
         const MSEdge* nextRouteEdge = ped.myStage->getNextEdge();
-        const MSLane* nextRouteLane = getSidwalk(nextRouteEdge);
+        const MSLane* nextRouteLane = getSidewalk(nextRouteEdge);
         result.push_back(ped.myDir == FORWARD ? from->getShape().back() : from->getShape().front());
         PositionVector fromShp = from->getShape();
         fromShp.extrapolate(walkingArea->getWidth() / 2);
@@ -427,7 +427,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                     const SUMOReal done = p.myStage->moveToNextEdge(p.myPerson, currentTime, nextIsNormal ? 0 : &nextLane->getEdge());
                     if (done != 0) {
                         if (nextDir == UNDEFINED_DIRECTION) {
-                            const MSLane* laneAfterNext = getSidwalk(p.myStage->getNextEdge());
+                            const MSLane* laneAfterNext = getSidewalk(p.myStage->getNextEdge());
                             nextDir == connectedDirection(nextLane, laneAfterNext);
                             if (nextDir == UNDEFINED_DIRECTION) {
                                 nextDir = FORWARD;

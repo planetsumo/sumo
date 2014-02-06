@@ -180,7 +180,7 @@ protected:
     static void moveInDirection(SUMOTime currentTime, int dir);
 
     /// @brief return the appropriate lane to walk on
-    static MSLane* getSidwalk(const MSEdge* edge);
+    static MSLane* getSidewalk(const MSEdge* edge);
 
     /// @brief adds the given pedestrian to the new lane unless the lane is 0
     static void addToLane(Pedestrian& ped, int oldStripes, const MSLane* newLane, int newDir, const PositionVector& walkingAreaShape);
