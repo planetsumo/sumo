@@ -96,6 +96,9 @@ public:
     // @brief fraction of the leftmost lanes to reserve for oncoming traffic
     static const SUMOReal RESERVE_FOR_ONCOMING_FACTOR;
 
+    // @brief the time pedestrians take to reach maximum impatience
+    static const SUMOReal MAX_WAIT_TOLERANCE;
+
 protected:
     class Pedestrian;
     typedef std::vector<Pedestrian> Pedestrians;
@@ -135,6 +138,9 @@ protected:
 
         /// @brief update location data for MSPersonStage_Walking 
         void updateLocation(const MSLane* lane, const PositionVector& walkingAreaShape=PositionVector());
+
+        /// @brief returns the impatience 
+        SUMOReal getImpatience(SUMOTime now) const;
 
         /// @brief compute safe speeds on all stripes and update vSafe
         static void updateVSafe(

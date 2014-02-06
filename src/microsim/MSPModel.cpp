@@ -65,6 +65,7 @@ const SUMOReal MSPModel::BLOCKER_LOOKAHEAD(10.0);
 const SUMOReal MSPModel::ONCOMIN_PENALTY(0.0);
 const SUMOReal MSPModel::ONCOMIN_PENALTY_FACTOR(0.6);
 const SUMOReal MSPModel::RESERVE_FOR_ONCOMING_FACTOR(0.25);
+const SUMOReal MSPModel::MAX_WAIT_TOLERANCE(120);
 
 // ===========================================================================
 // MSPModel method definitions
@@ -403,12 +404,8 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                 // check link state 
                 if (link != 0 
                         && dist < speed  // only check close before junction
-                        && (!link->opened(
-                            currentTime, speed, speed, p.getLength(), 
-                            MIN2(SUMOReal(1), STEPS2TIME(p.myStage->getWaitingTime(currentTime)) / 60), // impatience
-                            speed, 0)
-                            || link->getLeaderInfo(dist + nextLane->getLength(), p.myPerson->getVehicleType().getMinGap()).size() > 0
-                            )) {
+                        && (!link->opened( currentTime, speed, speed, p.getLength(), p.getImpatience(currentTime), speed, 0)
+                            || link->getLeaderInfo(dist + nextLane->getLength(), p.myPerson->getVehicleType().getMinGap()).size() > 0)) {
                     // prevent movement passed a closed link
                     for (int i = 0; i < (int)vSafe.size(); ++i) {
                         vSafe[i] = MIN2(dist - POSITION_EPS, vSafe[i]);
@@ -696,6 +693,13 @@ MSPModel::Pedestrian::updateLocation(const MSLane* lane, const PositionVector& w
     myStage->updateLocationSecure(myPerson, lane, myX, shift, myDir, walkingAreaShape);
 }
 
+
+SUMOReal 
+MSPModel::Pedestrian::getImpatience(SUMOTime now) const {
+    return MAX2((SUMOReal)0, MIN2(SUMOReal(1), 
+                myPerson->getVehicleType().getImpatience() 
+                + STEPS2TIME(myStage->getWaitingTime(now)) / MAX_WAIT_TOLERANCE));
+}
 
 // ===========================================================================
 // MSPModel::MovePedestrians method definitions
