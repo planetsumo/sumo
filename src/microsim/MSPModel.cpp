@@ -407,7 +407,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                             currentTime, speed, speed, p.getLength(), 
                             MIN2(SUMOReal(1), STEPS2TIME(p.myStage->getWaitingTime(currentTime)) / 60), // impatience
                             speed, 0)
-                            || link->getLeaderInfo(0, p.myPerson->getVehicleType().getMinGap()).size() > 0
+                            || link->getLeaderInfo(dist + nextLane->getLength(), p.myPerson->getVehicleType().getMinGap()).size() > 0
                             )) {
                     // prevent movement passed a closed link
                     for (int i = 0; i < (int)vSafe.size(); ++i) {
