@@ -92,21 +92,28 @@ MSLink::setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, 
     myFoeLanes = foeLanes;
     //std::cout << " link " << myRequestIdx << " to " << getViaLaneOrLane()->getID() << " has foes: " << toString(foeLanes) << "\n";
 #ifdef HAVE_INTERNAL_LANES
+    MSLane* lane = 0;
     if (internalLaneBefore != 0) {
         // this is an exit link. compute crossing points with all foeLanes
+        lane = internalLaneBefore;
+    } else if (myLane->getEdge().isCrossing()) {
+        // this is the link to a pedestrian crossing. compute crossing points with all foeLanes
+        lane = myLane;
+    }
+    if (lane != 0) {
         for (std::vector<MSLane*>::const_iterator it_lane = myFoeLanes.begin(); it_lane != myFoeLanes.end(); ++it_lane) {
             if (myLane == (*it_lane)->getLinkCont()[0]->getLane()) {
                 // this foeLane has the same target
                 myLengthsBehindCrossing.push_back(std::make_pair(0, 0)); // dummy value, never used
             } else {
-                std::vector<SUMOReal> intersections1 = internalLaneBefore->getShape().intersectsAtLengths2D((*it_lane)->getShape());
+                std::vector<SUMOReal> intersections1 = lane->getShape().intersectsAtLengths2D((*it_lane)->getShape());
                 //std::cout << " number of intersections1=" << intersections1.size() << "\n";
                 if (intersections1.size() == 0) {
-                    intersections1.push_back(internalLaneBefore->getLength() + 1.0); // disregard this foe
+                    intersections1.push_back(lane->getLength() + 1.0); // disregard this foe
                 } else if (intersections1.size() > 1) {
                     std::sort(intersections1.begin(), intersections1.end());
                 }
-                std::vector<SUMOReal> intersections2 = (*it_lane)->getShape().intersectsAtLengths2D(internalLaneBefore->getShape());
+                std::vector<SUMOReal> intersections2 = (*it_lane)->getShape().intersectsAtLengths2D(lane->getShape());
                 //std::cout << " number of intersections2=" << intersections2.size() << "\n";
                 if (intersections2.size() == 0) {
                     intersections2.push_back(0);
@@ -114,11 +121,11 @@ MSLink::setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, 
                     std::sort(intersections2.begin(), intersections2.end());
                 }
                 myLengthsBehindCrossing.push_back(std::make_pair(
-                                                      internalLaneBefore->getLength() - intersections1.back(),
+                                                      lane->getLength() - intersections1.back(),
                                                       (*it_lane)->getLength() - intersections2.back()));
                 //std::cout
-                //    << " intersection of " << internalLaneBefore->getID()
-                //    << " totalLength=" << internalLaneBefore->getLength()
+                //    << " intersection of " << lane->getID()
+                //    << " totalLength=" << lane->getLength()
                 //    << " with " << (*it_lane)->getID()
                 //    << " totalLength=" << (*it_lane)->getLength()
                 //    << " dist1=" << myLengthsBehindCrossing.back().first

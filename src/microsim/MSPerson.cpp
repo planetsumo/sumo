@@ -127,6 +127,7 @@ MSPerson::MSPersonStage_Walking::MSPersonStage_Walking(const std::vector<const M
     myCurrentInternalEdge(0),
     myDepartPos(departPos), myArrivalPos(arrivalPos), myDestinationBusStop(toBS),
     mySpeed(speed),
+    myWaitingTime(0),
     myLane(0)
 {
     myDepartPos = SUMOVehicleParameter::interpretEdgePos(
@@ -327,6 +328,11 @@ MSPerson::MSPersonStage_Walking::updateLocationSecure(MSPerson* person, const MS
     if (myLane != lane && lane->getEdge().isWalkingArea()) {
         myCurrentLength = walkingAreaShape.length();
     }
+    if (myLane == lane && myLanePos == pos) {
+        myWaitingTime += DELTA_T;
+    } else {
+        myWaitingTime = 0;
+    }
     myLane = lane; 
     myLanePos = pos;
     myShift = shift;
@@ -335,6 +341,13 @@ MSPerson::MSPersonStage_Walking::updateLocationSecure(MSPerson* person, const MS
         myWalkingAreaShape = walkingAreaShape;
     }
     person->unlockPerson();
+}
+
+
+SUMOTime
+MSPerson::MSPersonStage_Walking::getWaitingTime(SUMOTime now) const {
+    UNUSED_PARAMETER(now);
+    return myWaitingTime;
 }
 
 
@@ -433,7 +446,7 @@ MSPerson::MSPersonStage_Driving::isWaiting4Vehicle() const {
 
 
 SUMOTime
-MSPerson::MSPersonStage_Driving::timeWaiting4Vehicle(SUMOTime now) const {
+MSPerson::MSPersonStage_Driving::getWaitingTime(SUMOTime now) const {
     return isWaiting4Vehicle() ? now - myWaitingSince : 0;
 }
 
@@ -528,6 +541,7 @@ void
 MSPerson::MSPersonStage_Waiting::proceed(MSNet* net, MSPerson* person, SUMOTime now,
         MSEdge* previousEdge, const SUMOReal /* at */) {
     previousEdge->addPerson(person);
+    myWaitingStart = now;
     const SUMOTime until = MAX3(now, now + myWaitingDuration, myWaitingUntil);
     net->getPersonControl().setWaitEnd(until, person);
 }
@@ -563,6 +577,12 @@ void
 MSPerson::MSPersonStage_Waiting::endEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const {
     os.openTag("event").writeAttr("time", time2string(t)).writeAttr("type", "actend " + myActType).writeAttr("agent", p.getID())
     .writeAttr("link", getEdge()->getID()).closeTag();
+}
+
+
+SUMOTime
+MSPerson::MSPersonStage_Waiting::getWaitingTime(SUMOTime now) const {
+    return now - myWaitingStart;
 }
 
 

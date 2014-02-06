@@ -135,7 +135,7 @@ GUIParameterTableWindow*
 GUIPerson::getParameterWindow(GUIMainWindow& app,
                               GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 6);
+        new GUIParameterTableWindow(app, *this, 7);
     // add items
     //ret->mkItem("type [NAME]", false, myType->getID());
     const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
@@ -145,6 +145,7 @@ GUIPerson::getParameterWindow(GUIMainWindow& app,
     ret->mkItem("edge [id]", false, getEdge()->getID());
     ret->mkItem("position [m]", false, getEdgePos(now));
     ret->mkItem("angle [degree]", false, getAngle(now));
+    ret->mkItem("waiting time [s]", false, STEPS2TIME(getWaitingTime(now)));
     // close building
     ret->closeBuilding();
     return ret;
@@ -304,7 +305,7 @@ GUIPerson::getColorValue(size_t activeScheme) const {
                 return (SUMOReal)getCurrentStageType();
             }
         case 5:
-            return STEPS2TIME(timeWaiting4Vehicle(MSNet::getInstance()->getCurrentTimeStep()));
+            return STEPS2TIME(getWaitingTime(MSNet::getInstance()->getCurrentTimeStep()));
         case 6:
             return gSelected.isSelected(GLO_PERSON, getGlID());
     }

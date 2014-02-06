@@ -295,7 +295,6 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                     // go backward to the next walking area
                     if (currentLane->getLogicalPredecessorLane() != 0) {
                         const MSLane* cand = currentLane->getLogicalPredecessorLane();
-                        assert(nextLane->getEdge().isWalkingArea());
                         if (cand->getEdge().isWalkingArea()) {
                             if DEBUGCOND(ped.myPerson->getID()) std::cout << "  backward to walkingArea\n";
                             nextLane = cand;
@@ -401,9 +400,15 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                         nextPedestrians.end() - MIN2((int)nextPedestrians.size(), 2 * numStripes(nextLane)),
                         nextPedestrians.end(),
                         relativeX, p, nextDir);
-                // check link state (XXX check impatience and waitingTime
-                if (link != 0 && dist < speed && !link->opened(
-                            currentTime, speed, speed, p.getLength(), 1, speed, 0)) {
+                // check link state 
+                if (link != 0 
+                        && dist < speed  // only check close before junction
+                        && (!link->opened(
+                            currentTime, speed, speed, p.getLength(), 
+                            MIN2(SUMOReal(1), STEPS2TIME(p.myStage->getWaitingTime(currentTime)) / 60), // impatience
+                            speed, 0)
+                            || link->getLeaderInfo(0, p.myPerson->getVehicleType().getMinGap()).size() > 0
+                            )) {
                     // prevent movement passed a closed link
                     for (int i = 0; i < (int)vSafe.size(); ++i) {
                         vSafe[i] = MIN2(dist - POSITION_EPS, vSafe[i]);

@@ -124,10 +124,8 @@ public:
             return false;
         }
 
-        /// @brief the time this person spent waiting for a vehicle
-        virtual SUMOTime timeWaiting4Vehicle(SUMOTime /*now*/) const {
-            return false;
-        }
+        /// @brief the time this person spent waiting
+        virtual SUMOTime getWaitingTime(SUMOTime now) const = 0;
 
         /// @brief get position on edge e at length at with orthogonal offset
         Position getEdgePosition(const MSEdge* e, SUMOReal at, SUMOReal offset) const;
@@ -211,6 +209,8 @@ public:
         Position getPosition(SUMOTime now) const;
 
         SUMOReal getAngle(SUMOTime now) const;
+
+        SUMOTime getWaitingTime(SUMOTime now) const;
 
         std::string getStageTypeName() const {
             return "walking";
@@ -302,6 +302,7 @@ public:
         MSBusStop* myDestinationBusStop;
         SUMOTime myLastEntryTime;
         SUMOReal mySpeed;
+        SUMOTime myWaitingTime;
 
         SUMOReal myCurrentBeginPos, myCurrentLength, myCurrentDuration;
         //bool myDurationWasGiven;
@@ -381,7 +382,7 @@ public:
         bool isWaiting4Vehicle() const;
 
         /// @brief time spent waiting for a ride
-        SUMOTime timeWaiting4Vehicle(SUMOTime now) const;
+        SUMOTime getWaitingTime(SUMOTime now) const;
 
         void setVehicle(SUMOVehicle* v) {
             myVehicle = v;
@@ -458,6 +459,8 @@ public:
 
         SUMOReal getAngle(SUMOTime now) const;
 
+        SUMOTime getWaitingTime(SUMOTime now) const;
+
         std::string getStageTypeName() const {
             return "waiting (" + myActType + ")";
         }
@@ -497,6 +500,9 @@ public:
 
         /// the time until the person is waiting
         SUMOTime myWaitingUntil;
+
+        /// the time the person is waiting
+        SUMOTime myWaitingStart;
 
         /// @brief The type of activity
         std::string myActType;
@@ -625,8 +631,8 @@ public:
 
 
     /// @brief the time this person spent waiting for a vehicle
-    SUMOTime timeWaiting4Vehicle(SUMOTime now) const {
-        return (*myStep)->timeWaiting4Vehicle(now);
+    SUMOTime getWaitingTime(SUMOTime now) const {
+        return (*myStep)->getWaitingTime(now);
     }
 
     const SUMOVehicleParameter& getParameter() const {

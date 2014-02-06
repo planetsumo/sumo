@@ -233,7 +233,10 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::GREEN, (SUMOReal)(3)); // waiting for ride
     personColorer.addScheme(scheme);
     scheme = GUIColorScheme("by waiting time", RGBColor::BLUE);
-    scheme.addColor(RGBColor::RED, (SUMOReal)(5 * 60));
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)30);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)100);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)200);
+    scheme.addColor(RGBColor::RED, (SUMOReal)300);
     personColorer.addScheme(scheme);
     scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
