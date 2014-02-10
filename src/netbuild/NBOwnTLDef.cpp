@@ -33,6 +33,7 @@
 
 #include <vector>
 #include <cassert>
+#include <iterator>
 #include "NBTrafficLightDefinition.h"
 #include "NBNode.h"
 #include "NBOwnTLDef.h"
@@ -230,7 +231,7 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
     std::vector<NBNode::Crossing> crossings;
     for (std::vector<NBNode*>::iterator i = myControlledNodes.begin(); i != myControlledNodes.end(); i++) {
         const std::vector<NBNode::Crossing>& c = (*i)->getCrossings();
-        copy(c.begin(), c.end(), back_inserter(crossings));
+        copy(c.begin(), c.end(), std::back_inserter(crossings));
     }
     noLinksAll += crossings.size();
 
@@ -325,7 +326,7 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
         logic->addStep(greenTime, state);
 
         // pedestrians have 'r' from here on
-        for (int i1 = pos; i1 < pos + crossings.size(); ++i1) {
+        for (unsigned int i1 = pos; i1 < pos + crossings.size(); ++i1) {
             state[i1] = 'r';
         }
 
