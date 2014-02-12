@@ -189,6 +189,13 @@ GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
             break;
     }
     glPopMatrix();
+
+    // DEBUG
+    //glPushMatrix();
+    //glTranslated(0, 0, getType());
+    //GLHelper::drawBoxLines(dynamic_cast<MSPersonStage_Walking*>(getCurrentStage())->myWalkingAreaShape, 0.05);
+    //glPopMatrix();
+
     drawName(p1, s.scale, s.personName);
     glPopName();
 }

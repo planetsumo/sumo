@@ -334,17 +334,21 @@ MSPModel::getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int
         PositionVector result;
         const MSEdge* nextRouteEdge = ped.myStage->getNextEdge();
         const MSLane* nextRouteLane = getSidewalk(nextRouteEdge);
-        result.push_back(ped.myDir == FORWARD ? from->getShape().back() : from->getShape().front());
-        PositionVector fromShp = from->getShape();
-        fromShp.extrapolate(walkingArea->getWidth() / 2);
-        result.push_back(ped.myDir == FORWARD ? fromShp.back() : fromShp.front());
         MSLink* linkDummy;
         int nextDir;
         const MSLane* nextLane = getNextLane(walkingArea, ped, linkDummy, nextDir);
+        Position fromPos = ped.myDir == FORWARD ? from->getShape().back() : from->getShape().front();
+        Position toPos = nextDir == FORWARD ? nextLane->getShape().front() : nextLane->getShape().back();
+        const SUMOReal maxExtent = fromPos.distanceTo2D(toPos) / 4; // prevent sharp corners
+        // assemble shape
+        result.push_back(fromPos);
+        PositionVector fromShp = from->getShape();
+        fromShp.extrapolate(MIN2(maxExtent, walkingArea->getWidth() / 2));
+        result.push_back(ped.myDir == FORWARD ? fromShp.back() : fromShp.front());
         PositionVector nextShp = nextLane->getShape();
-        nextShp.extrapolate(walkingArea->getWidth() / 2);
+        nextShp.extrapolate(MIN2(maxExtent, walkingArea->getWidth() / 2));
         result.push_back(nextDir == FORWARD ? nextShp.front() : nextShp.back());
-        result.push_back(nextDir == FORWARD ? nextLane->getShape().front() : nextLane->getShape().back());
+        result.push_back(toPos);
         return (walkingAreaDir == FORWARD ? result : result.reverse());
     } else {
         return PositionVector();

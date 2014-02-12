@@ -189,6 +189,7 @@ public:
      */
     class MSPersonStage_Walking : public MSPersonStage {
         friend class MSPModel;
+        friend class GUIPerson; // debugging
 
     public:
         /// constructor
