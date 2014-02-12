@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Feb  5 11:23:23 2014 by SUMO sumo Version dev-SVN-r15541
+<!-- generated on Wed Feb 12 08:28:55 2014 by SUMO sumo Version dev-SVN-r15563
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -110,22 +110,22 @@
     </timestep>
     <timestep time="25.00">
         <edge id=":C_32">
-            <person id="p0" pos="4.54" angle="0.00" stage="walking"/>
+            <person id="p0" pos="4.02" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="26.00">
         <edge id=":C_32">
-            <person id="p0" pos="3.15" angle="0.00" stage="walking"/>
+            <person id="p0" pos="2.63" angle="20.19" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="27.00">
         <edge id=":C_32">
-            <person id="p0" pos="1.76" angle="0.00" stage="walking"/>
+            <person id="p0" pos="1.24" angle="20.19" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="28.00">
         <edge id=":C_32">
-            <person id="p0" pos="0.37" angle="0.00" stage="walking"/>
+            <person id="p0" pos="0.10" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="29.00">
@@ -225,82 +225,82 @@
     </timestep>
     <timestep time="48.00">
         <edge id=":C_33">
-            <person id="p0" pos="3.14" angle="0.00" stage="walking"/>
+            <person id="p0" pos="2.62" angle="339.81" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="49.00">
         <edge id=":C_33">
-            <person id="p0" pos="1.75" angle="0.00" stage="walking"/>
+            <person id="p0" pos="1.23" angle="339.81" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="50.00">
-        <edge id=":C_33">
-            <person id="p0" pos="0.36" angle="0.00" stage="walking"/>
+        <edge id="SC">
+            <person id="p0" pos="84.50" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="51.00">
         <edge id="SC">
-            <person id="p0" pos="83.63" angle="0.00" stage="walking"/>
+            <person id="p0" pos="83.11" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="52.00">
         <edge id="SC">
-            <person id="p0" pos="82.25" angle="0.00" stage="walking"/>
+            <person id="p0" pos="81.72" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="53.00">
         <edge id="SC">
-            <person id="p0" pos="80.86" angle="0.00" stage="walking"/>
+            <person id="p0" pos="80.33" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="54.00">
         <edge id="SC">
-            <person id="p0" pos="79.47" angle="0.00" stage="walking"/>
+            <person id="p0" pos="78.95" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="55.00">
         <edge id="SC">
-            <person id="p0" pos="78.08" angle="0.00" stage="walking"/>
+            <person id="p0" pos="77.56" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="56.00">
         <edge id="SC">
-            <person id="p0" pos="76.69" angle="0.00" stage="walking"/>
+            <person id="p0" pos="76.17" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="57.00">
         <edge id="SC">
-            <person id="p0" pos="75.30" angle="0.00" stage="walking"/>
+            <person id="p0" pos="74.78" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="58.00">
         <edge id="SC">
-            <person id="p0" pos="73.91" angle="0.00" stage="walking"/>
+            <person id="p0" pos="73.39" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="59.00">
         <edge id="SC">
-            <person id="p0" pos="72.52" angle="0.00" stage="walking"/>
+            <person id="p0" pos="72.00" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="60.00">
         <edge id="SC">
-            <person id="p0" pos="71.13" angle="0.00" stage="walking"/>
+            <person id="p0" pos="70.61" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="61.00">
         <edge id="SC">
-            <person id="p0" pos="69.75" angle="0.00" stage="walking"/>
+            <person id="p0" pos="69.22" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="62.00">
         <edge id="SC">
-            <person id="p0" pos="68.36" angle="0.00" stage="walking"/>
+            <person id="p0" pos="67.83" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="63.00">
         <edge id="SC">
-            <person id="p0" pos="66.97" angle="0.00" stage="walking"/>
+            <person id="p0" pos="66.45" angle="0.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="64.00"/>
