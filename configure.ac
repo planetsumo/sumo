@@ -473,6 +473,7 @@ src/router/Makefile
 src/dfrouter/Makefile
 src/duarouter/Makefile
 src/jtrrouter/Makefile
+src/tools/Makefile
 src/traci_testclient/Makefile
 src/traci-server/Makefile
 src/utils/Makefile
