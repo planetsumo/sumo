@@ -221,8 +221,6 @@ protected:
 
     static ActiveLanes myActiveLanes;
     static Pedestrians noPedestrians;
-
-    static const SUMOReal DEFAULT_SIDEWALK_WIDTH;
 };
 
 
