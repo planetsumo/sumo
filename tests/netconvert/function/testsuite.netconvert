@@ -36,6 +36,9 @@ no_left
 # test option --geometry.max-segment-length
 max_segment_length
 
+# test building of pedestrian crossings
+crossings
+
 # tests whether removing self-loop edges works
 self_loop_edges
 
