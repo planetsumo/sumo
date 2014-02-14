@@ -167,9 +167,14 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.doRegister("check-lane-foes.roundabout", new Option_Bool(true));
     oc.addDescription("check-lane-foes.roundabout", "Processing",
                       "Allow driving onto a multi-lane road if there are foes on other lanes (at roundabouts)");
+
     oc.doRegister("check-lane-foes.all", new Option_Bool(false));
     oc.addDescription("check-lane-foes.all", "Processing",
                       "Allow driving onto a multi-lane road if there are foes on other lanes (everywhere)");
+
+    oc.doRegister("crossings.guess", new Option_Bool(false));
+    oc.addDescription("crossings.guess", "Processing",
+                      "Guess pedestrian crossings based on the presence of sidewalks");
 
     // tls setting options
     // explicit tls

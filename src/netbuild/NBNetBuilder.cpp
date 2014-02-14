@@ -256,6 +256,14 @@ NBNetBuilder::compute(OptionsCont& oc,
     NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"));
     PROGRESS_DONE_MESSAGE();
     //
+    if (oc.getBool("crossings.guess")) {
+        int crossings = 0;
+        for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
+            crossings += (*i).second->guessCrossings();
+        }
+        WRITE_MESSAGE("Guessed " + toString(crossings) + " pedestrian crossings.");
+    }
+    //
     PROGRESS_BEGIN_MESSAGE("Computing node types");
     NBNodeTypeComputer::computeNodeTypes(myNodeCont);
     PROGRESS_DONE_MESSAGE();

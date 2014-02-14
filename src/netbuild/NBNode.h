@@ -165,6 +165,13 @@ public:
         std::string prevSidewalk;
     };
 
+    /// @brief edge directions (for pedestrian related stuff)
+    static const int FORWARD;
+    static const int BACKWARD;
+    /// @brief default width of pedetrian crossings
+    static const SUMOReal DEFAULT_CROSSING_WIDTH;
+
+
 public:
     /// @brief maximum number of connections allowed
     static const int MAX_CONNECTIONS;
@@ -483,6 +490,13 @@ public:
         Connections are remapped, too */
     void replaceOutgoing(const EdgeVector& which, NBEdge* by);
 
+    /// @brief guess pedestrian crossings and return how many were guessed
+    int guessCrossings();
+
+    /// @brief check whether a crossing should be build for the candiate edges
+    int checkCrossing(EdgeVector candidates);
+
+    /// @brief build internal lanes, pedestrian crossings and walking areas
     void buildInnerEdges();
 
     const NBConnectionProhibits& getProhibitions() {

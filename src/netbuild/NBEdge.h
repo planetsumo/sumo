@@ -489,6 +489,7 @@ public:
     //@}
 
     /// @brief return the first lane with permissions other than SVC_PEDESTRIAN
+    int getFirstNonPedestrianLaneIndex(int direction) const;
     NBEdge::Lane getFirstNonPedestrianLane(int direction);
 
 

@@ -1433,7 +1433,7 @@ NBEdge::recheckLanes() {
         // This check is only done for edges which connections were assigned
         //  using the standard algorithm.
         for (unsigned int i = 0; i < myLanes.size(); i++) {
-            if (connNumbersPerLane[i] == 0) {
+            if (connNumbersPerLane[i] == 0 && !isForbidden(getPermissions((int)i))) {
                 if (i > 0 && connNumbersPerLane[i - 1] > 1) {
                     moveConnectionToLeft(i - 1);
                 } else if (i < myLanes.size() - 1 && connNumbersPerLane[i + 1] > 1) {
@@ -1522,6 +1522,7 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
                 // do not create normal connections from pedestrian lanes if there is a crossing at this node
                 // also, do not create connections from forbidden lanes
                 // XXX these lanes should be filtered completely from the above computation
+                //std::cout << "no connection from " << getID() << " laneIndex=" << (*j) << "\n";
                 continue;
             }
             if (myAmLeftHand) {
@@ -2127,18 +2128,26 @@ NBEdge::dismissVehicleClassInformation() {
     }
 }
 
+int
+NBEdge::getFirstNonPedestrianLaneIndex(int direction) const {
+    assert(direction == NBNode::FORWARD || direction == NBNode::BACKWARD);
+    const int start = (direction == NBNode::FORWARD ? 0 : (int)myLanes.size() - 1);
+    const int end = (direction == NBNode::FORWARD ? (int)myLanes.size() : - 1);
+    for (int i = start; i != end; i += direction) {
+        if ((myLanes[i].permissions & SVC_PEDESTRIAN) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 NBEdge::Lane 
 NBEdge::getFirstNonPedestrianLane(int direction) {
-    assert(direction == 1 || direction == -1);
-    const int start = (direction == 1 ? 0 : (int)myLanes.size() - 1);
-    const int end = (direction == 1 ? (int)myLanes.size() : - 1);
-    for (int i = start; i != end; i += direction) {
-        if ((myLanes[i].permissions & SVC_PEDESTRIAN) == 0) {
-            return myLanes[i];
-        }
+    int index = getFirstNonPedestrianLaneIndex(direction);
+    if (index < 0) {
+        throw ProcessError("Edge " + getID() + " is only for pedestrians");
     }
-    throw ProcessError("Edge " + getID() + " is only for pedestrians");
+    return myLanes[index];
 }
 
 /****************************************************************************/

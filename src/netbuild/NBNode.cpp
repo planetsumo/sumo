@@ -74,6 +74,9 @@
 // static members
 // ===========================================================================
 const int NBNode::MAX_CONNECTIONS(64);
+const int NBNode::FORWARD(1);
+const int NBNode::BACKWARD(-1);
+const SUMOReal NBNode::DEFAULT_CROSSING_WIDTH(4);
 
 // ===========================================================================
 // method definitions
@@ -110,6 +113,7 @@ NBNode::ApproachingDivider::execute(const unsigned int src, const unsigned int d
         unsigned int approached = (*approachedLanes)[i];
         assert(approachedLanes->size() > i);
         assert(approachingLanes.size() > i);
+        //std::cout << "setting connection from " << incomingEdge->getID() << "_" << approachingLanes[i] << " to " << myCurrentOutgoing->getID() << "_" << approached << "\n";
         incomingEdge->setConnection((unsigned int) approachingLanes[i], myCurrentOutgoing,
                                     approached, NBEdge::L2L_COMPUTED);
     }
@@ -725,6 +729,15 @@ NBNode::computeLanes2Lanes() {
             (*i)->markAsInLane2LaneState();
         }
     }
+
+    // DEBUG
+    //std::cout << "connections at " << getID() << "\n";
+    //for (i = myIncomingEdges.rbegin(); i != myIncomingEdges.rend(); i++) {
+    //    const std::vector<NBEdge::Connection>& elv = (*i)->getConnections();
+    //    for (std::vector<NBEdge::Connection>::const_iterator k = elv.begin(); k != elv.end(); ++k) {
+    //        std::cout << "  " << (*i)->getID() << "_" << (*k).fromLane << " -> " << (*k).toEdge->getID() << "_" << (*k).toLane << "\n";
+    //    }
+    //}
 }
 
 
@@ -1382,6 +1395,67 @@ NBNode::isDistrict() const {
 }
 
 
+int
+NBNode::guessCrossings() {
+    int numGuessed = 0;
+    if (myCrossings.size() > 0) {
+        // user supplied crossings, do not guess
+        return numGuessed;
+    }
+    std::cout << "guess crossings for " << getID() << "\n";
+    const SUMOReal JOINED_CROSSING_THRESHOLD = 5.0;
+    EdgeVector joinedEdges;
+    SUMOReal prevAngle = -360;
+    // collect edges going in the same direction (clockwise)
+    for (size_t i = 0; i < myAllEdges.size(); ++i) {
+        NBEdge* edge = myAllEdges[i];
+        SUMOReal angle = edge->getAngleAtNode(this) + (edge->getFromNode() == this ? 180.0 : 0.0);
+        if (angle < 0) {
+            angle += 360.0;
+        }
+        if (angle >= 360) {
+            angle -= 360.0;
+        }
+        std::cout << edge->getID() << " angle=" << edge->getAngleAtNode(this) << " convAngle=" << angle << "\n";
+        assert(angle >= prevAngle);
+        if (angle - prevAngle > JOINED_CROSSING_THRESHOLD) {
+            numGuessed += checkCrossing(joinedEdges);
+            joinedEdges.clear();
+        }
+        // skip edges which are only for pedestrians
+        std::cout << "getFirstNonPedestrianLane=" << edge->getFirstNonPedestrianLaneIndex(FORWARD) << "\n";
+        if (edge->getFirstNonPedestrianLaneIndex(FORWARD) >= 0) {
+            joinedEdges.push_back(edge);
+        }
+        prevAngle = angle;
+    }
+    numGuessed += checkCrossing(joinedEdges);
+    return numGuessed;
+}
+
+
+int
+NBNode::checkCrossing(EdgeVector candidates) {
+    // build a crossing if there are sidwalks on both sides of candidates (counterclockwise)
+    // erase edges which cannot be a crossing destination
+    while (candidates.size() > 0 && ((*candidates.begin())->getPermissions() & SVC_PEDESTRIAN) == 0) {
+        candidates.erase(candidates.begin());
+    }
+    // erase edges which cannot be a crossing origin
+    while (candidates.size() > 0 && ((*(candidates.end() - 1))->getPermissions() & SVC_PEDESTRIAN) == 0) {
+        candidates.erase(candidates.end() - 1);
+    }
+    if (candidates.size() > 0) {
+        addCrossing(candidates, DEFAULT_CROSSING_WIDTH, isTLControlled());
+        std::cout << "adding crossing: " << toString(candidates) << "\n";
+        return 1;
+    } else {
+        std::cout << "no crossing added\n";
+        return 0;
+    }
+}
+
+
 void
 NBNode::buildInnerEdges() {
     // build inner edges for vehicle movements across the junction
@@ -1406,15 +1480,15 @@ NBNode::buildInnerEdges() {
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
         (*it).id = ":" + getID() + "_" + toString(index++);
         if ((*it).edges.size() > 2) {
-            WRITE_ERROR("Crossings across more than 2 edges not yet implemented");
+            WRITE_ERROR("Crossings across more than 2 edges not yet implemented (" + toString((*it).edges) + ")");
             continue;
         }
         // compute shape
         EdgeVector& edges = (*it).edges;
         (*it).shape.clear();
         std::sort(edges.begin(), edges.end(), edge_by_direction_sorter(this));
-        const int begDir = (edges.front()->getFromNode() == this ? 1 : -1);
-        const int endDir = (edges.back()->getToNode() == this ? 1 : -1);
+        const int begDir = (edges.front()->getFromNode() == this ? FORWARD : BACKWARD);
+        const int endDir = (edges.back()->getToNode() == this ? FORWARD : BACKWARD);
         NBEdge::Lane crossingBeg = edges.front()->getFirstNonPedestrianLane(begDir);
         NBEdge::Lane crossingEnd = edges.back()->getFirstNonPedestrianLane(endDir);
         crossingBeg.width = (crossingBeg.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingBeg.width);
@@ -1423,8 +1497,8 @@ NBNode::buildInnerEdges() {
         crossingEnd.shape.move2side(endDir * crossingBeg.width / 2);
         crossingBeg.shape.extrapolate((*it).width / 2);
         crossingEnd.shape.extrapolate((*it).width / 2);
-        (*it).shape.push_back(crossingBeg.shape[begDir == 1 ? 0 : -1]);
-        (*it).shape.push_back(crossingEnd.shape[endDir == 1 ? -1 : 0]);
+        (*it).shape.push_back(crossingBeg.shape[begDir == FORWARD ? 0 : -1]);
+        (*it).shape.push_back(crossingEnd.shape[endDir == FORWARD ? -1 : 0]);
     }
     // build walkingAreas for pedestrians
     myWalkingAreas.clear();
