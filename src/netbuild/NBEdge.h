@@ -1137,9 +1137,9 @@ private:
     /** divides the lanes on the outgoing edges */
     void divideOnEdges(const EdgeVector* outgoing);
 
-    /** recomputes the priorities and manipulates them for a distribution
+    /** recomputes the edge priorities and manipulates them for a distribution
         of lanes on edges which is more like in real-life */
-    std::vector<unsigned int>* preparePriorities(
+    std::vector<unsigned int>* prepareEdgePriorities(
         const EdgeVector* outgoing);
 
     /** computes the sum of the given list's entries (sic!) */

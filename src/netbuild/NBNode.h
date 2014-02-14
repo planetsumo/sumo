@@ -98,6 +98,9 @@ public:
         /// @brief The approached current edge
         NBEdge* myCurrentOutgoing;
 
+        /// @brief The available lanes to which connections shall be built
+        std::vector<unsigned int> myAvailableLanes;
+
     public:
         /** @brief Constructor
          * @param[in] approaching The list of the edges that approach the outgoing edge
@@ -108,6 +111,10 @@ public:
 
         /// @brief Destructor
         ~ApproachingDivider();
+
+        unsigned int numAvailablesLanes() const {
+            return myAvailableLanes.size();
+        }
 
         /** the bresenham-callback */
         void execute(const unsigned int src, const unsigned int dest);
@@ -513,8 +520,11 @@ public:
     /// @brief add a pedestrian crossing to this node
     void addCrossing(EdgeVector edges, SUMOReal width, bool priority);
 
-    /// @brief return whether this node has any pedestrian crossings
-    bool hasCrossingAtIncoming(NBEdge* edge);
+    /// @brief return whether the given edge has a WalkingArea where it enters this node
+    bool hasWalkingAreaAtIncoming(NBEdge* edge);
+
+    /// @brief return whether the given edge has a WalkingArea where it leaves this node
+    bool hasWalkingAreaAtOutgoing(NBEdge* edge);
 
     /// @brief return this junctions pedestrian crossings
     inline const std::vector<Crossing>& getCrossings() const {

@@ -1457,12 +1457,21 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
         myConnections.clear();
         return;
     }
-    // precompute priorities; needed as some kind of assumptions for
+    // precompute edge priorities; needed as some kind of assumptions for
     //  priorities of directions (see preparePriorities)
-    std::vector<unsigned int>* priorities = preparePriorities(outgoing);
-
+    std::vector<unsigned int>* priorities = prepareEdgePriorities(outgoing);
     // compute the sum of priorities (needed for normalisation)
     unsigned int prioSum = computePrioritySum(priorities);
+    // compute the indices of lanes that should have connections (excluding
+    // pedestrian lanes that will be connected via walkingAreas and forbidden lanes)
+    std::vector<int> availableLanes;
+    for (int i = 0; i < (int)myLanes.size(); ++i) {
+        if ((getPermissions(i) == SVC_PEDESTRIAN && myTo->hasWalkingAreaAtIncoming(this))
+                || isForbidden(getPermissions(i))) {
+            continue;
+        }
+        availableLanes.push_back(i);
+    }
     // compute the resulting number of lanes that should be used to
     //  reach the following edge
     unsigned int size = (unsigned int) outgoing->size();
@@ -1476,10 +1485,10 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
         //  current outgoing edge
         SUMOReal res =
             (SUMOReal)(*priorities)[i] *
-            (SUMOReal) myLanes.size() / (SUMOReal) prioSum;
+            (SUMOReal) availableLanes.size() / (SUMOReal) prioSum;
         // do not let this number be greater than the number of available lanes
-        if (res > myLanes.size()) {
-            res = (SUMOReal) myLanes.size();
+        if (res > availableLanes.size()) {
+            res = (SUMOReal) availableLanes.size();
         }
         // add it to the list
         resultingLanes.push_back(res);
@@ -1507,28 +1516,20 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
             transition.push_back((*outgoing)[i]);
         }
     }
-
     // assign lanes to edges
     //  (conversion from virtual to real edges is done)
     ToEdgeConnectionsAdder adder(transition);
-    Bresenham::compute(&adder, static_cast<unsigned int>(myLanes.size()), noVirtual);
+    Bresenham::compute(&adder, static_cast<unsigned int>(availableLanes.size()), noVirtual);
     const std::map<NBEdge*, std::vector<unsigned int> >& l2eConns = adder.getBuiltConnections();
     myConnections.clear();
     for (std::map<NBEdge*, std::vector<unsigned int> >::const_iterator i = l2eConns.begin(); i != l2eConns.end(); ++i) {
         const std::vector<unsigned int> lanes = (*i).second;
         for (std::vector<unsigned int>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-            if ((getPermissions(*j) == SVC_PEDESTRIAN && myTo->hasCrossingAtIncoming(this))
-                    || isForbidden(getPermissions(*j))) {
-                // do not create normal connections from pedestrian lanes if there is a crossing at this node
-                // also, do not create connections from forbidden lanes
-                // XXX these lanes should be filtered completely from the above computation
-                //std::cout << "no connection from " << getID() << " laneIndex=" << (*j) << "\n";
-                continue;
-            }
+            const int fromIndex = availableLanes[*j];  
             if (myAmLeftHand) {
-                myConnections.push_back(Connection(int(myLanes.size() - 1 - *j), (*i).first, -1));
+                myConnections.push_back(Connection(int(myLanes.size() - 1 - fromIndex), (*i).first, -1));
             } else {
-                myConnections.push_back(Connection(int(*j), (*i).first, -1));
+                myConnections.push_back(Connection(fromIndex, (*i).first, -1));
             }
         }
     }
@@ -1537,7 +1538,7 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
 
 
 std::vector<unsigned int>*
-NBEdge::preparePriorities(const EdgeVector* outgoing) {
+NBEdge::prepareEdgePriorities(const EdgeVector* outgoing) {
     // copy the priorities first
     std::vector<unsigned int>* priorities = new std::vector<unsigned int>();
     if (outgoing->size() == 0) {

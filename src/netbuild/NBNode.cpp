@@ -89,6 +89,15 @@ NBNode::ApproachingDivider::ApproachingDivider(
     myApproaching(approaching), myCurrentOutgoing(currentOutgoing) {
     // check whether origin lanes have been given
     assert(myApproaching != 0);
+    // compute the indices of lanes that should be targeted (excluding pedestrian 
+    // lanes that will be connected from walkingAreas and forbidden lanes)
+    for (int i = 0; i < (int)currentOutgoing->getNumLanes(); ++i) {
+        if ((currentOutgoing->getPermissions(i) == SVC_PEDESTRIAN && currentOutgoing->getFromNode()->hasWalkingAreaAtOutgoing(currentOutgoing))
+                || isForbidden(currentOutgoing->getPermissions(i))) {
+            continue;
+        }
+        myAvailableLanes.push_back((unsigned int)i);
+    }
 }
 
 
@@ -107,12 +116,12 @@ NBNode::ApproachingDivider::execute(const unsigned int src, const unsigned int d
         incomingEdge->getConnectionLanes(myCurrentOutgoing);
     assert(approachingLanes.size() != 0);
     std::deque<int>* approachedLanes = spread(approachingLanes, dest);
-    assert(approachedLanes->size() <= myCurrentOutgoing->getNumLanes());
+    assert(approachedLanes->size() <= myAvailableLanes->size());
     // set lanes
     for (unsigned int i = 0; i < approachedLanes->size(); i++) {
-        unsigned int approached = (*approachedLanes)[i];
         assert(approachedLanes->size() > i);
         assert(approachingLanes.size() > i);
+        unsigned int approached = myAvailableLanes[(*approachedLanes)[i]];
         //std::cout << "setting connection from " << incomingEdge->getID() << "_" << approachingLanes[i] << " to " << myCurrentOutgoing->getID() << "_" << approached << "\n";
         incomingEdge->setConnection((unsigned int) approachingLanes[i], myCurrentOutgoing,
                                     approached, NBEdge::L2L_COMPUTED);
@@ -133,7 +142,7 @@ NBNode::ApproachingDivider::spread(const std::vector<int>& approachingLanes,
         return ret;
     }
 
-    unsigned int noOutgoingLanes = myCurrentOutgoing->getNumLanes();
+    unsigned int noOutgoingLanes = myAvailableLanes.size();
     //
     ret->push_back(dest);
     unsigned int noSet = 1;
@@ -717,7 +726,7 @@ NBNode::computeLanes2Lanes() {
         if (approaching->size() != 0) {
             ApproachingDivider divider(approaching, currentOutgoing);
             Bresenham::compute(&divider, static_cast<unsigned int>(approaching->size()),
-                               currentOutgoing->getNumLanes());
+                               divider.numAvailablesLanes());
         }
         delete approaching;
     }
@@ -1402,7 +1411,7 @@ NBNode::guessCrossings() {
         // user supplied crossings, do not guess
         return numGuessed;
     }
-    std::cout << "guess crossings for " << getID() << "\n";
+    //std::cout << "guess crossings for " << getID() << "\n";
     const SUMOReal JOINED_CROSSING_THRESHOLD = 5.0;
     EdgeVector joinedEdges;
     SUMOReal prevAngle = -360;
@@ -1416,14 +1425,14 @@ NBNode::guessCrossings() {
         if (angle >= 360) {
             angle -= 360.0;
         }
-        std::cout << edge->getID() << " angle=" << edge->getAngleAtNode(this) << " convAngle=" << angle << "\n";
+        //std::cout << edge->getID() << " angle=" << edge->getAngleAtNode(this) << " convAngle=" << angle << "\n";
         assert(angle >= prevAngle);
         if (angle - prevAngle > JOINED_CROSSING_THRESHOLD) {
             numGuessed += checkCrossing(joinedEdges);
             joinedEdges.clear();
         }
         // skip edges which are only for pedestrians
-        std::cout << "getFirstNonPedestrianLane=" << edge->getFirstNonPedestrianLaneIndex(FORWARD) << "\n";
+        //std::cout << "getFirstNonPedestrianLane=" << edge->getFirstNonPedestrianLaneIndex(FORWARD) << "\n";
         if (edge->getFirstNonPedestrianLaneIndex(FORWARD) >= 0) {
             joinedEdges.push_back(edge);
         }
@@ -1447,10 +1456,10 @@ NBNode::checkCrossing(EdgeVector candidates) {
     }
     if (candidates.size() > 0) {
         addCrossing(candidates, DEFAULT_CROSSING_WIDTH, isTLControlled());
-        std::cout << "adding crossing: " << toString(candidates) << "\n";
+        //std::cout << "adding crossing: " << toString(candidates) << "\n";
         return 1;
     } else {
-        std::cout << "no crossing added\n";
+        //std::cout << "no crossing added\n";
         return 0;
     }
 }
@@ -1611,8 +1620,19 @@ NBNode::addCrossing(EdgeVector edges, SUMOReal width, bool priority) {
 
 
 bool 
-NBNode::hasCrossingAtIncoming(NBEdge* edge) {
+NBNode::hasWalkingAreaAtIncoming(NBEdge* edge) {
     // XXX fix this
+    // either there is a crossing for this edge or there is a crossing over the
+    // next counter-clockwise non-pedestrian edge
+    return myCrossings.size() > 0;
+}
+
+
+bool 
+NBNode::hasWalkingAreaAtOutgoing(NBEdge* edge) {
+    // XXX fix this
+    // either there is a crossing for this edge or there is a crossing over the
+    // next clockwise non-pedestrian edge
     return myCrossings.size() > 0;
 }
 
