@@ -114,7 +114,7 @@ MSSwarmTrafficLightLogic::Pheromone MSSwarmTrafficLightLogic::getPheromoneForOut
 
 
 string getPolicyName(MSSwarmTrafficLightLogic::Policy p) {
-	char* names[] = {"request", "phase", "platoon", "marching"};
+	const char* names[] = {"request", "phase", "platoon", "marching"};
 	return names[p];	
 }
 
