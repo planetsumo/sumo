@@ -81,6 +81,7 @@ fzp:test.fzp
 flt:test.flt
 str:test.str
 gpsdat:gpsdat.txt
+gpx:output.gpx
 match:match.txt
 image:image.png
 csv:out*.csv
@@ -98,6 +99,7 @@ errors:Leaked object at
 errors:*** 9 leaks found
 errors:delete: freed
 errors:Traceback{->}XMLSyntaxError
+errors:Traceback{->}IOError
 omnet:<!-- generated on
 shawn:<!-- generated on
 

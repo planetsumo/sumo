@@ -19,12 +19,13 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 
+from __future__ import print_function
 import os, sys, csv
 
 from collections import defaultdict
 from optparse import OptionParser
 
-import xsd
+import xsd, xml2csv
 
 def get_options():
     optParser = OptionParser(usage=os.path.basename(sys.argv[0])+" [<options>] <input_file_or_port>")
@@ -35,10 +36,15 @@ def get_options():
     optParser.add_option("-t", "--type", 
              help="convert the given csv-file into the specified format")
     optParser.add_option("-x", "--xsd", help="xsd schema to use")
+    optParser.add_option("-p", "--skip-root", action="store_true",
+                         default=False, help="the root element is not contained")
     optParser.add_option("-o", "--output", help="name for generic output file")
     options, args = optParser.parse_args()
     if len(args) != 1:
         optParser.print_help()
+        sys.exit()
+    if not options.xsd and not options.type:
+        print("either a schema or a type needs to be specified", file=sys.stderr)
         sys.exit()
     options.source = args[0]
     if not options.output:
@@ -60,13 +66,6 @@ def row2vehicle_and_route(row, tag):
             ' '.join(['%s="%s"' % (a, v) for a,v in row.items() if v != ""]),
             edges, tag))
 
-def getSocketStream(port):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(("localhost", port))
-    s.listen(1)
-    conn, addr = s.accept()
-    return conn.makefile()
-
 def write_xml(toptag, tag, options, printer=row2xml):
     with open(options.output, 'w') as outputf:
         outputf.write('<%s>\n' % toptag)
@@ -78,57 +77,64 @@ def write_xml(toptag, tag, options, printer=row2xml):
             outputf.write(printer(row, tag))
         outputf.write('</%s>\n' % toptag)
 
-def checkChanges(out, old, new, currEle, tagStack, depth=1):
+def checkAttributes(out, old, new, ele, tagStack, depth):
+    for attr in ele.attributes:
+        name = "%s_%s" % (ele.name, attr.name)
+        if new.get(name, "") != "":
+            if depth > 0:
+                out.write(">\n")
+            out.write(row2xml(new, ele.name, "", depth))
+            return True
+    return False
+
+def checkChanges(out, old, new, currEle, tagStack, depth):
+#    print(depth, len(tagStack), new)
     if depth >= len(tagStack):
         for ele in currEle.children:
-            found = False
-            for attr in ele.attributes:
-                name = "%s_%s" % (ele.name, attr.name)
-                if new.get(name, "") != "":
-                    found = True
-                    break
-            if found:
-                out.write(">\n")
-                out.write(row2xml(new, ele.name, "", depth))
+#            print(depth, "try", ele.name)
+            if ele.name not in tagStack and checkAttributes(out, old, new, ele, tagStack, depth):
+#                print(depth, "adding", ele.name, ele.children)
                 tagStack.append(ele.name)
-                break
+                if ele.children:
+                    checkChanges(out, old, new, ele, tagStack, depth+1)
     else:
         for ele in currEle.children:
+            if ele.name in tagStack and tagStack.index(ele.name) != depth:
+                continue
             changed = False
-            found = False
             for attr in ele.attributes:
                 name = "%s_%s" % (ele.name, attr.name)
-                if old.get(name, "") != new.get(name, ""):
+                if old.get(name, "") != new.get(name, "") and new.get(name, "") != "":
                     changed = True
-                    break
-                if new.get(name, "") != "":
-                    found = True
+#            print(depth, "seeing", ele.name, changed, tagStack)
             if changed:
                 out.write("/>\n")
-                tagStack = tagStack[:-1]
+                del tagStack[-1]
                 while len(tagStack) > depth:
                     out.write("%s</%s>\n" % ((len(tagStack)-1) * '    ', tagStack[-1]))
-                    tagStack = tagStack[:-1]
+                    del tagStack[-1]
                 out.write(row2xml(new, ele.name, "", depth))
                 tagStack.append(ele.name)
-                break
-            if found:
-                break
-    if ele.children:
-        checkChanges(out, old, new, ele, tagStack, depth+1)
+            if ele.children:
+                checkChanges(out, old, new, ele, tagStack, depth+1)
 
 
 def writeHierarchicalXml(struct, options):
-    with open(options.output, 'w') as outputf:
-        outputf.write('<%s' % struct.root.name)
-        if (options.source.isdigit()):
-            inputf = getSocketStream(int(options.source))
+    with xml2csv.getOutStream(options.output) as outputf:
+        if options.source.isdigit():
+            inputf = xml2csv.getSocketStream(int(options.source))
         else:
             inputf = open(options.source)
         lastRow = {}
         tagStack = [struct.root.name]
+        if options.skip_root:
+            outputf.write('<%s' % struct.root.name)
+        first = True
         for row in csv.DictReader(inputf, delimiter=options.delimiter):
-            checkChanges(outputf, lastRow, row, struct.root, tagStack)
+            if first and not options.skip_root:
+                checkAttributes(outputf, lastRow, row, struct.root, tagStack, 0)
+                first = False
+            checkChanges(outputf, lastRow, row, struct.root, tagStack, 1)
             lastRow = row
         outputf.write("/>\n")
         for tag in reversed(tagStack[:-1]):

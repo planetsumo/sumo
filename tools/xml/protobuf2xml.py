@@ -18,6 +18,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 
+from __future__ import print_function
 import os, sys, struct
 
 from optparse import OptionParser
@@ -34,6 +35,9 @@ def get_options():
     if len(args) != 1:
         optParser.print_help()
         sys.exit()
+    if not options.xsd:
+        print("a schema is mandatory", file=sys.stderr)
+        sys.exit()
     options.source = args[0]
     if not options.output:
         options.output = os.path.splitext(options.source)[0] + ".xml"
@@ -41,7 +45,7 @@ def get_options():
 
 def read_n(inputf, n):
     """ Read exactly n bytes from the input.
-        Raise RuntimeError if the stream andedbefore
+        Raise RuntimeError if the stream ended before
         n bytes were read.
     """
     buf = ''
@@ -70,7 +74,7 @@ def msg2xml(desc, cont, out, depth=1):
         out.write("/")
 
 def writeXml(root, module, options):
-    with open(options.output, 'w') as outputf:
+    with xml2csv.getOutStream(options.output) as outputf:
         outputf.write('<%s' % root)
         if (options.source.isdigit()):
             inputf = xml2csv.getSocketStream(int(options.source))
