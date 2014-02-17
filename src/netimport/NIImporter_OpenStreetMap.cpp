@@ -472,13 +472,13 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
             numLanesForward = MAX2(1, numLanesForward);
             numLanesBackward = MAX2(1, numLanesBackward);
         }
-        if (addSidewalk) {
-            numLanesForward += 1;
-            numLanesBackward += 1;
-        }
     } else if (e->myNoLanes == 0) {
         WRITE_WARNING("Skipping edge '" + id + "' because it has zero lanes.");
         ok = false;
+    }
+    if (addSidewalk) {
+        numLanesForward += 1;
+        numLanesBackward += 1;
     }
     // if we had been able to extract the maximum speed, override the type's default
     if (e->myMaxSpeed != MAXSPEED_UNGIVEN) {
