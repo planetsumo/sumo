@@ -19,7 +19,7 @@ the Free Software Foundation; either version 3 of the License, or
 """
 
 from __future__ import print_function
-import os, sys, struct
+import os, sys, struct, contextlib
 
 from optparse import OptionParser
 import google.protobuf.descriptor
@@ -60,6 +60,7 @@ def read_n(inputf, n):
 def msg2xml(desc, cont, out, depth=1):
     out.write(">\n%s<%s" % (depth*'    ', desc.name))
     haveChildren = False
+    print(depth, cont)
     for attr, value in cont.ListFields():
         if attr.type == google.protobuf.descriptor.FieldDescriptor.TYPE_MESSAGE:
             if attr.label == google.protobuf.descriptor.FieldDescriptor.LABEL_REPEATED:
@@ -74,20 +75,27 @@ def msg2xml(desc, cont, out, depth=1):
         out.write("/")
 
 def writeXml(root, module, options):
-    with xml2csv.getOutStream(options.output) as outputf:
+    with contextlib.closing(xml2csv.getOutStream(options.output)) as outputf:
         outputf.write('<%s' % root)
         if (options.source.isdigit()):
             inputf = xml2csv.getSocketStream(int(options.source))
         else:
             inputf = open(options.source, 'rb')
+        first = True
         while True:
             length = struct.unpack('>L', read_n(inputf, 4))[0]
             if length == 0:
                 break
             obj = vars(module)[root.capitalize()]()
             obj.ParseFromString(read_n(inputf, length))
-            for desc, cont in obj.ListFields():
-                msg2xml(desc, cont, outputf)
+            for attr, value in obj.ListFields():
+                if attr.type == google.protobuf.descriptor.FieldDescriptor.TYPE_MESSAGE:
+                    if attr.label == google.protobuf.descriptor.FieldDescriptor.LABEL_REPEATED:
+                        for item in value:
+                            msg2xml(attr, item, outputf)
+                elif first:
+                    outputf.write(' %s="%s"' % (attr.name, value))
+            first = False
         inputf.close()
         outputf.write(">\n</%s>\n" % root)
 
@@ -95,10 +103,11 @@ def writeXml(root, module, options):
 def main():
     options = get_options()
     # get attributes
-    attrFinder = xml2csv.AttrFinder(options.xsd, options.source)
-    base = os.path.basename(options.source).split('.')[0]
+    attrFinder = xml2csv.AttrFinder(options.xsd, options.source, False)
+    base = os.path.basename(options.xsd).split('.')[0]
     # generate proto format description
-    module = xml2protobuf.generateProto(attrFinder.xsdStruc.root.name, attrFinder.tagAttrs, attrFinder.depthTags, options.protodir, base)
+    module = xml2protobuf.generateProto(attrFinder.xsdStruc.root.name, attrFinder.tagAttrs, attrFinder.depthTags,
+                                        attrFinder.xsdStruc._namedEnumerations, options.protodir, base)
     writeXml(attrFinder.xsdStruc.root.name, module, options)
 
 
