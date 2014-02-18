@@ -33,6 +33,7 @@
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/StringBijection.h>
 #include "PHEMCEP.h"
+#include "PHEMConstants.h"
 
 
 // ===========================================================================
@@ -57,26 +58,59 @@ public:
      * @param[in] f3 Rolling resistance f3
      * @param[in] f4 Rolling resistance f4
      * @param[in] ratedPower rated power of vehicle
+	 * @param[in] pNormV0 out variable for step function to get maximum normalized rated power over speed
+	 * @param[in] pNormP0 out variable for step function to get maximum normalized rated power over speed
+	 * @param[in] pNormV1 out variable for step function to get maximum normalized rated power over speed
+	 * @param[in] pNormP1 out variable for step function to get maximum normalized rated power over speed
+	 * @param[in] vehicleFuelType out variable for fuel type (D, G) of vehicle, needed for density of fuel
+	 * @param[in] matrixFC Coefficients of the fuel consumption
      * @param[in] headerLine Definition of covered pollutants
-     * @param[in] matrix Coefficients of the pollutants
+     * @param[in] headerLinePollutants Coefficients of the pollutants
+	 * @param[in] matrixPollutants Coefficients of the pollutants
+	 * @param[in] matrixSpeedRotational Table for rotational coefficients over speed
      */
-	PHEMCEP(SUMOEmissionClass emissionClass,
+	PHEMCEP(bool heavyVehicel,SUMOEmissionClass emissionClass,
 		     double vehicleMass, double vehicleLoading, double vehicleMassRot, 
              double crossArea, double cWValue,
 		     double f0, double f1, double f2, double f3, double f4,
-			 double ratedPower, const std::vector<std::string> &headerLine, 
-             const std::vector< std::vector<double> > &matrix);
+			 double ratedPower, double pNormV0, double pNormP0, double pNormV1,
+			 double pNormP1, std:: string vehicelFuelType,
+			 const std::vector< std::vector<double>> &matrixFC,
+			 const std::vector<std::string> &headerLinePollutants, 
+             const std::vector< std::vector<double>> &matrixPollutants,
+			 const std::vector< std::vector<double>> matrixSpeedRotational
+			 );
 
 
     /// @brief Destructor
 	~PHEMCEP();
 
+/** @brief Returns the power of used for a vehicle at state v,a, slope and loading
+     * @param[in] v The vehicle's average velocity
+     * @param[in] a The vehicle's average acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+	 * @param{in] vehicleCep vehicles CEP data
+     * @param{in] loading vehicle loading [kg]
+     * @return The power demand for desired state [kW]
+     */
+	double CalcPower(double v, double a, double slope) const;
 
+	 
+/**	 @brief Returns the maximum accelaration for a vehicle at state v,a, slope and loading
+     * @param[in] v The vehicle's average velocity
+     * @param[in] a The vehicle's average acceleration
+     * @param[in] slope The road's slope at vehicle's position [°]
+	 * @param{in] vehicleCep vehicles CEP data
+     * @param{in] loading vehicle loading [kg]
+     * @return The maximum accelaration for desired state [kW]
+     */
+	 double GetMaxAccel(double v, double a, double gradient) const;
+	
 	/** @brief Returns a emission measure for power[kW] level
 	 * @param[in] pollutantIdentifier Desired pollutant, e.g. NOx
 	 * @param[in] power in [kW]
      * @return emission in [g/h]
-     */
+     */	 
 	double GetEmission(const std::string &pollutantIdentifier, double power) const;
 
 
@@ -173,8 +207,13 @@ public:
 	double GetRatedPower() const {
         return _ratedPower;
     }
-
-
+	
+	/** @brief Getter function to recieve vehicle data from CEP
+     * @return fuel type of vehicle
+     */
+	std::string GetVehicleFuelType() const {
+        return _vehicleFuelType;
+    }
 
 private:
 	/** @brief Interpolates emission linearly between two known power-emission pairs
@@ -187,7 +226,24 @@ private:
      */
 	double Interpolate(double px, double p1, double p2, double e1, double e2) const;
 
-
+	/** @brief Finds bounding upper and lower index in pattern for value
+	 * @param[out] lowerIndex out variable for lower index
+	 * @param[out] upperIndex out variable for lower index
+	 * @param[in] pattern to search
+	 * @param[in] value to search
+     */
+	void PHEMCEP::FindLowerUpperInPattern(int &lowerIndex, int &upperIndex, std::vector<double> pattern, double value) const;
+	
+	/** @brief Calculates rotational index for speed
+	 * @param[in] speed desired speed
+     */
+	double PHEMCEP::GetRotationalCoeffecient(double speed) const;
+	
+	/** @brief Calculates maximum available rated power for speed
+	 * @param[in] speed desired speed
+     */
+	double PHEMCEP::GetPMaxNorm(double speed) const;
+	
 private:
     /// @brief PHEM emission class of vehicle
 	SUMOEmissionClass _emissionClass;
@@ -213,14 +269,32 @@ private:
 	double _massRot;
     /// @brief rated power of vehicle
 	double _ratedPower;
+	 /// @brief Step functions parameter for maximum rated power
+	double _pNormV0;
+	/// @brief Step functions parameter for maximum rated power
+	double _pNormP0;
+	 /// @brief Step functions parameter for maximum rated power
+	double _pNormV1;
+	 /// @brief Step functions parameter for maximum rated power
+	double _pNormP1;
+    /// @todo describe	
+	int _sizeOfPatternFC;
+	/// @todo describe	
+	int _sizeOfPatternPollutants;
+    /// @todo describe	
+	std::vector<double> _powerPatternFC;
+	/// @todo describe
+	std::vector<double> _powerPatternPollutants;
     /// @todo describe
-	int _sizeOfPattern;
-    /// @todo describe
-	int _numberPollutants;
-    /// @todo describe
-	std::vector<double> _powerPattern;
-    /// @todo describe
-	StringBijection<std::vector<double> > _cepCurves;
+	std::vector<double> _cepCurveFC;
+	/// @todo describe
+	StringBijection<std::vector<double>> _cepCurvePollutants;
+	/// @todo describe
+	std::vector<double> _speedPatternRotational;
+	/// @todo describe
+	std::vector<double> _speedCurveRotational;
+	/// @todo describe
+	std::string _vehicleFuelType;
 
 };
 

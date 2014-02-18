@@ -82,12 +82,20 @@ private:
 	 * @param[in] f3 out variable for rolling resistance coefficient f3
 	 * @param[in] f4 out variable for rolling resistance coefficient f4
 	 * @param[in] ratedPower out variable for rated power of vehicle
+	 * @param[in] vehicleMassType out variable for mass tyepe of vehicle, light (LV) or heavy (HV)
+	 * @param[in] vehicleFuelType out variable for fuel type (D, G) of vehicle, needed for density of fuel
+	 * @param[in] pNormV0 out variable for step function to get maximum normalized rated power over speed
+	 * @param[in] pNormP0 out variable for step function to get maximum normalized rated power over speed
+	 * @param[in] pNormV1 out variable for step function to get maximum normalized rated power over speed
+	 * @param[in] pNormP1 out variable for step function to get maximum normalized rated power over speed
+	 * @param[in] matrixRotFactor out variable for rotational factors over speed for more accurate power calculation
      * @return Indicator if reading was successul
      */
 	bool ReadVehicleFile(const std::string &path, const std::string &emissionClass,
         double &vehicleMass, double &vehicleLoading, double &vehicleMassRot,
         double &crossArea, double &cWValue,
-        double &f0, double &f1, double &f2, double &f3, double &f4, double &ratedPower);
+        double &f0, double &f1, double &f2, double &f3, double &f4, double &ratedPower, std::string &vehicleMassType, std::string &vehicleFuelType,
+		double &pNormV0, double &pNormP0, double &pNormV1, double &pNormP1, std::vector< std::vector<double> > &matrixRotFactor);
 
 
 	/** @brief Helper method to read a CEP file from file system
@@ -97,7 +105,7 @@ private:
 	 * @param[in] matrix matrix holding power pattern and CEP curves
      * @return Indicator if reading was successul
      */
-	bool ReadEmissionData(const std::string &path, const std::string &emissionClass, 
+	bool ReadEmissionData(bool readFC, const std::string &path, const std::string &emissionClass, 
         std::vector<std::string> &header, std::vector<std::vector<double> > &matrix);
 
 	

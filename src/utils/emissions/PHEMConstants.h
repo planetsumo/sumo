@@ -24,5 +24,7 @@
 const double GRAVITY_CONST = 9.81;
 const double AIR_DENSITY_CONST = 1.182;
 const double SECONDS_PER_HOUR = 3600;
+const double NORMALIZING_SPEED = 19.444;
+const double NORMALIZING_ACCELARATION = 0.45;
 
 #endif

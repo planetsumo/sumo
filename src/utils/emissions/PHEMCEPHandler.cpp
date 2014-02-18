@@ -66,8 +66,11 @@ PHEMCEPHandler::Load(SUMOEmissionClass emissionClass) {
 	std::string emissionClassIdentifier = SumoEmissionClassStrings.getString(emissionClass);
 
 	// to hold everything.
-	std::vector< std::vector<double> > matrix; 
-	std::vector<std::string> header;
+	std::vector< std::vector<double>> matrixSpeedInertiaTable;
+	std::vector< std::vector<double> > matrixFC;
+	std::vector< std::vector<double> > matrixPollutants; 
+	std::vector<std::string> headerFC;
+	std::vector<std::string> headerPollutants;
 
 	double vehicleMass;
 	double vehicleLoading;
@@ -80,20 +83,32 @@ PHEMCEPHandler::Load(SUMOEmissionClass emissionClass) {
 	double f3;
 	double f4;
 	double ratedPower;
+	std::string vehicleMassType;
+	std::string vehicleFuelType;
+	double pNormV0;
+	double pNormP0;
+	double pNormV1;
+	double pNormP1;
 
     OptionsCont &oc = OptionsCont::getOptions();
     std::string phemPath = oc.getString("phemlight-path") + "/";
-	if(!ReadVehicleFile(phemPath, emissionClassIdentifier, vehicleMass, vehicleLoading, vehicleMassRot, crosssectionalArea, cwValue, f0, f1, f2, f3, f4, ratedPower))
+	if(!ReadVehicleFile(phemPath, emissionClassIdentifier, vehicleMass, vehicleLoading, vehicleMassRot, crosssectionalArea, cwValue, f0, f1, f2, f3, f4, ratedPower, vehicleMassType, vehicleFuelType, 
+						pNormV0, pNormP0, pNormV1, pNormP1, matrixSpeedInertiaTable))
 		return false;
 
-	if(!ReadEmissionData(phemPath, emissionClassIdentifier, header, matrix))
+	if(!ReadEmissionData(true, phemPath, emissionClassIdentifier, headerFC, matrixFC))
 		return false;
 
-	_ceps[emissionClass] = new PHEMCEP(emissionClass, 
+	if(!ReadEmissionData(false, phemPath, emissionClassIdentifier, headerPollutants, matrixPollutants))
+		return false;
+
+	_ceps[emissionClass] = new PHEMCEP(vehicleMassType=="HV",
+		emissionClass, 
         vehicleMass, vehicleLoading, vehicleMassRot,
         crosssectionalArea, cwValue,
         f0, f1, f2, f3, f4,
-        ratedPower,  header, matrix);
+		ratedPower,pNormV0, pNormP0, pNormV1, pNormP1,
+		vehicleFuelType, matrixFC, headerPollutants, matrixPollutants, matrixSpeedInertiaTable);
 
 	return true;
 } // end of Load()
@@ -113,9 +128,10 @@ PHEMCEPHandler::GetCep(SUMOEmissionClass emissionClass) {
 
 bool 
 PHEMCEPHandler::ReadVehicleFile(const std::string &path, const std::string &emissionClass,
-                                double &vehicleMass, double &vehicleLoading, double &vehicleMassRot,
-                                double &crossArea, double &cWValue,
-                                double &f0, double &f1, double &f2, double &f3, double &f4, double &ratedPower) {
+        double &vehicleMass, double &vehicleLoading, double &vehicleMassRot,
+        double &crossArea, double &cWValue,
+        double &f0, double &f1, double &f2, double &f3, double &f4, double &ratedPower, std::string &vehicleMassType, std::string &vehicleFuelType,
+		double &pNormV0, double &pNormP0, double &pNormV1, double &pNormP1, std::vector< std::vector<double> > &matrixRotFactor) {
   std::ifstream fileVehicle (std::string(path + emissionClass + ".veh").c_str());
 
 	if(!fileVehicle.good())
@@ -129,7 +145,7 @@ PHEMCEPHandler::ReadVehicleFile(const std::string &path, const std::string &emis
 	// skip header
 	std::getline(fileVehicle,line);
 
-	while(std::getline(fileVehicle,line) && dataCount<=18) {
+	while(std::getline(fileVehicle,line) && dataCount<=49) {
         std::stringstream  lineStream(line);
 
 		if(line.substr(0,1) == commentPrefix)
@@ -183,18 +199,62 @@ PHEMCEPHandler::ReadVehicleFile(const std::string &path, const std::string &emis
 		if(dataCount==18)
 			std::istringstream(cell) >> f4;
 
-    } // end while
+		// reading vehicleMassType
+		if(dataCount==45)
+			std::istringstream(cell) >> vehicleMassType;
 
+			// reading vehicleFuelType
+		if(dataCount==46)
+			std::istringstream(cell) >> vehicleFuelType;
+
+		// reading pNormV0
+		if(dataCount==47)
+			std::istringstream(cell) >> pNormV0;
+
+		// reading pNormP0
+		if(dataCount==48)
+			std::istringstream(cell) >> pNormP0;
+
+		// reading pNormV1
+		if(dataCount==49)
+			std::istringstream(cell) >> pNormV1;
+
+		// reading pNormP1
+		if(dataCount==50)
+			std::istringstream(cell) >> pNormP1;
+    } // end while
+	
+	while(std::getline(fileVehicle,line))
+    {
+        std::stringstream  lineStream(line);
+        std::string cell;
+		std::vector <double> vi;
+        while(std::getline(lineStream,cell,','))
+        {
+			double entry;
+			std::istringstream(cell) >> entry;
+			vi.push_back(entry);
+
+        } // end while
+		matrixRotFactor.push_back(vi);
+    } // end while
+	
+	
 	fileVehicle.close();
 	return true;
 } // end of ReadVehicleFile
 
 
 bool 
-PHEMCEPHandler::ReadEmissionData(const std::string &path, const std::string &emissionClass, 
+PHEMCEPHandler::ReadEmissionData(bool readFC, const std::string &path, const std::string &emissionClass, 
                                  std::vector<std::string> &header, std::vector<std::vector<double> > &matrix) {
-	// declare file stream
-  std::ifstream fileEmission (std::string(path + emissionClass + ".csv").c_str());
+  
+	
+	std::string pollutantExtension = "";
+	if(readFC)
+		pollutantExtension += "_FC";
+  // declare file stream
+	std::ifstream fileEmission (std::string(path + emissionClass + pollutantExtension + ".csv").c_str());
 
 	if(!fileEmission.good())
 		return false;
