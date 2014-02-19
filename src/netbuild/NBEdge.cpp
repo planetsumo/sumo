@@ -1463,7 +1463,7 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
     // compute the sum of priorities (needed for normalisation)
     unsigned int prioSum = computePrioritySum(priorities);
     // compute the indices of lanes that should have connections (excluding
-    // pedestrian lanes that will be connected via walkingAreas and forbidden lanes)
+    // forbidden lanes and pedestrian lanes that will be connected via walkingAreas)
     std::vector<int> availableLanes;
     for (int i = 0; i < (int)myLanes.size(); ++i) {
         if ((getPermissions(i) == SVC_PEDESTRIAN && myTo->hasWalkingAreaAtIncoming(this))
@@ -1526,6 +1526,14 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
         const std::vector<unsigned int> lanes = (*i).second;
         for (std::vector<unsigned int>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
             const int fromIndex = availableLanes[*j];  
+            if ((getPermissions(fromIndex) & (*i).first->getPermissions()) == 0) {
+                // exclude connection if fromLane and toEdge have no common permissions
+                continue;
+            }
+            if ((getPermissions(fromIndex) & (*i).first->getPermissions()) == SVC_PEDESTRIAN && myTo->hasWalkingAreaAtIncoming(this)) {
+                // exclude connection if the only commonly permitted class are pedestrians and there is already a walkingArea
+                continue;
+            }
             if (myAmLeftHand) {
                 myConnections.push_back(Connection(int(myLanes.size() - 1 - fromIndex), (*i).first, -1));
             } else {

@@ -116,7 +116,7 @@ NBNode::ApproachingDivider::execute(const unsigned int src, const unsigned int d
         incomingEdge->getConnectionLanes(myCurrentOutgoing);
     assert(approachingLanes.size() != 0);
     std::deque<int>* approachedLanes = spread(approachingLanes, dest);
-    assert(approachedLanes->size() <= myAvailableLanes->size());
+    assert(approachedLanes->size() <= myAvailableLanes.size());
     // set lanes
     for (unsigned int i = 0; i < approachedLanes->size(); i++) {
         assert(approachedLanes->size() > i);
@@ -1406,12 +1406,13 @@ NBNode::isDistrict() const {
 
 int
 NBNode::guessCrossings() {
+    gDebugFlag1 = false;
     int numGuessed = 0;
     if (myCrossings.size() > 0) {
         // user supplied crossings, do not guess
         return numGuessed;
     }
-    //std::cout << "guess crossings for " << getID() << "\n";
+    if (gDebugFlag1) std::cout << "guess crossings for " << getID() << "\n";
     const SUMOReal JOINED_CROSSING_THRESHOLD = 5.0;
     EdgeVector joinedEdges;
     SUMOReal prevAngle = -360;
@@ -1425,17 +1426,13 @@ NBNode::guessCrossings() {
         if (angle >= 360) {
             angle -= 360.0;
         }
-        //std::cout << edge->getID() << " angle=" << edge->getAngleAtNode(this) << " convAngle=" << angle << "\n";
-        assert(angle >= prevAngle);
-        if (angle - prevAngle > JOINED_CROSSING_THRESHOLD) {
+        if (gDebugFlag1) std::cout << edge->getID() << " angle=" << edge->getAngleAtNode(this) << " convAngle=" << angle << "\n";
+        // edges should be sorted by angle but this only holds true approximately
+        if (fabs(angle - prevAngle) > JOINED_CROSSING_THRESHOLD) {
             numGuessed += checkCrossing(joinedEdges);
             joinedEdges.clear();
         }
-        // skip edges which are only for pedestrians
-        //std::cout << "getFirstNonPedestrianLane=" << edge->getFirstNonPedestrianLaneIndex(FORWARD) << "\n";
-        if (edge->getFirstNonPedestrianLaneIndex(FORWARD) >= 0) {
-            joinedEdges.push_back(edge);
-        }
+        joinedEdges.push_back(edge);
         prevAngle = angle;
     }
     numGuessed += checkCrossing(joinedEdges);
@@ -1445,21 +1442,27 @@ NBNode::guessCrossings() {
 
 int
 NBNode::checkCrossing(EdgeVector candidates) {
-    // build a crossing if there are sidwalks on both sides of candidates (counterclockwise)
-    // erase edges which cannot be a crossing destination
-    while (candidates.size() > 0 && ((*candidates.begin())->getPermissions() & SVC_PEDESTRIAN) == 0) {
+    //  build a crossing if there are sidwalks on both sides of candidates
+    if (candidates.size() < 2) {
+        if (gDebugFlag1) std::cout << "no crossing added (numCandidates=" << candidates.size() << ")\n";
+        return 0;
+    }
+    // erase edges which do not have lanes disallowing pedestrians
+    while (candidates.size() > 0 && (*candidates.begin())->getFirstNonPedestrianLaneIndex(FORWARD) < 0) {
+        if (gDebugFlag1) std::cout << " allows pedestrians on all lanes: " << (*candidates.begin())->getID() << "\n";
         candidates.erase(candidates.begin());
     }
     // erase edges which cannot be a crossing origin
-    while (candidates.size() > 0 && ((*(candidates.end() - 1))->getPermissions() & SVC_PEDESTRIAN) == 0) {
+    while (candidates.size() > 0 && (*(candidates.end() - 1))->getFirstNonPedestrianLaneIndex(FORWARD) < 0) {
+        if (gDebugFlag1) std::cout << " allows pedestrians on all lanes: " << (*candidates.begin())->getID() << "\n";
         candidates.erase(candidates.end() - 1);
     }
     if (candidates.size() > 0) {
         addCrossing(candidates, DEFAULT_CROSSING_WIDTH, isTLControlled());
-        //std::cout << "adding crossing: " << toString(candidates) << "\n";
+        if (gDebugFlag1) std::cout << "adding crossing: " << toString(candidates) << "\n";
         return 1;
     } else {
-        //std::cout << "no crossing added\n";
+        if (gDebugFlag1) std::cout << "no crossing added (nothing to cross)\n";
         return 0;
     }
 }
