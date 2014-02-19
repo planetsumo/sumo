@@ -66,7 +66,7 @@ PHEMCEPHandler::Load(SUMOEmissionClass emissionClass) {
 	std::string emissionClassIdentifier = SumoEmissionClassStrings.getString(emissionClass);
 
 	// to hold everything.
-	std::vector< std::vector<double>> matrixSpeedInertiaTable;
+	std::vector< std::vector<double> > matrixSpeedInertiaTable;
 	std::vector< std::vector<double> > matrixFC;
 	std::vector< std::vector<double> > matrixPollutants; 
 	std::vector<std::string> headerFC;
@@ -201,11 +201,11 @@ PHEMCEPHandler::ReadVehicleFile(const std::string &path, const std::string &emis
 
 		// reading vehicleMassType
 		if(dataCount==45)
-			std::istringstream(cell) >> vehicleMassType;
+		       	vehicleMassType = cell;
 
-			// reading vehicleFuelType
+		// reading vehicleFuelType
 		if(dataCount==46)
-			std::istringstream(cell) >> vehicleFuelType;
+			vehicleFuelType = cell;
 
 		// reading pNormV0
 		if(dataCount==47)

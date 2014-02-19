@@ -27,6 +27,7 @@
 #include <config.h>
 #endif
 
+#include <cmath>
 #include <string>
 #include <utils/common/StringBijection.h>
 #include <utils/common/UtilExceptions.h>
@@ -40,10 +41,10 @@ PHEMCEP::PHEMCEP(bool heavyVehicel, SUMOEmissionClass emissionClass,
 		     double f0, double f1, double f2, double f3, double f4,
 			 double ratedPower, double pNormV0, double pNormP0, double pNormV1,
 			 double pNormP1, std::string vehicelFuelType,			 
-			 const std::vector< std::vector<double>> &matrixFC,
+			 const std::vector< std::vector<double> > &matrixFC,
 			 const std::vector<std::string> &headerLinePollutants, 
              const std::vector< std::vector<double> > &matrixPollutants,
-			 const std::vector< std::vector<double>> matrixSpeedRotational)
+			 const std::vector< std::vector<double> > matrixSpeedRotational)
 {
 	_emissionClass = emissionClass;
 	_resistanceF0 = f0;
@@ -65,7 +66,7 @@ PHEMCEP::PHEMCEP(bool heavyVehicel, SUMOEmissionClass emissionClass,
 	_pNormP1 = pNormP1;
 
 	std::vector<std::string> pollutantIdentifier;
-	std::vector<std::vector<double>> pollutantMeasures;
+	std::vector< std::vector<double> > pollutantMeasures;
 
 	// init pollutant identifiers
 	for(int i=0; i<headerLinePollutants.size(); i++)

@@ -75,10 +75,10 @@ public:
 		     double f0, double f1, double f2, double f3, double f4,
 			 double ratedPower, double pNormV0, double pNormP0, double pNormV1,
 			 double pNormP1, std:: string vehicelFuelType,
-			 const std::vector< std::vector<double>> &matrixFC,
+			 const std::vector< std::vector<double> > &matrixFC,
 			 const std::vector<std::string> &headerLinePollutants, 
-             const std::vector< std::vector<double>> &matrixPollutants,
-			 const std::vector< std::vector<double>> matrixSpeedRotational
+             const std::vector< std::vector<double> > &matrixPollutants,
+			 const std::vector< std::vector<double> > matrixSpeedRotational
 			 );
 
 
@@ -232,17 +232,17 @@ private:
 	 * @param[in] pattern to search
 	 * @param[in] value to search
      */
-	void PHEMCEP::FindLowerUpperInPattern(int &lowerIndex, int &upperIndex, std::vector<double> pattern, double value) const;
+	void FindLowerUpperInPattern(int &lowerIndex, int &upperIndex, std::vector<double> pattern, double value) const;
 	
 	/** @brief Calculates rotational index for speed
 	 * @param[in] speed desired speed
      */
-	double PHEMCEP::GetRotationalCoeffecient(double speed) const;
+	double GetRotationalCoeffecient(double speed) const;
 	
 	/** @brief Calculates maximum available rated power for speed
 	 * @param[in] speed desired speed
      */
-	double PHEMCEP::GetPMaxNorm(double speed) const;
+	double GetPMaxNorm(double speed) const;
 	
 private:
     /// @brief PHEM emission class of vehicle
@@ -288,7 +288,7 @@ private:
     /// @todo describe
 	std::vector<double> _cepCurveFC;
 	/// @todo describe
-	StringBijection<std::vector<double>> _cepCurvePollutants;
+	StringBijection< std::vector<double> > _cepCurvePollutants;
 	/// @todo describe
 	std::vector<double> _speedPatternRotational;
 	/// @todo describe
