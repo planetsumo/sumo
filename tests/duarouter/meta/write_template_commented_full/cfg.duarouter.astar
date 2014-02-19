@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/duarouterConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/duarouterConfiguration.xsd">
 
     <configuration>
         <!-- Loads the named config on startup -->
@@ -24,8 +24,8 @@
         <!-- Use FILE as SUMO-network to route on -->
         <net-file value="" synonymes="n net" type="FILE"/>
 
-        <!-- Read (additional) districts from FILE -->
-        <taz-files value="" synonymes="d districts" type="FILE"/>
+        <!-- Read additional network data (districts, bus stops) from FILE -->
+        <additional-files value="" synonymes="additional d districts taz-files" type="FILE"/>
 
         <!-- Read alternatives from FILE -->
         <alternative-files value="" synonymes="a alternatives alternatives-files" type="FILE"/>
@@ -108,8 +108,11 @@
         <!-- Only reuse routes from input, do not calculate new ones -->
         <skip-new-routes value="false" type="BOOL"/>
 
-        <!-- Use c-logit model -->
+        <!-- Use c-logit model (deprecated in favor of --route-choice-method logit) -->
         <logit value="false" type="BOOL"/>
+
+        <!-- Choose a route choice method: gawron, logit, or lohse -->
+        <route-choice-method value="gawron" type="STR"/>
 
         <!-- Use FLOAT as logit&apos;s beta -->
         <logit.beta value="-1" synonymes="lBeta" type="FLOAT"/>
@@ -168,8 +171,11 @@
         <!-- Prints the current version -->
         <version value="false" synonymes="V" type="BOOL"/>
 
-        <!-- Enable schema validation of XML inputs -->
-        <xml-validation value="false" synonymes="X" type="BOOL"/>
+        <!-- Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation value="auto" synonymes="X" type="STR"/>
+
+        <!-- Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation.net value="never" type="STR"/>
 
         <!-- Disables output of warnings -->
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL"/>

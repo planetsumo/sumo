@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/dfrouterConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/dfrouterConfiguration.xsd">
 
     <configuration>
         <!-- Loads the named config on startup -->
@@ -47,6 +47,9 @@
 
         <!-- Saves emitter definitions for source detectors to FILE -->
         <emitters-output value="" type="FILE"/>
+
+        <!-- Add vehicle types to the emitters file (PKW, LKW) -->
+        <vtype value="false" type="BOOL"/>
 
         <!-- Saves emitter positions as pois to FILE -->
         <emitters-poi-output value="" type="FILE"/>
@@ -102,7 +105,7 @@
         <!-- Allow turnarounds as route continuations -->
         <keep-turnarounds value="false" type="BOOL"/>
 
-        <!-- Minimum distance in meters between start and end node of every route. -->
+        <!-- Minimum distance in meters between start and end node of every route -->
         <min-route-length value="-1" synonymes="min-dist min-distance" type="FLOAT"/>
 
         <!-- Multiply flow times with TIME to get seconds -->
@@ -128,6 +131,9 @@
 
         <!--  -->
         <strict-sources value="false" type="BOOL"/>
+
+        <!-- Try to determine further inflows to an inbetween detector when computing split probabilities -->
+        <respect-concurrent-inflows value="false" type="BOOL"/>
 
         <!-- Scale factor for flows -->
         <scale value="1" type="FLOAT"/>
@@ -177,8 +183,11 @@
         <!-- Prints the current version -->
         <version value="false" synonymes="V" type="BOOL"/>
 
-        <!-- Enable schema validation of XML inputs -->
-        <xml-validation value="false" synonymes="X" type="BOOL"/>
+        <!-- Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation value="auto" synonymes="X" type="STR"/>
+
+        <!-- Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation.net value="never" type="STR"/>
 
         <!-- Disables output of warnings -->
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL"/>

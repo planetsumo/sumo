@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/dfrouterConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/dfrouterConfiguration.xsd">
 
     <configuration>
         <configuration-file value="" synonymes="c configuration" type="FILE" help="Loads the named config on startup"/>
@@ -22,6 +22,7 @@
         <detector-output value="" synonymes="detectors-output" type="FILE" help="Saves typed detectors to FILE"/>
         <detectors-poi-output value="" type="FILE" help="Saves detector positions as pois to FILE"/>
         <emitters-output value="" type="FILE" help="Saves emitter definitions for source detectors to FILE"/>
+        <vtype value="false" type="BOOL" help="Add vehicle types to the emitters file (PKW, LKW)"/>
         <emitters-poi-output value="" type="FILE" help="Saves emitter positions as pois to FILE"/>
         <variable-speed-sign-output value="" synonymes="speed-trigger-output" type="FILE" help="Saves variable seed sign definitions for sink detectors to FILE"/>
         <end-reroute-output value="" type="FILE" help="Saves rerouter definitions for sink detectors to FILE"/>
@@ -42,7 +43,7 @@
         <emissions-only value="false" type="BOOL" help="Writes only emission times"/>
         <disallowed-edges value="" type="STR" help="Do not route on these edges"/>
         <keep-turnarounds value="false" type="BOOL" help="Allow turnarounds as route continuations"/>
-        <min-route-length value="-1" synonymes="min-dist min-distance" type="FLOAT" help="Minimum distance in meters between start and end node of every route."/>
+        <min-route-length value="-1" synonymes="min-dist min-distance" type="FLOAT" help="Minimum distance in meters between start and end node of every route"/>
         <time-factor value="60" type="TIME" help="Multiply flow times with TIME to get seconds"/>
         <time-offset value="0" type="TIME" help="Subtracts TIME seconds from (scaled) flow times"/>
         <time-step value="60" type="TIME" help="Expected distance between two successive data sets"/>
@@ -51,6 +52,7 @@
         <revalidate-flows value="false" type="BOOL" help=""/>
         <remove-empty-detectors value="false" type="BOOL" help="Removes empty detectors from the list"/>
         <strict-sources value="false" type="BOOL" help=""/>
+        <respect-concurrent-inflows value="false" type="BOOL" help="Try to determine further inflows to an inbetween detector when computing split probabilities"/>
         <scale value="1" type="FLOAT" help="Scale factor for flows"/>
     </processing>
 
@@ -73,7 +75,8 @@
         <print-options value="false" synonymes="p" type="BOOL" help="Prints option values before processing"/>
         <help value="false" synonymes="?" type="BOOL" help="Prints this screen"/>
         <version value="false" synonymes="V" type="BOOL" help="Prints the current version"/>
-        <xml-validation value="false" synonymes="X" type="BOOL" help="Enable schema validation of XML inputs"/>
+        <xml-validation value="auto" synonymes="X" type="STR" help="Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;)"/>
+        <xml-validation.net value="never" type="STR" help="Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;)"/>
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL" help="Disables output of warnings"/>
         <log value="" synonymes="l log-file" type="FILE" help="Writes all messages to FILE (implies verbose)"/>
         <message-log value="" type="FILE" help="Writes all non-error messages to FILE (implies verbose)"/>

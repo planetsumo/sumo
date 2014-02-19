@@ -106,6 +106,9 @@ RODFFrame::fillOptions() {
     oc.doRegister("emitters-output", new Option_FileName());
     oc.addDescription("emitters-output", "Output", "Saves emitter definitions for source detectors to FILE");
 
+    oc.doRegister("vtype", new Option_Bool(false));
+    oc.addDescription("vtype", "Output", "Add vehicle types to the emitters file (PKW, LKW)");
+
     oc.doRegister("emitters-poi-output", new Option_FileName()); // !!! describe
     oc.addDescription("emitters-poi-output", "Output", "Saves emitter positions as pois to FILE");
 
@@ -170,7 +173,7 @@ RODFFrame::fillOptions() {
     oc.doRegister("min-route-length", new Option_Float(-1));
     oc.addSynonyme("min-route-length", "min-dist", true);
     oc.addSynonyme("min-route-length", "min-distance", true);
-    oc.addDescription("min-route-length", "Processing", "Minimum distance in meters between start and end node of every route.");
+    oc.addDescription("min-route-length", "Processing", "Minimum distance in meters between start and end node of every route");
 
     // flow reading
     oc.doRegister("time-factor", new Option_String("60", "TIME"));
@@ -199,6 +202,9 @@ RODFFrame::fillOptions() {
 
     oc.doRegister("strict-sources", new Option_Bool(false)); // !!!undescribed
     oc.addDescription("strict-sources", "Processing", "");
+
+    oc.doRegister("respect-concurrent-inflows", new Option_Bool(false));
+    oc.addDescription("respect-concurrent-inflows", "Processing", "Try to determine further inflows to an inbetween detector when computing split probabilities");
 
     /* disabled, see ticket #521
     oc.doRegister("join-lanes", new Option_Bool(false));
