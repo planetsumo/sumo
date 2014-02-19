@@ -39,7 +39,7 @@
 // method definitions
 // ===========================================================================
 bool
-AGTrip::operator <(AGTrip& trip) {
+AGTrip::operator <(const AGTrip& trip) const {
     if (getDay() < trip.getDay()) {
         return true;
     }
@@ -89,8 +89,8 @@ AGTrip::getPassed() {
     return &myPassBy;
 }
 
-std::string
-AGTrip::getType() {
+const std::string&
+AGTrip::getType() const {
     return myType;
 }
 
@@ -100,17 +100,17 @@ AGTrip::setType(std::string type) {
 }
 
 AGPosition
-AGTrip::getDep() {
+AGTrip::getDep() const {
     return myFrom;
 }
 
 AGPosition
-AGTrip::getArr() {
+AGTrip::getArr() const {
     return myTo;
 }
 
 int
-AGTrip::getTime() {
+AGTrip::getTime() const {
     return myDepTime;
 }
 
@@ -125,13 +125,8 @@ AGTrip::getTimeTrip(SUMOReal secPerKm) {
     }
     positions.push_back(myTo);
 
-    bool firstPass = true;
-    AGPosition* temp;
-    for (it = positions.begin(); it != positions.end(); ++it) {
-        if (firstPass) {
-            temp = &*it;
-            continue;
-        }
+    AGPosition* temp = &positions.front();
+    for (it = positions.begin(), ++it; it != positions.end(); ++it) {
         dist += temp->distanceTo(*it);
         temp = &*it;
     }
@@ -158,8 +153,8 @@ AGTrip::estimateDepTime(int arrTime, SUMOReal secPerKm) {
     return arrTime - getTimeTrip(secPerKm);
 }
 
-std::string
-AGTrip::getVehicleName() {
+const std::string&
+AGTrip::getVehicleName() const {
     return myVehicle;
 }
 
@@ -179,12 +174,12 @@ AGTrip::setDep(AGPosition departure) {
 }
 
 bool
-AGTrip::isDaily() {
+AGTrip::isDaily() const {
     return (myDay == 0);
 }
 
 int
-AGTrip::getDay() {
+AGTrip::getDay() const {
     return myDay;
 }
 
