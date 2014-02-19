@@ -261,7 +261,6 @@ public:
      */
     void writeStops(OutputDevice& dev) const;
 
-
     /** @brief Returns whether the defaults shall be used
      * @param[in] oc The options to get the options from
      * @param[in] optionName The name of the option to determine whether its value shall be used
@@ -273,6 +272,19 @@ public:
 
     /// @name Depart/arrival-attributes verification
     /// @{
+
+    /** @brief Validates a given depart value
+     * @param[in] val The depart value to parse
+     * @param[in] element The name of the type of the parsed element, for building the error message
+     * @param[in] id The id of the parsed element, for building the error message
+     * @param[out] depart The parsed depart time, if given
+     * @param[out] dd The parsed departProcedure definition
+     * @param[out] error Error message, if an error occures
+     * @return Whether the given value is a valid depart definition
+     */
+    static bool parseDepart(const std::string& val, const std::string& element, const std::string& id,
+                            SUMOTime& depart, DepartDefinition& dd, std::string& error);
+
 
     /** @brief Validates a given departLane value
      * @param[in] val The departLane value to parse

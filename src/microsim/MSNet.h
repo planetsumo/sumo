@@ -56,6 +56,8 @@
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/DijkstraRouterEffort.h>
 #include <utils/common/AStarRouter.h>
+#include <utils/common/NamedRTree.h>
+
 
 // ===========================================================================
 // class declarations
@@ -173,6 +175,7 @@ public:
      */
     void simulationStep();
 
+
     /** @brief loads routes for the next few steps */
     void loadRoutes();
 
@@ -201,10 +204,20 @@ public:
     static std::string getStateMessage(SimulationState state);
 
 
-    /** @brief Returns the current simulation step (in s)
+    /** @brief Returns the current simulation step
      * @return the current simulation step
      */
-    SUMOTime getCurrentTimeStep() const;
+    inline SUMOTime getCurrentTimeStep() const {
+        return myStep;
+    }
+
+
+    /** @brief Sets the current simulation step (used by state loading)
+     * @param step the current simulation step
+     */
+    inline void setCurrentTimeStep(const SUMOTime step) {
+        myStep = step;
+    }
 
 
     /** @brief Write netstate, summary and detector output
@@ -217,6 +230,7 @@ public:
      * @return Whether duration shall be logged
      */
     bool logSimulationDuration() const;
+
 
 
     /// @name Output during the simulation
@@ -235,6 +249,7 @@ public:
      */
     void postSimStepOutput() const;
     //}
+
 
 
     /// @name Retrieval of references to substructures
@@ -395,9 +410,6 @@ public:
 
 
 
-
-
-
     /// @name Notification about vehicle state changes
     /// @{
 
@@ -414,7 +426,15 @@ public:
         /// @brief The vehicle arrived at his destination (is deleted)
         VEHICLE_STATE_ARRIVED,
         /// @brief The vehicle got a new route
-        VEHICLE_STATE_NEWROUTE
+        VEHICLE_STATE_NEWROUTE,
+        /// @brief The vehicles starts to park
+        VEHICLE_STATE_STARTING_PARKING,
+        /// @brief The vehicle ends to park
+        VEHICLE_STATE_ENDING_PARKING,
+        /// @brief The vehicles starts to stop
+        VEHICLE_STATE_STARTING_STOP,
+        /// @brief The vehicle ends to stop
+        VEHICLE_STATE_ENDING_STOP
     };
 
 
@@ -459,6 +479,7 @@ public:
     /// @}
 
 
+
     /** @brief Returns the travel time to pass an edge
      * @param[in] e The edge for which the travel time to be passed shall be returned
      * @param[in] v The vehicle that is rerouted
@@ -486,6 +507,12 @@ public:
         const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
     SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouterEffort(
         const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
+
+
+    /** @brief Returns an RTree that contains lane IDs
+     * @return An Rtree containing lane IDs
+     */
+    const NamedRTree& getLanesRTree() const;
 
 
 protected:
@@ -562,9 +589,9 @@ protected:
     /// @}
 
 
+
     /// @brief Storage for maximum vehicle number
     int myTooManyVehicles;
-
 
     /// @brief Dictionary of bus stops
     NamedObjectCont<MSBusStop*> myBusStopDict;
@@ -582,6 +609,16 @@ protected:
     mutable AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
     mutable DijkstraRouterEffort_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterEffort;
 
+
+    /// @brief An RTree structure holding lane IDs
+    mutable std::pair<bool, NamedRTree> myLanesRTree;
+
+
+    /// @brief string constants for simstep stages
+    static const std::string STAGE_EVENTS;
+    static const std::string STAGE_MOVEMENTS;
+    static const std::string STAGE_LANECHANGE;
+    static const std::string STAGE_INSERTIONS;
 
 private:
     /// @brief Invalidated copy constructor.

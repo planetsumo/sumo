@@ -240,36 +240,48 @@ public:
         return myLoadedVehNo - (myWaitingForPerson + myEndedVehNo);
     }
 
+
     /// @brief return the number of collisions
     unsigned int getCollisionCount() const {
         return myCollisions;
     }
 
+    /// @brief return the number of teleports due to jamming
+    unsigned int getTeleportsJam() const {
+        return myTeleportsJam;
+    }
+
+    /// @brief return the number of teleports due to vehicles stuck on a minor road
+    unsigned int getTeleportsYield() const {
+        return myTeleportsYield;
+    }
+
+    /// @brief return the number of teleports due to vehicles stuck on the wrong lane
+    unsigned int getTeleportsWrongLane() const {
+        return myTeleportsWrongLane;
+    }
 
     /// @brief return the number of teleports (including collisions)
     unsigned int getTeleportCount() const {
-        return myTeleports;
+        return myCollisions + myTeleportsJam + myTeleportsYield + myTeleportsWrongLane;
+    }
+
+
+    /** @brief Returns the total departure delay
+     * @return Sum of steps vehicles had to wait until being inserted
+     */
+    SUMOReal getTotalDepartureDelay() const {
+        return myTotalDepartureDelay;
+    }
+
+
+    /** @brief Returns the total travel time
+     * @return Sum of travel times of arrived vehicles
+     */
+    SUMOReal getTotalTravelTime() const {
+        return myTotalTravelTime;
     }
     /// @}
-
-
-    /// @name Retrieval of vehicle statistics (availability depends on simulation settings)
-    /// @{
-
-    /** @brief Prints the mean waiting time of vehicles.
-     *  The mean time vehicles had to wait for being inserted (-1 if no vehicle was inserted, yet)
-     * @todo Enable this for guisim?
-     */
-    void printMeanWaitingTime(OutputDevice& od) const;
-
-
-    /** @brief Returns the mean travel time of vehicles
-     * The mean travel time of ended vehicles (-1 if no vehicle has ended, yet)
-     * @todo Enable this for guisim?
-     */
-    void printMeanTravelTime(OutputDevice& od) const;
-    /// @}
-
 
 
 
@@ -350,13 +362,22 @@ public:
 
     /// @brief registers one collision-related teleport
     void registerCollision() {
-        myTeleports++;
         myCollisions++;
     }
 
     /// @brief register one non-collision-related teleport
-    void registerTeleport() {
-        myTeleports++;
+    void registerTeleportJam() {
+        myTeleportsJam++;
+    }
+
+    /// @brief register one non-collision-related teleport
+    void registerTeleportYield() {
+        myTeleportsYield++;
+    }
+
+    /// @brief register one non-collision-related teleport
+    void registerTeleportWrongLane() {
+        myTeleportsWrongLane++;
     }
 
     /// @name State I/O (mesosim only)
@@ -410,8 +431,15 @@ protected:
     /// @brief The number of collisions
     unsigned int myCollisions;
 
-    /// @brief The number of teleports (including collisions)
-    unsigned int myTeleports;
+    /// @brief The number of teleports due to jam
+    unsigned int myTeleportsJam;
+
+    /// @brief The number of teleports due to vehicles stuck on a minor road
+    unsigned int myTeleportsYield;
+
+    /// @brief The number of teleports due to vehicles stuck on the wrong lane
+    unsigned int myTeleportsWrongLane;
+
     /// @}
 
 

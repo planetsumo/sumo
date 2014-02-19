@@ -88,7 +88,7 @@ public:
         const MSEdge& getDestination() const;
 
         /// Returns the current edge
-        virtual const MSEdge* getEdge(SUMOTime now) const = 0;
+        virtual const MSEdge* getEdge() const = 0;
         virtual const MSEdge* getFromEdge() const = 0;
         virtual SUMOReal getEdgePos(SUMOTime now) const = 0;
 
@@ -121,7 +121,7 @@ public:
             return false;
         }
 
-        /// @brief the time this person spent waiting for a vehicle 
+        /// @brief the time this person spent waiting for a vehicle
         virtual SUMOTime timeWaiting4Vehicle(SUMOTime /*now*/) const {
             return false;
         }
@@ -195,7 +195,7 @@ public:
         virtual void proceed(MSNet* net, MSPerson* person, SUMOTime now, MSEdge* previousEdge, const SUMOReal at);
 
         /// Returns the current edge
-        const MSEdge* getEdge(SUMOTime now) const;
+        const MSEdge* getEdge() const;
         const MSEdge* getFromEdge() const;
         SUMOReal getEdgePos(SUMOTime now) const;
 
@@ -320,7 +320,7 @@ public:
         virtual void proceed(MSNet* net, MSPerson* person, SUMOTime now, MSEdge* previousEdge, const SUMOReal at);
 
         /// Returns the current edge
-        const MSEdge* getEdge(SUMOTime now) const;
+        const MSEdge* getEdge() const;
         const MSEdge* getFromEdge() const;
         SUMOReal getEdgePos(SUMOTime now) const;
 
@@ -405,7 +405,7 @@ public:
         ~MSPersonStage_Waiting();
 
         /// Returns the current edge
-        const MSEdge* getEdge(SUMOTime now) const;
+        const MSEdge* getEdge() const;
         const MSEdge* getFromEdge() const;
         SUMOReal getEdgePos(SUMOTime now) const;
         SUMOTime getUntil() const;
@@ -516,8 +516,8 @@ public:
     }
 
     /// @brief Returns the current edge
-    const MSEdge* getEdge(SUMOTime now) const {
-        return (*myStep)->getEdge(now);
+    const MSEdge* getEdge() const {
+        return (*myStep)->getEdge();
     }
 
     /// @brief Returns the departure edge
@@ -572,13 +572,13 @@ public:
         return (*myStep)->isWaitingFor(line);
     }
 
-    /// Whether the person waits for a vehicle 
+    /// Whether the person waits for a vehicle
     bool isWaiting4Vehicle() const {
         return (*myStep)->isWaiting4Vehicle();
     }
 
 
-    /// @brief the time this person spent waiting for a vehicle 
+    /// @brief the time this person spent waiting for a vehicle
     SUMOTime timeWaiting4Vehicle(SUMOTime now) const {
         return (*myStep)->timeWaiting4Vehicle(now);
     }

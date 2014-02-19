@@ -270,6 +270,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "number",         SUMO_ATTR_NUMBER },
     { "duration",       SUMO_ATTR_DURATION },
     { "until",          SUMO_ATTR_UNTIL },
+    { "routeProbe",     SUMO_ATTR_ROUTEPROBE },
 
     { "time",           SUMO_ATTR_TIME },
     { "begin",          SUMO_ATTR_BEGIN },
@@ -491,6 +492,13 @@ StringBijection<TrafficLightType>::Entry SUMOXMLDefinitions::trafficLightTypesVa
     { "<invalid>", TLTYPE_INVALID } //< must be the last one
 };
 
+
+StringBijection<LaneChangeModel>::Entry SUMOXMLDefinitions::laneChangeModelValues[] = {
+    { "DK2008", LCM_DK2008 },
+    { "LC2013", LCM_LC2013 },
+    { "JE2013", LCM_JE2013 },
+};
+
 StringBijection<int> SUMOXMLDefinitions::Tags(
     SUMOXMLDefinitions::tags, SUMO_TAG_NOTHING);
 
@@ -514,6 +522,9 @@ StringBijection<LinkDirection> SUMOXMLDefinitions::LinkDirections(
 
 StringBijection<TrafficLightType> SUMOXMLDefinitions::TrafficLightTypes(
     SUMOXMLDefinitions::trafficLightTypesVales, TLTYPE_INVALID);
+
+StringBijection<LaneChangeModel> SUMOXMLDefinitions::LaneChangeModels(
+    SUMOXMLDefinitions::laneChangeModelValues, LCM_JE2013);
 
 /****************************************************************************/
 

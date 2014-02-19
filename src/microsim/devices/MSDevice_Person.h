@@ -61,12 +61,17 @@ public:
      * The built device is stored in the given vector.
      *
      * @param[in] v The vehicle for which a device may be built
-     * @param[in, filled] into The vector to store the built device in
+     * @param[filled] into The vector to store the built device in
      */
     static MSDevice_Person* buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
 
 
+
 public:
+    /// @brief Destructor.
+    ~MSDevice_Person();
+
+
     /// @name Methods called on vehicle movement / state change, overwriting MSDevice
     /// @{
 
@@ -107,6 +112,7 @@ public:
     /// @}
 
 
+
     /** @brief Add a passenger
      *
      * @param[in] person The passenger to add.
@@ -121,13 +127,15 @@ public:
         return static_cast<unsigned int>(myPersons.size());
     }
 
+
+    /** @brief Returns the list of persons using this vehicle
+     * @return Persons within this vehicle
+     */
     const std::vector<MSPerson*>& getPersons() const {
         return myPersons;
     }
 
 
-    /// @brief Destructor.
-    ~MSDevice_Person();
 
 private:
     /** @brief Constructor
@@ -138,12 +146,14 @@ private:
     MSDevice_Person(SUMOVehicle& holder, const std::string& id);
 
 
+
 private:
     /// @brief The passengers of the vehicle
     std::vector<MSPerson*> myPersons;
 
     /// @brief Whether the vehicle is at a stop
     bool myStopped;
+
 
 
 private:

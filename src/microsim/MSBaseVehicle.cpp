@@ -70,7 +70,7 @@ MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, c
     myArrivalPos(-1),
     myNumberReroutes(0)
 #ifdef _DEBUG
-    ,myTraceMoveReminders(myShallTraceMoveReminders.count(pars->id) > 0)
+    , myTraceMoveReminders(myShallTraceMoveReminders.count(pars->id) > 0)
 #endif
 {
     // init devices
@@ -85,9 +85,12 @@ MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, c
 
 MSBaseVehicle::~MSBaseVehicle() {
     myRoute->release();
+    if (myParameter->repetitionNumber == 0) {
+        MSRoute::checkDist(myParameter->routeid);
+    }
     delete myParameter;
     for (std::vector< MSDevice* >::iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {
-        delete(*dev);
+        delete *dev;
     }
 }
 
@@ -137,7 +140,7 @@ MSBaseVehicle::reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& rout
             edges.pop_back();
         }
     } else {
-        router.compute(*myCurrEdge, myRoute->getLastEdge(), this, t, edges);
+        router.compute(getRerouteOrigin(), myRoute->getLastEdge(), this, t, edges);
     }
     if (edges.empty()) {
         WRITE_WARNING("No route for vehicle '" + getID() + "' found.");
@@ -148,7 +151,7 @@ MSBaseVehicle::reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& rout
 
 
 bool
-MSBaseVehicle::replaceRouteEdges(const MSEdgeVector& edges, bool onInit) {
+MSBaseVehicle::replaceRouteEdges(MSEdgeVector& edges, bool onInit) {
     // build a new id, first
     std::string id = getID();
     if (id[0] != '!') {
@@ -159,13 +162,19 @@ MSBaseVehicle::replaceRouteEdges(const MSEdgeVector& edges, bool onInit) {
     } else {
         id = id + "!var#1";
     }
+    const MSEdge* const origin = getRerouteOrigin();
+    if (origin != *myCurrEdge && edges.front() == origin) {
+        edges.insert(edges.begin(), *myCurrEdge);
+    }
+    const int oldSize = (int)edges.size();
+    edges.insert(edges.begin(), myRoute->begin(), myCurrEdge);
     const RGBColor& c = myRoute->getColor();
-    MSRoute* newRoute = new MSRoute(id, edges, 0, &c == &RGBColor::DEFAULT_COLOR ? 0 : new RGBColor(c), myRoute->getStops());
+    MSRoute* newRoute = new MSRoute(id, edges, false, &c == &RGBColor::DEFAULT_COLOR ? 0 : new RGBColor(c), myRoute->getStops());
     if (!MSRoute::dictionary(id, newRoute)) {
         delete newRoute;
         return false;
     }
-    if (!replaceRoute(newRoute, onInit)) {
+    if (!replaceRoute(newRoute, onInit, (int)edges.size() - oldSize)) {
         newRoute->addReference();
         newRoute->release();
         return false;
@@ -304,7 +313,14 @@ MSBaseVehicle::calculateArrivalPos() {
 }
 
 
-MSDevice* 
+SUMOReal
+MSBaseVehicle::getImpatience() const {
+    return MAX2((SUMOReal)0, MIN2((SUMOReal)1, getVehicleType().getImpatience() +
+                                  (MSGlobals::gTimeToGridlock > 0 ? (SUMOReal)getWaitingTime() / MSGlobals::gTimeToGridlock : 0)));
+}
+
+
+MSDevice*
 MSBaseVehicle::getDevice(const std::type_info& type) const {
     for (std::vector<MSDevice*>::const_iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {
         if (typeid(**dev) == type) {
@@ -327,7 +343,7 @@ MSBaseVehicle::saveState(OutputDevice& out) {
 
 
 #ifdef _DEBUG
-void 
+void
 MSBaseVehicle::initMoveReminderOutput(const OptionsCont& oc) {
     if (oc.isSet("movereminder-output.vehicles")) {
         const std::vector<std::string> vehicles = oc.getStringVector("movereminder-output.vehicles");
@@ -336,7 +352,7 @@ MSBaseVehicle::initMoveReminderOutput(const OptionsCont& oc) {
 }
 
 
-void 
+void
 MSBaseVehicle::traceMoveReminder(const std::string& type, MSMoveReminder* rem, SUMOReal pos, bool keep) const {
     OutputDevice& od = OutputDevice::getDeviceByOption("movereminder-output");
     od.openTag("movereminder");

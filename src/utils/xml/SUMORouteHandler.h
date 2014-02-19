@@ -41,6 +41,7 @@
 // ===========================================================================
 // class declarations
 // ===========================================================================
+class MsgHandler;
 class SUMOVTypeParameter;
 
 
@@ -66,8 +67,8 @@ public:
     SUMOTime getLastDepart() const;
 
     /// check start and end position of a stop
-    bool checkStopPos(SUMOReal& startPos, SUMOReal& endPos, const SUMOReal laneLength,
-                      const SUMOReal minLength, const bool friendlyPos);
+    static bool checkStopPos(SUMOReal& startPos, SUMOReal& endPos, const SUMOReal laneLength,
+                             const SUMOReal minLength, const bool friendlyPos);
 
 protected:
     /// @name inherited from GenericSAXHandler
@@ -136,6 +137,9 @@ protected:
 
     /// @brief assign arbitrary vehicle parameters
     void addParam(const SUMOSAXAttributes& attrs);
+
+    /// @brief parses attributes common to all stops
+    bool parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs, std::string errorSuffix, MsgHandler* const errorOutput);
 
 protected:
     /// @brief Parameter of the current vehicle, trip, person, or flow

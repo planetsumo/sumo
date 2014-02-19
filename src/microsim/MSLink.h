@@ -74,7 +74,7 @@ class OutputDevice;
 class MSLink {
 public:
 
-    typedef std::vector<std::pair<MSVehicle*, SUMOReal> > LinkLeaders;
+    typedef std::vector<std::pair<std::pair<MSVehicle*, SUMOReal>, SUMOReal> > LinkLeaders;
 
     /** @struct ApproachingVehicleInformation
      * @brief A structure holding the information about vehicles approaching a link
@@ -82,7 +82,7 @@ public:
     struct ApproachingVehicleInformation {
         /** @brief Constructor
          * @param[in] waitingTime The time during which the vehicle is waiting at this link
-         *   this needs to be placed here because MSVehicle::myWaitingTime is updated in between 
+         *   this needs to be placed here because MSVehicle::myWaitingTime is updated in between
          *   calls to opened() causing order dependencies
          **/
         ApproachingVehicleInformation(const SUMOTime _arrivalTime, const SUMOTime _leavingTime,
@@ -91,7 +91,7 @@ public:
                                       const SUMOTime _arrivalTimeBraking,
                                       const SUMOReal _arrivalSpeedBraking,
                                       const SUMOTime _waitingTime
-                                      ) :
+                                     ) :
             arrivalTime(_arrivalTime), leavingTime(_leavingTime),
             arrivalSpeed(_arrivalSpeed), leaveSpeed(_leaveSpeed),
             willPass(_willPass),
@@ -157,7 +157,8 @@ public:
      * @todo Unsecure!
      */
     void setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, bool isCrossing, bool isCont,
-                               const std::vector<MSLink*>& foeLinks, const std::vector<MSLane*>& foeLanes);
+                               const std::vector<MSLink*>& foeLinks, const std::vector<MSLane*>& foeLanes,
+                               MSLane* internalLaneBefore = 0);
 
 
     /** @brief Sets the information about an approaching vehicle
@@ -165,8 +166,8 @@ public:
      * The information is stored in myApproachingVehicles.
      */
     void setApproaching(const SUMOVehicle* approaching, const SUMOTime arrivalTime,
-                        const SUMOReal arrivalSpeed, const SUMOReal leaveSpeed, const bool setRequest, 
-                        const SUMOTime arrivalTimeBraking, const SUMOReal arrivalSpeedBraking, 
+                        const SUMOReal arrivalSpeed, const SUMOReal leaveSpeed, const bool setRequest,
+                        const SUMOTime arrivalTimeBraking, const SUMOReal arrivalSpeedBraking,
                         const SUMOTime waitingTime);
 
     /// @brief removes the vehicle from myApproachingVehicles
@@ -186,9 +187,9 @@ public:
      * @param[in] collectFoes If a vector is passed, all blocking foes are collected and inserted into this vector
      * @return Whether this link may be passed.
      */
-    bool opened(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength, 
-            SUMOReal impatience, SUMOReal decel, SUMOTime waitingTime,
-            std::vector<const SUMOVehicle*>* collectFoes=0) const;
+    bool opened(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength,
+                SUMOReal impatience, SUMOReal decel, SUMOTime waitingTime,
+                std::vector<const SUMOVehicle*>* collectFoes = 0) const;
 
     /** @brief Returns the information whether this link is blocked
      * Valid after the vehicles have set their requests
@@ -200,13 +201,13 @@ public:
      * @param[in] impatience The impatience of the checking vehicle
      * @param[in] decel The maximum deceleration of the checking vehicle
      * @param[in] waitingTime The waiting time of the checking vehicle
-     * @param[in] collectFoes If a vector is passed the return value is always False, instead all blocking foes are collected and inserted into this vector 
+     * @param[in] collectFoes If a vector is passed the return value is always False, instead all blocking foes are collected and inserted into this vector
      * @return Whether this link is blocked
      * @note Since this needs to be called without a SUMOVehicle (TraCI), we cannot simply pass the checking vehicle itself
      **/
     bool blockedAtTime(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed,
                        bool sameTargetLane, SUMOReal impatience, SUMOReal decel, SUMOTime waitingTime,
-                       std::vector<const SUMOVehicle*>* collectFoes=0) const;
+                       std::vector<const SUMOVehicle*>* collectFoes = 0) const;
 
 
     bool isBlockingAnyone() const {
@@ -226,8 +227,8 @@ public:
      * @param[in] decel The maximum deceleration of the checking vehicle
      * @return Whether a foe of this link is approaching
      */
-    bool hasApproachingFoe(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal speed, 
-            SUMOReal decel=DEFAULT_VEH_DECEL) const;
+    bool hasApproachingFoe(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal speed,
+                           SUMOReal decel = DEFAULT_VEH_DECEL) const;
 
 
     /** @brief Returns the current state of the link
@@ -296,6 +297,11 @@ public:
         return myAmCont;
     }
 
+
+    /// @brief whether this is a link past an internal junction which currently has priority
+    bool lastWasContMajor() const;
+
+
 #ifdef HAVE_INTERNAL_LANES
     /** @brief Returns the following inner lane
      *
@@ -307,9 +313,10 @@ public:
     /** @brief Returns all potential link leaders (vehicles on foeLanes)
      * Valid during the planMove() phase
      * @param[in] dist The distance of the vehicle who is asking about the leader to this link
+     * @param[in] dist The minGap of the vehicle who is asking about the leader to this link
      * @return The all vehicles on foeLanes and their (virtual) distances to the asking vehicle
      */
-    LinkLeaders getLeaderInfo(SUMOReal dist) const;
+    LinkLeaders getLeaderInfo(SUMOReal dist, SUMOReal minGap) const;
 #endif
 
     /// @brief return the via lane if it exists and the lane otherwise
@@ -364,6 +371,12 @@ private:
     /// @brief The following junction-internal lane if used
     MSLane* const myJunctionInlane;
 
+    /* @brief lengths after the crossing point with foeLane
+     * (lengthOnThis, lengthOnFoe)
+     * (index corresponds to myFoeLanes)
+     * empty vector for entry links
+     * */
+    std::vector<std::pair<SUMOReal, SUMOReal> > myLengthsBehindCrossing;
 #endif
 
     std::vector<MSLink*> myFoeLinks;

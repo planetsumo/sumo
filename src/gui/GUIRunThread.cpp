@@ -60,13 +60,6 @@
 
 
 // ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace FXEX;
-using namespace std;
-
-
-// ===========================================================================
 // member method definitions
 // ===========================================================================
 GUIRunThread::GUIRunThread(FXApp* app, MFXInterThreadEventClient* parent,
@@ -93,7 +86,7 @@ GUIRunThread::~GUIRunThread() {
 }
 
 
-void
+bool
 GUIRunThread::init(GUINet* net, SUMOTime start, SUMOTime end) {
     assert(net != 0);
     // assign new values
@@ -105,7 +98,27 @@ GUIRunThread::init(GUINet* net, SUMOTime start, SUMOTime end) {
     MsgHandler::getMessageInstance()->addRetriever(myMessageRetriever);
     MsgHandler::getWarningInstance()->addRetriever(myWarningRetriever);
     // preload the routes especially for TraCI
-    net->loadRoutes();
+    mySimulationLock.lock();
+    try {
+        net->setCurrentTimeStep(start);
+        net->loadRoutes();
+    } catch (ProcessError& e2) {
+        if (std::string(e2.what()) != std::string("Process Error") && std::string(e2.what()) != std::string("")) {
+            WRITE_ERROR(e2.what());
+        }
+        MsgHandler::getErrorInstance()->inform("Quitting (on error).", false);
+        myHalting = true;
+        myOk = false;
+        mySimulationInProgress = false;
+#ifndef _DEBUG
+    } catch (...) {
+        myHalting = true;
+        myOk = false;
+        mySimulationInProgress = false;
+#endif
+    }
+    mySimulationLock.unlock();
+    return myOk;
 }
 
 
@@ -173,7 +186,7 @@ GUIRunThread::makeStep() {
         MSNet::SimulationState state = myNet->simulationState(mySimEndTime);
 #ifndef NO_TRACI
         if (state != MSNet::SIMSTATE_RUNNING) {
-            if (OptionsCont::getOptions().getInt("remote-port") != 0 && !traci::TraCIServer::wasClosed()) {
+            if (OptionsCont::getOptions().getInt("remote-port") != 0 && !TraCIServer::wasClosed()) {
                 state = MSNet::SIMSTATE_RUNNING;
             }
         }
@@ -203,7 +216,7 @@ GUIRunThread::makeStep() {
         // simulation step is over
         mySimulationInProgress = false;
     } catch (ProcessError& e2) {
-        if (string(e2.what()) != string("Process Error") && std::string(e2.what()) != string("")) {
+        if (std::string(e2.what()) != std::string("Process Error") && std::string(e2.what()) != std::string("")) {
             WRITE_ERROR(e2.what());
         }
         MsgHandler::getErrorInstance()->inform("Quitting (on error).", false);

@@ -38,17 +38,12 @@
 #include <microsim/MSLane.h>
 #include <microsim/MSNet.h>
 #include "TraCIConstants.h"
+#include "TraCIServer.h"
 #include "TraCIServerAPI_Lane.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-
-
-// ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
 
 
 // ===========================================================================
@@ -64,11 +59,12 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
     if (variable != ID_LIST && variable != LANE_LINK_NUMBER && variable != LANE_EDGE_ID && variable != VAR_LENGTH
             && variable != VAR_MAXSPEED && variable != LANE_LINKS && variable != VAR_SHAPE
             && variable != VAR_CO2EMISSION && variable != VAR_COEMISSION && variable != VAR_HCEMISSION && variable != VAR_PMXEMISSION
-            && variable != VAR_NOXEMISSION && variable != VAR_FUELCONSUMPTION && variable != VAR_NOISEEMISSION
+            && variable != VAR_NOXEMISSION && variable != VAR_FUELCONSUMPTION && variable != VAR_NOISEEMISSION && variable != VAR_WAITING_TIME
             && variable != LAST_STEP_MEAN_SPEED && variable != LAST_STEP_VEHICLE_NUMBER
             && variable != LAST_STEP_VEHICLE_ID_LIST && variable != LAST_STEP_OCCUPANCY && variable != LAST_STEP_VEHICLE_HALTING_NUMBER
             && variable != LAST_STEP_LENGTH && variable != VAR_CURRENT_TRAVELTIME
-            && variable != LANE_ALLOWED && variable != LANE_DISALLOWED && variable != VAR_WIDTH && variable != ID_COUNT) {
+            && variable != LANE_ALLOWED && variable != LANE_DISALLOWED && variable != VAR_WIDTH && variable != ID_COUNT
+       ) {
         return server.writeErrorStatusCmd(CMD_GET_LANE_VARIABLE, "Get Lane Variable: unsupported variable specified", outputStorage);
     }
     // begin response building
@@ -149,7 +145,7 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                     tempContent.writeUnsignedByte(TYPE_STRING);
                     tempContent.writeString(SUMOXMLDefinitions::LinkStates.getString(link->getState()));
                     ++cnt;
-                    // direction 
+                    // direction
                     tempContent.writeUnsignedByte(TYPE_STRING);
                     tempContent.writeString(SUMOXMLDefinitions::LinkDirections.getString(link->getDirection()));
                     ++cnt;
@@ -232,7 +228,7 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
             break;
             case LAST_STEP_OCCUPANCY:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(lane->getOccupancy());
+                tempMsg.writeDouble(lane->getNettoOccupancy());
                 break;
             case LAST_STEP_VEHICLE_HALTING_NUMBER: {
                 int halting = 0;
@@ -260,6 +256,11 @@ TraCIServerAPI_Lane::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                     tempMsg.writeDouble(lengthSum / (SUMOReal) vehs.size());
                 }
                 lane->releaseVehicles();
+            }
+            break;
+            case VAR_WAITING_TIME: {
+                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
+                tempMsg.writeDouble(lane->getWaitingSeconds());
             }
             break;
             case VAR_CURRENT_TRAVELTIME: {
@@ -356,20 +357,37 @@ TraCIServerAPI_Lane::getShape(const std::string& id, PositionVector& shape) {
 }
 
 
-TraCIRTree*
-TraCIServerAPI_Lane::getTree() {
-    TraCIRTree* t = new TraCIRTree();
-    const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
-    for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
-        const std::vector<MSLane*>& lanes = (*i)->getLanes();
-        for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-            Boundary b = (*j)->getShape().getBoxBoundary();
-            b.grow(3.);
-            t->addObject(*j, b);
+void
+TraCIServerAPI_Lane::StoringVisitor::add(const MSLane* const l) const {
+    switch (myDomain) {
+        case CMD_GET_VEHICLE_VARIABLE: {
+            const MSLane::VehCont& vehs = l->getVehiclesSecure();
+            for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
+                if (myShape.distance((*j)->getPosition()) <= myRange) {
+                    myIDs.insert((*j)->getID());
+                }
+            }
+            l->releaseVehicles();
         }
+        break;
+        case CMD_GET_EDGE_VARIABLE: {
+            if (myShape.size() != 1 || l->getShape().distance(myShape[0]) <= myRange) {
+                myIDs.insert(l->getEdge().getID());
+            }
+        }
+        break;
+        case CMD_GET_LANE_VARIABLE: {
+            if (myShape.size() != 1 || l->getShape().distance(myShape[0]) <= myRange) {
+                myIDs.insert(l->getID());
+            }
+        }
+        break;
+        default:
+            break;
+
     }
-    return t;
 }
+
 
 #endif
 

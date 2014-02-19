@@ -37,6 +37,7 @@
 #include <utils/common/StringTokenizer.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/ToString.h>
+#include <utils/xml/SUMORouteHandler.h>
 #include <utils/xml/SUMOSAXHandler.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
 #include "ROEdge.h"
@@ -85,6 +86,9 @@ RONetHandler::myStartElement(int element,
         case SUMO_TAG_CONNECTION:
             parseConnection(attrs);
             break;
+        case SUMO_TAG_BUS_STOP:
+            parseBusStop(attrs);
+            break;
         case SUMO_TAG_TAZ:
             parseDistrict(attrs);
             break;
@@ -108,48 +112,65 @@ RONetHandler::parseEdge(const SUMOSAXAttributes& attrs) {
     if (!ok) {
         throw ProcessError();
     }
-    // get the edge
-    myCurrentEdge = 0;
-    if (myCurrentName[0] == ':') {
-        // this is an internal edge - we will not use it
-        //  !!! recheck this; internal edges may be of importance during the dua
-        return;
-    }
-    const std::string from = attrs.get<std::string>(SUMO_ATTR_FROM, myCurrentName.c_str(), ok);
-    const std::string to = attrs.get<std::string>(SUMO_ATTR_TO, myCurrentName.c_str(), ok);
-    const std::string type = attrs.hasAttribute(SUMO_ATTR_FUNCTION) ? attrs.get<std::string>(SUMO_ATTR_FUNCTION, myCurrentName.c_str(), ok) : "";
-    const int priority = attrs.get<int>(SUMO_ATTR_PRIORITY, myCurrentName.c_str(), ok);
+    const SumoXMLEdgeFunc type = attrs.getEdgeFunc(ok);
     if (!ok) {
+        WRITE_ERROR("Edge '" + myCurrentName + "' has an unknown type.");
         return;
     }
-    RONode* fromNode = myNet.getNode(from);
-    if (fromNode == 0) {
-        fromNode = new RONode(from);
-        myNet.addNode(fromNode);
-    }
-    RONode* toNode = myNet.getNode(to);
-    if (toNode == 0) {
-        toNode = new RONode(to);
-        myNet.addNode(toNode);
+    // get the edge
+    RONode* fromNode;
+    RONode* toNode;
+    int priority;
+    myCurrentEdge = 0;
+    if (type == EDGEFUNC_INTERNAL) {
+        // this is an internal edge - for now we only us it the ensure a match
+        // between numerical edge ids in router and simulation
+        //  !!! recheck this; internal edges may be of importance during the dua
+        fromNode = 0;
+        toNode = 0;
+        priority = 0;
+    } else {
+        const std::string from = attrs.get<std::string>(SUMO_ATTR_FROM, myCurrentName.c_str(), ok);
+        const std::string to = attrs.get<std::string>(SUMO_ATTR_TO, myCurrentName.c_str(), ok);
+        priority = attrs.get<int>(SUMO_ATTR_PRIORITY, myCurrentName.c_str(), ok);
+        if (!ok) {
+            return;
+        }
+        fromNode = myNet.getNode(from);
+        if (fromNode == 0) {
+            fromNode = new RONode(from);
+            myNet.addNode(fromNode);
+        }
+        toNode = myNet.getNode(to);
+        if (toNode == 0) {
+            toNode = new RONode(to);
+            myNet.addNode(toNode);
+        }
     }
     // build the edge
     myCurrentEdge = myEdgeBuilder.buildEdge(myCurrentName, fromNode, toNode, priority);
-    if (myNet.addEdge(myCurrentEdge)) {
-        // get the type of the edge
-        myProcess = true;
-        if (type == "" || type == "normal" || type == "connector") {
+    // set the type
+    myProcess = true;
+    switch (type) {
+        case EDGEFUNC_CONNECTOR:
+        case EDGEFUNC_NORMAL:
             myCurrentEdge->setType(ROEdge::ET_NORMAL);
-        } else if (type == "source") {
+            break;
+        case EDGEFUNC_SOURCE:
             myCurrentEdge->setType(ROEdge::ET_SOURCE);
-        } else if (type == "sink") {
+            break;
+        case EDGEFUNC_SINK:
             myCurrentEdge->setType(ROEdge::ET_SINK);
-        } else if (type == "internal") {
+            break;
+        case EDGEFUNC_INTERNAL:
+            myCurrentEdge->setType(ROEdge::ET_INTERNAL);
             myProcess = false;
-        } else {
-            WRITE_ERROR("Edge '" + myCurrentName + "' has an unknown type.");
-            return;
-        }
-    } else {
+            break;
+        default:
+            throw ProcessError("Unhandled EdgeFunk " + toString(type));
+    }
+
+    if (!myNet.addEdge(myCurrentEdge)) {
         myCurrentEdge = 0;
     }
 }
@@ -230,6 +251,32 @@ RONetHandler::parseConnection(const SUMOSAXAttributes& attrs) {
         throw ProcessError("unknown to-edge '" + toID + "' in connection");
     }
     from->addFollower(to, dir);
+}
+
+
+void
+RONetHandler::parseBusStop(const SUMOSAXAttributes& attrs) {
+    bool ok = true;
+    SUMOVehicleParameter::Stop* stop = new SUMOVehicleParameter::Stop();
+    // get the id, throw if not given or empty...
+    std::string id = attrs.get<std::string>(SUMO_ATTR_ID, "busStop", ok);
+    // get the lane
+    stop->lane = attrs.get<std::string>(SUMO_ATTR_LANE, "busStop", ok);
+    if (!ok) {
+        throw ProcessError();
+    }
+    const ROEdge* edge = myNet.getEdge(stop->lane.substr(0, stop->lane.rfind("_")));
+    if (edge == 0) {
+        throw InvalidArgument("Unknown lane '" + stop->lane + "' for bus stop '" + id + "'.");
+    }
+    // get the positions
+    stop->startPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_STARTPOS, id.c_str(), ok, 0);
+    stop->endPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ENDPOS, id.c_str(), ok, edge->getLength());
+    const bool friendlyPos = attrs.getOpt<bool>(SUMO_ATTR_FRIENDLY_POS, id.c_str(), ok, false);
+    if (!ok || !SUMORouteHandler::checkStopPos(stop->startPos, stop->endPos, edge->getLength(), POSITION_EPS, friendlyPos)) {
+        throw InvalidArgument("Invalid position for bus stop '" + id + "'.");
+    }
+    myNet.addBusStop(id, stop);
 }
 
 

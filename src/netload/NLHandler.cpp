@@ -77,7 +77,7 @@ NLHandler::NLHandler(const std::string& file, MSNet& net,
       myDetectorBuilder(detBuilder), myTriggerBuilder(triggerBuilder),
       myEdgeControlBuilder(edgeBuilder), myJunctionControlBuilder(junctionBuilder),
       myAmInTLLogicMode(false), myCurrentIsBroken(false),
-      myHaveWarnedAboutDeprecatedLanes(false), 
+      myHaveWarnedAboutDeprecatedLanes(false),
       myLastParameterised(0),
       myHaveSeenInternalEdge(false) {}
 
@@ -189,6 +189,9 @@ NLHandler::myStartElement(int element,
                 break;
             case SUMO_TAG_TAZSINK:
                 addDistrictEdge(attrs, false);
+                break;
+            case SUMO_TAG_ROUNDABOUT:
+                addRoundabout(attrs);
                 break;
             default:
                 break;
@@ -384,6 +387,9 @@ NLHandler::openJunction(const SUMOSAXAttributes& attrs) {
     if (attrs.hasAttribute(SUMO_ATTR_SHAPE)) {
         // inner junctions have no shape
         shape = attrs.getOpt<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok, PositionVector());
+        if (shape.size() > 2) {
+            shape.closePolygon();
+        }
     }
     SUMOReal x = attrs.get<SUMOReal>(SUMO_ATTR_X, id.c_str(), ok);
     SUMOReal y = attrs.get<SUMOReal>(SUMO_ATTR_Y, id.c_str(), ok);
@@ -590,9 +596,9 @@ NLHandler::addPoly(const SUMOSAXAttributes& attrs) {
     if (!ok) {
         return;
     }
-    SUMOReal layer = attrs.getOpt<SUMOReal>(SUMO_ATTR_LAYER, id.c_str(), ok, (SUMOReal)GLO_POLYGON);
+    SUMOReal layer = attrs.getOpt<SUMOReal>(SUMO_ATTR_LAYER, id.c_str(), ok, Shape::DEFAULT_LAYER);
     bool fill = attrs.getOpt<bool>(SUMO_ATTR_FILL, id.c_str(), ok, false);
-    std::string type = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, "");
+    std::string type = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, Shape::DEFAULT_TYPE);
     std::string colorStr = attrs.get<std::string>(SUMO_ATTR_COLOR, id.c_str(), ok);
     RGBColor color = attrs.get<RGBColor>(SUMO_ATTR_COLOR, id.c_str(), ok);
     PositionVector shape = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok);
@@ -603,7 +609,7 @@ NLHandler::addPoly(const SUMOSAXAttributes& attrs) {
     }
     if (shape.size() != 0) {
         if (!myNet.getShapeContainer().addPolygon(id, type, color, layer, angle, imgFile, shape, fill)) {
-            WRITE_ERROR("Polygon '" + id + "' already exists.");
+            WRITE_WARNING("Skipping redefinition of polygon '" + id + "'.");
         }
     }
 }
@@ -1173,6 +1179,14 @@ NLHandler::addDistrict(const SUMOSAXAttributes& attrs) {
                 edge->addFollower(sink);
             }
         }
+        if (attrs.hasAttribute(SUMO_ATTR_SHAPE)) {
+            PositionVector shape = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, myCurrentDistrictID.c_str(), ok);
+            if (shape.size() != 0) {
+                if (!myNet.getShapeContainer().addPolygon(myCurrentDistrictID, "taz", RGBColor::parseColor("1.0,.33,.33"), 0, 0, "", shape, false)) {
+                    WRITE_WARNING("Skipping visualization of taz '" + myCurrentDistrictID + "', polygon already exists.");
+                }
+            }
+        }
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
         myCurrentIsBroken = true;
@@ -1198,6 +1212,24 @@ NLHandler::addDistrictEdge(const SUMOSAXAttributes& attrs, bool isSource) {
         }
     } else {
         WRITE_ERROR("At district '" + myCurrentDistrictID + "': succeeding edge '" + id + "' does not exist.");
+    }
+}
+
+
+void
+NLHandler::addRoundabout(const SUMOSAXAttributes& attrs) {
+    if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
+        std::vector<std::string> edgeIDs = attrs.getStringVector(SUMO_ATTR_EDGES);
+        for (std::vector<std::string>::iterator it = edgeIDs.begin(); it != edgeIDs.end(); ++it) {
+            MSEdge* edge = MSEdge::dictionary(*it);
+            if (edge == 0) {
+                WRITE_ERROR("Unknown edge '" + (*it) + "' in roundabout");
+            } else {
+                edge->markAsRoundabout();
+            }
+        }
+    } else {
+        WRITE_ERROR("Empty edges in roundabout.");
     }
 }
 

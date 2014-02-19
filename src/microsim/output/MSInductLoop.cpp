@@ -58,7 +58,7 @@
 // ===========================================================================
 MSInductLoop::MSInductLoop(const std::string& id, MSLane* const lane,
                            SUMOReal positionInMeters, bool splitByType) :
-    MSMoveReminder(id, lane), 
+    MSMoveReminder(id, lane),
     MSDetectorFileOutput(id),
     myPosition(positionInMeters), mySplitByType(splitByType),
     myLastLeaveTime(STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())),
@@ -98,7 +98,7 @@ MSInductLoop::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
         }
         enterDetectorByMove(veh, entryTime);
     }
-    if (newPos - veh.getVehicleType().getLength() > myPosition && oldPos - veh.getVehicleType().getLength() <= myPosition) {
+    if (newPos - veh.getVehicleType().getLength() > myPosition) {
         // vehicle passed the detector
         SUMOReal leaveTime = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
         leaveTime += (myPosition - oldPos + veh.getVehicleType().getLength()) / newSpeed;
@@ -111,18 +111,11 @@ MSInductLoop::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
 
 
 bool
-MSInductLoop::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/, MSMoveReminder::Notification reason) {
+MSInductLoop::notifyLeave(SUMOVehicle& veh, SUMOReal lastPos, MSMoveReminder::Notification reason) {
     if (reason != MSMoveReminder::NOTIFICATION_JUNCTION) {
-        // vehicle is on detector during lane change or arrival, or ...
-        leaveDetectorByLaneChange(veh);
+        leaveDetectorByLaneChange(veh, lastPos);
         return false;
     }
-    return true;
-}
-
-
-bool
-MSInductLoop::notifyEnter(SUMOVehicle& /* veh */, MSMoveReminder::Notification) {
     return true;
 }
 
@@ -192,7 +185,7 @@ MSInductLoop::getTimestepsSinceLastDetection() const {
 
 void
 MSInductLoop::writeXMLDetectorProlog(OutputDevice& dev) const {
-    dev.writeXMLHeader("detector", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.sf.net/xsd/det_e1_file.xsd\"");
+    dev.writeXMLHeader("detector", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo-sim.org/xsd/det_e1_file.xsd\"");
 }
 
 
@@ -292,10 +285,13 @@ MSInductLoop::leaveDetectorByMove(SUMOVehicle& veh,
 
 
 void
-MSInductLoop::leaveDetectorByLaneChange(SUMOVehicle& veh) {
+MSInductLoop::leaveDetectorByLaneChange(SUMOVehicle& veh, SUMOReal lastPos) {
     // Discard entry data
     myVehiclesOnDet.erase(&veh);
-    myDismissedVehicleNumber++;
+    if (lastPos > myPosition) {
+        // vehicle is on detector during lane change or arrival, or ...
+        myDismissedVehicleNumber++;
+    }
 }
 
 

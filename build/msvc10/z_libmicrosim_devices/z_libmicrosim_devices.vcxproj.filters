@@ -29,7 +29,10 @@
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Tripinfo.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Emissions.h">
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_BTreceiver.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_BTsender.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -52,7 +55,10 @@
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Tripinfo.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Emissions.cpp">
+    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_BTreceiver.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_BTsender.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>

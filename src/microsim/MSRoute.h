@@ -69,7 +69,7 @@ class MSRoute : public Named, public Parameterised {
 public:
     /// Constructor
     MSRoute(const std::string& id, const MSEdgeVector& edges,
-            unsigned int references, const RGBColor* const c,
+            const bool isPermanent, const RGBColor* const c,
             const std::vector<SUMOVehicleParameter::Stop>& stops);
 
     /// Destructor
@@ -158,11 +158,12 @@ public:
      *  Returns true if the distribution could be added,
      *  false if a route (distribution) with the same name already exists.
      *
-     * @param[in] id    the id for the new route distribution
-     * @param[in] route pointer to the distribution object
-     * @return          whether adding was successful
+     * @param[in] id         the id for the new route distribution
+     * @param[in] routeDist  pointer to the distribution object
+     * @param[in] permanent  whether the new route distribution survives more than one vehicle / flow
+     * @return               whether adding was successful
      */
-    static bool dictionary(const std::string& id, RandomDistributor<const MSRoute*>* routeDist);
+    static bool dictionary(const std::string& id, RandomDistributor<const MSRoute*>* const routeDist, const bool permanent = true);
 
     /** @brief Returns the named route or a sample from the named distribution.
      *
@@ -186,24 +187,17 @@ public:
     /// Clears the dictionary (delete all known routes, too)
     static void clear();
 
+    /// Checks the distribution whether it is permanent and deletes it if not
+    static void checkDist(const std::string& id);
+
     static void insertIDs(std::vector<std::string>& into);
-
-    /// @brief release the route (to be used as function pointer with RandomDistributor)
-    static void releaseRoute(const MSRoute* route) {
-        route->release();
-    }
-
-    static void setMaxRouteDistSize(unsigned int size) {
-        MaxRouteDistSize = size;
-    }
-
-    static unsigned int getMaxRouteDistSize() {
-        return MaxRouteDistSize;
-    }
 
 private:
     /// The list of edges to pass
     MSEdgeVector myEdges;
+
+    /// whether the route may be deleted after the last vehicle abandoned it
+    const bool myAmPermanent;
 
     /// Information by how many vehicles the route is used
     mutable unsigned int myReferenceCounter;
@@ -222,13 +216,10 @@ private:
     static RouteDict myDict;
 
     /// Definition of the dictionary container
-    typedef std::map<std::string, RandomDistributor<const MSRoute*>*> RouteDistDict;
+    typedef std::map<std::string, std::pair<RandomDistributor<const MSRoute*>*, bool> > RouteDistDict;
 
     /// The dictionary container
     static RouteDistDict myDistDict;
-
-    /// @brief the maximum size for each routeDistribution
-    static unsigned int MaxRouteDistSize;
 
 private:
     /** invalid assignment operator */

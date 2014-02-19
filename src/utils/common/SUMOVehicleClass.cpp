@@ -372,7 +372,7 @@ StringBijection<SUMOEmissionClass> SumoEmissionClassStrings(
 // additional constants
 // ===========================================================================
 
-const int SUMOVehicleClass_MAX = SVC_PEDESTRIAN;
+const int SUMOVehicleClass_MAX = SVC_CUSTOM2;
 const SVCPermissions SVCFreeForAll = std::numeric_limits<SVCPermissions>::max(); // all bits set to 1
 
 // ===========================================================================
@@ -561,7 +561,7 @@ const SUMOReal DEFAULT_VEH_SPEEDDEV(0.);
 const SUMOReal DEFAULT_VEH_WIDTH(2.);
 const SUMOReal DEFAULT_VEH_HEIGHT(1.5);
 const SumoXMLTag DEFAULT_VEH_FOLLOW_MODEL(SUMO_TAG_CF_KRAUSS);
-const std::string DEFAULT_VEH_LANE_CHANGE_MODEL("dkrajzew2008");
+const LaneChangeModel DEFAULT_VEH_LANE_CHANGE_MODEL(LCM_LC2013);
 const SUMOVehicleShape DEFAULT_VEH_SHAPE(SVS_UNKNOWN);
 const SUMOReal DEFAULT_VEH_TMP1(1.);
 const SUMOReal DEFAULT_VEH_TMP2(1.);

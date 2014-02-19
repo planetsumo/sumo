@@ -144,6 +144,11 @@ public:
     }
 
 
+    inline LaneChangeModel getLaneChangeModel() const {
+        return myParameter.lcModel;
+    }
+
+
     /** @brief Get vehicle's maximum speed [m/s].
      * @return The maximum speed (in m/s) of vehicles of this class
      */
@@ -155,7 +160,7 @@ public:
     /** @brief Computes and returns the speed deviation
      * @return A new, random speed deviation
      */
-    SUMOReal computeChosenSpeedDeviation(MTRand& rng) const;
+    SUMOReal computeChosenSpeedDeviation(MTRand& rng, const SUMOReal minDevFactor = 0.2) const;
 
 
     /** @brief Get the default probability of this vehicle type
@@ -279,7 +284,7 @@ public:
      * If the given value<0 then the one from the original type will
      *  be used.
      *
-     * @param[in] offset The new minimum gap of this type
+     * @param[in] minGap The new minimum gap of this type
      */
     void setMinGap(const SUMOReal& minGap);
 
@@ -394,7 +399,7 @@ public:
     }
 
 
-    const Parameterised& getParameter() const {
+    const SUMOVTypeParameter& getParameter() const {
         return myParameter;
     }
 

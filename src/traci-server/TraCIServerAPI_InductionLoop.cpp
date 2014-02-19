@@ -44,12 +44,6 @@
 
 
 // ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
-
-
-// ===========================================================================
 // method definitions
 // ===========================================================================
 bool
@@ -177,14 +171,16 @@ TraCIServerAPI_InductionLoop::getPosition(const std::string& id, Position& p) {
 }
 
 
-TraCIRTree*
+NamedRTree*
 TraCIServerAPI_InductionLoop::getTree() {
-    TraCIRTree* t = new TraCIRTree();
+    NamedRTree* t = new NamedRTree();
     const std::map<std::string, MSDetectorFileOutput*>& dets = MSNet::getInstance()->getDetectorControl().getTypedDetectors(SUMO_TAG_INDUCTION_LOOP).getMyMap();
     for (std::map<std::string, MSDetectorFileOutput*>::const_iterator i = dets.begin(); i != dets.end(); ++i) {
         MSInductLoop* il = static_cast<MSInductLoop*>((*i).second);
         Position p = il->getLane()->getShape().positionAtOffset(il->getPosition());
-        t->addObject(il, p);
+        const float cmin[2] = {(float) p.x(), (float) p.y()};
+        const float cmax[2] = {(float) p.x(), (float) p.y()};
+        t->Insert(cmin, cmax, il);
     }
     return t;
 }

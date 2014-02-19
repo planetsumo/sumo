@@ -62,7 +62,9 @@ MSVehicleControl::MSVehicleControl() :
     myEndedVehNo(0),
     myDiscarded(0),
     myCollisions(0),
-    myTeleports(0),
+    myTeleportsJam(0),
+    myTeleportsYield(0),
+    myTeleportsWrongLane(0),
     myTotalDepartureDelay(0),
     myTotalTravelTime(0),
     myDefaultVTypeMayBeDeleted(true),
@@ -104,7 +106,7 @@ MSVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                const MSRoute* route,
                                const MSVehicleType* type) {
     myLoadedVehNo++;
-    MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG), myLoadedVehNo - 1);
+    MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG));
     MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
     return built;
 }
@@ -113,36 +115,16 @@ MSVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
 void
 MSVehicleControl::scheduleVehicleRemoval(SUMOVehicle* veh) {
     assert(myRunningVehNo > 0);
+    myTotalTravelTime += STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep() - veh->getDeparture());
+    myRunningVehNo--;
+    MSNet::getInstance()->informVehicleStateListener(veh, MSNet::VEHICLE_STATE_ARRIVED);
     for (std::vector<MSDevice*>::const_iterator i = veh->getDevices().begin(); i != veh->getDevices().end(); ++i) {
         (*i)->generateOutput();
     }
     if (OptionsCont::getOptions().isSet("tripinfo-output")) {
         OutputDevice::getDeviceByOption("tripinfo-output").closeTag();
     }
-    myTotalTravelTime += STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep() - veh->getDeparture());
-    myRunningVehNo--;
-    MSNet::getInstance()->informVehicleStateListener(veh, MSNet::VEHICLE_STATE_ARRIVED);
     deleteVehicle(veh);
-}
-
-
-void
-MSVehicleControl::printMeanWaitingTime(OutputDevice& od) const {
-    if (getDepartedVehicleNo() == 0) {
-        od << -1.;
-    } else {
-        od << (myTotalDepartureDelay / (SUMOReal) getDepartedVehicleNo());
-    }
-}
-
-
-void
-MSVehicleControl::printMeanTravelTime(OutputDevice& od) const {
-    if (myEndedVehNo == 0) {
-        od << -1.;
-    } else {
-        od << (myTotalTravelTime / (SUMOReal) myEndedVehNo);
-    }
 }
 
 
@@ -169,19 +151,7 @@ MSVehicleControl::saveState(OutputDevice& out) {
     out.writeAttr(SUMO_ATTR_DEPART, myTotalDepartureDelay).writeAttr(SUMO_ATTR_TIME, myTotalTravelTime).closeTag();
     // save vehicle types
     for (VTypeDictType::iterator it = myVTypeDict.begin(); it != myVTypeDict.end(); ++it) {
-        out.openTag(SUMO_TAG_VTYPE).writeAttr(SUMO_ATTR_ID, it->second->getID());
-        out.writeAttr(SUMO_ATTR_LENGTH, it->second->getLength());
-        out.writeAttr(SUMO_ATTR_MINGAP, it->second->getMinGap());
-        out.writeAttr(SUMO_ATTR_MAXSPEED, it->second->getMaxSpeed());
-        out.writeAttr(SUMO_ATTR_VCLASS, (int)it->second->getVehicleClass());
-        out.writeAttr(SUMO_ATTR_EMISSIONCLASS, (int)it->second->getEmissionClass());
-        out.writeAttr(SUMO_ATTR_SHAPE, (int)it->second->getGuiShape());
-        out.writeAttr(SUMO_ATTR_WIDTH, it->second->getWidth());
-        out.writeAttr(SUMO_ATTR_PROB, it->second->getDefaultProbability());
-        out.writeAttr(SUMO_ATTR_SPEEDFACTOR, it->second->getSpeedFactor());
-        out.writeAttr(SUMO_ATTR_SPEEDDEV, it->second->getSpeedDeviation());
-        out.writeAttr(SUMO_ATTR_COLOR, it->second->getColor());
-        out.closeTag();
+        it->second->getParameter().write(out);
     }
     for (VTypeDistDictType::iterator it = myVTypeDistDict.begin(); it != myVTypeDistDict.end(); ++it) {
         out.openTag(SUMO_TAG_VTYPE_DISTRIBUTION).writeAttr(SUMO_ATTR_ID, it->first);

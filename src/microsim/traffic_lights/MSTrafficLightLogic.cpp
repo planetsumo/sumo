@@ -101,7 +101,7 @@ MSTrafficLightLogic::SwitchCommand::deschedule(MSTrafficLightLogic* tlLogic) {
  * member method definitions
  * ----------------------------------------------------------------------- */
 MSTrafficLightLogic::MSTrafficLightLogic(MSTLLogicControl& tlcontrol, const std::string& id,
-    const std::string& programID, SUMOTime delay, const std::map<std::string, std::string>& parameters) :
+        const std::string& programID, SUMOTime delay, const std::map<std::string, std::string>& parameters) :
     Named(id), Parameterised(parameters),
     myProgramID(programID),
     myCurrentDurationIncrement(-1),
@@ -114,6 +114,26 @@ MSTrafficLightLogic::MSTrafficLightLogic(MSTLLogicControl& tlcontrol, const std:
 
 void
 MSTrafficLightLogic::init(NLDetectorBuilder&) {
+    const Phases& phases = getPhases();
+    if (phases.size() > 1) {
+        // warn about transistions from green to red without intermediate yellow
+        for (int i = 0; i < (int)phases.size(); ++i) {
+            const int iNext = (i + 1) % phases.size();
+            const std::string& state1 = phases[i]->getState();
+            const std::string& state2 = phases[iNext]->getState();
+            assert(state1.size() == state2.size());
+            for (int j = 0; j < (int)MIN2(state1.size(), state2.size()); ++j) {
+                if ((LinkState)state2[j] == LINKSTATE_TL_RED && (
+                            (LinkState)state1[j] == LINKSTATE_TL_GREEN_MAJOR
+                            || (LinkState)state1[j] == LINKSTATE_TL_GREEN_MINOR)) {
+                    WRITE_WARNING("Missing yellow phase in tlLogic '" + getID() 
+                            + "', program '" + getProgramID() + "' for tl-index " + toString(j) 
+                            + " when switching to phase " + toString(iNext));
+                    return; // one warning per program is enough
+                }
+            }
+        }
+    }
 }
 
 

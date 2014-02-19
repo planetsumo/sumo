@@ -343,7 +343,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_Emissions.cpp"
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_BTreceiver.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_BTsender.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_Example.cpp"
 				>
 			</File>
 			<File
@@ -377,7 +385,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_Emissions.h"
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_BTreceiver.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_BTsender.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_Example.h"
 				>
 			</File>
 			<File

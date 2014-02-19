@@ -2,7 +2,7 @@
 /// @file    MSDevice_Example.cpp
 /// @author  Jakob Erdmann
 /// @date    11.06.2013
-/// @version $Id: MSDevice_Example.cpp 13989 2013-05-23 11:40:37Z namdre $
+/// @version $Id$
 ///
 // A device which stands as an implementation example and which outputs movereminder calls
 /****************************************************************************/
@@ -33,10 +33,12 @@
 #include "MSDevice.h"
 #include <utils/common/SUMOTime.h>
 
+
 // ===========================================================================
 // class declarations
 // ===========================================================================
 class SUMOVehicle;
+
 
 // ===========================================================================
 // class definitions
@@ -51,10 +53,11 @@ class SUMOVehicle;
  */
 class MSDevice_Example : public MSDevice {
 public:
-
     /** @brief Inserts MSDevice_Example-options
+     * @param[filled] oc The options container to add the options to
      */
-    static void insertOptions();
+    static void insertOptions(OptionsCont& oc);
+
 
     /** @brief Build devices for the given vehicle, if needed
      *
@@ -64,12 +67,18 @@ public:
      * The built device is stored in the given vector.
      *
      * @param[in] v The vehicle for which a device may be built
-     * @param[in, filled] into The vector to store the built device in
+     * @param[filled] into The vector to store the built device in
      */
     static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
 
 
+
 public:
+    /// @brief Destructor.
+    ~MSDevice_Example();
+
+
+
     /// @name Methods called on vehicle movement / state change, overwriting MSDevice
     /// @{
 
@@ -110,6 +119,7 @@ public:
     /// @}
 
 
+
     /** @brief Called on writing tripinfo output
      *
      * @param[in] os The stream to write the information into
@@ -119,9 +129,6 @@ public:
     void generateOutput() const;
 
 
-    /// @brief Destructor.
-    ~MSDevice_Example();
-
 
 private:
     /** @brief Constructor
@@ -129,23 +136,24 @@ private:
      * @param[in] holder The vehicle that holds this device
      * @param[in] id The ID of the device
      */
-    MSDevice_Example(SUMOVehicle& holder, const std::string& id, SUMOReal customValue1, 
-            SUMOReal customValue2, SUMOReal customValue3);
+    MSDevice_Example(SUMOVehicle& holder, const std::string& id, SUMOReal customValue1,
+                     SUMOReal customValue2, SUMOReal customValue3);
+
 
 
 private:
-
     // private state members of the Example device
 
     /// @brief a value which is initialised based on a commandline/configuration option
     SUMOReal myCustomValue1;
+
     /// @brief a value which is initialised based on a vehicle parameter
     SUMOReal myCustomValue2;
+
     /// @brief a value which is initialised based on a vType parameter
     SUMOReal myCustomValue3;
 
-    /// @brief the vehicles which explicitly carry a device
-    static std::set<std::string> myExplicitIDs;
+
 
 private:
     /// @brief Invalidated copy constructor.

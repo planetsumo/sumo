@@ -42,6 +42,7 @@
 bool MSGlobals::gOmitEmptyEdgesOnDump;
 
 bool MSGlobals::gUsingInternalLanes;
+SUMOTime MSGlobals::gIgnoreJunctionBlocker;
 
 SUMOTime MSGlobals::gTimeToGridlock;
 SUMOTime MSGlobals::gTimeToGridlockHighways;
@@ -60,9 +61,6 @@ MELoop* MSGlobals::gMesoNet;
 #else
 const bool MSGlobals::gUseMesoSim = false;
 #endif
-
-bool MSGlobals::gDebugFlag1 = false;
-bool MSGlobals::gDebugFlag2 = false;
 
 /****************************************************************************/
 

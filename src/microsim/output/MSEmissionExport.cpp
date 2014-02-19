@@ -1,6 +1,7 @@
 /****************************************************************************/
 /// @file    MSEmissionExport.cpp
 /// @author  Mario Krumnow
+/// @date    2012-04-26
 /// @version $Id$
 ///
 // Realises dumping Emission Data
@@ -63,17 +64,17 @@ MSEmissionExport::write(OutputDevice& of, SUMOTime timestep) {
             continue;
         }
 
-            std::string fclass = veh->getVehicleType().getID();
-            fclass = fclass.substr(0, fclass.find_first_of("@"));
+        std::string fclass = veh->getVehicleType().getID();
+        fclass = fclass.substr(0, fclass.find_first_of("@"));
 
-            Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
-            of.openTag("vehicle").writeAttr("id", veh->getID()).writeAttr("eclass", veh->getVehicleType().getEmissionClass()).writeAttr("co2", veh->getCO2Emissions());
-            of.writeAttr("co", veh->getCOEmissions()).writeAttr("hc", veh->getHCEmissions()).writeAttr("nox", veh->getNOxEmissions());
-            of.writeAttr("pmx", veh->getPMxEmissions()).writeAttr("fuel", veh->getFuelConsumption()).writeAttr("noise", veh->getHarmonoise_NoiseEmissions());
-            of.writeAttr("route", veh->getRoute().getID()).writeAttr("type", fclass).writeAttr("waiting", veh->getWaitingSeconds());
-            of.writeAttr("lane", veh->getLane()->getID()).writeAttr("pos", veh->getPositionOnLane()).writeAttr("speed", veh->getSpeed() * 3.6);
-            of.writeAttr("angle", veh->getAngle()).writeAttr("x", pos.x()).writeAttr("y", pos.y());
-            of.closeTag();
+        Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
+        of.openTag("vehicle").writeAttr("id", veh->getID()).writeAttr("eclass", veh->getVehicleType().getEmissionClass()).writeAttr("CO2", veh->getCO2Emissions());
+        of.writeAttr("CO", veh->getCOEmissions()).writeAttr("HC", veh->getHCEmissions()).writeAttr("NOx", veh->getNOxEmissions());
+        of.writeAttr("PMx", veh->getPMxEmissions()).writeAttr("fuel", veh->getFuelConsumption()).writeAttr("noise", veh->getHarmonoise_NoiseEmissions());
+        of.writeAttr("route", veh->getRoute().getID()).writeAttr("type", fclass).writeAttr("waiting", veh->getWaitingSeconds());
+        of.writeAttr("lane", veh->getLane()->getID()).writeAttr("pos", veh->getPositionOnLane()).writeAttr("speed", veh->getSpeed());
+        of.writeAttr("angle", veh->getAngle()).writeAttr("x", pos.x()).writeAttr("y", pos.y());
+        of.closeTag();
     }
     of.closeTag();
 }

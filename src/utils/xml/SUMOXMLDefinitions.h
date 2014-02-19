@@ -334,6 +334,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_NUMBER,
     SUMO_ATTR_DURATION,
     SUMO_ATTR_UNTIL,
+    SUMO_ATTR_ROUTEPROBE,
     /** trigger: the time of the step */
     SUMO_ATTR_TIME,
     /** weights: time range begin */
@@ -663,6 +664,16 @@ enum TrafficLightType {
 };
 
 
+/**
+ * @enum LaneChangeModel
+ */
+enum LaneChangeModel {
+    LCM_DK2008,
+    LCM_LC2013,
+    LCM_JE2013
+};
+
+
 //@}
 
 /**
@@ -698,6 +709,8 @@ public:
     static StringBijection<LinkDirection> LinkDirections;
 
     static StringBijection<TrafficLightType> TrafficLightTypes;
+
+    static StringBijection<LaneChangeModel> LaneChangeModels;
     //@}
 
 private:
@@ -713,6 +726,8 @@ private:
     static StringBijection<LinkDirection>::Entry linkDirectionValues[];
 
     static StringBijection<TrafficLightType>::Entry trafficLightTypesVales[];
+
+    static StringBijection<LaneChangeModel>::Entry laneChangeModelValues[];
 
 };
 

@@ -131,12 +131,16 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
     if (attrs.hasAttribute(SUMO_ATTR_NUMBER)) {
         ret->repetitionNumber = attrs.get<int>(SUMO_ATTR_NUMBER, id.c_str(), ok);
         ret->setParameter |= VEHPARS_PERIODFREQ_SET;
-        if (ok && ret->repetitionNumber < 0) {
-            delete ret;
-            throw ProcessError("Negative repetition number in the definition of flow '" + id + "'.");
-        }
-        if (ok && ret->repetitionOffset < 0) {
-            ret->repetitionOffset = (end - ret->depart) / ret->repetitionNumber;
+        if (ret->repetitionNumber == 0) {
+            WRITE_WARNING("Flow '" + id + "' has 0 vehicles; will skip it...");
+        } else {
+            if (ok && ret->repetitionNumber < 0) {
+                delete ret;
+                throw ProcessError("Negative repetition number in the definition of flow '" + id + "'.");
+            }
+            if (ok && ret->repetitionOffset < 0) {
+                ret->repetitionOffset = (end - ret->depart) / ret->repetitionNumber;
+            }
         }
     } else {
         if (ok && ret->repetitionOffset <= 0) {
@@ -167,50 +171,19 @@ SUMOVehicleParserHelper::parseVehicleAttributes(const SUMOSAXAttributes& attrs,
     } else {
         id = attrs.get<std::string>(SUMO_ATTR_ID, 0, ok);
     }
-    if (attrs.hasAttribute(SUMO_ATTR_PERIOD) ^ attrs.hasAttribute(SUMO_ATTR_REPNUMBER)) {
-        throw ProcessError("The attributes '" + attrs.getName(SUMO_ATTR_PERIOD) +
-                           "' and '" + attrs.getName(SUMO_ATTR_REPNUMBER) +
-                           "' have to be given both in the definition of '" + id + "'.");
-    }
     SUMOVehicleParameter* ret = new SUMOVehicleParameter();
     ret->id = id;
     try {
         parseCommonAttributes(attrs, ret, "vehicle");
+        if (!skipDepart) {
+            const std::string helper = attrs.get<std::string>(SUMO_ATTR_DEPART, ret->id.c_str(), ok);
+            if (!ok || !SUMOVehicleParameter::parseDepart(helper, "vehicle", ret->id, ret->depart, ret->departProcedure, errorMsg)) {
+                throw ProcessError(errorMsg);
+            }
+        }
     } catch (ProcessError&) {
         delete ret;
         throw;
-    }
-    if (!skipDepart) {
-        const std::string helper = attrs.get<std::string>(SUMO_ATTR_DEPART, 0, ok);
-        if (helper == "triggered") {
-            ret->departProcedure = DEPART_TRIGGERED;
-        } else {
-            ret->departProcedure = DEPART_GIVEN;
-            ret->depart = attrs.getSUMOTimeReporting(SUMO_ATTR_DEPART, id.c_str(), ok);
-            if (ok && ret->depart < 0) {
-                errorMsg = "Negative departure time in the definition of '" + id + "'.";
-                ok = false;
-            }
-        }
-    }
-    // parse repetition information
-    if (attrs.hasAttribute(SUMO_ATTR_PERIOD)) {
-        WRITE_WARNING("period and repno are deprecated in vehicle '" + id + "', use flows instead.");
-        ret->setParameter |= VEHPARS_PERIODFREQ_SET;
-#ifdef HAVE_SUBSECOND_TIMESTEPS
-        ret->repetitionOffset = attrs.getSUMOTimeReporting(SUMO_ATTR_PERIOD, id.c_str(), ok);
-#else
-        ret->repetitionOffset = attrs.get<SUMOReal>(SUMO_ATTR_PERIOD, id.c_str(), ok);
-#endif
-    }
-    if (attrs.hasAttribute(SUMO_ATTR_REPNUMBER)) {
-        ret->setParameter |= VEHPARS_PERIODNUM_SET;
-        ret->repetitionNumber = attrs.get<int>(SUMO_ATTR_REPNUMBER, id.c_str(), ok);
-    }
-
-    if (!ok) {
-        delete ret;
-        throw ProcessError(errorMsg);
     }
     return ret;
 }
@@ -224,23 +197,23 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     // parse route information
     if (attrs.hasAttribute(SUMO_ATTR_ROUTE)) {
         ret->setParameter |= VEHPARS_ROUTE_SET; // !!! needed?
-        ret->routeid = attrs.get<std::string>(SUMO_ATTR_ROUTE, 0, ok);
+        ret->routeid = attrs.get<std::string>(SUMO_ATTR_ROUTE, ret->id.c_str(), ok);
     }
     // parse type information
     if (attrs.hasAttribute(SUMO_ATTR_TYPE)) {
         ret->setParameter |= VEHPARS_VTYPE_SET; // !!! needed?
-        ret->vtypeid = attrs.get<std::string>(SUMO_ATTR_TYPE, 0, ok);
+        ret->vtypeid = attrs.get<std::string>(SUMO_ATTR_TYPE, ret->id.c_str(), ok);
     }
     // parse line information
     if (attrs.hasAttribute(SUMO_ATTR_LINE)) {
         ret->setParameter |= VEHPARS_LINE_SET; // !!! needed?
-        ret->line = attrs.get<std::string>(SUMO_ATTR_LINE, 0, ok);
+        ret->line = attrs.get<std::string>(SUMO_ATTR_LINE, ret->id.c_str(), ok);
     }
     // parse zone information
     if (attrs.hasAttribute(SUMO_ATTR_FROM_TAZ) && attrs.hasAttribute(SUMO_ATTR_TO_TAZ)) {
         ret->setParameter |= VEHPARS_TAZ_SET;
-        ret->fromTaz = attrs.get<std::string>(SUMO_ATTR_FROM_TAZ, 0, ok);
-        ret->toTaz = attrs.get<std::string>(SUMO_ATTR_TO_TAZ, 0, ok);
+        ret->fromTaz = attrs.get<std::string>(SUMO_ATTR_FROM_TAZ, ret->id.c_str(), ok);
+        ret->toTaz = attrs.get<std::string>(SUMO_ATTR_TO_TAZ, ret->id.c_str(), ok);
     }
     // parse reroute information
     if (attrs.getOpt<bool>(SUMO_ATTR_REROUTE, 0, ok, false)) {
@@ -251,7 +224,7 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     // parse depart lane information
     if (attrs.hasAttribute(SUMO_ATTR_DEPARTLANE)) {
         ret->setParameter |= VEHPARS_DEPARTLANE_SET;
-        const std::string helper = attrs.get<std::string>(SUMO_ATTR_DEPARTLANE, 0, ok);
+        const std::string helper = attrs.get<std::string>(SUMO_ATTR_DEPARTLANE, ret->id.c_str(), ok);
         if (!SUMOVehicleParameter::parseDepartLane(helper, element, ret->id, ret->departLane, ret->departLaneProcedure, error)) {
             throw ProcessError(error);
         }
@@ -259,7 +232,7 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     // parse depart position information
     if (attrs.hasAttribute(SUMO_ATTR_DEPARTPOS)) {
         ret->setParameter |= VEHPARS_DEPARTPOS_SET;
-        const std::string helper = attrs.get<std::string>(SUMO_ATTR_DEPARTPOS, 0, ok);
+        const std::string helper = attrs.get<std::string>(SUMO_ATTR_DEPARTPOS, ret->id.c_str(), ok);
         if (!SUMOVehicleParameter::parseDepartPos(helper, element, ret->id, ret->departPos, ret->departPosProcedure, error)) {
             throw ProcessError(error);
         }
@@ -267,7 +240,7 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     // parse depart speed information
     if (attrs.hasAttribute(SUMO_ATTR_DEPARTSPEED)) {
         ret->setParameter |= VEHPARS_DEPARTSPEED_SET;
-        std::string helper = attrs.get<std::string>(SUMO_ATTR_DEPARTSPEED, 0, ok);
+        std::string helper = attrs.get<std::string>(SUMO_ATTR_DEPARTSPEED, ret->id.c_str(), ok);
         if (!SUMOVehicleParameter::parseDepartSpeed(helper, element, ret->id, ret->departSpeed, ret->departSpeedProcedure, error)) {
             throw ProcessError(error);
         }
@@ -276,7 +249,7 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     // parse arrival lane information
     if (attrs.hasAttribute(SUMO_ATTR_ARRIVALLANE)) {
         ret->setParameter |= VEHPARS_ARRIVALLANE_SET;
-        std::string helper = attrs.get<std::string>(SUMO_ATTR_ARRIVALLANE, 0, ok);
+        std::string helper = attrs.get<std::string>(SUMO_ATTR_ARRIVALLANE, ret->id.c_str(), ok);
         if (!SUMOVehicleParameter::parseArrivalLane(helper, element, ret->id, ret->arrivalLane, ret->arrivalLaneProcedure, error)) {
             throw ProcessError(error);
         }
@@ -284,7 +257,7 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     // parse arrival position information
     if (attrs.hasAttribute(SUMO_ATTR_ARRIVALPOS)) {
         ret->setParameter |= VEHPARS_ARRIVALPOS_SET;
-        std::string helper = attrs.get<std::string>(SUMO_ATTR_ARRIVALPOS, 0, ok);
+        std::string helper = attrs.get<std::string>(SUMO_ATTR_ARRIVALPOS, ret->id.c_str(), ok);
         if (!SUMOVehicleParameter::parseArrivalPos(helper, element, ret->id, ret->arrivalPos, ret->arrivalPosProcedure, error)) {
             throw ProcessError(error);
         }
@@ -292,7 +265,7 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     // parse arrival speed information
     if (attrs.hasAttribute(SUMO_ATTR_ARRIVALSPEED)) {
         ret->setParameter |= VEHPARS_ARRIVALSPEED_SET;
-        std::string helper = attrs.get<std::string>(SUMO_ATTR_ARRIVALSPEED, 0, ok);
+        std::string helper = attrs.get<std::string>(SUMO_ATTR_ARRIVALSPEED, ret->id.c_str(), ok);
         if (!SUMOVehicleParameter::parseArrivalSpeed(helper, element, ret->id, ret->arrivalSpeed, ret->arrivalSpeedProcedure, error)) {
             throw ProcessError(error);
         }
@@ -305,15 +278,15 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     } else {
         ret->color = RGBColor::DEFAULT_COLOR;
     }
-    // parse person number
-    if (attrs.hasAttribute(SUMO_ATTR_PERSON_NUMBER)) {
-        ret->setParameter |= VEHPARS_PERSON_NUMBER_SET;
-        ret->personNumber = attrs.get<int>(SUMO_ATTR_PERSON_NUMBER, 0, ok);
-    }
     // parse person capacity
     if (attrs.hasAttribute(SUMO_ATTR_PERSON_CAPACITY)) {
         ret->setParameter |= VEHPARS_PERSON_CAPACITY_SET;
-        ret->personCapacity = attrs.get<int>(SUMO_ATTR_PERSON_CAPACITY, 0, ok);
+        ret->personCapacity = attrs.get<int>(SUMO_ATTR_PERSON_CAPACITY, ret->id.c_str(), ok);
+    }
+    // parse person number
+    if (attrs.hasAttribute(SUMO_ATTR_PERSON_NUMBER)) {
+        ret->setParameter |= VEHPARS_PERSON_NUMBER_SET;
+        ret->personNumber = attrs.get<int>(SUMO_ATTR_PERSON_NUMBER, ret->id.c_str(), ok);
     }
 }
 
@@ -391,6 +364,16 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
     if (attrs.hasAttribute(SUMO_ATTR_PROB)) {
         vtype->defaultProbability = attrs.get<SUMOReal>(SUMO_ATTR_PROB, vtype->id.c_str(), ok);
         vtype->setParameter |= VTYPEPARS_PROBABILITY_SET;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_LANE_CHANGE_MODEL)) {
+        const std::string lcmS = attrs.get<std::string>(SUMO_ATTR_LANE_CHANGE_MODEL, vtype->id.c_str(), ok);
+        if (SUMOXMLDefinitions::LaneChangeModels.hasString(lcmS)) {
+            vtype->lcModel = SUMOXMLDefinitions::LaneChangeModels.get(lcmS);
+            vtype->setParameter |= VTYPEPARS_LCM_SET;
+        } else {
+            WRITE_ERROR("Unknown lane change model '" + lcmS + "' when parsing vtype '" + vtype->id + "'");
+            throw ProcessError();
+        }
     }
     try {
         parseVTypeEmbedded(*vtype, SUMO_TAG_CF_KRAUSS, attrs, true);
@@ -567,28 +550,6 @@ SUMOVehicleParserHelper::parseGuiShape(const SUMOSAXAttributes& attrs, const std
         WRITE_ERROR("The shape '" + vclassS + "' for " + attrs.getObjectType() + " '" + id + "' is not known.");
         return SVS_UNKNOWN;
     }
-}
-
-
-void
-SUMOVehicleParserHelper::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs) {
-    stop.setParameter = 0;
-    if (attrs.hasAttribute(SUMO_ATTR_ENDPOS)) {
-        stop.setParameter |= STOP_END_SET;
-    }
-    if (attrs.hasAttribute(SUMO_ATTR_STARTPOS)) {
-        stop.setParameter |= STOP_START_SET;
-    }
-    if (attrs.hasAttribute(SUMO_ATTR_TRIGGERED)) {
-        stop.setParameter |= STOP_TRIGGER_SET;
-    }
-    if (attrs.hasAttribute(SUMO_ATTR_PARKING)) {
-        stop.setParameter |= STOP_PARKING_SET;
-    }
-    if (attrs.hasAttribute(SUMO_ATTR_EXPECTED)) {
-        stop.setParameter |= STOP_EXPECTED_SET;
-    }
-    // don't like this (dkrajzew)
 }
 
 /****************************************************************************/

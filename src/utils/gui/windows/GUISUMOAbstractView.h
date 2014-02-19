@@ -138,8 +138,12 @@ public:
     virtual long onPaint(FXObject*, FXSelector, void*);
     virtual long onLeftBtnPress(FXObject*, FXSelector, void*);
     virtual long onLeftBtnRelease(FXObject*, FXSelector, void*);
-    virtual long onMiddleBtnPress(FXObject*, FXSelector, void*) { return 1; }
-    virtual long onMiddleBtnRelease(FXObject*, FXSelector, void*) { return 1; }
+    virtual long onMiddleBtnPress(FXObject*, FXSelector, void*) {
+        return 1;
+    }
+    virtual long onMiddleBtnRelease(FXObject*, FXSelector, void*) {
+        return 1;
+    }
     virtual long onRightBtnPress(FXObject*, FXSelector, void*);
     virtual long onRightBtnRelease(FXObject*, FXSelector, void*);
     virtual long onMouseWheel(FXObject*, FXSelector, void*);
@@ -331,6 +335,9 @@ protected:
 
     /// returns the id of the object at position using GL_SELECT
     GUIGlID getObjectAtPosition(Position pos);
+
+    /// returns the ids of the object at position within the given (rectangular) radius using GL_SELECT
+    std::vector<GUIGlID> getObjectsAtPosition(Position pos, SUMOReal radius);
 
     /// returns the ids of all objects in the given boundary
     std::vector<GUIGlID> getObjectsInBoundary(const Boundary& bound);

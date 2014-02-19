@@ -78,7 +78,9 @@ public:
         /// @brief An edge where vehicles are inserted at (no vehicle may come from back)
         ET_SOURCE,
         /// @brief An edge where vehicles disappear (no vehicle may leave this edge)
-        ET_SINK
+        ET_SINK,
+        /// @brief An internal edge which models driving across a junction. This is currently not used for routing
+        ET_INTERNAL
     };
 
 
@@ -272,7 +274,6 @@ public:
     }
 
 
-#ifdef HAVE_INTERNAL // catchall for internal stuff
     /** @brief Returns the number of edges this edge is connected to
      *
      * If this edge's type is set to "source", 0 is returned, otherwise
@@ -290,7 +291,6 @@ public:
     ROEdge* getApproaching(unsigned int pos) const {
         return myApproachingEdges[pos];
     }
-#endif
 
 
     /** @brief Returns the effort for this edge
@@ -418,10 +418,8 @@ protected:
     /// @brief List of edges that may be approached from this edge
     std::vector<ROEdge*> myFollowingEdges;
 
-#ifdef HAVE_INTERNAL // catchall for internal stuff
     /// @brief List of edges that approached this edge
     std::vector<ROEdge*> myApproachingEdges;
-#endif
 
     /// @brief The type of the edge
     EdgeType myType;

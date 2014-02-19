@@ -98,6 +98,11 @@ public:
         return myProcessing;
     }
 
+    /** @brief the coordinate transformation that was loaded fron an input file
+     */
+    static GeoConvHelper& getLoaded() {
+        return myLoaded;
+    }
 
     /** @brief compute the location attributes which will be used for output
      * based on the loaded location data, the given options and the transformations applied during processing
@@ -169,6 +174,7 @@ private:
         SIMPLE,
         UTM,
         DHDN,
+        DHDN_UTM,
         PROJ
     };
 
@@ -178,6 +184,12 @@ private:
 #ifdef HAVE_PROJ
     /// The proj.4-projection to use
     projPJ myProjection;
+
+    /// The inverse proj.4-projection to use first
+    projPJ myInverseProjection;
+
+    /// The geo proj.4-projection which is the target of the inverse projection
+    projPJ myGeoProjection;
 #endif
 
     /// The offset to apply

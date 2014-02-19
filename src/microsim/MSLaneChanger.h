@@ -80,6 +80,8 @@ public:
         MSVehicle*                hoppedVeh;
         /// the vehicle that really wants to change to this lane
         MSVehicle*                lastBlocked;
+        /// the first vehicle on this edge that wants to change to this lane
+        MSVehicle*                firstBlocked;
 
         SUMOReal dens;
 
@@ -142,33 +144,15 @@ protected:
         If there is none, myChanger.end() is returned. */
     ChangerIt findCandidate();
 
-    int change2right(
+    /* @brief check whether lane changing in the given direction is desirable
+     * and possible */
+    int checkChange(
+        int laneOffset,
         const std::pair<MSVehicle* const, SUMOReal>& leader,
-        const std::pair<MSVehicle* const, SUMOReal>& rLead,
-        const std::pair<MSVehicle* const, SUMOReal>& rFollow,
         const std::vector<MSVehicle::LaneQ>& preb) const;
-
-    int change2left(
-        const std::pair<MSVehicle* const, SUMOReal>& leader,
-        const std::pair<MSVehicle* const, SUMOReal>& rLead,
-        const std::pair<MSVehicle* const, SUMOReal>& rFollow,
-        const std::vector<MSVehicle::LaneQ>& preb) const;
-
 
     ///  @brief start the lane change maneuver (and finish it instantly if gLaneChangeDuration == 0)
     void startChange(MSVehicle* vehicle, ChangerIt& from, int direction);
-
-
-    /** Returns true if candidate overlaps with a vehicle, that
-        already changed the lane.*/
-    bool overlapWithHopped(ChangerIt target) const {
-        MSVehicle* v1 = target->hoppedVeh;
-        MSVehicle* v2 = veh(myCandi);
-        if (v1 != 0 && v2 != 0) {
-            return MSVehicle::overlap(v1, v2);
-        }
-        return false;
-    }
 
     std::pair<MSVehicle* const, SUMOReal> getRealThisLeader(const ChangerIt& target) const;
 

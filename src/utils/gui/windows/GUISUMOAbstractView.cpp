@@ -297,6 +297,34 @@ GUISUMOAbstractView::getObjectAtPosition(Position pos) {
 
 
 std::vector<GUIGlID>
+GUISUMOAbstractView::getObjectsAtPosition(Position pos, SUMOReal radius) {
+    Boundary selection;
+    selection.add(pos);
+    selection.grow(radius);
+    const std::vector<GUIGlID> ids = getObjectsInBoundary(selection);
+    std::vector<GUIGlID> result;
+    // Interpret results
+    for (std::vector<GUIGlID>::const_iterator it = ids.begin(); it != ids.end(); it++) {
+        GUIGlID id = *it;
+        GUIGlObject* o = GUIGlObjectStorage::gIDStorage.getObjectBlocking(id);
+        if (o == 0) {
+            continue;
+        }
+        if (o->getGlID() == 0) {
+            continue;
+        }
+        //std::cout << "point selection hit " << o->getMicrosimID() << "\n";
+        GUIGlObjectType type = o->getType();
+        if (type != 0) {
+            result.push_back(id);
+        }
+        GUIGlObjectStorage::gIDStorage.unblockObject(id);
+    }
+    return result;
+}
+
+
+std::vector<GUIGlID>
 GUISUMOAbstractView::getObjectsInBoundary(const Boundary& bound) {
     const int NB_HITS_MAX = 1024 * 1024;
     // Prepare the selection mode
@@ -588,8 +616,9 @@ GUISUMOAbstractView::onRightBtnPress(FXObject*, FXSelector , void* data) {
 
 
 long
-GUISUMOAbstractView::onRightBtnRelease(FXObject*, FXSelector , void* data) {
+GUISUMOAbstractView::onRightBtnRelease(FXObject* o, FXSelector sel, void* data) {
     destroyPopup();
+    onMouseMove(o, sel, data);
     if (!myChanger->onRightBtnRelease(data) && !myApp->isGaming()) {
         openObjectDialog();
     }
@@ -615,8 +644,7 @@ GUISUMOAbstractView::onMouseMove(FXObject*, FXSelector , void* data) {
     }
     if (myViewportChooser != 0 &&
             (xpos != myChanger->getXPos() || ypos != myChanger->getYPos() || zoom != myChanger->getZoom())) {
-        myViewportChooser->setValues(
-            myChanger->getXPos(), myChanger->getYPos(), myChanger->getZoom());
+        myViewportChooser->setValues(myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos());
     }
     updatePositionInformation();
     return 1;
@@ -769,7 +797,7 @@ GUISUMOAbstractView::makeSnapshot(const std::string& destFile) {
         glGetIntegerv(GL_VIEWPORT, viewport);
         while (state == GL2PS_OVERFLOW) {
             buffsize += 1024 * 1024;
-            gl2psBeginPage(destFile.c_str(), "sumo-gui; http://sumo.sf.net", viewport, format, GL2PS_SIMPLE_SORT,
+            gl2psBeginPage(destFile.c_str(), "sumo-gui; http://sumo-sim.org", viewport, format, GL2PS_SIMPLE_SORT,
                            GL2PS_DRAW_BACKGROUND | GL2PS_USE_CURRENT_VIEWPORT,
                            GL_RGBA, 0, NULL, 0, 0, 0, buffsize, fp, "out.eps");
             glMatrixMode(GL_MODELVIEW);

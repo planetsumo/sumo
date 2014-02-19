@@ -126,6 +126,16 @@ public:
     }
 
 
+    /** @brief Returns the starting point for reroutes (usually the current edge)
+     * 
+     * This differs from *myCurrEdge only if the vehicle is on an internal edge
+     * @return The rerouting start point
+     */
+    virtual const MSEdge* getRerouteOrigin() const {
+        return *myCurrEdge;
+    }
+
+
     /** @brief Performs a rerouting using the given router
      *
      * Tries to find a new route between the current edge and the destination edge, first.
@@ -148,7 +158,7 @@ public:
      * @param[in] simTime The time at which the route was replaced
      * @return Whether the new route was accepted
      */
-    bool replaceRouteEdges(const MSEdgeVector& edges, bool onInit = false);
+    bool replaceRouteEdges(MSEdgeVector& edges, bool onInit = false);
 
 
     /** @brief Returns the vehicle's acceleration
@@ -202,6 +212,10 @@ public:
     inline unsigned int getNumberReroutes() const {
         return myNumberReroutes;
     }
+
+    /// @brief Returns this vehicles impatience
+    SUMOReal getImpatience() const;
+
 
     /** @brief Returns this vehicle's devices
      * @return This vehicle's devices
@@ -257,6 +271,13 @@ public:
         return myChosenSpeedFactor;
     }
 
+    /** @brief Returns the precomputed factor by which the driver wants to be faster than the speed limit
+     * @return Speed limit factor
+     */
+    inline void setChosenSpeedFactor(SUMOReal factor) {
+        myChosenSpeedFactor = factor;
+    }
+
     /// @brief Returns a device of the given type if it exists or 0
     MSDevice* getDevice(const std::type_info& type) const;
 
@@ -288,7 +309,7 @@ protected:
     MSRouteIterator myCurrEdge;
 
     /// @brief A precomputed factor by which the driver wants to be faster than the speed limit
-    const SUMOReal myChosenSpeedFactor;
+    SUMOReal myChosenSpeedFactor;
 
 
     /// @name Move reminder structures

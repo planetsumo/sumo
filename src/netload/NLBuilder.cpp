@@ -121,13 +121,15 @@ NLBuilder::~NLBuilder() {}
 bool
 NLBuilder::build() {
     // try to build the net
-    if (!load("net-file")) {
+    if (!load("net-file", true)) {
         return false;
     }
     // check whether the loaded net agrees with the simulation options
+#ifdef HAVE_INTERNAL_LANES
     if (myOptions.getBool("no-internal-links") && myXMLHandler.haveSeenInternalEdge()) {
         WRITE_WARNING("Network contains internal links but option --no-internal-links is set. Vehicles will 'jump' across junctions and thus underestimate route lenghts and travel times");
     }
+#endif
     buildNet();
     // load the previous state if wished
     if (myOptions.isSet("load-state")) {
@@ -243,7 +245,7 @@ NLBuilder::buildNet() {
 
 
 bool
-NLBuilder::load(const std::string& mmlWhat) {
+NLBuilder::load(const std::string& mmlWhat, const bool isNet) {
     if (!OptionsCont::getOptions().isUsableFileList(mmlWhat)) {
         return false;
     }
@@ -251,7 +253,7 @@ NLBuilder::load(const std::string& mmlWhat) {
     for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
         PROGRESS_BEGIN_MESSAGE("Loading " + mmlWhat + " from '" + *fileIt + "'");
         long before = SysUtils::getCurrentMillis();
-        if (!XMLSubSys::runParser(myXMLHandler, *fileIt)) {
+        if (!XMLSubSys::runParser(myXMLHandler, *fileIt, isNet)) {
             WRITE_MESSAGE("Loading of " + mmlWhat + " failed.");
             return false;
         }

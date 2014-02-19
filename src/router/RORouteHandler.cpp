@@ -142,9 +142,11 @@ RORouteHandler::myStartElement(int element,
             break;
         }
         case SUMO_TAG_FLOW:
+            myActiveRouteProbability = DEFAULT_VEH_PROB;
             parseFromTo("flow", attrs);
             break;
         case SUMO_TAG_TRIP: {
+            myActiveRouteProbability = DEFAULT_VEH_PROB;
             parseFromTo("trip", attrs);
             closeVehicle();
         }
@@ -280,7 +282,7 @@ RORouteHandler::closeRoute(const bool mayBeDisconnected) {
         return;
     }
     RORoute* route = new RORoute(myActiveRouteID, myCurrentCosts, myActiveRouteProbability, myActiveRoute,
-                                 myActiveRouteColor);
+                                 myActiveRouteColor, myActiveRouteStops);
     myActiveRoute.clear();
     if (myCurrentAlternatives == 0) {
         if (myNet.getRouteDef(myActiveRouteID) != 0) {
@@ -383,7 +385,7 @@ RORouteHandler::closeVehicle() {
     }
     // build the vehicle
     if (!MsgHandler::getErrorInstance()->wasInformed()) {
-        ROVehicle* veh = new ROVehicle(*myVehicleParameter, route, type);
+        ROVehicle* veh = new ROVehicle(*myVehicleParameter, route, type, &myNet);
         myNet.addVehicle(myVehicleParameter->id, veh);
         registerLastDepart();
     }
@@ -442,7 +444,6 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         myActivePlan->closeTag();
         return;
     }
-    bool ok = true;
     std::string errorSuffix;
     if (myActiveRouteID != "") {
         errorSuffix = " in route '" + myActiveRouteID + "'.";
@@ -450,10 +451,21 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         errorSuffix = " in vehicle '" + myVehicleParameter->id + "'.";
     }
     SUMOVehicleParameter::Stop stop;
-    SUMOVehicleParserHelper::parseStop(stop, attrs);
+    bool ok = parseStop(stop, attrs, errorSuffix, myErrorOutput);
+    if (!ok) {
+        return;
+    }
     // try to parse the assigned bus stop
-    stop.busstop = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
-    if (stop.busstop == "") {
+    if (stop.busstop != "") {
+        const SUMOVehicleParameter::Stop* busstop = myNet.getBusStop(stop.busstop);
+        if (busstop == 0) {
+            myErrorOutput->inform("Unknown bus stop '" + stop.busstop + "'" + errorSuffix);
+        } else {
+            stop.lane = busstop->lane;
+            stop.endPos = busstop->endPos;
+            stop.startPos = busstop->startPos;
+        }
+    } else {
         // no, the lane and the position should be given
         stop.lane = attrs.getOpt<std::string>(SUMO_ATTR_LANE, 0, ok, "");
         if (!ok || stop.lane == "") {
@@ -470,45 +482,6 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         const bool friendlyPos = attrs.getOpt<bool>(SUMO_ATTR_FRIENDLY_POS, 0, ok, false);
         if (!ok || !checkStopPos(stop.startPos, stop.endPos, edge->getLength(), POSITION_EPS, friendlyPos)) {
             myErrorOutput->inform("Invalid start or end position for stop" + errorSuffix);
-            return;
-        }
-    }
-
-    // get the standing duration
-    if (!attrs.hasAttribute(SUMO_ATTR_DURATION) && !attrs.hasAttribute(SUMO_ATTR_UNTIL)) {
-        stop.triggered = attrs.getOpt<bool>(SUMO_ATTR_TRIGGERED, 0, ok, true);
-        stop.duration = -1;
-        stop.until = -1;
-    } else {
-        stop.duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, 0, ok, -1);
-        stop.until = attrs.getOptSUMOTimeReporting(SUMO_ATTR_UNTIL, 0, ok, -1);
-        if (!ok || (stop.duration < 0 && stop.until < 0)) {
-            myErrorOutput->inform("Invalid duration or end time is given for a stop" + errorSuffix);
-            return;
-        }
-        stop.triggered = attrs.getOpt<bool>(SUMO_ATTR_TRIGGERED, 0, ok, false);
-    }
-    stop.parking = attrs.getOpt<bool>(SUMO_ATTR_PARKING, 0, ok, stop.triggered);
-    if (!ok) {
-        myErrorOutput->inform("Invalid bool for 'triggered' or 'parking' for stop" + errorSuffix);
-        return;
-    }
-
-    // expected persons
-    std::string expectedStr = attrs.getOpt<std::string>(SUMO_ATTR_EXPECTED, 0, ok, "");
-    std::set<std::string> personIDs;
-    SUMOSAXAttributes::parseStringSet(expectedStr, personIDs);
-    stop.awaitedPersons = personIDs;
-
-    const std::string idx = attrs.getOpt<std::string>(SUMO_ATTR_INDEX, 0, ok, "end");
-    if (idx == "end") {
-        stop.index = STOP_INDEX_END;
-    } else if (idx == "fit") {
-        stop.index = STOP_INDEX_FIT;
-    } else {
-        stop.index = attrs.get<int>(SUMO_ATTR_INDEX, 0, ok);
-        if (!ok || stop.index < 0) {
-            myErrorOutput->inform("Invalid 'index' for stop" + errorSuffix);
             return;
         }
     }

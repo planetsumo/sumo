@@ -69,6 +69,9 @@ public:
     /// Information whether the simulation regards internal lanes
     static bool gUsingInternalLanes;
 
+    /// Information whether the simulation regards internal lanes
+    static SUMOTime gIgnoreJunctionBlocker;
+
     /** information whether the network shall check for collisions */
     static bool gCheck4Accidents;
 
@@ -95,10 +98,6 @@ public:
     const static bool gUseMesoSim;
 
 #endif
-
-    /// @brief global utility flags for debugging
-    static bool gDebugFlag1;
-    static bool gDebugFlag2;
 
 };
 

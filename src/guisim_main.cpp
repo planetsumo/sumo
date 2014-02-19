@@ -83,7 +83,7 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getBool("xml-validation"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
         // Make application
         FXApp application("SUMO GUISimulation", "DLR");
         // Open display
@@ -95,7 +95,7 @@ main(int argc, char** argv) {
 
         // build the main window
         GUIApplicationWindow* window =
-        new GUIApplicationWindow(&application, "*.sumo.cfg,*.sumocfg");
+            new GUIApplicationWindow(&application, "*.sumo.cfg,*.sumocfg");
         window->dependentBuild(oc.getBool("game"));
         gSchemeStorage.init(&application);
         // Create app

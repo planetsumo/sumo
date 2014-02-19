@@ -478,6 +478,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\utils\common\StdDefs.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\utils\common\StringTokenizer.cpp"
 				>
 			</File>
@@ -560,6 +564,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\utils\common\NamedObjectCont.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\utils\common\NamedRTree.h"
 				>
 			</File>
 			<File

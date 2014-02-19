@@ -49,6 +49,7 @@ class MSLane;
 class MSEdge;
 class MSBusStop;
 class MSCalibrator;
+class MSRouteProbe;
 
 #ifdef HAVE_INTERNAL
 class METriggeredCalibrator;
@@ -206,10 +207,10 @@ protected:
      * @param[in] file The file to read the flows from
      * @todo Is the position correct/needed
      */
-    MSCalibrator* buildCalibrator(MSNet& net,
-                                  const std::string& id, MSEdge* edge, SUMOReal pos,
-                                  const std::string& file, const std::string& outfile,
-                                  const SUMOTime freq);
+    virtual MSCalibrator* buildCalibrator(MSNet& net,
+                                          const std::string& id, MSEdge* edge, SUMOReal pos,
+                                          const std::string& file, const std::string& outfile,
+                                          const SUMOTime freq, MSRouteProbe* probe);
 #ifdef HAVE_INTERNAL
     /** @brief builds a mesoscopic calibrator
      *
@@ -222,10 +223,10 @@ protected:
      * @param[in] file The file to read the flows from
      * @todo Is the position correct/needed
      */
-    METriggeredCalibrator* buildMECalibrator(MSNet& net,
+    virtual METriggeredCalibrator* buildMECalibrator(MSNet& net,
             const std::string& id, const MSEdge* edge, SUMOReal pos,
             const std::string& file, const std::string& outfile,
-            const SUMOTime freq);
+            const SUMOTime freq, MSRouteProbe* probe);
 #endif
 
 

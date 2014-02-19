@@ -69,14 +69,22 @@ public:
      * The built device is stored in the given vector.
      *
      * @param[in] v The vehicle for which a device may be built
-     * @param[in, filled] into The vector to store the built device in
+     * @param[filled] into The vector to store the built device in
      */
     static MSDevice_Vehroutes* buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into, unsigned int maxRoutes = INT_MAX);
+
 
     /// @brief generate vehroute output for vehicles which are still in the network
     static void generateOutputForUnfinished();
 
+
+
 public:
+    /// @brief Destructor.
+    ~MSDevice_Vehroutes();
+
+
+
     /// @name Methods called on vehicle movement / state change, overwriting MSDevice
     /// @{
 
@@ -123,9 +131,6 @@ public:
     const MSRoute* getRoute(int index) const;
 
 
-    /// @brief Destructor.
-    ~MSDevice_Vehroutes();
-
 
 private:
     /** @brief Constructor
@@ -149,6 +154,7 @@ private:
     void addRoute();
 
 
+
 private:
     /// @brief A shortcut for the Option "vehroute-output.exit-times"
     static bool mySaveExits;
@@ -162,6 +168,10 @@ private:
     /// @brief A shortcut for the Option "device.routing.with-taz"
     static bool myWithTaz;
 
+
+    /** @class StateListener
+     * @brief A class that is notified about reroutings
+     */
     class StateListener : public MSNet::VehicleStateListener {
     public:
         /// @brief Destructor
@@ -175,13 +185,19 @@ private:
 
         /// @brief A map for internal notification
         std::map<const SUMOVehicle*, MSDevice_Vehroutes*> myDevices;
+
     };
 
+
+    /// @brief A class that is notified about reroutings
     static StateListener myStateListener;
 
+    /// @brief Map needed to sort vehicles by departure time
     static std::map<const SUMOTime, int> myDepartureCounts;
 
+    /// @todo: describe
     static std::map<const SUMOTime, std::string> myRouteInfos;
+
 
     /**
      * @class RouteReplaceInfo
@@ -194,29 +210,43 @@ private:
      */
     class RouteReplaceInfo {
     public:
-        /// Constructor
+        /** @brief Constructor
+         * @param[in] edge_ The edge the route was replaced at
+         * @param[in] time_ The time the route was replaced
+         * @param[in] route_ The prior route
+         */
         RouteReplaceInfo(const MSEdge* const edge_, const SUMOTime time_, const MSRoute* const route_)
             : edge(edge_), time(time_), route(route_) {}
 
-        /// Destructor
+        /// @brief Destructor
         ~RouteReplaceInfo() { }
 
-        /// The edge the vehicle was on when the route was replaced
+        /// @brief The edge the vehicle was on when the route was replaced
         const MSEdge* edge;
 
-        /// The time the route was replaced
+        /// @brief The time the route was replaced
         SUMOTime time;
 
-        /// The prior route
+        /// @brief The prior route
         const MSRoute* route;
 
     };
 
+    /// @brief The currently used route
     const MSRoute* myCurrentRoute;
+
+    /// @brief Prior routes
     std::vector<RouteReplaceInfo> myReplacedRoutes;
+
+    /// @brief The times the vehicle exites an edge
     std::vector<SUMOTime> myExits;
+
+    /// @brief The maximum number of routes to report
     const unsigned int myMaxRoutes;
+
+    /// @brief The last edge the exit time was saved for
     const MSEdge* myLastSavedAt;
+
 
 private:
     /// @brief Invalidated copy constructor.

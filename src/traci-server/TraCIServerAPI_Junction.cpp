@@ -45,12 +45,6 @@
 
 
 // ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
-
-
-// ===========================================================================
 // method definitions
 // ===========================================================================
 bool
@@ -60,7 +54,7 @@ TraCIServerAPI_Junction::processGet(TraCIServer& server, tcpip::Storage& inputSt
     int variable = inputStorage.readUnsignedByte();
     std::string id = inputStorage.readString();
     // check variable
-    if (variable != ID_LIST && variable != VAR_POSITION && variable != ID_COUNT) {
+    if (variable != ID_LIST && variable != VAR_POSITION && variable != ID_COUNT && variable != VAR_SHAPE) {
         return server.writeErrorStatusCmd(CMD_GET_JUNCTION_VARIABLE, "Get Junction Variable: unsupported variable specified", outputStorage);
     }
     // begin response building
@@ -92,6 +86,15 @@ TraCIServerAPI_Junction::processGet(TraCIServer& server, tcpip::Storage& inputSt
                 tempMsg.writeDouble(j->getPosition().x());
                 tempMsg.writeDouble(j->getPosition().y());
                 break;
+            case VAR_SHAPE:
+                tempMsg.writeUnsignedByte(TYPE_POLYGON);
+                tempMsg.writeUnsignedByte((int)MIN2(static_cast<size_t>(255), j->getShape().size()));
+                for (unsigned int iPoint = 0; iPoint < MIN2(static_cast<size_t>(255), j->getShape().size()); ++iPoint) {
+                    tempMsg.writeDouble(j->getShape()[iPoint].x());
+                    tempMsg.writeDouble(j->getShape()[iPoint].y());
+                }
+                break;
+
             default:
                 break;
         }
@@ -100,7 +103,6 @@ TraCIServerAPI_Junction::processGet(TraCIServer& server, tcpip::Storage& inputSt
     server.writeResponseWithLength(outputStorage, tempMsg);
     return true;
 }
-
 
 bool
 TraCIServerAPI_Junction::getPosition(const std::string& id, Position& p) {
@@ -113,13 +115,15 @@ TraCIServerAPI_Junction::getPosition(const std::string& id, Position& p) {
 }
 
 
-TraCIRTree*
+NamedRTree*
 TraCIServerAPI_Junction::getTree() {
-    TraCIRTree* t = new TraCIRTree();
+    NamedRTree* t = new NamedRTree();
     const std::map<std::string, MSJunction*>& junctions = MSNet::getInstance()->getJunctionControl().getMyMap();
     for (std::map<std::string, MSJunction*>::const_iterator i = junctions.begin(); i != junctions.end(); ++i) {
         Boundary b = (*i).second->getShape().getBoxBoundary();
-        t->addObject((*i).second, b);
+        const float cmin[2] = {(float) b.xmin(), (float) b.ymin()};
+        const float cmax[2] = {(float) b.xmax(), (float) b.ymax()};
+        t->Insert(cmin, cmax, (*i).second);
     }
     return t;
 }

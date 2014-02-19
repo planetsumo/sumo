@@ -50,12 +50,6 @@
 
 
 // ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
-
-
-// ===========================================================================
 // method definitions
 // ===========================================================================
 bool
@@ -75,6 +69,10 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
             && variable != VAR_MIN_EXPECTED_VEHICLES
             && variable != POSITION_CONVERSION && variable != DISTANCE_REQUEST
             && variable != VAR_BUS_STOP_WAITING
+            && variable != VAR_PARKING_STARTING_VEHICLES_NUMBER && variable != VAR_PARKING_STARTING_VEHICLES_IDS
+            && variable != VAR_PARKING_ENDING_VEHICLES_NUMBER && variable != VAR_PARKING_ENDING_VEHICLES_IDS
+            && variable != VAR_STOP_STARTING_VEHICLES_NUMBER && variable != VAR_STOP_STARTING_VEHICLES_IDS
+            && variable != VAR_STOP_ENDING_VEHICLES_NUMBER && variable != VAR_STOP_ENDING_VEHICLES_IDS
        ) {
         return server.writeErrorStatusCmd(CMD_GET_SIM_VARIABLE, "Get Simulation Variable: unsupported variable specified", outputStorage);
     }
@@ -90,66 +88,63 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
             tempMsg.writeUnsignedByte(TYPE_INTEGER);
             tempMsg.writeInt(MSNet::getInstance()->getCurrentTimeStep());
             break;
-        case VAR_LOADED_VEHICLES_NUMBER: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_BUILT)->second;
-            tempMsg.writeUnsignedByte(TYPE_INTEGER);
-            tempMsg.writeInt((int) ids.size());
-        }
-        break;
+        case VAR_LOADED_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_BUILT);
+            break;
         case VAR_LOADED_VEHICLES_IDS: {
             const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_BUILT)->second;
             tempMsg.writeUnsignedByte(TYPE_STRINGLIST);
             tempMsg.writeStringList(ids);
         }
         break;
-        case VAR_DEPARTED_VEHICLES_NUMBER: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_DEPARTED)->second;
-            tempMsg.writeUnsignedByte(TYPE_INTEGER);
-            tempMsg.writeInt((int) ids.size());
-        }
-        break;
-        case VAR_DEPARTED_VEHICLES_IDS: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_DEPARTED)->second;
-            tempMsg.writeUnsignedByte(TYPE_STRINGLIST);
-            tempMsg.writeStringList(ids);
-        }
-        break;
-        case VAR_TELEPORT_STARTING_VEHICLES_NUMBER: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_STARTING_TELEPORT)->second;
-            tempMsg.writeUnsignedByte(TYPE_INTEGER);
-            tempMsg.writeInt((int) ids.size());
-        }
-        break;
-        case VAR_TELEPORT_STARTING_VEHICLES_IDS: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_STARTING_TELEPORT)->second;
-            tempMsg.writeUnsignedByte(TYPE_STRINGLIST);
-            tempMsg.writeStringList(ids);
-        }
-        break;
-        case VAR_TELEPORT_ENDING_VEHICLES_NUMBER: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_ENDING_TELEPORT)->second;
-            tempMsg.writeUnsignedByte(TYPE_INTEGER);
-            tempMsg.writeInt((int) ids.size());
-        }
-        break;
-        case VAR_TELEPORT_ENDING_VEHICLES_IDS: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_ENDING_TELEPORT)->second;
-            tempMsg.writeUnsignedByte(TYPE_STRINGLIST);
-            tempMsg.writeStringList(ids);
-        }
-        break;
-        case VAR_ARRIVED_VEHICLES_NUMBER: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_ARRIVED)->second;
-            tempMsg.writeUnsignedByte(TYPE_INTEGER);
-            tempMsg.writeInt((int) ids.size());
-        }
-        break;
-        case VAR_ARRIVED_VEHICLES_IDS: {
-            const std::vector<std::string>& ids = server.getVehicleStateChanges().find(MSNet::VEHICLE_STATE_ARRIVED)->second;
-            tempMsg.writeUnsignedByte(TYPE_STRINGLIST);
-            tempMsg.writeStringList(ids);
-        }
-        break;
+        case VAR_DEPARTED_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_DEPARTED);
+            break;
+        case VAR_DEPARTED_VEHICLES_IDS:
+            writeVehicleStateIDs(server, tempMsg, MSNet::VEHICLE_STATE_DEPARTED);
+            break;
+        case VAR_TELEPORT_STARTING_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_STARTING_TELEPORT);
+            break;
+        case VAR_TELEPORT_STARTING_VEHICLES_IDS:
+            writeVehicleStateIDs(server, tempMsg, MSNet::VEHICLE_STATE_STARTING_TELEPORT);
+            break;
+        case VAR_TELEPORT_ENDING_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_ENDING_TELEPORT);
+            break;
+        case VAR_TELEPORT_ENDING_VEHICLES_IDS:
+            writeVehicleStateIDs(server, tempMsg, MSNet::VEHICLE_STATE_ENDING_TELEPORT);
+            break;
+        case VAR_ARRIVED_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_ARRIVED);
+            break;
+        case VAR_ARRIVED_VEHICLES_IDS:
+            writeVehicleStateIDs(server, tempMsg, MSNet::VEHICLE_STATE_ARRIVED);
+            break;
+        case VAR_PARKING_STARTING_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_STARTING_PARKING);
+            break;
+        case VAR_PARKING_STARTING_VEHICLES_IDS:
+            writeVehicleStateIDs(server, tempMsg, MSNet::VEHICLE_STATE_STARTING_PARKING);
+            break;
+        case VAR_PARKING_ENDING_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_ENDING_PARKING);
+            break;
+        case VAR_PARKING_ENDING_VEHICLES_IDS:
+            writeVehicleStateIDs(server, tempMsg, MSNet::VEHICLE_STATE_ENDING_PARKING);
+            break;
+        case VAR_STOP_STARTING_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_STARTING_STOP);
+            break;
+        case VAR_STOP_STARTING_VEHICLES_IDS:
+            writeVehicleStateIDs(server, tempMsg, MSNet::VEHICLE_STATE_STARTING_STOP);
+            break;
+        case VAR_STOP_ENDING_VEHICLES_NUMBER:
+            writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_ENDING_STOP);
+            break;
+        case VAR_STOP_ENDING_VEHICLES_IDS:
+            writeVehicleStateIDs(server, tempMsg, MSNet::VEHICLE_STATE_ENDING_STOP);
+            break;
         case VAR_DELTA_T:
             tempMsg.writeUnsignedByte(TYPE_INTEGER);
             tempMsg.writeInt(DELTA_T);
@@ -212,6 +207,52 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
 }
 
 
+bool
+TraCIServerAPI_Simulation::processSet(TraCIServer& server, tcpip::Storage& inputStorage,
+                                      tcpip::Storage& outputStorage) {
+    std::string warning = ""; // additional description for response
+    // variable
+    int variable = inputStorage.readUnsignedByte();
+    if (variable != CMD_CLEAR_PENDING_VEHICLES) {
+        return server.writeErrorStatusCmd(CMD_SET_SIM_VARIABLE, "Set Simulation Variable: unsupported variable specified", outputStorage);
+    }
+    // id
+    std::string id = inputStorage.readString();
+    // process
+    switch (variable) {
+        case CMD_CLEAR_PENDING_VEHICLES: {
+            //clear any pending vehicle insertions
+            std::string route;
+            if (!server.readTypeCheckingString(inputStorage, route)) {
+                return server.writeErrorStatusCmd(CMD_SET_SIM_VARIABLE, "A string is needed for clearing pending vehicles.", outputStorage);
+            }
+            MSNet::getInstance()->getInsertionControl().clearPendingVehicles(route);
+        }
+        break;
+        default:
+            break;
+    }
+    server.writeStatusCmd(CMD_SET_SIM_VARIABLE, RTYPE_OK, warning, outputStorage);
+    return true;
+}
+
+
+void
+TraCIServerAPI_Simulation::writeVehicleStateNumber(TraCIServer& server, tcpip::Storage& outputStorage, MSNet::VehicleState state) {
+    const std::vector<std::string>& ids = server.getVehicleStateChanges().find(state)->second;
+    outputStorage.writeUnsignedByte(TYPE_INTEGER);
+    outputStorage.writeInt((int) ids.size());
+}
+
+
+void
+TraCIServerAPI_Simulation::writeVehicleStateIDs(TraCIServer& server, tcpip::Storage& outputStorage, MSNet::VehicleState state) {
+    const std::vector<std::string>& ids = server.getVehicleStateChanges().find(state)->second;
+    outputStorage.writeUnsignedByte(TYPE_STRINGLIST);
+    outputStorage.writeStringList(ids);
+}
+
+
 std::pair<MSLane*, SUMOReal>
 TraCIServerAPI_Simulation::convertCartesianToRoadMap(Position pos) {
     std::pair<MSLane*, SUMOReal> result;
@@ -253,7 +294,7 @@ TraCIServerAPI_Simulation::getLaneChecking(std::string roadID, int laneIndex, SU
 
 
 bool
-TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+TraCIServerAPI_Simulation::commandPositionConversion(TraCIServer& server, tcpip::Storage& inputStorage,
         tcpip::Storage& outputStorage, int commandId) {
     std::pair<MSLane*, SUMOReal> roadPos;
     Position cartesianPos;
@@ -287,7 +328,9 @@ TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server,
             SUMOReal pos = inputStorage.readDouble();
             int laneIdx = inputStorage.readUnsignedByte();
             try {
+                // convert edge,offset,laneIdx to cartesian position
                 cartesianPos = geoPos = getLaneChecking(roadID, laneIdx, pos)->getShape().positionAtOffset(pos);
+                z = cartesianPos.z();
                 GeoConvHelper::getFinal().cartesian2geo(geoPos);
             } catch (TraCIException& e) {
                 server.writeStatusCmd(commandId, RTYPE_ERR, e.what());
@@ -308,7 +351,7 @@ TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server,
 
     switch (destPosType) {
         case POSITION_ROADMAP: {
-            // convert road map to 3D position
+            // convert cartesion position to edge,offset,lane_index
             roadPos = convertCartesianToRoadMap(cartesianPos);
             // write result that is added to response msg
             outputStorage.writeUnsignedByte(POSITION_ROADMAP);
@@ -344,7 +387,7 @@ TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server,
 /****************************************************************************/
 
 bool
-TraCIServerAPI_Simulation::commandDistanceRequest(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+TraCIServerAPI_Simulation::commandDistanceRequest(TraCIServer& server, tcpip::Storage& inputStorage,
         tcpip::Storage& outputStorage, int commandId) {
     Position pos1;
     Position pos2;
@@ -436,6 +479,7 @@ TraCIServerAPI_Simulation::commandDistanceRequest(traci::TraCIServer& server, tc
     outputStorage.writeDouble(distance);
     return true;
 }
+
 
 #endif
 

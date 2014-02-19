@@ -33,9 +33,13 @@
 
 #ifndef NO_TRACI
 
-#include "TraCIException.h"
-#include "TraCIServer.h"
 #include <foreign/tcpip/storage.h>
+
+
+// ===========================================================================
+// class declarations
+// ===========================================================================
+class TraCIServer;
 
 
 // ===========================================================================
@@ -53,7 +57,7 @@ public:
      * @param[in] inputStorage The storage to read the command from
      * @param[out] outputStorage The storage to write the result to
      */
-    static bool processGet(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+    static bool processGet(TraCIServer& server, tcpip::Storage& inputStorage,
                            tcpip::Storage& outputStorage);
 
 
@@ -63,7 +67,7 @@ public:
      * @param[in] inputStorage The storage to read the command from
      * @param[out] outputStorage The storage to write the result to
      */
-    static bool processSet(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+    static bool processSet(TraCIServer& server, tcpip::Storage& inputStorage,
                            tcpip::Storage& outputStorage);
 
 
@@ -76,10 +80,35 @@ public:
     static bool getShape(const std::string& id, PositionVector& shape);
 
 
-    /** @brief Returns a tree filled with inductive loop instances
-     * @return The rtree of inductive loop
+    /** @class StoringVisitor
+     * @brief Allows to store the object; used as context while traveling the rtree in TraCI
      */
-    static TraCIRTree* getTree();
+    class StoringVisitor {
+    public:
+        /// @brief Constructor
+        StoringVisitor(std::set<std::string>& ids, const PositionVector& shape,
+                       const SUMOReal range, const int domain)
+            : myIDs(ids), myShape(shape), myRange(range), myDomain(domain) {}
+
+        /// @brief Destructor
+        ~StoringVisitor() {}
+
+        /// @brief Adds the given object to the container
+        void add(const MSLane* const l) const;
+
+        /// @brief The container
+        std::set<std::string>& myIDs;
+        const PositionVector& myShape;
+        const SUMOReal myRange;
+        const int myDomain;
+
+    private:
+        /// @brief invalidated copy constructor
+        StoringVisitor(const StoringVisitor& src);
+
+        /// @brief invalidated assignment operator
+        StoringVisitor& operator=(const StoringVisitor& src);
+    };
 
 
 private:
@@ -93,9 +122,29 @@ private:
 };
 
 
+#define LANE_RTREE_QUAL RTree<MSLane*, MSLane, float, 2, TraCIServerAPI_Lane::StoringVisitor>
+
+template<>
+inline float LANE_RTREE_QUAL::RectSphericalVolume(Rect* a_rect) {
+    ASSERT(a_rect);
+    const float extent0 = a_rect->m_max[0] - a_rect->m_min[0];
+    const float extent1 = a_rect->m_max[1] - a_rect->m_min[1];
+    return .78539816f * (extent0 * extent0 + extent1 * extent1);
+}
+
+template<>
+inline LANE_RTREE_QUAL::Rect LANE_RTREE_QUAL::CombineRect(Rect* a_rectA, Rect* a_rectB) {
+    ASSERT(a_rectA && a_rectB);
+    Rect newRect;
+    newRect.m_min[0] = rtree_min(a_rectA->m_min[0], a_rectB->m_min[0]);
+    newRect.m_max[0] = rtree_max(a_rectA->m_max[0], a_rectB->m_max[0]);
+    newRect.m_min[1] = rtree_min(a_rectA->m_min[1], a_rectB->m_min[1]);
+    newRect.m_max[1] = rtree_max(a_rectA->m_max[1], a_rectB->m_max[1]);
+    return newRect;
+}
+
 #endif
 
 #endif
 
 /****************************************************************************/
-

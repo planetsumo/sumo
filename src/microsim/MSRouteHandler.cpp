@@ -154,11 +154,14 @@ MSRouteHandler::myStartElement(int element,
             SUMOReal departPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_DEPARTPOS, myVehicleParameter->id.c_str(), ok, 0);
             SUMOReal arrivalPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ARRIVALPOS, myVehicleParameter->id.c_str(), ok, -1);
             const SUMOTime duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, 0, ok, -1);
+            if (attrs.hasAttribute(SUMO_ATTR_DURATION) && duration <= 0) {
+                throw ProcessError("Non-positive walking duration for  '" + myVehicleParameter->id + "'.");
+            }
             SUMOReal speed = DEFAULT_PERSON_SPEED;
             if (attrs.hasAttribute(SUMO_ATTR_SPEED)) {
                 speed = attrs.getOpt<SUMOReal>(SUMO_ATTR_SPEED, 0, ok, speed);
-                if (speed < 0) {
-                    throw ProcessError("Negative walking speed for  '" + myVehicleParameter->id + "'.");
+                if (speed <= 0) {
+                    throw ProcessError("Non-positive walking speed for  '" + myVehicleParameter->id + "'.");
                 }
             }
             std::string bsID = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
@@ -245,12 +248,17 @@ MSRouteHandler::openVehicleTypeDistribution(const SUMOSAXAttributes& attrs) {
 void
 MSRouteHandler::closeVehicleTypeDistribution() {
     if (myCurrentVTypeDistribution != 0) {
+        if (MSGlobals::gStateLoaded && MSNet::getInstance()->getVehicleControl().hasVTypeDistribution(myCurrentVTypeDistributionID)) {
+            delete myCurrentVTypeDistribution;
+            return;
+        }
         if (myCurrentVTypeDistribution->getOverallProb() == 0) {
             delete myCurrentVTypeDistribution;
-            WRITE_ERROR("Vehicle type distribution '" + myCurrentVTypeDistributionID + "' is empty.");
-        } else if (!MSNet::getInstance()->getVehicleControl().addVTypeDistribution(myCurrentVTypeDistributionID, myCurrentVTypeDistribution)) {
+            throw ProcessError("Vehicle type distribution '" + myCurrentVTypeDistributionID + "' is empty.");
+        }
+        if (!MSNet::getInstance()->getVehicleControl().addVTypeDistribution(myCurrentVTypeDistributionID, myCurrentVTypeDistribution)) {
             delete myCurrentVTypeDistribution;
-            WRITE_ERROR("Another vehicle type (or distribution) with the id '" + myCurrentVTypeDistributionID + "' exists.");
+            throw ProcessError("Another vehicle type (or distribution) with the id '" + myCurrentVTypeDistributionID + "' exists.");
         }
         myCurrentVTypeDistribution = 0;
     }
@@ -328,7 +336,12 @@ MSRouteHandler::closeRoute(const bool /* mayBeDisconnected */) {
         delete myActiveRouteColor;
         myActiveRouteColor = 0;
         if (myActiveRouteRefID != "" && myCurrentRouteDistribution != 0) {
-            myCurrentRouteDistribution->add(myActiveRouteProbability, MSRoute::dictionary(myActiveRouteRefID));
+            const MSRoute* route = MSRoute::dictionary(myActiveRouteRefID);
+            if (route != 0) {
+                if (myCurrentRouteDistribution->add(myActiveRouteProbability, route)) {
+                    route->addReference();
+                }
+            }
             myActiveRouteID = "";
             myActiveRouteRefID = "";
             return;
@@ -358,7 +371,9 @@ MSRouteHandler::closeRoute(const bool /* mayBeDisconnected */) {
         }
     } else {
         if (myCurrentRouteDistribution != 0) {
-            myCurrentRouteDistribution->add(myActiveRouteProbability, route);
+            if (myCurrentRouteDistribution->add(myActiveRouteProbability, route)) {
+                route->addReference();
+            }
         }
     }
     myActiveRouteID = "";
@@ -381,7 +396,7 @@ MSRouteHandler::openRouteDistribution(const SUMOSAXAttributes& attrs) {
             return;
         }
     }
-    myCurrentRouteDistribution = new RandomDistributor<const MSRoute*>(MSRoute::getMaxRouteDistSize(), &MSRoute::releaseRoute);
+    myCurrentRouteDistribution = new RandomDistributor<const MSRoute*>();
     std::vector<SUMOReal> probs;
     if (attrs.hasAttribute(SUMO_ATTR_PROBS)) {
         bool ok = true;
@@ -401,7 +416,9 @@ MSRouteHandler::openRouteDistribution(const SUMOSAXAttributes& attrs) {
                 throw ProcessError("Unknown route '" + routeID + "' in distribution '" + myCurrentRouteDistributionID + "'.");
             }
             const SUMOReal prob = (probs.size() > probIndex ? probs[probIndex] : 1.0);
-            myCurrentRouteDistribution->add(prob, route, false);
+            if (myCurrentRouteDistribution->add(prob, route, false)) {
+                route->addReference();
+            }
             probIndex++;
         }
         if (probs.size() > 0 && probIndex != probs.size()) {
@@ -415,13 +432,20 @@ MSRouteHandler::openRouteDistribution(const SUMOSAXAttributes& attrs) {
 void
 MSRouteHandler::closeRouteDistribution() {
     if (myCurrentRouteDistribution != 0) {
+        const bool haveSameID = MSRoute::dictionary(myCurrentRouteDistributionID) != 0;
+        if (MSGlobals::gStateLoaded && haveSameID) {
+            delete myCurrentRouteDistribution;
+            return;
+        }
+        if (haveSameID) {
+            delete myCurrentRouteDistribution;
+            throw ProcessError("Another route (or distribution) with the id '" + myCurrentRouteDistributionID + "' exists.");
+        }
         if (myCurrentRouteDistribution->getOverallProb() == 0) {
             delete myCurrentRouteDistribution;
-            WRITE_ERROR("Route distribution '" + myCurrentRouteDistributionID + "' is empty.");
-        } else if (!MSRoute::dictionary(myCurrentRouteDistributionID, myCurrentRouteDistribution)) {
-            delete myCurrentRouteDistribution;
-            WRITE_ERROR("Another route (or distribution) with the id '" + myCurrentRouteDistributionID + "' exists.");
+            throw ProcessError("Route distribution '" + myCurrentRouteDistributionID + "' is empty.");
         }
+        MSRoute::dictionary(myCurrentRouteDistributionID, myCurrentRouteDistribution, myVehicleParameter == 0);
         myCurrentRouteDistribution = 0;
     }
 }
@@ -569,7 +593,6 @@ MSRouteHandler::closeFlow() {
 
 void
 MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
-    bool ok = true;
     std::string errorSuffix;
     if (myActiveRouteID != "") {
         errorSuffix = " in route '" + myActiveRouteID + "'.";
@@ -579,9 +602,11 @@ MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         errorSuffix = " in vehicle '" + myVehicleParameter->id + "'.";
     }
     SUMOVehicleParameter::Stop stop;
-    SUMOVehicleParserHelper::parseStop(stop, attrs);
+    bool ok = parseStop(stop, attrs, errorSuffix, MsgHandler::getErrorInstance());
+    if (!ok) {
+        return;
+    }
     // try to parse the assigned bus stop
-    stop.busstop = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
     if (stop.busstop != "") {
         // ok, we have obviously a bus stop
         MSBusStop* bs = MSNet::getInstance()->getBusStop(stop.busstop);
@@ -625,45 +650,6 @@ MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         const bool friendlyPos = attrs.getOpt<bool>(SUMO_ATTR_FRIENDLY_POS, 0, ok, false);
         if (!ok || !checkStopPos(stop.startPos, stop.endPos, MSLane::dictionary(stop.lane)->getLength(), POSITION_EPS, friendlyPos)) {
             WRITE_ERROR("Invalid start or end position for stop on lane '" + stop.lane + "'" + errorSuffix);
-            return;
-        }
-    }
-
-    // get the standing duration
-    if (!attrs.hasAttribute(SUMO_ATTR_DURATION) && !attrs.hasAttribute(SUMO_ATTR_UNTIL)) {
-        stop.triggered = attrs.getOpt<bool>(SUMO_ATTR_TRIGGERED, 0, ok, true);
-        stop.duration = -1;
-        stop.until = -1;
-    } else {
-        stop.duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, 0, ok, -1);
-        stop.until = attrs.getOptSUMOTimeReporting(SUMO_ATTR_UNTIL, 0, ok, -1);
-        if (!ok || (stop.duration < 0 && stop.until < 0)) {
-            WRITE_ERROR("Invalid duration or end time is given for a stop on lane '" + stop.lane + "'" + errorSuffix);
-            return;
-        }
-        stop.triggered = attrs.getOpt<bool>(SUMO_ATTR_TRIGGERED, 0, ok, false);
-    }
-    stop.parking = attrs.getOpt<bool>(SUMO_ATTR_PARKING, 0, ok, stop.triggered);
-    if (!ok) {
-        WRITE_ERROR("Invalid bool for 'triggered' or 'parking' for stop on lane '" + stop.lane + "'" + errorSuffix);
-        return;
-    }
-
-    // expected persons
-    std::string expectedStr = attrs.getOpt<std::string>(SUMO_ATTR_EXPECTED, 0, ok, "");
-    std::set<std::string> personIDs;
-    SUMOSAXAttributes::parseStringSet(expectedStr, personIDs);
-    stop.awaitedPersons = personIDs;
-
-    const std::string idx = attrs.getOpt<std::string>(SUMO_ATTR_INDEX, 0, ok, "end");
-    if (idx == "end") {
-        stop.index = STOP_INDEX_END;
-    } else if (idx == "fit") {
-        stop.index = STOP_INDEX_FIT;
-    } else {
-        stop.index = attrs.get<int>(SUMO_ATTR_INDEX, 0, ok);
-        if (!ok || stop.index < 0) {
-            WRITE_ERROR("Invalid 'index' for stop on lane '" + stop.lane + "'" + errorSuffix);
             return;
         }
     }

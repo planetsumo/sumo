@@ -126,8 +126,24 @@ FXDEFMAP(GUIApplicationWindow) GUIApplicationWindowMap[] = {
     FXMAPFUNC(SEL_UPDATE,   MID_START,             GUIApplicationWindow::onUpdStart),
     FXMAPFUNC(SEL_UPDATE,   MID_STOP,              GUIApplicationWindow::onUpdStop),
     FXMAPFUNC(SEL_UPDATE,   MID_STEP,              GUIApplicationWindow::onUpdStep),
-    FXMAPFUNC(SEL_UPDATE,   MID_EDITCHOSEN,        GUIApplicationWindow::onUpdEditChosen),
-    FXMAPFUNC(SEL_UPDATE,   MID_EDIT_BREAKPOINTS,  GUIApplicationWindow::onUpdEditBreakpoints),
+    FXMAPFUNC(SEL_UPDATE,   MID_EDITCHOSEN,        GUIApplicationWindow::onUpdNeedsSimulation),
+    FXMAPFUNC(SEL_UPDATE,   MID_EDIT_BREAKPOINTS,  GUIApplicationWindow::onUpdNeedsSimulation),
+
+    // forward requests to the active view
+    FXMAPFUNC(SEL_COMMAND,  MID_LOCATEJUNCTION, GUIApplicationWindow::onCmdLocate),
+    FXMAPFUNC(SEL_COMMAND,  MID_LOCATEEDGE,     GUIApplicationWindow::onCmdLocate),
+    FXMAPFUNC(SEL_COMMAND,  MID_LOCATEVEHICLE,  GUIApplicationWindow::onCmdLocate),
+    FXMAPFUNC(SEL_COMMAND,  MID_LOCATETLS,      GUIApplicationWindow::onCmdLocate),
+    FXMAPFUNC(SEL_COMMAND,  MID_LOCATEADD,      GUIApplicationWindow::onCmdLocate),
+    FXMAPFUNC(SEL_COMMAND,  MID_LOCATEPOI,      GUIApplicationWindow::onCmdLocate),
+    FXMAPFUNC(SEL_COMMAND,  MID_LOCATEPOLY,     GUIApplicationWindow::onCmdLocate),
+    FXMAPFUNC(SEL_UPDATE,   MID_LOCATEJUNCTION, GUIApplicationWindow::onUpdNeedsSimulation),
+    FXMAPFUNC(SEL_UPDATE,   MID_LOCATEEDGE,     GUIApplicationWindow::onUpdNeedsSimulation),
+    FXMAPFUNC(SEL_UPDATE,   MID_LOCATEVEHICLE,  GUIApplicationWindow::onUpdNeedsSimulation),
+    FXMAPFUNC(SEL_UPDATE,   MID_LOCATETLS,      GUIApplicationWindow::onUpdNeedsSimulation),
+    FXMAPFUNC(SEL_UPDATE,   MID_LOCATEADD,      GUIApplicationWindow::onUpdNeedsSimulation),
+    FXMAPFUNC(SEL_UPDATE,   MID_LOCATEPOI,      GUIApplicationWindow::onUpdNeedsSimulation),
+    FXMAPFUNC(SEL_UPDATE,   MID_LOCATEPOLY,     GUIApplicationWindow::onUpdNeedsSimulation),
 
     FXMAPFUNC(SEL_CLIPBOARD_REQUEST, 0, GUIApplicationWindow::onClipboardRequest),
 
@@ -252,6 +268,8 @@ GUIApplicationWindow::create() {
     myFileMenu->create();
     myEditMenu->create();
     mySettingsMenu->create();
+    myLocatorMenu->create();
+    myControlMenu->create();
     myWindowsMenu->create();
     myHelpMenu->create();
 
@@ -282,6 +300,8 @@ GUIApplicationWindow::~GUIApplicationWindow() {
     delete myFileMenu;
     delete myEditMenu;
     delete mySettingsMenu;
+    delete myLocatorMenu;
+    delete myControlMenu;
     delete myWindowsMenu;
     delete myHelpMenu;
 
@@ -364,11 +384,11 @@ GUIApplicationWindow::fillMenuBar() {
     myEditMenu = new FXMenuPane(this);
     new FXMenuTitle(myMenuBar, "&Edit", NULL, myEditMenu);
     new FXMenuCommand(myEditMenu,
-                      "Edit Chosen...\t\tOpens a Dialog for editing the List of chosen Items.",
+                      "Edit Selected...\tCtl-E\tOpens a Dialog for editing the List of Selected Items.",
                       GUIIconSubSys::getIcon(ICON_FLAG), this, MID_EDITCHOSEN);
     new FXMenuSeparator(myEditMenu);
     new FXMenuCommand(myEditMenu,
-                      "Edit Breakpoints...\t\tOpens a Dialog for editing breakpoints.",
+                      "Edit Breakpoints...\tCtl-B\tOpens a Dialog for editing breakpoints.",
                       0, this, MID_EDIT_BREAKPOINTS);
 
     // build settings menu
@@ -380,15 +400,54 @@ GUIApplicationWindow::fillMenuBar() {
     new FXMenuCheck(mySettingsMenu,
                     "Gaming Mode\t\tToggle gaming mode on/off.",
                     this, MID_GAMING);
-    new FXMenuCheck(mySettingsMenu,
-                    "Locate Internal Structures\t\tList internal junctions and streets in the object locator.",
+    // build Locate menu
+    myLocatorMenu = new FXMenuPane(this);
+    new FXMenuTitle(myMenuBar, "&Locate", NULL, myLocatorMenu);
+    new FXMenuCommand(myLocatorMenu,
+                      "Locate &Junctions\t\tOpen a Dialog for Locating a Junction.",
+                      GUIIconSubSys::getIcon(ICON_LOCATEJUNCTION), this, MID_LOCATEJUNCTION);
+    new FXMenuCommand(myLocatorMenu,
+                      "Locate &Edges\t\tOpen a Dialog for Locating an Edge.",
+                      GUIIconSubSys::getIcon(ICON_LOCATEEDGE), this, MID_LOCATEEDGE);
+    if (!MSGlobals::gUseMesoSim) { // there are no gui-vehicles in mesosim
+        new FXMenuCommand(myLocatorMenu,
+                          "Locate &Vehicles\t\tOpen a Dialog for Locating a Vehicle.",
+                          GUIIconSubSys::getIcon(ICON_LOCATEVEHICLE), this, MID_LOCATEVEHICLE);
+    }
+    new FXMenuCommand(myLocatorMenu,
+                      "Locate &TLS\t\tOpen a Dialog for Locating a Traffic Light.",
+                      GUIIconSubSys::getIcon(ICON_LOCATETLS), this, MID_LOCATETLS);
+    new FXMenuCommand(myLocatorMenu,
+                      "Locate &Additional\t\tOpen a Dialog for Locating an Additional Structure.",
+                      GUIIconSubSys::getIcon(ICON_LOCATEADD), this, MID_LOCATEADD);
+    new FXMenuCommand(myLocatorMenu,
+                      "Locate &PoI\t\tOpen a Dialog for Locating a Point of Intereset.",
+                      GUIIconSubSys::getIcon(ICON_LOCATEPOI), this, MID_LOCATEPOI);
+    new FXMenuCommand(myLocatorMenu,
+                      "Locate P&olygon\t\tOpen a Dialog for Locating a Polygon.",
+                      GUIIconSubSys::getIcon(ICON_LOCATEPOLY), this, MID_LOCATEPOLY);
+    new FXMenuSeparator(myLocatorMenu);
+    new FXMenuCheck(myLocatorMenu,
+                    "Show Internal Structures\t\tShow internal junctions and streets in locator Dialog.",
                     this, MID_LISTINTERNAL);
+    // build control menu
+    myControlMenu = new FXMenuPane(this);
+    new FXMenuTitle(myMenuBar, "Simulation", NULL, myControlMenu);
+    new FXMenuCommand(myControlMenu,
+                      "Run\tCtl-A\tStart running the simulation.",
+                      NULL, this, MID_START);
+    new FXMenuCommand(myControlMenu,
+                      "Stop\tCtl-S\tStop running the simulation.",
+                      NULL, this, MID_STOP);
+    new FXMenuCommand(myControlMenu,
+                      "Step\tCtl-D\tPerform one simulation step.",
+                      NULL, this, MID_STEP);
 
     // build windows menu
     myWindowsMenu = new FXMenuPane(this);
     new FXMenuTitle(myMenuBar, "&Windows", NULL, myWindowsMenu);
     new FXMenuCheck(myWindowsMenu,
-                    "Show Status Line\t\tToggle this Status Bar on/off.",
+                    "Show Status Line\t\tToggle the Status Bar on/off.",
                     myStatusbar, FXWindow::ID_TOGGLESHOWN);
     new FXMenuCheck(myWindowsMenu,
                     "Show Message Window\t\tToggle the Message Window on/off.",
@@ -407,7 +466,7 @@ GUIApplicationWindow::fillMenuBar() {
     new FXMenuCommand(myWindowsMenu, "Tile &Vertically",
                       GUIIconSubSys::getIcon(ICON_WINDOWS_TILE_VERT),
                       myMDIClient, FXMDIClient::ID_MDI_TILEVERTICAL);
-    new FXMenuCommand(myWindowsMenu, "C&ascade",
+    new FXMenuCommand(myWindowsMenu, "Cascade",
                       GUIIconSubSys::getIcon(ICON_WINDOWS_CASCADE),
                       myMDIClient, FXMDIClient::ID_MDI_CASCADE);
     new FXMenuCommand(myWindowsMenu, "&Close", NULL,
@@ -478,8 +537,8 @@ GUIApplicationWindow::buildToolBars() {
                                    LAYOUT_DOCK_SAME | LAYOUT_SIDE_TOP | FRAME_RAISED);
         new FXToolBarGrip(myToolBar3, myToolBar3, FXToolBar::ID_TOOLBARGRIP,
                           TOOLBARGRIP_DOUBLE);
-        new FXButton(myToolBar3, "Time:\t\tToggle between seconds and hour:minute:seconds display", 0, this, MID_TIME_TOOGLE, 
-                BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
+        new FXButton(myToolBar3, "Time:\t\tToggle between seconds and hour:minute:seconds display", 0, this, MID_TIME_TOOGLE,
+                     BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
         myLCDLabel = new FXEX::FXLCDLabel(myToolBar3, 13, 0, 0, JUSTIFY_RIGHT);
         myLCDLabel->setHorizontal(2);
         myLCDLabel->setVertical(6);
@@ -495,7 +554,7 @@ GUIApplicationWindow::buildToolBars() {
         new FXToolBarGrip(myToolBar4, myToolBar4, FXToolBar::ID_TOOLBARGRIP,
                           TOOLBARGRIP_DOUBLE);
         new FXButton(myToolBar4, "Delay (ms):\t\tToggle between alternative delay values", 0, this, MID_DELAY_TOOGLE,
-                BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
+                     BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
         mySimDelayTarget =
             new FXRealSpinDial(myToolBar4, 7, 0, MID_SIMDELAY,
                                LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y);
@@ -532,7 +591,7 @@ GUIApplicationWindow::onCmdQuit(FXObject*, FXSelector, void*) {
     getApp()->reg().writeIntEntry("SETTINGS", "height", getHeight());
     getApp()->reg().writeStringEntry("SETTINGS", "basedir", gCurrentFolder.text());
     getApp()->reg().writeIntEntry("SETTINGS", "maximized", isMaximized() ? 1 : 0);
-    getApp()->reg().writeIntEntry("gui", "timeasHMS", myShowTimeAsHMS ? 1 :0);
+    getApp()->reg().writeIntEntry("gui", "timeasHMS", myShowTimeAsHMS ? 1 : 0);
     getApp()->reg().writeIntEntry("gui", "alternateSimDelay", myAlternateSimDelay);
     getApp()->exit(0);
     return 1;
@@ -760,7 +819,7 @@ GUIApplicationWindow::onUpdStep(FXObject* sender, FXSelector, void* ptr) {
 
 
 long
-GUIApplicationWindow::onUpdEditChosen(FXObject* sender, FXSelector, void* ptr) {
+GUIApplicationWindow::onUpdNeedsSimulation(FXObject* sender, FXSelector, void* ptr) {
     sender->handle(this,
                    !myRunThread->simulationAvailable() || myAmLoading
                    ? FXSEL(SEL_COMMAND, ID_DISABLE) : FXSEL(SEL_COMMAND, ID_ENABLE),
@@ -770,14 +829,15 @@ GUIApplicationWindow::onUpdEditChosen(FXObject* sender, FXSelector, void* ptr) {
 
 
 long
-GUIApplicationWindow::onUpdEditBreakpoints(FXObject* sender, FXSelector, void* ptr) {
-    sender->handle(this,
-                   !myRunThread->simulationAvailable() || myAmLoading
-                   ? FXSEL(SEL_COMMAND, ID_DISABLE) : FXSEL(SEL_COMMAND, ID_ENABLE),
-                   ptr);
+GUIApplicationWindow::onCmdLocate(FXObject*, FXSelector sel, void*) {
+    if (myMDIClient->numChildren() > 0) {
+        GUISUMOViewParent* w = dynamic_cast<GUISUMOViewParent*>(myMDIClient->getActiveChild());
+        if (w != 0) {
+            w->onCmdLocate(0, sel, 0);
+        }
+    }
     return 1;
 }
-
 
 long
 GUIApplicationWindow::onCmdAppSettings(FXObject*, FXSelector, void*) {
@@ -893,11 +953,11 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
     GUIEvent_SimulationLoaded* ec = static_cast<GUIEvent_SimulationLoaded*>(e);
     if (ec->myNet != 0) {
 #ifndef NO_TRACI
-        std::map<int, traci::TraCIServer::CmdExecutor> execs;
+        std::map<int, TraCIServer::CmdExecutor> execs;
         execs[CMD_GET_GUI_VARIABLE] = &TraCIServerAPI_GUI::processGet;
         execs[CMD_SET_GUI_VARIABLE] = &TraCIServerAPI_GUI::processSet;
         try {
-            traci::TraCIServer::openSocket(execs);
+            TraCIServer::openSocket(execs);
         } catch (ProcessError& e) {
             myMessageWindow->appendText(EVENT_ERROR_OCCURED, e.what());
             WRITE_ERROR(e.what());
@@ -916,54 +976,59 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
             getApp()->exit(1);
         }
     } else {
-        // report success
-        setStatusBarText("'" + ec->myFile + "' loaded.");
         // initialise simulation thread
-        myRunThread->init(ec->myNet, ec->myBegin, ec->myEnd);
-        myWasStarted = false;
-        // initialise views
-        myViewNumber = 0;
-        const GUISUMOViewParent::ViewType defaultType = ec->myOsgView ? GUISUMOViewParent::VIEW_3D_OSG : GUISUMOViewParent::VIEW_2D_OPENGL;
-        if (ec->mySettingsFiles.size() > 0) {
-            // open a view for each file and apply settings
-            for (std::vector<std::string>::const_iterator it = ec->mySettingsFiles.begin();
-                    it != ec->mySettingsFiles.end(); ++it) {
-                GUISettingsHandler settings(*it);
-                GUISUMOViewParent::ViewType vt = defaultType;
-                if (settings.getViewType() == "osg" || settings.getViewType() == "3d") {
-                    vt = GUISUMOViewParent::VIEW_3D_OSG;
-                }
-                if (settings.getViewType() == "opengl" || settings.getViewType() == "2d") {
-                    vt = GUISUMOViewParent::VIEW_2D_OPENGL;
-                }
-                GUISUMOAbstractView* view = openNewView(vt);
-                if (view == 0) {
-                    break;
-                }
-                std::string settingsName = settings.addSettings(view);
-                view->addDecals(settings.getDecals());
-                settings.setViewport(view);
-                settings.setSnapshots(view);
-                if (settings.getDelay() > 0) {
-                    mySimDelayTarget->setValue(settings.getDelay());
-                }
-                if (settings.getBreakpoints().size() > 0) {
-                    GUIGlobals::gBreakpoints = settings.getBreakpoints();
-                }
+        if (!myRunThread->init(ec->myNet, ec->myBegin, ec->myEnd)) {
+            if (GUIGlobals::gQuitOnEnd) {
+                closeAllWindows();
+                getApp()->exit(1);
             }
         } else {
-            openNewView(defaultType);
-        }
+            // report success
+            setStatusBarText("'" + ec->myFile + "' loaded.");
+            myWasStarted = false;
+            // initialise views
+            myViewNumber = 0;
+            const GUISUMOViewParent::ViewType defaultType = ec->myOsgView ? GUISUMOViewParent::VIEW_3D_OSG : GUISUMOViewParent::VIEW_2D_OPENGL;
+            if (ec->mySettingsFiles.size() > 0) {
+                // open a view for each file and apply settings
+                for (std::vector<std::string>::const_iterator it = ec->mySettingsFiles.begin(); it != ec->mySettingsFiles.end(); ++it) {
+                    GUISettingsHandler settings(*it);
+                    GUISUMOViewParent::ViewType vt = defaultType;
+                    if (settings.getViewType() == "osg" || settings.getViewType() == "3d") {
+                        vt = GUISUMOViewParent::VIEW_3D_OSG;
+                    }
+                    if (settings.getViewType() == "opengl" || settings.getViewType() == "2d") {
+                        vt = GUISUMOViewParent::VIEW_2D_OPENGL;
+                    }
+                    GUISUMOAbstractView* view = openNewView(vt);
+                    if (view == 0) {
+                        break;
+                    }
+                    std::string settingsName = settings.addSettings(view);
+                    view->addDecals(settings.getDecals());
+                    settings.setViewport(view);
+                    settings.setSnapshots(view);
+                    if (settings.getDelay() > 0) {
+                        mySimDelayTarget->setValue(settings.getDelay());
+                    }
+                    if (settings.getBreakpoints().size() > 0) {
+                        GUIGlobals::gBreakpoints = settings.getBreakpoints();
+                    }
+                }
+            } else {
+                openNewView(defaultType);
+            }
 
-        if (isGaming()) {
-            setTitle("SUMO Traffic Light Game");
-        } else {
-            // set simulation name on the caption
-            std::string caption = "SUMO " + std::string(VERSION_STRING);
-            setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
+            if (isGaming()) {
+                setTitle("SUMO Traffic Light Game");
+            } else {
+                // set simulation name on the caption
+                std::string caption = "SUMO " + std::string(VERSION_STRING);
+                setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
+            }
+            // set simulation step begin information
+            updateTimeLCD(ec->myNet->getCurrentTimeStep());
         }
-        // set simulation step begin information
-        updateTimeLCD(ec->myNet->getCurrentTimeStep());
     }
     getApp()->endWaitCursor();
     // start if wished
@@ -1119,7 +1184,7 @@ GUIApplicationWindow::setStatusBarText(const std::string& text) {
 }
 
 
-void 
+void
 GUIApplicationWindow::updateTimeLCD(const SUMOTime time) {
     SUMOReal fracSeconds = STEPS2TIME(time);
     const bool hideFraction = myAmGaming || fmod(TS, 1.) == 0.;
@@ -1130,11 +1195,11 @@ GUIApplicationWindow::updateTimeLCD(const SUMOTime time) {
         const int minutes = ((int)fracSeconds % 3600) / 60;
         fracSeconds = fracSeconds - 3600 * hours - 60 * minutes;
         const std::string format = (hideFraction ?
-                 "%02d-%02d-%02.0f" : "%02d-%02d-%06.3f");
+                                    "%02d-%02d-%02.0f" : "%02d-%02d-%06.3f");
         snprintf(buffer, BuffSize, format.c_str(), hours, minutes, fracSeconds);
     } else {
         const std::string format = (hideFraction ?
-                 "%13.0f" : "%13.3f");
+                                    "%13.0f" : "%13.3f");
         snprintf(buffer, BuffSize, format.c_str(), fracSeconds);
     }
     myLCDLabel->setText(buffer);

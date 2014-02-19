@@ -31,7 +31,7 @@
 // ****************************************
 // VERSION
 // ****************************************
-#define TRACI_VERSION 6
+#define TRACI_VERSION 7
 
 
 // ****************************************
@@ -58,9 +58,6 @@
 // command: change target
 #define CMD_CHANGETARGET 0x31
 
-// command: add vehicle
-#define CMD_ADDVEHICLE 0x74
-
 // command: close sumo
 #define CMD_CLOSE 0x7F
 
@@ -78,18 +75,34 @@
 // response: subscribe induction loop (e1) variable
 #define RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE 0xe0
 
-// command: subscribe areal detector (e3) context
+
+// command: subscribe areal detector (e2) context
+#define CMD_SUBSCRIBE_AREAL_DETECTOR_CONTEXT 0x8D
+// response: subscribe areal detector (e2) context
+#define RESPONSE_SUBSCRIBE_AREAL_DETECTOR_CONTEXT 0x9D
+// command: get areal detector (e2) variable
+#define CMD_GET_AREAL_DETECTOR_VARIABLE 0x8E
+// response: get areal detector (e2) variable
+#define RESPONSE_GET_AREAL_DETECTOR_VARIABLE 0x9E
+// command: subscribe areal detector (e2) variable
+#define CMD_SUBSCRIBE_AREAL_DETECTOR_VARIABLE 0x8F
+// response: subscribe areal detector (e2) variable
+#define RESPONSE_SUBSCRIBE_AREAL_DETECTOR_VARIABLE 0x9F
+
+
+// command: subscribe multi-entry/multi-exit detector (e3) context
 #define CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT 0x81
-// response: subscribe areal detector (e3) context
+// response: subscribe multi-entry/multi-exit detector (e3) context
 #define RESPONSE_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT 0x91
 // command: get multi-entry/multi-exit detector (e3) variable
 #define CMD_GET_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE 0xa1
-// response: get areal detector (e3) variable
+// response: get multi-entry/multi-exit detector (e3) variable
 #define RESPONSE_GET_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE 0xb1
 // command: subscribe multi-entry/multi-exit detector (e3) variable
 #define CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE 0xd1
-// response: subscribe areal detector (e3) variable
+// response: subscribe multi-entry/multi-exit detector (e3) variable
 #define RESPONSE_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE 0xe1
+
 
 // command: subscribe traffic lights context
 #define CMD_SUBSCRIBE_TL_CONTEXT 0x82
@@ -395,6 +408,12 @@
 // entry times
 #define LAST_STEP_VEHICLE_DATA 0x17
 
+// last step jam length in vehicles
+#define JAM_LENGTH_VEHICLE 0x18
+
+// last step jam length in meters
+#define JAM_LENGTH_METERS 0x19
+
 
 // traffic light states, encoded as rRgGyYoO tuple (get: traffic lights)
 #define TL_RED_YELLOW_GREEN_STATE 0x20
@@ -546,6 +565,8 @@
 // speed deviation (set: vehicle)
 #define VAR_SPEED_DEVIATION 0x5f
 
+
+
 // speed without TraCI influence (get: vehicle)
 #define VAR_SPEED_WITHOUT_TRACI 0xb1
 
@@ -561,6 +582,13 @@
 // is the vehicle stopped, and if so parked and/or triggered?
 // value = stopped + 2 * parking + 4 * triggered
 #define VAR_STOPSTATE 0xb5
+
+// how lane changing is performed (set: vehicle)
+#define VAR_LANECHANGE_MODE 0xb6
+
+// maximum speed regarding max speed on the current lane and speed factor (get: vehicle)
+#define VAR_ALLOWED_SPEED 0xb7
+
 
 // current CO2 emission of a node (get: vehicle, lane, edge)
 #define VAR_CO2EMISSION 0x60
@@ -585,9 +613,15 @@
 
 // current person number (get: vehicle)
 #define VAR_PERSON_NUMBER 0x67
+
+// number of persons waiting at a defined bus stop (get: simulation)
 #define VAR_BUS_STOP_WAITING 0x67
 
+// current leader together with gap (get: vehicle)
+#define VAR_LEADER 0x68
 
+//current waiting time (get: vehicle, lane)
+#define VAR_WAITING_TIME 0x7a
 
 // current time step (get: simulation)
 #define VAR_TIME_STEP 0x70
@@ -631,12 +665,40 @@
 // minimum number of expected vehicles (get: simulation)
 #define VAR_MIN_EXPECTED_VEHICLES 0x7d
 
+// number of vehicles starting to park (get: simulation)
+#define VAR_STOP_STARTING_VEHICLES_NUMBER 0x68
+
+// ids of vehicles starting to park (get: simulation)
+#define VAR_STOP_STARTING_VEHICLES_IDS 0x69
+
+// number of vehicles ending to park (get: simulation)
+#define VAR_STOP_ENDING_VEHICLES_NUMBER 0x6a
+
+// ids of vehicles ending to park (get: simulation)
+#define VAR_STOP_ENDING_VEHICLES_IDS 0x6b
+
+// number of vehicles starting to park (get: simulation)
+#define VAR_PARKING_STARTING_VEHICLES_NUMBER 0x6c
+
+// ids of vehicles starting to park (get: simulation)
+#define VAR_PARKING_STARTING_VEHICLES_IDS 0x6d
+
+// number of vehicles ending to park (get: simulation)
+#define VAR_PARKING_ENDING_VEHICLES_NUMBER 0x6e
+
+// ids of vehicles ending to park (get: simulation)
+#define VAR_PARKING_ENDING_VEHICLES_IDS 0x6f
+
+// clears the simulation of all not inserted vehicles (set: simulation)
+#define CMD_CLEAR_PENDING_VEHICLES 0x94
+
+
 
 
 // add an instance (poi, polygon, vehicle, route)
 #define ADD 0x80
 
-// remove an instance (poi, polygon)
+// remove an instance (poi, polygon, vehicle)
 #define REMOVE 0x81
 
 // convert coordinates
@@ -645,6 +707,11 @@
 // distance between points or vehicles
 #define DISTANCE_REQUEST 0x83
 
+//the current driving distance
+#define VAR_DISTANCE 0x84
+
+// add a fully specified instance (vehicle)
+#define ADD_FULL 0x85
 
 // force rerouting based on travel time (vehicles)
 #define CMD_REROUTE_TRAVELTIME 0x90

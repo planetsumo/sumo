@@ -198,13 +198,13 @@ GUISUMOViewParent::onCmdLocate(FXObject*, FXSelector sel, void*) {
         case MID_LOCATEPOI:
             type = GLO_POI;
             ids = static_cast<GUIShapeContainer&>(GUINet::getInstance()->getShapeContainer()).getPOIIds();
-            icon = ICON_LOCATESHAPE;
+            icon = ICON_LOCATEPOI;
             title = "POI Chooser";
             break;
         case MID_LOCATEPOLY:
             type = GLO_POLYGON;
             ids = static_cast<GUIShapeContainer&>(GUINet::getInstance()->getShapeContainer()).getPolygonIDs();
-            icon = ICON_LOCATESHAPE;
+            icon = ICON_LOCATEPOLY;
             title = "Polygon Chooser";
             break;
         default:
@@ -240,10 +240,10 @@ GUISUMOViewParent::isSelected(GUIGlObject* o) const {
             // hmph, just some security stuff
             return false;
         }
-        const std::vector<MSLane*> &lanes = edge->getLanes();
+        const std::vector<MSLane*>& lanes = edge->getLanes();
         for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
-            GUILane *l = dynamic_cast<GUILane*>(*j);
-            if(l!=0 && gSelected.isSelected(GLO_LANE, l->getGlID())) {
+            GUILane* l = dynamic_cast<GUILane*>(*j);
+            if (l != 0 && gSelected.isSelected(GLO_LANE, l->getGlID())) {
                 return true;
             }
         }

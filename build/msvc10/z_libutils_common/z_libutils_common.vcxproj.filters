@@ -53,6 +53,9 @@
     <ClCompile Include="..\..\..\src\utils\common\SysUtils.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\utils\common\StdDefs.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\utils\common\AbstractMutex.h">
@@ -164,6 +167,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\utils\common\AStarRouter.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\utils\common\NamedRTree.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

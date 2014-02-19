@@ -32,23 +32,16 @@
 #include <config.h>
 #endif
 
-// ===========================================================================
-// definitions
-// ===========================================================================
-#ifndef PI
-#define PI 3.1415926535897932384626433832795
-#endif
+#include <utils/xml/SUMOXMLDefinitions.h>
 
-
-// ===========================================================================
-// avoiding compiler warning unreferenced parameter
-// ===========================================================================
+/* avoiding compiler warning unreferenced parameter */
 #define UNUSED_PARAMETER(x)  ((void)(x))
 
+class RGBColor;
 
-// ===========================================================================
-// some constant defaults used by SUMO
-// ===========================================================================
+/* -------------------------------------------------------------------------
+ * some constant defaults used by SUMO
+ * ----------------------------------------------------------------------- */
 const SUMOReal SUMO_const_laneWidth = (SUMOReal) 3.2;
 const SUMOReal SUMO_const_halfLaneWidth = (SUMOReal) 1.6;
 const SUMOReal SUMO_const_quarterLaneWidth = (SUMOReal) 0.8;
@@ -58,6 +51,10 @@ const SUMOReal SUMO_const_halfLaneAndOffset = (SUMOReal)(3.2 / 2. + .1);
 
 /// @brief the speed threshold at which vehicles are considered as halting
 const SUMOReal SUMO_const_haltingSpeed = (SUMOReal) 0.1;
+
+/* @brief map from LinkState to color constants (see above)
+ */
+const RGBColor& getLinkColor(const LinkState& ls);
 
 
 /* -------------------------------------------------------------------------
@@ -111,6 +108,9 @@ ISNAN(T a) {
     return d != d;
 }
 
+/// @brief global utility flags for debugging
+extern bool gDebugFlag1;
+extern bool gDebugFlag2;
 
 #endif
 

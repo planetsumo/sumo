@@ -136,24 +136,26 @@ ROLoader::loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     PROGRESS_BEGIN_MESSAGE("Loading net");
     RONetHandler handler(toFill, eb);
     handler.setFileName(file);
-    if (!XMLSubSys::runParser(handler, file)) {
+    if (!XMLSubSys::runParser(handler, file, true)) {
         PROGRESS_FAILED_MESSAGE();
         throw ProcessError();
     } else {
         PROGRESS_DONE_MESSAGE();
     }
-    if (myOptions.isSet("taz-files", false)) { // dfrouter does not register this option
-        file = myOptions.getString("taz-files");
-        if (!FileHelpers::exists(file)) {
-            throw ProcessError("The districts file '" + file + "' could not be found.");
-        }
-        PROGRESS_BEGIN_MESSAGE("Loading districts");
-        handler.setFileName(file);
-        if (!XMLSubSys::runParser(handler, file)) {
-            PROGRESS_FAILED_MESSAGE();
-            throw ProcessError();
-        } else {
-            PROGRESS_DONE_MESSAGE();
+    if (myOptions.isSet("additional-files", false)) { // dfrouter does not register this option
+        std::vector<std::string> files = myOptions.getStringVector("additional-files");
+        for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
+            if (!FileHelpers::exists(*fileIt)) {
+                throw ProcessError("The additional file '" + *fileIt + "' could not be found.");
+            }
+            PROGRESS_BEGIN_MESSAGE("Loading additional file '" + *fileIt + "' ");
+            handler.setFileName(*fileIt);
+            if (!XMLSubSys::runParser(handler, *fileIt)) {
+                PROGRESS_FAILED_MESSAGE();
+                throw ProcessError();
+            } else {
+                PROGRESS_DONE_MESSAGE();
+            }
         }
     }
 }
@@ -174,7 +176,7 @@ ROLoader::openRoutes(RONet& net) {
     if (ok) {
         myLoaders.loadNext(string2time(myOptions.getString("begin")));
         if (!MsgHandler::getErrorInstance()->wasInformed() && !net.furtherStored()) {
-            throw ProcessError("No route input specified.");
+            throw ProcessError("No route input specified or all routes were invalid.");
         }
         // skip routes prior to the begin time
         if (!myOptions.getBool("unsorted-input")) {

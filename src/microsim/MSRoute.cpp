@@ -51,7 +51,6 @@
 // ===========================================================================
 MSRoute::RouteDict MSRoute::myDict;
 MSRoute::RouteDistDict MSRoute::myDistDict;
-unsigned int MSRoute::MaxRouteDistSize = std::numeric_limits<unsigned int>::max();
 
 
 // ===========================================================================
@@ -59,10 +58,10 @@ unsigned int MSRoute::MaxRouteDistSize = std::numeric_limits<unsigned int>::max(
 // ===========================================================================
 MSRoute::MSRoute(const std::string& id,
                  const MSEdgeVector& edges,
-                 unsigned int references, const RGBColor* const c,
+                 const bool isPermanent, const RGBColor* const c,
                  const std::vector<SUMOVehicleParameter::Stop>& stops)
-    : Named(id), myEdges(edges),
-      myReferenceCounter(references),
+    : Named(id), myEdges(edges), myAmPermanent(isPermanent),
+      myReferenceCounter(isPermanent ? 1 : 0),
       myColor(c), myStops(stops) {}
 
 
@@ -123,9 +122,9 @@ MSRoute::dictionary(const std::string& id, const MSRoute* route) {
 
 
 bool
-MSRoute::dictionary(const std::string& id, RandomDistributor<const MSRoute*>* routeDist) {
+MSRoute::dictionary(const std::string& id, RandomDistributor<const MSRoute*>* const routeDist, const bool permanent) {
     if (myDict.find(id) == myDict.end() && myDistDict.find(id) == myDistDict.end()) {
-        myDistDict[id] = routeDist;
+        myDistDict[id] = std::make_pair(routeDist, permanent);
         return true;
     }
     return false;
@@ -137,10 +136,10 @@ MSRoute::dictionary(const std::string& id) {
     RouteDict::iterator it = myDict.find(id);
     if (it == myDict.end()) {
         RouteDistDict::iterator it2 = myDistDict.find(id);
-        if (it2 == myDistDict.end() || it2->second->getOverallProb() == 0) {
+        if (it2 == myDistDict.end() || it2->second.first->getOverallProb() == 0) {
             return 0;
         }
-        return it2->second->get();
+        return it2->second.first->get();
     }
     return it->second;
 }
@@ -152,20 +151,34 @@ MSRoute::distDictionary(const std::string& id) {
     if (it2 == myDistDict.end()) {
         return 0;
     }
-    return it2->second;
+    return it2->second.first;
 }
 
 
 void
 MSRoute::clear() {
     for (RouteDistDict::iterator i = myDistDict.begin(); i != myDistDict.end(); ++i) {
-        delete i->second;
+        delete i->second.first;
     }
     myDistDict.clear();
     for (RouteDict::iterator i = myDict.begin(); i != myDict.end(); ++i) {
         delete i->second;
     }
     myDict.clear();
+}
+
+
+void
+MSRoute::checkDist(const std::string& id) {
+    RouteDistDict::iterator it = myDistDict.find(id);
+    if (it != myDistDict.end() && !it->second.second) {
+        const std::vector<const MSRoute*>& routes = it->second.first->getVals();
+        for (std::vector<const MSRoute*>::const_iterator i = routes.begin(); i != routes.end(); ++i) {
+            (*i)->release();
+        }
+        delete it->second.first;
+        myDistDict.erase(it);
+    }
 }
 
 
@@ -224,13 +237,14 @@ void
 MSRoute::dict_saveState(OutputDevice& out) {
     for (RouteDict::iterator it = myDict.begin(); it != myDict.end(); ++it) {
         out.openTag(SUMO_TAG_ROUTE).writeAttr(SUMO_ATTR_ID, (*it).second->getID());
-        out.writeAttr(SUMO_ATTR_STATE, (*it).second->myReferenceCounter);
+        out.writeAttr(SUMO_ATTR_STATE, (*it).second->myAmPermanent);
         out.writeAttr(SUMO_ATTR_EDGES, (*it).second->myEdges).closeTag();
     }
     for (RouteDistDict::iterator it = myDistDict.begin(); it != myDistDict.end(); ++it) {
         out.openTag(SUMO_TAG_ROUTE_DISTRIBUTION).writeAttr(SUMO_ATTR_ID, (*it).first);
-        out.writeAttr(SUMO_ATTR_ROUTES, (*it).second->getVals());
-        out.writeAttr(SUMO_ATTR_PROBS, (*it).second->getProbs());
+        out.writeAttr(SUMO_ATTR_STATE, (*it).second.second);
+        out.writeAttr(SUMO_ATTR_ROUTES, (*it).second.first->getVals());
+        out.writeAttr(SUMO_ATTR_PROBS, (*it).second.first->getProbs());
         out.closeTag();
     }
 }
@@ -256,9 +270,14 @@ MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* from
         // start or destination not contained in route
         return std::numeric_limits<SUMOReal>::max();
     }
-    if (fromEdge == toEdge && fromPos <= toPos) {
+    if (fromEdge == toEdge) {
         // destination position is on start edge
-        return (toPos - fromPos);
+        if (fromPos <= toPos) {
+            return toPos - fromPos;
+        } else if (std::find(it + 1, myEdges.end(), toEdge) == myEdges.end()) {
+            // we don't visit the edge again
+            return std::numeric_limits<SUMOReal>::max();
+        }
     }
     for (; it != end(); ++it) {
         if ((*it) == toEdge && !isFirstIteration) {

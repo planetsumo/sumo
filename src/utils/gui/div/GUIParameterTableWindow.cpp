@@ -65,7 +65,7 @@ FXIMPLEMENT(GUIParameterTableWindow, FXMainWindow, GUIParameterTableWindowMap, A
 GUIParameterTableWindow::GUIParameterTableWindow(GUIMainWindow& app,
         GUIGlObject& o, size_t noRows)
     : FXMainWindow(app.getApp(), (o.getFullName() + " Parameter").c_str(),
-                   NULL, NULL, DECOR_ALL, 20, 20, 400, (FXint)(noRows * 20 + 60)),
+                   NULL, NULL, DECOR_ALL, 20, 20, 500, (FXint)(noRows * 20 + 60)),
     myObject(&o),
     myApplication(&app), myCurrentPos(0) {
     myTable = new FXTable(this, this, MID_TABLE, TABLE_COL_SIZABLE | TABLE_ROW_SIZABLE | LAYOUT_FILL_X | LAYOUT_FILL_Y);
@@ -79,9 +79,9 @@ GUIParameterTableWindow::GUIParameterTableWindow(GUIMainWindow& app,
     myTable->getRowHeader()->setWidth(0);
     FXHeader* header = myTable->getColumnHeader();
     header->setItemJustify(0, JUSTIFY_CENTER_X);
-    header->setItemSize(0, 250);
+    header->setItemSize(0, 240);
     header->setItemJustify(1, JUSTIFY_CENTER_X);
-    header->setItemSize(1, 80);
+    header->setItemSize(1, 120);
     header->setItemJustify(2, JUSTIFY_CENTER_X);
     header->setItemSize(2, 60);
     setIcon(GUIIconSubSys::getIcon(ICON_APP_TABLE));
@@ -169,20 +169,18 @@ GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
 
 void
 GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
+                                ValueSource<int>* src) {
+    GUIParameterTableItemInterface* i = new GUIParameterTableItem<int>(myTable, myCurrentPos++, name, dynamic, src);
+    myItems.push_back(i);
+}
+
+
+void
+GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
                                 ValueSource<SUMOReal>* src) {
     GUIParameterTableItemInterface* i = new GUIParameterTableItem<SUMOReal>(myTable, myCurrentPos++, name, dynamic, src);
     myItems.push_back(i);
 }
-
-
-#ifndef HAVE_SUBSECOND_TIMESTEPS
-void
-GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
-                                ValueSource<SUMOTime>* src) {
-    GUIParameterTableItemInterface* i = new GUIParameterTableItem<SUMOTime>(myTable, myCurrentPos++, name, dynamic, src);
-    myItems.push_back(i);
-}
-#endif
 
 
 void
@@ -210,14 +208,12 @@ GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
 }
 
 
-#ifndef HAVE_SUBSECOND_TIMESTEPS
 void
 GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
-                                SUMOTime value) {
-    GUIParameterTableItemInterface* i = new GUIParameterTableItem<SUMOTime>(myTable, myCurrentPos++, name, dynamic, value);
+                                int value) {
+    GUIParameterTableItemInterface* i = new GUIParameterTableItem<int>(myTable, myCurrentPos++, name, dynamic, value);
     myItems.push_back(i);
 }
-#endif
 
 
 void

@@ -158,14 +158,10 @@ GUIEdge::getParameterWindow(GUIMainWindow& app,
     // add edge items
     ret->mkItem("length [m]", false, (*myLanes)[0]->getLength());
     ret->mkItem("allowed speed [m/s]", false, getAllowedSpeed());
-    ret->mkItem("occupancy [%]", true,
-                new FunctionBinding<GUIEdge, SUMOReal>(this, &GUIEdge::getOccupancy));
-    ret->mkItem("mean vehicle speed [m/s]", true,
-                new FunctionBinding<GUIEdge, SUMOReal>(this, &GUIEdge::getMeanSpeed));
-    ret->mkItem("flow [veh/h/lane]", true,
-                new FunctionBinding<GUIEdge, SUMOReal>(this, &GUIEdge::getFlow));
-    ret->mkItem("#vehicles", true,
-                new CastingFunctionBinding<GUIEdge, SUMOReal, unsigned int>(this, &GUIEdge::getVehicleNo));
+    ret->mkItem("occupancy [%]", true, new FunctionBinding<GUIEdge, SUMOReal>(this, &GUIEdge::getBruttoOccupancy));
+    ret->mkItem("mean vehicle speed [m/s]", true, new FunctionBinding<GUIEdge, SUMOReal>(this, &GUIEdge::getMeanSpeed));
+    ret->mkItem("flow [veh/h/lane]", true, new FunctionBinding<GUIEdge, SUMOReal>(this, &GUIEdge::getFlow));
+    ret->mkItem("#vehicles", true, new CastingFunctionBinding<GUIEdge, SUMOReal, unsigned int>(this, &GUIEdge::getVehicleNo));
     ret->mkItem("vehicle ids", false, getVehicleIDs());
     // add segment items
     MESegment* segment = getSegmentAtPosition(parent.getPositionInformation());
@@ -212,8 +208,8 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
             setColor(s);
         }
 #endif
-        GUILane *l = dynamic_cast<GUILane*>(*i);
-        if(l!=0) {
+        GUILane* l = dynamic_cast<GUILane*>(*i);
+        if (l != 0) {
             l->drawGL(s);
         }
     }
@@ -245,7 +241,7 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
                     if (laneIndex < segment->numQueues()) {
                         // make a copy so we don't have to worry about synchronization
                         queue = segment->getQueue(laneIndex);
-                        const SUMOReal avgCarSize = segment->getOccupancy() / segment->getCarNumber();
+                        const SUMOReal avgCarSize = segment->getBruttoOccupancy() / segment->getCarNumber();
                         const size_t queueSize = queue.size();
                         for (size_t i = 0; i < queueSize; ++i) {
                             MSBaseVehicle* veh = queue[queueSize - i - 1];
@@ -301,7 +297,7 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
     if (drawEdgeName || drawInternalEdgeName || drawStreetName) {
         GUILane* lane1 = dynamic_cast<GUILane*>((*myLanes)[0]);
         GUILane* lane2 = dynamic_cast<GUILane*>((*myLanes).back());
-        if(lane1!=0&&lane2!=0) {
+        if (lane1 != 0 && lane2 != 0) {
             Position p = lane1->getShape().positionAtOffset(lane1->getShape().length() / (SUMOReal) 2.);
             p.add(lane2->getShape().positionAtOffset(lane2->getShape().length() / (SUMOReal) 2.));
             p.mul(.5);
@@ -367,10 +363,10 @@ GUIEdge::getFlow() const {
 
 
 SUMOReal
-GUIEdge::getOccupancy() const {
+GUIEdge::getBruttoOccupancy() const {
     SUMOReal occ = 0;
     for (MESegment* segment = MSGlobals::gMesoNet->getSegmentForEdge(*this); segment != 0; segment = segment->getNextSegment()) {
-        occ += segment->getOccupancy();
+        occ += segment->getBruttoOccupancy();
     }
     return occ / (*myLanes)[0]->getLength() / (SUMOReal)(myLanes->size());
 }
@@ -420,7 +416,7 @@ GUIEdge::getColorValue(size_t activeScheme) const {
         case 3:
             return getAllowedSpeed();
         case 4:
-            return getOccupancy();
+            return getBruttoOccupancy();
         case 5:
             return getMeanSpeed();
         case 6:
@@ -444,13 +440,24 @@ void
 GUIEdge::setVehicleColor(const GUIVisualizationSettings& s, MSBaseVehicle* veh) const {
     const GUIColorer& c = s.vehicleColorer;
     switch (c.getActive()) {
-        case 1:
-            GLHelper::setColor(veh->getParameter().color);
+        case 0:
+            if (veh->getParameter().wasSet(VEHPARS_COLOR_SET)) {
+                GLHelper::setColor(veh->getParameter().color);
+            }
+            if (veh->getVehicleType().wasSet(VTYPEPARS_COLOR_SET)) {
+                GLHelper::setColor(veh->getVehicleType().getColor());
+            }
+            if (veh->getRoute().getColor() != RGBColor::DEFAULT_COLOR) {
+                GLHelper::setColor(veh->getRoute().getColor());
+            }
             break;
         case 2:
+            GLHelper::setColor(veh->getParameter().color);
+            break;
+        case 4:
             GLHelper::setColor(veh->getVehicleType().getColor());
             break;
-        case 3:
+        case 5:
             GLHelper::setColor(veh->getRoute().getColor());
             break;
         default:

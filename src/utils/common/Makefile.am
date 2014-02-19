@@ -1,7 +1,7 @@
 noinst_LIBRARIES = libcommon.a
 
-EXTRA_DIST = StdDefs.h VectorHelper.h Command.h \
-NamedObjectCont.h StaticCommand.h RandomDistributor.h \
+EXTRA_DIST = VectorHelper.h Command.h \
+NamedObjectCont.h NamedRTree.h StaticCommand.h RandomDistributor.h \
 SUMOAbstractRouter.h DijkstraRouterTT.h DijkstraRouterEffort.h \
 AStarRouter.h \
 SUMOVehicle.h \
@@ -16,6 +16,7 @@ Named.h Parameterised.cpp Parameterised.h \
 StringTokenizer.cpp StringTokenizer.h \
 StringUtils.cpp StringUtils.h UtilExceptions.h \
 MsgHandler.h MsgHandler.cpp \
+StdDefs.h StdDefs.cpp \
 RGBColor.cpp RGBColor.h RandHelper.h RandHelper.cpp \
 SUMOTime.cpp SUMOTime.h \
 SystemFrame.cpp SystemFrame.h SysUtils.h SysUtils.cpp \

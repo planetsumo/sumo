@@ -57,6 +57,15 @@ inline std::string toString(const T& t, std::streamsize accuracy = OUTPUT_ACCURA
 }
 
 
+template<typename T>
+inline std::string toHex(const T i, std::streamsize numDigits=0) {
+    // taken from http://stackoverflow.com/questions/5100718/int-to-hex-string-in-c
+    std::stringstream stream;
+    stream << "0x" << std::setfill ('0') << std::setw(numDigits == 0 ? sizeof(T)*2 : numDigits) << std::hex << i;
+    return stream.str();
+}
+
+
 template <>
 inline std::string toString<SumoXMLTag>(const SumoXMLTag& tag, std::streamsize accuracy) {
     UNUSED_PARAMETER(accuracy);
@@ -115,6 +124,12 @@ template <>
 inline std::string toString<TrafficLightType>(const TrafficLightType& type, std::streamsize accuracy) {
     UNUSED_PARAMETER(accuracy);
     return SUMOXMLDefinitions::TrafficLightTypes.getString(type);
+}
+
+template <>
+inline std::string toString<LaneChangeModel>(const LaneChangeModel& model, std::streamsize accuracy) {
+    UNUSED_PARAMETER(accuracy);
+    return SUMOXMLDefinitions::LaneChangeModels.getString(model);
 }
 
 
@@ -176,8 +191,28 @@ inline std::string joinToString(const std::set<T>& s, const T_BETWEEN& between, 
 }
 
 template <>
-inline std::string toString(const std::set<std::string>& v, std::streamsize accuracy) {
-    return joinToString(v, " ", accuracy);
+inline std::string toString(const std::set<std::string>& v, std::streamsize) {
+    return joinToString(v, " ");
+}
+
+template <typename KEY, typename VAL, typename T_BETWEEN, typename T_BETWEEN_KEYVAL>
+inline std::string joinToString(const std::map<KEY, VAL>& s, const T_BETWEEN& between, const T_BETWEEN_KEYVAL& between_keyval, std::streamsize accuracy = OUTPUT_ACCURACY) {
+    std::ostringstream oss;
+    bool connect = false;
+    for (typename std::map<KEY, VAL>::const_iterator it = s.begin(); it != s.end(); ++it) {
+        if (connect) {
+            oss << toString(between, accuracy);
+        } else {
+            connect = true;
+        }
+        oss << toString(it->first, accuracy) << between_keyval << toString(it->second, accuracy);
+    }
+    return oss.str();
+}
+
+template <>
+inline std::string toString(const std::map<std::string, std::string>& v, std::streamsize) {
+    return joinToString(v, ", ", ":");
 }
 
 

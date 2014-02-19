@@ -1,10 +1,10 @@
 /****************************************************************************/
-/// @file    TraCIRTree.h
+/// @file    NamedRTree.h
 /// @author  Daniel Krajzewicz
 /// @date    27.10.2008
 /// @version $Id$
 ///
-// A RT-tree for efficient storing of SUMO's GL-objects
+// A RT-tree for efficient storing of SUMO's Named objects
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
@@ -17,8 +17,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef TraCIRTree_h
-#define TraCIRTree_h
+#ifndef NamedRTree_h
+#define NamedRTree_h
 
 
 // ===========================================================================
@@ -34,62 +34,79 @@
 #include <foreign/rtree/RTree.h>
 #include <utils/common/Named.h>
 
-//#include "RTree.h"
-
 
 // specialized implementation for speedup and avoiding warnings
+#define NAMED_RTREE_QUAL RTree<Named*, Named, float, 2, Named::StoringVisitor, float, 8, 4>
+
 template<>
-inline float RTree<Named*, Named, float, 2, Named::StoringVisitor, float, 8, 4>::RectSphericalVolume(Rect* a_rect) {
+inline float NAMED_RTREE_QUAL::RectSphericalVolume(Rect* a_rect) {
     ASSERT(a_rect);
     const float extent0 = a_rect->m_max[0] - a_rect->m_min[0];
     const float extent1 = a_rect->m_max[1] - a_rect->m_min[1];
     return .78539816f * (extent0 * extent0 + extent1 * extent1);
 }
 
+template<>
+inline NAMED_RTREE_QUAL::Rect NAMED_RTREE_QUAL::CombineRect(Rect* a_rectA, Rect* a_rectB) {
+    ASSERT(a_rectA && a_rectB);
+    Rect newRect;
+    newRect.m_min[0] = rtree_min(a_rectA->m_min[0], a_rectB->m_min[0]);
+    newRect.m_max[0] = rtree_max(a_rectA->m_max[0], a_rectB->m_max[0]);
+    newRect.m_min[1] = rtree_min(a_rectA->m_min[1], a_rectB->m_min[1]);
+    newRect.m_max[1] = rtree_max(a_rectA->m_max[1], a_rectB->m_max[1]);
+    return newRect;
+}
 
 // ===========================================================================
 // class definitions
 // ===========================================================================
-/** @class TraCIRTree
- * @brief A RT-tree for efficient storing of SUMO's GL-objects
+/** @class NamedRTree
+ * @brief A RT-tree for efficient storing of SUMO's Named objects
  *
- * This class specialises the used RT-tree implementation from "rttree.h" and
- *  extends it by a mutex for avoiding parallel change and traversal of the tree.
+ * This class specialises the used RT-tree implementation from "rttree.h".
+ * It stores names of "Named"-objects.
+ * @see Named
  */
-class TraCIRTree : private RTree<Named*, Named, float, 2, Named::StoringVisitor >, public Boundary {
+class NamedRTree : private RTree<Named*, Named, float, 2, Named::StoringVisitor > {
 public:
     /// @brief Constructor
-    TraCIRTree()
+    NamedRTree()
         : RTree<Named*, Named, float, 2, Named::StoringVisitor, float>(&Named::addTo) {
     }
 
 
     /// @brief Destructor
-    ~TraCIRTree() {
+    ~NamedRTree() {
     }
 
 
     /** @brief Insert entry
      * @param a_min Min of bounding rect
      * @param a_max Max of bounding rect
-     * @param a_dataId Positive Id of data.  Maybe zero, but negative numbers not allowed.
+     * @param a_data The instance of a Named-object to add (the ID is added)
      * @see RTree::Insert
      */
-    void Insert(const float a_min[2], const float a_max[2], Named* a_dataId) {
-        //AbstractMutex::ScopedLocker locker(myLock);
-        RTree<Named*, Named, float, 2, Named::StoringVisitor, float>::Insert(a_min, a_max, a_dataId);
+    void Insert(const float a_min[2], const float a_max[2], Named* a_data) {
+        RTree<Named*, Named, float, 2, Named::StoringVisitor, float>::Insert(a_min, a_max, a_data);
     }
 
 
     /** @brief Remove entry
      * @param a_min Min of bounding rect
      * @param a_max Max of bounding rect
-     * @param a_dataId Positive Id of data.  Maybe zero, but negative numbers not allowed.
+     * @param a_data The instance of a Named-object to remove
      * @see RTree::Remove
      */
-    void Remove(const float a_min[2], const float a_max[2], Named* a_dataId) {
-        //AbstractMutex::ScopedLocker locker(myLock);
-        RTree<Named*, Named, float, 2, Named::StoringVisitor, float>::Remove(a_min, a_max, a_dataId);
+    void Remove(const float a_min[2], const float a_max[2], Named* a_data) {
+        RTree<Named*, Named, float, 2, Named::StoringVisitor, float>::Remove(a_min, a_max, a_data);
+    }
+
+
+    /** @brief Remove all enrties
+     * @see RTree::RemoveAll
+     */
+    void RemoveAll() {
+        RTree<Named*, Named, float, 2, Named::StoringVisitor, float>::RemoveAll();
     }
 
 
@@ -102,47 +119,10 @@ public:
      * @return Returns the number of entries found
      * @see RTree::Search
      */
-    int Search(const float a_min[2], const float a_max[2], const Named::StoringVisitor& c) {
-        //AbstractMutex::ScopedLocker locker(myLock);
+    int Search(const float a_min[2], const float a_max[2], const Named::StoringVisitor& c) const {
         return RTree<Named*, Named, float, 2, Named::StoringVisitor, float>::Search(a_min, a_max, c);
     }
 
-
-    /** @brief Adds an additional object (detector/shape/trigger) for visualisation
-     * @param[in] o The object to add
-     * @param[in] b The object's boundary
-     */
-    void addObject(Named* o, Boundary& b) {
-        const float cmin[2] = {(float) b.xmin(), (float) b.ymin()};
-        const float cmax[2] = {(float) b.xmax(), (float) b.ymax()};
-        Insert(cmin, cmax, o);
-    }
-
-
-    /** @brief Adds an additional object (detector/shape/trigger) for visualisation
-     * @param[in] o The object to add
-     * @param[in] p The object's position
-     */
-    void addObject(Named* o, Position& p) {
-        Boundary b;
-        b.add(p);
-        addObject(o, b);
-    }
-
-
-    /** @brief Removes an additional object (detector/shape/trigger) from being visualised
-     * @param[in] o The object to remove
-     */
-    void removeAdditionalGLObject(Named* o, Boundary& b) {
-        const float cmin[2] = {(float) b.xmin(), (float) b.ymin()};
-        const float cmax[2] = {(float) b.xmax(), (float) b.ymax()};
-        Remove(cmin, cmax, o);
-    }
-
-
-protected:
-    /// @brief A mutex avoiding parallel change and traversal of the tree
-    //MFXMutex myLock;
 
 };
 

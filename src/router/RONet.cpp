@@ -59,7 +59,8 @@ RONet::RONet()
     : myVehicleTypes(), myDefaultVTypeMayBeDeleted(true),
       myRoutesOutput(0), myRouteAlternativesOutput(0), myTypesOutput(0),
       myReadRouteNo(0), myDiscardedRouteNo(0), myWrittenRouteNo(0),
-      myHaveRestrictions(false) {
+      myHaveRestrictions(false),
+      myNumInternalEdges(0) {
     SUMOVTypeParameter* type = new SUMOVTypeParameter();
     type->id = DEFAULT_VTYPE_ID;
     type->onlyReferenced = true;
@@ -83,6 +84,9 @@ RONet::addEdge(ROEdge* edge) {
         delete edge;
         return false;
     }
+    if (edge->getType() == ROEdge::ET_INTERNAL) {
+        myNumInternalEdges += 1;
+    }
     return true;
 }
 
@@ -93,6 +97,17 @@ RONet::addNode(RONode* node) {
         WRITE_ERROR("The node '" + node->getID() + "' occurs at least twice.");
         delete node;
     }
+}
+
+
+void
+RONet::addBusStop(const std::string& id, SUMOVehicleParameter::Stop* stop) {
+    std::map<std::string, SUMOVehicleParameter::Stop*>::const_iterator it = myBusStops.find(id);
+    if (it != myBusStops.end()) {
+        WRITE_ERROR("The bus stop '" + id + "' occurs at least twice.");
+        delete stop;
+    }
+    myBusStops[id] = stop;
 }
 
 
@@ -107,16 +122,16 @@ RONet::openOutput(const std::string& filename, const std::string altFilename, co
     if (filename != "") {
         myRoutesOutput = &OutputDevice::getDevice(filename);
         myRoutesOutput->writeHeader<ROEdge>(SUMO_TAG_ROUTES);
-        myRoutesOutput->writeAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance").writeAttr("xsi:noNamespaceSchemaLocation", "http://sumo.sf.net/xsd/routes_file.xsd");
+        myRoutesOutput->writeAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance").writeAttr("xsi:noNamespaceSchemaLocation", "http://sumo-sim.org/xsd/routes_file.xsd");
     }
     if (altFilename != "") {
         myRouteAlternativesOutput = &OutputDevice::getDevice(altFilename);
         myRouteAlternativesOutput->writeHeader<ROEdge>(SUMO_TAG_ROUTES);
-        myRouteAlternativesOutput->writeAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance").writeAttr("xsi:noNamespaceSchemaLocation", "http://sumo.sf.net/xsd/routes_file.xsd");
+        myRouteAlternativesOutput->writeAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance").writeAttr("xsi:noNamespaceSchemaLocation", "http://sumo-sim.org/xsd/routes_file.xsd");
     }
     if (typeFilename != "") {
         myTypesOutput = &OutputDevice::getDevice(typeFilename);
-        myTypesOutput->writeXMLHeader("routes", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.sf.net/xsd/routes_file.xsd\"");
+        myTypesOutput->writeXMLHeader("routes", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo-sim.org/xsd/routes_file.xsd\"");
     }
 }
 
@@ -245,8 +260,8 @@ RONet::addPerson(const SUMOTime depart, const std::string desc) {
 bool
 RONet::computeRoute(OptionsCont& options, SUMOAbstractRouter<ROEdge, ROVehicle>& router,
                     const ROVehicle* const veh) {
-    MsgHandler* mh = (OptionsCont::getOptions().getBool("ignore-errors") ? 
-            MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance());
+    MsgHandler* mh = (OptionsCont::getOptions().getBool("ignore-errors") ?
+                      MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance());
     std::string noRouteMsg = "The vehicle '" + veh->getID() + "' has no valid route.";
     RORouteDef* const routeDef = veh->getRouteDefinition();
     // check if the route definition is valid
@@ -304,7 +319,7 @@ RONet::checkFlows(SUMOTime time) {
             // try to build the vehicle
             SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid);
             RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
-            ROVehicle* veh = new ROVehicle(*newPars, route, type);
+            ROVehicle* veh = new ROVehicle(*newPars, route, type, this);
             addVehicle(newPars->id, veh);
             delete newPars;
         }
@@ -381,6 +396,12 @@ RONet::furtherStored() {
 unsigned int
 RONet::getEdgeNo() const {
     return (unsigned int) myEdges.size();
+}
+
+
+unsigned int
+RONet::getEdgeNoWithoutInternal() const {
+    return (unsigned int)(myEdges.size() - myNumInternalEdges);
 }
 
 

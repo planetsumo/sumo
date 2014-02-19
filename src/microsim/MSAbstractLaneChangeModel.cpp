@@ -6,7 +6,7 @@
 /// @author  Michael Behrisch
 /// @author  Jakob Erdmann
 /// @date    Fri, 29.04.2005
-/// @version $Id: MSAbstractLaneChangeModel.h 13107 2012-12-02 13:57:34Z behrisch $
+/// @version $Id$
 ///
 // Interface for lane-change models
 /****************************************************************************/
@@ -32,6 +32,9 @@
 #endif
 
 #include "MSAbstractLaneChangeModel.h"
+#include "MSLCM_DK2008.h"
+#include "MSLCM_LC2013.h"
+#include "MSLCM_JE2013.h"
 #include "MSNet.h"
 #include "MSEdge.h"
 #include "MSLane.h"
@@ -41,8 +44,23 @@
  * MSAbstractLaneChangeModel-methods
  * ----------------------------------------------------------------------- */
 
-MSAbstractLaneChangeModel::MSAbstractLaneChangeModel(MSVehicle& v) : 
-    myVehicle(v), 
+MSAbstractLaneChangeModel*
+MSAbstractLaneChangeModel::build(LaneChangeModel lcm, MSVehicle& v) {
+    switch (lcm) {
+        case LCM_DK2008:
+            return new MSLCM_DK2008(v);
+        case LCM_LC2013:
+            return new MSLCM_LC2013(v);
+        case LCM_JE2013:
+            return new MSLCM_JE2013(v);
+        default:
+            throw ProcessError("Lane change model '" + toString(lcm) + "' not implemented");
+    }
+}
+
+
+MSAbstractLaneChangeModel::MSAbstractLaneChangeModel(MSVehicle& v) :
+    myVehicle(v),
     myOwnState(0),
     myLastLaneChangeOffset(0),
     myLaneChangeCompletion(1.0),
@@ -51,19 +69,16 @@ MSAbstractLaneChangeModel::MSAbstractLaneChangeModel(MSVehicle& v) :
     myAlreadyMoved(false),
     myShadowLane(0),
     myHaveShadow(false),
-#ifndef NO_TRACI
-    myChangeRequest(MSVehicle::REQUEST_NONE),
-#endif
     myCarFollowModel(v.getCarFollowModel()) {
-    }
+}
 
 
-MSAbstractLaneChangeModel::~MSAbstractLaneChangeModel() { 
+MSAbstractLaneChangeModel::~MSAbstractLaneChangeModel() {
     removeLaneChangeShadow();
 }
 
 
-bool 
+bool
 MSAbstractLaneChangeModel::congested(const MSVehicle* const neighLeader) {
     if (neighLeader == 0) {
         return false;
@@ -82,7 +97,7 @@ MSAbstractLaneChangeModel::congested(const MSVehicle* const neighLeader) {
 }
 
 
-bool 
+bool
 MSAbstractLaneChangeModel::predInteraction(const MSVehicle* const leader) {
     if (leader == 0) {
         return false;
@@ -96,7 +111,7 @@ MSAbstractLaneChangeModel::predInteraction(const MSVehicle* const leader) {
 }
 
 
-bool 
+bool
 MSAbstractLaneChangeModel::startLaneChangeManeuver(MSLane* source, MSLane* target, int direction) {
     target->enteredByLaneChange(&myVehicle);
     if (MSGlobals::gLaneChangeDuration > DELTA_T) {
@@ -118,7 +133,7 @@ MSAbstractLaneChangeModel::startLaneChangeManeuver(MSLane* source, MSLane* targe
 }
 
 
-void 
+void
 MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
     if (moved && myHaveShadow) {
         // move shadow to next lane
@@ -127,15 +142,15 @@ MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
         myShadowLane = myVehicle.getLane()->getParallelLane(shadowDirection);
         if (myShadowLane == 0) {
             // abort lane change
-            WRITE_WARNING("Vehicle '" + myVehicle.getID() + "' could not finish continuous lane change (lane disappeared) time=" + 
-                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
+            WRITE_WARNING("Vehicle '" + myVehicle.getID() + "' could not finish continuous lane change (lane disappeared) time=" +
+                          time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
             endLaneChangeManeuver();
             return;
         }
         myHaveShadow = true;
     }
     myLaneChangeCompletion += (SUMOReal)DELTA_T / (SUMOReal)MSGlobals::gLaneChangeDuration;
-    if (!myLaneChangeMidpointPassed && myLaneChangeCompletion >= 
+    if (!myLaneChangeMidpointPassed && myLaneChangeCompletion >=
             myVehicle.getLane()->getWidth() / (myVehicle.getLane()->getWidth() + myShadowLane->getWidth())) {
         // maneuver midpoint reached, swap myLane and myShadowLane
         myLaneChangeMidpointPassed = true;
@@ -143,24 +158,15 @@ MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
         myVehicle.leaveLane(MSMoveReminder::NOTIFICATION_LANE_CHANGE);
         myVehicle.enterLaneAtLaneChange(myShadowLane);
         myShadowLane = tmp;
-        if (myVehicle.getLane()->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
-            // internal lanes do not appear in bestLanes so we need to update
-            // myCurrentLaneInBestLanes explicitly
-            myVehicle.getBestLanes(false, myVehicle.getLane()->getLogicalPredecessorLane());
-            if (myVehicle.fixContinuations()) {
-                WRITE_WARNING("vehicle '" + myVehicle.getID() + "' could not reconstruct bestLanes when changing lanes on lane '" + myVehicle.getLane()->getID() + " time=" 
-                        + time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
-            }
-        }
         if (myVehicle.fixPosition()) {
-            WRITE_WARNING("vehicle '" + myVehicle.getID() + "' set back by " + toString(myVehicle.getPositionOnLane() - myVehicle.getLane()->getLength()) + 
-                    "m when changing lanes on lane '" + myVehicle.getLane()->getID() + " time=" + 
-                    time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
+            WRITE_WARNING("vehicle '" + myVehicle.getID() + "' set back by " + toString(myVehicle.getPositionOnLane() - myVehicle.getLane()->getLength()) +
+                          "m when changing lanes on lane '" + myVehicle.getLane()->getID() + " time=" +
+                          time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
         }
         myLastLaneChangeOffset = 0;
         changed();
         myAlreadyMoved = true;
-    } 
+    }
     // remove shadow as soon as the vehicle leaves the original lane geometrically
     if (myLaneChangeMidpointPassed && myHaveShadow) {
         const SUMOReal sourceHalfWidth = myShadowLane->getWidth() / 2.0;
@@ -177,7 +183,7 @@ MSAbstractLaneChangeModel::continueLaneChangeManeuver(bool moved) {
 }
 
 
-void 
+void
 MSAbstractLaneChangeModel::removeLaneChangeShadow() {
     if (myShadowLane != 0 && myHaveShadow) {
         myShadowLane->removeVehicle(&myVehicle, MSMoveReminder::NOTIFICATION_LANE_CHANGE);
