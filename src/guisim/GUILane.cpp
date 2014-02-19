@@ -175,8 +175,8 @@ GUILane::drawLinkNo() const {
         MSLink* link = MSLinkContHelper::getConnectingLink(*getLogicalPredecessorLane(), *this);
         PositionVector shape = getShape();
         shape.extrapolate(0.5); // draw on top of the walking area
-        drawTextAtEnd(toString(link->getRespondIndex()), shape, 0);
-        drawTextAtEnd(toString(link->getRespondIndex()), shape.reverse(), 0);
+        drawTextAtEnd(toString(link->getIndex()), shape, 0);
+        drawTextAtEnd(toString(link->getIndex()), shape.reverse(), 0);
         return;
     } 
     // draw all links

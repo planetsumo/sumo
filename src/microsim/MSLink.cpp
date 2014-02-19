@@ -63,14 +63,14 @@ MSLink::MSLink(MSLane* succLane,
                SUMOReal length)
     :
     myLane(succLane),
-    myIndex(0),
+    myIndex(-1),
     myState(state), myDirection(dir),  myLength(length)
 #else
 MSLink::MSLink(MSLane* succLane, MSLane* via,
                LinkDirection dir, LinkState state, SUMOReal length)
     :
     myLane(succLane),
-    myIndex(0),
+    myIndex(-1),
     myState(state), myDirection(dir), myLength(length),
     myJunctionInlane(via)
 #endif
@@ -81,7 +81,7 @@ MSLink::~MSLink() {}
 
 
 void
-MSLink::setRequestInformation(unsigned int index, bool isCrossing, bool isCont,
+MSLink::setRequestInformation(int index, bool isCrossing, bool isCont,
                               const std::vector<MSLink*>& foeLinks,
                               const std::vector<MSLane*>& foeLanes,
                               MSLane* internalLaneBefore) {

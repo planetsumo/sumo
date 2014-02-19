@@ -157,7 +157,7 @@ public:
      *  requests and responses after the initialisation.
      * @todo Unsecure!
      */
-    void setRequestInformation(unsigned int index, bool isCrossing, bool isCont,
+    void setRequestInformation(int index, bool isCrossing, bool isCont,
                                const std::vector<MSLink*>& foeLinks, const std::vector<MSLane*>& foeLanes,
                                MSLane* internalLaneBefore = 0);
 
@@ -266,7 +266,7 @@ public:
      *
      * @return The respond index for this link
      */
-    inline unsigned int getIndex() const {
+    inline int getIndex() const {
         return myIndex;
     }
 
@@ -352,7 +352,7 @@ private:
     std::set<MSLink*> myBlockedFoeLinks;
 
     /// @brief The position within this respond
-    unsigned int myIndex;
+    int myIndex;
 
     /// @brief The state of the link
     LinkState myState;

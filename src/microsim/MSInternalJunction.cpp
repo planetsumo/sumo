@@ -92,10 +92,10 @@ MSInternalJunction::postloadInit() {
             myInternalLinkFoes.push_back(*j);
         }
     }
-    thisLink->setRequestInformation(requestPos, true, false, myInternalLinkFoes, myInternalLaneFoes);
+    thisLink->setRequestInformation((int)requestPos, true, false, myInternalLinkFoes, myInternalLaneFoes);
     assert(thisLink->getViaLane()->getLinkCont().size() == 1);
     MSLink* exitLink = thisLink->getViaLane()->getLinkCont()[0];
-    exitLink->setRequestInformation(requestPos, false, false, std::vector<MSLink*>(),
+    exitLink->setRequestInformation((int)requestPos, false, false, std::vector<MSLink*>(),
                                     myInternalLaneFoes, thisLink->getViaLane());
     for (std::vector<MSLink*>::const_iterator k = myInternalLinkFoes.begin(); k != myInternalLinkFoes.end(); ++k) {
         thisLink->addBlockedLink(*k);
