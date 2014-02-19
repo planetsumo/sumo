@@ -41,6 +41,7 @@
 // ===========================================================================
 class NBEdge;
 class NBEdgeCont;
+class NBTrafficLightLogicCont;
 class MsgHandler;
 
 
@@ -59,7 +60,7 @@ public:
     /** @brief Constructor
      * @param[in] ec The edge container which includes the edges to change connections of
      */
-    NIXMLConnectionsHandler(NBEdgeCont& ec);
+    NIXMLConnectionsHandler(NBEdgeCont& ec, NBTrafficLightLogicCont& tlc);
 
 
     /// @brief Destructor
@@ -130,20 +131,14 @@ private:
      */
     inline bool parseLaneDefinition(const SUMOSAXAttributes& attributes, int* fromLane, int* toLane);
 
-    /** @brief Validates information about lane-2-lane connection. Returns true iff information represents
-     *         a valid connection for the given edges.
-     * @param[in] canLanesBeNegative Whether negative lane indices are allowed (used when specifying resets)
-     * @param[in] fromEdge The originating edge
-     * @param[in] toEdge The target edge
-     * @param[in] fromLane The originating lane index
-     * @param[in] toLane The target lane index
-     */
-    bool validateLaneInfo(bool canLanesBeNegative, NBEdge* fromEdge, NBEdge* toEdge, int fromLane, int toLane);
-
 
 private:
     /// @brief The edge container to fill
     NBEdgeCont& myEdgeCont;
+
+    /** @brief The traffic lights container to add built tls to (when
+     * invalidating tls)  */
+    NBTrafficLightLogicCont& myTLLogicCont;
 
     /// @brief Information whether we have a deprecated attribute
     bool myHaveWarnedAboutDeprecatedLanes;

@@ -38,6 +38,7 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <utils/common/NamedRTree.h>
 #include <utils/geom/Position.h>
 #include "NBEdgeCont.h"
 #include "NBNode.h"
@@ -81,15 +82,7 @@ public:
      * @return Whether the node could be added (no other with the same id or position is stored)
      */
     bool insert(const std::string& id, const Position& position,
-                NBDistrict* district);
-
-
-    /** @brief Inserts a node into the map
-     * @param[in] id The node's id
-     * @param[in] position The node's position
-     * @return Whether the node could be added (no other with the same id or position is stored)
-     */
-    bool insert(const std::string& id, const Position& position);
+                NBDistrict* district=0);
 
 
     /** @brief Inserts a node into the map
@@ -132,7 +125,7 @@ public:
      * @param[in] offset An offset which can be applied in the case positions are blurred
      * @return The node at the given position, or 0 if no such node exists
      */
-    NBNode* retrieve(const Position& position, SUMOReal offset = 0.) const;
+    NBNode* retrieve(const Position& position, const SUMOReal offset = 0.) const;
 
 
     /** @brief Returns the pointer to the begin of the stored nodes
@@ -177,7 +170,7 @@ public:
 
     /** @brief Joins junctions that are very close together
      */
-    unsigned int joinJunctions(SUMOReal maxdist, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc);
+    unsigned int joinJunctions(SUMOReal maxDist, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc);
     /// @}
 
 
@@ -290,10 +283,11 @@ public:
 
     std::string getFreeID();
 
-    void computeNodeShapes(bool leftHand);
-
-
-
+    /** @brief Compute the junction shape for this node
+     * @param[in] lefhand Whether the network uses left-hand traffic
+     * @param[in] mismatchThreshold The threshold for warning about shapes which are away from myPosition
+     */
+    void computeNodeShapes(bool leftHand, SUMOReal mismatchThreshold=-1);
 
     /** @brief Prints statistics about built nodes
      *
@@ -391,6 +385,9 @@ private:
 
     /// @brief ids found in loaded join clusters used for error checking
     std::set<std::string> myJoined;
+
+    /// @brief node positions for faster lookup
+    NamedRTree myRTree;
 
 private:
     /// @brief invalidated copy constructor

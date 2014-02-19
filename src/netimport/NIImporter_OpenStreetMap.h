@@ -81,7 +81,7 @@ protected:
      */
     struct NIOSMNode {
         NIOSMNode(SUMOLong _id, double _lon, double _lat) :
-            id(_id), lon(_lon), lat(_lat), tlsControlled(false), node(0) {}
+            id(_id), lon(_lon), lat(_lat), ele(0), tlsControlled(false), node(0) {}
 
         /// @brief The node's id
         SUMOLong id;
@@ -89,6 +89,8 @@ protected:
         double lon;
         /// @brief The latitude the node is located at
         double lat;
+        /// @brief The elevation of this node 
+        double ele;
         /// @brief Whether this is a tls controlled junction
         bool tlsControlled;
         /// @brief the NBNode that was instantiated
@@ -160,6 +162,12 @@ private:
     /** @brief the map from OSM way ids to edge objects */
     std::map<SUMOLong, Edge*> myEdges;
 
+    /// @brief The compounds types that do not contain known types
+    std::set<std::string> myUnusableTypes;
+
+    /// @brief The compound types that have already been mapped to other known types
+    std::map<std::string, std::string> myKnownCompoundTypes;
+
     /** @brief Builds an NBNode
      *
      * If a node with the given id is already known, nothing is done.
@@ -210,7 +218,8 @@ protected:
          * @param[in] options The options to use
          */
         NodesHandler(std::map<SUMOLong, NIOSMNode*>& toFill,
-                     std::set<NIOSMNode*, CompareNodes>& uniqueNodes);
+                     std::set<NIOSMNode*, CompareNodes>& uniqueNodes,
+                     bool importElevation);
 
 
         /// @brief Destructor
@@ -257,6 +266,9 @@ protected:
 
         /// @brief the set of unique nodes (used for duplicate detection/substitution)
         std::set<NIOSMNode*, CompareNodes>& myUniqueNodes;
+
+        /// @brief whether elevation data should be imported
+        const bool myImportElevation;
 
 
     private:

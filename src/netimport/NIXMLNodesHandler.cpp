@@ -152,7 +152,7 @@ NIXMLNodesHandler::addNode(const SUMOSAXAttributes& attrs) {
     std::string typeS = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, myID.c_str(), ok, "");
     if (SUMOXMLDefinitions::NodeTypes.hasString(typeS)) {
         type = SUMOXMLDefinitions::NodeTypes.get(typeS);
-        if (type == NODETYPE_DEAD_END_DEPRECATED || type == NODETYPE_DEAD_END) { 
+        if (type == NODETYPE_DEAD_END_DEPRECATED || type == NODETYPE_DEAD_END) {
             // dead end is a computed status. Reset this to unknown so it will
             // be corrected if additional connections are loaded
             type = NODETYPE_UNKNOWN;
@@ -241,7 +241,7 @@ NIXMLNodesHandler::processTrafficLightDefinitions(const SUMOSAXAttributes& attrs
         type = SUMOXMLDefinitions::TrafficLightTypes.get(typeS);
     } else {
         WRITE_ERROR("Unknown traffic light type '" + typeS + "' for node '" + myID + "'.");
-        ok = false;
+        return;
     }
     if (tlID != "" && myTLLogicCont.getPrograms(tlID).size() > 0) {
         // we already have definitions for this tlID

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/netconvertConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
 
     <configuration>
         <!-- Loads the named config on startup -->
@@ -48,7 +48,7 @@
         <!-- Read OSM-network from path &apos;FILE(s)&apos; -->
         <osm-files value="" synonymes="osm" type="FILE"/>
 
-        <!-- Read openDrive-network from FILE -->
+        <!-- Read OpenDRIVE-network from FILE -->
         <opendrive-files value="" synonymes="opendrive" type="FILE"/>
 
         <!-- Read VISUM-net from FILE -->
@@ -81,22 +81,22 @@
         <!-- Writes joined edges information to FILE -->
         <map-output value="" synonymes="M" type="FILE"/>
 
-        <!-- The generated net will be written to FILE using MATsim format. -->
+        <!-- The generated net will be written to FILE using MATsim format -->
         <matsim-output value="" type="FILE"/>
 
-        <!-- The generated net will be written to FILE using openDRIVE format. -->
+        <!-- The generated net will be written to FILE using OpenDRIVE format -->
         <opendrive-output value="" type="FILE"/>
 
-        <!-- The generated net will be written to dlr-navteq files with the given PREFIX. -->
+        <!-- The generated net will be written to dlr-navteq files with the given PREFIX -->
         <dlr-navteq-output value="" type="FILE"/>
 
-        <!-- Street names will be included in the output (if available). -->
+        <!-- Street names will be included in the output (if available) -->
         <output.street-names value="false" type="BOOL"/>
 
-        <!-- Writes original names, if given, as parameter. -->
+        <!-- Writes original names, if given, as parameter -->
         <output.original-names value="false" type="BOOL"/>
 
-        <!-- Writes street signs as POIs to FILE. -->
+        <!-- Writes street signs as POIs to FILE -->
         <street-sign-output value="" type="FILE"/>
 
     </output>
@@ -111,7 +111,7 @@
         <!-- Determine the UTM zone (for a universal transversal mercator projection based on the WGS84 ellipsoid) -->
         <proj.utm value="false" type="BOOL"/>
 
-        <!-- Determine the DHDN zone (for a transversal mercator projection based on the bessel ellipsoid) -->
+        <!-- Determine the DHDN zone (for a transversal mercator projection based on the bessel ellipsoid, &quot;Gauss-Krueger&quot;) -->
         <proj.dhdn value="false" type="BOOL"/>
 
         <!-- Uses STR as proj.4 definition for projection -->
@@ -119,6 +119,9 @@
 
         <!-- Inverses projection -->
         <proj.inverse value="false" type="BOOL"/>
+
+        <!-- Convert from Gauss-Krueger to UTM -->
+        <proj.dhdnutm value="false" type="BOOL"/>
 
         <!-- Write geo coordinates in plain-xml -->
         <proj.plain-geo value="false" type="BOOL"/>
@@ -168,7 +171,7 @@
         <!-- TLSs in STR will be shifted by quarter-phase -->
         <tls.quarter-offset value="" synonymes="tl-logics.quarter-offset" type="STR"/>
 
-        <!-- TLSs with unspecified type will use STR as their algorithm. -->
+        <!-- TLSs with unspecified type will use STR as their algorithm -->
         <tls.default-type value="static" type="STR"/>
 
     </tls_building>
@@ -258,7 +261,7 @@
         <!-- Continue on unknown edge types -->
         <ignore-errors.edge-type value="false" type="BOOL"/>
 
-        <!-- The factor for flow to no. lanes conversion. -->
+        <!-- The factor for flow to no. lanes conversion -->
         <lanes-from-capacity.norm value="1800" synonymes="capacity-norm" type="FLOAT"/>
 
         <!-- vmax is parsed as given in km/h (some) -->
@@ -267,10 +270,10 @@
         <!-- If edge shapes do not end at the node positions, extend them -->
         <plain.extend-edge-shape value="false" synonymes="xml.keep-shape" type="BOOL"/>
 
-        <!-- The edge lengths given in the MATSIM-file will be kept. -->
+        <!-- The edge lengths given in the MATSIM-file will be kept -->
         <matsim.keep-length value="false" type="BOOL"/>
 
-        <!-- The lane number will be computed from the capacity. -->
+        <!-- The lane number will be computed from the capacity -->
         <matsim.lanes-from-capacity value="false" type="BOOL"/>
 
         <!-- Read edge ids from column STR -->
@@ -303,7 +306,7 @@
         <!-- Factor for edge velocity -->
         <vissim.speed-norm value="1" type="FLOAT"/>
 
-        <!-- Writes lanes without an explicit speed set. -->
+        <!-- Writes lanes without an explicit speed set -->
         <vissim.report-unset-speeds value="false" type="BOOL"/>
 
         <!-- Uses priorities from types -->
@@ -330,22 +333,25 @@
         <!-- Prints all warnings, some of which are due to VISUM misbehaviour -->
         <visum.verbose-warnings value="false" type="BOOL"/>
 
-        <!-- Skips the check for duplicate nodes and edges. -->
+        <!-- Skips the check for duplicate nodes and edges -->
         <osm.skip-duplicates-check value="false" type="BOOL"/>
 
         <!-- Imports railway edges as one-way by default -->
         <osm.railway.oneway-default value="true" type="BOOL"/>
 
-        <!-- Imports all lane types. -->
+        <!-- Imports elevation data -->
+        <osm.elevation value="false" type="BOOL"/>
+
+        <!-- Imports all lane types -->
         <opendrive.import-all-lanes value="false" type="BOOL"/>
 
-        <!-- Whether lane widths shall be imported. -->
-        <opendrive.import-widths value="false" type="BOOL"/>
+        <!-- Whether lane widths shall be ignored. -->
+        <opendrive.ignore-widths value="false" type="BOOL"/>
 
         <!-- Omits internal links -->
         <no-internal-links value="false" type="BOOL"/>
 
-        <!-- Removes vehicle class restrictions from imported edges. -->
+        <!-- Removes vehicle class restrictions from imported edges -->
         <dismiss-vclasses value="false" type="BOOL"/>
 
         <!-- Disables building turnarounds -->
@@ -377,6 +383,9 @@
 
         <!-- Straighten edge geometries to avoid turning radii less than geometry.min-radius -->
         <geometry.min-radius.fix value="false" type="BOOL"/>
+
+        <!-- Warn if the junction shape is to far away from the original node position -->
+        <geometry.junction-mismatch-threshold value="20" type="FLOAT"/>
 
         <!-- Turn off normalizing node positions -->
         <offset.disable-normalization value="false" synonymes="disable-normalize-node-positions" type="BOOL"/>
@@ -447,8 +456,11 @@
         <!-- Prints the current version -->
         <version value="false" synonymes="V" type="BOOL"/>
 
-        <!-- Enable schema validation of XML inputs -->
-        <xml-validation value="false" synonymes="X" type="BOOL"/>
+        <!-- Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation value="auto" synonymes="X" type="STR"/>
+
+        <!-- Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation.net value="never" type="STR"/>
 
         <!-- Disables output of warnings -->
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL"/>

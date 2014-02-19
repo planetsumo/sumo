@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Fri Nov 11 12:09:18 2011 by SUMO netconvert Version dev-SVN-r11490
-<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- generated on Tue Jan 28 14:26:10 2014 by SUMO netconvert Version dev-SVN-r15500
+<?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/netconvertConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
 
     <input>
         <sumo-net-file value="input_net.net.xml"/>
@@ -19,10 +19,14 @@
         <offset.disable-normalization value="true"/>
     </processing>
 
+    <report>
+        <xml-validation value="never"/>
+    </report>
+
 </configuration>
 -->
 
-<edges version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/edges_file.xsd">
+<edges version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/edges_file.xsd">
     <edge id="edge_with_shape" from="node_right" to="node_left" priority="-1" type="testType" numLanes="3" speed="13.90" shape="40.00,0.00 20.00,20.00 0.00,0.00">
         <lane index="0" allow="bus"/>
         <lane index="1" disallow="bicycle"/>
@@ -30,7 +34,7 @@
     </edge>
     <edge id="reverse_edge" from="node_left" to="node_right" priority="-1" numLanes="3" speed="13.90">
         <lane index="0"/>
-        <lane index="1" offset="3.00"/>
+        <lane index="1" endOffset="3.00"/>
         <lane index="2"/>
     </edge>
 </edges>

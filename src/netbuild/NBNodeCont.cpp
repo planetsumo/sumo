@@ -65,7 +65,8 @@
 // method definitions
 // ===========================================================================
 NBNodeCont::NBNodeCont()
-    : myInternalID(1) {}
+    : myInternalID(1) {
+}
 
 
 NBNodeCont::~NBNodeCont() {
@@ -83,18 +84,8 @@ NBNodeCont::insert(const std::string& id, const Position& position,
     }
     NBNode* node = new NBNode(id, position, district);
     myNodes[id] = node;
-    return true;
-}
-
-
-bool
-NBNodeCont::insert(const std::string& id, const Position& position) {
-    NodeCont::iterator i = myNodes.find(id);
-    if (i != myNodes.end()) {
-        return false;
-    }
-    NBNode* node = new NBNode(id, position);
-    myNodes[id] = node;
+    const float pos[2] = {(float)position.x(), (float)position.y()};
+    myRTree.Insert(pos, pos, node);
     return true;
 }
 
@@ -108,6 +99,8 @@ NBNodeCont::insert(const std::string& id) {
     } else {
         NBNode* node = new NBNode(id, Position(-1.0, -1.0));
         myNodes[id] = node;
+        const float pos[2] = {(float)-1, (float)-1};
+        myRTree.Insert(pos, pos, node);
     }
     return Position(-1, -1);
 }
@@ -121,6 +114,8 @@ NBNodeCont::insert(NBNode* node) {
         return false;
     }
     myNodes[id] = node;
+    const float pos[2] = {(float)node->getPosition().x(), (float)node->getPosition().y()};
+    myRTree.Insert(pos, pos, node);
     return true;
 }
 
@@ -136,12 +131,18 @@ NBNodeCont::retrieve(const std::string& id) const {
 
 
 NBNode*
-NBNodeCont::retrieve(const Position& position, SUMOReal offset) const {
-    for (NodeCont::const_iterator i = myNodes.begin(); i != myNodes.end(); i++) {
-        NBNode* node = (*i).second;
-        if (fabs(node->getPosition().x() - position.x()) < offset
+NBNodeCont::retrieve(const Position& position, const SUMOReal offset) const {
+    const SUMOReal extOffset = offset + POSITION_EPS;
+    const float cmin[2] = {(float)(position.x() - extOffset), (float)(position.y() - extOffset)};
+    const float cmax[2] = {(float)(position.x() + extOffset), (float)(position.y() + extOffset)};
+    std::set<std::string> into;
+    Named::StoringVisitor sv(into);
+    myRTree.Search(cmin, cmax, sv);
+    for (std::set<std::string>::const_iterator i = into.begin(); i != into.end(); i++) {
+        NBNode* const node = myNodes.find(*i)->second;
+        if (fabs(node->getPosition().x() - position.x()) <= offset
                 &&
-                fabs(node->getPosition().y() - position.y()) < offset) {
+                fabs(node->getPosition().y() - position.y()) <= offset) {
             return node;
         }
     }
@@ -167,6 +168,8 @@ NBNodeCont::extract(NBNode* node, bool remember) {
         return false;
     }
     myNodes.erase(i);
+    const float pos[2] = {(float)node->getPosition().x(), (float)node->getPosition().y()};
+    myRTree.Remove(pos, pos, node);
     node->removeTrafficLights();
     if (remember) {
         myExtractedNodes.insert(node);
@@ -487,10 +490,10 @@ NBNodeCont::joinLoadedClusters(NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLigh
 
 
 unsigned int
-NBNodeCont::joinJunctions(SUMOReal maxdist, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc) {
+NBNodeCont::joinJunctions(SUMOReal maxDist, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc) {
     NodeClusters cands;
     NodeClusters clusters;
-    generateNodeClusters(maxdist, cands);
+    generateNodeClusters(maxDist, cands);
     for (NodeClusters::iterator i = cands.begin(); i != cands.end(); ++i) {
         std::set<NBNode*> cluster = (*i);
         // remove join exclusions
@@ -522,6 +525,23 @@ NBNodeCont::joinJunctions(SUMOReal maxdist, NBDistrictCont& dc, NBEdgeCont& ec, 
                 }
             }
         }
+        // exclude the fromNode of a long edge if the toNode is in the cluster (and they were both added via an alternative path). 
+        std::set<NBNode*> toRemove;
+        for (std::set<NBNode*>::iterator j = cluster.begin(); j != cluster.end(); ++j) {
+            NBNode* n = *j;
+            const EdgeVector& edges = n->getOutgoingEdges();
+            for (EdgeVector::const_iterator it_edge = edges.begin(); it_edge != edges.end(); ++it_edge) {
+                NBEdge* edge = *it_edge;
+                if (cluster.count(edge->getToNode()) != 0 && edge->getLoadedLength() > maxDist) {
+                    //std::cout << "long edge " << edge->getID() << " (" << edge->getLoadedLength() << ", max=" << maxDist << ")\n";
+                    toRemove.insert(n);
+                    toRemove.insert(edge->getToNode());
+                }
+            }
+        }
+        for (std::set<NBNode*>::iterator j = toRemove.begin(); j != toRemove.end(); ++j) {
+            cluster.erase(*j);
+        }
         if (cluster.size() > 1) {
             // check for clusters which are to complex and probably won't work very well
             // we count the incoming edges of the final junction
@@ -540,9 +560,28 @@ NBNodeCont::joinJunctions(SUMOReal maxdist, NBDistrictCont& dc, NBEdgeCont& ec, 
 
             }
             if (finalIncoming.size() > 4) {
-                WRITE_WARNING("Not joining junctions " + joinToString(nodeIDs, ',') + " because the cluster is too complex");
+                std::sort(nodeIDs.begin(), nodeIDs.end());
+                WRITE_WARNING("Not joining junctions " + joinToString(nodeIDs, ',') + " because the cluster is too complex (" + toString(finalIncoming.size()) + " incoming edges)");
             } else {
-                clusters.push_back(cluster);
+                // check for incoming parallel edges
+                const SUMOReal PARALLEL_INCOMING_THRESHOLD = 10.0;
+                bool foundParallel = false;
+                for (std::set<NBEdge*>::const_iterator j = finalIncoming.begin(); j != finalIncoming.end() && !foundParallel; ++j) {
+                    for (std::set<NBEdge*>::const_iterator k = finalIncoming.begin(); k != finalIncoming.end() && !foundParallel; ++k) {
+                        if ((*j) != (*k) && fabs((*j)->getAngleAtNode((*j)->getToNode()) - (*k)->getAngleAtNode((*k)->getToNode())) < PARALLEL_INCOMING_THRESHOLD) {
+                            std::vector<std::string> parallelEdgeIDs;
+                            parallelEdgeIDs.push_back((*j)->getID());
+                            parallelEdgeIDs.push_back((*k)->getID());
+                            std::sort(parallelEdgeIDs.begin(), parallelEdgeIDs.end());
+                            WRITE_WARNING("Not joining junctions " + joinToString(nodeIDs, ',') + " because the cluster is too complex (parallel incoming " 
+                                    + joinToString(parallelEdgeIDs, ',') + ")");
+                            foundParallel = true;
+                        }
+                    }
+                }
+                if (!foundParallel) {
+                    clusters.push_back(cluster);
+                }
             }
         }
     }
@@ -900,9 +939,9 @@ NBNodeCont::getFreeID() {
 
 
 void
-NBNodeCont::computeNodeShapes(bool leftHand) {
+NBNodeCont::computeNodeShapes(bool leftHand, SUMOReal mismatchThreshold) {
     for (NodeCont::iterator i = myNodes.begin(); i != myNodes.end(); i++) {
-        (*i).second->computeNodeShape(leftHand);
+        (*i).second->computeNodeShape(leftHand, mismatchThreshold);
     }
 }
 

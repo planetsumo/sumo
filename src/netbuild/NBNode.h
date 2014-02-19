@@ -122,13 +122,6 @@ public:
     /** @brief Constructor
      * @param[in] id The id of the node
      * @param[in] position The position of the node
-     */
-    NBNode(const std::string& id, const Position& position);
-
-
-    /** @brief Constructor
-     * @param[in] id The id of the node
-     * @param[in] position The position of the node
      * @param[in] type The type of the node
      */
     NBNode(const std::string& id, const Position& position, SumoXMLNodeType type);
@@ -137,9 +130,9 @@ public:
     /** @brief Constructor
      * @param[in] id The id of the node
      * @param[in] position The position of the node
-     * @param[in] district The district this district node represents
+     * @param[in] district The district this district node represents, 0 means no district node
      */
-    NBNode(const std::string& id, const Position& position, NBDistrict* district);
+    NBNode(const std::string& id, const Position& position, NBDistrict* district=0);
 
 
     /// @brief Destructor
@@ -390,7 +383,11 @@ public:
     LinkState getLinkState(const NBEdge* incoming, NBEdge* outgoing,
                            int fromLane, bool mayDefinitelyPass, const std::string& tlID) const;
 
-    void computeNodeShape(bool leftHand);
+    /** @brief Compute the junction shape for this node
+     * @param[in] lefhand Whether the network uses left-hand traffic
+     * @param[in] mismatchThreshold The threshold for warning about shapes which are away from myPosition
+     */
+    void computeNodeShape(bool leftHand, SUMOReal mismatchThreshold);
 
 
     const PositionVector& getShape() const;
@@ -445,6 +442,9 @@ public:
     /** @brief whether this is structurally similar to a geometry node
      */
     bool geometryLike() const;
+
+    /// @brief update the type of this node as a roundabout
+    void setRoundabout();
 
     /**
      * @class nodes_by_id_sorter

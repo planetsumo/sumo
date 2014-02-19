@@ -69,6 +69,11 @@ const SUMOReal NBEdge::ANGLE_LOOKAHEAD = 10.0;
 // ===========================================================================
 // method definitions
 // ===========================================================================
+std::string
+NBEdge::Connection:: getInternalLaneID() const {
+    return id + "_" + toString(internalLaneIndex);
+}
+
 /* -------------------------------------------------------------------------
  * NBEdge::ToEdgeConnectionsAdder-methods
  * ----------------------------------------------------------------------- */
@@ -159,7 +164,7 @@ NBEdge::MainDirections::includes(Direction d) const {
 /* -------------------------------------------------------------------------
  * NBEdge::connections_relative_edgelane_sorter-methods
  * ----------------------------------------------------------------------- */
-int 
+int
 NBEdge::connections_relative_edgelane_sorter::operator()(const Connection& c1, const Connection& c2) const {
     if (c1.toEdge != c2.toEdge) {
         return NBContHelper::relative_outgoing_edge_sorter(myEdge)(c1.toEdge, c2.toEdge);
@@ -179,7 +184,7 @@ NBEdge::NBEdge(const std::string& id, NBNode* from, NBNode* to,
     Named(StringUtils::convertUmlaute(id)),
     myStep(INIT),
     myType(StringUtils::convertUmlaute(type)),
-    myFrom(from), myTo(to), 
+    myFrom(from), myTo(to),
     myStartAngle(0), myEndAngle(0), myTotalAngle(0),
     myPriority(priority), mySpeed(speed),
     myTurnDestination(0),
@@ -201,7 +206,7 @@ NBEdge::NBEdge(const std::string& id, NBNode* from, NBNode* to,
     Named(StringUtils::convertUmlaute(id)),
     myStep(INIT),
     myType(StringUtils::convertUmlaute(type)),
-    myFrom(from), myTo(to), 
+    myFrom(from), myTo(to),
     myStartAngle(0), myEndAngle(0), myTotalAngle(0),
     myPriority(priority), mySpeed(speed),
     myTurnDestination(0),
@@ -218,7 +223,7 @@ NBEdge::NBEdge(const std::string& id, NBNode* from, NBNode* to, NBEdge* tpl) :
     Named(StringUtils::convertUmlaute(id)),
     myStep(INIT),
     myType(tpl->getTypeID()),
-    myFrom(from), myTo(to), 
+    myFrom(from), myTo(to),
     myStartAngle(0), myEndAngle(0), myTotalAngle(0),
     myPriority(tpl->getPriority()), mySpeed(tpl->getSpeed()),
     myTurnDestination(0),
@@ -285,6 +290,7 @@ NBEdge::reinitNodes(NBNode* from, NBNode* to) {
         myTo = to;
         myTo->addIncomingEdge(this);
     }
+    computeAngle();
 }
 
 
@@ -421,6 +427,7 @@ NBEdge::computeEdgeShape() {
         avgLength += myLanes[i].shape.length();
     }
     myLength = avgLength / (SUMOReal) myLanes.size();
+    computeAngle(); // update angles using the finalized node and lane shapes
 }
 
 
@@ -563,14 +570,14 @@ NBEdge::checkGeometry(const SUMOReal maxAngle, const SUMOReal minRadius, bool fi
             //std::cout << (start ? "  start" : "  end") << " length=" << l.length2D() << " radius=" << r << "  ";
             if (minRadius > 0 && r < minRadius) {
                 if (fix) {
-                    WRITE_MESSAGE("Removing sharp turn with radius " + toString(r) + " at the " + 
-                            (start ? "start" : "end") + " of edge " + getID());
+                    WRITE_MESSAGE("Removing sharp turn with radius " + toString(r) + " at the " +
+                                  (start ? "start" : "end") + " of edge " + getID());
                     myGeom.eraseAt(start ? 1 : i + 1);
                     checkGeometry(maxAngle, minRadius, fix);
                     return;
                 } else {
-                    WRITE_WARNING("Found sharp turn with radius " + toString(r) + " at the " + 
-                            (start ? "start" : "end") + " of edge " + getID());
+                    WRITE_WARNING("Found sharp turn with radius " + toString(r) + " at the " +
+                                  (start ? "start" : "end") + " of edge " + getID());
                 }
             }
         }
@@ -974,29 +981,31 @@ NBEdge::moveConnectionToRight(unsigned int lane) {
 }
 
 
-
-
-
-
-
-
-
-
 void
-NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsigned int& lno, unsigned int& splitNo) {
+NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsigned int& linkIndex, unsigned int& splitIndex) {
     std::string innerID = ":" + n.getID();
+    NBEdge* toEdge = 0;
+    unsigned int edgeIndex = linkIndex;
+    unsigned int internalLaneIndex = 0;
     for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
         Connection& con = *i;
         con.haveVia = false; // reset first since this may be called multiple times
         if (con.toEdge == 0) {
             continue;
         }
-
+        if (con.toEdge != toEdge) {
+            // skip indices to keep some correspondence between edge ids and link indices:
+            // internalEdgeIndex + internalLaneIndex = linkIndex
+            edgeIndex = linkIndex;
+            toEdge = (*i).toEdge;
+            internalLaneIndex = 0;
+        }
         PositionVector shape = n.computeInternalLaneShape(this, con.fromLane, con.toEdge, con.toLane);
+        std::vector<unsigned int> foeInternalLinks;
 
         LinkDirection dir = n.getDirection(this, con.toEdge);
+        // crossingPosition, list of foe link indices
         std::pair<SUMOReal, std::vector<unsigned int> > crossingPositions(-1, std::vector<unsigned int>());
-        std::string foeInternalLanes;
         std::set<std::string> tmpFoeIncomingLanes;
         switch (dir) {
             case LINKDIR_LEFT:
@@ -1028,10 +1037,7 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
                         }
                         // compute foe internal lanes
                         if (n.foes(this, con.toEdge, *i2, (*k2).toEdge)) {
-                            if (foeInternalLanes.length() != 0) {
-                                foeInternalLanes += " ";
-                            }
-                            foeInternalLanes += (":" + n.getID() + "_" + toString(index) + "_0");
+                            foeInternalLinks.push_back(index);
                         }
                         // compute foe incoming lanes
                         const bool signalised = hasSignalisedConnectionTo(con.toEdge);
@@ -1068,31 +1074,23 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
         // get internal splits if any
         if (crossingPositions.first >= 0) {
             std::pair<PositionVector, PositionVector> split = shape.splitAt(crossingPositions.first);
-            con.id = innerID + "_" + toString(lno);
-            con.vmax = vmax;
+            con.id = innerID + "_" + toString(edgeIndex);
             con.shape = split.first;
-            con.foeInternalLanes = foeInternalLanes;
-            con.foeIncomingLanes = ""; // reset first because this may be called multiple times
-
-            for (std::set<std::string>::iterator q = tmpFoeIncomingLanes.begin(); q != tmpFoeIncomingLanes.end(); ++q) {
-                if (con.foeIncomingLanes.length() != 0) {
-                    con.foeIncomingLanes += " ";
-                }
-                con.foeIncomingLanes += *q;
-            }
-            con.viaID = innerID + "_" + toString(splitNo + noInternalNoSplits);
+            con.foeIncomingLanes = joinToString(tmpFoeIncomingLanes, " ");
+            con.foeInternalLinks = foeInternalLinks; // resolve link indices to lane ids later
+            con.viaID = innerID + "_" + toString(splitIndex + noInternalNoSplits);
+            ++splitIndex;
             con.viaVmax = vmax;
             con.viaShape = split.second;
             con.haveVia = true;
-            splitNo++;
         } else {
-            con.id = innerID + "_" + toString(lno);
-            con.vmax = vmax;
+            con.id = innerID + "_" + toString(edgeIndex);
             con.shape = shape;
         }
-
-
-        lno++;
+        con.vmax = vmax;
+        con.internalLaneIndex = internalLaneIndex;
+        ++internalLaneIndex;
+        ++linkIndex;
     }
 }
 
@@ -1260,22 +1258,35 @@ NBEdge::laneOffset(const Position& from, const Position& to, SUMOReal laneCenter
 }
 
 
-void 
+void
 NBEdge::computeAngle() {
     // taking the angle at the first might be unstable, thus we take the angle
     // at a certain distance. (To compare two edges, additional geometry
     // segments are considered to resolve ambiguities)
-    const Position referencePosStart = myGeom.positionAtOffset2D(ANGLE_LOOKAHEAD);
+
+    const Position fromCenter = (myFrom->getShape().size() > 0 ? myFrom->getShape().getCentroid() : myFrom->getPosition());
+    const Position toCenter = (myTo->getShape().size() > 0 ? myTo->getShape().getCentroid() : myTo->getPosition());
+    PositionVector shape = myGeom;
+    // maybe the edge is actually somewhere else now
+    // we do not want to use lane shapes here because the spreadtype could interfere
+    if (myFrom->getShape().size() > 0) {
+        shape = startShapeAt(shape, myFrom);
+        if (shape.size() >= 2) {
+            shape = startShapeAt(shape.reverse(), myTo).reverse();
+        }
+    }
+
+    const Position referencePosStart = shape.positionAtOffset2D(ANGLE_LOOKAHEAD);
     myStartAngle = NBHelpers::angle(
-            myFrom->getPosition().x(), myFrom->getPosition().y(),
-            referencePosStart.x(), referencePosStart.y());
-    const Position referencePosEnd = myGeom.positionAtOffset2D(myGeom.length() - ANGLE_LOOKAHEAD);
+                       fromCenter.x(), fromCenter.y(),
+                       referencePosStart.x(), referencePosStart.y());
+    const Position referencePosEnd = shape.positionAtOffset2D(myGeom.length() - ANGLE_LOOKAHEAD);
     myEndAngle = NBHelpers::angle(
-            referencePosEnd.x(), referencePosEnd.y(),
-            myTo->getPosition().x(), myTo->getPosition().y());
+                     referencePosEnd.x(), referencePosEnd.y(),
+                     toCenter.x(), toCenter.y());
     myTotalAngle = NBHelpers::angle(
-            myFrom->getPosition().x(), myFrom->getPosition().y(),
-            myTo->getPosition().x(), myTo->getPosition().y());
+                       myFrom->getPosition().x(), myFrom->getPosition().y(),
+                       myTo->getPosition().x(), myTo->getPosition().y());
 }
 
 
@@ -1623,6 +1634,7 @@ NBEdge::moveOutgoingConnectionsFrom(NBEdge* e, unsigned int laneOff) {
             assert(el.tlID == "");
             bool ok = addLane2LaneConnection(i + laneOff, el.toEdge, el.toLane, L2L_COMPUTED);
             assert(ok);
+            UNUSED_PARAMETER(ok); // only used for assertion
         }
     }
 }
@@ -1847,10 +1859,8 @@ NBEdge::append(NBEdge* e) {
     myTurnDestination = e->myTurnDestination;
     // set the node
     myTo = e->myTo;
+    computeAngle(); // myEndAngle may be different now
 }
-
-
-
 
 
 bool

@@ -192,13 +192,6 @@ NBNode::ApproachingDivider::spread(const std::vector<int>& approachingLanes,
 /* -------------------------------------------------------------------------
  * NBNode-methods
  * ----------------------------------------------------------------------- */
-NBNode::NBNode(const std::string& id, const Position& position) :
-    Named(StringUtils::convertUmlaute(id)),
-    myPosition(position),
-    myType(NODETYPE_UNKNOWN), myDistrict(0), myRequest(0)
-{ }
-
-
 NBNode::NBNode(const std::string& id, const Position& position,
                SumoXMLNodeType type) :
     Named(StringUtils::convertUmlaute(id)),
@@ -210,7 +203,7 @@ NBNode::NBNode(const std::string& id, const Position& position,
 NBNode::NBNode(const std::string& id, const Position& position, NBDistrict* district) :
     Named(StringUtils::convertUmlaute(id)),
     myPosition(position),
-    myType(NODETYPE_DISTRICT), myDistrict(district), myRequest(0)
+    myType(district == 0 ? NODETYPE_UNKNOWN : NODETYPE_DISTRICT), myDistrict(district), myRequest(0)
 { }
 
 
@@ -295,27 +288,19 @@ NBNode::isJoinedTLSControlled() const {
 void
 NBNode::invalidateTLS(NBTrafficLightLogicCont& tlCont) {
     if (isTLControlled()) {
-        std::set<NBTrafficLightDefinition*> newDefs;
-        for (std::set<NBTrafficLightDefinition*>::iterator it =  myTrafficLights.begin(); it != myTrafficLights.end(); ++it) {
+        std::set<NBTrafficLightDefinition*> oldDefs(myTrafficLights);
+        for (std::set<NBTrafficLightDefinition*>::iterator it = oldDefs.begin(); it != oldDefs.end(); ++it) {
             NBTrafficLightDefinition* orig = *it;
-            if (dynamic_cast<NBOwnTLDef*>(orig) != 0) {
-                // this definition will be guessed anyway. no need to invalidate
-                newDefs.insert(orig);
-            } else {
-                const std::string new_id = orig->getID() + "_reguessed";
-                NBTrafficLightDefinition* newDef = new NBOwnTLDef(new_id, orig->getOffset(), orig->getType());
-                if (!tlCont.insert(newDef)) {
-                    // the original definition was shared by other nodes and was already invalidated
-                    delete newDef;
-                    newDef = tlCont.getDefinition(new_id, orig->getProgramID());
-                    assert(newDef != 0);
+            if (dynamic_cast<NBOwnTLDef*>(orig) == 0) {
+                NBTrafficLightDefinition* newDef = new NBOwnTLDef(orig->getID(), orig->getOffset(), orig->getType());
+                const std::vector<NBNode*>& nodes = orig->getNodes();
+                while (!nodes.empty()) {
+                    nodes.front()->removeTrafficLight(orig);
+                    newDef->addNode(nodes.front());
                 }
-                newDefs.insert(newDef);
+                tlCont.removeFully(orig->getID());
+                tlCont.insert(newDef);
             }
-        }
-        removeTrafficLights();
-        for (std::set<NBTrafficLightDefinition*>::iterator it =  newDefs.begin(); it != newDefs.end(); ++it) {
-            (*it)->addNode(this);
         }
     }
 }
@@ -617,13 +602,22 @@ NBNode::writeLogic(OutputDevice& into, const bool checkLaneFoes) const {
 
 
 void
-NBNode::computeNodeShape(bool leftHand) {
+NBNode::computeNodeShape(bool leftHand, SUMOReal mismatchThreshold) {
     if (myIncomingEdges.size() == 0 && myOutgoingEdges.size() == 0) {
         return;
     }
     try {
         NBNodeShapeComputer computer(*this);
         myPoly = computer.compute(leftHand);
+        if (myPoly.size() > 0) {
+            PositionVector tmp = myPoly;
+            tmp.push_back_noDoublePos(tmp[0]); // need closed shape
+            if (mismatchThreshold >= 0
+                    && !tmp.around(myPosition)  
+                    && tmp.distance(myPosition) > mismatchThreshold) {
+                WRITE_WARNING("Junction shape for '" + myID + "' has distance " + toString(tmp.distance(myPosition)) + " to its given position");
+            }
+        }
     } catch (InvalidArgument&) {
         WRITE_WARNING("For node '" + getID() + "': could not compute shape.");
         // make sure our shape is not empty because our XML schema forbids empty attributes
@@ -1044,7 +1038,7 @@ NBNode::invalidateOutgoingConnections() {
 
 
 bool
-NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int toLane) const {
+NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int /* toLane */) const {
     // check whether it is participant to a traffic light
     //  - controlled links are set by the traffic lights, not the normal
     //    right-of-way rules
@@ -1063,27 +1057,7 @@ NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int toLane) 
         return true;
     }
     // check whether any other connection on this node prohibits this connection
-    bool try1 = myRequest->mustBrake(from, to);
-    if (!try1 || toLane == -1) {
-        return try1;
-    }
-    if (from->getSpeed() < 70. / 3.6) {
-        return try1;
-    }
-    // on highways (on-ramps, in fact):
-    // check whether any other connection uses the same destination edge
-    for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
-        if ((*i) == from) {
-            continue;
-        }
-        const std::vector<NBEdge::Connection>& connections = (*i)->getConnections();
-        for (std::vector<NBEdge::Connection>::const_iterator j = connections.begin(); j != connections.end(); ++j) {
-            if ((*j).toEdge == to && ((*j).toLane < 0 || (*j).toLane == toLane)) {
-                return true;
-            }
-        }
-    }
-    return false;
+    return myRequest->mustBrake(from, to);
 }
 
 
@@ -1452,13 +1426,22 @@ NBNode::geometryLike() const {
     return false;
 }
 
+
+void
+NBNode::setRoundabout() {
+    if (myType == NODETYPE_RIGHT_BEFORE_LEFT) {
+        myType = NODETYPE_PRIORITY;
+    }
+}
+
+
 Position
 NBNode::getCenter() const {
-     /* Conceptually, the center point would be identical with myPosition. 
-     * However, if the shape is influenced by custom geometry endpoints of the adjoining edges,
-     * myPosition may fall outside the shape. In this case it is better to use
-     * the center of the shape 
-     **/
+    /* Conceptually, the center point would be identical with myPosition.
+    * However, if the shape is influenced by custom geometry endpoints of the adjoining edges,
+    * myPosition may fall outside the shape. In this case it is better to use
+    * the center of the shape
+    **/
     PositionVector tmp = myPoly;
     tmp.closePolygon();
     //std::cout << getID() << " around=" << tmp.around(myPosition) << " dist=" << tmp.distance(myPosition) << "\n";

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 12/18/12 09:23:58 by SUMO netgenerate Version dev-SVN-r13169
+<!-- generated on Thu Dec 12 07:35:30 2013 by SUMO netgenerate Version dev-SVN-r15319
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/netgenerateConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netgenerateConfiguration.xsd">
 
     <random_network>
         <rand value="true"/>
@@ -18,7 +18,7 @@
 </configuration>
 -->
 
-<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/net_file.xsd">
+<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
 
     <location netOffset="1263.68,1880.98" convBoundary="0.00,0.00,2463.28,3477.43" origBoundary="-1263.68,-1880.98,1199.60,1596.45" projParameter="!"/>
 
@@ -73,11 +73,11 @@
     <edge id=":12_1" function="internal">
         <lane id=":12_1_0" index="0" speed="13.90" length="4.58" shape="1338.43,1707.53 1338.00,1706.26 1338.25,1704.52 1338.82,1703.15"/>
     </edge>
-    <edge id=":12_6" function="internal">
-        <lane id=":12_6_0" index="0" speed="13.90" length="4.02" shape="1338.82,1703.15 1339.17,1702.32 1340.78,1699.64"/>
-    </edge>
     <edge id=":12_2" function="internal">
         <lane id=":12_2_0" index="0" speed="13.90" length="8.00" shape="1338.43,1707.53 1337.78,1706.00 1338.33,1704.76 1340.06,1703.81 1342.99,1703.14"/>
+    </edge>
+    <edge id=":12_6" function="internal">
+        <lane id=":12_6_0" index="0" speed="13.90" length="4.02" shape="1338.82,1703.15 1339.17,1702.32 1340.78,1699.64"/>
     </edge>
     <edge id=":12_3" function="internal">
         <lane id=":12_3_0" index="0" speed="13.90" length="6.48" shape="1331.23,1700.58 1333.21,1701.11 1334.36,1700.81 1334.68,1699.66 1334.17,1697.67"/>
@@ -163,11 +163,11 @@
     <edge id=":1372_4" function="internal">
         <lane id=":1372_4_0" index="0" speed="13.90" length="4.91" shape="1205.67,696.01 1207.26,693.88 1209.19,692.72"/>
     </edge>
-    <edge id=":1372_6" function="internal">
-        <lane id=":1372_6_0" index="0" speed="13.90" length="6.31" shape="1209.19,692.72 1209.41,692.59 1212.13,692.13 1215.40,692.50"/>
-    </edge>
     <edge id=":1372_5" function="internal">
         <lane id=":1372_5_0" index="0" speed="13.90" length="4.99" shape="1205.67,696.01 1207.39,693.55 1209.19,692.71"/>
+    </edge>
+    <edge id=":1372_6" function="internal">
+        <lane id=":1372_6_0" index="0" speed="13.90" length="6.31" shape="1209.19,692.72 1209.41,692.59 1212.13,692.13 1215.40,692.50"/>
     </edge>
     <edge id=":1372_7" function="internal">
         <lane id=":1372_7_0" index="0" speed="13.90" length="5.12" shape="1209.19,692.71 1211.07,693.47 1213.04,695.86"/>
@@ -304,11 +304,11 @@
     <edge id=":1522_2" function="internal">
         <lane id=":1522_2_0" index="0" speed="13.90" length="4.74" shape="940.50,915.85 942.47,917.25 943.86,919.10"/>
     </edge>
-    <edge id=":1522_4" function="internal">
-        <lane id=":1522_4_0" index="0" speed="13.90" length="5.96" shape="943.86,919.10 943.94,919.21 944.91,921.73 945.37,924.83"/>
-    </edge>
     <edge id=":1522_3" function="internal">
         <lane id=":1522_3_0" index="0" speed="13.90" length="6.23" shape="940.50,915.85 942.67,917.38 943.56,919.14 943.25,920.71"/>
+    </edge>
+    <edge id=":1522_4" function="internal">
+        <lane id=":1522_4_0" index="0" speed="13.90" length="5.96" shape="943.86,919.10 943.94,919.21 944.91,921.73 945.37,924.83"/>
     </edge>
     <edge id=":1522_5" function="internal">
         <lane id=":1522_5_0" index="0" speed="13.90" length="3.23" shape="943.25,920.71 943.16,921.14 941.49,923.37"/>
@@ -661,11 +661,11 @@
     <edge id=":2960_2" function="internal">
         <lane id=":2960_2_0" index="0" speed="13.90" length="4.97" shape="1291.12,2895.23 1291.53,2896.53 1291.13,2898.21 1290.18,2899.83"/>
     </edge>
-    <edge id=":2960_4" function="internal">
-        <lane id=":2960_4_0" index="0" speed="13.90" length="3.69" shape="1290.18,2899.83 1289.92,2900.28 1287.91,2902.73"/>
-    </edge>
     <edge id=":2960_3" function="internal">
         <lane id=":2960_3_0" index="0" speed="13.90" length="8.26" shape="1291.12,2895.23 1291.86,2896.88 1291.29,2898.05 1289.43,2898.73 1286.26,2898.92"/>
+    </edge>
+    <edge id=":2960_4" function="internal">
+        <lane id=":2960_4_0" index="0" speed="13.90" length="3.69" shape="1290.18,2899.83 1289.92,2900.28 1287.91,2902.73"/>
     </edge>
     <edge id=":2968_0" function="internal">
         <lane id=":2968_0_0" index="0" speed="13.90" length="3.45" shape="1909.91,2895.35 1910.91,2895.17 1911.47,2894.73 1911.60,2894.02 1911.29,2893.06"/>
@@ -820,11 +820,11 @@
     <edge id=":37_1" function="internal">
         <lane id=":37_1_0" index="0" speed="13.90" length="3.83" shape="1269.92,1530.49 1269.88,1529.12 1270.74,1527.57 1271.23,1527.08"/>
     </edge>
-    <edge id=":37_6" function="internal">
-        <lane id=":37_6_0" index="0" speed="13.90" length="5.04" shape="1271.23,1527.08 1272.49,1525.84 1275.14,1523.94"/>
-    </edge>
     <edge id=":37_2" function="internal">
         <lane id=":37_2_0" index="0" speed="13.90" length="8.40" shape="1269.92,1530.49 1269.69,1528.76 1270.61,1527.77 1272.66,1527.51 1275.86,1527.98"/>
+    </edge>
+    <edge id=":37_6" function="internal">
+        <lane id=":37_6_0" index="0" speed="13.90" length="5.04" shape="1271.23,1527.08 1272.49,1525.84 1275.14,1523.94"/>
     </edge>
     <edge id=":37_3" function="internal">
         <lane id=":37_3_0" index="0" speed="13.90" length="5.54" shape="1264.82,1526.41 1266.44,1526.32 1267.43,1525.73 1267.80,1524.63 1267.55,1523.04"/>
@@ -2978,7 +2978,7 @@
     <connection from=":1004_0" to="1093" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1004_1" to="1093" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1010_0" to="1345" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1010_1" to="1345" fromLane="0" toLane="0" via=":1010_2_0" dir="s" state="M"/>
+    <connection from=":1010_1" to="1345" fromLane="0" toLane="0" via=":1010_2_0" dir="s" state="m"/>
     <connection from=":1010_2" to="1345" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1026_0" to="1199" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1026_1" to="1201" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -2988,7 +2988,7 @@
     <connection from=":118_0" to="332" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":118_1" to="330" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":12_0" to="38" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":12_1" to="116" fromLane="0" toLane="0" via=":12_6_0" dir="s" state="M"/>
+    <connection from=":12_1" to="116" fromLane="0" toLane="0" via=":12_6_0" dir="s" state="m"/>
     <connection from=":12_6" to="116" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":12_2" to="64" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":12_3" to="38" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3018,12 +3018,12 @@
     <connection from=":1372_1" to="1441" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1372_2" to="1447" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1372_3" to="1431" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1372_4" to="1441" fromLane="0" toLane="0" via=":1372_6_0" dir="s" state="M"/>
+    <connection from=":1372_4" to="1441" fromLane="0" toLane="0" via=":1372_6_0" dir="s" state="m"/>
     <connection from=":1372_6" to="1441" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1372_5" to="1447" fromLane="0" toLane="0" via=":1372_7_0" dir="s" state="M"/>
+    <connection from=":1372_5" to="1447" fromLane="0" toLane="0" via=":1372_7_0" dir="s" state="m"/>
     <connection from=":1372_7" to="1447" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1387_0" to="1464" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1387_1" to="1464" fromLane="0" toLane="0" via=":1387_2_0" dir="s" state="M"/>
+    <connection from=":1387_1" to="1464" fromLane="0" toLane="0" via=":1387_2_0" dir="s" state="m"/>
     <connection from=":1387_2" to="1464" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":14_0" to="119" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":14_1" to="117" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3040,7 +3040,7 @@
     <connection from=":1440_0" to="2278" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1440_1" to="1533" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1440_2" to="2278" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1440_3" to="1533" fromLane="0" toLane="0" via=":1440_4_0" dir="s" state="M"/>
+    <connection from=":1440_3" to="1533" fromLane="0" toLane="0" via=":1440_4_0" dir="s" state="m"/>
     <connection from=":1440_4" to="1533" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1446_0" to="1535" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1446_1" to="1535" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3065,9 +3065,9 @@
     <connection from=":1516_3" to="1783" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1522_0" to="1882" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1522_1" to="1798" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1522_2" to="1882" fromLane="0" toLane="0" via=":1522_4_0" dir="s" state="M"/>
+    <connection from=":1522_2" to="1882" fromLane="0" toLane="0" via=":1522_4_0" dir="s" state="m"/>
     <connection from=":1522_4" to="1882" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1522_3" to="1798" fromLane="0" toLane="0" via=":1522_5_0" dir="s" state="M"/>
+    <connection from=":1522_3" to="1798" fromLane="0" toLane="0" via=":1522_5_0" dir="s" state="m"/>
     <connection from=":1522_5" to="1798" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1525_0" to="1883" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1525_1" to="1895" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3084,13 +3084,13 @@
     <connection from=":1796_2" to="1944" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1796_3" to="1950" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1796_4" to="2006" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1796_5" to="1944" fromLane="0" toLane="0" via=":1796_6_0" dir="s" state="M"/>
+    <connection from=":1796_5" to="1944" fromLane="0" toLane="0" via=":1796_6_0" dir="s" state="m"/>
     <connection from=":1796_6" to="1944" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":18_0" to="121" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":18_1" to="123" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":18_2" to="125" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1881_0" to="2200" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":1881_1" to="2200" fromLane="0" toLane="0" via=":1881_2_0" dir="s" state="M"/>
+    <connection from=":1881_1" to="2200" fromLane="0" toLane="0" via=":1881_2_0" dir="s" state="m"/>
     <connection from=":1881_2" to="2200" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1890_0" to="2120" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":1890_1" to="2112" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3113,7 +3113,7 @@
     <connection from=":209_0" to="349" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":209_1" to="585" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":209_2" to="349" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":209_3" to="585" fromLane="0" toLane="0" via=":209_4_0" dir="s" state="M"/>
+    <connection from=":209_3" to="585" fromLane="0" toLane="0" via=":209_4_0" dir="s" state="m"/>
     <connection from=":209_4" to="585" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2109_0" to="2201" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2109_1" to="2206" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3144,7 +3144,7 @@
     <connection from=":24_2" to="128" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":24_3" to="138" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2411_0" to="2873" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":2411_1" to="2873" fromLane="0" toLane="0" via=":2411_2_0" dir="s" state="M"/>
+    <connection from=":2411_1" to="2873" fromLane="0" toLane="0" via=":2411_2_0" dir="s" state="m"/>
     <connection from=":2411_2" to="2873" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2420_0" to="2881" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2420_1" to="2893" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3184,7 +3184,7 @@
     <connection from=":2902_1" to="4495" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2960_0" to="3761" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2960_1" to="4527" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":2960_2" to="3761" fromLane="0" toLane="0" via=":2960_4_0" dir="s" state="M"/>
+    <connection from=":2960_2" to="3761" fromLane="0" toLane="0" via=":2960_4_0" dir="s" state="m"/>
     <connection from=":2960_4" to="3761" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2960_3" to="4527" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":2968_0" to="3764" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3221,7 +3221,7 @@
     <connection from=":343_0" to="379" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":343_1" to="365" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":343_2" to="379" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":343_3" to="365" fromLane="0" toLane="0" via=":343_4_0" dir="s" state="M"/>
+    <connection from=":343_3" to="365" fromLane="0" toLane="0" via=":343_4_0" dir="s" state="m"/>
     <connection from=":343_4" to="365" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":3436_0" to="4049" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":3436_1" to="4031" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3237,7 +3237,7 @@
     <connection from=":364_1" to="533" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":364_2" to="535" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":37_0" to="319" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":37_1" to="325" fromLane="0" toLane="0" via=":37_6_0" dir="s" state="M"/>
+    <connection from=":37_1" to="325" fromLane="0" toLane="0" via=":37_6_0" dir="s" state="m"/>
     <connection from=":37_6" to="325" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":37_2" to="313" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":37_3" to="319" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -3257,7 +3257,7 @@
     <connection from=":382_0" to="579" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":382_1" to="577" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":503_0" to="597" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":503_1" to="597" fromLane="0" toLane="0" via=":503_2_0" dir="s" state="M"/>
+    <connection from=":503_1" to="597" fromLane="0" toLane="0" via=":503_2_0" dir="s" state="m"/>
     <connection from=":503_2" to="597" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":522_0" to="1057" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":522_1" to="1057" fromLane="0" toLane="0" dir="s" state="M"/>

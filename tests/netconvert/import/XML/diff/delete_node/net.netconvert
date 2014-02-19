@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 12/18/12 09:22:41 by SUMO netconvert Version dev-SVN-r13169
+<!-- generated on Thu Dec 12 07:34:45 2013 by SUMO netconvert Version dev-SVN-r15319
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/netconvertConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
 
     <input>
         <sumo-net-file value="input_net.net.xml"/>
@@ -25,9 +25,9 @@
 </configuration>
 -->
 
-<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/net_file.xsd">
+<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
 
-    <location netOffset="0.00,0.00" convBoundary="-40.00,-10.00,40.00,40.00" origBoundary="-40.00,-10.00,40.00,40.00" projParameter="!"/>
+    <location netOffset="0.00,0.00" convBoundary="-40.00,-10.00,40.00,4.00" origBoundary="-40.00,-10.00,40.00,40.00" projParameter="!"/>
 
     <edge id=":node_C_0" function="internal">
         <lane id=":node_C_0_0" index="0" speed="11.50" length="7.96" shape="4.49,1.85 -3.44,2.62"/>
@@ -110,7 +110,7 @@
 
     <connection from=":node_C_0" to="edge_C2L" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":node_C_1" to="edge_C2D" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":node_C_2" to="edge_C2R" fromLane="0" toLane="0" via=":node_C_6_0" dir="s" state="M"/>
+    <connection from=":node_C_2" to="edge_C2R" fromLane="0" toLane="0" via=":node_C_6_0" dir="s" state="m"/>
     <connection from=":node_C_6" to="edge_C2R" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":node_C_3" to="edge_C2R" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":node_C_4" to="edge_C2L" fromLane="0" toLane="1" dir="s" state="M"/>

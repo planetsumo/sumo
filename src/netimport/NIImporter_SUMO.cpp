@@ -422,7 +422,7 @@ NIImporter_SUMO::addJunction(const SUMOSAXAttributes& attrs) {
     }
     SumoXMLNodeType type = attrs.getNodeType(ok);
     if (ok) {
-        if (type == NODETYPE_DEAD_END_DEPRECATED || type == NODETYPE_DEAD_END) { 
+        if (type == NODETYPE_DEAD_END_DEPRECATED || type == NODETYPE_DEAD_END) {
             // dead end is a computed status. Reset this to unknown so it will
             // be corrected if additional connections are loaded
             type = NODETYPE_UNKNOWN;
@@ -545,7 +545,7 @@ NIImporter_SUMO::initTrafficLightLogic(const SUMOSAXAttributes& attrs, NBLoadedS
         type = SUMOXMLDefinitions::TrafficLightTypes.get(typeS);
     } else {
         WRITE_ERROR("Unknown traffic light type '" + typeS + "' for tlLogic '" + id + "'.");
-        ok = false;
+        return 0;
     }
     if (ok) {
         return new NBLoadedSUMOTLDef(id, programID, offset, type);

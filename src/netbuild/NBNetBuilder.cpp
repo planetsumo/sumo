@@ -107,7 +107,7 @@ NBNetBuilder::applyOptions(OptionsCont& oc) {
 void
 NBNetBuilder::compute(OptionsCont& oc,
                       const std::set<std::string>& explicitTurnarounds,
-                      bool removeUnwishedNodes) {
+                      bool removeElements) {
     GeoConvHelper& geoConvHelper = GeoConvHelper::getProcessing();
 
 
@@ -169,7 +169,7 @@ NBNetBuilder::compute(OptionsCont& oc,
         WRITE_MESSAGE(" Joined " + toString(numJoined) + " junction cluster(s).");
     }
     //
-    if (removeUnwishedNodes) {
+    if (removeElements) {
         unsigned int no = 0;
         const bool removeGeometryNodes = oc.exists("geometry.remove") && oc.getBool("geometry.remove");
         PROGRESS_BEGIN_MESSAGE("Removing empty nodes" + std::string(removeGeometryNodes ? " and geometry nodes" : ""));
@@ -177,7 +177,18 @@ NBNetBuilder::compute(OptionsCont& oc,
         PROGRESS_DONE_MESSAGE();
         WRITE_MESSAGE("   " + toString(no) + " nodes removed.");
     }
+
     // MOVE TO ORIGIN
+    // compute new boundary after network modifications have taken place
+    Boundary boundary;
+    for (std::map<std::string, NBNode*>::const_iterator it = myNodeCont.begin(); it != myNodeCont.end(); ++it) {
+        boundary.add(it->second->getPosition());
+    }
+    for (std::map<std::string, NBEdge*>::const_iterator it = myEdgeCont.begin(); it != myEdgeCont.end(); ++it) {
+        boundary.add(it->second->getGeometry().getBoxBoundary());
+    }
+    geoConvHelper.setConvBoundary(boundary);
+
     if (!oc.getBool("offset.disable-normalization") && oc.isDefault("offset.x") && oc.isDefault("offset.y")) {
         moveToOrigin(geoConvHelper);
     }
@@ -190,10 +201,12 @@ NBNetBuilder::compute(OptionsCont& oc,
     }
     // @note: removing geometry can create similar edges so joinSimilarEdges  must come afterwards
     // @note: likewise splitting can destroy similarities so joinSimilarEdges must come before
-    PROGRESS_BEGIN_MESSAGE("Joining similar edges");
-    myJoinedEdges.init(myEdgeCont);
-    myNodeCont.joinSimilarEdges(myDistrictCont, myEdgeCont, myTLLCont);
-    PROGRESS_DONE_MESSAGE();
+    if (removeElements) {
+        PROGRESS_BEGIN_MESSAGE("Joining similar edges");
+        myJoinedEdges.init(myEdgeCont);
+        myNodeCont.joinSimilarEdges(myDistrictCont, myEdgeCont, myTLLCont);
+        PROGRESS_DONE_MESSAGE();
+    }
     //
     if (oc.exists("geometry.split") && oc.getBool("geometry.split")) {
         PROGRESS_BEGIN_MESSAGE("Splitting geometry edges");
@@ -213,9 +226,9 @@ NBNetBuilder::compute(OptionsCont& oc,
     //
     if (oc.exists("geometry.max-angle")) {
         myEdgeCont.checkGeometries(
-                oc.getFloat("geometry.max-angle"), 
-                oc.getFloat("geometry.min-radius"),
-                oc.getBool("geometry.min-radius.fix"));
+            oc.getFloat("geometry.max-angle"),
+            oc.getFloat("geometry.min-radius"),
+            oc.getBool("geometry.min-radius.fix"));
     }
     //
     myEdgeCont.computeLaneShapes();
@@ -286,7 +299,11 @@ NBNetBuilder::compute(OptionsCont& oc,
     // GEOMETRY COMPUTATION
     //
     PROGRESS_BEGIN_MESSAGE("Computing node shapes");
-    myNodeCont.computeNodeShapes(oc.getBool("lefthand"));
+    if (oc.exists("geometry.junction-mismatch-threshold")) {
+        myNodeCont.computeNodeShapes(oc.getBool("lefthand"), oc.getFloat("geometry.junction-mismatch-threshold"));
+    } else {
+        myNodeCont.computeNodeShapes(oc.getBool("lefthand"));
+    }
     PROGRESS_DONE_MESSAGE();
     //
     PROGRESS_BEGIN_MESSAGE("Computing edge shapes");
@@ -377,15 +394,7 @@ NBNetBuilder::compute(OptionsCont& oc,
 void
 NBNetBuilder::moveToOrigin(GeoConvHelper& geoConvHelper) {
     PROGRESS_BEGIN_MESSAGE("Moving network to origin");
-    // compute new boundary after network modifications have taken place
-    Boundary boundary;
-    for (std::map<std::string, NBNode*>::const_iterator it = myNodeCont.begin(); it != myNodeCont.end(); ++it) {
-        boundary.add(it->second->getPosition());
-    }
-    for (std::map<std::string, NBEdge*>::const_iterator it = myEdgeCont.begin(); it != myEdgeCont.end(); ++it) {
-        boundary.add(it->second->getGeometry().getBoxBoundary());
-    }
-    geoConvHelper.setConvBoundary(boundary);
+    Boundary boundary = geoConvHelper.getConvBoundary();
     const SUMOReal x = -boundary.xmin();
     const SUMOReal y = -boundary.ymin();
     for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {

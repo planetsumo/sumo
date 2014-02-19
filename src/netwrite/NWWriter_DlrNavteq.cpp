@@ -118,11 +118,13 @@ NWWriter_DlrNavteq::writeNodesUnsplitted(const OptionsCont& oc, NBNodeCont& nc, 
         NBEdge* e = (*i).second;
         const PositionVector& geom = e->getGeometry();
         if (geom.size() > 2) {
-            if (e->getID() == UNDEFINED) {
-                WRITE_WARNING("Edge id '" + UNDEFINED +
-                              "' clashes with the magic value for NO_BETWEEN_NODE. Internal geometry for this edge will be lost.");
+            std::string internalNodeID = e->getID();
+            if (internalNodeID == UNDEFINED ||
+                    (nc.retrieve(internalNodeID) != 0)) {
+                // need to invent a new name to avoid clashing with the id of a 'real' node or a reserved name
+                internalNodeID += "_geometry";
             }
-            device << e->getID() << "\t1\t" << geom.size() - 2;
+            device << internalNodeID << "\t1\t" << geom.size() - 2;
             for (size_t ii = 1; ii < geom.size() - 1; ++ii) {
                 Position pos = geom[(int)ii];
                 gch.cartesian2geo(pos);
@@ -184,7 +186,7 @@ NWWriter_DlrNavteq::getAllowedTypes(SVCPermissions permissions) {
     }
     std::ostringstream oss;
     oss << "0";
-    oss << ((permissions & SVC_PASSENGER)                    > 0 ? 1 : 0); 
+    oss << ((permissions & SVC_PASSENGER)                    > 0 ? 1 : 0);
     oss << ((permissions & SVC_PASSENGER)                    > 0 ? 1 : 0); // residential
     oss << ((permissions & SVC_HOV)                          > 0 ? 1 : 0);
     oss << ((permissions & SVC_PUBLIC_EMERGENCY)             > 0 ? 1 : 0);
@@ -316,11 +318,11 @@ NWWriter_DlrNavteq::writeTrafficSignals(const OptionsCont& oc, NBNodeCont& nc) {
             for (EdgeVector::const_iterator it = incoming.begin(); it != incoming.end(); ++it) {
                 NBEdge* e = *it;
                 device << e->getID() << "\t"
-                    << "12\t" // POICOL_TYPE
-                    << "LSA;NODEIDS#" << n->getID() << "#;LOCATION#-1#;\t" 
-                    << pos.x() << "\t" 
-                    << pos.y() << "\t" 
-                    << e->getID() << "\n";
+                       << "12\t" // POICOL_TYPE
+                       << "LSA;NODEIDS#" << n->getID() << "#;LOCATION#-1#;\t"
+                       << pos.x() << "\t"
+                       << pos.y() << "\t"
+                       << e->getID() << "\n";
             }
         }
     }

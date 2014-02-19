@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Mar 13 09:51:50 2013 by SUMO netconvert Version dev-SVN-r13478
+<!-- generated on Thu Dec 12 07:34:24 2013 by SUMO netconvert Version dev-SVN-r15319
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/netconvertConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
 
     <input>
         <node-files value="input_nodes.nod.xml"/>
@@ -21,7 +21,7 @@
 </configuration>
 -->
 
-<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/net_file.xsd">
+<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
 
     <location netOffset="50.00,50.00" convBoundary="0.00,0.00,50.00,100.00" origBoundary="-50.00,-50.00,50.00,50.00" projParameter="!"/>
 
@@ -43,11 +43,11 @@
     <edge id=":0_4" function="internal">
         <lane id=":0_4_0" index="0" speed="12.50" length="4.73" shape="51.65,48.55 51.25,49.91 50.05,50.88 48.35,51.37"/>
     </edge>
-    <edge id=":0_7" function="internal">
-        <lane id=":0_7_0" index="0" speed="12.50" length="3.12" shape="48.35,51.37 48.05,51.46 45.25,51.65"/>
-    </edge>
     <edge id=":0_5" function="internal">
         <lane id=":0_5_0" index="0" speed="15.28" length="2.41" shape="51.65,48.55 50.82,49.79 50.00,50.20"/>
+    </edge>
+    <edge id=":0_7" function="internal">
+        <lane id=":0_7_0" index="0" speed="12.50" length="3.12" shape="48.35,51.37 48.05,51.46 45.25,51.65"/>
     </edge>
     <edge id=":0_8" function="internal">
         <lane id=":0_8_0" index="0" speed="15.28" length="2.41" shape="50.00,50.20 49.17,49.79 48.35,48.55"/>
@@ -107,12 +107,12 @@
 
     <connection from=":0_0" to="1o" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":0_1" to="3o" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":0_2" to="4o" fromLane="0" toLane="0" via=":0_6_0" dir="s" state="M"/>
+    <connection from=":0_2" to="4o" fromLane="0" toLane="0" via=":0_6_0" dir="s" state="m"/>
     <connection from=":0_6" to="4o" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":0_3" to="4o" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":0_4" to="1o" fromLane="0" toLane="1" via=":0_7_0" dir="s" state="M"/>
+    <connection from=":0_4" to="1o" fromLane="0" toLane="1" via=":0_7_0" dir="s" state="m"/>
     <connection from=":0_7" to="1o" fromLane="0" toLane="1" dir="s" state="M"/>
-    <connection from=":0_5" to="3o" fromLane="0" toLane="0" via=":0_8_0" dir="s" state="M"/>
+    <connection from=":0_5" to="3o" fromLane="0" toLane="0" via=":0_8_0" dir="s" state="m"/>
     <connection from=":0_8" to="3o" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":3_0" to="3i" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":4_0" to="4i" fromLane="0" toLane="0" dir="s" state="M"/>

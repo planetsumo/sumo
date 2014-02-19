@@ -80,7 +80,7 @@ NBFrame::fillOptions(bool forNetgen) {
 
     if (!forNetgen) {
         oc.doRegister("dismiss-vclasses", new Option_Bool(false));
-        oc.addDescription("dismiss-vclasses", "Processing", "Removes vehicle class restrictions from imported edges.");
+        oc.addDescription("dismiss-vclasses", "Processing", "Removes vehicle class restrictions from imported edges");
     }
 
     oc.doRegister("no-turnarounds", new Option_Bool(false));
@@ -116,6 +116,9 @@ NBFrame::fillOptions(bool forNetgen) {
 
         oc.doRegister("geometry.min-radius.fix", new Option_Bool(false));
         oc.addDescription("geometry.min-radius.fix", "Processing", "Straighten edge geometries to avoid turning radii less than geometry.min-radius");
+
+        oc.doRegister("geometry.junction-mismatch-threshold", new Option_Float(20));
+        oc.addDescription("geometry.junction-mismatch-threshold", "Processing", "Warn if the junction shape is to far away from the original node position");
     }
 
     oc.doRegister("offset.disable-normalization", new Option_Bool(false));
@@ -228,7 +231,7 @@ NBFrame::fillOptions(bool forNetgen) {
 
     // tls type
     oc.doRegister("tls.default-type", new Option_String("static"));
-    oc.addDescription("tls.default-type", "TLS Building", "TLSs with unspecified type will use STR as their algorithm.");
+    oc.addDescription("tls.default-type", "TLS Building", "TLSs with unspecified type will use STR as their algorithm");
 
 
     // edge pruning

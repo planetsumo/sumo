@@ -1,4 +1,4 @@
-SUMO netgenerate Version dev-SVN-r14247
+SUMO netgenerate Version dev-SVN-r15485
  Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org
 Road network generator for the microscopic road traffic simulation SUMO.
 
@@ -67,16 +67,16 @@ Output Options:
                                         node-file to reproduce joins
   -M, --map-output FILE               Writes joined edges information to FILE
   --matsim-output FILE                The generated net will be written to FILE
-                                        using MATsim format.
+                                        using MATsim format
   --opendrive-output FILE             The generated net will be written to FILE
-                                        using openDRIVE format.
+                                        using OpenDRIVE format
   --dlr-navteq-output FILE            The generated net will be written to
-                                        dlr-navteq files with the given PREFIX.
+                                        dlr-navteq files with the given PREFIX
   --output.street-names               Street names will be included in the
-                                        output (if available).
+                                        output (if available)
   --output.original-names             Writes original names, if given, as
-                                        parameter.
-  --street-sign-output FILE           Writes street signs as POIs to FILE.
+                                        parameter
+  --street-sign-output FILE           Writes street signs as POIs to FILE
 
 TLS Building Options:
   --tls.set STR                       Interprets STR as list of junctions to be
@@ -96,7 +96,7 @@ TLS Building Options:
   --tls.quarter-offset STR            TLSs in STR will be shifted by
                                         quarter-phase
   --tls.default-type STR              TLSs with unspecified type will use STR
-                                        as their algorithm.
+                                        as their algorithm
 
 Edge Removal Options:
   --keep-edges.min-speed FLOAT        Only keep edges with speed in
@@ -156,7 +156,11 @@ Report Options:
   -p, --print-options                 Prints option values before processing
   -?, --help                          Prints this screen
   -V, --version                       Prints the current version
-  -X, --xml-validation                Enable schema validation of XML inputs
+  -X, --xml-validation STR            Set schema validation scheme of XML
+                                        inputs ("never", "auto" or "always")
+  --xml-validation.net STR            Set schema validation scheme of SUMO
+                                        network inputs ("never", "auto" or
+                                        "always")
   -W, --no-warnings                   Disables output of warnings
   -l, --log FILE                      Writes all messages to FILE (implies
                                         verbose)

@@ -182,7 +182,7 @@ NIImporter_OpenStreetMap::load(const OptionsCont& oc, NBNetBuilder& nb) {
      * Each file is parsed twice: first for nodes, second for edges. */
     std::vector<std::string> files = oc.getStringVector("osm-files");
     // load nodes, first
-    NodesHandler nodesHandler(myOSMNodes, myUniqueNodes);
+    NodesHandler nodesHandler(myOSMNodes, myUniqueNodes, oc.getBool("osm.elevation"));
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
         // nodes
         if (!FileHelpers::exists(*file)) {
@@ -300,7 +300,7 @@ NIImporter_OpenStreetMap::insertNodeChecking(SUMOLong id, NBNodeCont& nc, NBTraf
     NBNode* node = nc.retrieve(toString(id));
     if (node == 0) {
         NIOSMNode* n = myOSMNodes.find(id)->second;
-        Position pos(n->lon, n->lat);
+        Position pos(n->lon, n->lat, n->ele);
         if (!NBNetBuilder::transformCoordinates(pos, true)) {
             WRITE_ERROR("Unable to project coordinates for node " + toString(id) + ".");
             return 0;
@@ -363,7 +363,7 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
     PositionVector shape;
     for (std::vector<SUMOLong>::const_iterator i = passed.begin(); i != passed.end(); ++i) {
         NIOSMNode* n = myOSMNodes.find(*i)->second;
-        Position pos(n->lon, n->lat);
+        Position pos(n->lon, n->lat, n->ele);
         if (!NBNetBuilder::transformCoordinates(pos, true)) {
             WRITE_ERROR("Unable to project coordinates for edge " + id + ".");
         }
@@ -372,48 +372,56 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
 
     std::string type = e->myHighWayType;
     if (!tc.knows(type)) {
-        if (type.find(compoundTypeSeparator) != std::string::npos) {
-            // this edge has a combination type which does not yet exist in the TypeContainer
+        if (myUnusableTypes.count(type) > 0) {
+            return newIndex;
+        } else if (myKnownCompoundTypes.count(type) > 0) {
+            type = myKnownCompoundTypes[type];
+        } else {
+            // this edge has a type which does not yet exist in the TypeContainer
             StringTokenizer tok = StringTokenizer(type, compoundTypeSeparator);
-            std::set<std::string> types;
+            std::vector<std::string> types;
             while (tok.hasNext()) {
                 std::string t = tok.next();
                 if (tc.knows(t)) {
-                    types.insert(t);
-                } else {
-                    WRITE_WARNING("Discarding unknown compound \"" + t + "\" for edge " + id + " with type \"" + type + "\".");
+                    if (std::find(types.begin(), types.end(), t) == types.end()) {
+                        types.push_back(t);
+                    }
+                } else if (tok.size() > 1) {
+                    WRITE_WARNING("Discarding unknown compound \"" + t + "\" in type \"" + type + "\" (first occurence for edge \"" + id + "\").");
                 }
             }
-            switch (types.size()) {
-                case 0:
-                    WRITE_WARNING("Discarding edge " + id + " with type unknown compound type \"" + type + "\".");
-                    return newIndex;
-                    break;
-                case 1: {
-                    type = *(types.begin());
-                    break;
-                }
-                default:
+            if (types.size() == 0) {
+                WRITE_WARNING("Discarding unusable type \"" + type + "\" (first occurence for edge \"" + id + "\").");
+                myUnusableTypes.insert(type);
+                return newIndex;
+            } else {
+                const std::string newType = joinToString(types, "|");
+                if (tc.knows(newType)) {
+                    myKnownCompoundTypes[type] = newType;
+                    type = newType;
+                } else if (myKnownCompoundTypes.count(newType) > 0) {
+                    type = myKnownCompoundTypes[newType];
+                } else {
                     // build a new type by merging all values
                     int numLanes = 0;
                     SUMOReal maxSpeed = 0;
                     int prio = 0;
                     SUMOReal width = NBEdge::UNSPECIFIED_WIDTH;
                     bool defaultIsOneWay = false;
-                    for (std::set<std::string>::iterator it = types.begin(); it != types.end(); it++) {
+                    SVCPermissions permissions = 0;
+                    for (std::vector<std::string>::iterator it = types.begin(); it != types.end(); it++) {
                         numLanes = MAX2(numLanes, tc.getNumLanes(*it));
                         maxSpeed = MAX2(maxSpeed, tc.getSpeed(*it));
                         prio = MAX2(prio, tc.getPriority(*it));
                         defaultIsOneWay &= tc.getIsOneWay(*it);
+                        permissions |= tc.getPermissions(*it);
                     }
-                    WRITE_MESSAGE("Adding new compound type \"" + type + "\" for edge " + id + ".");
-                    // @todo use the propper bitsets instead of SVC_UNKNOWN (see #675)
-                    tc.insert(type, numLanes, maxSpeed, prio, width, SVC_UNKNOWN, defaultIsOneWay);
+                    WRITE_MESSAGE("Adding new type \"" + type + "\" (first occurence for edge \"" + id + "\").");
+                    tc.insert(newType, numLanes, maxSpeed, prio, permissions, width, defaultIsOneWay);
+                    myKnownCompoundTypes[type] = newType;
+                    type = newType;
+                }
             }
-        } else {
-            // we do not know the type -> something else, ignore
-            //WRITE_WARNING("Discarding edge " + id + " with unknown type \"" + type + "\".");
-            return newIndex;
         }
     }
 
@@ -503,14 +511,16 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
 // ---------------------------------------------------------------------------
 NIImporter_OpenStreetMap::NodesHandler::NodesHandler(
     std::map<SUMOLong, NIOSMNode*>& toFill,
-    std::set<NIOSMNode*, CompareNodes>& uniqueNodes) :
+    std::set<NIOSMNode*, CompareNodes>& uniqueNodes,
+    bool importElevation) :
     SUMOSAXHandler("osm - file"),
     myToFill(toFill),
     myLastNodeID(-1),
     myIsInValidNodeTag(false),
     myHierarchyLevel(0),
-    myUniqueNodes(uniqueNodes) {
-}
+    myUniqueNodes(uniqueNodes),
+    myImportElevation(importElevation)
+{ }
 
 
 NIImporter_OpenStreetMap::NodesHandler::~NodesHandler() {}
@@ -578,13 +588,17 @@ NIImporter_OpenStreetMap::NodesHandler::myStartElement(int element, const SUMOSA
             return;
         }
         bool ok = true;
-        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myLastNodeID).c_str(), ok);
+        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myLastNodeID).c_str(), ok, false);
         std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myLastNodeID).c_str(), ok, false);
-        if (!ok) {
-            return;
-        }
         if (key == "highway" && value.find("traffic_signal") != std::string::npos) {
             myToFill[myLastNodeID]->tlsControlled = true;
+        } else if (myImportElevation && key == "ele") {
+            try {
+                myToFill[myLastNodeID]->ele = TplConvert::_2SUMOReal(value.c_str());
+            } catch (...) {
+                WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in node '" +
+                                      toString(myLastNodeID) + "'.");
+            }
         }
     }
 }
@@ -667,11 +681,9 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
             return;
         }
         bool ok = true;
-        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentEdge->id).c_str(), ok);
+        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentEdge->id).c_str(), ok, false);
         std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myCurrentEdge->id).c_str(), ok, false);
-        if (!ok) {
-            return;
-        }
+
         if (key == "highway" || key == "railway") {
             if (myCurrentEdge->myHighWayType != "") {
                 // osm-ways may be used by more than one mode (eg railway.tram + highway.residential. this is relevant for multimodal traffic)
@@ -702,11 +714,14 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
                                       toString(myCurrentEdge->id) + "'.");
                     }
                 }
+            } catch (EmptyData&) {
+                WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in edge '" +
+                        toString(myCurrentEdge->id) + "'.");
             }
         } else if (key == "lanes:forward") {
             try {
                 myCurrentEdge->myNoLanesForward = TplConvert::_2int(value.c_str());
-            } catch (NumberFormatException&) {
+            } catch (...) {
                 WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in edge '" +
                               toString(myCurrentEdge->id) + "'.");
             }
@@ -714,7 +729,7 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
             try {
                 // denote backwards count with a negative sign
                 myCurrentEdge->myNoLanesForward = -TplConvert::_2int(value.c_str());
-            } catch (NumberFormatException&) {
+            } catch (...) {
                 WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in edge '" +
                               toString(myCurrentEdge->id) + "'.");
             }
@@ -731,7 +746,7 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
                 }
                 try {
                     myCurrentEdge->myMaxSpeed = TplConvert::_2SUMOReal(value.c_str()) * conversion;
-                } catch (NumberFormatException&) {
+                } catch (...) {
                     WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in edge '" +
                                   toString(myCurrentEdge->id) + "'.");
                 }
@@ -745,10 +760,15 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
         } else if (key == "name") {
             myCurrentEdge->streetName = value;
         } else if (key == "tracks") {
-            if (TplConvert::_2int(value.c_str()) > 1) {
-                myCurrentEdge->myIsOneWay = "false";
-            } else {
-                myCurrentEdge->myIsOneWay = "true";
+            try {
+                if (TplConvert::_2int(value.c_str()) > 1) {
+                    myCurrentEdge->myIsOneWay = "false";
+                } else {
+                    myCurrentEdge->myIsOneWay = "true";
+                }
+            } catch (...) {
+                WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in edge '" +
+                              toString(myCurrentEdge->id) + "'.");
             }
         }
     }
@@ -839,11 +859,9 @@ NIImporter_OpenStreetMap::RelationHandler::myStartElement(int element,
     // parse values
     if (element == SUMO_TAG_TAG) {
         bool ok = true;
-        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentRelation).c_str(), ok);
+        std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentRelation).c_str(), ok, false);
         std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myCurrentRelation).c_str(), ok, false);
-        if (!ok) {
-            return;
-        }
+
         if (key == "type" && value == "restriction") {
             myIsRestriction = true;
             return;
