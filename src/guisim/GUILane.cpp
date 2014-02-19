@@ -688,17 +688,17 @@ GUILane::getColorValue(size_t activeScheme) const {
         case 7:
             return getEdgeLaneNumber();
         case 8:
-            return getNormedHBEFA_CO2Emissions();
+            return getCO2Emissions() / myLength;
         case 9:
-            return getNormedHBEFA_COEmissions();
+            return getCOEmissions() / myLength;
         case 10:
-            return getNormedHBEFA_PMxEmissions();
+            return getPMxEmissions() / myLength;
         case 11:
-            return getNormedHBEFA_NOxEmissions();
+            return getNOxEmissions() / myLength;
         case 12:
-            return getNormedHBEFA_HCEmissions();
+            return getHCEmissions() / myLength;
         case 13:
-            return getNormedHBEFA_FuelConsumption();
+            return getFuelConsumption() / myLength;
         case 14:
             return getHarmonoise_NoiseEmissions();
         case 15: {

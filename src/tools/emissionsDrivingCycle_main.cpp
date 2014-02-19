@@ -151,12 +151,12 @@ main(int argc, char **argv) {
             try {
                 SUMOReal t = TplConvert::_2SUMOReal<char>(st.next().c_str());
                 SUMOReal v = TplConvert::_2SUMOReal<char>(st.next().c_str());
-                l += v;
                 if(inKMH) {
                     v = v / 3.6;
                 }
+                l += v;
                 SUMOReal a = 0;
-                if(computeA) {
+                if(!computeA) {
                     a = TplConvert::_2SUMOReal<char>(st.next().c_str());
                 } else {
                     a = v - lastV;

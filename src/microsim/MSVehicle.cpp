@@ -52,6 +52,7 @@
 #include <utils/emissions/HelpersHarmonoise.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/StdDefs.h>
+#include <utils/geom/GeomHelper.h>
 #include <utils/geom/Line.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/iodevices/BinaryInputDevice.h>
@@ -639,7 +640,7 @@ MSVehicle::getAngle() const {
             : myLane->geometryPositionAtOffset(myState.myPos - myType->getLength());
     }
     SUMOReal result = (p1 != p2 ?
-                       atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / PI :
+                       atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / M_PI :
                        -myLane->getShape().rotationDegreeAtOffset(myLane->interpolateLanePosToGeometryPos(getPositionOnLane())));
     if (getLaneChangeModel().isChangingLanes()) {
         const SUMOReal angleOffset = 60 / STEPS2TIME(MSGlobals::gLaneChangeDuration) * (getLaneChangeModel().isLaneChangeMidpointPassed() ? 1 - getLaneChangeModel().getLaneChangeCompletion() : getLaneChangeModel().getLaneChangeCompletion());
@@ -2095,8 +2096,8 @@ MSVehicle::getTimeGap() const {
 
 
 SUMOReal
-MSVehicle::getHBEFA_CO2Emissions() const {
-    return HelpersHBEFA::computeCO2(myType->getEmissionClass(), myState.speed(), myAcceleration);
+MSVehicle::getCO2Emissions() const {
+    return PollutantsInterface::computeCO2(myType->getEmissionClass(), myState.speed(), myAcceleration, getSlope());
 }
 
 
