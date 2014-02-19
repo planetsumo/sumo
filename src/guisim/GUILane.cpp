@@ -184,7 +184,7 @@ GUILane::drawLinkNo() const {
     SUMOReal x1 = myHalfLaneWidth;
     for (int i = noLinks; --i >= 0;) {
         SUMOReal x2 = x1 - (SUMOReal)(w / 2.);
-        drawTextAtEnd(toString(myLinks[i]->getRespondIndex()), getShape(), x2);
+        drawTextAtEnd(toString(myLinks[i]->getIndex()), getShape(), x2);
         x1 -= w;
     }
 }
