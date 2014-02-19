@@ -640,7 +640,7 @@ GUIParameterTableWindow*
 GUILane::getParameterWindow(GUIMainWindow& app,
                             GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 6);
+        new GUIParameterTableWindow(app, *this, 7);
     // add items
     ret->mkItem("maxspeed [m/s]", false, getSpeedLimit());
     ret->mkItem("length [m]", false, myLength);
@@ -649,6 +649,7 @@ GUILane::getParameterWindow(GUIMainWindow& app,
     ret->mkItem("edge type", false, myEdge->getEdgeType());
     ret->mkItem("allowed vehicle class", false, getAllowedVehicleClassNames(myPermissions));
     ret->mkItem("disallowed vehicle class", false, getAllowedVehicleClassNames(~myPermissions));
+    ret->mkItem("permission code", false, myPermissions);
     // close building
     ret->closeBuilding();
     return ret;

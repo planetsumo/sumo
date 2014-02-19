@@ -221,7 +221,7 @@ StringBijection<SUMOEmissionClass> SumoEmissionClassStrings(
 // ===========================================================================
 
 const int SUMOVehicleClass_MAX = SVC_CUSTOM2;
-const SVCPermissions SVCFreeForAll = std::numeric_limits<SVCPermissions>::max(); // all bits set to 1
+const SVCPermissions SVCFreeForAll = (SUMOVehicleClass_MAX * 2 - 1); // all bits set to 1
 
 // ===========================================================================
 // method definitions
@@ -342,7 +342,7 @@ extern SVCPermissions parseVehicleClasses(const std::string& allowedS, const std
     } else if (allowedS.size() > 0) {
         return parseVehicleClasses(allowedS);
     } else {
-        return ~parseVehicleClasses(disallowedS);
+        return SVCFreeForAll & ~parseVehicleClasses(disallowedS);
     }
 }
 
