@@ -1556,9 +1556,7 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
         wa.shape.push_back(edgBeg.shape[begDir == FORWARD ? 0 : -1]);
         // add connection from walking area to sidewalk (optional)
         if (begDir == 1 && (edgBeg.permissions & SVC_PEDESTRIAN) > 0) {
-            wa.nextSidewalk = edges.front()->getID();
-        } else {
-            wa.nextSidewalk = "";
+            wa.nextSidewalks.push_back(edges.front()->getID());
         }
         // handle edges in between the current crossing and the next clockwise crossing
         EdgeVector between = edgesBetween(*it, it == myCrossings.end() - 1 ? *myCrossings.begin() : *(it + 1));
@@ -1587,15 +1585,9 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
                 wa.shape.push_back(bBeg.shape[dir == FORWARD ? -1 : 0]);
                 // add connection depending on direction
                 if (dir == FORWARD) {
-                    if (wa.prevSidewalk != "") {
-                        throw ProcessError("multiple source sidwalks not yet implemented");
-                    }
-                    wa.prevSidewalk = be->getID();
+                    wa.prevSidewalks.push_back(be->getID());
                 } else {
-                    if (wa.nextSidewalk != "") {
-                        throw ProcessError("multiple target sidwalks not yet implemented");
-                    }
-                    wa.nextSidewalk = be->getID();
+                    wa.nextSidewalks.push_back(be->getID());
                 }
 
             }
@@ -1632,9 +1624,7 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
         wa.shape.push_back(crossingEnd.shape[endDir == FORWARD ? -1 : 0]);
         // add connection from sidewalk to walking area (optional)
         if (endDir == 1 && (edgEnd.permissions & SVC_PEDESTRIAN) > 0) {
-            wa.prevSidewalk = edges.back()->getID();
-        } else {
-            wa.prevSidewalk = "";
+            wa.prevSidewalks.push_back(edges.back()->getID());
         }
         if (prev.done) {
             // point 7: extension of outer lane of last edge to be crossed

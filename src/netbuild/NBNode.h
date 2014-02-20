@@ -167,9 +167,9 @@ public:
         /// @brief the traffic light index of the next crossing (if controlled)
         int tlLinkNo;
         /// @brief the lane-id of the next sidewalk lane or ""
-        std::string nextSidewalk;
+        std::vector<std::string> nextSidewalks;
         /// @brief the lane-id of the previous sidewalk lane or ""
-        std::string prevSidewalk;
+        std::vector<std::string> prevSidewalks;
         /// @brief whether the shape and connections of this WA are complete
         bool done;
     };

@@ -178,11 +178,11 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
                 device.closeTag();
             }
             // optional connections from/to sidewalk
-            if ((*it).nextSidewalk != "") {
-                NWWriter_SUMO::writeInternalConnection(device, (*it).id, (*it).nextSidewalk, 0, 0, "");
+            for (std::vector<std::string>::const_iterator it_sw = (*it).nextSidewalks.begin(); it_sw != (*it).nextSidewalks.end(); ++it_sw) {
+                NWWriter_SUMO::writeInternalConnection(device, (*it).id, (*it_sw), 0, 0, "");
             }
-            if ((*it).prevSidewalk != "") {
-                NWWriter_SUMO::writeInternalConnection(device, (*it).prevSidewalk, (*it).id, 0, 0, "");
+            for (std::vector<std::string>::const_iterator it_sw = (*it).prevSidewalks.begin(); it_sw != (*it).prevSidewalks.end(); ++it_sw) {
+                NWWriter_SUMO::writeInternalConnection(device, (*it_sw), (*it).id, 0, 0, "");
             }
         }
     }
