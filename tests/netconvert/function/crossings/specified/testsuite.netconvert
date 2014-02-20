@@ -12,3 +12,7 @@ path_across_street
 
 # 4 arm junction with 2 crossings on neighboring sides
 4_arm_2_neighboring
+
+# 3 arm junction where the crossing arm only has a sidewalk on the opposite side
+3_arm_1_opposite_sidewalk_1_crossing
+3_arm_1_opposite_sidewalk_3_crossings

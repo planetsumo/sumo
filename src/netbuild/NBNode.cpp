@@ -1567,14 +1567,15 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
             }
             updateShapeAndConnections(wa, beg, (*it).edges.back(), (*it).width);
         }
+        NBEdge* backEdge = (*it).edges.back();
         EdgeVector& edges = (*it).edges;
-        const int endDir = (edges.back()->getToNode() == this ? FORWARD : BACKWARD);
+        const int endDir = (backEdge->getToNode() == this ? FORWARD : BACKWARD);
         // point 4: outer lane of last edge to be crossed
-        NBEdge::Lane edgEnd = edges.back()->getLanes()[endDir == FORWARD ? 0 : -1];
+        NBEdge::Lane edgEnd = backEdge->getLanes()[endDir == FORWARD ? 0 : backEdge->getNumLanes() - 1];
         edgEnd.shape.move2side(endDir * edgEnd.width / 2);
         wa.shape.push_back(edgEnd.shape[endDir == FORWARD ? -1 : 0]);
         // point 5: last lane to be crossed
-        NBEdge::Lane crossingEnd = edges.back()->getFirstNonPedestrianLane(endDir);
+        NBEdge::Lane crossingEnd = backEdge->getFirstNonPedestrianLane(endDir);
         crossingEnd.width = (crossingEnd.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : crossingEnd.width);
         crossingEnd.shape.move2side(endDir * crossingEnd.width / 2);
         wa.shape.push_back(crossingEnd.shape[endDir == FORWARD ? -1 : 0]);
@@ -1583,7 +1584,7 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
         wa.shape.push_back(crossingEnd.shape[endDir == FORWARD ? -1 : 0]);
         // add connection from sidewalk to walking area (optional)
         if (endDir == 1 && (edgEnd.permissions & SVC_PEDESTRIAN) > 0) {
-            wa.prevSidewalks.push_back(edges.back()->getID());
+            wa.prevSidewalks.push_back(backEdge->getID());
         }
         if (prev.done) {
             // point 7: extension of outer lane of last edge to be crossed
@@ -1608,7 +1609,7 @@ NBNode::updateShapeAndConnections(WalkingArea& wa, const NBEdge* startEdge, cons
     // point 1: first lane to be crossed
     wa.shape.push_back(crossingBeg.shape[begDir == FORWARD ? 0 : -1]);
     // point 2: outer lane of first edge to be crossed
-    NBEdge::Lane edgBeg = startEdge->getLanes()[begDir == FORWARD ? 0 : -1];
+    NBEdge::Lane edgBeg = startEdge->getLanes()[begDir == FORWARD ? 0 : startEdge->getNumLanes() - 1];
     edgBeg.shape.move2side(begDir * edgBeg.width / 2);
     wa.shape.push_back(edgBeg.shape[begDir == FORWARD ? 0 : -1]);
     // add connection from walking area to sidewalk (optional)
@@ -1621,7 +1622,7 @@ NBNode::updateShapeAndConnections(WalkingArea& wa, const NBEdge* startEdge, cons
         NBEdge* be = *it_between;
         const int dir = (be->getToNode() == this ? FORWARD : BACKWARD);
         const int fnpIndex = be->getFirstNonPedestrianLaneIndex(dir);
-        if (fnpIndex == 0) {
+        if (fnpIndex == (dir == FORWARD ? 0 : be->getNumLanes() - 1)) {
             // final point: extension of outer lane of first edge to be crossed
             edgBeg.shape.extrapolate(startWidth);
             wa.shape.push_back(edgBeg.shape[dir == FORWARD ? -1 : 0]);
