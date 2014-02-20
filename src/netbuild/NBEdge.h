@@ -1156,6 +1156,9 @@ private:
     /** moves a connection one place to the right;
         Attention! no checking for field validity */
     void moveConnectionToRight(unsigned int lane);
+
+    /// @brief whether the connection can originate on newFromLane
+    bool canMoveConnection(const Connection& con, unsigned int newFromLane) const;
     /// @}
 
 

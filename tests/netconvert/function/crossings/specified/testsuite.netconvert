@@ -3,3 +3,6 @@
 
 # slanted 4 arm junction with crossings on all sides
 4_arm_slanted_complete
+
+# a pedestrian path crosses a street with sidewalks
+path_across_street

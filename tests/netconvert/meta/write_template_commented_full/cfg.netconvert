@@ -426,6 +426,9 @@
         <!-- Allow driving onto a multi-lane road if there are foes on other lanes (everywhere) -->
         <check-lane-foes.all value="false" type="BOOL"/>
 
+        <!-- Guess pedestrian crossings based on the presence of sidewalks -->
+        <crossings.guess value="false" type="BOOL"/>
+
         <!-- Determines the maximal distance for joining traffic lights (defaults to 20) -->
         <tls.join-dist value="20" type="FLOAT"/>
 

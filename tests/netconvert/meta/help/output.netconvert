@@ -1,4 +1,4 @@
-SUMO netconvert Version dev-SVN-r15589
+SUMO netconvert Version dev-SVN-r15637
  Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org
 Road network importer / builder for the road traffic simulation SUMO.
 
@@ -223,6 +223,8 @@ Processing Options:
   --check-lane-foes.all               Allow driving onto a multi-lane road if
                                         there are foes on other lanes
                                         (everywhere)
+  --crossings.guess                   Guess pedestrian crossings based on the
+                                        presence of sidewalks
   --tls.join-dist FLOAT               Determines the maximal distance for
                                         joining traffic lights (defaults to 20)
 

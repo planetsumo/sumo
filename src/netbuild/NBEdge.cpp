@@ -934,18 +934,28 @@ NBEdge::copyConnectionsFrom(NBEdge* src) {
 }
 
 
+bool 
+NBEdge::canMoveConnection(const Connection& con, unsigned int newFromLane) const {
+    // only allow using newFromLane if at least 1 vClass is permitted to use
+    // this connection
+    return ((getPermissions(newFromLane) & con.toEdge->getPermissions(con.toLane)) > 0);
+}
+
+
 void
 NBEdge::moveConnectionToLeft(unsigned int lane) {
     unsigned int index = 0;
     if (myAmLeftHand) {
         for (int i = (int) myConnections.size() - 1; i >= 0; --i) {
-            if (myConnections[i].fromLane == static_cast<int>(lane) && getTurnDestination() != myConnections[i].toEdge) {
+            if (myConnections[i].fromLane == (int)lane 
+                    && getTurnDestination() != myConnections[i].toEdge
+                    && canMoveConnection(myConnections[i], lane + 1)) {
                 index = i;
             }
         }
     } else {
         for (unsigned int i = 0; i < myConnections.size(); ++i) {
-            if (myConnections[i].fromLane == static_cast<int>(lane)) {
+            if (myConnections[i].fromLane == (int)(lane) && canMoveConnection(myConnections[i], lane + 1)) {
                 index = i;
             }
         }
@@ -961,7 +971,7 @@ void
 NBEdge::moveConnectionToRight(unsigned int lane) {
     if (myAmLeftHand) {
         for (int i = (int) myConnections.size() - 1; i >= 0; --i) {
-            if (myConnections[i].fromLane == static_cast<int>(lane) && getTurnDestination() != myConnections[i].toEdge) {
+            if (myConnections[i].fromLane == (int)lane && getTurnDestination() != myConnections[i].toEdge && canMoveConnection(myConnections[i], lane - 1)) {
                 Connection c = myConnections[i];
                 myConnections.erase(myConnections.begin() + i);
                 setConnection(lane - 1, c.toEdge, c.toLane, L2L_VALIDATED, false);
@@ -970,7 +980,7 @@ NBEdge::moveConnectionToRight(unsigned int lane) {
         }
     } else {
         for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
-            if ((*i).fromLane == static_cast<int>(lane)) {
+            if ((*i).fromLane == (int)lane && canMoveConnection(*i, lane -1)) {
                 Connection c = *i;
                 i = myConnections.erase(i);
                 setConnection(lane - 1, c.toEdge, c.toLane, L2L_VALIDATED, false);
