@@ -153,13 +153,18 @@ public:
      * @brief A definition of a pedestrian walking area
      */
     struct WalkingArea {
-        WalkingArea(const std::string& _id) : id(_id), done(false) {}
-        /// @brief The polygonal shape
-        PositionVector shape;
-        /// @brief This lane's width
-        SUMOReal width;
+        WalkingArea(const std::string& _id, SUMOReal _width) : 
+            id(_id), 
+            width(_width),
+            nextCrossing(""),
+            tlID(""),
+            done(false) {}
         /// @brief the (edge)-id of this walkingArea
         std::string id;
+        /// @brief This lane's width
+        SUMOReal width;
+        /// @brief The polygonal shape
+        PositionVector shape;
         /// @brief the lane-id of the next crossing
         std::string nextCrossing;
         /// @brief the traffic light id of the next crossing or ""
@@ -520,8 +525,8 @@ public:
      * */
     void buildWalkingAreas(unsigned int index, unsigned int tlIndex);
 
-    /// @brief return all edges that lie clockwise between the given crossings
-    EdgeVector edgesBetween(const Crossing& c1, const Crossing& c2) const;
+    /// @brief return all edges that lie clockwise between the given edges
+    EdgeVector edgesBetween(const NBEdge* e1, const NBEdge* e2) const;
 
 
     const NBConnectionProhibits& getProhibitions() {

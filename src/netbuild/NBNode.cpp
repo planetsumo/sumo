@@ -1526,8 +1526,7 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
     myWalkingAreas.clear();
     // walking area at start of crossing
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
-        WalkingArea wa(":" + getID() + "_" + toString(index++));
-        wa.width = (*it).width;
+        WalkingArea wa(":" + getID() + "_" + toString(index++), (*it).width);
         wa.nextCrossing = (*it).id;
         if (isTLControlled()) {
             if (getControllingTLS().size() > 1) {
@@ -1559,7 +1558,8 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
             wa.nextSidewalks.push_back(edges.front()->getID());
         }
         // handle edges in between the current crossing and the next clockwise crossing
-        EdgeVector between = edgesBetween(*it, it == myCrossings.end() - 1 ? *myCrossings.begin() : *(it + 1));
+        const Crossing& nextCWCrossing = (it == myCrossings.end() - 1 ? *myCrossings.begin() : *(it + 1));
+        EdgeVector between = edgesBetween((*it).edges.front(), nextCWCrossing.edges.back());
         for (EdgeVector::iterator it_between = between.begin(); it_between != between.end() && !wa.done; ++it_between) {
             NBEdge* be = *it_between;
             const int dir = (be->getToNode() == this ? FORWARD : BACKWARD);
@@ -1594,12 +1594,14 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
         }
         myWalkingAreas.push_back(wa);
     }
+
     // walking area at end of crossing
     int prevWA = -1;
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
         WalkingArea& prev = myWalkingAreas[prevWA < 0 ? prevWA + myWalkingAreas.size() : prevWA];
         if (prev.done) {
-            myWalkingAreas.push_back(WalkingArea(":" + getID() + "_" + toString(index++)));
+            WalkingArea endWA(":" + getID() + "_" + toString(index++), (*it).width);
+            myWalkingAreas.push_back(endWA);
         }
         WalkingArea& wa = (prev.done ? myWalkingAreas.back() : prev);
         (*it).nextWalkingArea = wa.id;
@@ -1637,12 +1639,12 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
 
 
 EdgeVector 
-NBNode::edgesBetween(const Crossing& c1, const Crossing& c2) const {
+NBNode::edgesBetween(const NBEdge* e1, const NBEdge* e2) const {
     EdgeVector result;
-    EdgeVector::const_iterator it = find(myAllEdges.begin(), myAllEdges.end(), c1.edges.front());
+    EdgeVector::const_iterator it = find(myAllEdges.begin(), myAllEdges.end(), e1);
     assert(it != myAllEdges.end());
     NBContHelper::nextCW(myAllEdges, it);
-    EdgeVector::const_iterator it_end = find(myAllEdges.begin(), myAllEdges.end(), c2.edges.back());
+    EdgeVector::const_iterator it_end = find(myAllEdges.begin(), myAllEdges.end(), e2);
     assert(it_end != myAllEdges.end());
     while (it != it_end) {
         result.push_back(*it);
