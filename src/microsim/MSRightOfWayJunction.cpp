@@ -103,7 +103,7 @@ MSRightOfWayJunction::postloadInit() {
                 continue;
             }
             if (myLogic->getLogicSize() <= requestPos) {
-                throw ProcessError("Found invalid logic position of a link (" + toString(requestPos) + ", max " + toString(myLogic->getLogicSize()) + ") -> (network error)");
+                throw ProcessError("Found invalid logic position of a link for junction '" + getID() + "' (" + toString(requestPos) + ", max " + toString(myLogic->getLogicSize()) + ") -> (network error)");
             }
             const MSLogicJunction::LinkFoes& foeLinks = myLogic->getFoesFor(requestPos); // SUMO_ATTR_RESPONSE
             const std::bitset<64>& internalFoes = myLogic->getInternalFoesFor(requestPos); // SUMO_ATTR_FOES

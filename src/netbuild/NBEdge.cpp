@@ -2164,7 +2164,7 @@ NBEdge::Lane
 NBEdge::getFirstNonPedestrianLane(int direction) const {
     int index = getFirstNonPedestrianLaneIndex(direction);
     if (index < 0) {
-        throw ProcessError("Edge " + getID() + " is only for pedestrians");
+        throw ProcessError("Edge " + getID() + " allows pedestrians on all lanes");
     }
     return myLanes[index];
 }
