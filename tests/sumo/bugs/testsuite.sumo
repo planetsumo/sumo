@@ -126,3 +126,26 @@ ticket929
 ticket941
 ticket963
 ticket967
+
+# vehicles stop to help other vehicles to change langes even though they are 500 meters apart
+ticket1044
+
+# ticket1047 (automatically commented due to no test directory being found)
+
+ticket1050
+ticket1054
+ticket1065
+ticket1082
+ticket1084
+ticket1088
+ticket1091
+ticket1096
+
+# this time with green minor link
+ticket1096b
+ticket1096c
+ticket1097
+ticket1114
+
+# testing route length in tripinfos and vehroute output with rerouting
+ticket676
