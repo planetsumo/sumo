@@ -35,6 +35,7 @@
 #include <limits>
 #include <cmath>
 #include <utils/common/StdDefs.h>
+#include <utils/geom/GeomHelper.h>
 #include <utils/common/SUMOVehicleClass.h>
 
 
@@ -139,7 +140,7 @@ private:
             return 0.;
         }
         const double* f = myFunctionParameter[c] + offset;
-        const double alpha = asin(a / 9.81) * 180. / PI;
+        const double alpha = asin(a / 9.81) * 180. / M_PI;
         return (SUMOReal) MAX2((f[0] + f[1] * alpha * v + f[2] * alpha * alpha * v + f[3] * v + f[4] * v * v + f[5] * v * v * v) / 3.6, 0.);
     }
 
