@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Wed Sep  4 16:46:01 2013 by SUMO sumo Version dev-SVN-r14576
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="net.net.xml"/>
+        <route-files value="input_routes.rou.xml"/>
+        <additional-files value="input_additional.add.xml"/>
+    </input>
+
+    <report>
+        <no-duration-log value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+</configuration>
+-->
+
+<instantE1>
+    <instantOut id="instant_beg_0_before" time="17.22" state="enter" vehID="v0" speed="13.89" length="5.00" type="DEFAULT_VEHTYPE"/>
+    <instantOut id="instant_beg_0_before" time="17.58" state="leave" vehID="v0" speed="13.89" length="5.00" type="DEFAULT_VEHTYPE" occupancy="0.36"/>
+    <instantOut id="instant_beg_1_at" time="33.64" state="enter" vehID="v0" speed="13.89" length="5.00" type="DEFAULT_VEHTYPE"/>
+    <instantOut id="instant_beg_1_at" time="34.00" state="leave" vehID="v0" speed="13.89" length="5.00" type="DEFAULT_VEHTYPE" occupancy="0.36"/>
+    <instantOut id="instant_beg_1_after" time="35.22" state="enter" vehID="v0" speed="13.89" length="5.00" type="DEFAULT_VEHTYPE"/>
+    <instantOut id="instant_beg_1_after" time="35.58" state="leave" vehID="v0" speed="13.89" length="5.00" type="DEFAULT_VEHTYPE" occupancy="0.36"/>
+</instantE1>
