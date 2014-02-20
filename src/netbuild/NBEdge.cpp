@@ -2161,7 +2161,7 @@ NBEdge::getFirstNonPedestrianLaneIndex(int direction) const {
 }
 
 NBEdge::Lane 
-NBEdge::getFirstNonPedestrianLane(int direction) {
+NBEdge::getFirstNonPedestrianLane(int direction) const {
     int index = getFirstNonPedestrianLaneIndex(direction);
     if (index < 0) {
         throw ProcessError("Edge " + getID() + " is only for pedestrians");

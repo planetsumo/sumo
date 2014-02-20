@@ -525,6 +525,14 @@ public:
      * */
     void buildWalkingAreas(unsigned int index, unsigned int tlIndex);
 
+    /* @brief update shape and connections of the given walking area
+     * @param[in,out] wa The walking area to be update
+     * @param[in] startEdge The first edge delimiting the walking area (clockwise)
+     * @param[in] endEdge The last edge delimiting the walking area (clockwise)
+     * @param[in] startWidth The width of the walking area where facing startEdge
+     * */
+    void updateShapeAndConnections(WalkingArea& wa, const NBEdge* startEdge, const NBEdge* endEdge, SUMOReal startWidth);
+
     /// @brief return all edges that lie clockwise between the given edges
     EdgeVector edgesBetween(const NBEdge* e1, const NBEdge* e2) const;
 

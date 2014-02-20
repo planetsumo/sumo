@@ -490,7 +490,7 @@ public:
 
     /// @brief return the first lane with permissions other than SVC_PEDESTRIAN
     int getFirstNonPedestrianLaneIndex(int direction) const;
-    NBEdge::Lane getFirstNonPedestrianLane(int direction);
+    NBEdge::Lane getFirstNonPedestrianLane(int direction) const;
 
 
     /// @name Edge geometry access and computation
