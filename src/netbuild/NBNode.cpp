@@ -1486,9 +1486,14 @@ NBNode::buildInnerEdges() {
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
         (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
     }
-    // build pedestrian crossings 
-    unsigned int index = noInternalNoSplits + splitNo;
-    unsigned int tlIndex = lno;
+    unsigned int index = buildCrossings(noInternalNoSplits + splitNo);
+    buildWalkingAreas(index, lno);
+
+}
+
+
+unsigned int
+NBNode::buildCrossings(unsigned int index) {
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
         (*it).id = ":" + getID() + "_" + toString(index++);
         if ((*it).edges.size() > 2) {
@@ -1512,7 +1517,12 @@ NBNode::buildInnerEdges() {
         (*it).shape.push_back(crossingBeg.shape[begDir == FORWARD ? 0 : -1]);
         (*it).shape.push_back(crossingEnd.shape[endDir == FORWARD ? -1 : 0]);
     }
-    // build walkingAreas for pedestrians
+    return index;
+}
+
+
+void
+NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
     myWalkingAreas.clear();
     // walking area at start of crossing
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {

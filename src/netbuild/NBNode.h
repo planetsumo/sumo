@@ -506,6 +506,18 @@ public:
     /// @brief build internal lanes, pedestrian crossings and walking areas
     void buildInnerEdges();
 
+    /* @brief build pedestrian crossings 
+     * @param[in] index The starting index for naming the created internal lanes
+     * @return The next index for creating internal lanes 
+     * */
+    unsigned int buildCrossings(unsigned int index);
+
+    /* @brief build pedestrian walking areas and set connections from/to walkingAreas
+     * @param[in] index The starting index for naming the created internal lanes
+     * @param[in] tlIndex The starting traffic light index to assign to connections to controlled crossings
+     * */
+    void buildWalkingAreas(unsigned int index, unsigned int tlIndex);
+
     const NBConnectionProhibits& getProhibitions() {
         return myBlockedConnections;
     }
