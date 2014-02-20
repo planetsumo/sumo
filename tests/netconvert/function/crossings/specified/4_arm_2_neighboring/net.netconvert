@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Thu Feb 20 14:48:45 2014 by SUMO netconvert Version dev-SVN-r15637
+<!-- generated on Thu Feb 20 15:33:44 2014 by SUMO netconvert Version dev-SVN-r15637
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -93,7 +93,7 @@
         <lane id=":C_21_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="91.85,91.65 91.85,87.15 88.75,87.15 87.15,88.75 87.15,91.75"/>
     </edge>
     <edge id=":C_22" function="walkingarea">
-        <lane id=":C_22_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="112.85,111.25 112.85,108.15 108.35,108.15 108.35,111.25"/>
+        <lane id=":C_22_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="108.15,108.35 108.15,112.85 111.25,112.85 112.85,111.25 112.85,108.15 108.35,108.15 108.35,111.25"/>
     </edge>
 
     <edge id="CE" from="C" to="E" priority="2">
@@ -226,5 +226,6 @@
     <connection from=":C_21" to=":C_19" fromLane="0" toLane="0" tl="C" linkIndex="15" dir="s" state="M"/>
     <connection from=":C_21" to="CS" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="WC" to=":C_21" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":C_22" to="CN" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="EC" to=":C_22" fromLane="0" toLane="0" dir="s" state="M"/>
 </net>

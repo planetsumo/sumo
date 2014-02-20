@@ -1555,7 +1555,17 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
         (*it).nextWalkingArea = wa.id;
         // extend shape (clockwise)
         if (prev.done) {
-            // handle edges in between the current crossing and the previous crossing (next ccw)
+            // build shape between the previous non-pedestrian lane and the current crossing
+            const Crossing& prevCWCrossing = (it == myCrossings.begin() ? *(myCrossings.end() - 1) : *(it - 1));
+            const NBEdge* beg = prevCWCrossing.edges.front();
+            EdgeVector between = edgesBetween(beg, (*it).edges.back());
+            for (EdgeVector::reverse_iterator it_between = between.rbegin(); it_between != between.rend() && !wa.done; ++it_between) {
+                if ((*it_between)->getFirstNonPedestrianLaneIndex(FORWARD) >= 0) {
+                    beg = *it_between;
+                    break;
+                }
+            }
+            updateShapeAndConnections(wa, beg, (*it).edges.back(), (*it).width);
         }
         EdgeVector& edges = (*it).edges;
         const int endDir = (edges.back()->getToNode() == this ? FORWARD : BACKWARD);
