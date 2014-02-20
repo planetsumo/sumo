@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Feb 19 16:28:36 2014 by SUMO netconvert Version dev-SVN-r15637
+<!-- generated on Thu Feb 20 09:39:47 2014 by SUMO netconvert Version dev-SVN-r15637
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -51,10 +51,10 @@
         <lane id=":C_7_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="98.90,53.25 98.90,46.75"/>
     </edge>
     <edge id=":C_8" function="walkingarea">
-        <lane id=":C_8_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="103.10,44.65 103.10,46.75 99.10,46.75 100.90,46.75 96.90,46.75 96.90,44.65"/>
+        <lane id=":C_8_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="99.10,46.75 103.10,46.75 103.10,44.65 96.90,44.65 96.90,46.75 100.90,46.75"/>
     </edge>
     <edge id=":C_9" function="walkingarea">
-        <lane id=":C_9_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="96.90,55.35 96.90,53.25 100.90,53.25 99.10,53.25 103.10,53.25 103.10,55.35"/>
+        <lane id=":C_9_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="100.90,53.25 96.90,53.25 96.90,55.35 103.10,55.35 103.10,53.25 99.10,53.25"/>
     </edge>
     <edge id=":E_0" function="internal">
         <lane id=":E_0_0" index="0" disallow="pedestrian" speed="13.89" length="4.82" shape="200.00,48.35 201.24,49.18 201.65,50.00 201.24,50.83 200.00,51.65"/>

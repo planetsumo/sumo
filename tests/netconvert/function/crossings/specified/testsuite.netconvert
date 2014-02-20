@@ -6,3 +6,9 @@
 
 # a pedestrian path crosses a street with sidewalks
 path_across_street
+
+# 4 arm junction with crossings on 2 opposite sides
+4_arm_2_opposite
+
+# 4 arm junction with 2 crossings on neighboring sides
+4_arm_2_neighboring

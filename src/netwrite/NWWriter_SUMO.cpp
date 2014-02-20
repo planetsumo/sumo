@@ -162,19 +162,21 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
         // write connections from pedestrian walking areas
         const std::vector<NBNode::WalkingArea>& WalkingAreas = node->getWalkingAreas();
         for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
-            // connection to next crossing (may be tls-controlled)
-            device.openTag(SUMO_TAG_CONNECTION);
-            device.writeAttr(SUMO_ATTR_FROM, (*it).id);
-            device.writeAttr(SUMO_ATTR_TO, (*it).nextCrossing);
-            device.writeAttr(SUMO_ATTR_FROM_LANE, 0);
-            device.writeAttr(SUMO_ATTR_TO_LANE, 0);
-            if ((*it).tlID != "") {
-                device.writeAttr(SUMO_ATTR_TLID, (*it).tlID);
-                device.writeAttr(SUMO_ATTR_TLLINKINDEX, (*it).tlLinkNo);
+            if ((*it).nextCrossing != "") {
+                // connection to next crossing (may be tls-controlled)
+                device.openTag(SUMO_TAG_CONNECTION);
+                device.writeAttr(SUMO_ATTR_FROM, (*it).id);
+                device.writeAttr(SUMO_ATTR_TO, (*it).nextCrossing);
+                device.writeAttr(SUMO_ATTR_FROM_LANE, 0);
+                device.writeAttr(SUMO_ATTR_TO_LANE, 0);
+                if ((*it).tlID != "") {
+                    device.writeAttr(SUMO_ATTR_TLID, (*it).tlID);
+                    device.writeAttr(SUMO_ATTR_TLLINKINDEX, (*it).tlLinkNo);
+                }
+                device.writeAttr(SUMO_ATTR_DIR, LINKDIR_STRAIGHT);
+                device.writeAttr(SUMO_ATTR_STATE, node->getCrossing((*it).nextCrossing).priority ? LINKSTATE_MAJOR : LINKSTATE_MINOR);
+                device.closeTag();
             }
-            device.writeAttr(SUMO_ATTR_DIR, LINKDIR_STRAIGHT);
-            device.writeAttr(SUMO_ATTR_STATE, node->getCrossing((*it).nextCrossing).priority ? LINKSTATE_MAJOR : LINKSTATE_MINOR);
-            device.closeTag();
             // optional connections from/to sidewalk
             if ((*it).nextSidewalk != "") {
                 NWWriter_SUMO::writeInternalConnection(device, (*it).id, (*it).nextSidewalk, 0, 0, "");

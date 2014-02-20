@@ -153,7 +153,7 @@ public:
      * @brief A definition of a pedestrian walking area
      */
     struct WalkingArea {
-        WalkingArea(const std::string& _id) : id(_id) {}
+        WalkingArea(const std::string& _id) : id(_id), done(false) {}
         /// @brief The polygonal shape
         PositionVector shape;
         /// @brief This lane's width
@@ -170,6 +170,8 @@ public:
         std::string nextSidewalk;
         /// @brief the lane-id of the previous sidewalk lane or ""
         std::string prevSidewalk;
+        /// @brief whether the shape and connections of this WA are complete
+        bool done;
     };
 
     /// @brief edge directions (for pedestrian related stuff)
@@ -517,6 +519,10 @@ public:
      * @param[in] tlIndex The starting traffic light index to assign to connections to controlled crossings
      * */
     void buildWalkingAreas(unsigned int index, unsigned int tlIndex);
+
+    /// @brief return all edges that lie clockwise between the given crossings
+    EdgeVector edgesBetween(const Crossing& c1, const Crossing& c2) const;
+
 
     const NBConnectionProhibits& getProhibitions() {
         return myBlockedConnections;
