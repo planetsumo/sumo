@@ -1,0 +1,8 @@
+# Test error on specifying an invalid node id
+InvalidNodeId
+
+# Checking speed mode influence
+SetSpeed_Basic
+SetSpeed_NoAccelCheck
+SetSpeed_NoDecelCheck
+
