@@ -1708,7 +1708,7 @@ NBNode::addCrossing(EdgeVector edges, SUMOReal width, bool priority) {
 
 
 bool 
-NBNode::hasWalkingAreaAtIncoming(NBEdge* edge) {
+NBNode::hasWalkingAreaAtIncoming(const NBEdge* edge) const {
     // XXX fix this
     // either there is a crossing for this edge or there is a crossing over the
     // next counter-clockwise non-pedestrian edge

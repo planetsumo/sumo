@@ -552,7 +552,7 @@ public:
     void addCrossing(EdgeVector edges, SUMOReal width, bool priority);
 
     /// @brief return whether the given edge has a WalkingArea where it enters this node
-    bool hasWalkingAreaAtIncoming(NBEdge* edge);
+    bool hasWalkingAreaAtIncoming(const NBEdge* edge) const;
 
     /// @brief return whether the given edge has a WalkingArea where it leaves this node
     bool hasWalkingAreaAtOutgoing(NBEdge* edge);

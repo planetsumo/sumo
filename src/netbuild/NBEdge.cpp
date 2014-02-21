@@ -937,8 +937,9 @@ NBEdge::copyConnectionsFrom(NBEdge* src) {
 bool 
 NBEdge::canMoveConnection(const Connection& con, unsigned int newFromLane) const {
     // only allow using newFromLane if at least 1 vClass is permitted to use
-    // this connection
-    return ((getPermissions(newFromLane) & con.toEdge->getPermissions(con.toLane)) > 0);
+    // this connection. If the connection shall be moved to a sidewalk, only create the connection if there is no walking area
+    const SVCPermissions common = (getPermissions(newFromLane) & con.toEdge->getPermissions(con.toLane));
+    return (common > 0 && (common != SVC_PEDESTRIAN || !myTo->hasWalkingAreaAtIncoming(this)));
 }
 
 
