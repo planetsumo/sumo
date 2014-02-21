@@ -8,10 +8,7 @@ ringNoBrake
 lane_change
 
 # detector comparisons
-#output
-
-# fundamental diagram
-fundamental
+output
 
 # birthday present
 b50
