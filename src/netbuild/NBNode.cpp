@@ -1406,6 +1406,7 @@ NBNode::isDistrict() const {
 
 int
 NBNode::guessCrossings() {
+    gDebugFlag1 = getID() == "C";
     gDebugFlag1 = false;
     int numGuessed = 0;
     if (myCrossings.size() > 0) {
@@ -1442,29 +1443,50 @@ NBNode::guessCrossings() {
 
 int
 NBNode::checkCrossing(EdgeVector candidates) {
-    //  build a crossing if there are sidwalks on both sides of candidates
+    //  make sure there are sidewalks on both sides of candidates
     if (candidates.size() < 2) {
         if (gDebugFlag1) std::cout << "no crossing added (numCandidates=" << candidates.size() << ")\n";
         return 0;
     }
+    bool sidewalkTo = false;
+    bool sidewalkFrom = false;
     // erase edges which do not have lanes disallowing pedestrians
-    while (candidates.size() > 0 && (*candidates.begin())->getFirstNonPedestrianLaneIndex(FORWARD) < 0) {
+    while (candidates.size() > 0 && candidates.front()->getFirstNonPedestrianLaneIndex(FORWARD) < 0) {
         if (gDebugFlag1) std::cout << " allows pedestrians on all lanes: " << (*candidates.begin())->getID() << "\n";
         candidates.erase(candidates.begin());
+        sidewalkTo = true;
     }
     // erase edges which cannot be a crossing origin
-    while (candidates.size() > 0 && (*(candidates.end() - 1))->getFirstNonPedestrianLaneIndex(FORWARD) < 0) {
+    while (candidates.size() > 0 && candidates.back()->getFirstNonPedestrianLaneIndex(FORWARD) < 0) {
         if (gDebugFlag1) std::cout << " allows pedestrians on all lanes: " << (*candidates.begin())->getID() << "\n";
         candidates.erase(candidates.end() - 1);
+        sidewalkFrom = true;
     }
     if (candidates.size() > 0) {
-        addCrossing(candidates, DEFAULT_CROSSING_WIDTH, isTLControlled());
-        if (gDebugFlag1) std::cout << "adding crossing: " << toString(candidates) << "\n";
-        return 1;
+        if (gDebugFlag1) std::cout << "candidates (unsorted): " << toString(candidates) << "\n";
+        std::sort(candidates.begin(), candidates.end(), edge_by_direction_sorter(this));
+        if (gDebugFlag1) std::cout << "candidates (sorted): " << toString(candidates) << "\n";
+        // check whether there is a sidewalk on the starting side of the first edge to be crossed
+        NBEdge* firstEdge = candidates.front();
+        const int firstEdgeDir = (firstEdge->getFromNode() == this ? FORWARD : BACKWARD);
+        const int fromSide = firstEdgeDir == FORWARD ? 0 : firstEdge->getNumLanes() - 1;
+        sidewalkFrom = sidewalkFrom || firstEdge->getFirstNonPedestrianLaneIndex(firstEdgeDir) != fromSide;
+        // check whether there is a sidewalk on the target side of the last edge to be crossed
+        NBEdge* lastEdge = candidates.back();
+        const int lastEdgeDir = (lastEdge->getToNode() == this ? FORWARD : BACKWARD);
+        const int toSide = lastEdgeDir == FORWARD ? 0 : lastEdge->getNumLanes() - 1;
+        sidewalkTo = sidewalkTo || lastEdge->getFirstNonPedestrianLaneIndex(lastEdgeDir) != toSide;
+        if (sidewalkFrom && sidewalkTo) {
+            addCrossing(candidates, DEFAULT_CROSSING_WIDTH, isTLControlled());
+            if (gDebugFlag1) std::cout << "adding crossing: " << toString(candidates) << "\n";
+            return 1;
+        } else {
+            if (gDebugFlag1) std::cout << "no crossing added (sidewalkFrom=" << sidewalkFrom << ", sidewalkTo=" << sidewalkTo << ")\n";
+        }
     } else {
         if (gDebugFlag1) std::cout << "no crossing added (nothing to cross)\n";
-        return 0;
     }
+    return 0;
 }
 
 
