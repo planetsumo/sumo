@@ -16,3 +16,6 @@ path_across_street
 # 3 arm junction where the crossing arm only has a sidewalk on the opposite side
 3_arm_1_opposite_sidewalk_1_crossing
 3_arm_1_opposite_sidewalk_3_crossings
+
+# a service road (allowing pedestrians and delivery) enters a street with sidewalks at a T-junction
+3_arm_service_entering
