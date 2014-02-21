@@ -23,7 +23,12 @@ time;<PHASE_LENGTH>[;<PHASE_LENGTH>]+
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
 import sys, os
@@ -189,8 +194,10 @@ for keyIndex, key in enumerate(allKeys):
                 state = state + "y"
             elif d[i]=='g':
                 state = state + "g"
+            elif d[i]=='o' or d[i]=='x':
+                state = state + "o"
             else:
-                print "missing value; setting to g"
+                sys.stderr.write("missing value at %s (%s); setting to g\n" % (index, linkMap[l]))
                 state = state + "g"
         for l1 in range(0, len(state)):
             if state[l1]=='g':

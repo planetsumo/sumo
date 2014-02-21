@@ -1,5 +1,21 @@
 #!/usr/bin/env python
-# This script recreates a flow file from routes and emitters.
+"""
+@file    flowFromRoutes.py
+@author  Michael Behrisch
+@date    2007-06-28
+@version $Id$
+
+This script recreates a flow file from routes and emitters.
+
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+"""
 import math, string, sys
 
 from xml.sax import saxutils, make_parser, handler
@@ -27,7 +43,7 @@ class DetectorRouteEmitterReader(handler.ContentHandler):
 
     def startElement(self, name, attrs):
         if name == 'route':
-            if 'id' in attrs:
+            if attrs.has_key('id'):
                 self._routes[attrs['id']] = attrs['edges'].split()
         if name == 'vehicle':
             for edge in self._routes[attrs['route']]:

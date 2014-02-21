@@ -9,7 +9,12 @@ Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import struct, traci
 import traci.constants as tc
@@ -95,7 +100,9 @@ _RETURN_VALUE_FUNC = {tc.ID_LIST:                     traci.Storage.readStringLi
                       tc.TL_CONTROLLED_LINKS:         _readLinks,
                       tc.TL_CURRENT_PROGRAM:          traci.Storage.readString,
                       tc.TL_CURRENT_PHASE:            traci.Storage.readInt,
-                      tc.TL_NEXT_SWITCH:              traci.Storage.readInt}
+                      tc.TL_NEXT_SWITCH:              traci.Storage.readInt,
+                      tc.TL_PHASE_DURATION:           traci.Storage.readInt,
+                      tc.ID_COUNT:                    traci.Storage.readInt}
 subscriptionResults = traci.SubscriptionResults(_RETURN_VALUE_FUNC)
 
 def _getUniversal(varID, tlsID):
@@ -105,14 +112,21 @@ def _getUniversal(varID, tlsID):
 def getIDList():
     """getIDList() -> list(string)
     
-    Returns a list of all traffic lights in the network.
+    Returns a list of ids of all traffic lights within the scenario.
     """
     return _getUniversal(tc.ID_LIST, "")
+
+def getIDCount():
+    """getIDCount() -> integer
+    
+    Returns the number of traffic lights in the network.
+    """
+    return _getUniversal(tc.ID_COUNT, "")
 
 def getRedYellowGreenState(tlsID):
     """getRedYellowGreenState(string) -> string
     
-    .
+    Returns the named tl's state as a tuple of light definitions from rRgGyYoO, for red, green, yellow, off, where lower case letters mean that the stream has to decelerate.
     """
     return _getUniversal(tc.TL_RED_YELLOW_GREEN_STATE, tlsID)
 
@@ -126,21 +140,21 @@ def getCompleteRedYellowGreenDefinition(tlsID):
 def getControlledLanes(tlsID):
     """getControlledLanes(string) -> c
     
-    .
+    Returns the list of lanes which are controlled by the named traffic light.
     """
     return _getUniversal(tc.TL_CONTROLLED_LANES, tlsID)
 
 def getControlledLinks(tlsID):
     """getControlledLinks(string) -> list(list(list(string)))
     
-    .
+    Returns the links controlled by the traffic light, sorted by the signal index and described by giving the incoming, outgoing, and via lane.
     """
     return _getUniversal(tc.TL_CONTROLLED_LINKS, tlsID)
 
 def getProgram(tlsID):
     """getProgram(string) -> string
     
-    .
+    Returns the id of the current program.
     """
     return _getUniversal(tc.TL_CURRENT_PROGRAM, tlsID)
 
@@ -158,14 +172,18 @@ def getNextSwitch(tlsID):
     """
     return _getUniversal(tc.TL_NEXT_SWITCH, tlsID)
 
+def getPhaseDuration(tlsID):
+    """getPhaseDuration(string) -> integer
+    
+    .
+    """
+    return _getUniversal(tc.TL_PHASE_DURATION, tlsID)    
 
 def subscribe(tlsID, varIDs=(tc.TL_CURRENT_PHASE,), begin=0, end=2**31-1):
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more traffic light values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_TL_VARIABLE, begin, end, tlsID, varIDs)
 
 def getSubscriptionResults(tlsID=None):
@@ -181,7 +199,6 @@ def getSubscriptionResults(tlsID=None):
     return subscriptionResults.get(tlsID)
 
 def subscribeContext(tlsID, domain, dist, varIDs=(tc.TL_CURRENT_PHASE,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_TL_CONTEXT, begin, end, tlsID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(tlsID=None):
@@ -189,18 +206,34 @@ def getContextSubscriptionResults(tlsID=None):
 
 
 def setRedYellowGreenState(tlsID, state):
+    """setRedYellowGreenState(string, string) -> None
+    
+    Sets the named tl's state as a tuple of light definitions from rRgGyYoO, for red, green, yellow, off, where lower case letters mean that the stream has to decelerate.
+    """ 
     traci._sendStringCmd(tc.CMD_SET_TL_VARIABLE, tc.TL_RED_YELLOW_GREEN_STATE, tlsID, state)
 
 def setPhase(tlsID, index):
+    """setPhase(string, integer) -> None
+    
+    .
+    """
     traci._sendIntCmd(tc.CMD_SET_TL_VARIABLE, tc.TL_PHASE_INDEX, tlsID, index)
 
 def setProgram(tlsID, programID):
+    """setProgram(string, string) -> None
+    
+    Sets the id of the current program.
+    """
     traci._sendStringCmd(tc.CMD_SET_TL_VARIABLE, tc.TL_PROGRAM, tlsID, programID)
 
 def setPhaseDuration(tlsID, phaseDuration):
     traci._sendIntCmd(tc.CMD_SET_TL_VARIABLE, tc.TL_PHASE_DURATION, tlsID, int(1000*phaseDuration))
 
 def setCompleteRedYellowGreenDefinition(tlsID, tls):
+    """setCompleteRedYellowGreenDefinition(string, ) -> None
+    
+    .
+    """
     length = 1+4 + 1+4+len(tls._subID) + 1+4 + 1+4 + 1+4 + 1+4 # tls parameter
     itemNo = 1+1+1+1+1
     for p in tls._phases:

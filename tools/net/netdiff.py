@@ -10,7 +10,12 @@ which can be loaded with netconvert alongside source to create dest
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2011 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
 import sys
@@ -375,6 +380,8 @@ def handle_children(xmlfile, handle_parsenode):
                 root_open = parsenode.toprettyxml(indent="")
                 # since we did not expand root_open contains the closing slash
                 root_open = root_open[:-3] + ">\n"
+                # change the schema for edge diffs
+                root_open = root_open.replace("edges_file.xsd", "edgediff_file.xsd")
                 root_close = "</%s>\n" % parsenode.localName
             if level == 1:
                 xml_doc.expandNode(parsenode) # consumes END_ELEMENT, no level increase

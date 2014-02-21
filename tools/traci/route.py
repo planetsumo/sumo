@@ -10,12 +10,18 @@ Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import traci, struct
 import traci.constants as tc
 
 _RETURN_VALUE_FUNC = {tc.ID_LIST:   traci.Storage.readStringList,
+                      tc.ID_COUNT:  traci.Storage.readInt,
                       tc.VAR_EDGES: traci.Storage.readStringList}
 subscriptionResults = traci.SubscriptionResults(_RETURN_VALUE_FUNC)
 
@@ -30,6 +36,13 @@ def getIDList():
     """
     return _getUniversal(tc.ID_LIST, "")
 
+def getIDCount():
+    """getIDCount() -> integer
+    
+    Returns the number of currently loaded routes.
+    """
+    return _getUniversal(tc.ID_COUNT, "")
+
 def getEdges(routeID):
     """getEdges(string) -> list(string)
     
@@ -42,9 +55,7 @@ def subscribe(routeID, varIDs=(tc.ID_LIST,), begin=0, end=2**31-1):
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more route values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_ROUTE_VARIABLE, begin, end, routeID, varIDs)
 
 def getSubscriptionResults(routeID=None):
@@ -60,7 +71,6 @@ def getSubscriptionResults(routeID=None):
     return subscriptionResults.get(routeID)
 
 def subscribeContext(routeID, domain, dist, varIDs=(tc.ID_LIST,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_ROUTE_CONTEXT, begin, end, routeID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(routeID=None):

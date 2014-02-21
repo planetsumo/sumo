@@ -10,7 +10,12 @@ Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import traci
 import traci.constants as tc
@@ -33,9 +38,10 @@ def readVehicleData(result):
         data.append( [ vehID, length, entryTime, leaveTime, typeID ] ) 
     return data
 
-_RETURN_VALUE_FUNC = {tc.ID_LIST:                        traci.Storage.readStringList,
-                     tc.VAR_POSITION:       traci.Storage.readDouble,
-                     tc.VAR_LANE_ID:       traci.Storage.readString,
+_RETURN_VALUE_FUNC = {tc.ID_LIST:                       traci.Storage.readStringList,
+                     tc.ID_COUNT:                       traci.Storage.readInt,
+                     tc.VAR_POSITION:                   traci.Storage.readDouble,
+                     tc.VAR_LANE_ID:                    traci.Storage.readString,
                      tc.LAST_STEP_VEHICLE_NUMBER:       traci.Storage.readInt,
                      tc.LAST_STEP_MEAN_SPEED:           traci.Storage.readDouble,
                      tc.LAST_STEP_VEHICLE_ID_LIST:      traci.Storage.readStringList,
@@ -56,10 +62,17 @@ def getIDList():
     """
     return _getUniversal(tc.ID_LIST, "")
 
+def getIDCount():
+    """getIDCount() -> integer
+    
+    Returns the number of induction loops in the network.
+    """
+    return _getUniversal(tc.ID_COUNT, "")
+
 def getPosition(loopID):
     """getPosition(string) -> double
     
-    Returns the position measured from the beginning of the lane.
+    Returns the position measured from the beginning of the lane in meters.
     """
     return _getUniversal(tc.VAR_POSITION, loopID)
 
@@ -73,49 +86,49 @@ def getLaneID(loopID):
 def getLastStepVehicleNumber(loopID):
     """getLastStepVehicleNumber(string) -> integer
     
-    .
+    Returns the number of vehicles that were on the named induction loop within the last simulation step.
     """
     return _getUniversal(tc.LAST_STEP_VEHICLE_NUMBER, loopID)
 
 def getLastStepMeanSpeed(loopID):
     """getLastStepMeanSpeed(string) -> double
     
-    .
+    Returns the mean speed in m/s of vehicles that were on the named induction loop within the last simulation step.
     """
     return _getUniversal(tc.LAST_STEP_MEAN_SPEED, loopID)
 
 def getLastStepVehicleIDs(loopID):
     """getLastStepVehicleIDs(string) -> list(string)
     
-    .
+    Returns the list of ids of vehicles that were on the named induction loop in the last simulation step.
     """
     return _getUniversal(tc.LAST_STEP_VEHICLE_ID_LIST, loopID)
 
 def getLastStepOccupancy(loopID):
     """getLastStepOccupancy(string) -> double
     
-    .
+    Returns the percentage of time the detector was occupied by a vehicle.
     """
     return _getUniversal(tc.LAST_STEP_OCCUPANCY, loopID)
 
 def getLastStepMeanLength(loopID):
     """getLastStepMeanLength(string) -> double
     
-    .
+    Returns the mean length in m of vehicles which were on the detector in the last step.
     """
     return _getUniversal(tc.LAST_STEP_LENGTH, loopID)
 
 def getTimeSinceDetection(loopID):
     """getTimeSinceDetection(string) -> double
     
-    .
+    Returns the time in s since last detection.
     """
     return _getUniversal(tc.LAST_STEP_TIME_SINCE_DETECTION, loopID)
 
 def getVehicleData(loopID):
     """getVehicleData(string) -> integer
     
-    .
+    Returns a complex structure containing several information about vehicles which passed the detector.
     """
     return _getUniversal(tc.LAST_STEP_VEHICLE_DATA, loopID)
 
@@ -124,9 +137,7 @@ def subscribe(loopID, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more induction loop values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_INDUCTIONLOOP_VARIABLE, begin, end, loopID, varIDs)
 
 def getSubscriptionResults(loopID=None):
@@ -142,7 +153,6 @@ def getSubscriptionResults(loopID=None):
     return subscriptionResults.get(loopID)
 
 def subscribeContext(loopID, domain, dist, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_INDUCTIONLOOP_CONTEXT, begin, end, loopID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(loopID=None):

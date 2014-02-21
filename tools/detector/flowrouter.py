@@ -1,9 +1,25 @@
 #!/usr/bin/env python
-# This script does flow routing similar to the dfrouter.
-# It has three mandatory parameters, the SUMO net (.net.xml), a file
-# specifying detectors and one for the flows. It may detect the type
-# of the detectors (source, sink, inbetween) itself or read it from
-# the detectors file.
+"""
+@file    flowrouter.py
+@author  Michael Behrisch
+@date    2007-06-28
+@version $Id$
+
+This script does flow routing similar to the dfrouter.
+It has three mandatory parameters, the SUMO net (.net.xml), a file
+specifying detectors and one for the flows. It may detect the type
+of the detectors (source, sink, inbetween) itself or read it from
+the detectors file.
+
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+"""
 import os, random, string, sys
 
 from xml.sax import saxutils, make_parser, handler
@@ -360,6 +376,14 @@ class Net:
 
     def writeRoutes(self, routeOut, suffix=""):
         for edge in self._source.outEdges:
+            routeByEdges = {}
+            for route in edge.routes:
+                key = tuple([e.label for e in route.edges if e.kind == "real"])
+                if key in routeByEdges:
+                    routeByEdges[key].frequency += route.frequency
+                else:
+                    routeByEdges[key] = route
+            edge.routes = routeByEdges.values()
             for id, route in enumerate(edge.routes):
                 firstReal = ''
                 lastReal = None
@@ -385,12 +409,13 @@ class Net:
                 continue
             assert len(srcEdge.target.outEdges) == 1
             edge = srcEdge.target.outEdges[0]
+            vtype = ' type="%s"' % options.vtype if options.vtype else ""
             if len(srcEdge.routes) == 1:
-                print >> emitOut, '    <flow id="src_%s%s" route="%s.0%s" number="%s" begin="%s" end="%s"/>' % (edge.label, suffix, edge.label, suffix, srcEdge.flow, begin, end)
+                print >> emitOut, '    <flow id="src_%s%s"%s route="%s.0%s" number="%s" begin="%s" end="%s"/>' % (edge.label, suffix, vtype, edge.label, suffix, srcEdge.flow, begin, end)
             else:
                 ids = " ".join(["%s.%s%s" % (edge.label, id, suffix) for id in range(len(srcEdge.routes))])
                 probs = " ".join([str(route.frequency) for route in srcEdge.routes])
-                print >> emitOut, '    <flow id="src_%s%s" number="%s" begin="%s" end="%s">' % (edge.label, suffix, srcEdge.flow, begin, end)
+                print >> emitOut, '    <flow id="src_%s%s"%s number="%s" begin="%s" end="%s">' % (edge.label, suffix, vtype, srcEdge.flow, begin, end)
                 print >> emitOut, '        <routeDistribution routes="%s" probabilities="%s"/>' % (ids, probs)
                 print >> emitOut, '    </flow>'
 
@@ -479,9 +504,9 @@ class NetDetectorFlowReader(handler.ContentHandler):
 
     def readFlows(self, flowFile, t=None):
         if t is None:
-            return self._detReader.readFlows(flowFile)
+            return self._detReader.readFlows(flowFile, flow=options.flowcol)
         else:
-            return self._detReader.readFlows(flowFile, time="Time", timeVal=t)            
+            return self._detReader.readFlows(flowFile, flow=options.flowcol, time="Time", timeVal=t)            
 
     def clearFlows(self):
         self._detReader.clearFlows()
@@ -510,10 +535,13 @@ optParser.add_option("-d", "--detector-file", dest="detfile",
 optParser.add_option("-f", "--detector-flow-files", dest="flowfiles",
                      action="callback", callback=addFlowFile, type="string",
                      help="read detector flows from FILE(s) (mandatory)", metavar="FILE")
+optParser.add_option("-c", "--flow-column", dest="flowcol", default="qPKW",
+                     help="which column contains flows", metavar="STRING")
 optParser.add_option("-o", "--routes-output", dest="routefile",
                      help="write routes to FILE", metavar="FILE")
 optParser.add_option("-e", "--emitters-output", dest="emitfile",
                      help="write emitters to FILE and create files per emitter (needs -o)", metavar="FILE")
+optParser.add_option("-y", "--vtype", help="vType to use", metavar="STRING")
 optParser.add_option("-t", "--trimmed-output", dest="trimfile",
                      help="write edges of trimmed network to FILE", metavar="FILE")
 optParser.add_option("-p", "--flow-poi-output", dest="flowpoifile",

@@ -20,7 +20,7 @@ def printStatus(makeLog, makeAllLog, textTestTmp, smtpServer, out):
             failed += l
         if re.search("[Ww]arn[ui]ng[: ]", l):
             warnings += 1
-        if "error " in l.lower():
+        if re.search("[Ee]rror[: ]", l) or re.search("[Ff]ehler[: ]", l):
             errors += 1
             failed += l
     if svnLocked:
@@ -35,7 +35,7 @@ def printStatus(makeLog, makeAllLog, textTestTmp, smtpServer, out):
             if f.startswith("batchreport"):
                 b = open(join(root, f))
                 l = b.readline()
-                if l.startswith("FAILED") or l.startswith("succeeded") or l.startswith("killed"):
+                if l.startswith("FAILED") or l.startswith("succeeded") or l.startswith("killed") or l.startswith("known bugs"):
                     print >> out, f, l,
                 b.close()
     print >> out, "--"

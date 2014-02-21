@@ -10,48 +10,69 @@ This script converts given VISUM-routes for a given SUMO-network.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
-
-import os, string, sys, StringIO, random
-from xml.sax import saxutils, make_parser, handler
+from __future__ import print_function
+import os, string, sys, random
 from optparse import OptionParser
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../lib"))
-import sumonet
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+import sumolib
 
+class Statistics:
+    found = 0
+    foundN = 0
+    missing = 0
+    missingN = 0
 
-found = 0
-foundN = 0
-missing = 0
-missingN = 0
-route = ""
+stats = Statistics()
 routes = []
-no = 0
-id = ""
-route = ""
 
-def addRouteChecking(ok):
-    global found
-    global foundN
-    global missing
-    global missingN
-    global routes
-    global route
-    global id
-    global no
+def addRouteChecking(route, id, count, ok):
     route = route.strip()
-    if route!="":
-        # append already built route
+    if route != "":
         if ok:
-            routes.append((id, no, route))
-            found = found + 1
-            foundN = foundN + no
+            if options.distribution and routes:
+                distID = routes[0][0][:routes[0][0].rfind("_")]
+                if distID != id[:id.rfind("_")]:
+                    sum = 0 
+                    r_max = (None, 0, None)    
+                    for r in routes:
+                        sum += r[1]
+                        if r_max[1] < r[1]: 
+                            r_max = r
+                    if sum < options.cutoff:
+                        del routes[:]
+                        routes.append((r_max[0], sum, r_max[2]))
+                    if len(routes) > 1:
+                        fdo.write('    <routeDistribution id="%s">\n' % distID)
+                    else:
+                        routes[0] = (distID, routes[0][1], routes[0][2])
+                    for r in routes:
+                        if net2:
+                            trace = []
+                            for e in route.split():
+                                edge = net.getEdge(e)
+                                numSteps = int(edge.getLength() / options.step)
+                                for p in range(numSteps):
+                                    trace.append(sumolib.geomhelper.positionAtShapeOffset(edge.getShape(), p * options.step))
+                            path = sumolib.route.mapTrace(trace, net2, options.delta)
+                            r = (r[0], r[1], " ".join(path))
+                        fdo.write('        <route id="%s" probability="%s" edges="%s"/>\n' % r)
+                    if len(routes) > 1:
+                        fdo.write('    </routeDistribution>\n')
+                    del routes[:]
+            routes.append((id, count, route))
+            stats.found += 1
+            stats.foundN += count
         else:
-            missing = missing + 1
-            missingN = missingN + no
-        route = ""
-
+            stats.missing += 1
+            stats.missingN += count
 
 def sorter(idx):
     def t(i, j):
@@ -67,38 +88,54 @@ def sorter(idx):
 # initialise 
 optParser = OptionParser()
 optParser.add_option("-n", "--net-file", dest="netfile",
-                     help="Net-File to work with", type="string", default=None)
+                     help="SUMO net file to work with", type="string")
 optParser.add_option("-r", "--visum-routes", dest="routes",
-                     help="The VISUM-routes files to parse", type="string", default=None)
-optParser.add_option("-o", "--output", dest="output",
-                     help="Name of the file to write", type="string", default=None)
-optParser.add_option("-b", "--begin", dest="begin",
+                     help="The VISUM-routes files to parse", type="string")
+optParser.add_option("-o", "--output",
+                     help="Name of the file to write", type="string")
+optParser.add_option("-b", "--begin",
                      help="The begin time of the routes to generate", type="int", default=0)
-optParser.add_option("-e", "--end", dest="end",
+optParser.add_option("-e", "--end",
                      help="The end time (+1) of the routes to generate", type="int", default=3600)
-optParser.add_option("-p", "--prefix", dest="prefix",
-                     help="ID prefix to use", type="string", default=None)
-optParser.add_option("-t", "--type", dest="type",
-                     help="The type to use for vehicles", type="string", default=None)
-optParser.add_option("-u", "--uniform", dest="uniform",
+optParser.add_option("-p", "--prefix",
+                     help="ID prefix to use", type="string")
+optParser.add_option("-t", "--type",
+                     help="The type to use for vehicles", type="string")
+optParser.add_option("-u", "--uniform",
                      help="Whether departures shall be distributed uniform in each interval", action="store_true", default=False)
-optParser.add_option("-l", "--timeline", dest="timeline",
-                     help="Percentages over a day", type="string", default=None)
+optParser.add_option("-l", "--timeline",
+                     help="Percentages over a day", type="string")
+optParser.add_option("-a", "--tabs", action="store_true",
+                     default=False, help="tab separated route file")
+optParser.add_option("-v", "--verbose", action="store_true",
+                     default=False, help="tell me what you are doing")
+optParser.add_option("-2", "--net2",
+                     help="immediately match routes to a second network", metavar="FILE")
+optParser.add_option("-s", "--step", default="10",
+                     type="float", help="distance between successive trace points")
+optParser.add_option("-d", "--delta", default="1",
+                     type="float", help="maximum distance between edge and trace points when matching to the second net")
+optParser.add_option("-i", "--distribution", action="store_true",
+                     default=False, help="write route distributions only")
+optParser.add_option("-c", "--cutoff",
+                     help="Keep only one route when less than CUTOFF vehicles drive the OD", type="int", default=0)
 
 optParser.set_usage('\nvisum_convertRoutes.py -n visum.net.xml -r visum_routes.att -o visum.rou.xml')
 # parse options
 (options, args) = optParser.parse_args()
 if not options.netfile or not options.routes or not options.output:
-    print "Missing arguments"
+    print("Missing arguments")
     optParser.print_help()
     exit()
 
-print "Reading net..."
-parser = make_parser()
-net = sumonet.NetReader()
-parser.setContentHandler(net)
-parser.parse(options.netfile)
-net = net.getNet()
+if options.verbose:
+    print("Reading net...")
+net = sumolib.net.readNet(options.netfile)
+net2 = None
+if options.net2:
+    net.move(-net.getLocationOffset()[0], -net.getLocationOffset()[1])
+    net2 = sumolib.net.readNet(options.net2)
+    net2.move(-net2.getLocationOffset()[0], -net2.getLocationOffset()[1])
 
 # initialise nodes/edge map
 emap = {}
@@ -109,25 +146,33 @@ for e in net._edges:
         emap[e._from._id][e._to._id] = e._id
 
 # fill with read values
-print "Reading routes..."
+if options.verbose:
+    print("Reading routes...")
+separator = "\t" if options.tabs else ";"
 parse = False
 ok = True
+route = ""
+id = ""
+count = 0
 fd = open(options.routes)
-for line in fd:
-    if line.find("$")==0 or line.find("*")==0 or line.find(";")<0:
+fdo = open(options.output, "w")
+fdo.write("<routes>\n")
+for idx, line in enumerate(fd):
+    if options.verbose and idx % 10000 == 0:
+        sys.stdout.write("%s lines read\r" % "{:,}".format(idx))
+    if line.find("$")==0 or line.find("*")==0 or line.find(separator)<0:
         parse = False
-        addRouteChecking(ok);
-
+        addRouteChecking(route, id, count, ok);
     if parse:
-        values = line.strip().split(";")
+        values = line.strip('\n\r').split(separator)
         amap = {}
         for i in range(0, len(attributes)):
             amap[attributes[i]] = values[i]
-        if amap["origzoneno"]!="":
+        if amap["origzoneno"] != "":
             # route begin (not the route)
-            addRouteChecking(ok);
+            addRouteChecking(route, id, count, ok);
             id = amap["origzoneno"] + "_" + amap["destzoneno"] + "_" + amap["pathindex"]
-            no = float(amap["prtpath\\vol(ap)"])
+            count = float(amap["prtpath\\vol(ap)"])
             route = " "
             ok = True
         else:
@@ -138,24 +183,24 @@ for line in fd:
             link = amap["linkno"]
             if fromnode not in emap:
                 if no!=0:
-                    print "Missing from-node '" + fromnode + "'; skipping"
+                    print("Missing from-node '" + fromnode + "'; skipping")
                 ok = False
                 continue
             if tonode not in emap[fromnode]:
                 if no!=0:
-                    print "No connection between from-node '" + fromnode + "' and to-node '" + tonode + "'; skipping"
+                    print("No connection between from-node '" + fromnode + "' and to-node '" + tonode + "'; skipping")
                 ok = False
                 continue
             edge = emap[fromnode][tonode]
             if link!=edge and link!=edge[1:]:
                 if no!=0:
-                    print "Mismatching edge '" + link + "' (from '" + fromnode + "', to '" + tonode + "'); skipping"
+                    print("Mismatching edge '" + link + "' (from '" + fromnode + "', to '" + tonode + "'); skipping")
                 ok = False
                 continue
             route = route + edge + " "
 
     if line.find("$PRTPATHLINK:")==0 or line.find("$IVTEILWEG:")==0:
-        attributes = line[line.find(":")+1:].strip().lower().split(";")
+        attributes = line[line.find(":")+1:].strip().lower().split(separator)
         for i in range(0, len(attributes)):
             if attributes[i]=="qbeznr":
                 attributes[i] = "origzoneno"
@@ -173,11 +218,23 @@ for line in fd:
                 attributes[i] = "linkno"
         parse = True
 
-addRouteChecking(ok);
+addRouteChecking(route, id, count, ok);
 fd.close()
 
-print " " + str(found) + " routes found (" + str(foundN) + " vehs)"
-print " " + str(missing) + " routes missing (" + str(missingN) + " vehs)"
+if options.verbose:
+    print(" %s routes found (%s vehs)" % (stats.found, stats.foundN))
+    print(" %s routes missing (%s vehs)" % (stats.missing, stats.missingN))
+
+if options.distribution:
+    if routes:
+        distID = routes[0][0][:routes[0][0].rfind("_")]
+        fdo.write('    <routeDistribution id="%s">\n' % distID)
+        for r in routes:
+            fdo.write('        <route id="%s" probability="%s" edges="%s"/>\n' % r)
+        fdo.write('    </routeDistribution>\n')
+    fdo.write("</routes>\n")    
+    fdo.close()
+    exit()
 
 timeline = None
 # apply timeline
@@ -189,14 +246,14 @@ if options.timeline:
     for v in vals:
         timeline.append(float(v))
         sum += float(v)
-    print sum
     if len(timeline)!=24:
-        print "The timeline must have 24 entries"
+        print("The timeline must have 24 entries")
         sys.exit()
     nRoutes = []
 
 # convert to vehicles
-print "Generating vehicles..."
+if options.verbose:
+    print("Generating vehicles...")
 emissions = []
 begin = options.begin
 end = options.end
@@ -230,17 +287,18 @@ else:
                 j = j + 1
             nNo += no
             tbeg += 3600
-    print " " + str(nNo) + " vehicles after applying timeline"
+    if options.verbose:
+        print(" %s vehicles after applying timeline" % nNo)
 
 
 # sort emissions
-print "Sorting routes..."
+if options.verbose:
+    print("Sorting routes...")
 emissions.sort(sorter(0))
 
 # save emissions
-print "Writing routes..."
-fdo = open(options.output, "w")
-fdo.write("<routes>\n")
+if options.verbose:
+    print("Writing routes...")
 for emission in emissions:
     fdo.write('    <vehicle id="')
     if options.prefix:
@@ -251,5 +309,5 @@ for emission in emissions:
     fdo.write('><route edges="' + emission[2] + '"/></vehicle>\n')
 fdo.write("</routes>\n")    
 fdo.close()
-print " " + str(len(emissions)) + " vehicles written"
-
+if options.verbose:
+    print(" %s vehicles written" % len(emissions))

@@ -9,7 +9,12 @@ Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import struct, traci
 import traci.constants as tc
@@ -17,6 +22,7 @@ import traci.constants as tc
 _RETURN_VALUE_FUNC = {tc.ID_LIST:                   traci.Storage.readStringList,
                       tc.ID_COUNT:                  traci.Storage.readInt,
                       tc.VAR_EDGE_TRAVELTIME:       traci.Storage.readDouble,
+                      tc.VAR_WAITING_TIME:          traci.Storage.readDouble,
                       tc.VAR_EDGE_EFFORT:           traci.Storage.readDouble,
                       tc.VAR_CO2EMISSION:           traci.Storage.readDouble,
                       tc.VAR_COEMISSION:            traci.Storage.readDouble,
@@ -64,6 +70,13 @@ def getAdaptedTraveltime(edgeID, time):
                                          traci._TIME2STEPS(time))
     return traci._checkResult(tc.CMD_GET_EDGE_VARIABLE,
                               tc.VAR_EDGE_TRAVELTIME, edgeID).readDouble()
+
+def getWaitingTime(edgeID):
+    """getWaitingTime() -> double 
+    Returns the sum of the waiting time of all vehicles currently on
+    that edge (see traci.vehicle.getWaitingTime).
+    """
+    return _getUniversal(tc.VAR_WAITING_TIME, edgeID) 
 
 def getEffort(edgeID, time):
     """getEffort(string, double) -> double
@@ -182,9 +195,7 @@ def subscribe(edgeID, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more edge values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_EDGE_VARIABLE, begin, end, edgeID, varIDs)
 
 def getSubscriptionResults(edgeID=None):
@@ -200,7 +211,6 @@ def getSubscriptionResults(edgeID=None):
     return subscriptionResults.get(edgeID)
 
 def subscribeContext(edgeID, domain, dist, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_EDGE_CONTEXT, begin, end, edgeID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(edgeID=None):
@@ -237,6 +247,6 @@ def setEffort(edgeID, effort):
 def setMaxSpeed(edgeID, speed):
     """setMaxSpeed(string, double) -> None
     
-    Set a new maximum speed (in m/s) for all lanes of the edge..
+    Set a new maximum speed (in m/s) for all lanes of the edge.
     """
     traci._sendDoubleCmd(tc.CMD_SET_EDGE_VARIABLE, tc.VAR_MAXSPEED, edgeID, speed)

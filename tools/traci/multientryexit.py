@@ -9,12 +9,18 @@ Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import traci
 import traci.constants as tc
 
 _RETURN_VALUE_FUNC = {tc.ID_LIST:                          traci.Storage.readStringList,
+                      tc.ID_COUNT:                         traci.Storage.readInt,
                       tc.LAST_STEP_VEHICLE_NUMBER:         traci.Storage.readInt,
                       tc.LAST_STEP_MEAN_SPEED:             traci.Storage.readDouble,
                       tc.LAST_STEP_VEHICLE_ID_LIST:        traci.Storage.readStringList,
@@ -28,35 +34,42 @@ def _getUniversal(varID, detID):
 def getIDList():
     """getIDList() -> list(string)
     
-    Returns a list of all e3 detectors in the network.
+    Returns a list of ids of all multi-entry/multi-exit (e3) detectors within the scenario.
     """
     return _getUniversal(tc.ID_LIST, "")
 
+def getIDCount():
+    """getIDCount() -> integer
+    
+    Returns the number of multi-entry/multi-exit detectors in the network.
+    """
+    return _getUniversal(tc.ID_COUNT, "")
+    
 def getLastStepVehicleNumber(detID):
     """getLastStepVehicleNumber(string) -> integer
     
-    .
+    Returns the number of vehicles that have been within the named multi-entry/multi-exit detector within the last simulation step.
     """
     return _getUniversal(tc.LAST_STEP_VEHICLE_NUMBER, detID)
 
 def getLastStepMeanSpeed(detID):
     """getLastStepMeanSpeed(string) -> double
     
-    .
+    Returns the mean speed in m/s of vehicles that have been within the named multi-entry/multi-exit detector within the last simulation step. 
     """
     return _getUniversal(tc.LAST_STEP_MEAN_SPEED, detID)
 
 def getLastStepVehicleIDs(detID):
     """getLastStepVehicleIDs(string) -> list(string)
     
-    .
+    Returns the list of ids of vehicles that have been within the named multi-entry/multi-exit detector in the last simulation step.
     """
     return _getUniversal(tc.LAST_STEP_VEHICLE_ID_LIST, detID)
 
 def getLastStepHaltingNumber(detID):
     """getLastStepHaltingNumber(string) -> integer
     
-    .
+    Returns the number of vehicles which were halting during the last time step.
     """
     return _getUniversal(tc.LAST_STEP_VEHICLE_HALTING_NUMBER, detID)
 
@@ -65,9 +78,7 @@ def subscribe(detID, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more detector values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE, begin, end, detID, varIDs)
 
 def getSubscriptionResults(detID=None):
@@ -83,7 +94,6 @@ def getSubscriptionResults(detID=None):
     return subscriptionResults.get(detID)
 
 def subscribeContext(detID, domain, dist, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT, begin, end, detID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(detID=None):

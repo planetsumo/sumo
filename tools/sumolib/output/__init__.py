@@ -10,15 +10,24 @@ Python interface to SUMO especially for parsing output files.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
+from __future__ import print_function
 import sys
-import dump, inductionloop
 import re
 import xml.dom
 from xml.dom import pulldom
 from collections import namedtuple, defaultdict
 from keyword import iskeyword
+from functools import reduce
+from xml.sax import make_parser
+from xml.sax.handler import ContentHandler
+from . import dump, inductionloop, convert
 
 
 def compound_object(element_name, attrnames):
@@ -32,6 +41,18 @@ def compound_object(element_name, attrnames):
         def __init__(self, values, child_dict):
             self.nt_instance = nt(*values)
             self.child_dict = child_dict
+        def __coerce__(self, other):
+            return None
+        def __cmp__(self, other):
+            if (self.nt_instance == other.nt_instance and
+                    self.child_dict == other.child_dict):
+                return 0
+            elif (self.nt_instance < other.nt_instance or
+                    (self.nt_instance == other.nt_instance and
+                        self.child_dict < other.child_dict)):
+                return -1
+            else:
+                return 1
         def __getattr__(self, name):
             try:
                 return getattr(self.nt_instance, name)
@@ -106,11 +127,11 @@ def _prefix_keyword(name, warn=False):
         if result == '':
             result == 'attr_'
         if warn:
-            print >>sys.stderr, "Warning: Renaming attribute '%s' to '%s' because it contains illegal characters" % (name, result)
+            print("Warning: Renaming attribute '%s' to '%s' because it contains illegal characters" % (name, result), file=sys.stderr)
     if iskeyword(name):
         result = 'attr_' + name
         if warn:
-            print >>sys.stderr, "Warning: Renaming attribute '%s' to '%s' because it conflicts with a python keyword" % (name, result)
+            print("Warning: Renaming attribute '%s' to '%s' because it conflicts with a python keyword" % (name, result), file=sys.stderr)
     return result
 
 
@@ -126,7 +147,7 @@ def average(elements, attrname):
     if elements:
         return sum(elements, attrname) / len(elements)
     else:
-        raise "average of 0 elements is not defined"
+        raise Exception("average of 0 elements is not defined")
 
 
 def parse_fast(xmlfile, element_name, attrnames, warn=False):
@@ -144,3 +165,75 @@ def parse_fast(xmlfile, element_name, attrnames, warn=False):
         if m:
             yield Record(*m.groups())
 
+
+class AbstractHandler__byID(ContentHandler):
+    def __init__(self, element_name, idAttr, attributes):
+        self._element_name = element_name
+        self._attributes = attributes
+        self._idAttr = idAttr
+        self._values = {}
+        
+    def startElement(self, name, attrs):
+        if name!=self._element_name:
+            return
+        cid = float(attrs[self._idAttr])
+        self._values[cid] = {}
+        if self._attributes:
+            for a in self._attributes:
+                self._values[cid][a] = float(attrs[a])
+        else:
+            for a in attrs.keys():
+                if a!=self._idAttr:
+                    self._values[cid][a] = float(attrs[a])
+
+class AbstractHandler__asList(ContentHandler):
+    def __init__(self, element_name, attributes):
+        self._element_name = element_name
+        self._attributes = attributes
+        self._values = []
+        
+    def startElement(self, name, attrs):
+        if name!=self._element_name:
+            return
+        tmp = {}
+        if self._attributes:
+            for a in self._attributes:
+                try: tmp[a] = float(attrs[a])
+                except: tmp[a] = attrs[a]
+        else:
+            for a in attrs.keys():
+                try: tmp[a] = float(attrs[a])
+                except: tmp[a] = attrs[a]
+        self._values.append(tmp)            
+            
+
+def parse_sax(xmlfile, handler):
+    myparser = make_parser()
+    myparser.setContentHandler(handler)
+    myparser.parse(xmlfile)
+
+
+def parse_sax__byID(xmlfile, element_name, idAttr, attrnames):
+    h = AbstractHandler__byID(element_name, idAttr, attrnames)
+    parse_sax(xmlfile, h)
+    return h._values
+    
+def parse_sax__asList(xmlfile, element_name, attrnames):
+    h = AbstractHandler__asList(element_name, attrnames)
+    parse_sax(xmlfile, h)
+    return h._values
+    
+def toList(mapList, attr):
+    ret = []
+    for a in mapList:
+        ret.append(a[attr])
+    return ret
+
+def prune(fv, minV, maxV):
+    if minV!=None:
+        for i,v in enumerate(fv):
+            fv[i] = max(v, minV)
+    if maxV!=None:
+        for i,v in enumerate(fv):
+            fv[i] = min(v, maxV)
+    

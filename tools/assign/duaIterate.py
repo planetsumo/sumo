@@ -14,7 +14,12 @@ Based on the Perl script dua_iterate.pl.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 from __future__ import print_function
 import os, sys, subprocess, types, shutil
@@ -61,8 +66,8 @@ def addGenericOptions(optParser):
     optParser.add_option("-Q", "--eco-measure", dest="ecomeasure", type="choice",
                          choices=('CO', 'CO2', 'PMx', 'HC', 'NOx', 'fuel', 'noise'),
                          help="define the applied eco measure, e.g. fuel, CO2, noise")
-    optParser.add_option("-s", "--sloppy-insert", action="store_true",
-                         default=False, help="sloppy insertion tests (may speed up the sim considerably)")
+    optParser.add_option("--eager-insert", action="store_true",
+                         default=False, help="eager insertion tests (may slow down the sim considerably)")
     optParser.add_option("--time-to-teleport", dest="timetoteleport", type="int", default=300,
                          help="Delay before blocked vehicles are teleported where -1 means no teleporting")
     optParser.add_option("--time-to-teleport.highways", dest="timetoteleport_highways", type="int", default=0,
@@ -259,7 +264,7 @@ def writeSUMOConf(sumoBinary, step, options, additional_args, route_files):
         '--route-steps', options.routeSteps,
         '--no-internal-links', options.internallink,
         '--lanechange.allow-swap', options.lanechangeallowed,
-        '--sloppy-insert', options.sloppy_insert,
+        '--eager-insert', options.eager_insert,
         '--time-to-teleport', options.timetoteleport,
         '--time-to-teleport.highways', options.timetoteleport_highways,
         '--verbose',

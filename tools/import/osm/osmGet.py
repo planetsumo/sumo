@@ -11,7 +11,12 @@ Retrieves an area from OpenStreetMap.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
 import os, sys, httplib, StringIO, gzip, optparse
@@ -84,7 +89,17 @@ def get(args=None):
                 options.area += 3600000000
             readCompressed(conn, '<area-query ref="%s"/>' % options.area, options.prefix + "_city.osm.xml")
         if options.bbox:
-            readCompressed(conn, '<bbox-query n="%s" s="%s" w="%s" e="%s"/>' % (north, south, west, east), options.prefix + "_bbox.osm.xml")
+            if options.tiles == 1:
+                readCompressed(conn, '<bbox-query n="%s" s="%s" w="%s" e="%s"/>' % (north, south, west, east), options.prefix + "_bbox.osm.xml")
+            else:
+                num = options.tiles
+                b = west
+                for i in range(num):
+                    e = b + (east-west) / float(num)
+                    readCompressed(conn, '<bbox-query n="%s" s="%s" w="%s" e="%s"/>' % (
+                        north, south, b, e), "%s%s_%s.osm.xml" % (options.prefix, i, num))
+                    b = e
+
         conn.close()
 
 if __name__ == "__main__":

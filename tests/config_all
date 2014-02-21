@@ -15,11 +15,15 @@ batch_recipients:sumo-tests@dlr.de
 output:Version
 errors:UTFDataFormatException
 errors:exceeded byte limit
+errors:invalid multi-byte sequence
 errors:expected end of tag{REPLACE Expected end of tag}
 errors:comment or processing instruction expected{REPLACE Expected comment or processing instruction}
 errors:input ended before all started tags were ended; last tag started is{REPLACE The input ended before all started tags were ended. Last tag started was}
 errors:attribute '(.*)' is already specified for element '(.*)'{REPLACE The attribute '\1' is already used in element '\2'}
 
 [bug_system_location]
-trac:http://sourceforge.net/apps/trac/sumo/
+trac:http://sumo-sim.org/trac.wsgi/
 
+[file_to_url]
+/home/delphi:http://sumo-sim.org/daily
+[end]

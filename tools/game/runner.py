@@ -14,7 +14,12 @@ saves highscores to local disc and to the central highscore server.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import os, subprocess, sys, re, pickle, httplib, glob, Tkinter
 from xml.dom import pulldom
@@ -67,7 +72,6 @@ class StartDialog:
         # there is one column for every config, +2 more columns for control buttons
         configs = glob.glob(os.path.join(base, "*.sumocfg"))
         numButtons = len(configs) + 2
-        print numButtons
         # button dimensions
         bWidth_start = 15
         bWidth_high = 7
@@ -115,7 +119,8 @@ class StartDialog:
 
     def start_cfg(self, cfg):
         self.root.destroy()
-        print "starting", cfg
+        if _DEBUG:
+            print "starting", cfg
         self.gametime = parseEndTime(cfg)
         self.ret = subprocess.call([guisimPath, "-S", "-G", "-Q", "-c", cfg])
         self.category = self.category_name(cfg) # remember which which cfg was launched

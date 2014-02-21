@@ -8,7 +8,12 @@ Some helper functions for geometrical computations.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import math
 
@@ -27,14 +32,14 @@ def lineOffsetWithMinimumDistanceToPoint(point, line_start, line_end, perpendicu
     p1 = line_start
     p2 = line_end
     l = distance(p1, p2)
-    u = (((p[0] - p1[0]) * (p2[0] - p1[0])) + ((p[1] - p1[1]) * (p2[1] - p1[1]))) / (l * l)
-    if u < 0.0 or u > 1:
+    u = ((p[0] - p1[0]) * (p2[0] - p1[0])) + ((p[1] - p1[1]) * (p2[1] - p1[1]))
+    if l == 0 or u < 0.0 or u > l * l:
         if perpendicular:
             return INVALID_DISTANCE
         if u < 0:
             return 0
         return l
-    return u * l
+    return u / l
 
 
 def polygonOffsetWithMinimumDistanceToPoint(point, polygon, perpendicular=False):
@@ -60,6 +65,8 @@ def distancePointToLine(point, line_start, line_end, perpendicular=False):
     offset = lineOffsetWithMinimumDistanceToPoint(point, line_start, line_end, perpendicular)
     if offset == INVALID_DISTANCE: 
         return INVALID_DISTANCE
+    if offset == 0:
+        return distance(point, p1)
     u = offset / distance(line_start, line_end)
     intersection = (p1[0] + u*(p2[0]-p1[0]), p1[1] + u*(p2[1]-p1[1]))
     return distance(point, intersection)
@@ -72,6 +79,9 @@ def distancePointToPolygon(point, polygon, perpendicular=False):
     minDist = None
     for i in range(0, len(s)-1):
         dist = distancePointToLine(p, s[i], s[i+1], perpendicular)
+        if dist == INVALID_DISTANCE and perpendicular and i != 0: 
+            # distance to inner corner
+            dist = distance(point, s[i])
         if dist != INVALID_DISTANCE:
             if minDist is None or dist < minDist:
                 minDist = dist
@@ -79,6 +89,25 @@ def distancePointToPolygon(point, polygon, perpendicular=False):
         return minDist
     else:
         return INVALID_DISTANCE
+
+
+def positionAtOffset(p1, p2, offset):
+    dist = distance(p1, p2)
+    if dist < offset:
+        return None
+    return (p1[0] + (p2[0] - p1[0]) * (offset / dist), p1[1] + (p2[1] - p1[1]) * (offset / dist))
+
+
+def positionAtShapeOffset(shape, offset):
+    seenLength = 0
+    curr = shape[0]
+    for next in shape[1:]:
+        nextLength = distance(curr, next)
+        if seenLength + nextLength > offset:
+            return positionAtOffset(curr, next, offset - seenLength)
+        seenLength += nextLength
+        curr = next
+    return shape[-1]
 
 
 if __name__ == "__main__":

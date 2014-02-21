@@ -14,10 +14,15 @@ hard coded into this script.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 from __future__ import with_statement
-import re
+import re, io
 from datetime import date
 import optparse, os, glob, subprocess, zipfile, shutil, datetime, sys
 import status, wix
@@ -48,7 +53,7 @@ import runInternalTests
 env = os.environ
 env["SMTP_SERVER"]="smtprelay.dlr.de"
 env["TEMP"]=env["TMP"]=r"D:\Delphi\texttesttmp"
-nightlyDir=r"M:\Daten\Sumo\Nightly"
+nightlyDir=r"O:\Daten\Sumo\Nightly"
 compiler=r"D:\Programme\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe"
 svnrev=""
 for platform in ["Win32", "x64"]:
@@ -97,7 +102,8 @@ for platform in ["Win32", "x64"]:
     if platform == "x64":
         envSuffix="_64"
         programSuffix="64"
-    log = open(makeLog, 'a')
+    # we need to use io.open here due to http://bugs.python.org/issue16273
+    log = io.open(makeLog, 'a')
     try:
         maxTime = 0
         for fname in glob.glob(os.path.join(nightlyDir, "sumo-src-*.zip")):
@@ -148,6 +154,7 @@ for platform in ["Win32", "x64"]:
                     print >> log, "I/O error(%s): %s" % (errno, strerror)
         zipf.close()
         wix.buildMSI(binaryZip, binaryZip.replace(".zip", ".msi"), platformSuffix=programSuffix)
+        shutil.copy2(binaryZip, options.remoteDir)
     except IOError, (errno, strerror):
         print >> log, "Warning: Could not zip to %s!" % binaryZip
         print >> log, "I/O error(%s): %s" % (errno, strerror)
@@ -168,8 +175,8 @@ for platform in ["Win32", "x64"]:
     if "SUMO_HOME" not in env:
         env["SUMO_HOME"] = os.path.join(os.path.dirname(__file__), '..', '..')
     shutil.rmtree(env["TEXTTEST_TMP"], True)
-    shutil.rmtree(env["SUMO_REPORT"], True)
-    os.mkdir(env["SUMO_REPORT"])
+    if not os.path.exists(env["SUMO_REPORT"]):
+        os.makedirs(env["SUMO_REPORT"])
     for name in ["dfrouter", "duarouter", "jtrrouter", "netconvert", "netgenerate", "od2trips", "sumo", "polyconvert", "sumo-gui", "activitygen"]:
         binary = os.path.join(options.rootDir, options.binDir, name + programSuffix + ".exe")
         if name == "sumo-gui":
@@ -186,7 +193,7 @@ for platform in ["Win32", "x64"]:
         subprocess.call("texttest.py -b "+env["FILEPREFIX"]+nameopt, stdout=log, stderr=subprocess.STDOUT, shell=True)
     subprocess.call("texttest.py -a sumo.gui -b "+env["FILEPREFIX"]+nameopt, stdout=log, stderr=subprocess.STDOUT, shell=True)
     subprocess.call("texttest.py -b "+env["FILEPREFIX"]+" -coll", stdout=log, stderr=subprocess.STDOUT, shell=True)
-    ago = datetime.datetime.now() - datetime.timedelta(30)
+    ago = datetime.datetime.now() - datetime.timedelta(50)
     subprocess.call('texttest.py -s "batch.ArchiveRepository session='+env["FILEPREFIX"]+' before=%s"' % ago.strftime("%d%b%Y"),
                     stdout=log, stderr=subprocess.STDOUT, shell=True)
     log.close()

@@ -10,7 +10,12 @@ Contains paths which are needed frequently
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
 import os.path
@@ -64,10 +69,3 @@ FQvehPickle=newPath(main,"fcdQualitaet/vehiclePickleList.pickle")
 FQoutput=newPath(main,"fcdQualitaet/output/plotData/paramEffects_")
 FQrawFCD=newPath(main,"fcdQualitaet/output/rawData/rawData_")
 FQprocessedFCD=newPath(main,"fcdQualitaet/processedFCD/linkspeeds.NUREMBERG_FAKE_03.txt")
-
-
-
-
-
-
-   

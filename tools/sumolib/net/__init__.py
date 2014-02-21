@@ -12,21 +12,28 @@ It uses other classes from this module to represent the road network.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
-All rights reserved
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 
+from __future__ import print_function
 import os, sys
 import math
 from xml.sax import saxutils, parse, handler
 from copy import copy
 from itertools import *
-import lane, edge, node, connection, roundabout
-import generator
-from lane import Lane
-from edge import Edge
-from node import Node
-from connection import Connection
-from roundabout import Roundabout
+
+import sumolib
+from . import lane, edge, node, connection, roundabout
+from .lane import Lane
+from .edge import Edge
+from .node import Node
+from .connection import Connection
+from .roundabout import Roundabout
 
 
 class TLS:
@@ -64,7 +71,7 @@ class TLS:
 
     def addProgram(self, program):
         self._programs[program._id] = program
-        
+
     def toXML(self):
         ret = ""
         for p in self._programs:
@@ -102,6 +109,7 @@ class Net:
         self._tlss = []
         self._ranges = [ [10000, -10000], [10000, -10000] ]
         self._roundabouts = []
+        self._rtree = None
 
     def setLocation(self, netOffset, convBoundary, origBoundary, projParameter):
         self._location["netOffset"] = netOffset
@@ -160,9 +168,32 @@ class Net:
 
     def hasEdge(self, id):
         return id in self._id2edge
-        
+
     def getEdge(self, id):
         return self._id2edge[id]
+
+    def _initRTree(self, includeJunctions=True):
+        import rtree
+        self._rtree = rtree.index.Index()
+        self._rtree.interleaved = True
+        for ri, edge in enumerate(self._edges):
+            self._rtree.add(ri, edge.getBoundingBox(includeJunctions))
+
+    def getNeighboringEdges(self, x, y, r=0.1, includeJunctions=True):
+        edges = []
+        try:
+            if self._rtree == None:
+                self._initRTree(includeJunctions)
+            for e in self._rtree.intersection((x - r, y - r, x + r, y + r)):
+                d = sumolib.geomhelper.distancePointToPolygon((x,y), self._edges[e].getShape(includeJunctions))
+                if d < r:
+                    edges.append((self._edges[e], d))
+        except ImportError:
+            for edge in self._edges:
+                d = sumolib.geomhelper.distancePointToPolygon((x,y), edge.getShape(includeJunctions))
+                if d < r:
+                    edges.append((edge,d))
+        return edges
 
     def hasNode(self, id):
         return id in self._id2node
@@ -237,7 +268,6 @@ class Net:
                 (self._ranges[0][0] - self._ranges[0][1]) ** 2 +
                 (self._ranges[1][0] - self._ranges[1][1]) ** 2)
 
-
     def getGeoProj(self):
         import pyproj
         p1 = self._location["projParameter"].split()
@@ -252,15 +282,32 @@ class Net:
 
     def getLocationOffset(self):
         """ offset to be added after converting from geo-coordinates to UTM"""
-        return map(float,self._location["netOffset"].split(","))
+        return list(map(float,self._location["netOffset"].split(",")))
 
-
-    def convertLatLon2XY(self, lat, lon):
+    def convertLonLat2XY(self, lat, lon, rawUTM=False):
         x,y = self.getGeoProj()(lon,lat)
-        x_off, y_off = self.getLocationOffset()
-        return x + x_off, y + y_off
+        if rawUTM:
+            return x, y
+        else:
+            x_off, y_off = self.getLocationOffset()
+            return x + x_off, y + y_off
 
-    
+    def convertXY2LonLat(self, x, y, rawUTM=False):
+        if not rawUTM:
+            x_off, y_off = self.getLocationOffset()
+            x -= x_off
+            y -= y_off
+        return self.getGeoProj()(x, y, inverse=True)
+
+    def move(self, dx, dy):
+        for n in self._nodes:
+            n._coord = (n._coord[0] + dx, n._coord[1] + dy)
+        for e in self._edges:
+            for l in e._lanes:
+                l._shape = [(p[0] + dx, p[1] + dy) for p in l._shape]
+            e.rebuildShape()
+
+
 class NetReader(handler.ContentHandler):
     """Reads a network, storing the edge geometries, lane numbers and max. speeds"""
 
@@ -278,7 +325,7 @@ class NetReader(handler.ContentHandler):
         if name == 'location':
             self._net.setLocation(attrs["netOffset"], attrs["convBoundary"], attrs["origBoundary"], attrs["projParameter"])
         if name == 'edge':
-            if not attrs.has_key('function') or attrs['function'] != 'internal':
+            if 'function' not in attrs or attrs['function'] != 'internal':
                 prio = -1
                 if attrs.has_key('priority'):
                     prio = int(attrs['priority'])
@@ -302,7 +349,7 @@ class NetReader(handler.ContentHandler):
                 self._currentShape = ""
         if name == 'junction':
             if attrs['id'][0]!=':':
-                self._currentNode = self._net.addNode(attrs['id'], attrs['type'], [ float(attrs['x']), float(attrs['y']) ], attrs['incLanes'].split(" ") )
+                self._currentNode = self._net.addNode(attrs['id'], attrs['type'], (float(attrs['x']), float(attrs['y'])), attrs['incLanes'].split(" ") )
         if name == 'succ' and self._withConnections: # deprecated
             if attrs['edge'][0]!=':':
                 self._currentEdge = self._net.getEdge(attrs['edge'])
@@ -396,10 +443,10 @@ def readNet(filename, **others):
     netreader = NetReader(**others)
     try:
         if not os.path.isfile(filename):
-            print >> sys.stderr, "Network file '%s' not found" % filename
+            print("Network file '%s' not found" % filename, file=sys.stderr)
             sys.exit(1)
         parse(filename, netreader)
     except KeyError:
-        print >> sys.stderr, "Please mind that the network format has changed in 0.13.0, you may need to update your network!"
+        print("Please mind that the network format has changed in 0.13.0, you may need to update your network!", file=sys.stderr)
         sys.exit(1)
     return netreader.getNet()
