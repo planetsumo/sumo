@@ -84,7 +84,7 @@ MSRightOfWayJunction::postloadInit() {
         // ... set information for every link
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
             if ((*j)->getLane()->getEdge().isWalkingArea() ||
-                    ((*j)->getLane()->getLogicalPredecessorLane()->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
+                    ((*i)->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
                 continue;
             }
             sortedLinks.push_back(std::make_pair(*i, *j));
@@ -99,7 +99,7 @@ MSRightOfWayJunction::postloadInit() {
         // ... set information for every link
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
             if ((*j)->getLane()->getEdge().isWalkingArea() ||
-                    ((*j)->getLane()->getLogicalPredecessorLane()->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
+                    ((*i)->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
                 continue;
             }
             if (myLogic->getLogicSize() <= requestPos) {
