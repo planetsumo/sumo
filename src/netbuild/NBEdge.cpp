@@ -349,6 +349,7 @@ NBEdge::reshiftPosition(SUMOReal xoff, SUMOReal yoff) {
     for (unsigned int i = 0; i < myLanes.size(); i++) {
         myLanes[i].shape.reshiftRotate(xoff, yoff, 0);
     }
+    computeAngle(); // update angles because they are numerically sensitive (especially where based on centroids)
 }
 
 
