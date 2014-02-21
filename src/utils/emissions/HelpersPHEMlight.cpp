@@ -93,10 +93,14 @@ HelpersPHEMlight::computeFuel(SUMOEmissionClass c, double v, double a, double sl
 	PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
 	double power = currCep->CalcPower(v, a, slope);
 	
-	if(currCep->GetVehicleFuelType() == "D")
-		return currCep->GetEmission("FC", power) / 0.836 / SECONDS_PER_HOUR * 1000.;
-	else
-		return currCep->GetEmission("FC", power) / 0.742 / SECONDS_PER_HOUR * 1000.;
+    std::string fuelType = currCep->GetVehicleFuelType();
+	if(fuelType == "D") {
+		return currCep->GetEmission("FC", power) * 0.836 / SECONDS_PER_HOUR * 1000.;
+    } else if(fuelType == "G") {
+		return currCep->GetEmission("FC", power) * 0.742 / SECONDS_PER_HOUR * 1000.;
+    } else {
+		return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR * 1000.; // surely false, but at least not additionally modified
+    }
 }
 
 /****************************************************************************/
