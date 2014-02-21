@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Wed Dec 11 10:01:01 2013 by SUMO sumo Version dev-SVN-r15307
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="three_split.net.xml"/>
+        <additional-files value="input_routes.rou.xml"/>
+    </input>
+
+    <output>
+        <tripinfo-output value="tripinfos.xml"/>
+        <bt-output value="bt.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+    </time>
+
+    <report>
+        <no-duration-log value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+    <communication>
+        <device.btreceiver.explicit value="right"/>
+        <device.btreceiver.range value="50"/>
+        <device.btsender.explicit value="left"/>
+    </communication>
+
+</configuration>
+-->
+
+<bt-output>
+    <bt id="right">
+        <seen id="left" tBeg="180.04" observerPosBeg="1512.31,498.35" observerSpeedBeg="13.27" observerLaneIDBeg="end_0" observerLanePosBeg="2506.22" seenPosBeg="1498.35,546.36" seenSpeedBeg="13.89" seenLaneIDBeg="left2end_0" seenLanePosBeg="2447.74" tEnd="182.50" observerPosEnd="1545.84,498.35" observerSpeedEnd="13.89" observerLaneIDEnd="end_0" observerLanePosEnd="2534.00" seenPosEnd="1498.35,514.00" seenSpeedEnd="10.37" seenLaneIDEnd="left2end_0" seenLanePosEnd="2472.00">
+            <recognitionPoint t="182.00" observerPos="1538.91,498.35" observerSpeed="13.89" observerLaneID="end_0" observerLanePos="2520.11" seenPos="1498.35,519.17" seenSpeed="13.89" seenLaneID="left2end_0" seenLanePos="2461.63"/>
+        </seen>
+    </bt>
+</bt-output>

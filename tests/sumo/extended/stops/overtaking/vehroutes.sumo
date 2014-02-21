@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 05/02/13 14:16:02 by SUMO sumo Version 0.17.0
+<!-- generated on Fri Nov 15 09:22:13 2013 by SUMO sumo Version dev-SVN-r15111
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/sumoConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
 
     <input>
         <net-file value="net.net.xml"/>
@@ -24,13 +24,13 @@
 </configuration>
 -->
 
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/routes_file.xsd">
-    <vehicle id="stopped" depart="1.00" arrival="677.00">
-        <route edges="1fi 1si 1o 1fi 1si" exitTimes="27.00 587.00 635.00 659.00 677.00"/>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/routes_file.xsd">
+    <vehicle id="stopped" depart="1.00" arrival="671.00">
+        <route edges="1fi 1si 1o 1fi 1si" exitTimes="25.00 586.00 631.00 654.00 671.00"/>
     </vehicle>
 
-    <vehicle id="overtaking_right" depart="10.00" arrival="165.00">
-        <route edges="1fi 1si 1o 1fi 1si" exitTimes="36.00 75.00 123.00 147.00 165.00"/>
+    <vehicle id="overtaking_right" depart="10.00" arrival="228.00">
+        <route edges="1fi 1si 1o 1fi 1si" exitTimes="34.00 136.00 181.00 204.00 228.00"/>
     </vehicle>
 
 </routes>

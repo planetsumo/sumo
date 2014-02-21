@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 05/02/13 14:16:34 by SUMO sumo Version 0.17.0
+<!-- generated on Tue Dec  3 16:34:13 2013 by SUMO sumo Version dev-SVN-r15233
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/sumoConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
 
     <input>
         <net-file value="three_split.net.xml"/>
@@ -24,6 +24,6 @@
 -->
 
 <calibratorstats>
-   <interval begin="0.00" end="3600.00" id="swallow_jam" nVehContrib="397" removed="0" inserted="0" cleared="789" flow="397.00" aspiredFlow="-1.00" speed="0.91" aspiredSpeed="27.80"/>
-   <interval begin="3600.00" end="5400.00" id="swallow_jam" nVehContrib="143" removed="0" inserted="0" cleared="454" flow="286.00" aspiredFlow="-1.00" speed="0.72" aspiredSpeed="27.80"/>
+   <interval begin="0.00" end="3600.00" id="swallow_jam" nVehContrib="530" removed="0" inserted="0" cleared="901" flow="530.00" aspiredFlow="-1.00" speed="1.25" aspiredSpeed="27.80"/>
+   <interval begin="3600.00" end="5400.00" id="swallow_jam" nVehContrib="167" removed="0" inserted="0" cleared="402" flow="334.00" aspiredFlow="-1.00" speed="1.05" aspiredSpeed="27.80"/>
 </calibratorstats>
