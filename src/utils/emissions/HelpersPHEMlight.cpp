@@ -95,9 +95,9 @@ HelpersPHEMlight::computeFuel(SUMOEmissionClass c, double v, double a, double sl
 	
     std::string fuelType = currCep->GetVehicleFuelType();
 	if(fuelType == "D") {
-		return currCep->GetEmission("FC", power) * 0.836 / SECONDS_PER_HOUR * 1000.;
+		return currCep->GetEmission("FC", power) / 0.836 / SECONDS_PER_HOUR * 1000.;
     } else if(fuelType == "G") {
-		return currCep->GetEmission("FC", power) * 0.742 / SECONDS_PER_HOUR * 1000.;
+		return currCep->GetEmission("FC", power) / 0.742 / SECONDS_PER_HOUR * 1000.;
     } else {
 		return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR * 1000.; // surely false, but at least not additionally modified
     }
