@@ -44,7 +44,8 @@
 // ===========================================================================
 SUMOReal
 HelpersPHEMlight::getMaxAccel(SUMOEmissionClass c, double v, double a, double slope) {
-    return -1;
+    PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
+	return currCep->GetMaxAccel(v, a, slope); 
 }
 
 
