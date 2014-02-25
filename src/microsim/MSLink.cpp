@@ -330,7 +330,7 @@ MSLink::getLane() const {
 }
 
 
-bool    
+bool
 MSLink::lastWasContMajor() const {
 #ifdef HAVE_INTERNAL_LANES
     if (myJunctionInlane == 0 || myAmCont) {
@@ -349,10 +349,10 @@ MSLink::lastWasContMajor() const {
     }
 #else
     return false;
-#endif  
-}       
+#endif
+}
 
-    
+
 void
 MSLink::writeApproaching(OutputDevice& od, const std::string fromLaneID) const {
     if (myApproachingVehicles.size() > 0) {

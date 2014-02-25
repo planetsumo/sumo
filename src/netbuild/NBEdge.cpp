@@ -238,6 +238,8 @@ NBEdge::NBEdge(const std::string& id, NBNode* from, NBNode* to, NBEdge* tpl) :
     for (unsigned int i = 0; i < getNumLanes(); i++) {
         setSpeed(i, tpl->getLaneSpeed(i));
         setPermissions(tpl->getPermissions(i), i);
+        setLaneWidth(i, tpl->getLaneWidth(i));
+        setOffset(i, tpl->getOffset(i));
     }
 }
 
@@ -1301,11 +1303,12 @@ NBEdge::computeAngle() {
         }
     }
 
-    const Position referencePosStart = shape.positionAtOffset2D(ANGLE_LOOKAHEAD);
+    const SUMOReal angleLookahead = MIN2(shape.length2D() / 2, ANGLE_LOOKAHEAD);
+    const Position referencePosStart = shape.positionAtOffset2D(angleLookahead);
     myStartAngle = NBHelpers::angle(
                        fromCenter.x(), fromCenter.y(),
                        referencePosStart.x(), referencePosStart.y());
-    const Position referencePosEnd = shape.positionAtOffset2D(myGeom.length() - ANGLE_LOOKAHEAD);
+    const Position referencePosEnd = shape.positionAtOffset2D(shape.length() - angleLookahead);
     myEndAngle = NBHelpers::angle(
                      referencePosEnd.x(), referencePosEnd.y(),
                      toCenter.x(), toCenter.y());
@@ -2148,6 +2151,19 @@ NBEdge::dismissVehicleClassInformation() {
         (*i).preferred = 0;
     }
 }
+
+
+bool
+NBEdge::connections_sorter(const Connection& c1, const Connection& c2) {
+    if (c1.fromLane != c2.fromLane) {
+        return c1.fromLane < c2.fromLane;
+    }
+    if (c1.toEdge != c2.toEdge) {
+        return false; // do not change ordering among toEdges as this is determined by angle in an earlier step
+    }
+    return c1.toLane < c2.toLane;
+}
+
 
 int
 NBEdge::getFirstNonPedestrianLaneIndex(int direction) const {

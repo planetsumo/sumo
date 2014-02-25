@@ -106,7 +106,7 @@ public:
     virtual bool replaceRouteEdges(MSEdgeVector& edges, bool onInit = false) = 0;
 
     /// Replaces the current route by the given one
-    virtual bool replaceRoute(const MSRoute* route, bool onInit = false, int offset=0) = 0;
+    virtual bool replaceRoute(const MSRoute* route, bool onInit = false, int offset = 0) = 0;
 
     /** @brief Performs a rerouting using the given router
      *
@@ -123,6 +123,11 @@ public:
      * @return The acceleration
      */
     virtual SUMOReal getAcceleration() const = 0;
+
+    /** @brief Returns the slope of the road at vehicle's position
+     * @return The slope
+     */
+    virtual SUMOReal getSlope() const = 0;
 
     /** @brief Returns the edge the vehicle is currently at
      *

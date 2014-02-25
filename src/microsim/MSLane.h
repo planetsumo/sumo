@@ -540,8 +540,10 @@ public:
 
 
 
-    /// @brief remove the vehicle from this lane
-    virtual MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification);
+    /* @brief remove the vehicle from this lane
+     * @param[notify] whether moveReminders of the vehicle shall be triggered
+     */
+    virtual MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification, bool notify = true);
 
     /// The shape of the lane
     PositionVector myShape;
@@ -660,37 +662,37 @@ public:
     /** @brief Returns the sum of last step CO2 emissions
      * @return CO2 emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_CO2Emissions() const;
+    SUMOReal getCO2Emissions() const;
 
 
     /** @brief Returns the sum of last step CO emissions
      * @return CO emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_COEmissions() const;
+    SUMOReal getCOEmissions() const;
 
 
     /** @brief Returns the sum of last step PMx emissions
      * @return PMx emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_PMxEmissions() const;
+    SUMOReal getPMxEmissions() const;
 
 
     /** @brief Returns the sum of last step NOx emissions
      * @return NOx emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_NOxEmissions() const;
+    SUMOReal getNOxEmissions() const;
 
 
     /** @brief Returns the sum of last step HC emissions
      * @return HC emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_HCEmissions() const;
+    SUMOReal getHCEmissions() const;
 
 
     /** @brief Returns the sum of last step fuel consumption
      * @return fuel consumption of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_FuelConsumption() const;
+    SUMOReal getFuelConsumption() const;
 
 
     /** @brief Returns the sum of last step noise emissions

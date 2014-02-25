@@ -65,7 +65,7 @@
 #include <utils/common/MsgHandler.h>
 #include <utils/common/ToString.h>
 #include <utils/options/OptionsCont.h>
-#include <utils/common/HelpersHarmonoise.h>
+#include <utils/emissions/HelpersHarmonoise.h>
 #include <utils/geom/Line.h>
 #include <utils/geom/GeomHelper.h>
 
@@ -764,7 +764,7 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
             veh->leaveLane(MSMoveReminder::NOTIFICATION_JUNCTION);
             MSVehicleTransfer::getInstance()->addVeh(t, veh);
         } else if (veh->getPositionOnLane() > getLength()) {
-            // for any reasons the vehicle is beyond its lane... 
+            // for any reasons the vehicle is beyond its lane...
             // this should never happen because it is handled in MSVehicle::executeMove
             assert(false);
             WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; beyond end of lane, targetLane='" + getID() + "', time=" +
@@ -1009,10 +1009,12 @@ MSLane::swapAfterLaneChange(SUMOTime) {
 
 
 MSVehicle*
-MSLane::removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification) {
+MSLane::removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification, bool notify) {
     for (MSLane::VehCont::iterator it = myVehicles.begin(); it < myVehicles.end(); it++) {
         if (remVehicle == *it) {
-            remVehicle->leaveLane(notification);
+            if (notify) {
+                remVehicle->leaveLane(notification);
+            }
             myVehicles.erase(it);
             myBruttoVehicleLengthSum -= remVehicle->getVehicleType().getLengthWithGap();
             myNettoVehicleLengthSum -= remVehicle->getVehicleType().getLength();
@@ -1116,8 +1118,7 @@ SUMOReal MSLane::getMissingRearGap(
 
 std::pair<MSVehicle* const, SUMOReal>
 MSLane::getFollowerOnConsecutive(SUMOReal dist, SUMOReal leaderSpeed,
-                                 SUMOReal backOffset, SUMOReal leaderMaxDecel) const 
-{
+                                 SUMOReal backOffset, SUMOReal leaderMaxDecel) const {
     // do a tree search among all follower lanes and check for the most
     // important vehicle (the one requiring the largest reargap)
     std::pair<MSVehicle*, SUMOReal> result(static_cast<MSVehicle*>(0), -1);
@@ -1134,7 +1135,7 @@ MSLane::getFollowerOnConsecutive(SUMOReal dist, SUMOReal leaderSpeed,
                 const SUMOReal missingRearGap = v->getCarFollowModel().getSecureGap(v->getSpeed(), leaderSpeed, leaderMaxDecel) - agap;
                 if (missingRearGap > missingRearGapMax) {
                     missingRearGapMax = missingRearGap;
-                    result.first = v; 
+                    result.first = v;
                     result.second = agap;
                 }
             } else {
@@ -1339,11 +1340,11 @@ MSLane::getMeanSpeed() const {
 
 
 SUMOReal
-MSLane::getHBEFA_CO2Emissions() const {
+MSLane::getCO2Emissions() const {
     SUMOReal ret = 0;
     const MSLane::VehCont& vehs = getVehiclesSecure();
     for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
-        ret += (*i)->getHBEFA_CO2Emissions();
+        ret += (*i)->getCO2Emissions();
     }
     releaseVehicles();
     return ret;
@@ -1351,11 +1352,11 @@ MSLane::getHBEFA_CO2Emissions() const {
 
 
 SUMOReal
-MSLane::getHBEFA_COEmissions() const {
+MSLane::getCOEmissions() const {
     SUMOReal ret = 0;
     const MSLane::VehCont& vehs = getVehiclesSecure();
     for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
-        ret += (*i)->getHBEFA_COEmissions();
+        ret += (*i)->getCOEmissions();
     }
     releaseVehicles();
     return ret;
@@ -1363,11 +1364,11 @@ MSLane::getHBEFA_COEmissions() const {
 
 
 SUMOReal
-MSLane::getHBEFA_PMxEmissions() const {
+MSLane::getPMxEmissions() const {
     SUMOReal ret = 0;
     const MSLane::VehCont& vehs = getVehiclesSecure();
     for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
-        ret += (*i)->getHBEFA_PMxEmissions();
+        ret += (*i)->getPMxEmissions();
     }
     releaseVehicles();
     return ret;
@@ -1375,11 +1376,11 @@ MSLane::getHBEFA_PMxEmissions() const {
 
 
 SUMOReal
-MSLane::getHBEFA_NOxEmissions() const {
+MSLane::getNOxEmissions() const {
     SUMOReal ret = 0;
     const MSLane::VehCont& vehs = getVehiclesSecure();
     for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
-        ret += (*i)->getHBEFA_NOxEmissions();
+        ret += (*i)->getNOxEmissions();
     }
     releaseVehicles();
     return ret;
@@ -1387,11 +1388,11 @@ MSLane::getHBEFA_NOxEmissions() const {
 
 
 SUMOReal
-MSLane::getHBEFA_HCEmissions() const {
+MSLane::getHCEmissions() const {
     SUMOReal ret = 0;
     const MSLane::VehCont& vehs = getVehiclesSecure();
     for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
-        ret += (*i)->getHBEFA_HCEmissions();
+        ret += (*i)->getHCEmissions();
     }
     releaseVehicles();
     return ret;
@@ -1399,11 +1400,11 @@ MSLane::getHBEFA_HCEmissions() const {
 
 
 SUMOReal
-MSLane::getHBEFA_FuelConsumption() const {
+MSLane::getFuelConsumption() const {
     SUMOReal ret = 0;
     const MSLane::VehCont& vehs = getVehiclesSecure();
     for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
-        ret += (*i)->getHBEFA_FuelConsumption();
+        ret += (*i)->getFuelConsumption();
     }
     releaseVehicles();
     return ret;

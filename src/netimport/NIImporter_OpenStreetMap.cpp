@@ -615,7 +615,7 @@ NIImporter_OpenStreetMap::NodesHandler::myStartElement(int element, const SUMOSA
                 myToFill[myLastNodeID]->ele = TplConvert::_2SUMOReal(value.c_str());
             } catch (...) {
                 WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in node '" +
-                                      toString(myLastNodeID) + "'.");
+                              toString(myLastNodeID) + "'.");
             }
         }
     }
@@ -734,7 +734,7 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
                 }
             } catch (EmptyData&) {
                 WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in edge '" +
-                        toString(myCurrentEdge->id) + "'.");
+                              toString(myCurrentEdge->id) + "'.");
             }
         } else if (key == "lanes:forward") {
             try {
