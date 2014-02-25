@@ -493,8 +493,19 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
         } else if (isWalkingArea) {
             glColor3d(0.3, 0.3, 1);
             glTranslated(0, 0, .2);
-            GLHelper::drawFilledPoly(myShape, true);
+            if (s.scale * s.laneWidthExaggeration < 20.) {
+                GLHelper::drawFilledPoly(myShape, true);
+            } else {
+                GLHelper::drawFilledPolyTesselated(myShape, true);
+            }
             glTranslated(0, 0, -.2);
+            // DEBUG
+            //glTranslated(0, 0, .4);
+            //for (int i = 0; i < (int)myShape.size(); ++i) {
+            //    GLHelper::drawText(toString(i), myShape[i], GLO_JUNCTION,
+            //                       80/s.scale, s.streetName.color, 0);
+            //}
+            //glTranslated(0, 0, -.4);
         } else {
             const SUMOReal laneWidth = isInternal ? myQuarterLaneWidth : myHalfLaneWidth;
             mustDrawMarkings = !isInternal;
