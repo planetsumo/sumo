@@ -196,6 +196,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\traci-server\TraCIServer.cpp" />
+    <ClCompile Include="..\..\..\src\traci-server\TraCIServerAPI_ArealDetector.cpp" />
     <ClCompile Include="..\..\..\src\traci-server\TraCIServerAPI_Edge.cpp" />
     <ClCompile Include="..\..\..\src\traci-server\TraCIServerAPI_InductionLoop.cpp" />
     <ClCompile Include="..\..\..\src\traci-server\TraCIServerAPI_Junction.cpp" />
@@ -211,8 +212,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\traci-server\TraCIConstants.h" />
-    <ClInclude Include="..\..\..\src\traci-server\TraCIRTree.h" />
     <ClInclude Include="..\..\..\src\traci-server\TraCIServer.h" />
+    <ClInclude Include="..\..\..\src\traci-server\TraCIServerAPI_ArealDetector.h" />
     <ClInclude Include="..\..\..\src\traci-server\TraCIServerAPI_Edge.h" />
     <ClInclude Include="..\..\..\src\traci-server\TraCIServerAPI_InductionLoop.h" />
     <ClInclude Include="..\..\..\src\traci-server\TraCIServerAPI_Junction.h" />
