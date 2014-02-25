@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Thu Feb 20 15:33:44 2014 by SUMO netconvert Version dev-SVN-r15637
+<!-- generated on Tue Feb 25 08:50:03 2014 by SUMO netconvert Version dev-SVN-r15706
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -93,7 +93,7 @@
         <lane id=":C_21_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="91.85,91.65 91.85,87.15 88.75,87.15 87.15,88.75 87.15,91.75"/>
     </edge>
     <edge id=":C_22" function="walkingarea">
-        <lane id=":C_22_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="108.15,108.35 108.15,112.85 111.25,112.85 112.85,111.25 112.85,108.15 108.35,108.15 108.35,111.25"/>
+        <lane id=":C_22_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="108.15,108.35 108.15,112.85 111.25,112.85 112.85,111.25 112.85,108.15 108.35,108.15"/>
     </edge>
 
     <edge id="CE" from="C" to="E" priority="2">

@@ -69,6 +69,11 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
+// allow to extend a crossing across multiple edges 
+#define EXTEND_CROSSING_ANGLE_THRESHOLD 35.0
+// create intermediate walking areas if either of the following thresholds is exceeded
+#define SPLIT_CROSSING_WIDTH_THRESHOLD 1.5 // meters
+#define SPLIT_CROSSING_ANGLE_THRESHOLD 5 //
 
 // ===========================================================================
 // static members
@@ -199,8 +204,6 @@ NBNode::ApproachingDivider::spread(const std::vector<int>& approachingLanes,
     }
     return ret;
 }
-
-
 
 
 /* -------------------------------------------------------------------------
@@ -1406,30 +1409,21 @@ NBNode::isDistrict() const {
 
 int
 NBNode::guessCrossings() {
-    gDebugFlag1 = getID() == "C";
-    gDebugFlag1 = false;
+    //gDebugFlag1 = getID() == "cluster_492462300_671564296";
     int numGuessed = 0;
     if (myCrossings.size() > 0) {
         // user supplied crossings, do not guess
         return numGuessed;
     }
     if (gDebugFlag1) std::cout << "guess crossings for " << getID() << "\n";
-    const SUMOReal JOINED_CROSSING_THRESHOLD = 5.0;
     EdgeVector joinedEdges;
-    SUMOReal prevAngle = -360;
+    SUMOReal prevAngle = -100000; // dummy
     // collect edges going in the same direction (clockwise)
     for (size_t i = 0; i < myAllEdges.size(); ++i) {
         NBEdge* edge = myAllEdges[i];
-        SUMOReal angle = edge->getAngleAtNode(this) + (edge->getFromNode() == this ? 180.0 : 0.0);
-        if (angle < 0) {
-            angle += 360.0;
-        }
-        if (angle >= 360) {
-            angle -= 360.0;
-        }
-        if (gDebugFlag1) std::cout << edge->getID() << " angle=" << edge->getAngleAtNode(this) << " convAngle=" << angle << "\n";
+        SUMOReal angle = edge->getCrossingAngle(this);
         // edges should be sorted by angle but this only holds true approximately
-        if (fabs(angle - prevAngle) > JOINED_CROSSING_THRESHOLD) {
+        if (i > 0 && fabs(angle - prevAngle) > EXTEND_CROSSING_ANGLE_THRESHOLD) {
             numGuessed += checkCrossing(joinedEdges);
             joinedEdges.clear();
         }
@@ -1442,27 +1436,37 @@ NBNode::guessCrossings() {
 
 
 int
-NBNode::checkCrossing(EdgeVector candidates) {
+NBNode::checkCrossing(EdgeVector candidates, bool sidewalkFrom, bool sidewalkTo) {
     //  make sure there are sidewalks on both sides of candidates
-    if (candidates.size() < 2) {
+    if (candidates.size() < 2 && !sidewalkFrom && !sidewalkTo) {
         if (gDebugFlag1) std::cout << "no crossing added (numCandidates=" << candidates.size() << ")\n";
         return 0;
     }
-    bool sidewalkTo = false;
-    bool sidewalkFrom = false;
-    // erase edges which do not have lanes disallowing pedestrians
+    // erase edges which do not have lanes disallowing pedestrians on the destination side
     while (candidates.size() > 0 && candidates.front()->getFirstNonPedestrianLaneIndex(FORWARD) < 0) {
         if (gDebugFlag1) std::cout << " allows pedestrians on all lanes: " << (*candidates.begin())->getID() << "\n";
         candidates.erase(candidates.begin());
         sidewalkTo = true;
     }
-    // erase edges which cannot be a crossing origin
+    // erase edges which do not have lanes disallowing pedestrians on the originating side
     while (candidates.size() > 0 && candidates.back()->getFirstNonPedestrianLaneIndex(FORWARD) < 0) {
         if (gDebugFlag1) std::cout << " allows pedestrians on all lanes: " << (*candidates.begin())->getID() << "\n";
         candidates.erase(candidates.end() - 1);
         sidewalkFrom = true;
     }
     if (candidates.size() > 0) {
+        // check for intermediate walking areas (many edges)
+        if (candidates.size() > 2) {
+            for (EdgeVector::iterator it = candidates.begin() + 1; it != candidates.end() - 1; ++it) {
+                NBEdge* edge = *it;
+                if ((edge->getPermissions() & SVC_PEDESTRIAN) != 0) {
+                    if (gDebugFlag1) std::cout << "split crossing (size)\n";
+                    const int startAtCurrent = (((edge->getPermissions(edge->getFromNode() == this ? 0 : edge->getNumLanes() - 1) & SVC_PEDESTRIAN) > 0) ?  1 : 0);
+                    return checkCrossing(EdgeVector(candidates.begin(), it + startAtCurrent), sidewalkTo, true) 
+                        + checkCrossing(EdgeVector(it + startAtCurrent, candidates.end()) , true,  sidewalkFrom);
+                }
+            }
+        }
         if (gDebugFlag1) std::cout << "candidates (unsorted): " << toString(candidates) << "\n";
         std::sort(candidates.begin(), candidates.end(), edge_by_direction_sorter(this));
         if (gDebugFlag1) std::cout << "candidates (sorted): " << toString(candidates) << "\n";
@@ -1477,6 +1481,34 @@ NBNode::checkCrossing(EdgeVector candidates) {
         const int toSide = lastEdgeDir == FORWARD ? 0 : lastEdge->getNumLanes() - 1;
         sidewalkTo = sidewalkTo || lastEdge->getFirstNonPedestrianLaneIndex(lastEdgeDir) != toSide;
         if (sidewalkFrom && sidewalkTo) {
+            if (candidates.size() > 1) {
+                // check for intermediate walking areas (distance or angle thresholds)
+                SUMOReal prevAngle = -100000; // dummy
+                for (EdgeVector::iterator it = candidates.begin(); it != candidates.end(); ++it) {
+                    SUMOReal angle = (*it)->getCrossingAngle(this);
+                    if (it != candidates.begin()) {
+                        NBEdge* prev = *(it - 1);
+                        NBEdge* curr = *it;
+                        // XXX use lane widths in case of spread_type=center
+                        if (fabs(prevAngle - angle) > SPLIT_CROSSING_ANGLE_THRESHOLD 
+                                || (prev->getGeometry()[prev->getFromNode() == this ? 0 : -1].distanceTo2D(curr->getGeometry()[curr->getFromNode() == this ? 0 : -1])
+                                    > SPLIT_CROSSING_WIDTH_THRESHOLD)) {
+                            if (gDebugFlag1) { 
+                                std::cout 
+                                    << "split crossing (prevAngle=" << prevAngle
+                                    << " angle=" << angle
+                                    << " fwdBorder=" << prev->getGeometry()[prev->getFromNode() == this ? 0 : -1]
+                                    << " bwdBorder=" << curr->getGeometry()[curr->getFromNode() == this ? 0 : -1]
+                                    << " dist=" << prev->getGeometry()[prev->getFromNode() == this ? 0 : -1].distanceTo2D(curr->getGeometry()[curr->getFromNode() == this ? 0 : -1])
+                                    << "\n";
+                            }
+                            return checkCrossing(EdgeVector(candidates.begin(), it), true, true) 
+                                + checkCrossing(EdgeVector(it, candidates.end()), true,  true);
+                        }
+                    }
+                    prevAngle = angle;
+                }
+            }
             addCrossing(candidates, DEFAULT_CROSSING_WIDTH, isTLControlled());
             if (gDebugFlag1) std::cout << "adding crossing: " << toString(candidates) << "\n";
             return 1;
@@ -1545,6 +1577,7 @@ NBNode::buildCrossings(unsigned int index) {
 
 void
 NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
+    //gDebugFlag1 = getID() == "C";
     myWalkingAreas.clear();
     // walking area at start of crossing
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
@@ -1561,6 +1594,7 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
         }
         // compute shape (clockwise)
         const Crossing& nextCWCrossing = (it == myCrossings.end() - 1 ? *myCrossings.begin() : *(it + 1));
+        //std::cout << "buildWalkingAreas at start of crossing " << (*it).id << " between " << (*it).edges.front()->getID() << " and " << nextCWCrossing.edges.back()->getID() << "\n";
         updateShapeAndConnections(wa, (*it).edges.front(), nextCWCrossing.edges.back(), (*it).width);
         myWalkingAreas.push_back(wa);
     }
@@ -1594,6 +1628,7 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
         const int endDir = (backEdge->getToNode() == this ? FORWARD : BACKWARD);
         // point 4: outer lane of last edge to be crossed
         NBEdge::Lane edgEnd = backEdge->getLanes()[endDir == FORWARD ? 0 : backEdge->getNumLanes() - 1];
+        edgEnd.width = (edgEnd.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : edgEnd.width);
         edgEnd.shape.move2side(endDir * edgEnd.width / 2);
         wa.shape.push_back(edgEnd.shape[endDir == FORWARD ? -1 : 0]);
         // point 5: last lane to be crossed
@@ -1607,11 +1642,6 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
         // add connection from sidewalk to walking area (optional)
         if (endDir == 1 && (edgEnd.permissions & SVC_PEDESTRIAN) > 0) {
             wa.prevSidewalks.push_back(backEdge->getID());
-        }
-        if (prev.done) {
-            // point 7: extension of outer lane of last edge to be crossed
-            edgEnd.shape.extrapolate((*it).width);
-            wa.shape.push_back(edgEnd.shape[endDir == FORWARD ? -1 : 0]);
         }
         prevWA++;
     }
@@ -1632,6 +1662,7 @@ NBNode::updateShapeAndConnections(WalkingArea& wa, const NBEdge* startEdge, cons
     wa.shape.push_back(crossingBeg.shape[begDir == FORWARD ? 0 : -1]);
     // point 2: outer lane of first edge to be crossed
     NBEdge::Lane edgBeg = startEdge->getLanes()[begDir == FORWARD ? 0 : startEdge->getNumLanes() - 1];
+    edgBeg.width = (edgBeg.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : edgBeg.width);
     edgBeg.shape.move2side(begDir * edgBeg.width / 2);
     wa.shape.push_back(edgBeg.shape[begDir == FORWARD ? 0 : -1]);
     // add connection from walking area to sidewalk (optional)

@@ -507,8 +507,13 @@ public:
     /// @brief guess pedestrian crossings and return how many were guessed
     int guessCrossings();
 
-    /// @brief check whether a crossing should be build for the candiate edges
-    int checkCrossing(EdgeVector candidates);
+    /* @brief check whether a crossing should be build for the candiate edges and build 0 to n crossings
+     * @param[in] candidates The candidate vector of edges to be crossed
+     * @param[in] sidewalkFrom whether a sidewalk at the starting side of the crossing is known to exist
+     * @param[in] sidewalkTo whether a sidewalk at the destination side of the crossing is known to exist
+     * @return The number of crossings built
+     * */
+    int checkCrossing(EdgeVector candidates, bool sidewalkFrom=false, bool sidewalkTo=false);
 
     /// @brief build internal lanes, pedestrian crossings and walking areas
     void buildInnerEdges();

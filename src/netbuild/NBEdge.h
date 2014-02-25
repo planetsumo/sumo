@@ -492,6 +492,8 @@ public:
     int getFirstNonPedestrianLaneIndex(int direction) const;
     NBEdge::Lane getFirstNonPedestrianLane(int direction) const;
 
+    /// @brief return the angle for computing pedestrian crossings at the given node
+    SUMOReal getCrossingAngle(NBNode* node);
 
     /// @name Edge geometry access and computation
     //@{

@@ -2162,6 +2162,21 @@ NBEdge::getFirstNonPedestrianLaneIndex(int direction) const {
     return -1;
 }
 
+
+SUMOReal 
+NBEdge::getCrossingAngle(NBNode* node) {
+    SUMOReal angle = getAngleAtNode(node) + (getFromNode() == node ? 180.0 : 0.0);
+    if (angle < 0) {
+        angle += 360.0;
+    }
+    if (angle >= 360) {
+        angle -= 360.0;
+    }
+    if (gDebugFlag1) std::cout << getID() << " angle=" << getAngleAtNode(node) << " convAngle=" << angle << "\n";
+    return angle;
+}
+
+
 NBEdge::Lane 
 NBEdge::getFirstNonPedestrianLane(int direction) const {
     int index = getFirstNonPedestrianLaneIndex(direction);
