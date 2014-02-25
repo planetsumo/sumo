@@ -269,6 +269,10 @@ NBNetBuilder::compute(OptionsCont& oc,
 
     // CONNECTIONS COMPUTATION
     //
+    PROGRESS_BEGIN_MESSAGE("Computing node types");
+    NBNodeTypeComputer::computeNodeTypes(myNodeCont);
+    PROGRESS_DONE_MESSAGE();
+    //
     if (oc.getBool("crossings.guess")) {
         int crossings = 0;
         for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
@@ -276,10 +280,6 @@ NBNetBuilder::compute(OptionsCont& oc,
         }
         WRITE_MESSAGE("Guessed " + toString(crossings) + " pedestrian crossings.");
     }
-    //
-    PROGRESS_BEGIN_MESSAGE("Computing node types");
-    NBNodeTypeComputer::computeNodeTypes(myNodeCont);
-    PROGRESS_DONE_MESSAGE();
     //
     PROGRESS_BEGIN_MESSAGE("Computing priorities");
     NBEdgePriorityComputer::computeEdgePriorities(myNodeCont);
