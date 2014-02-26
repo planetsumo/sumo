@@ -160,24 +160,30 @@ private:
     };
 
     /** @class crossing_by_junction_angle_sorter
-     * @brief Sorts crossings by minimum clockwise clockwise edge angle
+     * @brief Sorts crossings by minimum clockwise clockwise edge angle. Use the
+     * ordering found in myAllEdges of the given node
      */
-    class crossing_by_junction_angle_sorter : public edge_by_junction_angle_sorter {
+    class crossing_by_junction_angle_sorter {
     public:
-        explicit crossing_by_junction_angle_sorter(NBNode* n) : edge_by_junction_angle_sorter(n) {}
+        explicit crossing_by_junction_angle_sorter(const EdgeVector& ordering) : myOrdering(ordering) {}
         int operator()(const NBNode::Crossing& c1, const NBNode::Crossing& c2) const {
-            return getMinConvAngle(c1.edges) < getMinConvAngle(c2.edges);
+            return getMinRank(c1.edges) < getMinRank(c2.edges);
         }
 
     private:
-        /// @brief Converts the angle of the crossing
-        SUMOReal getMinConvAngle(const EdgeVector& e) const {
-            SUMOReal angle = 360;
+        /// @brief retrieves the minimum index in myAllEdges
+        SUMOReal getMinRank(const EdgeVector& e) const {
+            size_t result = myOrdering.size();
             for (EdgeVector::const_iterator it = e.begin(); it != e.end(); ++it) {
-                angle = MIN2(angle, getConvAngle(*it));
+                size_t rank = std::distance(myOrdering.begin(), std::find(myOrdering.begin(), myOrdering.end(), *it));
+                result = MIN2(result, rank);
             }
-            return angle;
+            return result;
         }
+
+    private:
+        const EdgeVector& myOrdering;
+
     };
 };
 

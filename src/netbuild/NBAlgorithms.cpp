@@ -150,7 +150,7 @@ NBNodesEdgesSorter::sortNodesEdges(NBNodeCont& nc, bool leftHand) {
             swapWhenReversed(n, leftHand, allEdges.end() - 1, allEdges.begin());
         }
         // sort the crossings
-        std::sort(crossings.begin(), crossings.end(), crossing_by_junction_angle_sorter(n));
+        std::sort(crossings.begin(), crossings.end(), crossing_by_junction_angle_sorter(allEdges));
         // DEBUG
         //if (crossings.size() > 0) {
         //    std::cout << " crossings at " << n->getID() << "\n";
