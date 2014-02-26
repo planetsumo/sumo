@@ -35,6 +35,7 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <algorithm>
 #include <utils/xml/SUMOXMLDefinitions.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include "StdDefs.h"
@@ -160,6 +161,14 @@ inline std::string joinToString(const std::vector<T>& v, const T_BETWEEN& betwee
         oss << toString(*it, accuracy);
     }
     return oss.str();
+}
+
+
+template <typename T, typename T_BETWEEN>
+inline std::string joinToStringSorting(const std::vector<T>& v, const T_BETWEEN& between, std::streamsize accuracy = OUTPUT_ACCURACY) {
+    std::vector<T> sorted(v);
+    std::sort(sorted.begin(), sorted.end());
+    return joinToString(sorted, between, accuracy);
 }
 
 
