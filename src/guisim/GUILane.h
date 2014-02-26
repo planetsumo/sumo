@@ -195,7 +195,7 @@ public:
     SUMOReal firstWaitingTime() const;
 
     /// @brief draw lane borders and white markings
-    void drawMarkings(const GUIVisualizationSettings& s) const;
+    void drawMarkings(const GUIVisualizationSettings& s, SUMOReal scale) const;
 
     /// @brief draw crossties for railroads or pedestrian crossings
     void drawCrossties(const GUIVisualizationSettings& s, SUMOReal length, SUMOReal spacing, SUMOReal halfWidth) const;

@@ -470,15 +470,15 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
         GUINet* net = (GUINet*) MSNet::getInstance();
         if (isRailway(myPermissions)) {
             // draw as railway
-            const SUMOReal halfRailWidth = 0.725;
-            GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, halfRailWidth * s.laneWidthExaggeration);
+            const SUMOReal halfRailWidth = 0.725 * s.laneWidthExaggeration;
+            GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, halfRailWidth);
             glColor3d(1, 1, 1);
             glTranslated(0, 0, .1);
-            GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, (halfRailWidth - 0.2) * s.laneWidthExaggeration);
+            GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, halfRailWidth - 0.2);
             if (!MSGlobals::gUseMesoSim) {
                 setColor(s);
             }
-            drawCrossties(s, 0.3, 1, 1);
+            drawCrossties(s, 0.3 * s.laneWidthExaggeration, 1 * s.laneWidthExaggeration, 1 * s.laneWidthExaggeration);
         } else if (isCrossing) {
             // determine priority to decide color
             MSLink* link = MSLinkContHelper::getConnectingLink(*getLogicalPredecessorLane(), *this);
@@ -540,7 +540,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
         }
     }
     if (mustDrawMarkings && drawDetails) { // needs matrix reset
-        drawMarkings(s);
+        drawMarkings(s, s.laneWidthExaggeration);
     }
     // draw vehicles
     if (s.scale > s.minVehicleSize) {
@@ -563,7 +563,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
 
 
 void
-GUILane::drawMarkings(const GUIVisualizationSettings& s) const {
+GUILane::drawMarkings(const GUIVisualizationSettings& s, SUMOReal scale) const {
     glPushMatrix();
     glPushName(0);
     glTranslated(0, 0, GLO_EDGE);
@@ -573,7 +573,7 @@ GUILane::drawMarkings(const GUIVisualizationSettings& s) const {
         setColor(s);
     // optionally draw inverse markings
     if (myIndex > 0) {
-        SUMOReal mw = myHalfLaneWidth + SUMO_const_laneOffset + .01;
+        SUMOReal mw = (myHalfLaneWidth + SUMO_const_laneOffset + .01) * scale;
         int e = (int) getShape().size() - 1;
         for (int i = 0; i < e; ++i) {
             glPushMatrix();
@@ -583,8 +583,8 @@ GUILane::drawMarkings(const GUIVisualizationSettings& s) const {
                 glBegin(GL_QUADS);
                 glVertex2d(-mw, -t);
                 glVertex2d(-mw, -t - 3.);
-                glVertex2d(myQuarterLaneWidth, -t - 3.);
-                glVertex2d(myQuarterLaneWidth, -t);
+                glVertex2d(myQuarterLaneWidth * scale, -t - 3.);
+                glVertex2d(myQuarterLaneWidth * scale, -t);
                 glEnd();
             }
             glPopMatrix();
@@ -596,7 +596,7 @@ GUILane::drawMarkings(const GUIVisualizationSettings& s) const {
         getShape(),
         getShapeRotations(),
         getShapeLengths(),
-        getHalfWidth() + SUMO_const_laneOffset);
+        (getHalfWidth() + SUMO_const_laneOffset) * scale);
     glPopMatrix();
     glPopName();
 }
