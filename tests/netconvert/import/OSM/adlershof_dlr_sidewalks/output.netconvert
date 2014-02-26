@@ -1,3 +1,4 @@
+Parsing types from 'input_types.typ.xml'... done.
 Parsing nodes from osm-file 'osm.xml'... done.
 Parsing edges from osm-file 'osm.xml'... done.
 Removing duplicate edges... done.
@@ -14,7 +15,7 @@ Joining junction clusters...
 done.
  Joined 16 junction cluster(s).
 Removing empty nodes and geometry nodes... done.
-   86 nodes removed.
+   83 nodes removed.
 Moving network to origin... done.
 Joining similar edges... done.
 Computing turning directions... done.
@@ -39,8 +40,8 @@ Computing traffic light logics... done.
 Summary:
  Node type statistics:
   Unregulated junctions       : 35
-  Priority junctions          : 226
-  Right-before-left junctions : 77
+  Priority junctions          : 229
+  Right-before-left junctions : 75
  Network boundaries:
   Original boundary  : 13.46,52.42,13.54,52.45
   Applied offset     : -395408.93,-5809112.45
