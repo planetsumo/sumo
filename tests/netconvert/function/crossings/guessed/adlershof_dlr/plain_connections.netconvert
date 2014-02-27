@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Fri Feb 21 16:21:48 2014 by SUMO netconvert Version dev-SVN-r15637
+<!-- generated on Thu Feb 27 09:43:07 2014 by SUMO netconvert Version dev-SVN-r15758
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -2145,9 +2145,9 @@
     <connection from="245105008#0" to="224769559" fromLane="0" toLane="0"/>
     <connection from="245105008#0" to="245105008#1" fromLane="0" toLane="0"/>
 
-    <connection from="245105008#1" to="245105008#2" fromLane="0" toLane="0"/>
     <connection from="245105008#1" to="180239858#1" fromLane="0" toLane="1"/>
     <connection from="245105008#1" to="180239858#1" fromLane="0" toLane="2"/>
+    <connection from="245105008#1" to="245105008#2" fromLane="0" toLane="0"/>
 
     <connection from="245105008#3" to="180239847" fromLane="0" toLane="1"/>
     <connection from="245105008#3" to="252597735" fromLane="0" toLane="0"/>
@@ -2584,8 +2584,12 @@
     <crossing node="1520040094" edges="-52460499#1 52460499#1" priority="0"/>
     <crossing node="1520040140" edges="52460499#1 -52460499#1" priority="0"/>
     <crossing node="1520040140" edges="-52460499#0 52460499#0" priority="0"/>
+    <crossing node="1552842725" edges="141968810" priority="0"/>
+    <crossing node="1552842725" edges="141968807" priority="0"/>
     <crossing node="1552842725" edges="-141968830#1 141968830#1" priority="0"/>
     <crossing node="1552842738" edges="-52460499#5 52460499#5" priority="0"/>
+    <crossing node="1552842738" edges="141968913" priority="0"/>
+    <crossing node="1552842738" edges="141873658" priority="0"/>
     <crossing node="1552842740" edges="-152447118 152447118" priority="0"/>
     <crossing node="1552842740" edges="141968830#1 -141968830#1" priority="0"/>
     <crossing node="1552842740" edges="-141968830#0 141968830#0" priority="0"/>
@@ -2687,8 +2691,12 @@
     <crossing node="1832089447" edges="-145586617#0 145586617#0" priority="0"/>
     <crossing node="1832089447" edges="145586617#1 -145586617#1" priority="0"/>
     <crossing node="1906766898" edges="190083610#0 -190083610#0" priority="0"/>
+    <crossing node="1906766898" edges="180239858#0" priority="0"/>
+    <crossing node="1906766898" edges="224769559" priority="0"/>
     <crossing node="1906766907" edges="-81096583 81096583" priority="0"/>
     <crossing node="1906766907" edges="206579064#0 -206579064#1" priority="0"/>
+    <crossing node="1906766909" edges="16942869" priority="0"/>
+    <crossing node="1906766909" edges="180239847" priority="0"/>
     <crossing node="1906766909" edges="180239842 -206579059" priority="0"/>
     <crossing node="1906766923" edges="-206579064#1 206579064#0" priority="0"/>
     <crossing node="1906766923" edges="206579064#2 -206579064#2" priority="0"/>
@@ -2733,6 +2741,8 @@
     <crossing node="294168972" edges="172014854#0 -172014854#0" priority="0"/>
     <crossing node="294169342" edges="-24214694#0 24214694#0" priority="0"/>
     <crossing node="294169342" edges="24214694#1 -24214694#1" priority="0"/>
+    <crossing node="301292499" edges="46150483" priority="0"/>
+    <crossing node="301292499" edges="46039051" priority="0"/>
     <crossing node="301292499" edges="-141968853#2 141968853#2" priority="0"/>
     <crossing node="311418359" edges="-135777010#2 135777010#2" priority="0"/>
     <crossing node="32266940" edges="-46150481#1 46150481#1" priority="0"/>
@@ -2753,6 +2763,8 @@
     <crossing node="456893959" edges="135777010#0 -135777010#0" priority="0"/>
     <crossing node="473482331" edges="52460499#0 -52460499#0" priority="0"/>
     <crossing node="473482356" edges="141968853#0 -141968853#0" priority="0"/>
+    <crossing node="473482356" edges="141968814" priority="0"/>
+    <crossing node="473482356" edges="141968823" priority="0"/>
     <crossing node="539796470" edges="152447118 -152447118" priority="0"/>
     <crossing node="57343438" edges="141968799 -141968799" priority="0"/>
     <crossing node="59992997" edges="-24214694#5 24214694#5" priority="0"/>
@@ -2789,17 +2801,24 @@
     <crossing node="948655504" edges="145586617#3 -145586617#3" priority="0"/>
     <crossing node="cluster_1292264830_1787023432" edges="-24214694#3 24214694#3" priority="0"/>
     <crossing node="cluster_1292264830_1787023432" edges="24214694#5 -24214694#5" priority="0"/>
-    <crossing node="cluster_1560223721_1560223744_851572267_851572547_851572934_851573004" edges="46039050#3 143308532#4" priority="0"/>
+    <crossing node="cluster_1560223721_1560223744_851572267_851572547_851572934_851573004" edges="46039050#3" priority="0"/>
+    <crossing node="cluster_1560223721_1560223744_851572267_851572547_851572934_851573004" edges="143308532#4" priority="0"/>
     <crossing node="cluster_1560223721_1560223744_851572267_851572547_851572934_851573004" edges="-142575699#3 142575699#3" priority="0"/>
-    <crossing node="cluster_1560223721_1560223744_851572267_851572547_851572934_851573004" edges="143308532#7 46039050#0" priority="0"/>
+    <crossing node="cluster_1560223721_1560223744_851572267_851572547_851572934_851573004" edges="143308532#7" priority="0"/>
+    <crossing node="cluster_1560223721_1560223744_851572267_851572547_851572934_851573004" edges="46039050#0" priority="0"/>
     <crossing node="cluster_1560223721_1560223744_851572267_851572547_851572934_851573004" edges="-142575679#8 142575679#8" priority="0"/>
-    <crossing node="cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302" edges="46039050#6 143308532#1" priority="0"/>
+    <crossing node="cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302" edges="46039050#6" priority="0"/>
+    <crossing node="cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302" edges="143308532#1" priority="0"/>
     <crossing node="cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302" edges="143308562#5 -143308562#5" priority="0"/>
-    <crossing node="cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302" edges="143308532#4 46039050#3" priority="0"/>
+    <crossing node="cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302" edges="143308532#4" priority="0"/>
+    <crossing node="cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302" edges="46039050#3" priority="0"/>
     <crossing node="cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302" edges="-143308562#3 143308562#3" priority="0"/>
-    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="143308542#0 143308546#8" priority="0"/>
-    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="143308587 143308590#0" priority="0"/>
-    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="143308532#0 46039050#6" priority="0"/>
+    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="143308542#0" priority="0"/>
+    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="143308546#8" priority="0"/>
+    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="143308587" priority="0"/>
+    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="143308590#0" priority="0"/>
+    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="143308532#0" priority="0"/>
+    <crossing node="cluster_1560223815_1560223847_301292612_56231397" edges="46039050#6" priority="0"/>
     <crossing node="cluster_1560224356_1560224368" edges="143308521#7 -143308521#7" priority="0"/>
     <crossing node="cluster_1560224356_1560224368" edges="-143308521#5 143308521#5" priority="0"/>
     <crossing node="cluster_1560224356_1560224368" edges="142575657#0 -142575657#0" priority="0"/>
@@ -2813,10 +2832,18 @@
     <crossing node="cluster_1568241686_2177702824" edges="-143308521#1 143308521#1" priority="0"/>
     <crossing node="cluster_2222976660_35215926" edges="-145586617#3 145586617#3" priority="0"/>
     <crossing node="cluster_2222976660_35215926" edges="145586617#5 -145586617#5" priority="0"/>
-    <crossing node="cluster_38919703_38920751_671564318" edges="143308546#5 143308542#2" priority="0"/>
+    <crossing node="cluster_38919703_38920751_671564318" edges="143308542#3" priority="0"/>
+    <crossing node="cluster_38919703_38920751_671564318" edges="143308546#3" priority="0"/>
+    <crossing node="cluster_38919703_38920751_671564318" edges="143308546#5" priority="0"/>
+    <crossing node="cluster_38919703_38920751_671564318" edges="143308542#2" priority="0"/>
+    <crossing node="cluster_492462300_671564296" edges="46039050#0" priority="0"/>
+    <crossing node="cluster_492462300_671564296" edges="143308532#7" priority="0"/>
     <crossing node="cluster_492462300_671564296" edges="-206579062#2 206579062#1" priority="0"/>
-    <crossing node="cluster_492462300_671564296" edges="46039051 206579057" priority="0"/>
+    <crossing node="cluster_492462300_671564296" edges="46039051" priority="0"/>
+    <crossing node="cluster_492462300_671564296" edges="206579057" priority="0"/>
     <crossing node="cluster_492462300_671564296" edges="-206579063#2 206579063#1" priority="0"/>
-    <crossing node="cluster_56231598_56242441_945141647_945141732_945141877" edges="143308542#2 143308546#5" priority="0"/>
-    <crossing node="cluster_56231598_56242441_945141647_945141732_945141877" edges="143308546#7 143308542#0" priority="0"/>
+    <crossing node="cluster_56231598_56242441_945141647_945141732_945141877" edges="143308542#2" priority="0"/>
+    <crossing node="cluster_56231598_56242441_945141647_945141732_945141877" edges="143308546#5" priority="0"/>
+    <crossing node="cluster_56231598_56242441_945141647_945141732_945141877" edges="143308546#7" priority="0"/>
+    <crossing node="cluster_56231598_56242441_945141647_945141732_945141877" edges="143308542#0" priority="0"/>
 </connections>

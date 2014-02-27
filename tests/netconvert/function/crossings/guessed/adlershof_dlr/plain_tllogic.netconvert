@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Fri Feb 21 16:04:51 2014 by SUMO netconvert Version dev-SVN-r15637
+<!-- generated on Thu Feb 27 09:43:07 2014 by SUMO netconvert Version dev-SVN-r15758
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -11,7 +11,6 @@
     </input>
 
     <output>
-        <output-file value="net.net.xml"/>
         <plain-output-prefix value="plain"/>
         <output.street-names value="true"/>
     </output>
@@ -19,6 +18,7 @@
     <processing>
         <ignore-errors.edge-type value="true"/>
         <roundabouts.guess value="true"/>
+        <crossings.guess value="true"/>
     </processing>
 
     <report>
@@ -52,8 +52,8 @@
     <connection from="180239858#0" to="180239858#1" fromLane="1" toLane="1" tl="1906766906" linkIndex="2"/>
     <connection from="180239858#0" to="180239858#1" fromLane="2" toLane="2" tl="1906766906" linkIndex="3"/>
     <connection from="245105007" to="142575669" fromLane="0" toLane="0" tl="57343510" linkIndex="0"/>
-    <connection from="245105008#1" to="245105008#2" fromLane="0" toLane="0" tl="1906766906" linkIndex="4"/>
-    <connection from="245105008#1" to="180239858#1" fromLane="0" toLane="1" tl="1906766906" linkIndex="5"/>
-    <connection from="245105008#1" to="180239858#1" fromLane="0" toLane="2" tl="1906766906" linkIndex="6"/>
+    <connection from="245105008#1" to="180239858#1" fromLane="0" toLane="1" tl="1906766906" linkIndex="4"/>
+    <connection from="245105008#1" to="180239858#1" fromLane="0" toLane="2" tl="1906766906" linkIndex="5"/>
+    <connection from="245105008#1" to="245105008#2" fromLane="0" toLane="0" tl="1906766906" linkIndex="6"/>
     <connection from="252597735" to="142575669" fromLane="0" toLane="2" tl="57343510" linkIndex="4"/>
 </tlLogics>

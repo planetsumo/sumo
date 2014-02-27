@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Fri Feb 21 15:59:19 2014 by SUMO netconvert Version dev-SVN-r15637
+<!-- generated on Thu Feb 27 09:37:36 2014 by SUMO netconvert Version dev-SVN-r15758
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -11,7 +11,7 @@
     </input>
 
     <output>
-        <output-file value="input_net.net.xml"/>
+        <output-file value="adlershof_dlr.net.xml"/>
         <plain-output-prefix value="input_plain"/>
         <output.street-names value="true"/>
     </output>

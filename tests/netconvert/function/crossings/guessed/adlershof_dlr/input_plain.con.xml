@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Fri Feb 21 15:59:19 2014 by SUMO netconvert Version dev-SVN-r15637
+<!-- generated on Thu Feb 27 09:37:36 2014 by SUMO netconvert Version dev-SVN-r15758
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -11,7 +11,7 @@
     </input>
 
     <output>
-        <output-file value="input_net.net.xml"/>
+        <output-file value="adlershof_dlr.net.xml"/>
         <plain-output-prefix value="input_plain"/>
         <output.street-names value="true"/>
     </output>
@@ -347,8 +347,8 @@
     <connection from="-143308521#1" to="-143308521#0" fromLane="1" toLane="1"/>
     <connection from="-143308521#1" to="143308521#1" fromLane="1" toLane="1"/>
 
+    <connection from="-143308521#10" to="-143308521#9" fromLane="0" toLane="1"/>
     <connection from="-143308521#10" to="158236729#1" fromLane="1" toLane="0"/>
-    <connection from="-143308521#10" to="-143308521#9" fromLane="1" toLane="1"/>
     <connection from="-143308521#10" to="143308521#10" fromLane="1" toLane="1"/>
 
     <connection from="-143308521#3" to="-143308521#1" fromLane="0" toLane="0"/>
@@ -377,9 +377,9 @@
     <connection from="-143308521#8" to="-149670374" fromLane="1" toLane="0"/>
     <connection from="-143308521#8" to="143308521#8" fromLane="1" toLane="1"/>
 
-    <connection from="-143308521#9" to="142575693#0" fromLane="0" toLane="1"/>
     <connection from="-143308521#9" to="-143308521#8" fromLane="0" toLane="0"/>
     <connection from="-143308521#9" to="-143308521#8" fromLane="1" toLane="1"/>
+    <connection from="-143308521#9" to="142575693#0" fromLane="1" toLane="1"/>
     <connection from="-143308521#9" to="143308521#9" fromLane="1" toLane="1"/>
 
     <connection from="-143308562#0" to="143308521#4" fromLane="0" toLane="0"/>
@@ -744,7 +744,6 @@
     <connection from="-206579064#1" to="-81096583" fromLane="2" toLane="0"/>
     <connection from="-206579064#1" to="206579064#0" fromLane="2" toLane="1"/>
 
-    <connection from="-206579064#2" to="245105008#3" fromLane="0" toLane="0"/>
     <connection from="-206579064#2" to="-206579064#1" fromLane="0" toLane="0"/>
     <connection from="-206579064#2" to="-206579064#1" fromLane="1" toLane="1"/>
     <connection from="-206579064#2" to="-206579064#1" fromLane="2" toLane="2"/>
@@ -865,8 +864,8 @@
 
     <connection from="-222737701#0" to="222737701#0" fromLane="0" toLane="0"/>
 
-    <connection from="-222737701#1" to="-222737701#0" fromLane="0" toLane="0"/>
     <connection from="-222737701#1" to="215353485" fromLane="0" toLane="0"/>
+    <connection from="-222737701#1" to="-222737701#0" fromLane="0" toLane="0"/>
     <connection from="-222737701#1" to="222737701#1" fromLane="0" toLane="0"/>
 
     <connection from="-225232900" to="190083625#1" fromLane="0" toLane="0"/>
@@ -1976,9 +1975,9 @@
     <connection from="156294408" to="149670373#1" fromLane="0" toLane="0"/>
     <connection from="156294408" to="-156294408" fromLane="0" toLane="0"/>
 
-    <connection from="158236729#0" to="143308521#10" fromLane="0" toLane="1"/>
-    <connection from="158236729#0" to="158236729#1" fromLane="0" toLane="0"/>
     <connection from="158236729#0" to="-143308521#9" fromLane="0" toLane="0"/>
+    <connection from="158236729#0" to="158236729#1" fromLane="0" toLane="0"/>
+    <connection from="158236729#0" to="143308521#10" fromLane="0" toLane="1"/>
 
     <connection from="161788770" to="161788772" fromLane="0" toLane="0"/>
 
@@ -2029,8 +2028,8 @@
     <connection from="172288752" to="31763024#1" fromLane="0" toLane="1"/>
     <connection from="172288752" to="-172288752" fromLane="0" toLane="0"/>
 
-    <connection from="174657426" to="143308673#1" fromLane="0" toLane="0"/>
     <connection from="174657426" to="-143308673#0" fromLane="0" toLane="0"/>
+    <connection from="174657426" to="143308673#1" fromLane="0" toLane="0"/>
 
     <connection from="174657429" to="143308689#1" fromLane="0" toLane="0"/>
     <connection from="174657429" to="-174657429" fromLane="0" toLane="0"/>
@@ -2185,7 +2184,6 @@
     <connection from="206579063#1" to="46039050#0" fromLane="2" toLane="2"/>
     <connection from="206579063#1" to="-206579063#2" fromLane="2" toLane="1"/>
 
-    <connection from="206579064#0" to="245105008#3" fromLane="0" toLane="0"/>
     <connection from="206579064#0" to="206579064#2" fromLane="0" toLane="0"/>
     <connection from="206579064#0" to="206579064#2" fromLane="1" toLane="1"/>
     <connection from="206579064#0" to="-206579064#1" fromLane="1" toLane="2"/>
@@ -2258,8 +2256,8 @@
     <connection from="212453791#0" to="-212453974#1" fromLane="0" toLane="0"/>
     <connection from="212453791#0" to="-212453791#0" fromLane="0" toLane="0"/>
 
-    <connection from="212453791#1" to="-212458170" fromLane="0" toLane="0"/>
     <connection from="212453791#1" to="212453791#2" fromLane="0" toLane="0"/>
+    <connection from="212453791#1" to="-212458170" fromLane="0" toLane="0"/>
     <connection from="212453791#1" to="-212453791#1" fromLane="0" toLane="0"/>
 
     <connection from="212453791#2" to="212453791#3" fromLane="0" toLane="0"/>
@@ -2395,14 +2393,14 @@
     <connection from="245105008#0" to="224769559" fromLane="0" toLane="0"/>
     <connection from="245105008#0" to="245105008#1" fromLane="0" toLane="0"/>
 
-    <connection from="245105008#1" to="245105008#2" fromLane="0" toLane="0"/>
     <connection from="245105008#1" to="180239858#1" fromLane="0" toLane="1"/>
     <connection from="245105008#1" to="180239858#1" fromLane="0" toLane="2"/>
+    <connection from="245105008#1" to="245105008#2" fromLane="0" toLane="0"/>
 
     <connection from="245105008#2" to="206579064#2" fromLane="0" toLane="0"/>
-    <connection from="245105008#2" to="245105008#3" fromLane="0" toLane="0"/>
     <connection from="245105008#2" to="-206579064#1" fromLane="0" toLane="1"/>
     <connection from="245105008#2" to="-206579064#1" fromLane="0" toLane="2"/>
+    <connection from="245105008#2" to="245105008#3" fromLane="0" toLane="0"/>
 
     <connection from="245105008#3" to="180239847" fromLane="0" toLane="1"/>
     <connection from="245105008#3" to="252597735" fromLane="0" toLane="0"/>
