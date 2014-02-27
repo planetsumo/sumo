@@ -53,6 +53,7 @@
 #include <utils/iodevices/OutputDevice.h>
 #include <iomanip>
 #include "NBNode.h"
+#include "NBAlgorithms.h"
 #include "NBNodeCont.h"
 #include "NBNodeShapeComputer.h"
 #include "NBEdgeCont.h"
@@ -1431,6 +1432,7 @@ NBNode::guessCrossings() {
         prevAngle = angle;
     }
     numGuessed += checkCrossing(joinedEdges);
+    std::sort(myCrossings.begin(), myCrossings.end(), NBNodesEdgesSorter::crossing_by_junction_angle_sorter(myAllEdges));
     return numGuessed;
 }
 
