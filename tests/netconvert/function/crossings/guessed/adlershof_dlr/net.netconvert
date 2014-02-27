@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Thu Feb 27 10:40:45 2014 by SUMO netconvert Version dev-SVN-r15758
+<!-- generated on Thu Feb 27 10:49:47 2014 by SUMO netconvert Version dev-SVN-r15758
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -2752,7 +2752,7 @@
         <lane id=":158710664_12_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="3513.72,569.42 3514.17,573.39 3517.25,573.04 3516.80,569.07"/>
     </edge>
     <edge id=":158710664_13" function="walkingarea">
-        <lane id=":158710664_13_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="3501.49,562.33 3502.32,558.42 3499.29,557.77 3888.75,427.34"/>
+        <lane id=":158710664_13_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="3501.49,562.33 3502.32,558.42 3499.29,557.77 3498.46,561.69"/>
     </edge>
     <edge id=":158710664_14" function="walkingarea">
         <lane id=":158710664_14_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="3500.23,573.13 3496.35,574.12 3496.35,574.12 3498.07,575.23 3501.15,574.88 3500.70,570.90"/>
@@ -3266,7 +3266,7 @@
         <lane id=":1789928382_11_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="4454.89,998.78 4458.24,1000.95 4459.38,999.19 4456.03,997.02"/>
     </edge>
     <edge id=":1789928382_12" function="walkingarea">
-        <lane id=":1789928382_12_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="4455.55,1007.01 4452.24,1004.77 4451.06,1006.51 4447.58,1004.16"/>
+        <lane id=":1789928382_12_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="4455.55,1007.01 4452.24,1004.77 4451.06,1006.51 4454.38,1008.75"/>
     </edge>
     <edge id=":1789928382_13" function="walkingarea">
         <lane id=":1789928382_13_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.00" shape="4454.74,1006.75 4452.46,1010.04 4452.46,1010.04 4453.57,1008.17 4454.71,1006.41 4451.35,1004.23"/>

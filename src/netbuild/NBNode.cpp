@@ -1680,7 +1680,7 @@ NBNode::updateShapeAndConnections(WalkingArea& wa, const NBEdge* startEdge, cons
         if (fnpIndex == (dir == FORWARD ? 0 : be->getNumLanes() - 1)) {
             // final point: extension of outer lane of first edge to be crossed
             edgBeg.shape.extrapolate(startWidth);
-            wa.shape.push_back(edgBeg.shape[dir == FORWARD ? -1 : 0]);
+            wa.shape.push_back(edgBeg.shape[begDir == FORWARD ? 0 : -1]);
             wa.done = true;
         } else { // between edges has a sidewalk
             // point 2i: right side of between edge
