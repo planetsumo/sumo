@@ -499,13 +499,20 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
                 GLHelper::drawFilledPolyTesselated(myShape, true);
             }
             glTranslated(0, 0, -.2);
-            // DEBUG
-            //glTranslated(0, 0, .4);
-            //for (int i = 0; i < (int)myShape.size(); ++i) {
-            //    GLHelper::drawText(toString(i), myShape[i], GLO_JUNCTION,
-            //                       80/s.scale, s.streetName.color, 0);
+
+            glTranslated(0, 0, -100);
+            drawName(myShape.getCentroid(), s.scale, s.internalJunctionName);
+            glTranslated(0, 0, +100);
+            //{
+            //    // DEBUG (number walkingArea vertices)
+            //    RGBColor color = RGBColor::fromHSV(RandHelper::rand(360), 1, 1);
+            //    glTranslated(0, 0, .4);
+            //    for (int i = 0; i < (int)myShape.size(); ++i) {
+            //        GLHelper::drawText(toString(i), myShape[i], GLO_JUNCTION,
+            //                80/s.scale, color, 0);
+            //    }
+            //    glTranslated(0, 0, -.4);
             //}
-            //glTranslated(0, 0, -.4);
         } else {
             const SUMOReal laneWidth = isInternal ? myQuarterLaneWidth : myHalfLaneWidth;
             mustDrawMarkings = !isInternal;
