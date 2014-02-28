@@ -32,6 +32,8 @@ def get_options():
                          default="trips.trips.xml", help="define the output trip filename")
     optParser.add_option("-r", "--route-file", dest="routefile",
                          help="generates route file with duarouter")
+    optParser.add_option("--pedestrians", action="store_true",
+                         default=False, help="create a person file with pedestrian trips instead of vehicle trips")
     optParser.add_option("-t", "--trip-id-prefix", dest="tripprefix",
                          default="", help="prefix for the trip ids")
     optParser.add_option("-a", "--trip-parameters", dest="trippar",
@@ -145,8 +147,13 @@ def main(options):
         while depart < options.end:
             label = "%s%s" % (options.tripprefix, idx)
             source_edge, sink_edge = edge_generator.get_trip(options.min_distance)
-            print >> fouttrips, '    <trip id="%s" depart="%.2f" from="%s" to="%s" %s/>' % (
-                    label, depart, source_edge.getID(), sink_edge.getID(), options.trippar)
+            if options.pedestrians:
+                print >> fouttrips, '    <person id="%s" depart="%.2f" %s>' % (label, depart, options.trippar)
+                print >> fouttrips, '        <walk from="%s" to="%s">' % (source_edge.getID(), sink_edge.getID())
+                print >> fouttrips, '    <person/>' 
+            else:
+                print >> fouttrips, '    <trip id="%s" depart="%.2f" from="%s" to="%s" %s/>' % (
+                        label, depart, source_edge.getID(), sink_edge.getID(), options.trippar)
             idx += 1
             depart += options.period
         fouttrips.write("</trips>")
