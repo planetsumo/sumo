@@ -9,3 +9,9 @@ minimum_distance
 # increase the probability for trips to start and end at the fringe of the network.
 # For this test, the turnarounds at the fringe have been removed since the fringe is detected by limited connectivity
 fringe_factor
+
+# detected the fringe despite turnarounds
+fringe_factor_turnarounds
+
+# consider vehicle class when picking source- and destination edges if option --vclass is used
+vclass

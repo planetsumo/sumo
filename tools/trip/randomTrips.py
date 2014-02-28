@@ -19,60 +19,13 @@ the Free Software Foundation; either version 3 of the License, or
 
 import os, sys, random, bisect, datetime, subprocess
 import math
-from optparse import OptionParser
+import optparse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import sumolib.net
 
-# euclidean distance between two coordinates in the plane
-def euclidean(a, b):
-    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
-
-# assigns a weight to each edge using weight_fun and then draws from a discrete
-# distribution with these weights
-class randomEdgeGenerator:
-    def __init__(self, netfile, weight_fun):
-        self.net = sumolib.net.readNet(netfile)
-        self.net_diameter = self.net.getBBoxDiameter()
-        self.cumulative_weights = []
-        self.total_weight = 0
-        for edge in self.net._edges:
-            self.total_weight += weight_fun(edge)
-            self.cumulative_weights.append(self.total_weight)
-
-    def _get_connected(self, type, attr, maxtries):
-        for i in range(maxtries):
-            edge = self.get()
-            if len(getattr(edge, attr)()) > 0:
-                return edge
-        raise Exception("no %s edge found after %s tries" % (type, maxtries))
-
-    def get_trip(self, min_distance, maxtries=100):
-        if min_distance > self.net_diameter:
-            raise Exception("Cannot find trips with min-distance %s for net with diamter %s" % (
-                min_distance, self.net_diameter))
-        for i in range(maxtries):
-            source_edge = self.get_source(maxtries)
-            sink_edge = self.get_sink(maxtries)
-            distance = euclidean(source_edge.getFromNode().getCoord(), 
-                    sink_edge.getToNode().getCoord())
-            if distance >= min_distance:
-                return source_edge, sink_edge
-        raise Exception("no %s trip found after %s tries" % (type, maxtries))
-
-    def get_source(self, maxtries=100):
-        return self._get_connected("source", "getOutgoing", maxtries)
-
-    def get_sink(self, maxtries=100):
-        return self._get_connected("sink", "getIncoming", maxtries)
-
-    def get(self):
-        r = random.random() * self.total_weight
-        index = bisect.bisect(self.cumulative_weights, r)
-        return self.net._edges[index]
-
 
 def get_options():
-    optParser = OptionParser()
+    optParser = optparse.OptionParser()
     optParser.add_option("-n", "--net-file", dest="netfile",
                             help="define the net file (mandatory)")
     optParser.add_option("-o", "--output-trip-file", dest="tripfile",
@@ -99,20 +52,62 @@ def get_options():
                          default=0.0, help="only consider edges with speed above <FLOAT> as fringe edges (default 0)")
     optParser.add_option("--min-distance", type="float", dest="min_distance",
                          default=0.0, help="require start and end edges for each trip to be at least <FLOAT> m appart (default 0)")
+    optParser.add_option("-c", "--vclass", 
+                         help="only from and to edges which permit <vClass>")
     optParser.add_option("-v", "--verbose", action="store_true",
                          default=False, help="tell me what you are doing")
     (options, args) = optParser.parse_args()
-    return options
-
-
-def main(options):
     if not options.netfile:
         optParser.print_help()
         sys.exit()
-    if options.seed:
-        random.seed(options.seed)
+    return options
 
+
+
+# euclidean distance between two coordinates in the plane
+def euclidean(a, b):
+    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+# assigns a weight to each edge using weight_fun and then draws from a discrete
+# distribution with these weights
+class RandomEdgeGenerator:
+    def __init__(self, net, weight_fun):
+        self.net = net
+        self.cumulative_weights = []
+        self.total_weight = 0
+        for edge in self.net._edges:
+            #print edge.getID(), weight_fun(edge)
+            self.total_weight += weight_fun(edge)
+            self.cumulative_weights.append(self.total_weight)
+
+    def get(self):
+        r = random.random() * self.total_weight
+        index = bisect.bisect(self.cumulative_weights, r)
+        return self.net._edges[index]
+
+
+class RandomTripGenerator:
+    def __init__(self, source_generator, sink_generator):
+        self.source_generator = source_generator
+        self.sink_generator = sink_generator
+
+    def get_trip(self, min_distance, maxtries=100):
+        for i in range(maxtries):
+            source_edge = self.source_generator.get()
+            sink_edge = self.sink_generator.get()
+            distance = euclidean(source_edge.getFromNode().getCoord(), 
+                    sink_edge.getToNode().getCoord())
+            if distance >= min_distance:
+                return source_edge, sink_edge
+        raise Exception("no trip found after %s tries" % (type, maxtries))
+
+
+def get_prob_fun(options, fringe_bonus, fringe_forbidden):
     def edge_probability(edge):
+        if options.vclass and not edge.allows(options.vclass):
+            return 0
+        if edge.is_fringe(getattr(edge, fringe_forbidden)):
+            return 0
         prob = 1
         if options.length:
             prob *= edge.getLength()
@@ -121,11 +116,26 @@ def main(options):
         prob *= (edge.getSpeed() ** options.speed_exponent)
         if (options.fringe_factor != 1.0 and
                 edge.getSpeed() > options.fringe_threshold and
-                edge.is_fringe()):
+                edge.is_fringe(getattr(edge, fringe_bonus))):
             prob *= options.fringe_factor
         return prob
+    return edge_probability
 
-    edge_generator = randomEdgeGenerator(options.netfile, edge_probability)
+
+def main(options):
+    if options.seed:
+        random.seed(options.seed)
+
+    net = sumolib.net.readNet(options.netfile)
+    if options.min_distance > net.getBBoxDiameter():
+        sys.exit("Cannot find trips with min-distance %s for net with diamter %s" % (
+            options.min_distance, self.net_diameter))
+
+
+    edge_generator = RandomTripGenerator(
+            RandomEdgeGenerator(net, get_prob_fun(options, "_incoming", "_outgoing")),
+            RandomEdgeGenerator(net, get_prob_fun(options, "_outgoing", "_incoming")))
+
     idx = 0
     with open(options.tripfile, 'w') as fouttrips:
         print >> fouttrips, """<?xml version="1.0"?>
