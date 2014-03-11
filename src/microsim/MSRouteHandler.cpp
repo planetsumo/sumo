@@ -129,31 +129,6 @@ MSRouteHandler::myStartElement(int element,
         case SUMO_TAG_WALK: {
             myActiveRoute.clear();
             bool ok = true;
-            if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
-                MSEdge::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_EDGES, myVehicleParameter->id.c_str(), ok), myActiveRoute, myActiveRouteID);
-            } else {
-                if (attrs.hasAttribute(SUMO_ATTR_FROM) && attrs.hasAttribute(SUMO_ATTR_TO)) {
-                    const std::string fromID = attrs.get<std::string>(SUMO_ATTR_FROM, myVehicleParameter->id.c_str(), ok);
-                    MSEdge* from = MSEdge::dictionary(fromID);
-                    if (from == 0) {
-                        throw ProcessError("The from edge '" + fromID + "' within a walk of person '" + myVehicleParameter->id + "' is not known.");
-                    }
-                    const std::string toID = attrs.get<std::string>(SUMO_ATTR_TO, myVehicleParameter->id.c_str(), ok);
-                    MSEdge* to = MSEdge::dictionary(toID);
-                    if (to == 0) {
-                        throw ProcessError("The to edge '" + toID + "' within a walk of person '" + myVehicleParameter->id + "' is not known.");
-                    }
-
-                    PedestrianRouterDijkstra<MSEdge, MSLane> router;
-                    //MSNet::getInstance()->getRouterTT().compute(from, to, 0, 0, myActiveRoute); // @todo: only footways, current time?
-                }
-            }
-            if (myActiveRoute.empty()) {
-                throw ProcessError("No edges to walk for person '" + myVehicleParameter->id + "'.");
-            }
-            if (!myActivePlan->empty() && &myActivePlan->back()->getDestination() != myActiveRoute.front()) {
-                throw ProcessError("Disconnected plan for person '" + myVehicleParameter->id + "' (" + myActiveRoute.front()->getID() + "!=" + myActivePlan->back()->getDestination().getID() + ").");
-            }
             SUMOReal departPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_DEPARTPOS, myVehicleParameter->id.c_str(), ok, 0);
             SUMOReal arrivalPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ARRIVALPOS, myVehicleParameter->id.c_str(), ok, -1);
             const SUMOTime duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, 0, ok, -1);
@@ -174,6 +149,31 @@ MSRouteHandler::myStartElement(int element,
                 if (bs == 0) {
                     throw ProcessError("Unknown bus stop '" + bsID + "' for person '" + myVehicleParameter->id + "'.");
                 }
+            }
+            if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
+                MSEdge::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_EDGES, myVehicleParameter->id.c_str(), ok), myActiveRoute, myActiveRouteID);
+            } else {
+                if (attrs.hasAttribute(SUMO_ATTR_FROM) && attrs.hasAttribute(SUMO_ATTR_TO)) {
+                    const std::string fromID = attrs.get<std::string>(SUMO_ATTR_FROM, myVehicleParameter->id.c_str(), ok);
+                    MSEdge* from = MSEdge::dictionary(fromID);
+                    if (from == 0) {
+                        throw ProcessError("The from edge '" + fromID + "' within a walk of person '" + myVehicleParameter->id + "' is not known.");
+                    }
+                    const std::string toID = attrs.get<std::string>(SUMO_ATTR_TO, myVehicleParameter->id.c_str(), ok);
+                    MSEdge* to = MSEdge::dictionary(toID);
+                    if (to == 0) {
+                        throw ProcessError("The to edge '" + toID + "' within a walk of person '" + myVehicleParameter->id + "' is not known.");
+                    }
+                    //MSNet::getInstance()->getRouterTT().compute(from, to, 0, 0, myActiveRoute); // @todo: only footways, current time?
+                    PedestrianRouterDijkstra<MSEdge, MSLane> router;
+                    router.compute(from, to, departPos, arrivalPos, speed, 0, myActiveRoute);
+                }
+            }
+            if (myActiveRoute.empty()) {
+                throw ProcessError("No edges to walk for person '" + myVehicleParameter->id + "'.");
+            }
+            if (!myActivePlan->empty() && &myActivePlan->back()->getDestination() != myActiveRoute.front()) {
+                throw ProcessError("Disconnected plan for person '" + myVehicleParameter->id + "' (" + myActiveRoute.front()->getID() + "!=" + myActivePlan->back()->getDestination().getID() + ").");
             }
             if (myActivePlan->empty()) {
                 myActivePlan->push_back(new MSPerson::MSPersonStage_Waiting(

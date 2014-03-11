@@ -68,8 +68,8 @@ struct PedestrianTrip {
     PedestrianTrip(const E* _from, const E* _to, SUMOReal _departPos, SUMOReal _arrivalPos, SUMOReal _speed) :
         from(_from),
         to(_to),
-        departPos(_departPos),
-        arrivalPos(_arrivalPos),
+        departPos(_departPos < 0 ? _from->getLength() + _departPos : _departPos),
+        arrivalPos(_arrivalPos < 0 ? _to->getLength() + _arrivalPos : _arrivalPos),
         speed(_speed)
     {}
 
@@ -102,67 +102,95 @@ public:
         unsigned int numericalID = 0;
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
+            if (edge->isInternal()) {
+                continue;
+            }
             PedestrianEdge fwd(numericalID++, edge, true);
             PedestrianEdge bwd(numericalID++, edge, false);
             myEdgeDict.push_back(fwd);
             myEdgeDict.push_back(bwd);
-            myBidiLookup[edge] = std::make_pair(&fwd, &bwd);
+            myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID - 2], &myEdgeDict[numericalID - 1]);
         }
-        // build the depart and arrival edges for (it doesn't matter in which direction a pedestrian arrives)
+        // build the depart and arrival edges for (the router can decide the initial direction to take and the direction to arrive from)
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
-            PedestrianEdge from(numericalID++, 0, true);
-            PedestrianEdge to(numericalID++, 0, false);
-            myEdgeDict.push_back(from);
-            myEdgeDict.push_back(to);
-            myFromToLookup[edge] = std::make_pair(&from, &to);
+            if (edge->isInternal()) {
+                continue;
+            }
+            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true, true));
+            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false, true));
+            myFromToLookup[edge] = std::make_pair(&myEdgeDict[numericalID - 2], &myEdgeDict[numericalID - 1]);
         }
 
         // build the connections
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
+            if (edge->isInternal()) {
+                continue;
+            }
             // find all incoming and outgoing lanes for the sidewalk and
             // connect the corresponding PedestrianEdges
             const L* sidewalk = getSidewalk<E, L>(edge);
-            const EdgePair& pair = myBidiLookup[edge];
+            const EdgePair& pair = getBothDirections(edge);
 
             std::vector<const L*> outgoing = sidewalk->getOutgoingLanes();
             for (typename std::vector<const L*>::iterator it = outgoing.begin(); it != outgoing.end(); ++it) {
                 const L* target = *it;
                 const E* targetEdge = &(target->getEdge());
                 if (target == getSidewalk<E, L>(targetEdge)) {
-                    const EdgePair& targetPair = myBidiLookup[targetEdge];
+                    const EdgePair& targetPair = getBothDirections(targetEdge);
                     pair.first->myFollowingEdges.push_back(targetPair.first);
                     targetPair.second->myFollowingEdges.push_back(pair.second);
                 }
             }
-            // build connections to depart and arrival edges
-            const EdgePair& fromTo = myFromToLookup[edge];
-            fromTo.first->myFollowingEdges.push_back(pair.first);
-            fromTo.first->myFollowingEdges.push_back(pair.second);
-            pair.first->myFollowingEdges.push_back(fromTo.second);
-            pair.second->myFollowingEdges.push_back(fromTo.second);
+            // build connections from depart connector 
+            PedestrianEdge* startConnector = getDepartEdge(edge);
+            startConnector->myFollowingEdges.push_back(pair.first);
+            startConnector->myFollowingEdges.push_back(pair.second);
+            // build connections to arrival connector
+            PedestrianEdge* endConnector = getArrivalEdge(edge);
+            pair.first->myFollowingEdges.push_back(endConnector);
+            pair.second->myFollowingEdges.push_back(endConnector);
         }
         myAmInitialized = true;
     }
 
-    E* getEdge() const {
+    bool includeInRoute() const {
+        return !myAmConnector && !myEdge->isCrossing() && !myEdge->isWalkingArea();
+    }
+
+    const E* getEdge() const {
         return myEdge;
     }
 
     /// @brief Returns the pair of forward and backward edge
-    static const EdgePair& getBothDirections(E* e) {
-        return myBidiLookup[e];
+    static const EdgePair& getBothDirections(const E* e) {
+        typename std::map<const E*, EdgePair>::const_iterator it = myBidiLookup.find(e);
+        if (it == myBidiLookup.end()) {
+            assert(false);
+            throw ProcessError("Edge '" + e->getID() + "' not found in pedestrian network '");
+        }
+        return (*it).second;
     }
 
     /// @brief Returns the departing Pedestrian edge
-    static const PedestrianEdge* getDepartEdge(E* e) {
-        return myFromToLookup[e].first;
+    static PedestrianEdge* getDepartEdge(const E* e) {
+        typename std::map<const E*, EdgePair>::const_iterator it = myFromToLookup.find(e);
+        if (it == myFromToLookup.end()) {
+            assert(false);
+            throw ProcessError("Edge '" + e->getID() + "' not found in pedestrian network '");
+        }
+        return (*it).second.first;
     }
 
     /// @brief Returns the arriving Pedestrian edge
-    static const PedestrianEdge* getArrivalEdge (E* e) {
-        return myFromToLookup[e].second;;
+    static PedestrianEdge* getArrivalEdge (const E* e) {
+        typename std::map<const E*, EdgePair>::const_iterator it = myFromToLookup.find(e);
+        if (it == myFromToLookup.end()) {
+            assert(false);
+            throw ProcessError("Edge '" + e->getID() + "' not found in pedestrian network '");
+        }
+        return (*it).second.second;
     }
 
     /// @name The interface as required by SUMOAbstractRouter routes
@@ -173,8 +201,8 @@ public:
     }
 
     /// @brief Returns the PedstrianEdge with the given numericalID
-    static PedestrianEdge* dictionary(size_t index) {
-        assert(index < myEdge.size());
+    static const PedestrianEdge* dictionary(size_t index) {
+        assert(index < myEdgeDict.size());
         return &myEdgeDict[index];
     }
 
@@ -196,10 +224,10 @@ public:
     ///@brief the function called by RouterTT_direct
     SUMOReal getTravelTime(const PedestrianTrip<E>* const trip, SUMOReal time) const {
         UNUSED_PARAMETER(time);
-        if (myEdge == 0) {
-            // dummy edges don't count
+        if (myAmConnector) {
             return 0;
         }
+        // XXX length of walkingAreas != edgeLength
         SUMOReal length = myEdge->getLength();
         if (myEdge == trip->from) {
             if (myForward) {
@@ -219,20 +247,24 @@ public:
     }
 
 private:
-    PedestrianEdge(unsigned int numericalID, E* edge, bool forward) :
-        Named(edge->getID() + "_" + (forward ? "fwd" : "bwd")), 
+    PedestrianEdge(unsigned int numericalID, E* edge, bool forward, bool connector = false) :
+        Named(edge->getID() + "_" + (forward ? "fwd" : "bwd") + (connector ? "_connector" : "")), 
         myNumericalID(numericalID),
         myEdge(edge),
-        myForward(forward) { }
+        myForward(forward),
+        myAmConnector(connector) { }
 
     /// @brief the index in myEdgeDict
     unsigned int myNumericalID;
 
     /// @brief  the original edge
-    E* myEdge;
+    const E* myEdge;
 
     /// @brief the direction of this edge
     bool myForward;
+
+    /// @brief the direction of this edge
+    bool myAmConnector;
 
     /// @brief List of edges that may be approached from this edge
     std::vector<PedestrianEdge*> myFollowingEdges;
@@ -283,10 +315,12 @@ public:
         _PedestrianTrip trip(from, to, departPos, arrivalPos, speed);
         std::vector<const _PedestrianEdge*> intoPed;
         myInternalRouter->compute(_PedestrianEdge::getDepartEdge(from), 
-                _PedestrianEdge::getArrivalEdge(to), trip, msTime, intoPed);
-        if (intoPed.size > 2) {
+                _PedestrianEdge::getArrivalEdge(to), &trip, msTime, intoPed);
+        if (intoPed.size() > 2) {
             for (size_t i = 1; i < intoPed.size(); ++i) {
-                into.push_back(intoPed[i]->getEdge());
+                if (intoPed[i]->includeInRoute()) {
+                    into.push_back(intoPed[i]->getEdge());
+                }
             }
         }
         //endQuery();
