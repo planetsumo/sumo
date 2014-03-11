@@ -96,8 +96,14 @@ public:
         return myEdgeDict.size();
     }
 
+    static void cleanup() {
+        myFromToLookup.clear();
+        myBidiLookup.clear();
+        myEdgeDict.clear();
+    }
+
     static void initPedestrianNetwork(size_t noE) {
-        if (myAmInitialized) {
+        if (myEdgeDict.size() > 0) {
             return;
         }
 #ifdef PedestrianRouter_DEBUG_NETWORK
@@ -179,7 +185,6 @@ public:
             std::cout << "     " << pair.second->getID() << " -> " << endConnector->getID() << "\n";
 #endif
         }
-        myAmInitialized = true;
     }
 
     bool includeInRoute() const {
@@ -307,8 +312,6 @@ private:
     /// @brief retrieve the depart and arrival edge for the given input edge E
     static std::map<const E*, EdgePair> myFromToLookup;
 
-    static bool myAmInitialized;
-
 };
 
 
@@ -400,9 +403,6 @@ std::map<const E*, typename PedestrianEdge<E, L>::EdgePair> PedestrianEdge<E, L>
 
 template<class E, class L>
 std::map<const E*, typename PedestrianEdge<E, L>::EdgePair> PedestrianEdge<E, L>::myFromToLookup;
-
-template<class E, class L>
-bool PedestrianEdge<E, L>::myAmInitialized(false);
 
 /****************************************************************************/
 

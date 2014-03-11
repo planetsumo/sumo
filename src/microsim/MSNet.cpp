@@ -45,6 +45,7 @@
 #include <algorithm>
 #include <cassert>
 #include <vector>
+#include <ctime>
 #include <utils/common/UtilExceptions.h>
 #include "MSNet.h"
 #include "MSPersonControl.h"
@@ -84,10 +85,10 @@
 #include <utils/common/SysUtils.h>
 #include <utils/common/WrappingCommand.h>
 #include <utils/options/OptionsCont.h>
+#include <utils/common/PedestrianRouter.h>
 #include "MSGlobals.h"
 #include "MSPModel.h"
 #include <utils/geom/GeoConvHelper.h>
-#include <ctime>
 #include "MSPerson.h"
 #include "MSEdgeWeightsStorage.h"
 #include "MSStateHandler.h"
@@ -513,6 +514,7 @@ MSNet::clearAll() {
     MSTrigger::cleanup();
     MSCalibrator::cleanup();
     MSPModel::cleanup();
+    PedestrianEdge<MSEdge, MSLane>::cleanup();
 }
 
 
