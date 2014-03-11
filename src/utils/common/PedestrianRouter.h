@@ -43,6 +43,8 @@
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/AStarRouter.h>
 
+//#define PedestrianRouter_DEBUG_NETWORK
+
 template <class E, class L>
 inline const L* getSidewalk(const E* edge) {
     if (edge == 0) {
@@ -98,28 +100,34 @@ public:
         if (myAmInitialized) {
             return;
         }
-        // build the forward and backward edges
+#ifdef PedestrianRouter_DEBUG_NETWORK
+            std::cout << "initPedestrianNetwork\n";
+#endif
+        // build the Pedestrian edges
         unsigned int numericalID = 0;
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
             if (edge->isInternal()) {
                 continue;
             }
-            PedestrianEdge fwd(numericalID++, edge, true);
-            PedestrianEdge bwd(numericalID++, edge, false);
-            myEdgeDict.push_back(fwd);
-            myEdgeDict.push_back(bwd);
-            myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID - 2], &myEdgeDict[numericalID - 1]);
+            // forward and backward edges
+            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
+            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false));
+            // depart and arrival edges for (the router can decide the initial direction to take and the direction to arrive from)
+            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true, true));
+            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false, true));
+
         }
-        // build the depart and arrival edges for (the router can decide the initial direction to take and the direction to arrive from)
+        // build the lookup tables after myEdgeDict is complete
+        numericalID = 0;
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
             if (edge->isInternal()) {
                 continue;
             }
-            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true, true));
-            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false, true));
-            myFromToLookup[edge] = std::make_pair(&myEdgeDict[numericalID - 2], &myEdgeDict[numericalID - 1]);
+            myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID + 1]);
+            myFromToLookup[edge] = std::make_pair(&myEdgeDict[numericalID + 2], &myEdgeDict[numericalID + 3]);
+            numericalID += 4;
         }
 
         // build the connections
@@ -133,15 +141,28 @@ public:
             const L* sidewalk = getSidewalk<E, L>(edge);
             const EdgePair& pair = getBothDirections(edge);
 
+#ifdef PedestrianRouter_DEBUG_NETWORK
+            std::cout << "  building connections from " << sidewalk->getID() << "\n";
+#endif
             std::vector<const L*> outgoing = sidewalk->getOutgoingLanes();
             for (typename std::vector<const L*>::iterator it = outgoing.begin(); it != outgoing.end(); ++it) {
                 const L* target = *it;
                 const E* targetEdge = &(target->getEdge());
+#ifdef PedestrianRouter_DEBUG_NETWORK
+                std::cout << "   lane=" << getSidewalk<E, L>(targetEdge)->getID() << (target == getSidewalk<E, L>(targetEdge) ? "(used)" : "") << "\n";
+#endif
                 if (target == getSidewalk<E, L>(targetEdge)) {
                     const EdgePair& targetPair = getBothDirections(targetEdge);
                     pair.first->myFollowingEdges.push_back(targetPair.first);
                     targetPair.second->myFollowingEdges.push_back(pair.second);
+#ifdef PedestrianRouter_DEBUG_NETWORK
+                std::cout << "     " << pair.first->getID() << " -> " << targetPair.first->getID() << "\n";
+                std::cout << "     " << targetPair.second->getID() << " -> " << pair.second->getID() << "\n";
+#endif
                 }
+            }
+            if (edge->isCrossing() || edge->isWalkingArea()) {
+                continue;
             }
             // build connections from depart connector 
             PedestrianEdge* startConnector = getDepartEdge(edge);
@@ -151,6 +172,12 @@ public:
             PedestrianEdge* endConnector = getArrivalEdge(edge);
             pair.first->myFollowingEdges.push_back(endConnector);
             pair.second->myFollowingEdges.push_back(endConnector);
+#ifdef PedestrianRouter_DEBUG_NETWORK
+            std::cout << "     " << startConnector->getID() << " -> " << pair.first->getID() << "\n";
+            std::cout << "     " << startConnector->getID() << " -> " << pair.second->getID() << "\n";
+            std::cout << "     " << pair.first->getID() << " -> " << endConnector->getID() << "\n";
+            std::cout << "     " << pair.second->getID() << " -> " << endConnector->getID() << "\n";
+#endif
         }
         myAmInitialized = true;
     }
@@ -221,8 +248,10 @@ public:
 
     /// @}
 
-    ///@brief the function called by RouterTT_direct
-    SUMOReal getTravelTime(const PedestrianTrip<E>* const trip, SUMOReal time) const {
+    /*@brief the function called by RouterTT_direct
+     * (distance is used as effort, effort is assumed to be independent of time
+     */
+    SUMOReal getEffort(const PedestrianTrip<E>* const trip, SUMOReal) const {
         UNUSED_PARAMETER(time);
         if (myAmConnector) {
             return 0;
@@ -299,7 +328,7 @@ public:
         SUMOAbstractRouter<E, _PedestrianTrip>("PedestrianRouter")
     { 
         _PedestrianEdge::initPedestrianNetwork(E::dictSize());
-        myInternalRouter = new INTERNALROUTER(_PedestrianEdge::dictSize(), true, &_PedestrianEdge::getTravelTime);
+        myInternalRouter = new INTERNALROUTER(_PedestrianEdge::dictSize(), true, &_PedestrianEdge::getEffort);
     }
 
     /// Destructor
