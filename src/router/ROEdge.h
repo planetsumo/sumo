@@ -79,7 +79,11 @@ public:
         ET_SOURCE,
         /// @brief An edge where vehicles disappear (no vehicle may leave this edge)
         ET_SINK,
-        /// @brief An internal edge which models driving across a junction. This is currently not used for routing
+        /// @brief An internal edge which models walking areas for pedestrians
+        ET_WALKINGAREA,
+        /// @brief An internal edge which models pedestrian crossings
+        ET_CROSSING,
+        /// @brief An internal edge which models vehicles driving across a junction. This is currently not used for routing
         ET_INTERNAL
     };
 

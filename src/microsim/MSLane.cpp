@@ -1249,6 +1249,17 @@ MSLane::getLogicalPredecessorLane() const {
 }
 
 
+std::vector<const MSLane*> 
+MSLane::getOutgoingLanes() const {
+    std::vector<const MSLane*> result;
+    for (MSLinkCont::const_iterator i = myLinks.begin(); i != myLinks.end(); ++i) {
+        assert((*i)->getLane() != 0);
+        result.push_back((*i)->getLane());
+    }
+    return result;
+}
+
+
 void
 MSLane::leftByLaneChange(MSVehicle* v) {
     myBruttoVehicleLengthSum -= v->getVehicleType().getLengthWithGap();

@@ -25,6 +25,7 @@ SUMOVTypeParameter.cpp SUMOVTypeParameter.h \
 MsgRetrievingFunction.h \
 SUMOVehicleClass.cpp SUMOVehicleClass.h \
 ToString.h TplConvert.h \
+PedestrianRouter.h \
 ValueTimeLine.h
 
 

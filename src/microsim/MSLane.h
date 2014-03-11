@@ -626,6 +626,8 @@ public:
 
     MSLane* getLogicalPredecessorLane() const;
 
+    /// @brief get the list of outgoing lanes
+    std::vector<const MSLane*> getOutgoingLanes() const;
 
     /// @name Current state retrieval
     //@{

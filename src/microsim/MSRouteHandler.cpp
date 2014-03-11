@@ -55,6 +55,7 @@
 #include <microsim/trigger/MSBusStop.h>
 #include <microsim/MSGlobals.h>
 #include <utils/xml/SUMOVehicleParserHelper.h>
+#include <utils/common/PedestrianRouter.h> // XXX
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -142,7 +143,9 @@ MSRouteHandler::myStartElement(int element,
                     if (to == 0) {
                         throw ProcessError("The to edge '" + toID + "' within a walk of person '" + myVehicleParameter->id + "' is not known.");
                     }
-                    MSNet::getInstance()->getRouterTT().compute(from, to, 0, 0, myActiveRoute); // @todo: only footways, current time?
+
+                    PedestrianRouterDijkstra<MSEdge, MSLane> router;
+                    //MSNet::getInstance()->getRouterTT().compute(from, to, 0, 0, myActiveRoute); // @todo: only footways, current time?
                 }
             }
             if (myActiveRoute.empty()) {
