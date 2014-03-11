@@ -149,8 +149,8 @@ def main(options):
             source_edge, sink_edge = edge_generator.get_trip(options.min_distance)
             if options.pedestrians:
                 print >> fouttrips, '    <person id="%s" depart="%.2f" %s>' % (label, depart, options.trippar)
-                print >> fouttrips, '        <walk from="%s" to="%s">' % (source_edge.getID(), sink_edge.getID())
-                print >> fouttrips, '    <person/>' 
+                print >> fouttrips, '        <walk from="%s" to="%s"/>' % (source_edge.getID(), sink_edge.getID())
+                print >> fouttrips, '    </person>' 
             else:
                 print >> fouttrips, '    <trip id="%s" depart="%.2f" from="%s" to="%s" %s/>' % (
                         label, depart, source_edge.getID(), sink_edge.getID(), options.trippar)
