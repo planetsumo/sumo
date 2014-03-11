@@ -518,14 +518,18 @@ MSPModel::Pedestrian::stripe(int max) const {
 int 
 MSPModel::Pedestrian::otherStripe(int max) const {
     const SUMOReal offset = myY - stripe(max) * STRIPE_WIDTH;
+    const SUMOReal threshold = MAX2((SUMOReal)NUMERICAL_EPS, STRIPE_WIDTH - SQUEEZE * myPerson->getVehicleType().getWidth());
     int result;
-    if (offset > (STRIPE_WIDTH - SQUEEZE *  myPerson->getVehicleType().getWidth())) {
+    if (offset > threshold) {
         result = stripe(max) + 1;
-    } else if (offset < -(STRIPE_WIDTH -  SQUEEZE * myPerson->getVehicleType().getWidth())) {
+    } else if (offset < -threshold) {
         result = stripe(max) - 1;
     } else {
         result = stripe(max);
     }
+    std::cout.setf(std::ios::fixed , std::ios::floatfield);
+    std::cout << std::setprecision(5);
+    if DEBUGCOND(myPerson->getID()) std::cout << "  otherStripe " << myPerson->getID() << " offset=" << offset << " threshold=" << threshold << " rawResult=" << result << "\n";
     return MIN2(MAX2(0, result), max);
 }
 
@@ -652,9 +656,11 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
     const SUMOReal xSpeed = MAX2(SUMOReal(0), MIN3(vSafe[stripe(sMax)], vSafe[otherStripe(sMax)], vMax));
     const SUMOReal ySteps = MAX2(SUMOReal(1), ceil(vSafe[stripe(sMax)] / vMax));
     const SUMOReal yDist = (chosen * STRIPE_WIDTH) - myY;
-    const SUMOReal ySpeed = (yDist > 0 ? 
-            MIN2( vMax, yDist / ySteps + NUMERICAL_EPS) :
-            MAX2(-vMax, yDist / ySteps + NUMERICAL_EPS));
+    const SUMOReal ySpeed = (fabs(yDist) > NUMERICAL_EPS ? 
+            (yDist > 0 ? 
+             MIN2( vMax, yDist / ySteps) :
+             MAX2(-vMax, yDist / ySteps))
+            : 0);
     // DEBUG
     if (true && (myPerson->getID() == DEBUG1 || myPerson->getID() == DEBUG2)) {
         std::cout << SIMTIME 
