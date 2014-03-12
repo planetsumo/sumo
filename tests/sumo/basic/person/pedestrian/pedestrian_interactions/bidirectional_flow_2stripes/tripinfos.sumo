@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Wed Mar 12 11:12:13 2014 by SUMO sumo Version dev-SVN-r15778
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="net.net.xml"/>
+        <additional-files value="input_routes.rou.xml"/>
+    </input>
+
+    <output>
+        <tripinfo-output value="tripinfos.xml"/>
+    </output>
+
+    <time>
+        <end value="300"/>
+    </time>
+
+    <report>
+        <xml-validation value="never"/>
+        <no-step-log value="true"/>
+    </report>
+
+</configuration>
+-->
+
+<tripinfos>
+    <personinfo id="fwd0" depart="1.00">
+        <stop arrival="1.00"/>
+        <walk arrival="66.00"/>
+    </personinfo>
+    <personinfo id="fwd1" depart="3.00">
+        <stop arrival="3.00"/>
+        <walk arrival="68.00"/>
+    </personinfo>
+    <personinfo id="fwd3" depart="6.00">
+        <stop arrival="6.00"/>
+        <walk arrival="70.00"/>
+    </personinfo>
+    <personinfo id="fwd2" depart="5.00">
+        <stop arrival="5.00"/>
+        <walk arrival="72.00"/>
+    </personinfo>
+    <personinfo id="fwd4" depart="12.00">
+        <stop arrival="12.00"/>
+        <walk arrival="74.00"/>
+    </personinfo>
+    <personinfo id="fwd5" depart="16.00">
+        <stop arrival="16.00"/>
+        <walk arrival="79.00"/>
+    </personinfo>
+    <personinfo id="fwd6" depart="19.00">
+        <stop arrival="19.00"/>
+        <walk arrival="81.00"/>
+    </personinfo>
+    <personinfo id="fwd8" depart="21.00">
+        <stop arrival="21.00"/>
+        <walk arrival="83.00"/>
+    </personinfo>
+    <personinfo id="fwd9" depart="22.00">
+        <stop arrival="22.00"/>
+        <walk arrival="84.00"/>
+    </personinfo>
+    <personinfo id="fwd7" depart="20.00">
+        <stop arrival="20.00"/>
+        <walk arrival="86.00"/>
+    </personinfo>
+    <personinfo id="fwd10" depart="28.00">
+        <stop arrival="28.00"/>
+        <walk arrival="91.00"/>
+    </personinfo>
+</tripinfos>
