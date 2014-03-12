@@ -329,7 +329,7 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
 
 
 PositionVector
-MSPModel::getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int walkingAreaDir,  const Pedestrian& ped) {
+MSPModel::getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int walkingAreaDir, const Pedestrian& ped) {
     if (walkingArea != 0 && walkingArea->getEdge().isWalkingArea()) {
         PositionVector result;
         const MSEdge* nextRouteEdge = ped.myStage->getNextEdge();
@@ -389,7 +389,6 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
             MSLink* link;
             const MSLane* nextLane = getNextLane(lane, p, link, nextDir);
             const SUMOReal dist = p.distToLaneEnd();
-            assert(dist > 0);
             if (nextLane != 0) {
                 // update speeds for next lane
                 // XXX consider waitingToEnter on nextLane
