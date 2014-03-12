@@ -342,6 +342,9 @@
         <!-- Imports railway edges as one-way by default -->
         <osm.railway.oneway-default value="true" type="BOOL"/>
 
+        <!-- Imports elevation data -->
+        <osm.elevation value="false" type="BOOL"/>
+
         <!-- Imports all lane types -->
         <opendrive.import-all-lanes value="false" type="BOOL"/>
 
@@ -383,6 +386,9 @@
 
         <!-- Straighten edge geometries to avoid turning radii less than geometry.min-radius -->
         <geometry.min-radius.fix value="false" type="BOOL"/>
+
+        <!-- Warn if the junction shape is to far away from the original node position -->
+        <geometry.junction-mismatch-threshold value="20" type="FLOAT"/>
 
         <!-- Turn off normalizing node positions -->
         <offset.disable-normalization value="false" synonymes="disable-normalize-node-positions" type="BOOL"/>
@@ -453,8 +459,11 @@
         <!-- Prints the current version -->
         <version value="false" synonymes="V" type="BOOL"/>
 
-        <!-- Enable schema validation of XML inputs -->
-        <xml-validation value="false" synonymes="X" type="BOOL"/>
+        <!-- Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation value="auto" synonymes="X" type="STR"/>
+
+        <!-- Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation.net value="never" type="STR"/>
 
         <!-- Disables output of warnings -->
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL"/>

@@ -1,8 +1,6 @@
 Parsing nodes from 'input_nodes.nod.xml'... done.
 Parsing edges from 'input_edges.edg.xml'... done.
-Parsing edges from 'input_edges2.edg.xml'... 
-Duplicate edge id occured ('4fi'); assuming overwriting is wished.
-done.
+Parsing edges from 'input_edges2.edg.xml'... done.
  Import done:
    9 nodes loaded.
    9 edges loaded.
@@ -13,6 +11,8 @@ Moving network to origin... done.
 Joining similar edges... done.
 Computing turning directions... done.
 Sorting nodes' edges... done.
+Computing node shapes... done.
+Computing edge shapes... done.
 Computing node types... done.
 Computing priorities... done.
 Computing approached edges... done.
@@ -20,8 +20,6 @@ Computing approaching lanes... done.
 Dividing of lanes on approached lanes... done.
 Processing turnarounds... done.
 Rechecking of lane endings... done.
-Computing node shapes... done.
-Computing edge shapes... done.
 Assigning nodes to traffic lights... done.
 Computing traffic light control information... done.
 Computing node logics... done.
