@@ -69,7 +69,7 @@
     </output>
 
     <processing>
-        <!--  -->
+        <!-- Derive missing flow values from upstream or downstream (not working!) -->
         <guess-empty-flows value="false" type="BOOL"/>
 
         <!-- Switches to highway-mode -->
@@ -183,8 +183,11 @@
         <!-- Prints the current version -->
         <version value="false" synonymes="V" type="BOOL"/>
 
-        <!-- Enable schema validation of XML inputs -->
-        <xml-validation value="false" synonymes="X" type="BOOL"/>
+        <!-- Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation value="auto" synonymes="X" type="STR"/>
+
+        <!-- Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation.net value="never" type="STR"/>
 
         <!-- Disables output of warnings -->
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL"/>
