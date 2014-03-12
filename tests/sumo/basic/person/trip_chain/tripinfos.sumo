@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Dec 11 09:34:54 2013 by SUMO sumo Version dev-SVN-r15307
+<!-- generated on Wed Feb  5 17:24:46 2014 by SUMO sumo Version dev-SVN-r15563
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -17,6 +17,7 @@
 
     <report>
         <verbose value="true"/>
+        <xml-validation value="never"/>
         <no-step-log value="true"/>
     </report>
 
@@ -27,11 +28,11 @@
     <tripinfo id="train0" depart="50.00" departLane="1/4to1/3_0" departPos="5.10" departSpeed="0.00" departDelay="0.00" arrival="193.00" arrivalLane="1/4to1/3_0" arrivalPos="90.50" arrivalSpeed="13.90" duration="143.00" routeLength="450.40" waitSteps="97" rerouteNo="0" devices="tripinfo_train0 person_train0" vType="DEFAULT_VEHTYPE" vaporized=""/>
     <personinfo id="person0" depart="0.00">
         <stop arrival="0.00"/>
-        <walk arrival="46.00"/>
+        <walk arrival="54.00"/>
         <ride depart="121.00" arrival="140.00"/>
-        <walk arrival="184.00"/>
-        <stop arrival="204.00"/>
-        <ride depart="204.00" arrival="252.00"/>
+        <walk arrival="191.00"/>
+        <stop arrival="211.00"/>
+        <ride depart="211.00" arrival="259.00"/>
     </personinfo>
-    <tripinfo id="car0" depart="204.00" departLane="1/4to2/4_0" departPos="5.10" departSpeed="0.00" departDelay="204.00" arrival="252.00" arrivalLane="3/4to4/4_0" arrivalPos="92.00" arrivalSpeed="13.90" duration="48.00" routeLength="267.90" waitSteps="21" rerouteNo="0" devices="tripinfo_car0 person_car0" vType="DEFAULT_VEHTYPE" vaporized=""/>
+    <tripinfo id="car0" depart="211.00" departLane="1/4to2/4_0" departPos="5.10" departSpeed="0.00" departDelay="211.00" arrival="259.00" arrivalLane="3/4to4/4_0" arrivalPos="92.00" arrivalSpeed="13.90" duration="48.00" routeLength="267.90" waitSteps="21" rerouteNo="0" devices="tripinfo_car0 person_car0" vType="DEFAULT_VEHTYPE" vaporized=""/>
 </tripinfos>

@@ -59,7 +59,7 @@ const int MSPModel::UNDEFINED_DIRECTION(0);
 const SUMOReal MSPModel::SAFETY_GAP(1.0);
 const SUMOReal MSPModel::STRIPE_WIDTH(0.75);
 const SUMOReal MSPModel::LOOKAHEAD(10.0);
-const SUMOReal MSPModel::LATERAL_PENALTY(-1.0);
+const SUMOReal MSPModel::LATERAL_PENALTY(0.0);
 const SUMOReal MSPModel::SQUEEZE(0.7);
 const SUMOReal MSPModel::BLOCKER_LOOKAHEAD(10.0);
 const SUMOReal MSPModel::ONCOMIN_PENALTY(0.0);
@@ -531,7 +531,7 @@ MSPModel::Pedestrian::otherStripe(int max) const {
     }
     std::cout.setf(std::ios::fixed , std::ios::floatfield);
     std::cout << std::setprecision(5);
-    if DEBUGCOND(myPerson->getID()) std::cout << "  otherStripe " << myPerson->getID() << " offset=" << offset << " threshold=" << threshold << " rawResult=" << result << "\n";
+    //if DEBUGCOND(myPerson->getID()) std::cout << "  otherStripe " << myPerson->getID() << " offset=" << offset << " threshold=" << threshold << " rawResult=" << result << "\n";
     return MIN2(MAX2(0, result), max);
 }
 
@@ -585,9 +585,11 @@ MSPModel::Pedestrian::updateVSafe(
             // already on the rightmost lane
             int penaltyApplies = ((ego.myDir == FORWARD && l < sMax) || (ego.myDir == BACKWARD && l > 0)) ? 1 : 0;
             vSafe[l] = MIN2(vSafe[l], v - penaltyApplies * penalty);
+            //if ((ego.myPerson->getID() == DEBUG1 || ego.myPerson->getID() == DEBUG2)) std::cout << "    vSafe influenced by " << ped.myPerson->getID() << " l=" << l << " v=" << v << " vSafe=" << vSafe[l] << " pen=" << penalty << " pAppllies=" << penaltyApplies << "\n";
             l = ped.otherStripe(sMax);
             penaltyApplies = ((ego.myDir == FORWARD && l < sMax) || ego.myDir == BACKWARD && l > 0);
             vSafe[l] = MIN2(vSafe[l], v - penaltyApplies * penalty);
+            //if ((ego.myPerson->getID() == DEBUG1 || ego.myPerson->getID() == DEBUG2)) std::cout << "    vSafe influenced by " << ped.myPerson->getID() << " l=" << l << " v=" << v << " vSafe=" << vSafe[l] << " pen=" << penalty << " pAppllies=" << penaltyApplies << "\n";
         } else if (-gap < ego.getLength() + ped.myPerson->getVehicleType().getMinGap() 
                 && (ego.myWaitingToEnter || ped.stripe(sMax) != ego.stripe(sMax))) {
             // stripes are blocked
@@ -630,10 +632,12 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
     updateVSafe(vSafe, maxLeader, minFollower, myX, *this, myDir);
     // chose stripe
     int chosen = stripe(sMax);
-    // penalize lateral movement
+
+    // penalize lateral movement (may increase jamming)
     for (int i = 0; i < (int)vSafe.size(); ++i) {
         vSafe[i] += abs(i - chosen) * LATERAL_PENALTY;
     }
+
     // forbid a portion of the leftmost stripes (in walking direction). 
     // lanes with stripes less than 1 / RESERVE_FOR_ONCOMING_FACTOR
     // may still deadlock in heavy pedestrian traffic
