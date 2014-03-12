@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Feb  5 10:35:23 2014 by SUMO netconvert Version dev-SVN-r15541
+<!-- generated on Wed Mar 12 10:16:50 2014 by SUMO netconvert Version dev-SVN-r15778
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -119,16 +119,16 @@
         <lane id=":C_31_0" index="0" allow="pedestrian" speed="1.00" length="18.50" width="4.50" shape="88.30,109.25 88.30,90.75"/>
     </edge>
     <edge id=":C_32" function="walkingarea">
-        <lane id=":C_32_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="112.35,113.95 109.25,113.95 109.25,109.45 109.45,109.25 113.95,109.25 113.95,112.35"/>
+        <lane id=":C_32_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="109.25,109.45 109.25,113.95 112.35,113.95 113.95,112.35 113.95,109.25 109.45,109.25"/>
     </edge>
     <edge id=":C_33" function="walkingarea">
-        <lane id=":C_33_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="113.95,87.65 113.95,90.75 109.45,90.75 109.25,90.55 109.25,86.05 112.35,86.05"/>
+        <lane id=":C_33_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="109.45,90.75 113.95,90.75 113.95,87.65 112.35,86.05 109.25,86.05 109.25,90.55"/>
     </edge>
     <edge id=":C_34" function="walkingarea">
-        <lane id=":C_34_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="87.65,86.05 90.75,86.05 90.75,90.55 90.55,90.75 86.05,90.75 86.05,87.65"/>
+        <lane id=":C_34_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="90.75,90.55 90.75,86.05 87.65,86.05 86.05,87.65 86.05,90.75 90.55,90.75"/>
     </edge>
     <edge id=":C_35" function="walkingarea">
-        <lane id=":C_35_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="86.05,112.35 86.05,109.25 90.55,109.25 90.75,109.45 90.75,113.95 87.65,113.95"/>
+        <lane id=":C_35_0" index="0" allow="pedestrian" speed="1.00" length="1.00" width="4.50" shape="90.55,109.25 86.05,109.25 86.05,111.60 87.65,113.95 90.75,113.95 90.75,109.45"/>
     </edge>
     <edge id=":E_0" function="internal">
         <lane id=":E_0_0" index="0" allow="passenger" speed="13.89" length="4.82" shape="200.00,98.35 201.24,99.18 201.65,100.00 201.24,100.83 200.00,101.65"/>
@@ -159,7 +159,7 @@
         <lane id="CS_4" index="4" allow="passenger" speed="13.89" length="86.05" shape="98.35,86.05 98.35,0.00"/>
     </edge>
     <edge id="CW" from="C" to="W" priority="2">
-        <lane id="CW_0" index="0" allow="pedestrian" speed="13.89" length="86.05" width="3.00" shape="86.05,110.85 0.00,110.85"/>
+        <lane id="CW_0" index="0" allow="pedestrian" speed="13.89" length="86.05" width="2.25" shape="86.05,110.47 0.00,110.47"/>
         <lane id="CW_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="86.05" width="1.50" shape="86.05,108.50 0.00,108.50"/>
         <lane id="CW_2" index="2" allow="bicycle" speed="13.89" length="86.05" width="1.00" shape="86.05,107.15 0.00,107.15"/>
         <lane id="CW_3" index="3" allow="passenger" speed="13.89" length="86.05" shape="86.05,104.95 0.00,104.95"/>
@@ -205,7 +205,7 @@
         <phase duration="4" state="rrrrryrrrrrrrrrrryrrrrrrrrrr"/>
     </tlLogic>
 
-    <junction id="C" type="traffic_light" x="100.00" y="100.00" incLanes="NC_0 NC_1 NC_2 NC_3 NC_4 EC_0 EC_1 EC_2 EC_3 EC_4 SC_0 SC_1 SC_2 SC_3 SC_4 WC_0 WC_1 WC_2 WC_3 WC_4 :C_32_0 :C_33_0 :C_34_0 :C_35_0" intLanes=":C_0_0 :C_1_0 :C_2_0 :C_3_0 :C_3_1 :C_24_0 :C_6_0 :C_7_0 :C_8_0 :C_9_0 :C_9_1 :C_25_0 :C_12_0 :C_13_0 :C_14_0 :C_15_0 :C_15_1 :C_26_0 :C_18_0 :C_19_0 :C_20_0 :C_21_0 :C_21_1 :C_27_0 :C_28_0 :C_29_0 :C_30_0 :C_31_0" shape="87.55,113.95 112.45,113.95 113.95,112.45 113.95,87.55 112.45,86.05 87.55,86.05 86.05,87.55 86.05,112.45">
+    <junction id="C" type="traffic_light" x="100.00" y="100.00" incLanes="NC_0 NC_1 NC_2 NC_3 NC_4 EC_0 EC_1 EC_2 EC_3 EC_4 SC_0 SC_1 SC_2 SC_3 SC_4 WC_0 WC_1 WC_2 WC_3 WC_4 :C_32_0 :C_33_0 :C_34_0 :C_35_0" intLanes=":C_0_0 :C_1_0 :C_2_0 :C_3_0 :C_3_1 :C_24_0 :C_6_0 :C_7_0 :C_8_0 :C_9_0 :C_9_1 :C_25_0 :C_12_0 :C_13_0 :C_14_0 :C_15_0 :C_15_1 :C_26_0 :C_18_0 :C_19_0 :C_20_0 :C_21_0 :C_21_1 :C_27_0 :C_28_0 :C_29_0 :C_30_0 :C_31_0" shape="87.55,113.95 112.45,113.95 113.95,112.45 113.95,87.55 112.45,86.05 87.55,86.05 86.05,87.55 86.05,112.07">
         <request index="0" response="1001000000000000000000000000" foes="1001000000100000011010000000" cont="0"/>
         <request index="1" response="0101000000000000000000000000" foes="0101111111100000111010000000" cont="0"/>
         <request index="2" response="1001000000000000000000000010" foes="1001000000100000011010000010" cont="0"/>
@@ -242,7 +242,7 @@
     <junction id="S" type="priority" x="100.00" y="0.00" incLanes="CS_0 CS_1 CS_2 CS_3 CS_4" intLanes=":S_0_0" shape="100.05,-0.00 112.45,-0.00 87.55,0.00 99.95,0.00">
         <request index="0" response="0" foes="0" cont="0"/>
     </junction>
-    <junction id="W" type="dead_end" x="0.00" y="100.00" incLanes="CW_0 CW_1 CW_2 CW_3 CW_4" intLanes="" shape="-0.00,99.95 -0.00,87.55 0.00,112.45 0.00,100.05"/>
+    <junction id="W" type="dead_end" x="0.00" y="100.00" incLanes="CW_0 CW_1 CW_2 CW_3 CW_4" intLanes="" shape="-0.00,99.95 -0.00,87.55 0.00,112.07 0.00,100.05"/>
 
     <junction id=":C_24_0" type="internal" x="99.33" y="107.12" incLanes=":C_5_0 SC_2 SC_3 SC_4" intLanes=":C_7_0 :C_9_0 :C_9_1 :C_11_0 :C_12_0 :C_13_0 :C_14_0 :C_15_0 :C_15_1 :C_19_0 :C_21_0 :C_21_1 :C_23_0 :C_28_0 :C_29_0"/>
     <junction id=":C_25_0" type="internal" x="107.12" y="100.67" incLanes=":C_11_0 NC_2 NC_3 NC_4 SC_2 SC_3 SC_4 WC_2 WC_3 WC_4" intLanes=":C_1_0 :C_3_0 :C_3_1 :C_5_0 :C_13_0 :C_15_0 :C_15_1 :C_17_0 :C_18_0 :C_19_0 :C_20_0 :C_21_0 :C_21_1 :C_29_0 :C_30_0"/>

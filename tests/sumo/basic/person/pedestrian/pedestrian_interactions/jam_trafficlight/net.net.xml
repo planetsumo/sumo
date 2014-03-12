@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Thu Jan 16 10:42:00 2014 by SUMO netconvert Version dev-SVN-r15378
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <node-files value="plain3b.nod.xml"/>
+        <edge-files value="plain3b.edg.xml"/>
+        <connection-files value="plain3b.con.xml"/>
+        <tllogic-files value="plain3b.tll.xml"/>
+    </input>
+
+    <output>
+        <output-file value="net3b.net.xml"/>
+    </output>
+
+    <processing>
+        <no-turnarounds value="true"/>
+    </processing>
+
+</configuration>
+-->
+
+<net version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="0.00,0.00,80.00,0.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
+
+    <edge id=":gneJ1_0" function="internal">
+        <lane id=":gneJ1_0_0" index="0" allow="pedestrian" speed="13.89" length="0.10" width="2.50" shape="20.00,-6.40 20.00,-6.40"/>
+    </edge>
+    <edge id=":gneJ2_0" function="internal">
+        <lane id=":gneJ2_0_0" index="0" allow="pedestrian" speed="13.89" length="0.10" width="2.50" shape="40.00,-6.40 40.00,-6.40"/>
+    </edge>
+    <edge id=":gneJ3_0" function="internal">
+        <lane id=":gneJ3_0_0" index="0" allow="pedestrian" speed="13.89" length="0.10" width="2.50" shape="60.00,-6.40 60.00,-6.40"/>
+    </edge>
+
+    <edge id="A" from="gneJ0" to="gneJ1" priority="1">
+        <lane id="A_0" index="0" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="20.00" width="5.00" shape="0.00,-10.25 20.00,-10.25"/>
+        <lane id="A_1" index="1" allow="pedestrian" speed="13.89" length="20.00" width="2.50" shape="0.00,-6.40 20.00,-6.40"/>
+        <lane id="A_2" index="2" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="20.00" width="5.00" shape="0.00,-2.55 20.00,-2.55"/>
+    </edge>
+    <edge id="B" from="gneJ1" to="gneJ2" priority="1">
+        <lane id="B_0" index="0" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="20.00" width="5.00" shape="20.00,-10.25 40.00,-10.25"/>
+        <lane id="B_1" index="1" allow="pedestrian" speed="13.89" length="20.00" width="2.50" shape="20.00,-6.40 40.00,-6.40"/>
+        <lane id="B_2" index="2" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="20.00" width="5.00" shape="20.00,-2.55 40.00,-2.55"/>
+    </edge>
+    <edge id="C" from="gneJ2" to="gneJ3" priority="1">
+        <lane id="C_0" index="0" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="20.00" width="5.00" shape="40.00,-10.25 60.00,-10.25"/>
+        <lane id="C_1" index="1" allow="pedestrian" speed="13.89" length="20.00" width="2.50" shape="40.00,-6.40 60.00,-6.40"/>
+        <lane id="C_2" index="2" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="20.00" width="5.00" shape="40.00,-2.55 60.00,-2.55"/>
+    </edge>
+    <edge id="D" from="gneJ3" to="gneJ5" priority="1">
+        <lane id="D_0" index="0" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="20.00" width="5.00" shape="60.00,-10.25 80.00,-10.25"/>
+        <lane id="D_1" index="1" allow="pedestrian" speed="13.89" length="20.00" width="2.50" shape="60.00,-6.40 80.00,-6.40"/>
+        <lane id="D_2" index="2" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="20.00" width="5.00" shape="60.00,-2.55 80.00,-2.55"/>
+    </edge>
+
+    <tlLogic id="gneJ2" type="static" programID="0" offset="0">
+        <phase duration="30" state="G"/>
+        <phase duration="30" state="r"/>
+    </tlLogic>
+
+    <junction id="gneJ0" type="unregulated" x="0.00" y="0.00" incLanes="" intLanes="" shape="-0.00,-0.95 -0.00,-11.85"/>
+    <junction id="gneJ1" type="priority" x="20.00" y="0.00" incLanes="A_0 A_1 A_2" intLanes=":gneJ1_0_0" shape="20.00,-0.95 20.00,-11.85 20.00,-0.95">
+        <request index="0" response="0" foes="0" cont="0"/>
+    </junction>
+    <junction id="gneJ2" type="traffic_light" x="40.00" y="0.00" incLanes="B_0 B_1 B_2" intLanes=":gneJ2_0_0" shape="40.00,-0.95 40.00,-11.85 40.00,-0.95">
+        <request index="0" response="0" foes="0" cont="0"/>
+    </junction>
+    <junction id="gneJ3" type="priority" x="60.00" y="0.00" incLanes="C_0 C_1 C_2" intLanes=":gneJ3_0_0" shape="60.00,-0.95 60.00,-11.85 60.00,-0.95">
+        <request index="0" response="0" foes="0" cont="0"/>
+    </junction>
+    <junction id="gneJ5" type="unregulated" x="80.00" y="0.00" incLanes="D_0 D_1 D_2" intLanes="" shape="80.00,-11.85 80.00,-0.95"/>
+
+    <connection from="A" to="B" fromLane="1" toLane="1" via=":gneJ1_0_0" dir="s" state="M"/>
+    <connection from="B" to="C" fromLane="1" toLane="1" via=":gneJ2_0_0" tl="gneJ2" linkIndex="0" dir="s" state="o"/>
+    <connection from="C" to="D" fromLane="1" toLane="1" via=":gneJ3_0_0" dir="s" state="M"/>
+
+    <connection from=":gneJ1_0" to="B" fromLane="0" toLane="1" dir="s" state="M"/>
+    <connection from=":gneJ2_0" to="C" fromLane="0" toLane="1" dir="s" state="M"/>
+    <connection from=":gneJ3_0" to="D" fromLane="0" toLane="1" dir="s" state="M"/>
+
+</net>

@@ -1,0 +1,7 @@
+<additional>
+    <tlLogic id="gneJ2" type="static" programID="custom" offset="0">
+        <phase duration="10" state="G"/>
+        <phase duration="40" state="r"/>
+    </tlLogic>
+
+</additional>
