@@ -308,10 +308,13 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                     }
                 }
             }
-            if (nextLane == 0 || nextLane->getLength() <= POSITION_EPS) {
-                // no internal lane found or it's too short, jump directly to next route lane
+            if (nextLane == 0) {
+                // no internal lane found 
                 nextLane = nextRouteLane;
                 link = 0;
+            } else if (nextLane->getLength() <= POSITION_EPS) {
+                // internal lane too short
+                nextLane = nextRouteLane;
             }
         }
     }
