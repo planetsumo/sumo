@@ -1542,8 +1542,8 @@ NBNode::buildInnerEdges() {
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
         (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
     }
-    unsigned int index = buildCrossings(noInternalNoSplits + splitNo);
-    buildWalkingAreas(index, lno);
+    buildCrossings(0);
+    buildWalkingAreas(0, lno);
 
 }
 
@@ -1551,7 +1551,7 @@ NBNode::buildInnerEdges() {
 unsigned int
 NBNode::buildCrossings(unsigned int index) {
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
-        (*it).id = ":" + getID() + "_" + toString(index++);
+        (*it).id = ":" + getID() + "_c" + toString(index++);
         if ((*it).edges.size() > 2) {
             WRITE_ERROR("Crossings across more than 2 edges not yet implemented (" + toString((*it).edges) + ")");
             continue;
@@ -1583,7 +1583,7 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
     myWalkingAreas.clear();
     // walking area at start of crossing
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
-        WalkingArea wa(":" + getID() + "_" + toString(index++), (*it).width);
+        WalkingArea wa(":" + getID() + "_w" + toString(index++), (*it).width);
         wa.nextCrossing = (*it).id;
         if (isTLControlled()) {
             if (getControllingTLS().size() > 1) {
@@ -1606,7 +1606,7 @@ NBNode::buildWalkingAreas(unsigned int index, unsigned int tlIndex) {
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
         WalkingArea& prev = myWalkingAreas[prevWA < 0 ? prevWA + myWalkingAreas.size() : prevWA];
         if (prev.done) {
-            WalkingArea endWA(":" + getID() + "_" + toString(index++), (*it).width);
+            WalkingArea endWA(":" + getID() + "_w" + toString(index++), (*it).width);
             myWalkingAreas.push_back(endWA);
         }
         WalkingArea& wa = (prev.done ? myWalkingAreas.back() : prev);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Mar 12 11:04:25 2014 by SUMO sumo Version dev-SVN-r15778
+<!-- generated on Wed Mar 12 12:24:03 2014 by SUMO sumo Version dev-SVN-r15906
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -99,22 +99,22 @@
         </edge>
     </timestep>
     <timestep time="15.00">
-        <edge id=":C_34">
+        <edge id=":C_w2">
             <person id="p0" pos="4.51" angle="180.00" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="16.00">
-        <edge id=":C_34">
+        <edge id=":C_w2">
             <person id="p0" pos="3.12" angle="220.02" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="17.00">
-        <edge id=":C_34">
+        <edge id=":C_w2">
             <person id="p0" pos="1.73" angle="220.02" stage="walking"/>
         </edge>
     </timestep>
     <timestep time="18.00">
-        <edge id=":C_34">
+        <edge id=":C_w2">
             <person id="p0" pos="0.34" angle="270.00" stage="walking"/>
         </edge>
     </timestep>
