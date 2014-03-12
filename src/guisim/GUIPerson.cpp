@@ -61,6 +61,7 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
+//#define GUIPerson_DEBUG_DRAW_WALKING_AREA_SHAPE
 
 // ===========================================================================
 // FOX callback mapping
@@ -190,11 +191,12 @@ GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
     }
     glPopMatrix();
 
-    // DEBUG
-    //glPushMatrix();
-    //glTranslated(0, 0, getType());
-    //GLHelper::drawBoxLines(dynamic_cast<MSPersonStage_Walking*>(getCurrentStage())->myWalkingAreaShape, 0.05);
-    //glPopMatrix();
+#ifdef GUIPerson_DEBUG_DRAW_WALKING_AREA_SHAPE
+        glPushMatrix();
+        glTranslated(0, 0, getType());
+        GLHelper::drawBoxLines(dynamic_cast<MSPersonStage_Walking*>(getCurrentStage())->myWalkingAreaShape, 0.05);
+        glPopMatrix();
+#endif
 
     drawName(p1, s.scale, s.personName);
     glPopName();
