@@ -178,7 +178,11 @@ MSPerson::MSPersonStage_Walking::getPosition(SUMOTime now) const {
         return getEdgePosition(e, myCurrentBeginPos + myCurrentLength / myCurrentDuration * off, SIDEWALK_OFFSET);
     } else if (myLane->getEdge().isWalkingArea()) {
             PositionVector shp = myWalkingAreaShape;
-            shp.move2side(myShift);
+            try {
+                shp.move2side(myShift);
+            } catch (const InvalidArgument& e) {
+                WRITE_WARNING("could not shift walkingArea " + myLane->getEdge().getID() + " shape " + toString(shp));
+            }
             return shp.positionAtOffset(myLanePos);
     } else {
         return getLanePosition(myLane, myLanePos, myShift);

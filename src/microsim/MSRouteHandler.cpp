@@ -167,6 +167,11 @@ MSRouteHandler::myStartElement(int element,
                     //MSNet::getInstance()->getRouterTT().compute(from, to, 0, 0, myActiveRoute); // @todo: only footways, current time?
                     PedestrianRouterDijkstra<MSEdge, MSLane> router;
                     router.compute(from, to, departPos, arrivalPos, speed, 0, myActiveRoute);
+                    if (myActiveRoute.empty()) {
+                        WRITE_WARNING("No connection found between '" + from->getID() + "' and '" + to->getID() + "' for person '" + myVehicleParameter->id + "'.");
+                        myActiveRoute.push_back(from);
+                        myActiveRoute.push_back(to);
+                    }
                     //std::cout << myVehicleParameter->id << " edges=" << toString(myActiveRoute) << "\n";
                 }
             }
