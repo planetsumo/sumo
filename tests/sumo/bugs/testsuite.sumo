@@ -135,3 +135,17 @@ ticket1044
 
 ticket1050
 ticket1054
+ticket1065
+ticket1082
+ticket1084
+ticket1088
+ticket1091
+ticket1096
+
+# this time with green minor link
+ticket1096b
+ticket1096c
+ticket1097
+
+# fast leader should be insertable directly before slow follower
+ticket1176

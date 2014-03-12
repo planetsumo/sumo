@@ -1,5 +1,5 @@
-SUMO sumo Version dev-SVN-r14971
- Copyright (C) 2001-2013 DLR and contributors; http://sumo-sim.org
+SUMO sumo Version dev-SVN-r15769
+ Copyright (C) 2001-2014 DLR and contributors; http://sumo-sim.org
 A microscopic road traffic simulation.
 
 Usage: sumo [OPTION]*
@@ -100,15 +100,17 @@ Processing Options:
                                          (default 0)
   --routing-algorithm STR              Select among routing algorithms
                                          ['dijkstra', 'astar']
-  --routeDist.maxsize INT              Restrict the maximum size of route
-                                         distributions
 
 Report Options:
   -v, --verbose                        Switches to verbose output
   -p, --print-options                  Prints option values before processing
   -?, --help                           Prints this screen
   -V, --version                        Prints the current version
-  -X, --xml-validation                 Enable schema validation of XML inputs
+  -X, --xml-validation STR             Set schema validation scheme of XML
+                                         inputs ("never", "auto" or "always")
+  --xml-validation.net STR             Set schema validation scheme of SUMO
+                                         network inputs ("never", "auto" or
+                                         "always")
   -W, --no-warnings                    Disables output of warnings
   -l, --log FILE                       Writes all messages to FILE (implies
                                          verbose)
@@ -121,12 +123,13 @@ Report Options:
                                          simulation step
 
 Emissions Options:
-  --device.hbefa.probability FLOAT     The probability for a vehicle to have a
-                                         'hbefa' device
-  --device.hbefa.explicit STR          Assign a 'hbefa' device to named
-                                         vehicles
-  --device.hbefa.deterministic         The 'hbefa' devices are set
-                                         deterministic using a fraction of 1000
+  --phemlight-path FILE                Determines where to load PHEMlight
+                                         definitions from.
+  --device.emissions.probability FLOAT  The probability for a vehicle to have an
+                                         emission logging device
+  --device.emissions.explicit STR      Assign a device to named vehicles
+  --device.emissions.deterministic     The devices are set deterministic using
+                                         a fraction of 1000
 
 Communication Options:
   --device.btreceiver.probability FLOAT  The probability for a vehicle to have
