@@ -259,7 +259,7 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                 if (nextDir == UNDEFINED_DIRECTION) {
                     nextLane = nextRouteLane;
                     // resolve direction when the laneAfterNext is known
-                    if DEBUGCOND(ped.myPerson->getID()) std::cout << "  skipping forward on walkingArea";
+                    if DEBUGCOND(ped.myPerson->getID()) std::cout << "  skipping forward on walkingArea\n";
                 }
             }
         } else  {
