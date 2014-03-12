@@ -458,14 +458,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\utils\common\HelpersHarmonoise.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\utils\common\HelpersHBEFA.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\src\utils\common\IDSupplier.cpp"
 				>
 			</File>
@@ -483,6 +475,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\utils\common\RGBColor.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\utils\common\StdDefs.cpp"
 				>
 			</File>
 			<File
@@ -544,14 +540,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\utils\common\FileHelpers.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\utils\common\HelpersHarmonoise.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\utils\common\HelpersHBEFA.h"
 				>
 			</File>
 			<File

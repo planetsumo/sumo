@@ -42,6 +42,18 @@ TEST_F(PositionVectorTest, test_method_around) {
 
 	EXPECT_FALSE(vectorLine->around(Position(1,1)));
 	EXPECT_FALSE(vectorLine->around(Position(0,2)));
+
+    // with positive offset
+	EXPECT_TRUE(vectorPolygon->around(Position(4,2), 1));
+	EXPECT_FALSE(vectorPolygon->around(Position(5,2), 1));
+    // what was true remains true
+	EXPECT_TRUE(vectorPolygon->around(Position(1,1), POSITION_EPS));
+	EXPECT_TRUE(vectorPolygon->around(Position(1,2), POSITION_EPS));
+
+    // with negative offset
+	EXPECT_FALSE(vectorPolygon->around(Position(4,2), -POSITION_EPS));
+	EXPECT_TRUE(vectorPolygon->around(Position(1,1), -1));
+	EXPECT_FALSE(vectorPolygon->around(Position(0.5,0.5), -1));
 }
 
 /* Test the method 'area'*/
@@ -56,8 +68,8 @@ TEST_F(PositionVectorTest, test_method_area) {
     EXPECT_DOUBLE_EQ(square.area(), 1); 
 }
 
-/* Test the method 'scaleSize'.*/
-TEST_F(PositionVectorTest, test_method_scaleSize) {
+/* Test the method 'scaleRelative'.*/
+TEST_F(PositionVectorTest, test_method_scaleRelative) {
     PositionVector square;
     square.push_back(Position(0,0));
     square.push_back(Position(1,0));
@@ -65,7 +77,7 @@ TEST_F(PositionVectorTest, test_method_scaleSize) {
     square.push_back(Position(0,1));
     square.push_back(Position(0,0));
     EXPECT_DOUBLE_EQ(square.area(), 1);
-    square.scaleSize(3);
+    square.scaleRelative(3);
     EXPECT_DOUBLE_EQ(square.area(), 9);
 
     PositionVector expected;
@@ -94,7 +106,6 @@ TEST_F(PositionVectorTest, test_method_getCentroid) {
 	Position pos2 = vectorLine->getCentroid();
 	EXPECT_DOUBLE_EQ(1, pos2.x());
 	EXPECT_DOUBLE_EQ(1, pos2.y());
-	
 }
 
 /* Test the method 'getPolygonCenter'.*/

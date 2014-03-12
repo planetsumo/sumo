@@ -8,7 +8,7 @@
 // Tests StringUtils class from <SUMO>/src/utils/common
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright 2001-2010 DLR (http://www.dlr.de/) and contributors
+// Copyright 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This program is free software; you can redistribute it and/or modify
@@ -39,6 +39,14 @@ TEST(StringUtils, test_method_to_lower_case) {
 	EXPECT_EQ("world", StringUtils::to_lower_case("World"))<< "String should be converted into small letter.";
 	std::string str;
 	EXPECT_EQ("", StringUtils::to_lower_case(str));
+}
+
+/* Tests the method to_lower_case.*/
+TEST(StringUtils, test_method_latin1_to_utf8) {
+	EXPECT_EQ("\xC3\xA4", StringUtils::latin1_to_utf8("ä"));
+	EXPECT_EQ("\xC3\xB6", StringUtils::latin1_to_utf8("ö"));
+	std::string str;
+	EXPECT_EQ("", StringUtils::latin1_to_utf8(str));
 }
 
 /* Tests the method convertUmlaute.*/
