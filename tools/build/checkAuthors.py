@@ -7,7 +7,7 @@
 Checks authors for all files.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -70,8 +70,11 @@ class PropertyReader(xml.sax.handler.ContentHandler):
                     authorFiles[self._currAuthor] = set()
                 authorFiles[self._currAuthor].add(self._out.name)
             if "thank" in msg:
-                print >> self._out, "THANKS", " ".join(msg.splitlines())
-                print >> log, "thank %s %s" % (msg, self._out.name)
+                try:
+                    print >> self._out, "THANKS", " ".join(msg.splitlines())
+                    print >> log, "thank %s %s" % (msg, self._out.name)
+                except UnicodeEncodeError:
+                    pass
                 authorFiles["thank"].add(self._out.name)
 
 def checkAuthors(fullName, pattern):

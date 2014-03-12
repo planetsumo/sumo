@@ -8,7 +8,7 @@
 Builds the installer based on the nightly zip.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -18,8 +18,8 @@ the Free Software Foundation; either version 3 of the License, or
 """
 import optparse, subprocess, zipfile, os, sys, tempfile, glob, shutil
 
-INPUT_DEFAULT = r"M:\Daten\Sumo\Nightly\sumo-msvc10Win32-svn.zip"
-OUTPUT_DEFAULT = r"M:\Daten\Sumo\Nightly\sumo-msvc10Win32-svn.msi"
+INPUT_DEFAULT = r"O:\Daten\Sumo\Nightly\sumo-msvc10Win32-svn.zip"
+OUTPUT_DEFAULT = r"O:\Daten\Sumo\Nightly\sumo-msvc10Win32-svn.msi"
 WIX_DEFAULT = "%sbin" % os.environ.get("WIX", r"D:\Programme\Windows Installer XML v3.5\\")
 WXS_DEFAULT = os.path.join(os.path.dirname(__file__), "..", "..", "build", "sumo.wxs")
 LICENSE = os.path.join(os.path.dirname(__file__), "..", "..", "build", "License.rtf")
@@ -44,13 +44,14 @@ def buildMSI(sourceZip=INPUT_DEFAULT, outFile=OUTPUT_DEFAULT, wixBin=WIX_DEFAULT
     fragments = []
     for d in ["userdoc", "pydoc", "tutorial", "examples"]:
         fragments.append(buildFragment(wixBin, os.path.join(sumoRoot, "docs", d), "DOCDIR", tmpDir))
+    fragments.append(buildFragment(wixBin, os.path.join(sumoRoot, "data"), "INSTALLDIR", tmpDir))
     fragments.append(buildFragment(wixBin, os.path.join(sumoRoot, "tools"), "INSTALLDIR", tmpDir))
     wxsIn = open(wxs)
     wxsOut = open(os.path.join(tmpDir, "sumo.wxs"), "w")
     for l in wxsIn:
         l = l.replace("License.rtf", license)
         l = l.replace(".exe' />", "%s.exe' />" % platformSuffix).replace(r"Nightly\sumo-gui.exe", r"Nightly\sumo-gui%s.exe" % platformSuffix)
-        wxsOut.write(l.replace(r"M:\Daten\Sumo\Nightly", os.path.join(sumoRoot, "bin")))
+        wxsOut.write(l.replace(r"O:\Daten\Sumo\Nightly", os.path.join(sumoRoot, "bin")))
     wxsOut.close()
     wxsIn.close()
     subprocess.call([os.path.join(wixBin, "candle.exe"), "-o", tmpDir+"\\", wxsOut.name] + fragments)

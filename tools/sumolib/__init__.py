@@ -8,7 +8,7 @@
 Python interface to SUMO especially for parsing xml input and output files.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -36,7 +36,7 @@ class ConfigurationReader(handler.ContentHandler):
             self._group = OptionGroup(self._opts, name)
         if self._group != self._opts and self._groups and self._group.title not in self._groups:
             return
-        if "type" in attrs and name != "help":
+        if attrs.has_key('type') and name != "help":
             if self._options and name not in self._options:
                 return
             help = attrs.get("help", "")

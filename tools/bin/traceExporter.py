@@ -8,7 +8,7 @@ A script for converting SUMO's fcd-output into files readable by PHEM and commun
 @version $Id$
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -28,6 +28,8 @@ import sumolib.output.convert.omnet as omnet
 import sumolib.output.convert.shawn as shawn
 import sumolib.output.convert.ns2 as ns2
 import sumolib.output.convert.gpsdat as gpsdat
+import sumolib.output.convert.gpx as gpx
+import sumolib.output.convert.poi as poi
 
 class FCDVehicleEntry:
   def __init__(self, id, x, y, z, speed, typev, lane, slope):
@@ -117,7 +119,7 @@ def main(args=None):
                          help="Defines the FCD-output file to use as input")
   optParser.add_option("-n", "--net-input", dest="net", metavar="FILE",
                          help="Defines the network file to use as input")
-  optParser.add_option("-p", "--penetration", dest="penetration", 
+  optParser.add_option("-p", "--penetration", type="float", dest="penetration", 
                          default=1., help="Defines the percentage (0-1) of vehicles to export")
   optParser.add_option("-b", "--begin", dest="begin", 
                          type="float", help="Defines the first step to export")
@@ -127,7 +129,7 @@ def main(args=None):
                          type="float", help="Defines the export step length")
   optParser.add_option("--gps-blur", dest="blur", default=0,
                          type="float", help="Defines the GPS blur")
-  optParser.add_option("-s", "--seed", dest="seed", default=0,
+  optParser.add_option("-s", "--seed", dest="seed", default=42,
                          type="float", help="Defines the randomizer seed")
   optParser.add_option("--base-date", dest="base", default=-1, type="int", help="Defines the base date")
   # PHEM
@@ -155,6 +157,13 @@ def main(args=None):
   # GPSDAT
   optParser.add_option("--gpsdat-output", dest="gpsdat", metavar="FILE",
                          help="Defines the name of the gpsdat file to generate")
+
+  # GPX
+  optParser.add_option("--gpx-output", dest="gpx", metavar="FILE",
+                         help="Defines the name of the gpx file to generate")
+  # POI
+  optParser.add_option("--poi-output", dest="poi", metavar="FILE",
+                         help="Defines the name of the poi file to generate")
   # parse
   options, remaining_args = optParser.parse_args(args=args)
   
@@ -190,6 +199,14 @@ def main(args=None):
   ## ----- GPSDAT
   if options.gpsdat: runMethod(options.fcd, options.gpsdat, gpsdat.fcd2gpsdat, options)
   ## ----- GPSDAT
+
+  ## ----- GPX
+  if options.gpx: runMethod(options.fcd, options.gpx, gpx.fcd2gpx, options)
+  ## ----- GPX
+
+  ## ----- GPX
+  if options.poi: runMethod(options.fcd, options.poi, poi.fcd2poi, options)
+  ## ----- GPX
 
   ## ----- ns2
   if options.ns2mobility or options.ns2config or options.ns2activity: 

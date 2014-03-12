@@ -5,10 +5,11 @@
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
 @date    2008-04-17
+@version $Id$
 
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

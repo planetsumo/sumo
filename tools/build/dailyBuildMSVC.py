@@ -13,7 +13,7 @@ Some paths especially for the temp dir and the compiler are
 hard coded into this script.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -119,7 +119,7 @@ for platform in ["Win32", "x64"]:
                 if f.count('/') == 1:
                     write = False
                 if f.endswith('/') and f.count('/') == 2:
-                    write = (f.endswith('/bin/') or f.endswith('/examples/') or f.endswith('/tools/'))
+                    write = (f.endswith('/bin/') or f.endswith('/examples/') or f.endswith('/tools/') or f.endswith('/data/'))
                     if f.endswith('/bin/'):
                         binDir = f
                 elif write or os.path.basename(f) in ["COPYING", "README"]:
@@ -175,8 +175,8 @@ for platform in ["Win32", "x64"]:
     if "SUMO_HOME" not in env:
         env["SUMO_HOME"] = os.path.join(os.path.dirname(__file__), '..', '..')
     shutil.rmtree(env["TEXTTEST_TMP"], True)
-    shutil.rmtree(env["SUMO_REPORT"], True)
-    os.mkdir(env["SUMO_REPORT"])
+    if not os.path.exists(env["SUMO_REPORT"]):
+        os.makedirs(env["SUMO_REPORT"])
     for name in ["dfrouter", "duarouter", "jtrrouter", "netconvert", "netgenerate", "od2trips", "sumo", "polyconvert", "sumo-gui", "activitygen"]:
         binary = os.path.join(options.rootDir, options.binDir, name + programSuffix + ".exe")
         if name == "sumo-gui":
@@ -193,9 +193,9 @@ for platform in ["Win32", "x64"]:
         subprocess.call("texttest.py -b "+env["FILEPREFIX"]+nameopt, stdout=log, stderr=subprocess.STDOUT, shell=True)
     subprocess.call("texttest.py -a sumo.gui -b "+env["FILEPREFIX"]+nameopt, stdout=log, stderr=subprocess.STDOUT, shell=True)
     subprocess.call("texttest.py -b "+env["FILEPREFIX"]+" -coll", stdout=log, stderr=subprocess.STDOUT, shell=True)
-#    ago = datetime.datetime.now() - datetime.timedelta(30)
-#    subprocess.call('texttest.py -s "batch.ArchiveRepository session='+env["FILEPREFIX"]+' before=%s"' % ago.strftime("%d%b%Y"),
-#                    stdout=log, stderr=subprocess.STDOUT, shell=True)
+    ago = datetime.datetime.now() - datetime.timedelta(50)
+    subprocess.call('texttest.py -s "batch.ArchiveRepository session='+env["FILEPREFIX"]+' before=%s"' % ago.strftime("%d%b%Y"),
+                    stdout=log, stderr=subprocess.STDOUT, shell=True)
     log.close()
     log = open(statusLog, 'w')
     status.printStatus(makeLog, makeAllLog, env["TEXTTEST_TMP"], env["SMTP_SERVER"], log)

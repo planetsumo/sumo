@@ -9,7 +9,7 @@ Reads two networks (source, dest) and tries to produce the minimal plain-xml inp
 which can be loaded with netconvert alongside source to create dest
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2011 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -380,6 +380,8 @@ def handle_children(xmlfile, handle_parsenode):
                 root_open = parsenode.toprettyxml(indent="")
                 # since we did not expand root_open contains the closing slash
                 root_open = root_open[:-3] + ">\n"
+                # change the schema for edge diffs
+                root_open = root_open.replace("edges_file.xsd", "edgediff_file.xsd")
                 root_close = "</%s>\n" % parsenode.localName
             if level == 1:
                 xml_doc.expandNode(parsenode) # consumes END_ELEMENT, no level increase

@@ -11,7 +11,7 @@ This file contains a content handler for parsing sumo network xml files.
 It uses other classes from this module to represent the road network.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -146,8 +146,8 @@ class Net:
             self._id2edge[id] = e
         return self._id2edge[id]
 
-    def addLane(self, edge, speed, length):
-        return lane.Lane(edge, speed, length)
+    def addLane(self, edge, speed, length, allow=None, disallow=None):
+        return lane.Lane(edge, speed, length, allow, disallow)
 
     def addRoundabout(self, nodes):
         r = roundabout.Roundabout(nodes)
@@ -342,7 +342,12 @@ class NetReader(handler.ContentHandler):
             else:
                 self._currentEdge = None
         if name == 'lane' and self._currentEdge!=None:
-            self._currentLane = self._net.addLane(self._currentEdge, float(attrs['speed']), float(attrs['length']))
+            self._currentLane = self._net.addLane(
+                    self._currentEdge, 
+                    float(attrs['speed']),
+                    float(attrs['length']),
+                    attrs.get('allow'),
+                    attrs.get('disallow'))
             if 'shape' in attrs:
                 self._currentShape = attrs['shape'] # deprecated: at some time, this is mandatory
             else:

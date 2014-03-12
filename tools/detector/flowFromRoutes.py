@@ -8,7 +8,7 @@
 This script recreates a flow file from routes and emitters.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -43,7 +43,7 @@ class DetectorRouteEmitterReader(handler.ContentHandler):
 
     def startElement(self, name, attrs):
         if name == 'route':
-            if 'id' in attrs:
+            if attrs.has_key('id'):
                 self._routes[attrs['id']] = attrs['edges'].split()
         if name == 'vehicle':
             for edge in self._routes[attrs['route']]:

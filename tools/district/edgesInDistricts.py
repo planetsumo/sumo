@@ -11,7 +11,7 @@ this script writes a taz file with all the edges which are inside
 the relevant taz.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -92,7 +92,7 @@ class NetDistrictEdgeHandler(handler.ContentHandler):
             self._haveDistrict = True
             self._currentID = attrs['id']
             self._districtEdges[self._currentID] = []
-            if 'shape' in attrs:
+            if attrs.has_key('shape'):
                 self._shape = attrs['shape']
         elif name == 'shape' and self._haveDistrict:
             self._parsingDistrictShape = True
@@ -105,7 +105,7 @@ class NetDistrictEdgeHandler(handler.ContentHandler):
                 self._edgeSpeeds[self._currentID] = float(attrs['speed'])
                 self._edgeLengths[self._currentID] = float(attrs['length'])
                 self._numLanes[self._currentID] = 1
-                if 'shape' in attrs:
+                if attrs.has_key('shape'):
                     self._shape = attrs['shape']
             else:
                 self._numLanes[self._currentID] += 1

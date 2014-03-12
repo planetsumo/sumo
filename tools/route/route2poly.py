@@ -9,7 +9,7 @@ From a sumo network and a route file, this script generates a polygon (polyline)
 which can be loaded with sumo-gui for visualization
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -19,13 +19,12 @@ the Free Software Foundation; either version 3 of the License, or
 """
 import sys
 import os
-import colorsys
 import itertools
-from random import random
 from optparse import OptionParser
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from sumolib.output import parse
 from sumolib.net import readNet
+from sumolib.miscutils import Colorgen
 
 def parse_args():
     USAGE = "Usage: " + sys.argv[0] + " <netfile> <routefile> [options]"
@@ -44,21 +43,6 @@ def parse_args():
     if options.outfile is None:
         options.outfile = options.routefile + ".poly.xml"
     return options 
-
-
-class Colorgen:
-    def __init__(self, hsv):
-        self.hsv = hsv 
-
-    def get_value(self, opt):
-        if opt == 'random':
-            return random()
-        else:
-            return float(opt)
-        
-    def __call__(self):
-        """return constant or randomized rgb-color string"""
-        return ','.join(map(str, colorsys.hsv_to_rgb(*map(self.get_value, self.hsv))))
 
 
 def generate_poly(net, id, color, layer, edges, outf):
