@@ -9,7 +9,7 @@
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -108,6 +108,9 @@ ISNAN(T a) {
     return d != d;
 }
 
+/// @brief global utility flags for debugging
+extern bool gDebugFlag1;
+extern bool gDebugFlag2;
 
 #endif
 

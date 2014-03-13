@@ -9,7 +9,7 @@
 // The representation of a single edge during network building
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -1385,17 +1385,9 @@ public:
     };
 
     /**
-     * connections_sorter
+     * connections_sorter sort by fromLane, toEdge and toLane
      */
-    static bool connections_sorter(const Connection& c1, const Connection& c2) {
-        if (c1.fromLane != c2.fromLane) {
-            return c1.fromLane < c2.fromLane;
-        }
-        if (c1.toEdge != c2.toEdge) {
-            return c1.toEdge->getID().compare(c1.toEdge->getID()) < 0;
-        }
-        return c1.toLane < c2.toLane;
-    }
+    static bool connections_sorter(const Connection& c1, const Connection& c2);
 
     /**
      * connections_relative_edgelane_sorter

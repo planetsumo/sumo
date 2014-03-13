@@ -7,7 +7,7 @@
 // SAX-reader encapsulation containing binary reader
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -31,6 +31,8 @@
 #endif
 
 #include <xercesc/sax2/SAX2XMLReader.hpp>
+#include <xercesc/sax/EntityResolver.hpp>
+#include <xercesc/sax/InputSource.hpp>
 
 
 // ===========================================================================
@@ -58,7 +60,7 @@ public:
      *
      * @param[in] file The name of the processed file
      */
-    SUMOSAXReader(GenericSAXHandler& handler, const bool enableValidation = false);
+    SUMOSAXReader(GenericSAXHandler& handler, const XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes validationScheme);
 
     /// Destructor
     ~SUMOSAXReader();
@@ -70,6 +72,8 @@ public:
      */
     void setHandler(GenericSAXHandler& handler);
 
+    void setValidation(const XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes validationScheme);
+
     void parse(std::string systemID);
 
     void parseString(std::string content);
@@ -77,6 +81,12 @@ public:
     bool parseFirst(std::string systemID);
 
     bool parseNext();
+
+private:
+    class LocalSchemaResolver : public XERCES_CPP_NAMESPACE::EntityResolver {
+    public:
+        XERCES_CPP_NAMESPACE::InputSource* resolveEntity(const XMLCh* const publicId, const XMLCh* const systemId);
+    };
 
 private:
     /**
@@ -96,13 +106,15 @@ private:
     GenericSAXHandler* myHandler;
 
     /// @brief Information whether built reader/parser shall validate XML-documents against schemata
-    const bool myEnableValidation;
+    XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes myValidationScheme;
 
     XERCES_CPP_NAMESPACE::XMLPScanToken myToken;
 
     XERCES_CPP_NAMESPACE::SAX2XMLReader* myXMLReader;
 
     BinaryInputDevice* myBinaryInput;
+
+    LocalSchemaResolver mySchemaResolver;
 
 private:
     /// @brief invalidated copy constructor

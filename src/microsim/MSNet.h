@@ -13,7 +13,7 @@
 // The simulated network and simulation perfomer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -76,6 +76,7 @@ class MSDetectorControl;
 class ShapeContainer;
 class BinaryInputDevice;
 class MSEdgeWeightsStorage;
+class MSGrid;
 class SUMOVehicle;
 
 
@@ -251,6 +252,9 @@ public:
     //}
 
 
+    MSGrid *getGrid() {
+        return myGrid;
+    }
 
     /// @name Retrieval of references to substructures
     /// @{
@@ -609,6 +613,7 @@ protected:
     mutable AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
     mutable DijkstraRouterEffort_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterEffort;
 
+    MSGrid *myGrid;
 
     /// @brief An RTree structure holding lane IDs
     mutable std::pair<bool, NamedRTree> myLanesRTree;

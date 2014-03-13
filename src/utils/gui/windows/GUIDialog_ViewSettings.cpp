@@ -10,7 +10,7 @@
 // The dialog to change the view (gui) settings.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -383,7 +383,7 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
     }
     {
         // nodes
-        new FXTabItem(tabbook, "Nodes", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        new FXTabItem(tabbook, "Junctions", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
         FXVerticalFrame* frame4 =
             new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
         FXMatrix* m41 =
@@ -414,6 +414,8 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         new FXLabel(m42, " ", 0, LAYOUT_CENTER_Y);
         myJunctionNamePanel = new NamePanel(m42, this, "Show junction name", mySettings->junctionName);
         myInternalJunctionNamePanel = new NamePanel(m42, this, "Show internal junction name", mySettings->internalJunctionName);
+        myDrawJunctionShape = new FXCheckButton(m42, "Draw junction shape", this, MID_SIMPLE_VIEW_COLORCHANGE);
+        myDrawJunctionShape->setCheck(mySettings->drawJunctionShape);
     } {
         new FXTabItem(tabbook, "Detectors/Trigger", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
         FXVerticalFrame* frame5 =
@@ -656,6 +658,7 @@ GUIDialog_ViewSettings::onCmdNameChange(FXObject*, FXSelector, void* data) {
     myPolyNamePanel->update(mySettings->polyName);
 
     myShowLane2Lane->setCheck(mySettings->showLane2Lane);
+    myDrawJunctionShape->setCheck(mySettings->drawJunctionShape);
     myAntialiase->setCheck(mySettings->antialiase);
     myDither->setCheck(mySettings->dither);
     myShowSizeLegend->setCheck(mySettings->showSizeLegend);
@@ -789,6 +792,7 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
     tmpSettings.polyName = myPolyNamePanel->getSettings();
 
     tmpSettings.showLane2Lane = (myShowLane2Lane->getCheck() != FALSE);
+    tmpSettings.drawJunctionShape = (myDrawJunctionShape->getCheck() != FALSE);
     tmpSettings.antialiase = (myAntialiase->getCheck() != FALSE);
     tmpSettings.dither = (myDither->getCheck() != FALSE);
     tmpSettings.showSizeLegend = (myShowSizeLegend->getCheck() != FALSE);

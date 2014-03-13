@@ -10,7 +10,7 @@
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -320,8 +320,8 @@ private:
     /* @brief draw train with individual carriages. The number of carriages is
      * determined from defaultLength of carriages and vehicle length
      * passengerSeats are computed beginning at firstPassengerCarriage */
-    void drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, SUMOReal carriageGap, 
-            int firstPassengerCarriage, bool asImage) const;
+    void drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, SUMOReal carriageGap,
+                                      int firstPassengerCarriage, bool asImage) const;
     /// @}
 
     /// @brief draws the given guiShape if it has distinc carriages/modules and eturns true if so

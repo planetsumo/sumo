@@ -2,7 +2,7 @@ SUBDIRS = src unittest bin
 
 EXTRA_DIST = README ChangeLog AUTHORS COPYING INSTALL NEWS sumo.doxyconf
 
-doc: pydoc doxygen wikidump
+doc: pydoc doxygen userdoc
 
 pydoc:
 	rm -rf docs/pydoc
@@ -17,8 +17,8 @@ doxygen:
 	mkdir docs/doxygen
 	doxygen sumo.doxyconf &> doxygen.log
 
-wikidump:
-	cd docs/wiki && ../../tools/build/buildHTMLDocs.py && cp *.png *.css docs
+userdoc:
+	tools/docs/buildHTMLDocs.py -o docs/userdoc -i docs/wiki/index.html -r $(VERSION) && cp docs/wiki/*.png docs/wiki/*.css docs/userdoc
 
 man:
 	rm -rf docs/man
@@ -38,13 +38,14 @@ dist-hook: abs_distdir=`pwd`/$(distdir)
 dist-hook:
 	cd $(srcdir) ; \
 	if test -d tests; then \
-	    for f in `find build tools tests/complex/tutorial -name .svn -prune -o -type d -print`; do mkdir -p $(abs_distdir)/$$f; done ; \
+	    for f in `find build data tools tests/complex/tutorial -name .svn -prune -o -type d -print`; do mkdir -p $(abs_distdir)/$$f; done ; \
 	    mkdir -p $(abs_distdir)/docs ; \
 	    find tests/complex/tutorial -regex ".*\.\(xml\|txt\|sumocfg\|netccfg\|py\)" -print0 | xargs -0 cp -v --parents --target-directory $(abs_distdir) ; \
 	    mv -v ${abs_distdir}/tests/complex/tutorial $(abs_distdir)/docs ; \
 	    rm -rf $(abs_distdir)/tests ; \
 	    tests/extractTest.py -i -f tests/examples.txt -o $(abs_distdir)/docs ; \
 	    find build -regex ".*\.\(vcproj\|vsprops\|vcxproj\|vcxproj\.filters\|props\|sln\|spec\)" -print0 | xargs -0 cp --parents --target-directory $(abs_distdir) ; \
+	    find data -regex ".*\.\(xsd\|xml\)" -print0 | xargs -0 cp --parents --target-directory $(abs_distdir) ; \
 	    ( svn export --force tools $(distdir)/tools && cd $(distdir) && find tools -type f > ../tools_filelist; true ) ; \
 	    xargs cp --parents --target-directory $(abs_distdir) < tools_filelist ; \
 	    cp tools_filelist $(abs_distdir) ; \
@@ -54,13 +55,11 @@ dist-doc: doc
 	cd $(srcdir)
 	$(am__remove_distdir)
 	mkdir -p $(distdir)/docs
-	cp -r docs/wiki/docs $(distdir)/docs/userdoc
 	find tests/complex/tutorial -regex ".*\.\(xml\|txt\|sumocfg\|netccfg\|py\)" -print0 | xargs -0 cp --parents --target-directory $(distdir)
 	mv $(distdir)/tests/complex/tutorial $(distdir)/docs
 	rmdir $(distdir)/tests/complex
 	rmdir $(distdir)/tests
-	svn export docs/internet/xsd $(distdir)/docs/xsd
-	cp -r docs/pydoc docs/doxygen $(distdir)/docs
+	cp -r docs/pydoc docs/doxygen docs/userdoc $(distdir)/docs
 	tests/extractTest.py -i -f tests/examples.txt -o $(distdir)/docs
 	tar -czf $(PACKAGE)-doc-$(VERSION).tar.gz $(distdir)
 	rm -f $(PACKAGE)-doc-$(VERSION).zip
@@ -85,7 +84,7 @@ dist-complete: dist dist-doc dist-tests
 	$(am__remove_distdir)
 
 examples:
-	tests/extractTest.py -f tests/examples.txt
+	tests/extractTest.py -x -f tests/examples.txt
 
 sumo$(EXEEXT) netconvert$(EXEEXT) \
         netgenerate$(EXEEXT) duarouter$(EXEEXT) \

@@ -11,7 +11,7 @@
 // The base class for a view
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -293,6 +293,34 @@ GUISUMOAbstractView::getObjectAtPosition(Position pos) {
         GUIGlObjectStorage::gIDStorage.unblockObject(id);
     }
     return idMax;
+}
+
+
+std::vector<GUIGlID>
+GUISUMOAbstractView::getObjectsAtPosition(Position pos, SUMOReal radius) {
+    Boundary selection;
+    selection.add(pos);
+    selection.grow(radius);
+    const std::vector<GUIGlID> ids = getObjectsInBoundary(selection);
+    std::vector<GUIGlID> result;
+    // Interpret results
+    for (std::vector<GUIGlID>::const_iterator it = ids.begin(); it != ids.end(); it++) {
+        GUIGlID id = *it;
+        GUIGlObject* o = GUIGlObjectStorage::gIDStorage.getObjectBlocking(id);
+        if (o == 0) {
+            continue;
+        }
+        if (o->getGlID() == 0) {
+            continue;
+        }
+        //std::cout << "point selection hit " << o->getMicrosimID() << "\n";
+        GUIGlObjectType type = o->getType();
+        if (type != 0) {
+            result.push_back(id);
+        }
+        GUIGlObjectStorage::gIDStorage.unblockObject(id);
+    }
+    return result;
 }
 
 

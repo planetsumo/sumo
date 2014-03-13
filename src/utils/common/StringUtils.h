@@ -9,7 +9,7 @@
 // Some static methods for string processing
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,10 +45,13 @@
 class StringUtils {
 public:
     /// Removes trailing and leading whitechars
-    static std::string prune(std::string str);
+    static std::string prune(const std::string& str);
 
     /// Transfers the content to lower case
     static std::string to_lower_case(std::string str);
+
+    /// Transfers from Latin 1 (ISO-8859-1) to UTF-8
+    static std::string latin1_to_utf8(std::string str);
 
     /// Converts german "Umlaute" to their latin-version
     static std::string convertUmlaute(std::string str);

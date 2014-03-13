@@ -10,7 +10,7 @@
 // The base class for a view
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -302,7 +302,7 @@ public:
     }
 
 
-    const GUIVisualizationSettings* getVisualisationSettings() {
+    GUIVisualizationSettings* getVisualisationSettings() {
         return myVisualizationSettings;
     }
 
@@ -335,6 +335,9 @@ protected:
 
     /// returns the id of the object at position using GL_SELECT
     GUIGlID getObjectAtPosition(Position pos);
+
+    /// returns the ids of the object at position within the given (rectangular) radius using GL_SELECT
+    std::vector<GUIGlID> getObjectsAtPosition(Position pos, SUMOReal radius);
 
     /// returns the ids of all objects in the given boundary
     std::vector<GUIGlID> getObjectsInBoundary(const Boundary& bound);

@@ -11,7 +11,7 @@
 // }
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -117,7 +117,7 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
     if (s.scale * myMaxSize < 1.) {
         return;
     }
-    if (!myIsInner) {
+    if (!myIsInner && s.drawJunctionShape) {
         glPushName(getGlID());
         glPushMatrix();
         const SUMOReal colorValue = static_cast<SUMOReal>(s.junctionColorer.getActive() == 1 && gSelected.isSelected(getType(), getGlID()));

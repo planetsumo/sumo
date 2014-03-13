@@ -10,7 +10,7 @@
 // A position in the 2D- or 3D-world
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -186,7 +186,18 @@ public:
         return Position(myX - p2.myX,  myY - p2.myY, myZ - p2.myZ);
     }
 
+    /// @brief keep the direction but modify the length of the (location) vector to length * scalar
     Position operator*(SUMOReal scalar) const {
+        return Position(myX * scalar, myY * scalar, myZ * scalar);
+    }
+
+    /// @brief keep the direction but modify the length of the (location) vector to length + scalar
+    Position operator+(SUMOReal offset) const {
+        const SUMOReal length = distanceTo(Position(0,0,0));
+        if (length == 0) {
+            return *this;
+        }
+        const SUMOReal scalar = (length + offset) / length;
         return Position(myX * scalar, myY * scalar, myZ * scalar);
     }
 

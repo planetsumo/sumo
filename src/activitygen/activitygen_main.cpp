@@ -11,7 +11,7 @@
 // Main object of the ActivityGen application
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -83,7 +83,7 @@ loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     PROGRESS_BEGIN_MESSAGE("Loading net");
     RONetHandler handler(toFill, eb);
     handler.setFileName(file);
-    if (!XMLSubSys::runParser(handler, file)) {
+    if (!XMLSubSys::runParser(handler, file, true)) {
         PROGRESS_FAILED_MESSAGE();
         throw ProcessError();
     } else {
@@ -106,7 +106,7 @@ main(int argc, char* argv[]) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getBool("xml-validation"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
         MsgHandler::initOutputOptions();
         RandHelper::initRandGlobal();
 
@@ -120,7 +120,7 @@ main(int argc, char* argv[]) {
         }
 
         std::string statFile = oc.getString("stat-file");
-        OutputDevice::createDeviceByOption("output-file", "routes");
+        OutputDevice::createDeviceByOption("output-file", "routes", "routes_file.xsd");
         AGTime duration(1, 0, 0);
         AGTime begin(0);
         AGTime end(0);

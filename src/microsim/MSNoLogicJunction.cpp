@@ -8,7 +8,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -73,7 +73,7 @@ MSNoLogicJunction::postloadInit() {
     for (i = myIncomingLanes.begin(); i != myIncomingLanes.end(); ++i) {
         const MSLinkCont& links = (*i)->getLinkCont();
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
-            (*j)->setRequestInformation(0, 0, false, false, std::vector<MSLink*>(), std::vector<MSLane*>());
+            (*j)->setRequestInformation(0, false, false, std::vector<MSLink*>(), std::vector<MSLane*>());
         }
     }
 }

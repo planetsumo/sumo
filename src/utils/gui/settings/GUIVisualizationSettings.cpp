@@ -9,7 +9,7 @@
 // Stores the information about how to visualize structures
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -66,7 +66,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
       drawLinkTLIndex(false), drawLinkJunctionIndex(false),
       junctionName(false, 50, RGBColor(0, 255, 128, 255)),
       internalJunctionName(false, 50, RGBColor(0, 204, 128, 255)),
-      showLane2Lane(false), addMode(0), minAddSize(1), addExaggeration(1),
+      showLane2Lane(false), drawJunctionShape(true), addMode(0), minAddSize(1), addExaggeration(1),
       addName(false, 50, RGBColor(255, 0, 128, 255)),
       minPOISize(0), poiExaggeration(1), poiName(false, 50, RGBColor(255, 0, 128, 255)),
       minPolySize(0), polyExaggeration(1), polyName(false, 50, RGBColor(255, 0, 128, 255)),
@@ -79,7 +79,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme = GUIColorScheme("by selection (lane-/streetwise)", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
     laneColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by vclass", RGBColor(240,240,240), "nobody");
+    scheme = GUIColorScheme("by vclass", RGBColor(240, 240, 240), "nobody");
     scheme.addColor(RGBColor(10, 10, 10), (SUMOReal)SVC_PASSENGER, "passenger");
     scheme.addColor(RGBColor(128, 128, 128), (SUMOReal)SVC_PEDESTRIAN, "pedestrian");
     scheme.addColor(RGBColor(192, 66, 44), (SUMOReal)SVC_BICYCLE, "bicycle");
@@ -107,22 +107,22 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::BLUE, (SUMOReal)5);
     laneColorer.addScheme(scheme);
     // ... emissions ...
-    scheme = GUIColorScheme("by CO2 emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by CO2 emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)(10. / 7.5 / 5.));
     laneColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by CO emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by CO emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)(0.05 / 7.5 / 2.));
     laneColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by PMx emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by PMx emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)(.005 / 7.5 / 5.));
     laneColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by NOx emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by NOx emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)(.125 / 7.5 / 5.));
     laneColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by HC emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by HC emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)(.02 / 7.5 / 4.));
     laneColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by fuel consumption (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by fuel consumption", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)(.005 / 7.5 * 100.));
     laneColorer.addScheme(scheme);
     scheme = GUIColorScheme("by noise emissions (Harmonoise)", RGBColor::GREEN);
@@ -161,7 +161,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::GREEN, (SUMOReal)(55 / 3.6));
     scheme.addColor(RGBColor::CYAN, (SUMOReal)(80 / 3.6));
     scheme.addColor(RGBColor::BLUE, (SUMOReal)(120 / 3.6));
-    scheme.addColor(RGBColor::BLACK, (SUMOReal)(150 / 3.6));
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)(150 / 3.6));
     vehicleColorer.addScheme(scheme);
     scheme = GUIColorScheme("by waiting time", RGBColor::BLUE);
     scheme.addColor(RGBColor::CYAN, (SUMOReal)30);
@@ -173,25 +173,29 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::GREY, (SUMOReal)(5 * 60));
     vehicleColorer.addScheme(scheme);
     scheme = GUIColorScheme("by max speed", RGBColor::RED);
-    scheme.addColor(RGBColor::BLUE, (SUMOReal)(150.0 / 3.6));
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)(30 / 3.6));
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)(55 / 3.6));
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)(80 / 3.6));
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)(120 / 3.6));
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)(150 / 3.6));
     vehicleColorer.addScheme(scheme);
     // ... emissions ...
-    scheme = GUIColorScheme("by CO2 emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by CO2 emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)5.);
     vehicleColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by CO emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by CO emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)0.05);
     vehicleColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by PMx emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by PMx emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal).005);
     vehicleColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by NOx emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by NOx emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal).125);
     vehicleColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by HC emissions (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by HC emissions", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal).02);
     vehicleColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by fuel consumption (HBEFA)", RGBColor::GREEN);
+    scheme = GUIColorScheme("by fuel consumption", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal).005);
     vehicleColorer.addScheme(scheme);
     scheme = GUIColorScheme("by noise emissions (Harmonoise)", RGBColor::GREEN);
@@ -338,7 +342,8 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
         << "\" drawLinkJunctionIndex=\"" << drawLinkJunctionIndex << "\"\n"
         << "                  " << junctionName.print("junctionName") << "\n"
         << "                  " << internalJunctionName.print("internalJunctionName") << "\n"
-        << " showLane2Lane=\"" << showLane2Lane << "\">\n";
+        << " showLane2Lane=\"" << showLane2Lane << "\""
+        << " drawShape=\"" << drawJunctionShape << "\">\n";
     junctionColorer.save(dev);
     dev << "        </junctions>\n";
 
@@ -473,6 +478,10 @@ GUIVisualizationSettings::operator==(const GUIVisualizationSettings& v2) {
     }
 
     if (showLane2Lane != v2.showLane2Lane) {
+        return false;
+    }
+
+    if (drawJunctionShape != v2.drawJunctionShape) {
         return false;
     }
 

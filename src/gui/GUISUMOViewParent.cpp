@@ -11,7 +11,7 @@
 // A single child window which contains a view of the simulation area
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -198,13 +198,13 @@ GUISUMOViewParent::onCmdLocate(FXObject*, FXSelector sel, void*) {
         case MID_LOCATEPOI:
             type = GLO_POI;
             ids = static_cast<GUIShapeContainer&>(GUINet::getInstance()->getShapeContainer()).getPOIIds();
-            icon = ICON_LOCATESHAPE;
+            icon = ICON_LOCATEPOI;
             title = "POI Chooser";
             break;
         case MID_LOCATEPOLY:
             type = GLO_POLYGON;
             ids = static_cast<GUIShapeContainer&>(GUINet::getInstance()->getShapeContainer()).getPolygonIDs();
-            icon = ICON_LOCATESHAPE;
+            icon = ICON_LOCATEPOLY;
             title = "Polygon Chooser";
             break;
         default:

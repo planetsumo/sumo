@@ -11,7 +11,7 @@
 // Helper methods for parsing vehicle attributes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -132,7 +132,7 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
         ret->repetitionNumber = attrs.get<int>(SUMO_ATTR_NUMBER, id.c_str(), ok);
         ret->setParameter |= VEHPARS_PERIODFREQ_SET;
         if (ret->repetitionNumber == 0) {
-            WRITE_WARNING("Flow '" + id + "' has 0 vehicles; will skip it...");
+            WRITE_WARNING("Flow '" + id + "' has 0 vehicles; will skip it.");
         } else {
             if (ok && ret->repetitionNumber < 0) {
                 delete ret;

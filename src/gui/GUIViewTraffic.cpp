@@ -11,7 +11,7 @@
 // A view on the simulation; this view is a microscopic one
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -129,13 +129,13 @@ GUIViewTraffic::buildViewToolBars(GUIGlChildWindow& v) {
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     // for pois
     new FXButton(v.getLocatorPopup(),
-                 "\tLocate POI\tLocate a POI within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATESHAPE), &v, MID_LOCATEPOI,
+                 "\tLocate PoI\tLocate a PoI within the network.",
+                 GUIIconSubSys::getIcon(ICON_LOCATEPOI), &v, MID_LOCATEPOI,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     // for polygons
     new FXButton(v.getLocatorPopup(),
                  "\tLocate Polygon\tLocate a Polygon within the network.",
-                 GUIIconSubSys::getIcon(ICON_LOCATESHAPE), &v, MID_LOCATEPOLY,
+                 GUIIconSubSys::getIcon(ICON_LOCATEPOLY), &v, MID_LOCATEPOLY,
                  ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
 }
 
@@ -175,6 +175,34 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
             paintGLGrid();
         }
     }
+    /*
+    MSGrid *grid = MSNet::getInstance()->getGrid();
+    SUMOReal *values = grid->getValues();
+    SUMOReal max = 0;
+    for(unsigned int y=0; y<grid->getYNumber(); ++y) {
+        for(unsigned int x=0; x<grid->getXNumber(); ++x) {
+            if(values[x+y*grid->getXNumber()]>max) {
+                max = values[x+y*grid->getXNumber()];
+            }
+        }
+    }
+    if(max!=0) {
+    const Position &offsets = grid->getOffset();
+    const Position &boxsize = grid->getBoxSize();
+    for(unsigned int y=0; y<grid->getYNumber(); ++y) {
+        for(unsigned int x=0; x<grid->getXNumber(); ++x) {
+            SUMOReal v = values[x+y*grid->getXNumber()]/max;
+            glColor3d(1, 1.-v, 1.-v);
+            glBegin(GL_QUADS);
+            glVertex2d(SUMOReal(x)*boxsize.x()+offsets.x(), SUMOReal(y)*boxsize.y()+offsets.y());
+            glVertex2d(SUMOReal(x+1)*boxsize.x()+offsets.x(), SUMOReal(y)*boxsize.y()+offsets.y());
+            glVertex2d(SUMOReal(x+1)*boxsize.x()+offsets.x(), SUMOReal(y+1)*boxsize.y()+offsets.y());
+            glVertex2d(SUMOReal(x)*boxsize.x()+offsets.x(), SUMOReal(y+1)*boxsize.y()+offsets.y());
+            glEnd();
+        }
+    }
+    }
+    */
 
     glLineWidth(1);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

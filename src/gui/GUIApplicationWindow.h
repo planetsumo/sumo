@@ -10,7 +10,7 @@
 // The main window of the SUMO-gui.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -275,7 +275,8 @@ protected:
     bool myAmLoading;
 
     /// the submenus
-    FXMenuPane* myFileMenu, *myEditMenu, *mySettingsMenu,
+    FXMenuPane* myFileMenu, *myEditMenu, *mySelectByPermissions, *mySettingsMenu,
+                *myLocatorMenu, *myControlMenu,
                 *myLocatorMenu, *myControlMenu,
                 *myWindowsMenu, *myHelpMenu;
 

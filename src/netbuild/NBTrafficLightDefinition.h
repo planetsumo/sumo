@@ -8,7 +8,7 @@
 // The base class for traffic light logic definitions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -289,12 +289,6 @@ public:
     /// @brief returns the controlled links (depends on previous call to collectLinks)
     const NBConnectionVector& getControlledLinks() const {
         return myControlledLinks;
-    }
-
-
-    // @breif returns the controlled nodes
-    const std::vector<NBNode*>& getControlledNodes() const {
-        return myControlledNodes;
     }
 
 

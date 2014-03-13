@@ -8,7 +8,7 @@
 // A base class for vehicle implementations
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -126,6 +126,16 @@ public:
     }
 
 
+    /** @brief Returns the starting point for reroutes (usually the current edge)
+     *
+     * This differs from *myCurrEdge only if the vehicle is on an internal edge
+     * @return The rerouting start point
+     */
+    virtual const MSEdge* getRerouteOrigin() const {
+        return *myCurrEdge;
+    }
+
+
     /** @brief Performs a rerouting using the given router
      *
      * Tries to find a new route between the current edge and the destination edge, first.
@@ -148,7 +158,7 @@ public:
      * @param[in] simTime The time at which the route was replaced
      * @return Whether the new route was accepted
      */
-    bool replaceRouteEdges(const MSEdgeVector& edges, bool onInit = false);
+    bool replaceRouteEdges(MSEdgeVector& edges, bool onInit = false);
 
 
     /** @brief Returns the vehicle's acceleration
@@ -157,6 +167,13 @@ public:
      * @return The acceleration
      */
     virtual SUMOReal getAcceleration() const;
+
+    /** @brief Returns the slope of the road at vehicle's position
+     *
+     * This default implementation returns always 0.
+     * @return The acceleration
+     */
+    virtual SUMOReal getSlope() const;
 
     /** @brief Called when the vehicle is inserted into the network
      *

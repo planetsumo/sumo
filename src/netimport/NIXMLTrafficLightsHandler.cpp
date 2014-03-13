@@ -7,7 +7,7 @@
 // Importer for traffic lights stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -161,13 +161,13 @@ NIXMLTrafficLightsHandler::initTrafficLightLogic(const SUMOSAXAttributes& attrs,
         assert(newDef != 0);
         loadedDef = new NBLoadedSUMOTLDef(id, programID, offset, type);
         // copy nodes
-        std::vector<NBNode*> nodes = newDef->getControlledNodes();
+        std::vector<NBNode*> nodes = newDef->getNodes();
         for (std::vector<NBNode*>::iterator it = nodes.begin(); it != nodes.end(); it++) {
             loadedDef->addNode(*it);
         }
         if (programID == NBTrafficLightDefinition::DefaultProgramID) {
             // replace default Program
-            std::vector<NBNode*> nodes = newDef->getControlledNodes();
+            std::vector<NBNode*> nodes = newDef->getNodes();
             for (std::vector<NBNode*>::iterator it = nodes.begin(); it != nodes.end(); it++) {
                 (*it)->removeTrafficLight(newDef);
             }

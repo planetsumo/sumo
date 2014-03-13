@@ -10,7 +10,7 @@
 // This class computes the logic of a junction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -172,7 +172,7 @@ private:
 
 
     /** writes which participating links are foes to the given */
-    std::string getFoesString(NBEdge* from, NBEdge* to, 
+    std::string getFoesString(NBEdge* from, NBEdge* to,
                               int fromLane, int toLane, const bool checkLaneFoes) const;
 
 

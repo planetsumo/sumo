@@ -11,7 +11,7 @@
 // Performs lane changing of vehicles
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -237,8 +237,7 @@ MSLaneChanger::change() {
                 // remove vehicle to swap with
                 MSLane::VehCont::iterator i = find(target->lane->myTmpVehicles.begin(), target->lane->myTmpVehicles.end(), prohibitor);
                 if (i != target->lane->myTmpVehicles.end()) {
-                    MSVehicle* bla = *i;
-                    assert(bla == prohibitor);
+                    assert(*i == prohibitor);
                     target->lane->myTmpVehicles.erase(i);
                     // set this vehicle
                     target->hoppedVeh = vehicle;

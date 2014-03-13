@@ -10,7 +10,7 @@
 // The representation of a single node
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -192,13 +192,6 @@ NBNode::ApproachingDivider::spread(const std::vector<int>& approachingLanes,
 /* -------------------------------------------------------------------------
  * NBNode-methods
  * ----------------------------------------------------------------------- */
-NBNode::NBNode(const std::string& id, const Position& position) :
-    Named(StringUtils::convertUmlaute(id)),
-    myTopologyType(NTT_UNKNOWN), myPosition(position),
-    myType(NODETYPE_UNKNOWN), myDistrict(0), myRequest(0)
-{ }
-
-
 NBNode::NBNode(const std::string& id, const Position& position,
                SumoXMLNodeType type) :
     Named(StringUtils::convertUmlaute(id)),
@@ -210,7 +203,7 @@ NBNode::NBNode(const std::string& id, const Position& position,
 NBNode::NBNode(const std::string& id, const Position& position, NBDistrict* district) :
     Named(StringUtils::convertUmlaute(id)),
     myTopologyType(NTT_UNKNOWN), myPosition(position),
-    myType(NODETYPE_DISTRICT), myDistrict(district), myRequest(0)
+    myType(district == 0 ? NODETYPE_UNKNOWN : NODETYPE_DISTRICT), myDistrict(district), myRequest(0)
 { }
 
 
@@ -295,27 +288,19 @@ NBNode::isJoinedTLSControlled() const {
 void
 NBNode::invalidateTLS(NBTrafficLightLogicCont& tlCont) {
     if (isTLControlled()) {
-        std::set<NBTrafficLightDefinition*> newDefs;
-        for (std::set<NBTrafficLightDefinition*>::iterator it =  myTrafficLights.begin(); it != myTrafficLights.end(); ++it) {
+        std::set<NBTrafficLightDefinition*> oldDefs(myTrafficLights);
+        for (std::set<NBTrafficLightDefinition*>::iterator it = oldDefs.begin(); it != oldDefs.end(); ++it) {
             NBTrafficLightDefinition* orig = *it;
-            if (dynamic_cast<NBOwnTLDef*>(orig) != 0) {
-                // this definition will be guessed anyway. no need to invalidate
-                newDefs.insert(orig);
-            } else {
-                const std::string new_id = orig->getID() + "_reguessed";
-                NBTrafficLightDefinition* newDef = new NBOwnTLDef(new_id, orig->getOffset(), orig->getType());
-                if (!tlCont.insert(newDef)) {
-                    // the original definition was shared by other nodes and was already invalidated
-                    delete newDef;
-                    newDef = tlCont.getDefinition(new_id, orig->getProgramID());
-                    assert(newDef != 0);
+            if (dynamic_cast<NBOwnTLDef*>(orig) == 0) {
+                NBTrafficLightDefinition* newDef = new NBOwnTLDef(orig->getID(), orig->getOffset(), orig->getType());
+                const std::vector<NBNode*>& nodes = orig->getNodes();
+                while (!nodes.empty()) {
+                    nodes.front()->removeTrafficLight(orig);
+                    newDef->addNode(nodes.front());
                 }
-                newDefs.insert(newDef);
+                tlCont.removeFully(orig->getID());
+                tlCont.insert(newDef);
             }
-        }
-        removeTrafficLights();
-        for (std::set<NBTrafficLightDefinition*>::iterator it =  newDefs.begin(); it != newDefs.end(); ++it) {
-            (*it)->addNode(this);
         }
     }
 }
@@ -628,7 +613,7 @@ NBNode::computeNodeShape(bool leftHand, SUMOReal mismatchThreshold) {
             PositionVector tmp = myPoly;
             tmp.push_back_noDoublePos(tmp[0]); // need closed shape
             if (mismatchThreshold >= 0
-                    && !tmp.around(myPosition)  
+                    && !tmp.around(myPosition)
                     && tmp.distance(myPosition) > mismatchThreshold) {
                 WRITE_WARNING("Junction shape for '" + myID + "' has distance " + toString(tmp.distance(myPosition)) + " to its given position");
             }

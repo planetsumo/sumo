@@ -9,7 +9,7 @@
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -299,6 +299,28 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                     into.closeTag(); // close the last edge
                 }
             }
+            into.closeTag(); // close the last edge
+            // third pass: write via edges
+            if (haveVia) {
+                for (std::vector<NBEdge::Connection>::const_iterator k = elv.begin(); k != elv.end(); ++k) {
+                    if (!(*k).haveVia) {
+                        continue;
+                    }
+                    if ((*k).toEdge == 0) {
+                        assert(false); // should never happen. tell me when it does
+                        continue;
+                    }
+                    const NBEdge::Lane& successor = (*k).toEdge->getLanes()[(*k).toLane];
+                    into.openTag(SUMO_TAG_EDGE);
+                    into.writeAttr(SUMO_ATTR_ID, (*k).viaID);
+                    into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_INTERNAL);
+                    writeLane(into, (*k).viaID, (*k).viaID + "_0", (*k).viaVmax, SVCFreeForAll, SVCFreeForAll,
+                              NBEdge::UNSPECIFIED_OFFSET, successor.width, (*k).viaShape, (*k).origID,
+                              MAX2((*k).viaShape.length(), (SUMOReal)POSITION_EPS), // microsim needs positive length
+                              0, origNames);
+                    into.closeTag(); // close the last edge
+                }
+            }
         }
     }
     return ret;
@@ -506,7 +528,7 @@ NWWriter_SUMO::writeConnection(OutputDevice& into, const NBEdge& from, const NBE
     into.writeAttr(SUMO_ATTR_TO, c.toEdge->getID());
     into.writeAttr(SUMO_ATTR_FROM_LANE, c.fromLane);
     into.writeAttr(SUMO_ATTR_TO_LANE, c.toLane);
-    if (c.mayDefinitelyPass) {
+    if (c.mayDefinitelyPass && style != TLL) {
         into.writeAttr(SUMO_ATTR_PASS, c.mayDefinitelyPass);
     }
     if (style != PLAIN) {

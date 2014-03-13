@@ -9,7 +9,7 @@
 // Some mathematical helper methods
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -74,10 +74,11 @@ NBHelpers::relAngle(SUMOReal angle1, SUMOReal angle2) {
 SUMOReal
 NBHelpers::normRelAngle(SUMOReal angle1, SUMOReal angle2) {
     SUMOReal rel = relAngle(angle1, angle2);
-    if (rel < -170 || rel > 170) {
-        rel = -180;
+    if (rel + NUMERICAL_EPS >= 180) {
+        return -180;
+    } else {
+        return rel;
     }
-    return rel;
 }
 
 

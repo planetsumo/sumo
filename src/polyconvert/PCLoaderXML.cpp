@@ -10,7 +10,7 @@
 // A reader for polygons and pois stored in XML-format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -151,10 +151,7 @@ PCLoaderXML::myStartElement(int element,
                 ignorePrunning = true;
             }
             PointOfInterest* poi = new PointOfInterest(id, type, color, pos, layer, angle, imgFile, imgWidth, imgHeight);
-            if (!myCont.insert(id, poi, (int)layer, ignorePrunning)) {
-                WRITE_ERROR("POI '" + id + "' could not be added.");
-                delete poi;
-            }
+            myCont.insert(id, poi, (int)layer, ignorePrunning);
         }
     }
     if (element == SUMO_TAG_POLY) {
@@ -214,10 +211,7 @@ PCLoaderXML::myStartElement(int element,
                 shape.push_back(pos);
             }
             Polygon* poly = new Polygon(myCurrentID, myCurrentType, myCurrentColor, shape, fill, layer, angle, imgFile);
-            if (!myCont.insert(myCurrentID, poly, (int)myCurrentLayer, myCurrentIgnorePrunning)) {
-                WRITE_ERROR("Polygon '" + myCurrentID + "' could not be added.");
-                delete poly;
-            }
+            myCont.insert(myCurrentID, poly, (int)myCurrentLayer, myCurrentIgnorePrunning);
         }
     }
 }

@@ -11,7 +11,7 @@
 // Loader for networks and route imports
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -136,7 +136,7 @@ ROLoader::loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     PROGRESS_BEGIN_MESSAGE("Loading net");
     RONetHandler handler(toFill, eb);
     handler.setFileName(file);
-    if (!XMLSubSys::runParser(handler, file)) {
+    if (!XMLSubSys::runParser(handler, file, true)) {
         PROGRESS_FAILED_MESSAGE();
         throw ProcessError();
     } else {
@@ -212,7 +212,7 @@ ROLoader::processRoutes(SUMOTime start, SUMOTime end,
 
 #ifdef HAVE_INTERNAL // catchall for internal stuff
 void
-ROLoader::processAllRoutesWithBulkRouter(SUMOTime start, SUMOTime end,
+ROLoader::processAllRoutesWithBulkRouter(SUMOTime /* start */, SUMOTime end,
         RONet& net, SUMOAbstractRouter<ROEdge, ROVehicle>& router) {
     myLoaders.loadNext(SUMOTime_MAX);
     RouteAggregator::processAllRoutes(net, router);

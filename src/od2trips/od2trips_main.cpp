@@ -10,7 +10,7 @@
 // Main for OD2TRIPS
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -236,7 +236,7 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getBool("xml-validation"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
         MsgHandler::initOutputOptions();
         if (!checkOptions()) {
             throw ProcessError();
@@ -269,14 +269,14 @@ main(int argc, char** argv) {
         }
         // write
         bool haveOutput = false;
-        if (OutputDevice::createDeviceByOption("output-file", "routes")) {
+        if (OutputDevice::createDeviceByOption("output-file", "routes", "routes_file.xsd")) {
             matrix.write(string2time(oc.getString("begin")), string2time(oc.getString("end")),
                          OutputDevice::getDeviceByOption("output-file"),
                          oc.getBool("spread.uniform"), oc.getBool("ignore-vehicle-type"),
                          oc.getString("prefix"), !oc.getBool("no-step-log"));
             haveOutput = true;
         }
-        if (OutputDevice::createDeviceByOption("flow-output", "routes")) {
+        if (OutputDevice::createDeviceByOption("flow-output", "routes", "routes_file.xsd")) {
             matrix.writeFlows(string2time(oc.getString("begin")), string2time(oc.getString("end")),
                               OutputDevice::getDeviceByOption("flow-output"),
                               oc.getBool("ignore-vehicle-type"), oc.getString("prefix"));

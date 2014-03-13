@@ -12,7 +12,7 @@
 // The XML-Handler for network loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -562,7 +562,7 @@ NLHandler::addPOI(const SUMOSAXAttributes& attrs) {
         if (laneID != "") {
             MSLane* lane = MSLane::dictionary(laneID);
             if (lane == 0) {
-                WRITE_ERROR("Lane '" + laneID + "' to place a poi '" + id + "'on is not known.");
+                WRITE_ERROR("Lane '" + laneID + "' to place poi '" + id + "' on is not known.");
                 return;
             }
             if (lanePos < 0) {

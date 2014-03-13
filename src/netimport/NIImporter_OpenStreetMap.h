@@ -10,7 +10,7 @@
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -89,7 +89,7 @@ protected:
         double lon;
         /// @brief The latitude the node is located at
         double lat;
-        /// @brief The elevation of this node 
+        /// @brief The elevation of this node
         double ele;
         /// @brief Whether this is a tls controlled junction
         bool tlsControlled;
@@ -218,7 +218,8 @@ protected:
          * @param[in] options The options to use
          */
         NodesHandler(std::map<SUMOLong, NIOSMNode*>& toFill,
-                     std::set<NIOSMNode*, CompareNodes>& uniqueNodes);
+                     std::set<NIOSMNode*, CompareNodes>& uniqueNodes,
+                     bool importElevation);
 
 
         /// @brief Destructor
@@ -265,6 +266,9 @@ protected:
 
         /// @brief the set of unique nodes (used for duplicate detection/substitution)
         std::set<NIOSMNode*, CompareNodes>& myUniqueNodes;
+
+        /// @brief whether elevation data should be imported
+        const bool myImportElevation;
 
 
     private:

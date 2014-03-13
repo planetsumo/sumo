@@ -11,7 +11,7 @@
 // Importer for networks stored in ArcView-shape format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -210,6 +210,7 @@ NIImporter_ArcView::load() {
         OGRGeometry* poGeometry = poFeature->GetGeometryRef();
         OGRwkbGeometryType gtype = poGeometry->getGeometryType();
         assert(gtype == wkbLineString);
+        UNUSED_PARAMETER(gtype); // ony used for assertion
         OGRLineString* cgeom = (OGRLineString*) poGeometry;
         if (poCT != 0) {
             // try transform to wgs84

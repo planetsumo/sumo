@@ -9,7 +9,7 @@
 // A container for traffic light definitions and built programs
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -87,7 +87,7 @@ public:
      *  name and programID exists within this container.
      *
      * @param[in] logic The logic to add
-     * @param[in] renameProgram If true, rename the program to make insertion succeed
+     * @param[in] forceInsert If true, rename the program to make insertion succeed
      * @return Whether the logic was valid (no logic with the same id and programID is already known)
      */
     bool insert(NBTrafficLightDefinition* logic, bool forceInsert = false);

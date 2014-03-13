@@ -10,7 +10,7 @@
 // Message and object IDs used by the FOX-version of the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -413,6 +413,8 @@ enum {
     MID_GNE_OPEN_ATTRIBUTE_EDITOR,
     /** split an edge */
     MID_GNE_SPLIT_EDGE,
+    /** split an edge */
+    MID_GNE_SPLIT_EDGE_BIDI,
     /** reverse an edge */
     MID_GNE_REVERSE_EDGE,
     /** set non-default geometry endpoint */

@@ -13,7 +13,7 @@
 // The simulated network and simulation perfomer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -80,6 +80,7 @@
 #include "output/MSQueueExport.h"
 #include "output/MSVTKExport.h"
 #include "output/MSXMLRawOut.h"
+#include "output/MSGrid.h"
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/common/SysUtils.h>
 #include <utils/common/WrappingCommand.h>
@@ -223,6 +224,8 @@ MSNet::closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
     if (myLogExecutionTime) {
         mySimBeginMillis = SysUtils::getCurrentMillis();
     }
+
+//    myGrid = new MSGrid("bla", 100, 100, Position(6500,9000), Position(7000, 7000), *this);
 }
 
 
@@ -438,6 +441,7 @@ MSNet::simulationStep() {
 #endif
     // update and write (if needed) detector values
     writeOutput();
+//    myGrid->detectorUpdate(myStep);
 
     if (myLogExecutionTime) {
         mySimStepEnd = SysUtils::getCurrentMillis();

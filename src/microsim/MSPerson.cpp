@@ -10,7 +10,7 @@
 // The class for modelling person-movements
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -301,7 +301,7 @@ MSPerson::MSPersonStage_Driving::getFromEdge() const {
 
 
 SUMOReal
-MSPerson::MSPersonStage_Driving::getEdgePos(SUMOTime now) const {
+MSPerson::MSPersonStage_Driving::getEdgePos(SUMOTime /* now */) const {
     if (myVehicle != 0) {
         // vehicle may already have passed the lane (check whether this is correct)
         return MIN2(myVehicle->getPositionOnLane(), getEdge()->getLength());

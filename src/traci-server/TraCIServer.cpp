@@ -15,7 +15,7 @@
 /// TraCI server used to control sumo by a remote TraCI client (e.g., ns2)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -55,8 +55,6 @@
 #include <utils/common/NamedObjectCont.h>
 #include <utils/common/RandHelper.h>
 #include <utils/common/MsgHandler.h>
-#include <utils/common/HelpersHBEFA.h>
-#include <utils/common/HelpersHarmonoise.h>
 #include <utils/common/SUMOVehicleParameter.h>
 #include <utils/shapes/PointOfInterest.h>
 #include <utils/shapes/ShapeContainer.h>

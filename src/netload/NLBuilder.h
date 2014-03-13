@@ -8,7 +8,7 @@
 // The main interface for loading a microsim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -107,9 +107,10 @@ protected:
      * Assuming the given string to be an option name behind which a list of files
      *  is stored, this method invokes an XML reader on all the files set for this option.
      * @param[in] mmlWhat The option to get the file list from
+     * @param[in] isNet   whether a network gets loaded
      * @return Whether loading of all files was successfull
      */
-    bool load(const std::string& mmlWhat);
+    bool load(const std::string& mmlWhat, const bool isNet = false);
 
 
     /** @brief Closes the net building process

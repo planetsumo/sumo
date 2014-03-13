@@ -10,7 +10,7 @@
 // A reader of pois and polygons stored in OSM-format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -232,8 +232,6 @@ PCLoaderOSM::addPolygon(const PCOSMEdge* edge, const PositionVector& vec, const 
             poly->addParameter(edge->myAttributes);
         }
         if (!toFill.insert(id, poly, def.layer, ignorePruning)) {
-            WRITE_ERROR("Polygon '" + id + "' could not be added.");
-            delete poly;
             return index;
         } else {
             return index + 1;
@@ -257,8 +255,6 @@ PCLoaderOSM::addPOI(const PCOSMNode* node, const Position& pos, const PCTypeMap:
             poi->addParameter(node->myAttributes);
         }
         if (!toFill.insert(id, poi, def.layer, ignorePruning)) {
-            WRITE_ERROR("POI '" + id + "' could not be added.");
-            delete poi;
             return index;
         } else {
             return index + 1;

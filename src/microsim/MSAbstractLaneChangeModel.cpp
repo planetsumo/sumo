@@ -11,7 +11,7 @@
 // Interface for lane-change models
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -74,7 +74,9 @@ MSAbstractLaneChangeModel::MSAbstractLaneChangeModel(MSVehicle& v) :
 
 
 MSAbstractLaneChangeModel::~MSAbstractLaneChangeModel() {
-    removeLaneChangeShadow();
+    if (myShadowLane != 0 && myHaveShadow) {
+        myShadowLane->removeVehicle(&myVehicle, MSMoveReminder::NOTIFICATION_VAPORIZED, false);
+    }
 }
 
 

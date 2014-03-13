@@ -14,7 +14,7 @@
 /// TraCI server used to control sumo by a remote TraCI client
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -349,7 +349,7 @@ private:
         Subscription(int commandIdArg, const std::string& idArg,
                      const std::vector<int>& variablesArg, const std::vector<std::vector<unsigned char> >& paramsArg,
                      SUMOTime beginTimeArg, SUMOTime endTimeArg, bool contextVarsArg, int contextDomainArg, SUMOReal rangeArg)
-                     : commandId(commandIdArg), id(idArg), variables(variablesArg), parameters(paramsArg), beginTime(beginTimeArg), endTime(endTimeArg),
+            : commandId(commandIdArg), id(idArg), variables(variablesArg), parameters(paramsArg), beginTime(beginTimeArg), endTime(endTimeArg),
               contextVars(contextVarsArg), contextDomain(contextDomainArg), range(rangeArg) {}
 
         /// @brief commandIdArg The command id of the subscription

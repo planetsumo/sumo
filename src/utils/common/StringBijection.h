@@ -7,7 +7,7 @@
 // Bijective Container between string and something else
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -78,18 +78,18 @@ public:
     }
 
 
-    T get(const std::string& str) {
+    T get(const std::string& str) const {
         if (hasString(str)) {
-            return myString2T[str];
+            return myString2T.find(str)->second;
         } else {
             throw InvalidArgument("String '" + str + "' not found.");
         }
     }
 
 
-    const std::string& getString(const T key) {
+    const std::string& getString(const T key) const {
         if (has(key)) {
-            return myT2String[key];
+            return myT2String.find(key)->second;
         } else {
             // cannot use toString(key) because that might create an infinite loop
             throw InvalidArgument("Key not found.");
@@ -97,12 +97,12 @@ public:
     }
 
 
-    bool hasString(const std::string& str) {
+    bool hasString(const std::string& str) const {
         return myString2T.count(str) != 0;
     }
 
 
-    bool has(const T key) {
+    bool has(const T key) const {
         return myT2String.count(key) != 0;
     }
 

@@ -11,7 +11,7 @@
 // Methods for the representation of a single edge
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -238,6 +238,8 @@ NBEdge::NBEdge(const std::string& id, NBNode* from, NBNode* to, NBEdge* tpl) :
     for (unsigned int i = 0; i < getNumLanes(); i++) {
         setSpeed(i, tpl->getLaneSpeed(i));
         setPermissions(tpl->getPermissions(i), i);
+        setLaneWidth(i, tpl->getLaneWidth(i));
+        setOffset(i, tpl->getOffset(i));
     }
 }
 
@@ -1268,30 +1270,39 @@ NBEdge::computeAngle() {
     // taking the angle at the first might be unstable, thus we take the angle
     // at a certain distance. (To compare two edges, additional geometry
     // segments are considered to resolve ambiguities)
+    const bool hasFromShape = myFrom->getShape().size() > 0; 
+    const bool hasToShape = myTo->getShape().size() > 0; 
+    Position fromCenter = (hasFromShape ? myFrom->getShape().getCentroid() : myFrom->getPosition());
+    Position toCenter = (hasToShape ? myTo->getShape().getCentroid() : myTo->getPosition());
+    PositionVector shape = ((hasFromShape || hasToShape) && getNumLanes() > 0 ? 
+            (myLaneSpreadFunction == LANESPREAD_RIGHT ? 
+             myLanes[getNumLanes() - 1].shape 
+             : myLanes[getNumLanes() / 2].shape)
+            : myGeom);
 
-    const Position fromCenter = (myFrom->getShape().size() > 0 ? myFrom->getShape().getCentroid() : myFrom->getPosition());
-    const Position toCenter = (myTo->getShape().size() > 0 ? myTo->getShape().getCentroid() : myTo->getPosition());
-    PositionVector shape = myGeom;
-    // maybe the edge is actually somewhere else now
-    // we do not want to use lane shapes here because the spreadtype could interfere
-    if (myFrom->getShape().size() > 0) {
-        shape = startShapeAt(shape, myFrom);
-        if (shape.size() >= 2) {
-            shape = startShapeAt(shape.reverse(), myTo).reverse();
-        }
+    // if the junction shape is suspicious we cannot trust the angle to the centroid
+    if ((hasFromShape && (myFrom->getShape().distance(shape[0]) > 2 * POSITION_EPS
+                || myFrom->getShape().around(shape[-1]))) 
+            || (hasToShape && (myTo->getShape().distance(shape[-1]) > 2 * POSITION_EPS
+                || myTo->getShape().around(shape[0])))) {
+        fromCenter = myFrom->getPosition();
+        toCenter = myTo->getPosition();
+        shape = myGeom;
     }
 
-    const Position referencePosStart = shape.positionAtOffset2D(ANGLE_LOOKAHEAD);
+    const SUMOReal angleLookahead = MIN2(shape.length2D() / 2, ANGLE_LOOKAHEAD);
+    const Position referencePosStart = shape.positionAtOffset2D(angleLookahead);
     myStartAngle = NBHelpers::angle(
                        fromCenter.x(), fromCenter.y(),
                        referencePosStart.x(), referencePosStart.y());
-    const Position referencePosEnd = shape.positionAtOffset2D(myGeom.length() - ANGLE_LOOKAHEAD);
+    const Position referencePosEnd = shape.positionAtOffset2D(shape.length() - angleLookahead);
     myEndAngle = NBHelpers::angle(
                      referencePosEnd.x(), referencePosEnd.y(),
                      toCenter.x(), toCenter.y());
     myTotalAngle = NBHelpers::angle(
                        myFrom->getPosition().x(), myFrom->getPosition().y(),
                        myTo->getPosition().x(), myTo->getPosition().y());
+
 }
 
 
@@ -1642,6 +1653,7 @@ NBEdge::moveOutgoingConnectionsFrom(NBEdge* e, unsigned int laneOff) {
             assert(el.tlID == "");
             bool ok = addLane2LaneConnection(i + laneOff, el.toEdge, el.toLane, L2L_COMPUTED);
             assert(ok);
+            UNUSED_PARAMETER(ok); // only used for assertion
         }
     }
 }
@@ -2114,5 +2126,16 @@ NBEdge::dismissVehicleClassInformation() {
     }
 }
 
+
+bool
+NBEdge::connections_sorter(const Connection& c1, const Connection& c2) {
+    if (c1.fromLane != c2.fromLane) {
+        return c1.fromLane < c2.fromLane;
+    }
+    if (c1.toEdge != c2.toEdge) {
+        return false; // do not change ordering among toEdges as this is determined by angle in an earlier step
+    }
+    return c1.toLane < c2.toLane;
+}
 
 /****************************************************************************/

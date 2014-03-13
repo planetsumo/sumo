@@ -10,7 +10,7 @@
 // The dialog to change the view (gui) settings.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -172,8 +172,7 @@ GUISettingsHandler::myStartElement(int element,
                 if (myCurrentScheme->isFixed()) {
                     myCurrentScheme->setColor(attrs.getStringSecure(SUMO_ATTR_NAME, ""), color);
                 } else {
-                    myCurrentScheme->addColor(color,
-                                              attrs.get<SUMOReal>(SUMO_ATTR_THRESHOLD, 0, ok));
+                    myCurrentScheme->addColor(color, attrs.getOpt<SUMOReal>(SUMO_ATTR_THRESHOLD, 0, ok, 0));
                 }
             }
             break;
@@ -201,6 +200,7 @@ GUISettingsHandler::myStartElement(int element,
             mySettings.junctionName = parseTextSettings("junctionName", attrs, mySettings.junctionName);
             mySettings.internalJunctionName = parseTextSettings("internalJunctionName", attrs, mySettings.internalJunctionName);
             mySettings.showLane2Lane = TplConvert::_2bool(attrs.getStringSecure("showLane2Lane", toString(mySettings.showLane2Lane)).c_str());
+            mySettings.drawJunctionShape = TplConvert::_2bool(attrs.getStringSecure("drawShape", toString(mySettings.drawJunctionShape)).c_str());
             myCurrentColorer = element;
             break;
         case SUMO_TAG_VIEWSETTINGS_ADDITIONALS:

@@ -9,7 +9,7 @@
 // Sets and checks options for netimport
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -253,6 +253,8 @@ NIFrame::fillOptions() {
     oc.doRegister("osm.railway.oneway-default", new Option_Bool(true));
     oc.addDescription("osm.railway.oneway-default", "Processing", "Imports railway edges as one-way by default");
 
+    oc.doRegister("osm.elevation", new Option_Bool(false));
+    oc.addDescription("osm.elevation", "Processing", "Imports elevation data");
 
     // register opendrive options
     oc.doRegister("opendrive.import-all-lanes", new Option_Bool(false));

@@ -8,7 +8,7 @@
 // Redirector for mean data output (net->edgecontrol)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,7 +36,7 @@
 #include <utils/common/ToString.h>
 #include <utils/iodevices/OutputDevice.h>
 #include "MSMeanData_Harmonoise.h"
-#include <utils/common/HelpersHarmonoise.h>
+#include <utils/emissions/HelpersHarmonoise.h>
 #include <limits>
 
 #ifdef CHECK_MEMORY_LEAKS
