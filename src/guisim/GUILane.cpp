@@ -526,7 +526,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
         if ((!isInternal || isCrossing) && drawDetails) {
             glPushMatrix();
             glTranslated(0, 0, GLO_JUNCTION); // must draw on top of junction shape
-            glTranslated(0, 0, .4);
+            glTranslated(0, 0, .5);
             drawLinkRules(*net);
             if (s.showLinkDecals && !isRailway(myPermissions) && myPermissions != SVC_PEDESTRIAN) {
                 drawArrows();
@@ -618,7 +618,7 @@ GUILane::drawCrossties(const GUIVisualizationSettings& s, SUMOReal length, SUMOR
     int e = (int) getShape().size() - 1;
     for (int i = 0; i < e; ++i) {
         glPushMatrix();
-        glTranslated(getShape()[i].x(), getShape()[i].y(), 0.1);
+        glTranslated(getShape()[i].x(), getShape()[i].y(), 0.0);
         glRotated(myShapeRotations[i], 0, 0, 1);
         for (SUMOReal t = 0; t < myShapeLengths[i]; t += spacing) {
             glBegin(GL_QUADS);
