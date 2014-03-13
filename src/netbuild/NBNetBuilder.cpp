@@ -372,8 +372,13 @@ NBNetBuilder::compute(OptionsCont& oc,
         for (std::map<std::string, NBEdge*>::const_iterator i = myEdgeCont.begin(); i != myEdgeCont.end(); ++i) {
             (*i).second->sortOutgoingConnectionsByIndex();
         }
+        // walking areas shall only be built if crossings are wished as well
+        bool buildCrossingsAndWalkingAreas = oc.getBool("crossings.guess");
         for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
-            (*i).second->buildInnerEdges();
+            buildCrossingsAndWalkingAreas = buildCrossingsAndWalkingAreas || (*i).second->getCrossings().size() > 0;
+        }
+        for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
+            (*i).second->buildInnerEdges(buildCrossingsAndWalkingAreas);
         }
         PROGRESS_DONE_MESSAGE();
     }

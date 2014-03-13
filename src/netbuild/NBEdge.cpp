@@ -942,7 +942,7 @@ NBEdge::canMoveConnection(const Connection& con, unsigned int newFromLane) const
     // only allow using newFromLane if at least 1 vClass is permitted to use
     // this connection. If the connection shall be moved to a sidewalk, only create the connection if there is no walking area
     const SVCPermissions common = (getPermissions(newFromLane) & con.toEdge->getPermissions(con.toLane));
-    return (common > 0 && (common != SVC_PEDESTRIAN || !myTo->hasWalkingAreaAtIncoming(this)));
+    return (common > 0 && common != SVC_PEDESTRIAN);
 }
 
 
@@ -1489,8 +1489,7 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
     // forbidden lanes and pedestrian lanes that will be connected via walkingAreas)
     std::vector<int> availableLanes;
     for (int i = 0; i < (int)myLanes.size(); ++i) {
-        if ((getPermissions(i) == SVC_PEDESTRIAN && myTo->hasWalkingAreaAtIncoming(this))
-                || isForbidden(getPermissions(i))) {
+        if (getPermissions(i) == SVC_PEDESTRIAN || isForbidden(getPermissions(i))) {
             continue;
         }
         availableLanes.push_back(i);
@@ -1553,7 +1552,7 @@ NBEdge::divideOnEdges(const EdgeVector* outgoing) {
                 // exclude connection if fromLane and toEdge have no common permissions
                 continue;
             }
-            if ((getPermissions(fromIndex) & (*i).first->getPermissions()) == SVC_PEDESTRIAN && myTo->hasWalkingAreaAtIncoming(this)) {
+            if ((getPermissions(fromIndex) & (*i).first->getPermissions()) == SVC_PEDESTRIAN) {
                 // exclude connection if the only commonly permitted class are pedestrians and there is already a walkingArea
                 continue;
             }

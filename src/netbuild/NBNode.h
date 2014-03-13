@@ -130,7 +130,7 @@ public:
      */
     struct Crossing {
         Crossing(const NBNode* _node, const EdgeVector& _edges, SUMOReal _width, bool _priority) :
-            node(_node), edges(_edges), width(_width), priority(_priority)
+            node(_node), edges(_edges), width(_width), priority(_priority), tlLinkNo(-1)
         {}
         /// @brief The parent node of this crossing
         const NBNode* node;
@@ -146,6 +146,8 @@ public:
         std::string nextWalkingArea;
         /// @brief whether the pedestrians have priority
         bool priority;
+        /// @brief the traffic light index of this crossing (if controlled)
+        int tlLinkNo;
     };
 
 
@@ -158,7 +160,8 @@ public:
             width(_width),
             nextCrossing(""),
             tlID(""),
-            done(false) {}
+            tlLinkNo(-1)
+        {}
         /// @brief the (edge)-id of this walkingArea
         std::string id;
         /// @brief This lane's width
@@ -175,8 +178,6 @@ public:
         std::vector<std::string> nextSidewalks;
         /// @brief the lane-id of the previous sidewalk lane or ""
         std::vector<std::string> prevSidewalks;
-        /// @brief whether the shape and connections of this WA are complete
-        bool done;
     };
 
     /// @brief edge directions (for pedestrian related stuff)
@@ -516,31 +517,25 @@ public:
     int checkCrossing(EdgeVector candidates, bool sidewalkFrom=false, bool sidewalkTo=false);
 
     /// @brief build internal lanes, pedestrian crossings and walking areas
-    void buildInnerEdges();
+    void buildInnerEdges(bool buildCrossingsAndWalkingAreas);
 
     /* @brief build pedestrian crossings 
      * @param[in] index The starting index for naming the created internal lanes
      * @return The next index for creating internal lanes 
      * */
-    unsigned int buildCrossings(unsigned int index);
+    unsigned int buildCrossings(unsigned int tlIndex);
 
     /* @brief build pedestrian walking areas and set connections from/to walkingAreas
      * @param[in] index The starting index for naming the created internal lanes
      * @param[in] tlIndex The starting traffic light index to assign to connections to controlled crossings
      * */
-    void buildWalkingAreas(unsigned int index, unsigned int tlIndex);
-
-    /* @brief update shape and connections of the given walking area
-     * @param[in,out] wa The walking area to be update
-     * @param[in] startEdge The first edge delimiting the walking area (clockwise)
-     * @param[in] endEdge The last edge delimiting the walking area (clockwise)
-     * @param[in] startWidth The width of the walking area where facing startEdge
-     * */
-    void updateShapeAndConnections(WalkingArea& wa, const NBEdge* startEdge, const NBEdge* endEdge, SUMOReal startWidth);
+    void buildWalkingAreas();
 
     /// @brief return all edges that lie clockwise between the given edges
     EdgeVector edgesBetween(const NBEdge* e1, const NBEdge* e2) const;
 
+    /// @brief return true if the given edges are connected by a crossing
+    bool crossingBetween(const NBEdge* e1, const NBEdge* e2) const;
 
     const NBConnectionProhibits& getProhibitions() {
         return myBlockedConnections;
@@ -555,12 +550,6 @@ public:
 
     /// @brief add a pedestrian crossing to this node
     void addCrossing(EdgeVector edges, SUMOReal width, bool priority);
-
-    /// @brief return whether the given edge has a WalkingArea where it enters this node
-    bool hasWalkingAreaAtIncoming(const NBEdge* edge) const;
-
-    /// @brief return whether the given edge has a WalkingArea where it leaves this node
-    bool hasWalkingAreaAtOutgoing(NBEdge* edge);
 
     /// @brief return this junctions pedestrian crossings
     inline const std::vector<Crossing>& getCrossings() const {
@@ -612,6 +601,22 @@ public:
 
     };
 
+    /**
+     * @class walkingAreas_by_tlLinkno_sorter
+     * @brief Used for sorting the cells by the begin time they describe
+     */
+    class walkingAreas_by_tlLinkno_sorter {
+    public:
+        /// @brief Constructor
+        explicit walkingAreas_by_tlLinkno_sorter() { }
+
+        /** @brief Comparing operator
+         */
+        int operator()(const WalkingArea& wa1, const WalkingArea& wa2) const {
+            return wa1.tlLinkNo < wa2.tlLinkNo;
+        }
+
+    };
 
 private:
     bool isSimpleContinuation() const;

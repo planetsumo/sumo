@@ -436,7 +436,9 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool che
     }
     const std::vector<NBNode::WalkingArea>& WalkingAreas = n.getWalkingAreas();
     for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
-        incLanes += ' ' + (*it).id + "_0";
+        if ((*it).nextCrossing != "") {
+            incLanes += ' ' + (*it).id + "_0";
+        }
     }
     into.writeAttr(SUMO_ATTR_INCLANES, incLanes);
     // write the internal lanes
