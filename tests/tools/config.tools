@@ -47,6 +47,8 @@ copy_test_path:dest.con.xml
 copy_test_path:dest.tll.xml
 copy_test_path:dest.xml
 copy_test_path:fcd.xml
+copy_test_path:data.txt
+copy_test_path:source.csv
 
 [collate_file]
 detectors:e1.add.xml
@@ -80,7 +82,11 @@ fzp:test.fzp
 flt:test.flt
 str:test.str
 gpsdat:gpsdat.txt
+gpx:output.gpx
 match:match.txt
+image:image.png
+csv:out*.csv
+xml:out.xml
 
 [run_dependent_text]
 output:Begin time
@@ -95,6 +101,7 @@ errors:Leaked object at
 errors:*** 9 leaks found
 errors:delete: freed
 errors:Traceback{->}XMLSyntaxError
+errors:Traceback{->}IOError
 omnet:<!-- generated on
 shawn:<!-- generated on
 
