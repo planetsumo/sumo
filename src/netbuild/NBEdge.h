@@ -709,9 +709,10 @@ public:
      * Turnaround edge is ignored!
      * @param[in] destEdge The connection's destination edge
      * @param[in] destLane The connection's destination lane
+     * @param[in] fromLane If a value >= 0 is given, only return true if a connection from the given lane exists
      * @return whether a connection to the specified lane exists
      */
-    bool hasConnectionTo(NBEdge* destEdge, unsigned int destLane) const;
+    bool hasConnectionTo(NBEdge* destEdge, unsigned int destLane, int fromLane=-1) const;
 
 
     /** @brief Returns the information whethe a connection to the given edge has been added (or computed)
@@ -1324,15 +1325,19 @@ public:
     class connections_toedgelane_finder {
     public:
         /// constructor
-        connections_toedgelane_finder(NBEdge* const edge2find, int lane2find) : myEdge2Find(edge2find), myLane2Find(lane2find) { }
+        connections_toedgelane_finder(NBEdge* const edge2find, int lane2find, int fromLane2find) : 
+            myEdge2Find(edge2find), 
+            myLane2Find(lane2find),
+            myFromLane2Find(fromLane2find) { }
 
         bool operator()(const Connection& c) const {
-            return c.toEdge == myEdge2Find && c.toLane == myLane2Find;
+            return c.toEdge == myEdge2Find && c.toLane == myLane2Find && (myFromLane2Find < 0 || c.fromLane == myFromLane2Find);
         }
 
     private:
         NBEdge* const myEdge2Find;
         int myLane2Find;
+        int myFromLane2Find;
 
     private:
         /// @brief invalidated assignment operator

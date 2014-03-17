@@ -166,6 +166,8 @@ public:
         std::string id;
         /// @brief This lane's width
         SUMOReal width;
+        /// @brief This lane's width
+        SUMOReal length;
         /// @brief The polygonal shape
         PositionVector shape;
         /// @brief the lane-id of the next crossing

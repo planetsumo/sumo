@@ -21,5 +21,9 @@ path_across_1way_street
 # a motorway without sidewalks splits. no crossings should be built.
 motorway_split
 
+# build the network to be used in 
+# tests/sumo/basic/person/pedestrians/pedestrina_interactions/jam_trafficlight
+tl_controlled_path
+
 # a complex network
 adlershof_dlr

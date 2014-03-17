@@ -725,8 +725,8 @@ NBEdge::getConnectionsFromLane(unsigned int lane) const {
 
 
 bool
-NBEdge::hasConnectionTo(NBEdge* destEdge, unsigned int destLane) const {
-    return destEdge != 0 && find_if(myConnections.begin(), myConnections.end(), connections_toedgelane_finder(destEdge, destLane)) != myConnections.end();
+NBEdge::hasConnectionTo(NBEdge* destEdge, unsigned int destLane, int fromLane) const {
+    return destEdge != 0 && find_if(myConnections.begin(), myConnections.end(), connections_toedgelane_finder(destEdge, destLane, fromLane)) != myConnections.end();
 }
 
 

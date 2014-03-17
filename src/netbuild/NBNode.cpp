@@ -1590,8 +1590,7 @@ NBNode::buildCrossings(unsigned int tlIndex) {
 
 void
 NBNode::buildWalkingAreas() {
-    //gDebugFlag1 = getID() == "N";
-    //gDebugFlag1 = getID() == "138562259";
+    //gDebugFlag1 = getID() == "B";
     unsigned int index = 0;
     myWalkingAreas.clear();
     if (gDebugFlag1) std::cout << "build walkingAreas for " << getID() << ":\n";
@@ -1688,12 +1687,14 @@ NBNode::buildWalkingAreas() {
         SUMOReal startCrossingWidth = DEFAULT_CROSSING_WIDTH;
         // check for connected crossings
         bool connectsCrossing = false;
+        std::vector<Position> connectedPoints;
         for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); ++it) {
             if ((*it).edges.back() == normalizedLanes[end].first) {
                 // crossing ends
                 (*it).nextWalkingArea = wa.id;
                 endCrossingWidth = (*it).width;
                 connectsCrossing = true;
+                connectedPoints.push_back((*it).shape[-1]);
                 if (gDebugFlag1) std::cout << "    crossing ends\n";
             }
             if ((*it).edges.front() == normalizedLanes[prev].first 
@@ -1706,6 +1707,7 @@ NBNode::buildWalkingAreas() {
                     wa.tlID = (*getControllingTLS().begin())->getID();
                     wa.tlLinkNo = (*it).tlLinkNo;
                 }
+                connectedPoints.push_back((*it).shape[0]);
                 if (gDebugFlag1) std::cout << "    crossing starts\n";
             }
             if (gDebugFlag1) std::cout << "  check connections to crossing " << (*it).id  
@@ -1716,7 +1718,7 @@ NBNode::buildWalkingAreas() {
                 << "\n";
         }
         if (count < 2 && !connectsCrossing) {
-            // not relavant for walking
+            // not relevant for walking
             continue;
         }
         wa.width = (endCrossingWidth + startCrossingWidth) / 2;
@@ -1730,8 +1732,10 @@ NBNode::buildWalkingAreas() {
             if (connected.count(edge) == 0) {
                 if (edge->getFromNode() == this) {
                     wa.nextSidewalks.push_back(edge->getID());
+                    connectedPoints.push_back(edge->getLaneShape(0)[0]);
                 } else {
                     wa.prevSidewalks.push_back(edge->getID());
+                    connectedPoints.push_back(edge->getLaneShape(0)[-1]);
                 }
                 connected.insert(edge);
             }
@@ -1751,6 +1755,32 @@ NBNode::buildWalkingAreas() {
             l.shape.extrapolate(endCrossingWidth);
             l.shape.move2side(l.width / 2);
             wa.shape.push_back(l.shape[0]);
+        }
+        if (connected.size() == 2 && !connectsCrossing && wa.nextSidewalks.size() == 1 && wa.prevSidewalks.size() == 1) {
+            // do not build a walkingArea since a normal connection exists
+            NBEdge* e1 = *connected.begin();
+            NBEdge* e2 = *(++connected.begin());
+            if (e1->hasConnectionTo(e2, 0, 0) || e2->hasConnectionTo(e1, 0, 0)) {
+                continue;
+            }
+        }
+        // determine length (average of all possible connections)
+        SUMOReal lengthSum = 0;
+        int combinations = 0;
+        for (std::vector<Position>::const_iterator it1 = connectedPoints.begin(); it1 != connectedPoints.end(); ++it1) {
+            for (std::vector<Position>::const_iterator it2 = connectedPoints.begin(); it2 != connectedPoints.end(); ++it2) {
+                const Position& p1 = *it1;
+                const Position& p2 = *it2;
+                if (p1 != p2) {
+                    lengthSum += p1.distanceTo2D(p2);
+                    combinations += 1;
+                }
+            }
+        }
+        if (gDebugFlag1) std::cout << "  combinations=" << combinations << " connectedPoints=" << connectedPoints << "\n";
+        wa.length = POSITION_EPS;
+        if (combinations > 0) {
+            wa.length = lengthSum / combinations;
         }
         myWalkingAreas.push_back(wa);
     }
@@ -1779,6 +1809,8 @@ NBNode::buildWalkingAreas() {
             tmp.move2side(-prev.width);
             wa.shape.push_back(tmp[0]);
             myWalkingAreas.push_back(wa);
+            // length (special case)
+            wa.length = MAX2(POSITION_EPS, prev.shape.back().distanceTo2D(next.shape.front()));
         }
     }
     if (isTLControlled()) {
