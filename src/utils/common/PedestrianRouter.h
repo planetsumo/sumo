@@ -115,13 +115,21 @@ public:
             E* edge = E::dictionary(i);
             if (edge->isInternal()) {
                 continue;
+            } else if (edge->isWalkingArea()) {
+                // only a single edge
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
+            } else if (edge->isCrossing()) {
+                // forward and backward edges
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false));
+            } else { // regular edge
+                // forward and backward edges
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false));
+                // depart and arrival edges for (the router can decide the initial direction to take and the direction to arrive from)
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true, true));
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false, true));
             }
-            // forward and backward edges
-            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
-            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false));
-            // depart and arrival edges for (the router can decide the initial direction to take and the direction to arrive from)
-            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true, true));
-            myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false, true));
 
         }
         // build the lookup tables after myEdgeDict is complete
@@ -130,10 +138,17 @@ public:
             E* edge = E::dictionary(i);
             if (edge->isInternal()) {
                 continue;
+            } else if (edge->isWalkingArea()) {
+                myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID]);
+                numericalID += 1;
+            } else if (edge->isCrossing()) {
+                myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID + 1]);
+                numericalID += 2;
+            } else { // regular edge
+                myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID + 1]);
+                myFromToLookup[edge] = std::make_pair(&myEdgeDict[numericalID + 2], &myEdgeDict[numericalID + 3]);
+                numericalID += 4;
             }
-            myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID + 1]);
-            myFromToLookup[edge] = std::make_pair(&myEdgeDict[numericalID + 2], &myEdgeDict[numericalID + 3]);
-            numericalID += 4;
         }
 
         // build the connections
@@ -260,8 +275,9 @@ public:
         UNUSED_PARAMETER(time);
         if (myAmConnector) {
             return 0;
+        } else if (myEdge->isWalkingArea()) {
+            return 0; // XXX figuer out the real length?
         }
-        // XXX length of walkingAreas != edgeLength
         SUMOReal length = myEdge->getLength();
         if (myEdge == trip->from) {
             if (myForward) {
@@ -282,7 +298,8 @@ public:
 
 private:
     PedestrianEdge(unsigned int numericalID, E* edge, bool forward, bool connector = false) :
-        Named(edge->getID() + "_" + (forward ? "fwd" : "bwd") + (connector ? "_connector" : "")), 
+        Named(edge->getID() + (edge->isWalkingArea() ? "" : 
+                    ((forward ? "_fwd" : "_bwd") + std::string(connector ? "_connector" : "")))), 
         myNumericalID(numericalID),
         myEdge(edge),
         myForward(forward),
@@ -342,7 +359,7 @@ public:
     /** @brief Builds the route between the given edges using the minimum effort at the given time
         The definition of the effort depends on the wished routing scheme */
     void compute(const E* from, const E* to, SUMOReal departPos, SUMOReal arrivalPos, SUMOReal speed,
-                         SUMOTime msTime, std::vector<const E*>& into) {
+                         SUMOTime msTime, std::vector<const E*>& into, bool allEdges=false) {
         //startQuery();
         _PedestrianTrip trip(from, to, departPos, arrivalPos, speed);
         std::vector<const _PedestrianEdge*> intoPed;
@@ -350,7 +367,7 @@ public:
                 _PedestrianEdge::getArrivalEdge(to), &trip, msTime, intoPed);
         if (intoPed.size() > 2) {
             for (size_t i = 1; i < intoPed.size(); ++i) {
-                if (intoPed[i]->includeInRoute()) {
+                if (allEdges || intoPed[i]->includeInRoute()) {
                     into.push_back(intoPed[i]->getEdge());
                 }
             }
