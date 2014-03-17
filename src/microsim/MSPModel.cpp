@@ -64,6 +64,7 @@ const SUMOReal MSPModel::SQUEEZE(0.7);
 const SUMOReal MSPModel::BLOCKER_LOOKAHEAD(10.0);
 const SUMOReal MSPModel::ONCOMIN_PENALTY(0.0);
 const SUMOReal MSPModel::ONCOMIN_PENALTY_FACTOR(0.6);
+const SUMOReal MSPModel::ONCOMIN_PATIENCE(30);
 const SUMOReal MSPModel::RESERVE_FOR_ONCOMING_FACTOR(0.25);
 const SUMOReal MSPModel::MAX_WAIT_TOLERANCE(120);
 
@@ -240,14 +241,17 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                     }
                     assert(link != 0);
                 } else {
-                    WRITE_WARNING("Could not find route across junction from '" + currentEdge->getID()
-                            + "' to '" + nextRouteEdge->getID()
+                    WRITE_WARNING("Could not find route across junction from '" + (currentEdge == 0 ? "NULL" : currentEdge->getID())
+                            + "' to '" + (nextRouteEdge == 0 ? "NULL" : nextRouteEdge->getID())
                             + "' for pedestrian '" + ped.myPerson->getID() + "' (found only detour).");
                 }
             } else {
-                WRITE_WARNING("Could not find route across junction from '" + currentEdge->getID()
-                        + "' to '" + nextRouteEdge->getID()
-                        + "' for pedestrian '" + ped.myPerson->getID() + "'.");
+                if DEBUGCOND(ped.myPerson->getID()) { 
+                    std::cout << SIMTIME 
+                        << " no route from '" << (currentEdge == 0 ? "NULL" : currentEdge->getID())
+                        << "' to '" << (nextRouteEdge == 0 ? "NULL" : nextRouteEdge->getID())
+                        << "\n";
+                }
             }
         } else  {
             // normal edge. continue with the next walking area or use a direct connection
@@ -390,7 +394,9 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                     const SUMOReal nextLength = (walkingAreaShape.size() == 0 ? nextLane->getLength() : walkingAreaShape.length());
                     relativeX = nextLength + dist;
                 }
+                // XXX use proxmity instead of count to increase robustness
                 Pedestrian::updateVSafe(vSafe, 
+                        //nextPedestrians.begin(),
                         nextPedestrians.end() - MIN2((int)nextPedestrians.size(), 2 * numStripes(nextLane)),
                         nextPedestrians.end(),
                         relativeX, p, nextDir);
@@ -405,8 +411,13 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                     }
                 }
             }
-            p.walk(vSafe, pedestrians.begin() + MAX2(0, ii - 2 * stripes - waitingToEnter),
-                    pedestrians.begin() + MIN2((int)pedestrians.size(), ii + 2 * stripes + waitingToEnter));
+            // XXX use proxmity instead of count to increase robustness
+            p.walk(vSafe, 
+                    pedestrians.begin() + MAX2(0, ii - 2 * stripes - waitingToEnter),
+                    pedestrians.begin() + MIN2((int)pedestrians.size(), ii + 2 * stripes + waitingToEnter),
+                    //pedestrians.begin(),
+                    //pedestrians.end(),
+                    currentTime);
             //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << lane->getID() << " x=" << p.myX << "\n";
             p.updateLocation(lane);
         }
@@ -460,6 +471,7 @@ MSPModel::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walki
     myX(stage->getCurrentBeginPos()),
     myY(0), 
     myDir(FORWARD),
+    myBlockedByOncoming(false),
     myWaitingToEnter(true)
 { 
     const MSEdge* nextRouteEdge = myStage->getNextEdge();
@@ -548,7 +560,7 @@ MSPModel::Pedestrian::moveToNextLane() {
 }
 
 
-void
+bool
 MSPModel::Pedestrian::updateVSafe(
         std::vector<SUMOReal>& vSafe,
         Pedestrians::iterator maxLeader, 
@@ -558,6 +570,7 @@ MSPModel::Pedestrian::updateVSafe(
         int dir) {
 
     const int sMax = (int)vSafe.size() - 1;
+    bool hasOncoming = false;
     for (Pedestrians::iterator it = maxLeader; it != minFollower; ++it) {
         const MSPModel::Pedestrian& ped = *it;
         if (ped.myPerson == ego.myPerson || (!ego.myWaitingToEnter && ped.myWaitingToEnter)) {
@@ -566,7 +579,9 @@ MSPModel::Pedestrian::updateVSafe(
         const SUMOReal gap = (ped.myX - x) * dir;
         if (gap > 0) {
             const SUMOReal v = MAX2((SUMOReal)0, gap - ped.getLength() - ego.myPerson->getVehicleType().getMinGap());
-            const SUMOReal penalty = MIN2(v, (ped.myDir == ego.myDir ? 0.0 : ONCOMIN_PENALTY + v * ONCOMIN_PENALTY_FACTOR));
+            const bool oncoming = ped.myDir != ego.myDir;
+            hasOncoming = hasOncoming || oncoming;
+            const SUMOReal penalty = MIN2(v, (oncoming ? ONCOMIN_PENALTY + v * ONCOMIN_PENALTY_FACTOR : 0));
             int l = ped.stripe(sMax);
             // penalty for oncoming pedestrians only applies if ego is not
             // already on the rightmost lane
@@ -608,15 +623,16 @@ MSPModel::Pedestrian::updateVSafe(
         }
         std::cout << "\n";
     }
+    return hasOncoming;
 }
 
 
 void 
-MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower) {
+MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower, SUMOTime currentTime) {
     const SUMOReal vMax = myStage->getSpeed();
     const int sMax = (int)vSafe.size() - 1;
     // compute vSafe on all stripes
-    updateVSafe(vSafe, maxLeader, minFollower, myX, *this, myDir);
+    const bool oncoming = updateVSafe(vSafe, maxLeader, minFollower, myX, *this, myDir);
     // chose stripe
     int chosen = stripe(sMax);
 
@@ -646,8 +662,18 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
     }
     // compute speed components along both axes
     // XXX ensure that diagonal speed <= vMax
-    const SUMOReal xSpeed = MAX2(SUMOReal(0), MIN3(vSafe[stripe(sMax)], vSafe[otherStripe(sMax)], vMax));
+    SUMOReal xSpeed = MAX2(SUMOReal(0), MIN3(vSafe[stripe(sMax)], vSafe[otherStripe(sMax)], vMax));
     const SUMOReal ySteps = MAX2(SUMOReal(1), ceil(vSafe[stripe(sMax)] / vMax));
+    // avoid deadlocks on narrow sidewalks
+    //if (oncoming && xSpeed == 0 && myStage->getWaitingTime(currentTime) > TIME2STEPS(ONCOMIN_PATIENCE)) {
+    //    if DEBUGCOND(myPerson->getID()) std::cout << "  stepping asside to resolve oncoming deadlock\n";
+    //    xSpeed = POSITION_EPS; // reset myWaitingTime
+    //     if (myDir == FORWARD && chosen < sMax) {
+    //         chosen += 1;
+    //     } else if (myDir == BACKWARD && chosen > 0) {
+    //         chosen -= 1;
+    //     }
+    //}
     const SUMOReal yDist = (chosen * STRIPE_WIDTH) - myY;
     const SUMOReal ySpeed = (fabs(yDist) > NUMERICAL_EPS ? 
             (yDist > 0 ? 
@@ -655,7 +681,7 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
              MAX2(-vMax, yDist / ySteps))
             : 0);
     // DEBUG
-    if (true && (myPerson->getID() == DEBUG1 || myPerson->getID() == DEBUG2)) {
+    if (true && DEBUGCOND(myPerson->getID())) {
         std::cout << SIMTIME 
             << " ped=" << myPerson->getID()
             << " edge=" << myStage->getEdge()->getID()
@@ -667,6 +693,8 @@ MSPModel::Pedestrian::walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator ma
             << " ys=" << ySteps
             << " yd=" << yDist
             << " vMax=" << myStage->getSpeed()
+            << " oncoming=" << oncoming
+            << " wTime=" << myStage->getWaitingTime(currentTime)
             << " vSafe=" << toString(vSafe) 
             << "\n";
         for (Pedestrians::iterator it = maxLeader; it != minFollower; ++it) {

@@ -92,6 +92,8 @@ public:
     // @brief the penalty for staying on a stripe with oncoming pedestrians
     static const SUMOReal ONCOMIN_PENALTY;
     static const SUMOReal ONCOMIN_PENALTY_FACTOR;
+    // @brief time in seconds before trying to avoid oncoming deadlocks
+    static const SUMOReal ONCOMIN_PATIENCE;
 
     // @brief fraction of the leftmost lanes to reserve for oncoming traffic
     static const SUMOReal RESERVE_FOR_ONCOMING_FACTOR;
@@ -121,7 +123,9 @@ protected:
         SUMOReal myY; 
         /// @brief the walking direction on the current lane (1 forward, -1 backward)
         int myDir;
-
+        /// @brief whether the pedestrian is blocked by an oncoming pedestrian
+        int myBlockedByOncoming;
+        /// @brief whether the pedestrian is waiting to start its walk
         bool myWaitingToEnter;
 
         /// @brief return the length of the pedestrian
@@ -134,7 +138,7 @@ protected:
         bool moveToNextLane();
 
         /// @brief perform position update
-        void walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower);
+        void walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower, SUMOTime currentTime);
 
         /// @brief update location data for MSPersonStage_Walking 
         void updateLocation(const MSLane* lane, const PositionVector& walkingAreaShape=PositionVector());
@@ -145,8 +149,8 @@ protected:
         /// @brief return the speed-dependent minGap of the pedestrian
         SUMOReal getMingap() const;
 
-        /// @brief compute safe speeds on all stripes and update vSafe
-        static void updateVSafe(
+        /// @brief compute safe speeds on all stripes and update vSafe, return whether ego has oncoming pedestrians
+        static bool updateVSafe(
                 std::vector<SUMOReal>& vSafe,
                 Pedestrians::iterator maxLeader, 
                 Pedestrians::iterator minFollower, 
