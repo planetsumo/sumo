@@ -253,56 +253,33 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                         << "\n";
                 }
             }
-        } else  {
-            // normal edge. continue with the next walking area or use a direct connection
+        } else {
+            // normal edge. use a direct link if it exists or use next / previous walking area
+            // direct links only exist if built explicitly. They are used to model tl-controlled links if there are no crossings
             nextDir = ped.myDir;
             if (ped.myDir == FORWARD) {
                 link = MSLinkContHelper::getConnectingLink(*currentLane, *nextLane);
                 if (link != 0) {
-                    // simple forward case. there is a natural edge to be followed
-                    nextLane = MSLinkContHelper::getInternalFollowingLane(currentLane, nextRouteLane);
                     if DEBUGCOND(ped.myPerson->getID()) std::cout << "  direct forward\n";
+                    nextLane = MSLinkContHelper::getInternalFollowingLane(currentLane, nextRouteLane);
                 } else {
-                    // go forward to the next walking area
-                    if (currentLane->getLinkCont().size() == 1) {
-                        const MSLane* cand = currentLane->getLinkCont()[0]->getLane();
-                        if (cand->getEdge().isWalkingArea()) {
-                            if DEBUGCOND(ped.myPerson->getID()) std::cout << "  forward to walkingArea\n";
-                            nextLane = cand;
-                        } else {
-                            if DEBUGCOND(ped.myPerson->getID()) std::cout << "  skipping forward\n";
-                            nextLane = nextRouteLane;
-                        }
-                    } else {
-                        if DEBUGCOND(ped.myPerson->getID()) std::cout << "  forward failure: links=" << currentLane->getLinkCont().size() << "\n";
-                    }
+                    if DEBUGCOND(ped.myPerson->getID()) std::cout << "  next walkingArea forward\n";
+                    nextLane = getNextWalkingArea(currentLane, ped.myDir, link);
                 }
             } else {
                 link = MSLinkContHelper::getConnectingLink(*nextRouteLane, *currentLane);
                 if (link != 0) {
-                    // simple backward case. there is a natural edge to be followed
-                    nextLane = MSLinkContHelper::getInternalFollowingLane(nextRouteLane, currentLane);
                     if DEBUGCOND(ped.myPerson->getID()) std::cout << "  direct backward\n";
+                    nextLane = MSLinkContHelper::getInternalFollowingLane(nextRouteLane, currentLane);
                 } else {
-                    // go backward to the next walking area
-                    if (currentLane->getLogicalPredecessorLane() != 0) {
-                        const MSLane* cand = currentLane->getLogicalPredecessorLane();
-                        if (cand->getEdge().isWalkingArea()) {
-                            if DEBUGCOND(ped.myPerson->getID()) std::cout << "  backward to walkingArea\n";
-                            nextLane = cand;
-                        } else {
-                            if DEBUGCOND(ped.myPerson->getID()) std::cout << "  skipping backward\n";
-                            nextLane = nextRouteLane;
-                        }
-                    } else {
-                        if DEBUGCOND(ped.myPerson->getID()) std::cout << "  backward failure: links=" << currentLane->getLinkCont().size() << "\n";
-                    }
+                    if DEBUGCOND(ped.myPerson->getID()) std::cout << "  next walkingArea backward\n";
+                    nextLane = getNextWalkingArea(currentLane, ped.myDir, link);
                 }
             }
             if (nextLane == 0) {
                 // no internal lane found 
                 nextLane = nextRouteLane;
-                link = 0;
+                if DEBUGCOND(ped.myPerson->getID()) std::cout << SIMTIME << " no next lane found for " << currentLane->getID() << " dir=" << ped.myDir << "\n";
             } else if (nextLane->getLength() <= POSITION_EPS) {
                 // internal lane too short
                 nextLane = nextRouteLane;
@@ -322,6 +299,30 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
 }
 
 
+const MSLane*
+MSPModel::getNextWalkingArea(const MSLane* currentLane, const int dir, MSLink*& link) {
+    if (dir == FORWARD) {
+        const MSLinkCont& links = currentLane->getLinkCont();
+        for (MSLinkCont::const_iterator it = links.begin(); it != links.end(); ++it) {
+            if ((*it)->getLane()->getEdge().isWalkingArea()) {
+                link = *it;
+                return (*it)->getLane();
+            }
+        }
+    } else {
+        const std::vector<MSLane::IncomingLaneInfo>& laneInfos = currentLane->getIncomingLanes();
+        for (std::vector<MSLane::IncomingLaneInfo>::const_iterator it = laneInfos.begin(); it != laneInfos.end(); ++it) {
+            if ((*it).lane->getEdge().isWalkingArea()) {
+                link = (*it).viaLink;
+                return (*it).lane;
+            }
+        }
+    }
+    return 0;
+}
+
+
+
 PositionVector
 MSPModel::getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int walkingAreaDir, const Pedestrian& ped) {
     if (walkingArea != 0 && walkingArea->getEdge().isWalkingArea()) {
@@ -334,14 +335,17 @@ MSPModel::getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int
         Position fromPos = ped.myDir == FORWARD ? from->getShape().back() : from->getShape().front();
         Position toPos = nextDir == FORWARD ? nextLane->getShape().front() : nextLane->getShape().back();
         const SUMOReal maxExtent = fromPos.distanceTo2D(toPos) / 4; // prevent sharp corners
+        const SUMOReal extrapolateBy = MIN2(maxExtent, walkingArea->getWidth() / 2);
         // assemble shape
         result.push_back(fromPos);
-        PositionVector fromShp = from->getShape();
-        fromShp.extrapolate(MIN2(maxExtent, walkingArea->getWidth() / 2));
-        result.push_back(ped.myDir == FORWARD ? fromShp.back() : fromShp.front());
-        PositionVector nextShp = nextLane->getShape();
-        nextShp.extrapolate(MIN2(maxExtent, walkingArea->getWidth() / 2));
-        result.push_back(nextDir == FORWARD ? nextShp.front() : nextShp.back());
+        if (extrapolateBy > POSITION_EPS) {
+            PositionVector fromShp = from->getShape();
+            fromShp.extrapolate(extrapolateBy);
+            result.push_back(ped.myDir == FORWARD ? fromShp.back() : fromShp.front());
+            PositionVector nextShp = nextLane->getShape();
+            nextShp.extrapolate(extrapolateBy);
+            result.push_back(nextDir == FORWARD ? nextShp.front() : nextShp.back());
+        }
         result.push_back(toPos);
         return (walkingAreaDir == FORWARD ? result : result.reverse());
     } else {

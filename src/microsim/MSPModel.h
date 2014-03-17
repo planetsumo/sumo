@@ -215,6 +215,9 @@ protected:
     static const MSLane* getNextLane(const MSLane* currentLane, const Pedestrian& ped, 
             MSLink*& link, int& nextDir);
 
+    /// @brief return the next walkingArea in the given direction
+    static const MSLane* getNextWalkingArea(const MSLane* currentLane, const int dir, MSLink*& link); 
+
     static PositionVector getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int walkingAreaDir, const Pedestrian& ped); 
 
     /// @brief returns the direction in which these lanes are connectioned or 0 if they are not
