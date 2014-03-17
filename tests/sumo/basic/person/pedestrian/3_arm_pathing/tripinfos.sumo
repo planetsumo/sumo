@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Thu Mar 13 17:09:54 2014 by SUMO sumo Version dev-SVN-r15906
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="net.net.xml"/>
+        <route-files value="input_routes.rou.xml"/>
+    </input>
+
+    <output>
+        <tripinfo-output value="tripinfos.xml"/>
+    </output>
+
+    <report>
+        <xml-validation value="never"/>
+        <no-step-log value="true"/>
+    </report>
+
+</configuration>
+-->
+
+<tripinfos>
+    <personinfo id="pEW" depart="20.00">
+        <stop arrival="20.00"/>
+        <walk arrival="49.00"/>
+    </personinfo>
+    <personinfo id="pEN" depart="25.00">
+        <stop arrival="25.00"/>
+        <walk arrival="57.00"/>
+    </personinfo>
+    <personinfo id="pWN" depart="0.00">
+        <stop arrival="0.00"/>
+        <walk arrival="79.00"/>
+    </personinfo>
+    <personinfo id="pNW" depart="10.00">
+        <stop arrival="10.00"/>
+        <walk arrival="85.00"/>
+    </personinfo>
+    <personinfo id="pWE" depart="5.00">
+        <stop arrival="5.00"/>
+        <walk arrival="148.00"/>
+    </personinfo>
+    <personinfo id="pNE" depart="15.00">
+        <stop arrival="15.00"/>
+        <walk arrival="159.00"/>
+    </personinfo>
+</tripinfos>

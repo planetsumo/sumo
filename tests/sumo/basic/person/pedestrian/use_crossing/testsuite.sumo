@@ -1,7 +1,7 @@
-# cross the steet going straight on the right side of the road
+# cross the street going straight on the right side of the road
 straight_rr
 
-# cross the steet going straight on the left side of the road
+# cross the street going straight on the left side of the road
 straight_ll
 
 # turn right while walking on the right side of the road (no street is crossed)
@@ -27,3 +27,4 @@ turn_rr
 
 # turn around while walking on the left side of the road and continue on the left side
 turn_ll
+cross_twice

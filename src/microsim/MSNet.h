@@ -57,7 +57,7 @@
 #include <utils/common/DijkstraRouterEffort.h>
 #include <utils/common/AStarRouter.h>
 #include <utils/common/NamedRTree.h>
-//#include <utils/common/PedestrianRouter.h>
+#include <utils/common/PedestrianRouter.h>
 
 
 // ===========================================================================
@@ -108,7 +108,8 @@ public:
     };
 
     //typedef PedestrianRouterDijkstra<MSEdge, MSLane> MSPedestrianRouterDijkstra;
-    typedef Position MSPedestrianRouterDijkstra; // XXX
+    typedef PedestrianRouterDijkstra<MSEdge, MSLane> MSPedestrianRouterDijkstra;
+
 
 
 public:

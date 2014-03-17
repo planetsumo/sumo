@@ -6,3 +6,6 @@ use_crossing
 
 # tests related to pedestrians interacting with each other
 pedestrian_interactions
+
+# full connectivity among 3 one-way paths
+3_arm_pathing

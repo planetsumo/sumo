@@ -140,7 +140,10 @@ protected:
         void updateLocation(const MSLane* lane, const PositionVector& walkingAreaShape=PositionVector());
 
         /// @brief returns the impatience 
-        SUMOReal getImpatience(SUMOTime now) const;
+        SUMOReal getImpatience(SUMOTime now) const; // XXX 
+
+        /// @brief return the speed-dependent minGap of the pedestrian
+        SUMOReal getMingap() const;
 
         /// @brief compute safe speeds on all stripes and update vSafe
         static void updateVSafe(

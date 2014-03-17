@@ -118,11 +118,7 @@ public:
             } else if (edge->isWalkingArea()) {
                 // only a single edge
                 myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
-            } else if (edge->isCrossing()) {
-                // forward and backward edges
-                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
-                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false));
-            } else { // regular edge
+            } else { // regular edge or crossing
                 // forward and backward edges
                 myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
                 myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false));
@@ -139,12 +135,11 @@ public:
             if (edge->isInternal()) {
                 continue;
             } else if (edge->isWalkingArea()) {
+                // only a single edge and no connector edges
                 myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID]);
+                myFromToLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID]);
                 numericalID += 1;
-            } else if (edge->isCrossing()) {
-                myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID + 1]);
-                numericalID += 2;
-            } else { // regular edge
+            } else { // regular edge or crossing
                 myBidiLookup[edge] = std::make_pair(&myEdgeDict[numericalID], &myEdgeDict[numericalID + 1]);
                 myFromToLookup[edge] = std::make_pair(&myEdgeDict[numericalID + 2], &myEdgeDict[numericalID + 3]);
                 numericalID += 4;
@@ -182,7 +177,7 @@ public:
 #endif
                 }
             }
-            if (edge->isCrossing() || edge->isWalkingArea()) {
+            if (edge->isWalkingArea()) {
                 continue;
             }
             // build connections from depart connector 
@@ -202,8 +197,8 @@ public:
         }
     }
 
-    bool includeInRoute() const {
-        return !myAmConnector && !myEdge->isCrossing() && !myEdge->isWalkingArea();
+    bool includeInRoute(bool allEdges) const {
+        return !myAmConnector && (allEdges || !myEdge->isCrossing() && !myEdge->isWalkingArea());
     }
 
     const E* getEdge() const {
@@ -365,11 +360,9 @@ public:
         std::vector<const _PedestrianEdge*> intoPed;
         myInternalRouter->compute(_PedestrianEdge::getDepartEdge(from), 
                 _PedestrianEdge::getArrivalEdge(to), &trip, msTime, intoPed);
-        if (intoPed.size() > 2) {
-            for (size_t i = 1; i < intoPed.size(); ++i) {
-                if (allEdges || intoPed[i]->includeInRoute()) {
-                    into.push_back(intoPed[i]->getEdge());
-                }
+        for (size_t i = 0; i < intoPed.size(); ++i) {
+            if (intoPed[i]->includeInRoute(allEdges)) {
+                into.push_back(intoPed[i]->getEdge());
             }
         }
         //endQuery();
@@ -405,9 +398,6 @@ class PedestrianRouterDijkstra : public PedestrianRouter<E, L,
     DijkstraRouterTT_Direct<PedestrianEdge<E, L>, PedestrianTrip<E>, prohibited_withRestrictions<PedestrianEdge<E, L>, PedestrianTrip<E> > > > { };
 
 
-#endif
-
-
 // ===========================================================================
 // static member definitions (PedestrianEdge)
 // ===========================================================================
@@ -420,6 +410,9 @@ std::map<const E*, typename PedestrianEdge<E, L>::EdgePair> PedestrianEdge<E, L>
 
 template<class E, class L>
 std::map<const E*, typename PedestrianEdge<E, L>::EdgePair> PedestrianEdge<E, L>::myFromToLookup;
+
+#endif
+
 
 /****************************************************************************/
 

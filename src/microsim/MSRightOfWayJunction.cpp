@@ -88,7 +88,7 @@ MSRightOfWayJunction::postloadInit() {
                 continue;
             }
             sortedLinks.push_back(std::make_pair(*i, *j));
-            //std::cout << "sortedLinks " << maxNo << " incomingLane=" << ((*i) == 0 ? "NULL" : (*i)->getID()) << " link to " << ((*j)->getViaLaneOrLane() == 0 ? "NULL" : (*j)->getViaLaneOrLane()->getID()) << "\n";
+            if (getID() == "cluster_1789928382_664166124_664166125_664166127") std::cout << "sortedLinks " << maxNo << " incomingLane=" << ((*i) == 0 ? "NULL" : (*i)->getID()) << " link to " << ((*j)->getViaLaneOrLane() == 0 ? "NULL" : (*j)->getViaLaneOrLane()->getID()) << "\n";
             ++maxNo;
         }
     }
