@@ -43,6 +43,8 @@
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/AStarRouter.h>
 
+#define TL_RED_PENALTY 20
+
 //#define PedestrianRouter_DEBUG_NETWORK
 
 template <class E, class L>
@@ -67,12 +69,13 @@ inline const L* getSidewalk(const E* edge) {
 template<class E>
 struct PedestrianTrip {
 
-    PedestrianTrip(const E* _from, const E* _to, SUMOReal _departPos, SUMOReal _arrivalPos, SUMOReal _speed) :
+    PedestrianTrip(const E* _from, const E* _to, SUMOReal _departPos, SUMOReal _arrivalPos, SUMOReal _speed, SUMOReal _departTime) :
         from(_from),
         to(_to),
         departPos(_departPos < 0 ? _from->getLength() + _departPos : _departPos),
         arrivalPos(_arrivalPos < 0 ? _to->getLength() + _arrivalPos : _arrivalPos),
-        speed(_speed)
+        speed(_speed),
+        departTime(_departTime)
     {}
 
     const E* from;
@@ -80,6 +83,7 @@ struct PedestrianTrip {
     const SUMOReal departPos;
     const SUMOReal arrivalPos;
     const SUMOReal speed;
+    const SUMOReal departTime;
 };
 
 
@@ -113,18 +117,19 @@ public:
         unsigned int numericalID = 0;
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
+            const L* lane = getSidewalk<E, L>(edge);
             if (edge->isInternal()) {
                 continue;
             } else if (edge->isWalkingArea()) {
                 // only a single edge
-                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, lane, true));
             } else { // regular edge or crossing
                 // forward and backward edges
-                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true));
-                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false));
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, lane, true));
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, lane, false));
                 // depart and arrival edges for (the router can decide the initial direction to take and the direction to arrive from)
-                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, true, true));
-                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, false, true));
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, lane, true, true));
+                myEdgeDict.push_back(PedestrianEdge(numericalID++, edge, lane, false, true));
             }
 
         }
@@ -266,8 +271,7 @@ public:
     /*@brief the function called by RouterTT_direct
      * (distance is used as effort, effort is assumed to be independent of time
      */
-    SUMOReal getEffort(const PedestrianTrip<E>* const trip, SUMOReal) const {
-        UNUSED_PARAMETER(time);
+    SUMOReal getEffort(const PedestrianTrip<E>* const trip, SUMOReal time) const {
         if (myAmConnector) {
             return 0;
         } else if (myEdge->isWalkingArea()) {
@@ -288,15 +292,22 @@ public:
                 length -= trip->arrivalPos;
             }
         }
-        return length / trip->speed;
+        SUMOReal tlsDelay = 0;
+        if (myEdge->isCrossing() && myLane->getIncomingLinkState() == LINKSTATE_TL_RED) {
+            // red traffic lights occurring later in the route may be green by the time we arive
+            tlsDelay += MAX2(SUMOReal(0), TL_RED_PENALTY - (time - trip->departTime));
+
+        }
+        return length / trip->speed + tlsDelay;
     }
 
 private:
-    PedestrianEdge(unsigned int numericalID, E* edge, bool forward, bool connector = false) :
+    PedestrianEdge(unsigned int numericalID, const E* edge, const L* lane, bool forward, bool connector = false) :
         Named(edge->getID() + (edge->isWalkingArea() ? "" : 
                     ((forward ? "_fwd" : "_bwd") + std::string(connector ? "_connector" : "")))), 
         myNumericalID(numericalID),
         myEdge(edge),
+        myLane(lane),
         myForward(forward),
         myAmConnector(connector) { }
 
@@ -305,6 +316,9 @@ private:
 
     /// @brief  the original edge
     const E* myEdge;
+
+    /// @brief  the original edge
+    const L* myLane;
 
     /// @brief the direction of this edge
     bool myForward;
@@ -356,7 +370,7 @@ public:
     void compute(const E* from, const E* to, SUMOReal departPos, SUMOReal arrivalPos, SUMOReal speed,
                          SUMOTime msTime, std::vector<const E*>& into, bool allEdges=false) {
         //startQuery();
-        _PedestrianTrip trip(from, to, departPos, arrivalPos, speed);
+        _PedestrianTrip trip(from, to, departPos, arrivalPos, speed, msTime);
         std::vector<const _PedestrianEdge*> intoPed;
         myInternalRouter->compute(_PedestrianEdge::getDepartEdge(from), 
                 _PedestrianEdge::getArrivalEdge(to), &trip, msTime, intoPed);

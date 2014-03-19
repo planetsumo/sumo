@@ -1249,6 +1249,17 @@ MSLane::getLogicalPredecessorLane() const {
 }
 
 
+LinkState 
+MSLane::getIncomingLinkState() const {
+    MSLane* pred = getLogicalPredecessorLane();
+    if (pred == 0) {
+        return LINKSTATE_DEADEND;
+    } else {
+        return MSLinkContHelper::getConnectingLink(*pred, *this)->getState();
+    }
+}
+
+
 std::vector<const MSLane*> 
 MSLane::getOutgoingLanes() const {
     std::vector<const MSLane*> result;

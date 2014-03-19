@@ -626,6 +626,9 @@ public:
 
     MSLane* getLogicalPredecessorLane() const;
 
+    /// @brief get the state of the link from the logical predecessor to this lane
+    LinkState getIncomingLinkState() const;
+
     /// @brief get the list of outgoing lanes
     std::vector<const MSLane*> getOutgoingLanes() const;
 
