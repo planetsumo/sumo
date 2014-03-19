@@ -248,6 +248,9 @@ MSFrame::fillOptions() {
     oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
     oc.addDescription("routing-algorithm", "Processing",
                       "Select among routing algorithms ['dijkstra', 'astar']");
+    // pedestrian model
+    oc.doRegister("pedestrians.stripe-width", new Option_Float());
+    oc.addDescription("pedestrians.stripe-width", "Processing", "Width of parallel stripes for segmenting a sidewalk (meters)");
 
     // devices
     oc.addOptionSubTopic("Emissions");

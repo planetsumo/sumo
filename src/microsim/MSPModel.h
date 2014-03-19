@@ -75,7 +75,7 @@ public:
     static const SUMOReal SAFETY_GAP;
 
     // @brief the width of a pedstrian stripe
-    static const SUMOReal STRIPE_WIDTH;
+    static SUMOReal STRIPE_WIDTH;
 
     // @brief the distance to look ahead for changing stripes
     static const SUMOReal LOOKAHEAD;

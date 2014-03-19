@@ -29,6 +29,7 @@
 
 #include <math.h>
 #include <algorithm>
+#include <utils/options/OptionsCont.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSLane.h>
@@ -56,8 +57,8 @@ const int MSPModel::BACKWARD(-1);
 const int MSPModel::UNDEFINED_DIRECTION(0);
 
 // model parameters
+SUMOReal MSPModel::STRIPE_WIDTH(0.65); 
 const SUMOReal MSPModel::SAFETY_GAP(1.0);
-const SUMOReal MSPModel::STRIPE_WIDTH(0.75);
 const SUMOReal MSPModel::LOOKAHEAD(10.0);
 const SUMOReal MSPModel::LATERAL_PENALTY(0.0);
 const SUMOReal MSPModel::SQUEEZE(0.7);
@@ -75,12 +76,17 @@ const SUMOReal MSPModel::MAX_WAIT_TOLERANCE(120);
 void
 MSPModel::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, MSNet* net) {
     assert(person->getCurrentStageType() == MSPerson::WALKING);
-    const MSLane* lane = getSidewalk(person->getEdge());
-    myActiveLanes[lane].push_back(Pedestrian(person, stage, lane));
     if (net != 0 && !active) {
         net->getBeginOfTimestepEvents().addEvent(new MovePedestrians(), net->getCurrentTimeStep() + DELTA_T, MSEventControl::ADAPT_AFTER_EXECUTION);
         active = true;
+        // init options
+        const OptionsCont& oc = OptionsCont::getOptions();
+        if (oc.isSet("pedestrians.stripe-width")) {
+            STRIPE_WIDTH = OptionsCont::getOptions().getFloat("pedestrians.stripe-width");
+        }
     }
+    const MSLane* lane = getSidewalk(person->getEdge());
+    myActiveLanes[lane].push_back(Pedestrian(person, stage, lane));
     myNumActivePedestrians++;
 }
 
@@ -339,6 +345,10 @@ MSPModel::getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int
         const SUMOReal extrapolateBy = MIN2(maxExtent, walkingArea->getWidth() / 2);
         // assemble shape
         result.push_back(fromPos);
+        if (nextDir == UNDEFINED_DIRECTION) {
+            // no route found. Teleport to next edge
+            return result;
+        }
         if (extrapolateBy > POSITION_EPS) {
             PositionVector fromShp = from->getShape();
             fromShp.extrapolate(extrapolateBy);
