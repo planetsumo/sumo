@@ -254,26 +254,27 @@ MSPModel::getNextLane(const MSLane* currentLane, const Pedestrian& ped,
                 }
             }
         } else {
-            // normal edge. use a direct link if it exists or use next / previous walking area
-            // direct links only exist if built explicitly. They are used to model tl-controlled links if there are no crossings
+            // normal edge. by default use next / previous walking area
             nextDir = ped.myDir;
-            if (ped.myDir == FORWARD) {
-                link = MSLinkContHelper::getConnectingLink(*currentLane, *nextLane);
-                if (link != 0) {
-                    if DEBUGCOND(ped.myPerson->getID()) std::cout << "  direct forward\n";
-                    nextLane = MSLinkContHelper::getInternalFollowingLane(currentLane, nextRouteLane);
-                } else {
-                    if DEBUGCOND(ped.myPerson->getID()) std::cout << "  next walkingArea forward\n";
-                    nextLane = getNextWalkingArea(currentLane, ped.myDir, link);
-                }
+            nextLane = getNextWalkingArea(currentLane, ped.myDir, link);
+            if (nextLane != 0) {
+                // walking area found
+                if DEBUGCOND(ped.myPerson->getID()) std::cout << "  next walkingArea " << (nextDir == FORWARD ? "forward" : "backward") << "\n";
             } else {
-                link = MSLinkContHelper::getConnectingLink(*nextRouteLane, *currentLane);
-                if (link != 0) {
-                    if DEBUGCOND(ped.myPerson->getID()) std::cout << "  direct backward\n";
-                    nextLane = MSLinkContHelper::getInternalFollowingLane(nextRouteLane, currentLane);
+                // try to use a direct link as fallback
+                // direct links only exist if built explicitly. They are used to model tl-controlled links if there are no crossings
+                if (ped.myDir == FORWARD) {
+                    link = MSLinkContHelper::getConnectingLink(*currentLane, *nextRouteLane);
+                    if (link != 0) {
+                        if DEBUGCOND(ped.myPerson->getID()) std::cout << "  direct forward\n";
+                        nextLane = MSLinkContHelper::getInternalFollowingLane(currentLane, nextRouteLane);
+                    }
                 } else {
-                    if DEBUGCOND(ped.myPerson->getID()) std::cout << "  next walkingArea backward\n";
-                    nextLane = getNextWalkingArea(currentLane, ped.myDir, link);
+                    link = MSLinkContHelper::getConnectingLink(*nextRouteLane, *currentLane);
+                    if (link != 0) {
+                        if DEBUGCOND(ped.myPerson->getID()) std::cout << "  direct backward\n";
+                        nextLane = MSLinkContHelper::getInternalFollowingLane(nextRouteLane, currentLane);
+                    }
                 }
             }
             if (nextLane == 0) {
@@ -408,7 +409,9 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                 if (link != 0 
                         && dist < speed  // only check close before junction
                         && (!link->opened( currentTime, speed, speed, p.getLength(), p.getImpatience(currentTime), speed, 0)
-                            || link->getLeaderInfo(dist + nextLane->getLength(), p.myPerson->getVehicleType().getMinGap()).size() > 0)) {
+                            // XXX recheck
+                            || link->getLeaderInfo(dist + nextLane->getLength(), p.myPerson->getVehicleType().getMinGap()).size() > 0
+                            )) {
                     // prevent movement passed a closed link
                     for (int i = 0; i < (int)vSafe.size(); ++i) {
                         vSafe[i] = MIN2(dist - POSITION_EPS, vSafe[i]);
