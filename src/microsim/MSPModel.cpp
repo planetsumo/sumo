@@ -409,8 +409,7 @@ MSPModel::moveInDirection(SUMOTime currentTime, int dir) {
                 if (link != 0 
                         && dist < speed  // only check close before junction
                         && (!link->opened( currentTime, speed, speed, p.getLength(), p.getImpatience(currentTime), speed, 0)
-                            // XXX recheck
-                            || link->getLeaderInfo(dist + nextLane->getLength(), p.myPerson->getVehicleType().getMinGap()).size() > 0
+                            // XXX check for presence of vehicles blocking the path
                             )) {
                     // prevent movement passed a closed link
                     for (int i = 0; i < (int)vSafe.size(); ++i) {
