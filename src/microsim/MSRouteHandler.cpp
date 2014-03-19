@@ -165,9 +165,14 @@ MSRouteHandler::myStartElement(int element,
                     }
                     MSNet::getInstance()->getPedestrianRouter().compute(from, to, departPos, arrivalPos, speed, 0, myActiveRoute);
                     if (myActiveRoute.empty()) {
-                        WRITE_WARNING("No connection found between '" + from->getID() + "' and '" + to->getID() + "' for person '" + myVehicleParameter->id + "'.");
-                        myActiveRoute.push_back(from);
-                        myActiveRoute.push_back(to);
+                        const std::string error = "No connection found between '" + from->getID() + "' and '" + to->getID() + "' for person '" + myVehicleParameter->id + "'.";
+                        if (OptionsCont::getOptions().getBool("ignore-route-errors")) {
+                            myActiveRoute.push_back(from);
+                            myActiveRoute.push_back(to);
+                            WRITE_WARNING(error);
+                        } else {
+                            WRITE_ERROR(error);
+                        }
                     }
                     //std::cout << myVehicleParameter->id << " edges=" << toString(myActiveRoute) << "\n";
                 }
