@@ -8,7 +8,7 @@
 // The base abstract class for SOTL logics
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This program is free software; you can redistribute it and/or modify
@@ -33,8 +33,9 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 	const string &subid, 
 	const Phases &phases, 
 	unsigned int step, 
-	SUMOTime delay)
-: MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, std::map<std::string, std::string>()) {
+	SUMOTime delay,
+	const std::map<std::string, std::string>& parameters)
+: MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, parameters) {
 	this->mySensors = NULL;
 	sensorsSelfBuilt = true;
 	checkPhases();
@@ -48,9 +49,10 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 	const string &subid, 
 	const Phases &phases, 
 	unsigned int step, 
-	SUMOTime delay, 
+	SUMOTime delay,
+	const std::map<std::string, std::string>& parameters,
 	MSSOTLSensors *sensors) 
-: MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, std::map<std::string, std::string>()) {
+: MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, parameters) {
 	this->mySensors = sensors;
 	sensorsSelfBuilt = false;
 	checkPhases();
@@ -105,32 +107,82 @@ MSSOTLTrafficLightLogic::setToATargetPhase() {
 
 void 
 MSSOTLTrafficLightLogic::init(NLDetectorBuilder &nb) throw(ProcessError) {
-	//In case sensors has been externally assigned, there is no need to build a new set of sensors
+
+    //In case sensors has been externally assigned, there is no need to build a new set of sensors
 	if (sensorsSelfBuilt) {
-	//Building SOTLSensors
+        //Building SOTLSensors
 		switch (SENSORS_TYPE) {
-		case SENSORS_TYPE_E1:
-			assert(0); // Throw exception because TLS can only handle E2 sensors
-		case SENSORS_TYPE_E2:
-			mySensors = new MSSOTLE2Sensors(myID, &(getPhases()));
-			mySensors->buildSensors(myLanes, nb);
-			mySensors->stepChanged(getCurrentPhaseIndex());
+            case SENSORS_TYPE_E1:
+                assert(0); // Throw exception because TLS can only handle E2 sensors
+            case SENSORS_TYPE_E2:
+
+                //Adding Sensors to the ingoing Lanes
+
+                LaneVectorVector lvv = getLanes();
+
+                DBG(
+					WRITE_MESSAGE("Listing lanes for TLS "+getID());
+
+					for (unsigned int i = 0; i<lvv.size(); i++) {
+						LaneVector lv = lvv[i];
+
+						for (unsigned int j = 0; j < lv.size(); j++) {
+							MSLane* lane = lv[j];
+							WRITE_MESSAGE(lane ->getID());
+						}
+					}
+                )
+
+                mySensors = new MSSOTLE2Sensors(myID, &(getPhases()));
+                mySensors->buildSensors(myLanes, nb);
+                mySensors->stepChanged(getCurrentPhaseIndex());
+
+                //Adding Sensors to the outgoing Lanes
+
+                LinkVectorVector myLinks = getLinks();
+
+
+                DBG(
+					WRITE_MESSAGE("Listing output lanes");
+					for (unsigned int i = 0; i<myLinks.size(); i++){
+						LinkVector oneLink = getLinksAt(i);
+
+						for (unsigned int j = 0; j<oneLink.size(); j++){
+
+							MSLane* lane  = oneLink[j]->getLane();
+							WRITE_MESSAGE(lane ->getID());
+
+						}
+					}
+                )
+
+
+                LaneVectorVector myLaneVector;
+
+                LaneVector outLanes;
+                LinkVectorVector myoutLinks = getLinks();
+
+                for (unsigned int i = 0; i<myLinks.size(); i++){
+                    LinkVector oneLink = getLinksAt(i);
+
+                    for (unsigned int j = 0; j<oneLink.size(); j++){
+
+                        MSLane* lane  = oneLink[j]->getLane();
+                        outLanes.push_back(lane);
+
+
+                    }
+                }
+
+                if(outLanes.size() >0)
+                    myLaneVector.push_back(outLanes);
+                if(myLaneVector.size() > 0 )
+                    mySensors->buildOutSensors(myLaneVector, nb);
+
+
 		}
 	}
 
-	/*
-	MsgHandler::getMessageInstance() ->inform("Listing lanes for TLS "+getID());
-	LaneVectorVector lvv = getLanes();
-	
-	for (unsigned int i = 0; i<lvv.size(); i++) { 
-		LaneVector lv = lvv[i];
-	
-		for (unsigned int j = 0; j < lv.size(); j++) {
-			MSLane* lane = lv[j];
-	    	MsgHandler::getMessageInstance() ->inform(lane ->getID());
-		}
-	}
-	*/
 
 }
 
@@ -189,7 +241,7 @@ bool
 MSSOTLTrafficLightLogic::isThresholdPassed() {
 	for (map<size_t, unsigned int>::const_iterator iterator = targetPhasesCTS.begin(); iterator!= targetPhasesCTS.end(); iterator++) {
 		//Note that the current chain is not eligible to be directly targeted again, it would be unfair
-		if ((iterator->first != lastChain) && (THRESHOLD <= iterator->second)) {
+		if ((iterator->first != lastChain) && (getThreshold() <= iterator->second)) {
 			return true;
 		}
 	}
@@ -276,3 +328,4 @@ MSSOTLTrafficLightLogic::trySwitch(bool) {
 
 	return computeReturnTime();
 }
+

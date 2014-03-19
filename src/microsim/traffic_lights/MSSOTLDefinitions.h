@@ -23,8 +23,9 @@
 ///For MSSOTLSensors
 //SENSOR_START in meters, counting from the traffic light and moving backward with respect to traffic direction
 #define SENSOR_START 0.0f
-//SENSOR_LENGTH in meters, counting from SENSOR_START and moving backward with respect to traffic direction
-#define SENSOR_LENGTH 30.0f
+//INPUT_SENSOR_LENGTH in meters, counting from SENSOR_START and moving backward with respect to traffic direction
+#define INPUT_SENSOR_LENGTH 100.0f
+#define OUTPUT_SENSOR_LENGTH 80.0f
 
 ////For MSSOTLE2Sensors
 //E2 Detector parameter: the time in seconds a vehicle's speed must be below haltingSpeedThreshold to be assigned as jammed
@@ -34,50 +35,41 @@
 //E2 Detector parameter: the distance in meters between two vehicles in order to not count them to one jam
 #define DIST_THRS 20.0
 
-////For MSSOTLTrafficLightLogic
-#define THRESHOLD 10
 //#define SENSORS_TYPE "e2"
 #define SENSORS_TYPE_E1 1
 #define SENSORS_TYPE_E2 2
 #define SENSORS_TYPE SENSORS_TYPE_E2
 
-////For MSSOTLRequestTrafficLightLogic
-#define MIN_DECISIONAL_PHASE_DUR 5000
+#include <stdlib.h>
 
-////For MSSwarmTrafficLightLogic
-#define PHERO_MAXVAL 10.0
-#define BETA_NO 0.99
-#define GAMMA_NO 1.0
-#define BETA_SP 0.99
-#define GAMMA_SP 1.0
-#define CHANGE_PLAN_PROBABILITY 0.003
-#define THETA_MAX 0.8
-#define THETA_MIN 0.2
-#define THETA_INIT 0.5
-#define LEARNING_COX   0.0005
-#define FORGETTING_COX 0.0005
+#include <map>
+#include <utility>
+#include <microsim/output/MSE2Collector.h>
+	//Every lane has its own sensors, one at the beginning and one at the end
+	//Sensors can be retrieved by lanes pointer
+	typedef std::pair<MSLane*, MSE2Collector*> MSLane_MSE2Collector;
+    typedef std::map<MSLane*, MSE2Collector*> MSLane_MSE2CollectorMap;
 
-//// For stimulus function: stimulus = cox * exp(-pow(getPheromoneForInputLanes() - offsetIn, 2)/divisor -pow(getPheromoneForOutputLanes() - offsetOut, 2)/divisor); 
-#define REQUEST_STIM_COX .63662
-#define REQUEST_STIM_OFFSET_IN 0
-#define REQUEST_STIM_OFFSET_OUT 0
-#define REQUEST_STIM_DIVISOR 2
+	//Sensors can be retrieved by lane Id
+	typedef std::pair<std::string, MSE2Collector*> MSLaneID_MSE2Collector;
+	typedef std::map<std::string, MSE2Collector*> MSLaneID_MSE2CollectorMap;
 
-#define PHASE_STIM_COX .0805782
-#define PHASE_STIM_OFFSET_IN 5
-#define PHASE_STIM_OFFSET_OUT 0
-#define PHASE_STIM_DIVISOR 8
+	//Every lane has its speed limit, it can be retrieved by lane Id
+	typedef std::pair<std::string, double> MSLaneID_MaxSpeed;
+	typedef std::map<std::string, double> MSLaneID_MaxSpeedMap;
 
-#define PLATOON_STIM_COX .127326
-#define PLATOON_STIM_OFFSET_IN 0
-#define PLATOON_STIM_OFFSET_OUT 0
-#define PLATOON_STIM_DIVISOR 10
+	//****************************************************
+	//Type definitions to implement the pheromone paradigm
+	typedef std::pair<std::string, double> MSLaneId_Pheromone;
+	/**
+	* This map type definition identifies a set of lanes, connected to a kind of pheromone.
+	* Pheromone can be of different kinds to express different stimuli
+	*/
+	typedef std::map<std::string, double> MSLaneId_PheromoneMap;
 
-#define MARCHING_STIM_COX .0407958
-#define MARCHING_STIM_OFFSET_IN 5
-#define MARCHING_STIM_OFFSET_OUT 5
-#define MARCHING_STIM_DIVISOR 8
+	//****************************************************
 
+	typedef std::set<std::string> MSLaneID_set;
 
 
 #endif

@@ -6,7 +6,8 @@ SUMOAbstractRouter.h DijkstraRouterTT.h DijkstraRouterEffort.h \
 AStarRouter.h \
 SUMOVehicle.h \
 WrappingCommand.h ValueRetriever.h ValueSource.h \
-StringBijection.h
+StringBijection.h \
+SwarmDebug.h
 
 libcommon_a_SOURCES = AbstractMutex.h \
 FileHelpers.cpp FileHelpers.h \

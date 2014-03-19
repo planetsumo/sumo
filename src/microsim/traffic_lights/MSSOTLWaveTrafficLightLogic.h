@@ -20,7 +20,6 @@
 #ifndef MSSOTLWaveTrafficLightLogic_h
 #define MSSOTLWaveTrafficLightLogic_h
 
-
 // ===========================================================================
 // included modules
 // ===========================================================================
@@ -31,42 +30,43 @@
 #endif
 
 #include "MSSOTLTrafficLightLogic.h"
-class MSSOTLWaveTrafficLightLogic :
-	public MSSOTLTrafficLightLogic
-{
+class MSSOTLWaveTrafficLightLogic: public MSSOTLTrafficLightLogic {
 public:
-		/** 
+	/**
 	 * @brief Constructor without sensors passed
-     * @param[in] tlcontrol The tls control responsible for this tls
-     * @param[in] id This tls' id
-     * @param[in] subid This tls' sub-id (program id)
-     * @param[in] phases Definitions of the phases
-     * @param[in] step The initial phase index
-     * @param[in] delay The time to wait before the first switch
-     */
+	 * @param[in] tlcontrol The tls control responsible for this tls
+	 * @param[in] id This tls' id
+	 * @param[in] subid This tls' sub-id (program id)
+	 * @param[in] phases Definitions of the phases
+	 * @param[in] step The initial phase index
+	 * @param[in] delay The time to wait before the first switch
+	 */
 	MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcontrol,
-                              const std::string &id, const std::string &subid,
-                              const Phases &phases, unsigned int step, SUMOTime delay) throw();
+			const std::string &id, const std::string &subid,
+			const Phases &phases, unsigned int step, SUMOTime delay,
+			const std::map<std::string, std::string>& parameters) throw ();
 
 	/** 
 	 * @brief Constructor with sensors passed
-     * @param[in] tlcontrol The tls control responsible for this tls
-     * @param[in] id This tls' id
-     * @param[in] subid This tls' sub-id (program id)
-     * @param[in] phases Definitions of the phases
-     * @param[in] step The initial phase index
-     * @param[in] delay The time to wait before the first switch
-     */
+	 * @param[in] tlcontrol The tls control responsible for this tls
+	 * @param[in] id This tls' id
+	 * @param[in] subid This tls' sub-id (program id)
+	 * @param[in] phases Definitions of the phases
+	 * @param[in] step The initial phase index
+	 * @param[in] delay The time to wait before the first switch
+	 */
 	MSSOTLWaveTrafficLightLogic(MSTLLogicControl &tlcontrol,
-                              const std::string &id, const std::string &subid,
-                              const Phases &phases, unsigned int step, SUMOTime delay, MSSOTLSensors *sensors) throw();
-	
+			const std::string &id, const std::string &subid,
+			const Phases &phases, unsigned int step, SUMOTime delay,
+			const std::map<std::string, std::string>& parameters,
+			MSSOTLSensors *sensors) throw ();
+
 protected:
 
 	/*
 	 * @brief Contains the logic to decide whether to release the green light
 	 */
-	bool canRelease() throw();
+	bool canRelease() throw ();
 
 private:
 

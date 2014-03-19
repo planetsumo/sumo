@@ -19,7 +19,11 @@
 #ifndef MSSOTLE2Sensors_h
 #define MSSOTLE2Sensors_h
 
+
+//#define SWARM_DEBUG
+#include <utils/common/SwarmDebug.h>
 #include "MSSOTLSensors.h"
+#include "MSSOTLDefinitions.h"
 #include <math.h>
 #include <map>
 #include <utility>
@@ -29,19 +33,7 @@ class MSSOTLE2Sensors :	public MSSOTLSensors
 {
 protected :
 	void buildSensorForLane(MSLane* lane, NLDetectorBuilder &nb);
-
-public:
-	//Every lane has its own sensor
-	//Sensors can be retrieved by lanes pointer
-	typedef std::pair<MSLane*, MSE2Collector*> MSLane_MSE2Collector;
-    typedef std::map<MSLane*, MSE2Collector*> MSLane_MSE2CollectorMap;
-	//Sensors can be retrieved by lane Id
-	typedef std::pair<std::string, MSE2Collector*> MSLaneID_MSE2Collector;
-	typedef std::map<std::string, MSE2Collector*> MSLaneID_MSE2CollectorMap;
-
-	//Every lane has its speed limit, it can be retrieved by lane Id
-	typedef std::pair<std::string, double> MSLaneID_MaxSpeed;
-	typedef std::map<std::string, double> MSLaneID_MaxSpeedMap;
+	void buildSensorForOutLane(MSLane* lane, NLDetectorBuilder &nb);
 
 public:
 	/*
@@ -55,9 +47,10 @@ public:
 	~MSSOTLE2Sensors(void);
 
 	void buildSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
+	void buildOutSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
 
 	/*
-	 * Returns the number of vehicles currently approaching the 
+	 * Returns the number of vehicles currently approaching the
 	 * junction for the given lane.
 	 * Vehicles are effectively counted or guessed in the space from the sensor to the junction.
 	 * @param[in] lane The lane to count vehicles
@@ -65,7 +58,7 @@ public:
 	unsigned int countVehicles(MSLane* lane);
 
 	/*
-	 * Returns the number of vehicles currently approaching the 
+	 * Returns the number of vehicles currently approaching the
 	 * junction for the given lane.
 	 * Vehicles are effectively counted or guessed in the space from the sensor to the junction.
 	 * @param[in] lane The lane to count vehicles given by ID
@@ -79,7 +72,7 @@ public:
 	virtual double getMaxSpeed(std::string laneId);
 
 	/*
-	 * Returns the average speed of vehicles currently approaching the 
+	 * Returns the average speed of vehicles currently approaching or leaving the
 	 * junction for the given lane.
 	 * Vehicles speed is effectively sensed or guessed in the space from the sensor.
 	 * @param[in] lane The lane to count vehicles
@@ -87,7 +80,7 @@ public:
 	virtual double meanVehiclesSpeed(MSLane* lane);
 
 	/*
-	 * Returns the average speed of vehicles currently approaching the 
+	 * Returns the average speed of vehicles currently approaching or leaving the
 	 * junction for the given lane.
 	 * Vehicles speed is effectively sensed or guessed in the space from the sensor.
 	 * @param[in] laneID The lane to count vehicles by ID
@@ -95,9 +88,13 @@ public:
 	virtual double meanVehiclesSpeed(std::string laneId);
 
 protected:
-	MSLane_MSE2CollectorMap mySensorsMap;
-	MSLaneID_MSE2CollectorMap mySensorsIDMap;
-	MSLaneID_MaxSpeedMap myMaxSpeedMap;
+	MSLane_MSE2CollectorMap mySensorsMap_InLanes;
+	MSLaneID_MSE2CollectorMap mySensorsIDMap_InLanes;
+	MSLaneID_MaxSpeedMap myMaxSpeedMap_InLanes;
+
+	MSLane_MSE2CollectorMap mySensorsMap_OutLanes;
+	MSLaneID_MSE2CollectorMap mySensorsIDMap_OutLanes;
+	MSLaneID_MaxSpeedMap myMaxSpeedMap_OutLanes;
 };
 
 #endif

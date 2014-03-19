@@ -36,4 +36,15 @@ MSSOTLSensors::buildSensorForLane(MSLane* lane, NLDetectorBuilder &nb) {
 	assert(0);
 }
 
+void
+MSSOTLSensors::buildOutSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb) {
+	assert(0);
+}
+
+void
+MSSOTLSensors::buildSensorForOutLane(MSLane* lane, NLDetectorBuilder &nb) {
+	assert(0);
+}
+
+
 /****************************************************************************/

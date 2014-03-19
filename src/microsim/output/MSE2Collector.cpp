@@ -12,7 +12,7 @@
 // An areal (along a single lane) detector
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -116,7 +116,7 @@ MSE2Collector::notifyLeave(SUMOVehicle& veh, SUMOReal lastPos, MSMoveReminder::N
 
 bool
 MSE2Collector::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification) {
-    if (veh.getPositionOnLane() >= myStartPos && veh.getPositionOnLane() - veh.getVehicleType().getLength() < myEndPos) {
+    if (veh.isOnRoad() && veh.getPositionOnLane() >= myStartPos && veh.getPositionOnLane() - veh.getVehicleType().getLength() < myEndPos) {
         // vehicle is on detector
         myKnownVehicles.push_back(&veh);
         return true;
@@ -176,7 +176,7 @@ MSE2Collector::detectorUpdate(const SUMOTime /* step */) {
 
         SUMOReal length = veh->getVehicleType().getLength();
         if (veh->getLane() == getLane()) {
-            if (veh->getPositionOnLane() - veh->getVehicleType().getLength() < myStartPos) {
+            if ((veh->getPositionOnLane()>=myStartPos)&&(veh->getPositionOnLane() - veh->getVehicleType().getLength() < myStartPos)) {
                 // vehicle entered detector partially
                 length -= (veh->getVehicleType().getLength() - (veh->getPositionOnLane() - myStartPos));
             }

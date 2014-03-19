@@ -12,7 +12,7 @@
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -659,7 +659,9 @@ enum TrafficLightType {
 	TLTYPE_SOTL_PLATOON,
 	TLTYPE_SOTL_REQUEST,
 	TLTYPE_SOTL_WAVE,
+	TLTYPE_SOTL_MARCHING,
 	TLTYPE_SWARM_BASED,
+	TLTYPE_HILVL_DETERMINISTIC,
     TLTYPE_INVALID //< must be the last one
 };
 

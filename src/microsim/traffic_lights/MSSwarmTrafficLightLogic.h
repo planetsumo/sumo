@@ -28,40 +28,22 @@
 #include <config.h>
 #endif
 
-#include "MSSOTLTrafficLightLogic.h"
-class MSSwarmTrafficLightLogic :
-	public MSSOTLTrafficLightLogic
-{
+#define SWARM_DEBUG
+#include <utils/common/SwarmDebug.h>
+#include "MSSOTLHiLevelTrafficLightLogic.h"
+#include "MSSOTLPhasePolicy.h"
+#include "MSSOTLPlatoonPolicy.h"
+#include "MSSOTLMarchingPolicy.h"
+#include "MSSOTLCongestionPolicy.h"
+#include "MSSOTLPolicyStimulus.h"
+
+class MSSwarmTrafficLightLogic: public MSSOTLHiLevelTrafficLightLogic {
 public:
 
-	enum Policy {
-		SOTLRequest = 0,
-		SOTLPhase,
-		SOTLPlatoon,
-		SOTLMarching
-	};
-
-	static const unsigned int NPolicies = 4;
-
-	//****************************************************
-	//Type definitions to implement the pheromone paradigm
-
-	/*
-	* This value should be constrained to the interval [0, PHERO_MAXVAL]
-	*/
-	typedef double Pheromone;
-	
-
-	typedef pair<string, Pheromone> MSLaneId_Pheromone;
-	/*
-	* This map type definition identifies a set of lanes, connected to a kind of pheromone.
-	* Pheromone can be of different kinds to express different stimuli
-	*/
-	typedef map<string, Pheromone> MSLaneId_PheromoneMap;
 
 	//****************************************************
 
-	/** 
+	/**
 	 * @brief Constructor without sensors passed
      * @param[in] tlcontrol The tls control responsible for this tls
      * @param[in] id This tls' id
@@ -69,109 +51,215 @@ public:
      * @param[in] phases Definitions of the phases
      * @param[in] step The initial phase index
      * @param[in] delay The time to wait before the first switch
-     */
-	MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
-                              const string &id, const string &subid,
-                              const Phases &phases, unsigned int step, SUMOTime delay);
+	 * @param[in] parameters Parameters defined for the tll
+	 */
+	MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol, const string &id,
+			const string &subid, const Phases &phases, unsigned int step,
+			SUMOTime delay,
+			const std::map<std::string, std::string>& parameters);
 
-	Policy getCurrentPolicy() { return currentPolicy; }
+	~MSSwarmTrafficLightLogic();
+
+	/**
+	 * @brief Initialises the tls with sensors on incoming and outgoing lanes
+	 * Sensors are built in the simulation according to the type of sensor specified in the simulation parameter
+	 * @param[in] nb The detector builder
+	 * @exception ProcessError If something fails on initialisation
+	 */
+	void init(NLDetectorBuilder &nb) throw (ProcessError);
+
+	int getMaxCongestionDuration() {
+		std::ostringstream key;
+		key << "MAX_CONGESTION_DUR";
+		std::ostringstream def;
+		def << "120";
+		return (int) s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setMaxCongestionDuration(unsigned int val) {
+	 max_congestion_duration = val;
+	 }*/
+
+	double getPheroMaxVal() {
+		std::ostringstream key;
+		key << "PHERO_MAXVAL";
+		std::ostringstream def;
+		def << "10.0";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setPheroMaxVal(double val) {
+	 phero_maxval = val;
+	 }*/
+	double getBetaNo() {
+		std::ostringstream key;
+		key << "BETA_NO";
+		std::ostringstream def;
+		def << "0.99";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setBetaNo(double val) {
+	 beta_no = val;
+	 }*/
+	double getGammaNo() {
+		std::ostringstream key;
+		key << "GAMMA_NO";
+		std::ostringstream def;
+		def << "1.0";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setGammaNo(double val) {
+	 gamma_no = val;
+	 }*/
+	double getBetaSp() {
+		std::ostringstream key;
+		key << "BETA_SP";
+		std::ostringstream def;
+		def << "0.99";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setBetaSp(double val) {
+	 beta_sp = val;
+	 }*/
+	double getGammaSp() {
+		std::ostringstream key;
+		key << "GAMMA_SP";
+		std::ostringstream def;
+		def << "1.0";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setGammaSp(double val) {
+	 gamma_sp = val;
+	 }*/
+	double getChangePlanProbability() {
+		std::ostringstream key;
+		key << "CHANGE_PLAN_PROBABILITY";
+		std::ostringstream def;
+		def << "0.003";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setChangePlanProbability(double val) {
+	 change_plan_probability = val;
+	 }*/
+	double getThetaMax() {
+		std::ostringstream key;
+		key << "THETA_MAX";
+		std::ostringstream def;
+		def << "0.8";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setThetaMax(double val) {
+	 theta_max = val;
+	 }*/
+	double getThetaMin() {
+		std::ostringstream key;
+		key << "THETA_MIN";
+		std::ostringstream def;
+		def << "0.2";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setThetaMin(double val) {
+	 theta_min = val;
+	 }*/
+
+	double getLearningCox() {
+		std::ostringstream key;
+		key << "LEARNING_COX";
+		std::ostringstream def;
+		def << "0.0005";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setLearningCox(double val) {
+	 learning_cox = val;
+	 }*/
+	double getForgettingCox() {
+		std::ostringstream key;
+		key << "FORGETTING_COX";
+		std::ostringstream def;
+		def << "0.0005";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+	/*void setForgettingCox(double val) {
+	 forgetting_cox = val;
+	 }*/
 
 protected:
-	/*
-	* The policy currently selected and in execution
-	*/
-	Policy currentPolicy;
 
-	/*
-	* This pheronome is an indicator of congestion on input lanes.
-	* Its levels refer to the density of vehicles using the input lane: 
-	* the more the vehicles the higher the pheromone.
-	* These levels are updated on every input lane, independently on lights state.
-	*/
-	MSLaneId_PheromoneMap pheromoneVehNumberInputLanes;
+	/**
+	 * \brief This pheronome is an indicator of congestion on input lanes.\n
+	 * Its levels refer to the average speed of vehicles passing the input lane:
+	 * the lower the speed the higher the pheromone.\n
+	 * These levels are updated on every input lane, independently on lights state.
+	 */
+	MSLaneId_PheromoneMap pheromoneInputLanes;
 
-	/*
-	* This pheromone is an indicator of congestion on output lanes.
-	* Its levels refer to the average speed of vehicles passing the input lane:
-	* the lower the speed the higher the pheromone.
-	* These levels are updated only when input lanes have their lights on green state, because it regards speed.
-	*/
-	MSLaneId_PheromoneMap pheromoneVehSpeedInputLanes;
+	/**
+	 * \brief This pheromone is an indicator of congestion on output lanes.\n
+	 * Its levels refer to the average speed of vehicles passing the output lane:
+	 * the lower the speed the higher the pheromone.\n
+	 * These levels are updated on every output lane, independently on lights state.
+	 */
+	MSLaneId_PheromoneMap pheromoneOutputLanes;
 
-	/*
-	* This vector contains the thresholds for each policy,
-	* s.t. theta value are computed with respect to thresholds.
-	*/
-	vector<double> thresholds;
-
-	/*
-	* This member keeps track of the last thresholds update, s.t.
-	* updates can be correctly performed even on time-variable interations.
-	* @see MSSwarmTrafficLightLogic::updateThresholds()
-	*/
-	SUMOTime lastThresholdsUpdate;
+	/**
+	 * This member keeps track of the last thresholds update, s.t.
+	 * updates can be correctly performed even on time-variable interations.
+	 * @see MSSwarmTrafficLightLogic::updateSensitivities()
+	 */
+	SUMOTime lastThetaSensitivityUpdate;
 
 	/*
 	 * This member has to contain the switching logic for SOTL policies
 	 */
-	
+
 	size_t decideNextPhase();
 
 	bool canRelease();
-	
-	/*
-	* @return The average pheromone level regarding congestion on input lanes
-	*/
-	Pheromone getPheromoneForInputLanes();
+
+	/**
+	 * @brief Resets pheromone levels
+	 */
+	void resetPheromone();
 
 	/*
-	* @return The average pheromone level regarding congestion on output lanes
-	*/
-	Pheromone getPheromoneForOutputLanes();
+	 * @return The average pheromone level regarding congestion on input lanes
+	 */
+	double getPheromoneForInputLanes();
 
 	/*
-	* @brief Update pheromone levels
-	* Pheromone on input lanes is costantly updated 
-	* Pheromone follows a discrete-time dynamic law "pheromone(k+1) = beta*pheromone(k) + gamma * sensed_val(k)"
-	*/
+	 * @return The average pheromone level regarding congestion on output lanes
+	 */
+	double getPheromoneForOutputLanes();
+
+	/**
+	 * @brief Update pheromone levels
+	 * Pheromone on input lanes is costantly updated
+	 * Pheromone follows a discrete-time dynamic law "pheromone(k+1) = beta*pheromone(k) + gamma * sensed_val(k)"
+	 */
 	void updatePheromoneLevels();
 
-	/*
-	* After a policy has been chosen, for every iteration thresholds has to be updated.
-	* Thresholds reinforcement lowers the threshold for the current policy and raises the ones for currently unused policies.
-	* Thresholds belongs to the interval [THETA_MIN THETA_MAX]
-	*/
-	void updateThresholds();
+	/**
+	 * After a policy has been chosen, for every iteration thresholds has to be updated.
+	 * Thresholds reinforcement lowers the theta_sensitivity for the current policy and raises the ones for currently unused policies.
+	 * Thresholds belongs to the interval [THETA_MIN THETA_MAX]
+	 */
+	void updateSensitivities();
 
-	/*
-	* @brief Decide the current policy according to pheromone levels
-	* The decision reflects on currentPolicy value
-	*/
+	/**
+	 * @brief Decide the current policy according to pheromone levels
+	 * The decision reflects on currentPolicy value
+	 */
 	void decidePolicy();
 
-	/*
-	* Stimulus is conditioned by dynamic thresholds.
-	* This is the base for learning capabilities of swarm-based approaches.
-	* @return 
-	*/
-	double computeThetaVal(Policy policy);
+	void choosePolicy(double phero_in, double phero_out);
 
-	/*
-	* Compute the stimulus functions for the given policy.
-	* A stimulus function is defined over the closed domain [0 PHERO_MAXVAL] X [0 PHERO_MAXVAL] and its 
-	* returned value is normalized, s.t. the definite integral over the domain is unitary.
-	* @return the stimulus, normalized
-	*/
-	double computeStimulus(Policy policy);
+	bool logData;
+	ofstream swarmLogFile;
+	/**
+	 * \brief When true, indicates that the current policy MUST be changed.\n
+	 * It's used to force the exit from the congestion policy
+	 */
+	bool mustChange;
+	unsigned int congestion_steps;
 
-	//Evalation of a decisional step following SOTLRequest policy logic
-	bool evaluateDecStepSOTLRequest();
-	//Evalation of a decisional step following SOTLPhase policy logic
-	bool evaluateDecStepSOTLPhase();
-	//Evalation of a decisional step following SOTLPlatoon policy logic
-	bool evaluateDecStepSOTLPlatoon();
-	//Evalation of a decisional step following SOTLMarching policy logic
-	bool evaluateDecStepSOTLMarching();
 };
 
 #endif

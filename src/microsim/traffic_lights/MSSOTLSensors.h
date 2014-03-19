@@ -44,13 +44,20 @@ protected:
 	size_t currentStep;
 
 protected :
-	/*
-	* This function member has to be extended to properly build a sensor for a specific lane
-	* Sensors has to be costrained on lane dimension
-	* Built sensors has to be collected and associated properly to the rispective MSLane for retrieval using MSSOTLSensors::countVehicles(std::string)
-	* See extention classes for further specifications on sensor building
+	/**
+	* \brief This function member has to be extended to properly build a sensor for a specific input lane
+	* Sensors has to be constrained on lane dimension
+	* Built sensors has to be collected and associated properly to the respective MSLane for retrieval using MSSOTLSensors::countVehicles(std::string)
+	* See extension classes for further specifications on sensor building
 	*/
 	virtual void buildSensorForLane(MSLane* lane, NLDetectorBuilder &nb);
+	/**
+	* \brief This function member has to be extended to properly build a sensor for a specific output lane
+	* Sensors has to be constrained on lane dimension
+	* Built sensors has to be collected and associated properly to the respective MSLane for retrieval using MSSOTLSensors::countVehicles(std::string)
+	* See extension classes for further specifications on sensor building
+	*/
+	virtual void buildSensorForOutLane(MSLane* lane, NLDetectorBuilder &nb);
 
 public:
 	/*
@@ -63,13 +70,20 @@ public:
 	*/
 	~MSSOTLSensors();
 	
-	/*
-	* This function member has to be extended to properly build sensors
-	* Sensors has to be costrained on lane dimension
-	* Built sensors has to be collected and associated properly to theris MSLane for retrieval using MSSOTLSensors::countVehicles(std::string)
-	* See extention classes for further specifications on sensor building
+	/**
+	* \brief This function member has to be extended to properly build sensors for the input lanes
+	* Sensors has to be constrained on lane dimension
+	* Built sensors has to be collected and associated properly to theirs MSLane for retrieval using MSSOTLSensors::countVehicles(std::string)
+	* See extension classes for further specifications on sensor building
 	*/
 	virtual void buildSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
+	/**
+	* \brief This function member has to be extended to properly build sensors for the output lanes
+	* Sensors has to be constrained on lane dimension
+	* Built sensors has to be collected and associated properly to theirs MSLane for retrieval using MSSOTLSensors::countVehicles(std::string)
+	* See extension classes for further specifications on sensor building
+	*/
+	virtual void buildOutSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
 
 	/*
 	 * Returns the number of vehicles currently approaching the 

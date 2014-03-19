@@ -19,24 +19,35 @@
 
 #include "MSSOTLPlatoonTrafficLightLogic.h"
 
-MSSOTLPlatoonTrafficLightLogic::MSSOTLPlatoonTrafficLightLogic(MSTLLogicControl &tlcontrol,
-                              const std::string &id, const std::string &subid,
-							  const Phases &phases, unsigned int step, SUMOTime delay) throw() : MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay) {
-								  MsgHandler::getMessageInstance()->inform("*** Intersection " + id + " will run using MSSOTLPlatoonTrafficLightLogic ***");
+MSSOTLPlatoonTrafficLightLogic::MSSOTLPlatoonTrafficLightLogic(
+		MSTLLogicControl &tlcontrol, const std::string &id,
+		const std::string &subid, const Phases &phases, unsigned int step,
+		SUMOTime delay,
+		const std::map<std::string, std::string>& parameters) throw () :
+		MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay,
+				parameters) {
+	MsgHandler::getMessageInstance()->inform(
+			"*** Intersection " + id
+					+ " will run using MSSOTLPlatoonTrafficLightLogic ***");
 }
 
-MSSOTLPlatoonTrafficLightLogic::MSSOTLPlatoonTrafficLightLogic(MSTLLogicControl &tlcontrol,
-                              const std::string &id, const std::string &subid,
-							  const Phases &phases, unsigned int step, SUMOTime delay, MSSOTLSensors *sensors) throw() : MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, sensors){
+MSSOTLPlatoonTrafficLightLogic::MSSOTLPlatoonTrafficLightLogic(
+		MSTLLogicControl &tlcontrol, const std::string &id,
+		const std::string &subid, const Phases &phases, unsigned int step,
+		SUMOTime delay, const std::map<std::string, std::string>& parameters,
+		MSSOTLSensors *sensors) throw () :
+		MSSOTLTrafficLightLogic(tlcontrol, id, subid, phases, step, delay,
+				parameters, sensors) {
 }
 
-bool 
-MSSOTLPlatoonTrafficLightLogic::canRelease() throw() {
+bool MSSOTLPlatoonTrafficLightLogic::canRelease() throw () {
 	if (getCurrentPhaseElapsed() >= getCurrentPhaseDef().minDuration) {
 		if (isThresholdPassed()) {
 			//If there are no other vehicles approaching green lights 
 			//or the declared maximum duration has been reached
-			return ((countVehicles(getCurrentPhaseDef()) == 0) || (getCurrentPhaseElapsed() >= getCurrentPhaseDef().maxDuration));
+			return ((countVehicles(getCurrentPhaseDef()) == 0)
+					|| (getCurrentPhaseElapsed()
+							>= getCurrentPhaseDef().maxDuration));
 		}
 	}
 	return false;

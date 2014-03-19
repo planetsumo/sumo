@@ -12,7 +12,7 @@
 // Builder of microsim-junctions and tls
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,10 +45,13 @@
 #include <microsim/MSJunctionControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSSimpleTrafficLightLogic.h>
-#include <microsim/traffic_lights/MSSOTLRequestTrafficLightLogic.h>
-#include <microsim/traffic_lights/MSSOTLPhaseTrafficLightLogic.h>
-#include <microsim/traffic_lights/MSSOTLPlatoonTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSSOTLPolicyBasedTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSSOTLPlatoonPolicy.h>
+#include <microsim/traffic_lights/MSSOTLRequestPolicy.h>
+#include <microsim/traffic_lights/MSSOTLPhasePolicy.h>
+#include <microsim/traffic_lights/MSSOTLMarchingPolicy.h>
 #include <microsim/traffic_lights/MSSwarmTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSDeterministicHiLevelTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSSOTLWaveTrafficLightLogic.h>
 #include <microsim/MSEventControl.h>
 #include <microsim/MSGlobals.h>
@@ -251,38 +254,34 @@ NLJunctionControlBuilder::closeTrafficLightLogic() {
     // build the tls-logic in dependance to its type
     switch (myLogicType) {
 		case TLTYPE_SWARM_BASED:
-			tlLogic = new MSSwarmTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			tlLogic = new MSSwarmTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
+			break;
+		case TLTYPE_HILVL_DETERMINISTIC:
+			tlLogic = new MSDeterministicHiLevelTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
 			break;
 		case TLTYPE_SOTL_REQUEST:
-			tlLogic = new MSSOTLRequestTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			tlLogic = new MSSOTLPolicyBasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter,new MSSOTLRequestPolicy(myAdditionalParameter));
 			break;
 		case TLTYPE_SOTL_PLATOON:
-			tlLogic = new MSSOTLPlatoonTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			tlLogic = new MSSOTLPolicyBasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter,new MSSOTLPlatoonPolicy(myAdditionalParameter));
 			break;
 		case TLTYPE_SOTL_WAVE:
-			tlLogic = new MSSOTLWaveTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			tlLogic = new MSSOTLWaveTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
 			break;
 		case TLTYPE_SOTL_PHASE:
-			tlLogic = new MSSOTLPhaseTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset);
+			tlLogic = new MSSOTLPolicyBasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter, new MSSOTLPhasePolicy(myAdditionalParameter));
+			break;
+		case TLTYPE_SOTL_MARCHING:
+			tlLogic = new MSSOTLPolicyBasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter,new MSSOTLMarchingPolicy(myAdditionalParameter));
 			break;
         case TLTYPE_ACTUATED:
-            tlLogic = new MSActuatedTrafficLightLogic(getTLLogicControlToUse(),
-                    myActiveKey, myActiveProgram,
-                    myActivePhases, step, firstEventOffset,
-                    myAdditionalParameter);
+            tlLogic = new MSActuatedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
             break;
         case TLTYPE_AGENT:
-            tlLogic = new MSAgentbasedTrafficLightLogic(getTLLogicControlToUse(),
-                    myActiveKey, myActiveProgram,
-                    myActivePhases, step, firstEventOffset,
-                    myAdditionalParameter);
+            tlLogic = new MSAgentbasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
             break;
         case TLTYPE_STATIC:
-            tlLogic =
-                new MSSimpleTrafficLightLogic(getTLLogicControlToUse(),
-                                              myActiveKey, myActiveProgram,
-                                              myActivePhases, step, firstEventOffset,
-                                              myAdditionalParameter);
+            tlLogic = new MSSimpleTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
             break;
     }
     myActivePhases.clear();
