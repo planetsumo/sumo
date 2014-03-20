@@ -448,7 +448,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
     const bool isInternal = isCrossing || isWalkingArea || myEdge->getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL;
     bool mustDrawMarkings = false;
     const bool drawDetails =  s.scale * s.laneWidthExaggeration > 5;
-    if (isInternal) {
+    if (isCrossing || isWalkingArea) {
         // draw internal lanes on top of junctions
         glTranslated(0, 0, GLO_JUNCTION + 0.1);
     } else {
