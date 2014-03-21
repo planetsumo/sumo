@@ -59,6 +59,39 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLWaveTrafficLightLogic.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSDeterministicHiLevelTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLCongestionPolicy.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLHiLevelTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLMarchingPolicy.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPhasePolicy.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonPolicy.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyBasedTrafficLightLogic.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyDesirability.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyStimulus.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSActuatedTrafficLightLogic.h">
@@ -110,6 +143,39 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLWaveTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSDeterministicHiLevelTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLCongestionPolicy.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLHiLevelTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLMarchingPolicy.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPhasePolicy.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonPolicy.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyBasedTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyDesirability.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyStimulus.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

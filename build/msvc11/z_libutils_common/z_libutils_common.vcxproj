@@ -191,6 +191,7 @@
     <ClInclude Include="..\..\..\src\utils\common\SUMOVehicleClass.h" />
     <ClInclude Include="..\..\..\src\utils\common\SUMOVehicleParameter.h" />
     <ClInclude Include="..\..\..\src\utils\common\SUMOVTypeParameter.h" />
+    <ClInclude Include="..\..\..\src\utils\common\SwarmDebug.h" />
     <ClInclude Include="..\..\..\src\utils\common\SystemFrame.h" />
     <ClInclude Include="..\..\..\src\utils\common\SysUtils.h" />
     <ClInclude Include="..\..\..\src\utils\common\ToString.h" />
