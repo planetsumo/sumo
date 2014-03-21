@@ -135,12 +135,14 @@ MSRouteHandler::myStartElement(int element,
                 throw ProcessError("Non-positive walking duration for  '" + myVehicleParameter->id + "'.");
             }
             SUMOReal speed = DEFAULT_PERSON_SPEED;
-            if (attrs.hasAttribute(SUMO_ATTR_SPEED)) {
-                speed = attrs.getOpt<SUMOReal>(SUMO_ATTR_SPEED, 0, ok, speed);
-                if (speed <= 0) {
-                    throw ProcessError("Non-positive walking speed for  '" + myVehicleParameter->id + "'.");
+            if (myVehicleParameter->vtypeid != "") {
+                const MSVehicleType* vtype = MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid);
+                if (vtype != 0 && vtype->wasSet(VTYPEPARS_MAXSPEED_SET)) {
+                    // XXX check for wasSet redudent when defining vClass-specific defaults
+                    speed = vtype->getMaxSpeed();
                 }
             }
+            speed = attrs.getOpt<SUMOReal>(SUMO_ATTR_SPEED, 0, ok, speed);
             std::string bsID = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
             MSBusStop* bs = 0;
             if (bsID != "") {
