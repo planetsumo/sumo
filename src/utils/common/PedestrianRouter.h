@@ -46,6 +46,7 @@
 #define TL_RED_PENALTY 20
 
 //#define PedestrianRouter_DEBUG_NETWORK
+#define PedestrianRouter_DEBUG_ROUTES
 
 template <class E, class L>
 inline const L* getSidewalk(const E* edge) {
@@ -274,8 +275,6 @@ public:
     SUMOReal getEffort(const PedestrianTrip<E>* const trip, SUMOReal time) const {
         if (myAmConnector) {
             return 0;
-        } else if (myEdge->isWalkingArea()) {
-            return 0; // XXX figuer out the real length?
         }
         SUMOReal length = myEdge->getLength();
         if (myEdge == trip->from) {
@@ -292,6 +291,8 @@ public:
                 length -= trip->arrivalPos;
             }
         }
+        // ensure that 'normal' edges always have a higher weight than connector edges
+        length = MAX2(length, (SUMOReal)POSITION_EPS);
         SUMOReal tlsDelay = 0;
         if (myEdge->isCrossing() && myLane->getIncomingLinkState() == LINKSTATE_TL_RED) {
             // red traffic lights occurring later in the route may be green by the time we arive
@@ -379,6 +380,12 @@ public:
                 into.push_back(intoPed[i]->getEdge());
             }
         }
+#ifdef PedestrianRouter_DEBUG_ROUTES
+        std::cout << TIME2STEPS(msTime) << " trip from " << from->getID() << " to " << to->getID() 
+            << " edges=" << toString(intoPed) 
+            << " resultEdges=" << toString(into) 
+            << "\n";
+#endif
         //endQuery();
     }
 
