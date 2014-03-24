@@ -60,11 +60,13 @@ def getBasicStats(verbose, method, vehicles, assignments):
         totalDepartDelay += veh.departdelay  
     if verbose:    
         print 'totalVeh:', totalVeh
-    avgTravelTime = totalTravelTime/totalVeh
-    avgTravelLength = totalTravelLength/totalVeh
-    avgTravelSpeed = totalTravelSpeed/totalVeh
-    avgWaitTime = totalWaitTime/totalVeh
-    avgDepartDelay = totalDepartDelay/totalVeh
+
+    totalVehDivisor = max(1, totalVeh) # avoid division by 0
+    avgTravelTime = totalTravelTime/totalVehDivisor
+    avgTravelLength = totalTravelLength/totalVehDivisor
+    avgTravelSpeed = totalTravelSpeed/totalVehDivisor
+    avgWaitTime = totalWaitTime/totalVehDivisor
+    avgDepartDelay = totalDepartDelay/totalVehDivisor
     for veh in vehicles:
         totalDiffTravelTime += (veh.traveltime - avgTravelTime)**2
         totalDiffSpeed += (veh.speed - avgTravelSpeed)**2
@@ -72,10 +74,10 @@ def getBasicStats(verbose, method, vehicles, assignments):
         totalDiffWaitTime += (veh.waittime - avgWaitTime)**2
     
     #SD: standard deviation
-    SDTravelTime = (totalDiffTravelTime/totalVeh)**(0.5)
-    SDLength = (totalDiffLength/totalVeh)**(0.5)
-    SDSpeed = (totalDiffSpeed/totalVeh)**(0.5)
-    SDWaitTime = (totalDiffWaitTime/totalVeh)**(0.5)
+    SDTravelTime = (totalDiffTravelTime/totalVehDivisor)**(0.5)
+    SDLength = (totalDiffLength/totalVehDivisor)**(0.5)
+    SDSpeed = (totalDiffSpeed/totalVehDivisor)**(0.5)
+    SDWaitTime = (totalDiffWaitTime/totalVehDivisor)**(0.5)
 
     assignments[method] = Assign(method, totalVeh, totalTravelTime, totalTravelLength,
                                  totalDepartDelay, totalWaitTime, avgTravelTime,
