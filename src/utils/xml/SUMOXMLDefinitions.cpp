@@ -12,7 +12,7 @@
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -134,6 +134,8 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "pois",             SUMO_TAG_VIEWSETTINGS_POIS },
     { "polys",            SUMO_TAG_VIEWSETTINGS_POLYS },
     { "legend",           SUMO_TAG_VIEWSETTINGS_LEGEND },
+    { "event",            SUMO_TAG_VIEWSETTINGS_EVENT },
+    { "jamTime",          SUMO_TAG_VIEWSETTINGS_EVENT_JAM_TIME },
     { "include",          SUMO_TAG_INCLUDE },
     { "xi:include",       SUMO_TAG_INCLUDE },
     { "delay",            SUMO_TAG_DELAY },
@@ -381,6 +383,12 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "actType",        SUMO_ATTR_ACTTYPE },
     { "slope",          SUMO_ATTR_SLOPE },
     { "version",        SUMO_ATTR_VERSION },
+
+#ifndef WIN32
+    { "commandPosix",   SUMO_ATTR_COMMAND },
+#else
+    { "commandWindows", SUMO_ATTR_COMMAND },
+#endif
 
     // ActivityGen statistics file
     { "inhabitants",    AGEN_ATTR_INHABITANTS },

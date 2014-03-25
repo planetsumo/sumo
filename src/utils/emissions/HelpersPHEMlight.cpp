@@ -1,13 +1,15 @@
 /****************************************************************************/
 /// @file    HelpersPHEMlight.cpp
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
+/// @author  Nikolaus Furian
 /// @date    Sat, 20.04.2013
 /// @version $Id$
 ///
 // Helper methods for PHEMlight-based emission computation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -44,7 +46,8 @@
 // ===========================================================================
 SUMOReal
 HelpersPHEMlight::getMaxAccel(SUMOEmissionClass c, double v, double a, double slope) {
-    return -1;
+    PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
+	return currCep->GetMaxAccel(v, a, slope); 
 }
 
 
@@ -92,11 +95,14 @@ SUMOReal
 HelpersPHEMlight::computeFuel(SUMOEmissionClass c, double v, double a, double slope) {
     PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
     double power = currCep->CalcPower(v, a, slope);
-
-    if (currCep->GetVehicleFuelType() == "D") {
-        return currCep->GetEmission("FC", power) / 0.836 / SECONDS_PER_HOUR * 1000.;
+	
+    std::string fuelType = currCep->GetVehicleFuelType();
+	if(fuelType == "D") {
+		return currCep->GetEmission("FC", power) / 0.836 / SECONDS_PER_HOUR * 1000.;
+    } else if(fuelType == "G") {
+		return currCep->GetEmission("FC", power) / 0.742 / SECONDS_PER_HOUR * 1000.;
     } else {
-        return currCep->GetEmission("FC", power) / 0.742 / SECONDS_PER_HOUR * 1000.;
+		return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR * 1000.; // surely false, but at least not additionally modified
     }
 }
 

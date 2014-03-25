@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    emissionsMap_main.cpp
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    Wed, 21.08.2013
 /// @version $Id$
 ///
 // Main for an emissions map writer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -133,6 +134,8 @@ main(int argc, char** argv) {
     oc.addOptionSubTopic("Report");
     oc.doRegister("verbose", 'v', new Option_Bool(false));
     oc.addDescription("verbose", "Report", "Switches to verbose output.");
+    oc.doRegister("help", '?', new Option_Bool(false));
+    oc.addDescription("help", "Report", "Prints a help screen.");
 
     // run
     int ret = 0;
@@ -141,7 +144,10 @@ main(int argc, char** argv) {
         XMLSubSys::init();
         OptionsIO::getOptions(true, argc, argv);
         OptionsCont& oc = OptionsCont::getOptions();
-
+        if (oc.processMetaOptions(argc < 2)) {
+            SystemFrame::close();
+            return 0;
+        }
 
         SUMOReal vMin = oc.getFloat("v-min");
         SUMOReal vMax = oc.getFloat("v-max");

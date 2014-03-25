@@ -1,6 +1,8 @@
 /****************************************************************************/
 /// @file    MSLCM_JE2013.h
 /// @author  Jakob Erdmann
+/// @author  Michael Behrisch
+/// @author  Laura Bieker
 /// @date    Fri, 08.10.2013
 /// @version $Id$
 ///
@@ -8,7 +10,7 @@
 // based on the model of D. Krajzewicz developed between 2004 and 2011 (MSLCM_DK2004)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -144,9 +146,6 @@ protected:
         myLeadingBlockerLength = MAX2(length, myLeadingBlockerLength);
     };
 
-    /// @brief updated myKeepRightProbability and mySpeedGainProbability if the right neighbours are faster
-    void keepRight(MSVehicle* neigh);
-
     inline bool amBlockingLeader() {
         return (myOwnState & LCA_AMBLOCKINGLEADER) != 0;
     }
@@ -174,7 +173,9 @@ protected:
 protected:
     /// @brief a value for tracking the probability that a change to the offset with the same sign is beneficial
     SUMOReal mySpeedGainProbability;
-    /// @brief a value for tracking the probability of following the/"Rechtsfahrgebot" (never a positive value)
+    /* @brief a value for tracking the probability of following the/"Rechtsfahrgebot"
+     * A larger negative value indicates higher probability for moving to the
+     * right (as in mySpeedGainProbability) */
     SUMOReal myKeepRightProbability;
 
     SUMOReal myLeadingBlockerLength;

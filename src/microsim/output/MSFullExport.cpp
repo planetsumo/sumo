@@ -1,13 +1,16 @@
 /****************************************************************************/
 /// @file    MSFullExport.cpp
+/// @author  Daniel Krajzewicz
 /// @author  Mario Krumnow
+/// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    2012-04-26
 /// @version $Id$
 ///
 // Dumping a hugh List of Parameters available in the Simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -83,6 +86,7 @@ MSFullExport::writeVehicles(OutputDevice& of) {
             of.writeAttr("route", veh->getRoute().getID()).writeAttr("type", fclass).writeAttr("waiting", veh->getWaitingSeconds());
             of.writeAttr("lane", veh->getLane()->getID()).writeAttr("pos_lane", veh->getPositionOnLane()).writeAttr("speed", veh->getSpeed());
             of.writeAttr("angle", veh->getAngle()).writeAttr("x", pos.x()).writeAttr("y", pos.y());
+            // !!! fuel is missing here
             of.closeTag();
         }
     }

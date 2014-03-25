@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    emissionsMap_main.cpp
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    Wed, 21.08.2013
 /// @version $Id$
 ///
 // Main for an emissions map writer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -109,17 +110,25 @@ main(int argc, char** argv) {
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
 
     oc.addOptionSubTopic("Report");
-    oc.doRegister("verbose", 'v', new Option_Bool(false));
-    oc.addDescription("verbose", "Report", "Switches to verbose output.");
+    oc.doRegister("quiet", 'q', new Option_Bool(false));
+    oc.addDescription("quiet", "Report", "Not writing anything.");
+    oc.doRegister("help", '?', new Option_Bool(false));
+    oc.addDescription("help", "Report", "Writes a help screen.");
 
     // run
     int ret = 0;
+    bool quiet = false;
     try {
         // initialise the application system (messaging, xml, options)
         XMLSubSys::init();
         OptionsIO::getOptions(true, argc, argv);
         OptionsCont& oc = OptionsCont::getOptions();
+        if (oc.processMetaOptions(argc < 2)) {
+            SystemFrame::close();
+            return 0;
+        }
 
+        quiet = oc.getBool("quiet");
         if (!oc.isSet("timeline-file")) {
             throw ProcessError("The timeline file must be given.");
         }
@@ -148,6 +157,9 @@ main(int argc, char** argv) {
                 continue;
             }
             StringTokenizer st(StringUtils::prune(line), ";");
+            if(st.size()<2) {
+                throw ProcessError("Each line must at least include the time and the speed.");
+            }
             try {
                 SUMOReal t = TplConvert::_2SUMOReal<char>(st.next().c_str());
                 SUMOReal v = TplConvert::_2SUMOReal<char>(st.next().c_str());
@@ -157,6 +169,9 @@ main(int argc, char** argv) {
                 l += v;
                 SUMOReal a = 0;
                 if (!computeA) {
+                    if(!st.hasNext()) {
+                        throw ProcessError("Acceleration information is missing; try running with --compute-a.");
+                    }
                     a = TplConvert::_2SUMOReal<char>(st.next().c_str());
                 } else {
                     a = v - lastV;
@@ -187,7 +202,8 @@ main(int argc, char** argv) {
                 throw ProcessError("Not numeric entry in line '" + line + "'.");
             }
         }
-        std::cout << "sums"  << std::endl
+        if(!quiet) {
+            std::cout << "sums"  << std::endl
                   << "length:" << l << std::endl
                   << "CO:" << sumCO << std::endl
                   << "CO2:" << sumCO2 << std::endl
@@ -195,6 +211,7 @@ main(int argc, char** argv) {
                   << "NOx:" << sumNOx << std::endl
                   << "PMx:" << sumPMx << std::endl
                   << "fuel:" << sumFuel << std::endl;
+        }
     } catch (InvalidArgument& e) {
         MsgHandler::getErrorInstance()->inform(e.what());
         MsgHandler::getErrorInstance()->inform("Quitting (on error).", false);
@@ -212,7 +229,7 @@ main(int argc, char** argv) {
 #endif
     }
     SystemFrame::close();
-    if (ret == 0) {
+    if (ret == 0 && !quiet) {
         std::cout << "Success." << std::endl;
     }
     return ret;

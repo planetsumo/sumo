@@ -2,13 +2,14 @@
 """
 @file    wix.py
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2011
 @version $Id$
 
 Builds the installer based on the nightly zip.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -44,6 +45,7 @@ def buildMSI(sourceZip=INPUT_DEFAULT, outFile=OUTPUT_DEFAULT, wixBin=WIX_DEFAULT
     fragments = []
     for d in ["userdoc", "pydoc", "tutorial", "examples"]:
         fragments.append(buildFragment(wixBin, os.path.join(sumoRoot, "docs", d), "DOCDIR", tmpDir))
+    fragments.append(buildFragment(wixBin, os.path.join(sumoRoot, "data"), "INSTALLDIR", tmpDir))
     fragments.append(buildFragment(wixBin, os.path.join(sumoRoot, "tools"), "INSTALLDIR", tmpDir))
     wxsIn = open(wxs)
     wxsOut = open(os.path.join(tmpDir, "sumo.wxs"), "w")

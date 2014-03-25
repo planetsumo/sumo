@@ -12,7 +12,7 @@
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -176,6 +176,8 @@ enum SumoXMLTag {
     SUMO_TAG_VIEWSETTINGS_POIS,
     SUMO_TAG_VIEWSETTINGS_POLYS,
     SUMO_TAG_VIEWSETTINGS_LEGEND,
+    SUMO_TAG_VIEWSETTINGS_EVENT,
+    SUMO_TAG_VIEWSETTINGS_EVENT_JAM_TIME,
     SUMO_TAG_INCLUDE,
     SUMO_TAG_DELAY,
     SUMO_TAG_VIEWPORT,
@@ -463,6 +465,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_ACTTYPE,
     SUMO_ATTR_SLOPE,
     SUMO_ATTR_VERSION,
+    SUMO_ATTR_COMMAND,
 
 
     /**
