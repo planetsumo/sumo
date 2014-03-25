@@ -47,6 +47,7 @@
 
 //#define PedestrianRouter_DEBUG_NETWORK
 #define PedestrianRouter_DEBUG_ROUTES
+//#define PedestrianRouter_DEBUG_EFFORTS
 
 template <class E, class L>
 inline const L* getSidewalk(const E* edge) {
@@ -67,20 +68,22 @@ inline const L* getSidewalk(const E* edge) {
 // ===========================================================================
 
 /// @brief the "vehicle" type that is given to the internal router (SUMOAbstractRouter)
-template<class E>
+template<class E, class N>
 struct PedestrianTrip {
 
-    PedestrianTrip(const E* _from, const E* _to, SUMOReal _departPos, SUMOReal _arrivalPos, SUMOReal _speed, SUMOReal _departTime) :
+    PedestrianTrip(const E* _from, const E* _to, SUMOReal _departPos, SUMOReal _arrivalPos, SUMOReal _speed, SUMOReal _departTime, const N* _node) :
         from(_from),
         to(_to),
         departPos(_departPos < 0 ? _from->getLength() + _departPos : _departPos),
         arrivalPos(_arrivalPos < 0 ? _to->getLength() + _arrivalPos : _arrivalPos),
         speed(_speed),
-        departTime(_departTime)
+        departTime(_departTime),
+        node(_node)
     {}
 
     const E* from;
     const E* to;
+    const N* node; // indicates whether only routing across this node shall be performed
     const SUMOReal departPos;
     const SUMOReal arrivalPos;
     const SUMOReal speed;
@@ -89,7 +92,7 @@ struct PedestrianTrip {
 
 
 /// @brief the edge type that is given to the internal router (SUMOAbstractRouter)
-template<class E, class L>
+template<class E, class L, class N>
 class PedestrianEdge : public Named {
     typedef std::pair<PedestrianEdge*, PedestrianEdge*> EdgePair;
     /* brief build the pedestrian network (once)
@@ -262,9 +265,15 @@ public:
         return myFollowingEdges[i];
     }
 
-    bool prohibits(const PedestrianTrip<E>* const) const {
-        // network only includes PedestrianEdges
-        return false;
+    bool prohibits(const PedestrianTrip<E, N>* const trip) const {
+        if (trip->node == 0) {
+            // network only includes PedestrianEdges
+            return false;
+        } else {
+            // limit routing to the surroundings of the specified node
+            return (myEdge->getFromJunction() != trip->node 
+                    && myEdge->getToJunction() != trip->node);
+        }
     }
 
     /// @}
@@ -272,7 +281,7 @@ public:
     /*@brief the function called by RouterTT_direct
      * (distance is used as effort, effort is assumed to be independent of time
      */
-    SUMOReal getEffort(const PedestrianTrip<E>* const trip, SUMOReal time) const {
+    SUMOReal getEffort(const PedestrianTrip<E, N>* const trip, SUMOReal time) const {
         if (myAmConnector) {
             return 0;
         }
@@ -299,6 +308,9 @@ public:
             tlsDelay += MAX2(SUMOReal(0), TL_RED_PENALTY - (time - trip->departTime));
 
         }
+#ifdef PedestrianRouter_DEBUG_EFFORTS
+        std::cout << " effort for " << getID() << " at " << time << ": " << length / trip->speed + tlsDelay << " l=" << length << " s=" << trip->speed << " tlsDelay=" << tlsDelay << "\n";
+#endif
         return length / trip->speed + tlsDelay;
     }
 
@@ -346,12 +358,12 @@ private:
  * @class PedestrianRouter
  * The router for pedestrians (on a bidirectional network of sidewalks and crossings
  */
-template<class E, class L, class INTERNALROUTER>
-class PedestrianRouter : public SUMOAbstractRouter<E, PedestrianTrip<E> > {
+template<class E, class L, class N, class INTERNALROUTER>
+class PedestrianRouter : public SUMOAbstractRouter<E, PedestrianTrip<E, N> > {
 public:
 
-    typedef PedestrianEdge<E, L> _PedestrianEdge;
-    typedef PedestrianTrip<E> _PedestrianTrip;
+    typedef PedestrianEdge<E, L, N> _PedestrianEdge;
+    typedef PedestrianTrip<E, N> _PedestrianTrip;
 
     /// Constructor
     PedestrianRouter():
@@ -369,9 +381,9 @@ public:
     /** @brief Builds the route between the given edges using the minimum effort at the given time
         The definition of the effort depends on the wished routing scheme */
     void compute(const E* from, const E* to, SUMOReal departPos, SUMOReal arrivalPos, SUMOReal speed,
-                         SUMOTime msTime, std::vector<const E*>& into, bool allEdges=false) {
+                         SUMOTime msTime, const N* onlyNode, std::vector<const E*>& into, bool allEdges=false) {
         //startQuery();
-        _PedestrianTrip trip(from, to, departPos, arrivalPos, speed, msTime);
+        _PedestrianTrip trip(from, to, departPos, arrivalPos, speed, msTime, onlyNode);
         std::vector<const _PedestrianEdge*> intoPed;
         myInternalRouter->compute(_PedestrianEdge::getDepartEdge(from), 
                 _PedestrianEdge::getArrivalEdge(to), &trip, msTime, intoPed);
@@ -382,6 +394,9 @@ public:
         }
 #ifdef PedestrianRouter_DEBUG_ROUTES
         std::cout << TIME2STEPS(msTime) << " trip from " << from->getID() << " to " << to->getID() 
+            << " departPos=" << departPos
+            << " arrivalPos=" << arrivalPos
+            << " onlyNode=" << (onlyNode == 0 ? "NULL" : onlyNode->getID())
             << " edges=" << toString(intoPed) 
             << " resultEdges=" << toString(into) 
             << "\n";
@@ -414,23 +429,23 @@ private:
 };
 
 // common specializations
-template<class E, class L>
-class PedestrianRouterDijkstra : public PedestrianRouter<E, L, 
-    DijkstraRouterTT_Direct<PedestrianEdge<E, L>, PedestrianTrip<E>, prohibited_withRestrictions<PedestrianEdge<E, L>, PedestrianTrip<E> > > > { };
+template<class E, class L, class N>
+class PedestrianRouterDijkstra : public PedestrianRouter<E, L, N,
+    DijkstraRouterTT_Direct<PedestrianEdge<E, L, N>, PedestrianTrip<E, N>, prohibited_withRestrictions<PedestrianEdge<E, L, N>, PedestrianTrip<E, N> > > > { };
 
 
 // ===========================================================================
 // static member definitions (PedestrianEdge)
 // ===========================================================================
 
-template<class E, class L>
-std::vector<PedestrianEdge<E, L> > PedestrianEdge<E, L>::myEdgeDict;
+template<class E, class L, class N>
+std::vector<PedestrianEdge<E, L, N> > PedestrianEdge<E, L, N>::myEdgeDict;
 
-template<class E, class L>
-std::map<const E*, typename PedestrianEdge<E, L>::EdgePair> PedestrianEdge<E, L>::myBidiLookup;
+template<class E, class L, class N>
+std::map<const E*, typename PedestrianEdge<E, L, N>::EdgePair> PedestrianEdge<E, L, N>::myBidiLookup;
 
-template<class E, class L>
-std::map<const E*, typename PedestrianEdge<E, L>::EdgePair> PedestrianEdge<E, L>::myFromToLookup;
+template<class E, class L, class N>
+std::map<const E*, typename PedestrianEdge<E, L, N>::EdgePair> PedestrianEdge<E, L, N>::myFromToLookup;
 
 #endif
 
