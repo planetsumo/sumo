@@ -64,6 +64,7 @@
 // class declarations
 // ===========================================================================
 class MSEdge;
+class MSJunction;
 class MSEdgeControl;
 class MSJunctionControl;
 class MSInsertionControl;
@@ -108,7 +109,7 @@ public:
     };
 
     //typedef PedestrianRouterDijkstra<MSEdge, MSLane> MSPedestrianRouterDijkstra;
-    typedef PedestrianRouterDijkstra<MSEdge, MSLane> MSPedestrianRouterDijkstra;
+    typedef PedestrianRouterDijkstra<MSEdge, MSLane, MSJunction> MSPedestrianRouterDijkstra;
 
 
 

@@ -30,6 +30,7 @@
 #endif
 
 #include <string>
+#include <limits>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Command.h>
 #include <microsim/MSPerson.h>
@@ -77,8 +78,13 @@ public:
     // @brief the width of a pedstrian stripe
     static SUMOReal STRIPE_WIDTH;
 
-    // @brief the distance to look ahead for changing stripes
-    static const SUMOReal LOOKAHEAD;
+    // @brief the factor for random slow-down
+    static SUMOReal DAWDLING;
+
+    // @brief the distance to look ahead for changing stripes 
+    static const SUMOReal LOOKAHEAD_SAMEDIR;
+    // @brief the distance to look ahead for changing stripes (regarding oncoming pedestrians)
+    static const SUMOReal LOOKAHEAD_ONCOMING;
 
     // @brief the speed penalty for moving sideways
     static const SUMOReal LATERAL_PENALTY;
@@ -101,10 +107,76 @@ public:
     // @brief the time pedestrians take to reach maximum impatience
     static const SUMOReal MAX_WAIT_TOLERANCE;
 
+    // @brief the fraction of forward speed to be used for lateral movemenk
+    static const SUMOReal LATERAL_SPEED_FACTOR;
+
 protected:
+    struct Obstacle;
+    struct WalkingAreaPath;
     class Pedestrian;
     typedef std::vector<Pedestrian> Pedestrians;
     typedef std::map<const MSLane*, Pedestrians> ActiveLanes;
+    typedef std::vector<Obstacle> Obstacles;
+    typedef std::map<const MSLane*, Obstacles> NextLanesObstacles;
+    typedef std::map<std::pair<const MSLane*, const MSLane*>, WalkingAreaPath> WalkingAreaPaths;
+
+    struct NextLaneInfo {
+        NextLaneInfo(const MSLane* _lane, const MSLink* _link, int _dir) :
+            lane(_lane),
+            link(_link),
+            dir(_dir)
+        { }
+
+        NextLaneInfo() :
+            lane(0),
+            link(0),
+            dir(UNDEFINED_DIRECTION)
+        { }
+
+        // @brief the next lane to be used
+        const MSLane* lane;
+        // @brief the link from the current lane to the next lane
+        const MSLink* link;
+        // @brief the direction on the next lane
+        int dir;
+    };
+
+    /// @brief information regarding surround Pedestrians (and potentially other things)
+    struct Obstacle {
+        /// @brief create No-Obstacle
+        Obstacle(int dir);
+        /// @brief create an obstacle from ped for ego moving in dir
+        Obstacle(const Pedestrian& ped, int dir);
+        /// @brief create an obstacle from explict values
+        Obstacle(SUMOReal _x, SUMOReal _speed, const std::string& _description) : x(_x), speed(_speed), description(_description) {};
+
+        /// @brief position on the current lane
+        SUMOReal x;
+        /// @brief speed relative to ego direction (positive means in the same direction)
+        SUMOReal speed;
+        /// @brief the id / description of the obstacle
+        std::string description;
+    };
+
+    struct WalkingAreaPath {
+        WalkingAreaPath(const MSLane* _from, const MSLane* _walkingArea, const MSLane* _to, const PositionVector& _shape) :
+            from(_from),
+            to(_to),
+            lane(_walkingArea),
+            shape(_shape),
+            length(_shape.length())
+        {}
+
+        WalkingAreaPath(): from(0), to(0), lane(0) {};
+
+        const MSLane* from;
+        const MSLane* to;
+        const MSLane* lane; // the walkingArea;
+        // actually const but needs to be copyable by some stl code
+        PositionVector shape;
+        SUMOReal length; 
+
+    };
 
     /**
      * @class Pedestrian
@@ -117,16 +189,24 @@ protected:
         ~Pedestrian() {};
         MSPerson* myPerson;
         MSPerson::MSPersonStage_Walking* myStage;
+        /// @brief the current lane of this pedestrian
+        const MSLane* myLane; 
         /// @brief the advancement along the current lane
         SUMOReal myX; 
         /// @brief the orthogonal shift on the current lane
         SUMOReal myY; 
         /// @brief the walking direction on the current lane (1 forward, -1 backward)
         int myDir;
+        /// @brief the current walking speed
+        SUMOReal mySpeed;
         /// @brief whether the pedestrian is blocked by an oncoming pedestrian
         int myBlockedByOncoming;
         /// @brief whether the pedestrian is waiting to start its walk
         bool myWaitingToEnter;
+        /// @brief information about the upcoming lane
+        NextLaneInfo myNLI;
+        /// @brief the current walkingAreaPath or 0
+        WalkingAreaPath* myWalkingAreaPath;
 
         /// @brief return the length of the pedestrian
         SUMOReal getLength() const;
@@ -135,13 +215,13 @@ protected:
         SUMOReal distToLaneEnd() const;
 
         /// @brief return whether this pedestrian has passed the end of the current lane and update myX if so
-        bool moveToNextLane();
+        bool moveToNextLane(SUMOTime currentTime);
 
         /// @brief perform position update
-        void walk(std::vector<SUMOReal> vSafe, Pedestrians::iterator maxLeader, Pedestrians::iterator minFollower, SUMOTime currentTime);
+        void walk(const Obstacles& obs, SUMOTime currentTime);
 
         /// @brief update location data for MSPersonStage_Walking 
-        void updateLocation(const MSLane* lane, const PositionVector& walkingAreaShape=PositionVector());
+        void updateLocation();
 
         /// @brief returns the impatience 
         SUMOReal getImpatience(SUMOTime now) const; // XXX 
@@ -149,18 +229,8 @@ protected:
         /// @brief return the speed-dependent minGap of the pedestrian
         SUMOReal getMingap() const;
 
-        /// @brief compute safe speeds on all stripes and update vSafe, return whether ego has oncoming pedestrians
-        static bool updateVSafe(
-                std::vector<SUMOReal>& vSafe,
-                Pedestrians::iterator maxLeader, 
-                Pedestrians::iterator minFollower, 
-                SUMOReal x, 
-                const Pedestrian& ego,
-                int dir);
-            
-    private:
-        int stripe(int max) const;
-        int otherStripe(int max) const;
+        int stripe() const;
+        int otherStripe() const;
 
     };
 
@@ -190,13 +260,10 @@ protected:
     };
 
     /// @brief move all pedestrians forward and advance to the next lane if applicable
-    static void moveInDirection(SUMOTime currentTime, int dir);
+    static void moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& changedLane, int dir);
 
     /// @brief return the appropriate lane to walk on
     static MSLane* getSidewalk(const MSEdge* edge);
-
-    /// @brief adds the given pedestrian to the new lane unless the lane is 0
-    static void addToLane(Pedestrian& ped, int oldStripes, const MSLane* newLane, int newDir, const PositionVector& walkingAreaShape);
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     static Pedestrians& getPedestrians(const MSLane* lane);
@@ -208,20 +275,26 @@ protected:
      * link as well as the direction to use on the succesor lane
      * @param[in] currentLane The lane the pedestrian is currently on
      * @param[in] ped The pedestrian for which to compute the next lane
-     * @param[out] link The link between currentLane and next lane
-     * @param[out] dir The direction to use on the next lane
-     * @return The next lane or 0 if the route ends
      */
-    static const MSLane* getNextLane(const MSLane* currentLane, const Pedestrian& ped, 
-            MSLink*& link, int& nextDir);
+    static NextLaneInfo getNextLane(const Pedestrian& ped, const MSLane* currentLane, const MSLane* prevLane);
 
     /// @brief return the next walkingArea in the given direction
     static const MSLane* getNextWalkingArea(const MSLane* currentLane, const int dir, MSLink*& link); 
 
-    static PositionVector getWalkingAreaShape(const MSLane* from, const MSLane* walkingArea, int walkingAreaDir, const Pedestrian& ped); 
-
     /// @brief returns the direction in which these lanes are connectioned or 0 if they are not
     static int connectedDirection(const MSLane* from, const MSLane* to);
+
+private:
+    static void initWalkingAreaPaths(const MSNet* net);
+
+    static Obstacles mergeObstacles(const Obstacles& obs1, const Obstacles& obs2, int dir); 
+
+    static Obstacles getNeighboringObstacles(const Pedestrians& pedestrians, int egoIndex, int stripes); 
+    
+    static const Obstacles& getNextLaneObstacles(NextLanesObstacles& nextLanesObs, const MSLane* nextLane, int stripes, 
+            int nextDir, SUMOReal currentLength, int currentDir); 
+
+    static void DEBUG_PRINT(const Obstacles& obs);
 
 protected:
     /// @brief the total number of active pedestrians
@@ -229,8 +302,15 @@ protected:
     /// @brief whether the MovePedestrians command is registered
     static bool active;
 
+    /// @brief store of all lanes which have pedestrians on them
     static ActiveLanes myActiveLanes;
+
+    /// @brief store for walkinArea elements
+    static WalkingAreaPaths myWalkingAreaPaths;
+    
+    /// @brief empty pedestrian vector
     static Pedestrians noPedestrians;
+
 };
 
 

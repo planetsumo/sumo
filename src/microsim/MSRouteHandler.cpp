@@ -36,6 +36,7 @@
 #include <vector>
 #include <microsim/MSRoute.h>
 #include <microsim/MSEdge.h>
+#include <microsim/MSJunction.h>
 #include <microsim/MSVehicleType.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSInsertionControl.h>
@@ -129,7 +130,7 @@ MSRouteHandler::myStartElement(int element,
             myActiveRoute.clear();
             bool ok = true;
             SUMOReal departPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_DEPARTPOS, myVehicleParameter->id.c_str(), ok, 0);
-            SUMOReal arrivalPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ARRIVALPOS, myVehicleParameter->id.c_str(), ok, -1);
+            SUMOReal arrivalPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ARRIVALPOS, myVehicleParameter->id.c_str(), ok, -NUMERICAL_EPS);
             const SUMOTime duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, 0, ok, -1);
             if (attrs.hasAttribute(SUMO_ATTR_DURATION) && duration <= 0) {
                 throw ProcessError("Non-positive walking duration for  '" + myVehicleParameter->id + "'.");
@@ -165,13 +166,16 @@ MSRouteHandler::myStartElement(int element,
                     if (to == 0) {
                         throw ProcessError("The to edge '" + toID + "' within a walk of person '" + myVehicleParameter->id + "' is not known.");
                     }
-                    MSNet::getInstance()->getPedestrianRouter().compute(from, to, departPos, arrivalPos, speed, 0, myActiveRoute);
+                    MSNet::getInstance()->getPedestrianRouter().compute(from, to, departPos, 
+                            SUMOVehicleParameter::interpretEdgePos(arrivalPos, to->getLength(), SUMO_ATTR_ARRIVALPOS, "person walking to " + to->getID()),
+                            speed, 0, 0, myActiveRoute);
                     if (myActiveRoute.empty()) {
                         const std::string error = "No connection found between '" + from->getID() + "' and '" + to->getID() + "' for person '" + myVehicleParameter->id + "'.";
                         if (OptionsCont::getOptions().getBool("ignore-route-errors")) {
                             myActiveRoute.push_back(from);
-                            myActiveRoute.push_back(to);
-                            WRITE_WARNING(error);
+                            // XXX
+                            //myActiveRoute.push_back(to);
+                            //WRITE_WARNING(error);
                         } else {
                             WRITE_ERROR(error);
                         }

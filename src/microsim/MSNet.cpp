@@ -516,7 +516,7 @@ MSNet::clearAll() {
     MSTrigger::cleanup();
     MSCalibrator::cleanup();
     MSPModel::cleanup();
-    PedestrianEdge<MSEdge, MSLane>::cleanup();
+    PedestrianEdge<MSEdge, MSLane, MSJunction>::cleanup();
 }
 
 
