@@ -1,1 +1,1 @@
---pedestrians.stripe-width 0.75
+--pedestrian.stripe-width 0.75 --pedestrian.dawdling 0.2
