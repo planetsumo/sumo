@@ -3,9 +3,9 @@
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/sumoConfiguration.xsd">
 
     <input>
-        <net-file value="highway/highway.net.xml"/> 
-        <gui-settings-file value="highway/settings.xml"/>
-        <route-files value="highway/highway.rou.xml"/>
+        <net-file value="ramp/ramp.net.xml"/> 
+        <gui-settings-file value="ramp/ramp_settings.xml"/>
+        <route-files value="ramp/ramp.rou.xml"/>
         <additional-files value="input_additional.add.xml"/>
     </input>
 
