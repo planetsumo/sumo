@@ -62,7 +62,7 @@ public:
     ~MSPModel_Striping();
 
     /// @brief register the given person as a pedestrian
-    void add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage);
+    void add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime now);
 
     /// @brief whether a pedestrian is blocking the crossing of lane at offset distToCrossing
     bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers);

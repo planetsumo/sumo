@@ -34,6 +34,7 @@
 #include "MSEdge.h"
 #include "MSLane.h"
 #include "MSPModel_Striping.h"
+#include "MSPModel_NonInteracting.h"
 #include "MSPModel.h"
 
 
@@ -65,8 +66,8 @@ MSPModel::getModel() {
         const std::string model = oc.getString("pedestrian.model");
         if (model == "striping") {
             myModel = new MSPModel_Striping(oc, net);
-        //} else if (model == "nonInteracting") {
-        //    myModel = new MSPModel_NonInteracting(oc, net);
+        } else if (model == "nonInteracting") {
+            myModel = new MSPModel_NonInteracting(oc, net);
         } else {
             throw ProcessError("Unknown pedestrian model '" + model + "'");
         }

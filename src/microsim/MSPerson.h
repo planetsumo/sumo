@@ -244,27 +244,12 @@ public:
         SUMOTime moveToNextEdge(MSPerson* person, SUMOTime currentTime, MSEdge* nextInternal=0);
 
 
-        class MoveToNextEdge : public Command {
-        public:
-            MoveToNextEdge(MSPerson* person, MSPersonStage_Walking& walk) : myParent(walk), myPerson(person) {}
-            ~MoveToNextEdge() {}
-            SUMOTime execute(SUMOTime currentTime) {
-                return myParent.moveToNextEdge(myPerson, currentTime);
-            }
-        private:
-            MSPersonStage_Walking& myParent;
-            MSPerson* myPerson;
-        private:
-            /// @brief Invalidated assignment operator.
-            MoveToNextEdge& operator=(const MoveToNextEdge&);
-
-        };
-
         /// @brief accessors to be used by MSPModel
         //@{
         inline SUMOReal getSpeed() { return mySpeed;}
         inline SUMOReal getCurrentBeginPos() { return myCurrentBeginPos;}
         inline SUMOReal getCurrentEndPos() { return myCurrentBeginPos + myCurrentLength;}
+        inline SUMOReal getCurrentDuration() { return myCurrentDuration;}
         inline SUMOReal getArrivalPos() { return myArrivalPos;}
         inline const MSEdge* getRouteEdge() { return *myRouteStep; }
         inline const MSEdge* getNextEdge() { return myRouteStep == myRoute.end() - 1 ? 0 : *(myRouteStep + 1); }

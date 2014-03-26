@@ -227,8 +227,7 @@ MSPerson::MSPersonStage_Walking::proceed(MSNet* net, MSPerson* person, SUMOTime 
     myRoute.size() == 1
     ? computeWalkingTime(*myRouteStep, myDepartPos, myArrivalPos, myDestinationBusStop)
     : computeWalkingTime(*myRouteStep, myDepartPos, -1, 0);
-    MSPModel::getModel()->add(person, this);
-    //net->getBeginOfTimestepEvents().addEvent(new MoveToNextEdge(person, *this), now + TIME2STEPS(myCurrentDuration), MSEventControl::ADAPT_AFTER_EXECUTION);
+    MSPModel::getModel()->add(person, this, now);
 }
 
 

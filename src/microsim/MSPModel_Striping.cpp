@@ -110,7 +110,7 @@ MSPModel_Striping::~MSPModel_Striping() {
 
 
 void
-MSPModel_Striping::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage) {
+MSPModel_Striping::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime) {
     assert(person->getCurrentStageType() == MSPerson::WALKING);
     const MSLane* lane = getSidewalk(person->getEdge());
     myActiveLanes[lane].push_back(Pedestrian(person, stage, lane));

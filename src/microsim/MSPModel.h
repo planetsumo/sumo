@@ -63,12 +63,10 @@ public:
     static MSLane* getSidewalk(const MSEdge* edge);
 
     /// @brief register the given person as a pedestrian
-    virtual void add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage) = 0;
+    virtual void add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime now) = 0;
 
     /// @brief whether a pedestrian is blocking the crossing of lane at offset distToCrossing
-    virtual bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers) {
-        return false;
-    };
+    virtual bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers) = 0;
 
     virtual void cleanupHelper() {};
 
