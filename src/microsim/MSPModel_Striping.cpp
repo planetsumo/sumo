@@ -967,29 +967,3 @@ MSPModel_Striping::MovePedestrians::execute(SUMOTime currentTime) {
     return DELTA_T;
 }
 
-
-
-/****************************************************************************/
-
-//void 
-//MSPerson::MSPersonStage_Walking::updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift, int dir, 
-//        const PositionVector& walkingAreaShape) {
-//    person->lockPerson();
-//    if (myLane != lane && lane->getEdge().isWalkingArea()) {
-//        myCurrentLength = walkingAreaShape.length();
-//    }
-//    if (myLane == lane && myLanePos == pos) {
-//        myWaitingTime += DELTA_T;
-//    } else {
-//        myWaitingTime = 0;
-//    }
-//    myLane = lane; 
-//    myLanePos = pos;
-//    myShift = shift;
-//    myDir = dir;
-//    if (walkingAreaShape.size() > 0) {
-//        myWalkingAreaShape = walkingAreaShape;
-//    }
-//    person->unlockPerson();
-//}
-//
