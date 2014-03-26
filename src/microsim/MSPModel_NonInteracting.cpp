@@ -127,7 +127,8 @@ MSPModel_NonInteracting::PState::computeWalkingTime(const MSEdge* prev, const MS
         }
         myCurrentEndPos = dir == FORWARD ? edge->getLength() : 0;
     }
-    myCurrentDuration = TIME2STEPS(fabs(myCurrentEndPos - myCurrentBeginPos) / stage.getSpeed());
+    // ensure that a result > 0 is returned even if the walk ends immediately
+    myCurrentDuration = MAX2((SUMOTime)1, TIME2STEPS(fabs(myCurrentEndPos - myCurrentBeginPos) / stage.getSpeed()));
     //std::cout << SIMTIME << " dir=" << dir << " curBeg=" << myCurrentBeginPos << " curEnd=" << myCurrentEndPos << " dur=" << myCurrentDuration << "\n";
     return myCurrentDuration;
 }
