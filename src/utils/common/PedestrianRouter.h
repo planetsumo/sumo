@@ -46,7 +46,7 @@
 #define TL_RED_PENALTY 20
 
 //#define PedestrianRouter_DEBUG_NETWORK
-#define PedestrianRouter_DEBUG_ROUTES
+//#define PedestrianRouter_DEBUG_ROUTES
 //#define PedestrianRouter_DEBUG_EFFORTS
 
 template <class E, class L>

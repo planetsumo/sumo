@@ -151,6 +151,7 @@ MSRouteHandler::myStartElement(int element,
                 if (bs == 0) {
                     throw ProcessError("Unknown bus stop '" + bsID + "' for person '" + myVehicleParameter->id + "'.");
                 }
+                arrivalPos = bs->getEndLanePosition();
             }
             if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
                 MSEdge::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_EDGES, myVehicleParameter->id.c_str(), ok), myActiveRoute, myActiveRouteID);

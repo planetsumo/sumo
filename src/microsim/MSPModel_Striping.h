@@ -62,7 +62,7 @@ public:
     ~MSPModel_Striping();
 
     /// @brief register the given person as a pedestrian
-    void add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime now);
+    PedestrianState* add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime now);
 
     /// @brief whether a pedestrian is blocking the crossing of lane at offset distToCrossing
     bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers);
@@ -109,7 +109,7 @@ protected:
     struct Obstacle;
     struct WalkingAreaPath;
     class Pedestrian;
-    typedef std::vector<Pedestrian> Pedestrians;
+    typedef std::vector<Pedestrian*> Pedestrians;
     typedef std::map<const MSLane*, Pedestrians> ActiveLanes;
     typedef std::vector<Obstacle> Obstacles;
     typedef std::map<const MSLane*, Obstacles> NextLanesObstacles;
@@ -177,8 +177,16 @@ protected:
      * @class Pedestrian
      * @brief Container for pedestrian state and individual position update function
      */
-    class Pedestrian {
+    class Pedestrian : public PedestrianState {
     public:
+
+        /// @brief abstract methods inherited from PedestrianState
+        /// @{
+        SUMOReal getEdgePos(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const;
+        Position getPosition(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const;
+        SUMOReal getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const;
+        SUMOTime getWaitingTime(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const;
+        /// @}
 
         Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, const MSLane* lane);
         ~Pedestrian() {};
@@ -198,6 +206,8 @@ protected:
         int myBlockedByOncoming;
         /// @brief whether the pedestrian is waiting to start its walk
         bool myWaitingToEnter;
+        /// @brief the consecutive time spent at speed 0
+        SUMOTime myWaitingTime;
         /// @brief information about the upcoming lane
         NextLaneInfo myNLI;
         /// @brief the current walkingAreaPath or 0
@@ -206,7 +216,7 @@ protected:
         /// @brief return the length of the pedestrian
         SUMOReal getLength() const;
 
-        /// @brief the absolute distance to the end of the lane in walking direction
+        /// @brief the absolute distance to the end of the lane in walking direction (or to the arrivalPos)
         SUMOReal distToLaneEnd() const;
 
         /// @brief return whether this pedestrian has passed the end of the current lane and update myX if so
@@ -214,9 +224,6 @@ protected:
 
         /// @brief perform position update
         void walk(const Obstacles& obs, SUMOTime currentTime);
-
-        /// @brief update location data for MSPersonStage_Walking 
-        void updateLocation();
 
         /// @brief returns the impatience 
         SUMOReal getImpatience(SUMOTime now) const; // XXX 
@@ -247,8 +254,8 @@ protected:
 
     public:
         /// comparing operation
-        bool operator()(const Pedestrian& p1, const Pedestrian& p2) const {
-            return myDir * p1.myX > myDir * p2.myX;
+        bool operator()(const Pedestrian* p1, const Pedestrian* p2) const {
+            return myDir * p1->myX > myDir * p2->myX;
         }
 
     private:

@@ -53,6 +53,8 @@ const int MSPModel::UNDEFINED_DIRECTION(0);
 // parameters shared by all models
 const SUMOReal MSPModel::SAFETY_GAP(1.0);
 
+const SUMOReal MSPModel::SIDEWALK_OFFSET(3);
+
 // ===========================================================================
 // MSPModel method definitions
 // ===========================================================================

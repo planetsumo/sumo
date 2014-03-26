@@ -54,6 +54,7 @@ class MSBusStop;
 class SUMOVehicle;
 class MSVehicleType;
 class MSPModel;
+class PedestrianState;
 
 typedef std::vector<const MSEdge*> MSEdgeVector;
 
@@ -241,27 +242,25 @@ public:
          */
         virtual void endEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const;
 
-        SUMOTime moveToNextEdge(MSPerson* person, SUMOTime currentTime, MSEdge* nextInternal=0);
+        /// @brief move forward and return whether the person arrived
+        bool moveToNextEdge(MSPerson* person, SUMOTime currentTime, MSEdge* nextInternal=0);
 
 
         /// @brief accessors to be used by MSPModel
         //@{
-        inline SUMOReal getSpeed() { return mySpeed;}
-        inline SUMOReal getCurrentBeginPos() { return myCurrentBeginPos;}
-        inline SUMOReal getCurrentEndPos() { return myCurrentBeginPos + myCurrentLength;}
-        inline SUMOReal getCurrentDuration() { return myCurrentDuration;}
-        inline SUMOReal getArrivalPos() { return myArrivalPos;}
-        inline const MSEdge* getRouteEdge() { return *myRouteStep; }
-        inline const MSEdge* getNextEdge() { return myRouteStep == myRoute.end() - 1 ? 0 : *(myRouteStep + 1); }
-        inline const std::vector<const MSEdge*>& getRoute() { return myRoute; }
+        inline SUMOReal getSpeed() const { return mySpeed; }
+        inline SUMOReal getDepartPos() const { return myDepartPos;}
+        inline SUMOReal getArrivalPos() const { return myArrivalPos;}
 
-        virtual void updateLocationSecure(MSPerson* person, const MSLane* lane, SUMOReal pos, SUMOReal shift, int dir, 
-                const PositionVector& walkingAreaShape);
+        inline const MSEdge* getRouteEdge() const { return *myRouteStep; }
+        inline const MSEdge* getNextRouteEdge() const { return myRouteStep == myRoute.end() - 1 ? 0 : *(myRouteStep + 1); }
+        inline const std::vector<const MSEdge*>& getRoute() const { return myRoute; }
+
+        PedestrianState* getPedestrianState() const { return myPedestrianState; }
         //@}
 
 
     private:
-        void computeWalkingTime(const MSEdge* const e, SUMOReal fromPos, SUMOReal toPos, MSBusStop* bs);
 
         /* @brief compute average speed if the total walking duration is given 
          * @note Must be callled when the previous stage changes myDepartPos from the default*/
@@ -287,28 +286,10 @@ public:
         SUMOReal myDepartPos;
         SUMOReal myArrivalPos;
         MSBusStop* myDestinationBusStop;
-        SUMOTime myLastEntryTime;
         SUMOReal mySpeed;
-        SUMOTime myWaitingTime;
-
-        SUMOReal myCurrentBeginPos, myCurrentLength, myCurrentDuration;
-        //bool myDurationWasGiven;
-        //SUMOReal myOverallLength;
-
 
         /// @brief state that is to be manipulated by MSPModel
-        //@{
-        /// @brief the current lane on which this pedestrian moves or 0
-        const MSLane* myLane;
-        /// @brief the current advancement on this lane
-        SUMOReal myLanePos;
-        /// @brief the orthogonal shift from the lane
-        SUMOReal myShift;
-        /// @brief the walking direction (1 forward, -1 backward)
-        SUMOReal myDir;
-        /// @brief the shape when myLane is a walkingArea (encompassing multiple paths)
-        PositionVector myWalkingAreaShape;
-        //@}
+        PedestrianState* myPedestrianState;
 
         class arrival_finder {
         public:
@@ -533,8 +514,8 @@ public:
     /// destructor
     virtual ~MSPerson();
 
-    virtual void lockPerson() {};
-    virtual void unlockPerson() {};
+    virtual void lockPerson() const {};
+    virtual void unlockPerson() const {};
 
     /// returns the person id
     const std::string& getID() const;
@@ -570,12 +551,18 @@ public:
 
     ///
     virtual Position getPosition(SUMOTime now) const {
-        return (*myStep)->getPosition(now);
+        lockPerson();
+        const Position result = (*myStep)->getPosition(now);
+        unlockPerson();
+        return result;
     }
 
 
     SUMOReal getAngle(SUMOTime now) const {
-        return (*myStep)->getAngle(now);
+        lockPerson();
+        const SUMOReal result = (*myStep)->getAngle(now);
+        unlockPerson();
+        return result;
     }
 
     ///
@@ -630,10 +617,6 @@ public:
     inline const MSVehicleType& getVehicleType() const {
         return *myVType;
     }
-
-
-    /// @brief the offset for computing person positions when walking
-    static const SUMOReal SIDEWALK_OFFSET;
 
 private:
     /// @brief Invalidated copy constructor.

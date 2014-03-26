@@ -63,7 +63,7 @@ public:
     static MSLane* getSidewalk(const MSEdge* edge);
 
     /// @brief register the given person as a pedestrian
-    virtual void add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime now) = 0;
+    virtual PedestrianState* add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime now) = 0;
 
     /// @brief whether a pedestrian is blocking the crossing of lane at offset distToCrossing
     virtual bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers) = 0;
@@ -78,11 +78,25 @@ public:
     // @brief the safety gap to keep between the car and the pedestrian in all directions
     static const SUMOReal SAFETY_GAP;
 
+    /// @brief the offset for computing person positions when walking on edges without a sidewalk
+    static const SUMOReal SIDEWALK_OFFSET;
+
 
 private:
     static MSPModel* myModel;
 
 };
+
+
+/// @brief abstract base class for managing callbacks to retrieve various state information from the model
+class PedestrianState {
+public:
+    virtual SUMOReal getEdgePos(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+    virtual Position getPosition(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+    virtual SUMOReal getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+    virtual SUMOTime getWaitingTime(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+};
+
 
 
 #endif	/* MSPModel_h */

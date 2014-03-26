@@ -125,11 +125,11 @@ public:
     /// @brief overrides the base method and returns myPositionInVehicle while in driving stage
     Position getPosition(SUMOTime now) const;
 
-    void lockPerson() { 
+    void lockPerson() const { 
         myLock.lock();
     };
 
-    void unlockPerson() { 
+    void unlockPerson() const { 
         myLock.unlock();
     };
 
