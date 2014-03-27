@@ -6,13 +6,14 @@
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
 /// @author  Laura Bieker
+/// @author  Melanie Knocke
 /// @date    Thu, 16.03.2006
 /// @version $Id$
 ///
 // Class representing a detector within the DFROUTER
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2006-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -109,15 +110,23 @@ RODFDetector::computeSplitProbabilities(const RODFNet* net, const RODFDetectorCo
     std::vector<RODFEdge*> nextDetEdges;
     std::set<ROEdge*> preSplitEdges;
     for (std::vector<RODFRouteDesc>::const_iterator i = routes.begin(); i != routes.end(); ++i) {
-        const RODFRouteDesc& rd = *i;
+	
+		const RODFRouteDesc& rd = *i;
         bool hadSplit = false;
-        for (std::vector<ROEdge*>::const_iterator j = rd.edges2Pass.begin(); j != rd.edges2Pass.end(); ++j) {
-            if (hadSplit && net->hasDetector(*j)) {
+	
+
+		 for (std::vector<ROEdge*>::const_iterator j = rd.edges2Pass.begin(); j != rd.edges2Pass.end(); ++j) {
+			 if (hadSplit && !net->hasDetector(*j)) {
+                if (find(nextDetEdges.begin(), nextDetEdges.end(), *j) == nextDetEdges.end()) {
+					continue;
+				}
+				break;
+			 }
+			 if (hadSplit && net->hasDetector(*j)) {
                 if (find(nextDetEdges.begin(), nextDetEdges.end(), *j) == nextDetEdges.end()) {
                     nextDetEdges.push_back(static_cast<RODFEdge*>(*j));
-                }
-                myRoute2Edge[rd.routename] = static_cast<RODFEdge*>(*j);
-                break;
+				}
+				break;
             }
             if (!hadSplit) {
                 preSplitEdges.insert(*j);
@@ -125,8 +134,21 @@ RODFDetector::computeSplitProbabilities(const RODFNet* net, const RODFDetectorCo
             if ((*j)->getNoFollowing() > 1) {
                 hadSplit = true;
             }
-        }
-    }
+		 }
+		 for (std::vector<RODFEdge*>::const_iterator i = nextDetEdges.begin(); i != nextDetEdges.end(); ++i) {
+			  ROEdge* e = *i;
+					ROEdge* b4 = e->getApproaching(0);
+					const unsigned int numFoll = b4->getNoFollowing();
+					for (unsigned int j = 0; j < numFoll; j++) {
+             		ROEdge* a = b4->getFollower(j);
+						if (find(nextDetEdges.begin(), nextDetEdges.end(), a) == nextDetEdges.end() && !net->hasDetector(a)) {
+						nextDetEdges.push_back(static_cast<RODFEdge*>(a));
+					}
+				}
+				//myRoute2Edge[rd.routename] = static_cast<RODFEdge*>(*j);
+				break;
+			}
+	}
     std::map<ROEdge*, SUMOReal> inFlows;
     if (OptionsCont::getOptions().getBool("respect-concurrent-inflows")) {
         for (std::vector<RODFEdge*>::const_iterator i = nextDetEdges.begin(); i != nextDetEdges.end(); ++i) {
@@ -152,17 +174,42 @@ RODFDetector::computeSplitProbabilities(const RODFNet* net, const RODFDetectorCo
             }
         }
     }
-    // compute the probabilities to use a certain direction
+    // compute the probabilities
     int index = 0;
     for (SUMOTime time = startTime; time < endTime; time += stepOffset, ++index) {
         mySplitProbabilities.push_back(std::map<RODFEdge*, SUMOReal>());
         SUMOReal overallProb = 0;
         // retrieve the probabilities
-        for (std::vector<RODFEdge*>::const_iterator i = nextDetEdges.begin(); i != nextDetEdges.end(); ++i) {
-            SUMOReal flow = detectors.getAggFlowFor(*i, time, 60, flows) - inFlows[*i];
-            overallProb += flow;
-            mySplitProbabilities[index][*i] = flow;
-        }
+		SUMOReal flow = 0;
+		for (std::vector<RODFEdge*>::const_iterator i = nextDetEdges.begin(); i != nextDetEdges.end(); ++i) {
+			ROEdge* e = *i;
+			if (net->hasDetector(e)) {
+				flow = detectors.getAggFlowFor(*i, time, 60, flows) - inFlows[*i];
+				}
+			else {
+				ROEdge* b4 = e->getApproaching(0);
+				SUMOReal b_flow = detectors.getAggFlowFor(b4, time, 60, flows);
+				const unsigned int numFoll = b4->getNoFollowing();
+				SUMOReal a_flow = 0;
+				for (unsigned int j = 0; j < numFoll; j++) {
+             		ROEdge* a = b4->getFollower(j);
+					a_flow += detectors.getAggFlowFor(a, time, 60, flows);
+					}
+					if (b_flow < a_flow) {
+						const unsigned int numAppr = b4->getNumApproaching();
+						for (unsigned int j = 0; j < numAppr; j++) {
+						ROEdge* B4 = b4->getApproaching(j);
+							 if (net->hasDetector(B4)) {
+							     b_flow += detectors.getAggFlowFor(B4, time, 60, flows);
+							 } 
+                 		 }
+					}
+					flow = (b_flow - a_flow) / (numFoll-1);
+					}
+				overallProb += flow;
+				mySplitProbabilities[index][*i] = flow;
+				
+		}
         // norm probabilities
         if (overallProb > 0) {
             for (std::vector<RODFEdge*>::const_iterator i = nextDetEdges.begin(); i != nextDetEdges.end(); ++i) {
@@ -713,7 +760,7 @@ RODFDetectorCon::getAggFlowFor(const ROEdge* edge, SUMOTime time, SUMOTime perio
 //    SUMOReal stepOffset = 60; // !!!
 //    SUMOReal startTime = 0; // !!!
 //    cout << edge->getID() << endl;
-    assert(myDetectorEdgeMap.find(edge->getID()) != myDetectorEdgeMap.end());
+ //   assert(myDetectorEdgeMap.find(edge->getID()) != myDetectorEdgeMap.end());
     const std::vector<FlowDef>& flows = static_cast<const RODFEdge*>(edge)->getFlows();
     SUMOReal agg = 0;
     for (std::vector<FlowDef>::const_iterator i = flows.begin(); i != flows.end(); ++i) {
