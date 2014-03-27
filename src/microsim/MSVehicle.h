@@ -975,9 +975,11 @@ public:
             return myAmVTDControlled;
         }
 
+/*
         inline ChangeRequest getChangeRequest() const {
             return myChangeRequest;
         }
+*/
 
     private:
         /// @brief The velocity time line to apply

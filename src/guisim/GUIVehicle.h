@@ -255,7 +255,9 @@ public:
         /// @brief track vehicle
         VO_TRACKED = 8,
         /// @brief LFLinkItems
-        VO_SHOW_LFLINKITEMS = 16
+        VO_SHOW_LFLINKITEMS = 16,
+        /// @brief emergency lights
+        VO_EMERGENCY = 32
     };
 
     /// @brief Enabled visualisations, per view
@@ -326,6 +328,7 @@ private:
 
     /// @brief draws the given guiShape if it has distinc carriages/modules and eturns true if so
     bool drawAction_drawCarriageClass(const GUIVisualizationSettings& s, SUMOVehicleShape guiShape, bool asImage) const;
+    void drawEmergencyLights() const throw();
 
     /* @brief return the previous lane in this vehicles route including internal lanes
      * @param[in] current The lane of which the predecessor should be returned

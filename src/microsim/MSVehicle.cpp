@@ -314,16 +314,6 @@ MSVehicle::Influencer::setConsiderMaxAcceleration(bool value) {
 
 
 void
-MSVehicle::Influencer::setLaneChangeMode(int value) {
-    myStrategicLC = (LaneChangeMode)(value & (1 + 2));
-    myCooperativeLC = (LaneChangeMode)((value & (4 + 8)) >> 2);
-    mySpeedGainLC = (LaneChangeMode)((value & (16 + 32)) >> 4);
-    myRightDriveLC = (LaneChangeMode)((value & (64 + 128)) >> 6);
-    myTraciLaneChangePriority = (TraciLaneChangePriority)((value & (256 + 512)) >> 8);
-}
-
-
-void
 MSVehicle::Influencer::setConsiderMaxDeceleration(bool value) {
     myConsiderMaxDeceleration = value;
 }
@@ -2255,13 +2245,6 @@ unsigned int
 MSVehicle::getLaneIndex() const {
     std::vector<MSLane*>::const_iterator laneP = std::find(myLane->getEdge().getLanes().begin(), myLane->getEdge().getLanes().end(), myLane);
     return (unsigned int) std::distance(myLane->getEdge().getLanes().begin(), laneP);
-}
-
-
-SUMOReal
-MSVehicle::getImpatience() const {
-    return MAX2((SUMOReal)0, MIN2((SUMOReal)1, getVehicleType().getImpatience() +
-                                  (MSGlobals::gTimeToGridlock > 0 ? (SUMOReal)myWaitingTime / MSGlobals::gTimeToGridlock : 0)));
 }
 
 

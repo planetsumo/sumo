@@ -190,10 +190,7 @@ AGActivityGenHandler::parseStreets(const SUMOSAXAttributes& attrs) {
             WRITE_ERROR("Edge '" + eid + "' is not known.");
             return;
         }
-
-        AGStreet str(e, pop, work);
-        myCity.streets.push_back(str);
-
+        myCity.streets[eid] = new AGStreet(e, pop, work);
     } catch (const std::exception& e) {
         WRITE_ERROR("Error while parsing the element " +
                     SUMOXMLDefinitions::Tags.getString(AGEN_TAG_STREET) + ": " +

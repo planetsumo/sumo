@@ -277,7 +277,6 @@ protected:
     /// the submenus
     FXMenuPane* myFileMenu, *myEditMenu, *mySelectByPermissions, *mySettingsMenu,
                 *myLocatorMenu, *myControlMenu,
-                *myLocatorMenu, *myControlMenu,
                 *myWindowsMenu, *myHelpMenu;
 
     /// A window to display messages, warnings and error in

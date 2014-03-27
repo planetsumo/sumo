@@ -80,7 +80,7 @@
 #include "output/MSQueueExport.h"
 #include "output/MSVTKExport.h"
 #include "output/MSXMLRawOut.h"
-#include "output/MSGrid.h"
+//#include "output/MSGrid.h"
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/common/SysUtils.h>
 #include <utils/common/WrappingCommand.h>

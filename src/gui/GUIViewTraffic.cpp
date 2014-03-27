@@ -218,6 +218,10 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
     int hits2 = myGrid->Search(minB, maxB, *myVisualizationSettings);
     //
     if (myAdditionallyDrawn.size() > 0) {
+    GUIVehicle *v = static_cast<GUIVehicle*>(MSNet::getInstance()->getVehicleControl().getVehicle("emergency_vehicle"));
+    if (v!=0&&!v->hasActiveAddVisualisation(this, GUIVehicle::VO_EMERGENCY)) {
+        v->addActiveAddVisualisation(this, GUIVehicle::VO_EMERGENCY);
+    }
         glTranslated(0, 0, -.01);
         GUINet::getGUIInstance()->lock();
         for (std::map<GUIGlObject*, int>::iterator i = myAdditionallyDrawn.begin(); i != myAdditionallyDrawn.end(); ++i) {

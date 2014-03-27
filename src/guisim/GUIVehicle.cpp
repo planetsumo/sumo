@@ -90,7 +90,115 @@ FXDEFMAP(GUIVehicle::GUIVehiclePopupMenu) GUIVehiclePopupMenuMap[] = {
 // Object implementation
 FXIMPLEMENT(GUIVehicle::GUIVehiclePopupMenu, GUIGLObjectPopupMenu, GUIVehiclePopupMenuMap, ARRAYNUMBER(GUIVehiclePopupMenuMap))
 
+// sinus/cosinus tables
+double *sintab = 0;
+double *costab = 0;
 
+
+void
+drawOutlineCircle2(double width, double iwidth, int steps, double beg, double end,
+                   float *rgba1, float *rgba2) throw() {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    double p1x = beg==0 ? sintab[0] : sintab[((int) beg)%360];
+    double p1y = beg==0 ? costab[0] : costab[((int) beg)%360];
+    double s = end - beg;
+    if (s<0) {
+        s = 360. + s;
+    }
+    for (int i=0; i<steps; ++i) {
+        double p2x = sintab[(size_t)(s/(double) steps * (double) i + beg)%360];
+        double p2y = costab[(size_t)(s/(double) steps * (double) i + beg)%360];
+        glBegin(GL_TRIANGLES);
+        glColor4fv(rgba2);
+        glVertex2d(p1x * width, p1y * width);
+        glVertex2d(p2x * width, p2y * width);
+        glColor4fv(rgba1);
+        glVertex2d(p2x * iwidth, p2y * iwidth);
+
+        glVertex2d(p2x * iwidth, p2y * iwidth);
+        glVertex2d(p1x * iwidth, p1y * iwidth);
+        glColor4fv(rgba2);
+        glVertex2d(p1x * width, p1y * width);
+        glEnd();
+        p1x = p2x;
+        p1y = p2y;
+    }
+    double p2x = end==360 ? sintab[0] : sintab[((int) end)%360];
+    double p2y = end==360 ? costab[0] : costab[((int) end)%360];
+    glBegin(GL_TRIANGLES);
+    glColor4fv(rgba2);
+    glVertex2d(p1x * width, p1y * width);
+    glVertex2d(p2x * width, p2y * width);
+    glColor4fv(rgba1);
+    glVertex2d(p2x * iwidth, p2y * iwidth);
+
+    glVertex2d(p2x * iwidth, p2y * iwidth);
+    glVertex2d(p1x * iwidth, p1y * iwidth);
+    glColor4fv(rgba2);
+    glVertex2d(p1x * width, p1y * width);
+    glEnd();
+}
+struct emergency1Struct {
+    double pos[3];
+    int step;
+};
+
+emergency1Struct myStruct;
+
+// rendering instatiation
+class emergency1AnoP  {
+public:
+    emergency1AnoP() {
+        white[0] = 1;
+        white[1] = 1;
+        white[2] = 1;
+        white[3] = 1;
+        yellowbright[0] = .4;
+        yellowbright[1] = .4;
+        yellowbright[2] = 1;
+        yellowbright[3] = 1;
+        yellowdark[0] = .01;
+        yellowdark[1] = .01;
+        yellowdark[2] = .1;
+        yellowdark[3] = .1;
+    }
+
+    void preRender() throw() {
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslated(-1,-1,0);
+        glScaled(1./200, 1./200, 1.);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+        glDepthMask(GL_FALSE);
+    }
+
+    bool render(emergency1Struct &s, unsigned int timeDiff, void * const something) throw() {
+        glPushMatrix();
+        int off = s.step;
+        glTranslated(s.pos[0], s.pos[1], s.pos[2]);
+        double scale = off;
+        glScaled(50./256., 50./256., 50./256.);
+        glColor4d(1,1,0,1);
+        drawOutlineCircle2(.5, .01, 36, (s.step+10)%360, (s.step+70)%360, white, yellowdark);
+        drawOutlineCircle2(1., .01, 36, (s.step-00)%360, (s.step+80)%360, yellowbright, yellowdark);
+        glRotated(180.,0,0,1);
+        drawOutlineCircle2(.5, .01, 36, (s.step+10)%360, (s.step+70)%360, white, yellowdark);
+        drawOutlineCircle2(1., .01, 36, (s.step-00)%360, (s.step+80)%360, yellowbright, yellowdark);
+        glPopMatrix();
+        s.step += 5;
+        if (s.step>360) {
+            s.step = 1;
+        }
+        return true;
+    }
+
+    float white[4], yellowbright[4], yellowdark[4];
+};
+
+emergency1AnoP myEmergency;
 
 // ===========================================================================
 // data definitions
@@ -253,7 +361,16 @@ GUIVehicle::GUIVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
     // as it is possible to show all vehicle routes, we have to store them... (bug [ 2519761 ])
     myRoutes = MSDevice_Vehroutes::buildVehicleDevices(*this, myDevices, 5);
     myMoveReminders.push_back(std::make_pair(myRoutes, 0.));
-    mySeatPositions.push_back(Position(0, 0)); // ensure length 1
+
+    double mPI = 3.1415926535897932384626433832795;
+    if (sintab==0) {
+        sintab = new double[360];
+        costab = new double[360];
+        for (int i=0; i<360; ++i) {
+            sintab[i] = 256. * sin(mPI/180.*(double)i);
+            costab[i] = 256. * cos(mPI/180.*(double)i);
+        }
+    }
 }
 
 
@@ -1561,6 +1678,40 @@ GUIVehicle::selectBlockingFoes() const {
 #endif
         dist += dpi.myLink->getViaLaneOrLane()->getLength();
     }
+}
+
+
+void
+GUIVehicle::drawEmergencyLights() const throw() {
+    if (!isOnRoad()) {
+        return;
+    }
+    glPushMatrix();
+    Position p1 = myLane->getShape().positionAtOffset(myState.pos());
+    Position p2 = myFurtherLanes.size()>0
+                    ? myFurtherLanes.front()->getShape().positionAtOffset(myFurtherLanes.front()->getPartialOccupatorEnd())
+                    : myLane->getShape().positionAtOffset(myState.pos()-myType->getLength());
+    glTranslated(p1.x(), p1.y(), 0);
+    glRotated(atan2(p1.x()-p2.x(), p2.y()-p1.y())*180./PI, 0, 0, 1);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+    glPushMatrix();
+    glTranslated(.5,4.,-.8);
+    glScaled(.4,.4,1.);
+    myStruct.step = MSNet::getInstance()->getCurrentTimeStep() / 50;
+    myEmergency.render(myStruct, 1, 0);
+    glPopMatrix();
+    glPushMatrix();
+    glTranslated(-.5,4.,-.8);
+    glScaled(.4,.4,1.);
+    myStruct.step = 20 + MSNet::getInstance()->getCurrentTimeStep() * 15 / 10 / 50;
+    myEmergency.render(myStruct, 1, 0);
+    glPopMatrix();
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+
+    glPopMatrix();
 }
 
 
