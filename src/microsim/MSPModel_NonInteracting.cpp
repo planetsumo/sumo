@@ -116,14 +116,16 @@ MSPModel_NonInteracting::PState::computeWalkingTime(const MSEdge* prev, const MS
     if (prev == 0) {
         myCurrentBeginPos = stage.getDepartPos();
     } else {
-        dir = (edge->getFromJunction() == prev->getToJunction() || edge->getFromJunction() == prev->getFromJunction()) ? FORWARD : BACKWARD;
+        // default to FORWARD if not connected
+        dir = (edge->getToJunction() == prev->getToJunction() || edge->getToJunction() == prev->getFromJunction()) ? BACKWARD : FORWARD;
         myCurrentBeginPos = dir == FORWARD ? 0 : edge->getLength();
     }
     if (next == 0) {
         myCurrentEndPos = stage.getArrivalPos();
     } else {
         if (dir == UNDEFINED_DIRECTION) {
-            dir = (edge->getToJunction() == next->getFromJunction() || edge->getToJunction() == next->getToJunction()) ? FORWARD : BACKWARD;
+            // default to FORWARD if not connected
+            dir = (edge->getFromJunction() == next->getFromJunction() || edge->getFromJunction() == next->getToJunction()) ? BACKWARD : FORWARD;
         }
         myCurrentEndPos = dir == FORWARD ? edge->getLength() : 0;
     }
