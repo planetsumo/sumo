@@ -5,7 +5,7 @@
 @author  Michael Behrisch
 @author  Jakob Erdmann
 @date    2010-01-30
-@version $Id$
+@version $Id: runner.py 16025 2014-03-25 12:43:29Z bieker $
 
 This script runs the gaming GUI for the LNdW traffic light game.
 It checks for possible scenarios in the current working directory
@@ -90,13 +90,13 @@ class StartDialog:
         for row, cfg in enumerate(configs):
             text = category = os.path.basename(cfg)[:-8]
             if text == "cross":
-                text = "Simple Junction" 
+                text = "Einfache Kreuzung" 
             elif text == "square":
-                text = "Four Junctions" 
+                text = "Vier Kreuzungen" 
             elif text == "kuehne":
                 text = "Prof. Kühne" 
             elif text == "ramp":
-                text = "Highway Scenario" 
+                text = "Autobahn Auffahrt" 
             # lambda must make a copy of cfg argument
             Tkinter.Button(self.root, text=text, width=bWidth_start, 
                     command=lambda cfg=cfg:self.start_cfg(cfg)).grid(row=row, column=COL_START)
@@ -104,9 +104,9 @@ class StartDialog:
                     command=lambda cfg=cfg:ScoreDialog([], None, self.category_name(cfg))).grid(row=row, column=COL_HIGH)
 
         # control buttons
-        Tkinter.Button(self.root, text="Reset Highscore", width=bWidth_control,
+        Tkinter.Button(self.root, text="Highscore zurück setzten", width=bWidth_control,
                        command=high.clear).grid(row=numButtons - 2, column=COL_START, columnspan=2)
-        Tkinter.Button(self.root, text="Quit", width=bWidth_control,
+        Tkinter.Button(self.root, text="Beenden", width=bWidth_control,
                        command=sys.exit).grid(row=numButtons - 1, column=COL_START, columnspan = 2)
 
         self.root.grid()
@@ -152,7 +152,7 @@ class ScoreDialog:
                                                 bg="pale green").grid(row=idx, column=2)
                 self.idx = idx
                 haveHigh = True
-                self.root.title("Congratulations!")
+                self.root.title("Herzlichen Glückwunsch!")
                 idx += 1
             if p == -1 or idx == _SCORES:
                 break
@@ -168,9 +168,9 @@ class ScoreDialog:
                               bg="indian red").grid(row=idx, column=2)
                 idx += 1
         else:
-            self.saveBut = Tkinter.Button(self.root, text="Save", command=self.save)
+            self.saveBut = Tkinter.Button(self.root, text="Speichern", command=self.save)
             self.saveBut.grid(row=idx, column=1)
-        Tkinter.Button(self.root, text="Continue", command=self.quit).grid(row=idx, column=2)
+        Tkinter.Button(self.root, text="Weiter", command=self.quit).grid(row=idx, column=2)
         self.root.grid()
         self.root.bind("<Return>", self.save)
         # self.root.wait_visibility() 
