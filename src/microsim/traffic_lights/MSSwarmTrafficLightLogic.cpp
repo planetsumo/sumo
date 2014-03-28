@@ -192,7 +192,7 @@ void MSSwarmTrafficLightLogic::updatePheromoneLevels() {
 			laneIterator != pheromoneInputLanes.end(); laneIterator++) {
 		string laneId = laneIterator->first;
 		double oldPheroIn = laneIterator->second;
-		double maxSpeed = getSensors()->meanVehiclesSpeed(laneId);
+	/**/	double maxSpeed = getSensors()->meanVehiclesSpeed(laneId);
 		bool updatePheromoneOut = (maxSpeed > -1);
 
 		unsigned int vehicles = //getSensors()->countVehicles(laneId);
@@ -206,6 +206,19 @@ void MSSwarmTrafficLightLogic::updatePheromoneLevels() {
 		pheromoneInputLanes[laneId] = pheroIn;
 		DBG(
 				std::ostringstream i_str; i_str << " meanVehiclesSpeed " << maxSpeed<<" pheromoneInputLanes "<<pheromoneInputLanes[laneId] << " lane "<< laneId<<" ID "<< getID() <<" ."; WRITE_MESSAGE(time2string(MSNet::getInstance()->getCurrentTimeStep()) +" MSSwarmTrafficLightLogic::updatePheromoneLevels:: PheroIn"+i_str.str());)
+	/**/
+	/*	unsigned int vehicles = getSensors()->countVehicles(laneId);
+		double pheroIn = getBetaNo() * oldPheroIn + // Evaporation
+		        getGammaNo() * vehicles;
+		        DBG(
+		            std::ostringstream i_str;
+		            i_str << " vehicles " << getSensors()->countVehicles(laneId)<<" pheromoneInputLanes "<<pheromoneInputLanes[laneId] << " lane "<< laneId<<" ID "<<  getID() <<" .";
+		            MsgHandler::getMessageInstance()->inform(time2string(MSNet::getInstance()->getCurrentTimeStep()) +" MSSwarmTrafficLightLogic::updatePheromoneLevels:: PheroIn"+i_str.str());
+		            )
+
+		pheroIn = max(pheroIn, 0.0);
+		pheroIn = min(pheroIn, getPheroMaxVal());
+		pheromoneInputLanes[laneId] = pheroIn;*/
 	}
 
 	//BETA_SP, GAMMA_SP
@@ -261,10 +274,11 @@ void MSSwarmTrafficLightLogic::updateSensitivities() {
 		}
 		DBG(
 				std::ostringstream phero_str; phero_str << " policy " << policy->getName() << " newSensitivity " << newSensitivity << " ,pol.Sensitivity  " << policy->getThetaSensitivity() << " ,LearningCox " << getLearningCox() <<" ,elapsedTime " << elapsedTime <<" ,LCox*Time " << getLearningCox() * elapsedTime;
+				WRITE_MESSAGE(time2string(MSNet::getInstance()->getCurrentTimeStep()) +" MSSwarmTrafficLightLogic::updateSensitivities::"+phero_str.str());)
 
-				newSensitivity = max(min(newSensitivity, getThetaMax()), getThetaMin());
+		newSensitivity = max(min(newSensitivity, getThetaMax()), getThetaMin());
 
-				phero_str << " NEWERSensitivity= " << newSensitivity<< " ID "<< getID() <<" ."; WRITE_MESSAGE(time2string(MSNet::getInstance()->getCurrentTimeStep()) +" MSSwarmTrafficLightLogic::updateSensitivities::"+phero_str.str());)
+		DBG(	std::ostringstream phero_str; phero_str << " NEWERSensitivity= " << newSensitivity<< " ID "<< getID() <<" ."; WRITE_MESSAGE(phero_str.str());)
 		policy->setThetaSensitivity(newSensitivity);
 	}
 }
@@ -307,7 +321,7 @@ double MSSwarmTrafficLightLogic::getPheromoneForOutputLanes() {
 }
 
 void MSSwarmTrafficLightLogic::decidePolicy() {
-	MSSOTLPolicy* currentPolicy = getCurrentPolicy();
+//	MSSOTLPolicy* currentPolicy = getCurrentPolicy();
 	// Decide if it is the case to check for another plan
 	double sampled = (double) rand();
 	double changeProb = getChangePlanProbability();
@@ -358,7 +372,7 @@ void MSSwarmTrafficLightLogic::choosePolicy(double phero_in, double phero_out) {
 
 	}
 
-	// Compute a random value between 0 and the sum of the thetaVal
+	// Compute a random value between 0 and the sum of the thetaSum
 	double r = rand();
 	r = r / RAND_MAX * thetaSum;
 
