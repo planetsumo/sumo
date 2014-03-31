@@ -550,7 +550,7 @@ RORouteHandler::routePedestrian(const SUMOSAXAttributes& attrs, OutputDevice& pl
     SUMOReal departPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_DEPARTPOS, id, ok, 0);
     SUMOReal arrivalPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ARRIVALPOS, id, ok, -NUMERICAL_EPS);
     assert(!attrs.hasAttribute(SUMO_ATTR_EDGES));
-    assert(myActiveRoute.size() = 0);
+    assert(myActiveRoute.size() == 0);
     const std::string fromID = attrs.get<std::string>(SUMO_ATTR_FROM, id, ok);
     const std::string toID = attrs.get<std::string>(SUMO_ATTR_TO, id, ok);
     const ROEdge* from = myNet.getEdge(fromID);
@@ -573,12 +573,11 @@ RORouteHandler::routePedestrian(const SUMOSAXAttributes& attrs, OutputDevice& pl
             SUMOVehicleParameter::interpretEdgePos(arrivalPos, to->getLength(), SUMO_ATTR_ARRIVALPOS, "person walking to " + toID),
             DEFAULT_PERSON_SPEED, 0, 0, myActiveRoute);
     if (myActiveRoute.empty()) {
+        ok = false;
         const std::string error = "No connection found between '" + fromID + "' and '" + toID + "' for person '" + myVehicleParameter->id + "'.";
         if (OptionsCont::getOptions().getBool("ignore-errors")) {
-            ok = true;
             WRITE_WARNING(error);
         } else {
-            ok = false;
             WRITE_ERROR(error);
         }
     }

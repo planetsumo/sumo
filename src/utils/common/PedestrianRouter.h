@@ -60,7 +60,7 @@ inline const L* getSidewalk(const E* edge) {
             return *it;
         }
     }
-    return lanes.front();
+    return 0;
 }
 
 // ===========================================================================
@@ -122,7 +122,7 @@ public:
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
             const L* lane = getSidewalk<E, L>(edge);
-            if (edge->isInternal()) {
+            if (edge->isInternal() || lane == 0) {
                 continue;
             } else if (edge->isWalkingArea()) {
                 // only a single edge
@@ -141,7 +141,8 @@ public:
         numericalID = 0;
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
-            if (edge->isInternal()) {
+            const L* lane = getSidewalk<E, L>(edge);
+            if (edge->isInternal() || lane == 0) {
                 continue;
             } else if (edge->isWalkingArea()) {
                 // only a single edge and no connector edges
@@ -158,7 +159,8 @@ public:
         // build the connections
         for (size_t i = 0; i < noE; i++) {
             E* edge = E::dictionary(i);
-            if (edge->isInternal()) {
+            const L* lane = getSidewalk<E, L>(edge);
+            if (edge->isInternal() || lane == 0) {
                 continue;
             }
             // find all incoming and outgoing lanes for the sidewalk and
