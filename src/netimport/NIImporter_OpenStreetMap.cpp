@@ -478,10 +478,6 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         WRITE_WARNING("Skipping edge '" + id + "' because it has zero lanes.");
         ok = false;
     }
-    if (addSidewalk) {
-        numLanesForward += 1;
-        numLanesBackward += 1;
-    }
     // if we had been able to extract the maximum speed, override the type's default
     if (e->myMaxSpeed != MAXSPEED_UNGIVEN) {
         speed = (SUMOReal)(e->myMaxSpeed / 3.6);
@@ -495,15 +491,11 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         if (addForward) {
             assert(numLanesForward > 0);
             PositionVector forwardShape = shape;
-            if (addSidewalk && lsf == LANESPREAD_CENTER) {
-                forwardShape.move2side(tc.getSidewalkWidth(type) / 2);
-            }
             NBEdge* nbe = new NBEdge(StringUtils::escapeXML(id), from, to, type, speed, numLanesForward, tc.getPriority(type),
                                      tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, forwardShape, StringUtils::escapeXML(e->streetName), lsf, true);
             nbe->setPermissions(permissions);
             if (addSidewalk) {
-                nbe->setLaneWidth(0, tc.getSidewalkWidth(type));
-                nbe->setPermissions(SVC_PEDESTRIAN, 0);
+                nbe->addSidewalk(tc.getSidewalkWidth(type));
             }
             if (!ec.insert(nbe)) {
                 delete nbe;
@@ -514,15 +506,11 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         if (addBackward) {
             assert(numLanesBackward > 0);
             PositionVector backwardShape = shape.reverse();
-            if (addSidewalk && lsf == LANESPREAD_CENTER) {
-                backwardShape.move2side(tc.getSidewalkWidth(type) / 2);
-            }
             NBEdge* nbe = new NBEdge(StringUtils::escapeXML(id), to, from, type, speed, numLanesBackward, tc.getPriority(type),
                                      tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, backwardShape, StringUtils::escapeXML(e->streetName), lsf, true);
             nbe->setPermissions(permissions);
             if (addSidewalk) {
-                nbe->setLaneWidth(0, tc.getSidewalkWidth(type));
-                nbe->setPermissions(SVC_PEDESTRIAN, 0);
+                nbe->addSidewalk(tc.getSidewalkWidth(type));
             }
             if (!ec.insert(nbe)) {
                 delete nbe;

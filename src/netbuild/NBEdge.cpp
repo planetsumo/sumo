@@ -2209,4 +2209,38 @@ NBEdge::getFirstNonPedestrianLane(int direction) const {
     return myLanes[index];
 }
 
+void
+NBEdge::addSidewalk(SUMOReal width) {
+    if (myLaneSpreadFunction == LANESPREAD_CENTER) {
+        myGeom.move2side(width / 2);
+    }
+    // add new lane
+    myLanes.insert(myLanes.begin(), Lane(this));
+    myLanes[0].permissions = SVC_PEDESTRIAN;
+    myLanes[0].width = width;
+    // shift outgoing connections to the left
+    for (std::vector<Connection>::iterator it = myConnections.begin(); it != myConnections.end(); ++it) {
+        Connection& c = *it; 
+        if (c.fromLane >= 0) {
+            c.fromLane += 1;
+        }
+    }
+    // shift incoming connections to the left
+    const EdgeVector& incoming = myFrom->getIncomingEdges();
+    for (EdgeVector::const_iterator it = incoming.begin(); it != incoming.end(); ++it) {
+        (*it)->shiftToLanesToEdge(this, 1);
+    }
+}
+
+
+void 
+NBEdge::shiftToLanesToEdge(NBEdge* to, unsigned int laneOff) {
+    /// XXX could we repurpose the function replaceInConnections ?
+    for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
+        if ((*i).toEdge == to) {
+            (*i).toLane += laneOff;
+        }
+    }
+}
+
 /****************************************************************************/

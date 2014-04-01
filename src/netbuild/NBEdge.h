@@ -789,6 +789,9 @@ public:
     void replaceInConnections(NBEdge* which, NBEdge* by, unsigned int laneOff);
     void replaceInConnections(NBEdge* which, const std::vector<NBEdge::Connection>& origConns);
     void copyConnectionsFrom(NBEdge* src);
+
+    /// @brief modifify the toLane for all connections to the given edge
+    void shiftToLanesToEdge(NBEdge* to, unsigned int laneOff);
     /// @}
 
 
@@ -966,6 +969,9 @@ public:
     void decLaneNo(unsigned int by, int dir = 0);
 
     void markAsInLane2LaneState();
+
+    /// add a pedestrian sidewalk of the given width and shift existing connctions
+    void addSidewalk(SUMOReal width);
 
     /// @brief set allowed/disallowed classes for the given lane or for all lanes if -1 is given
     void setPermissions(SVCPermissions permissions, int lane = -1);

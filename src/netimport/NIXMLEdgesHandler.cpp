@@ -138,7 +138,6 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     myLength = NBEdge::UNSPECIFIED_LOADED_LENGTH;
     myCurrentStreetName = "";
     myReinitKeepEdgeShape = false;
-    const bool addSidewalk = (myTypeCont.getSidewalkWidth(myCurrentType) != NBEdge::UNSPECIFIED_WIDTH);
     // check whether a type's values shall be used
     if (attrs.hasAttribute(SUMO_ATTR_TYPE)) {
         myCurrentType = attrs.get<std::string>(SUMO_ATTR_TYPE, myCurrentID.c_str(), ok);
@@ -238,9 +237,6 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     if (!ok) {
         return;
     }
-    if (addSidewalk) {
-        myCurrentLaneNo += 1;
-    }
     // check whether a previously defined edge shall be overwritten
     if (myCurrentEdge != 0) {
         myCurrentEdge->reinit(myFromNode, myToNode, myCurrentType, myCurrentSpeed,
@@ -263,9 +259,8 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     }
     myCurrentEdge->setLoadedLength(myLength);
     myCurrentEdge->setPermissions(myPermissions);
-    if (addSidewalk) {
-        myCurrentEdge->setPermissions(SVC_PEDESTRIAN, 0);
-        myCurrentEdge->setLaneWidth(0, myTypeCont.getSidewalkWidth(myCurrentType));
+    if (myTypeCont.getSidewalkWidth(myCurrentType) != NBEdge::UNSPECIFIED_WIDTH) {
+        myCurrentEdge->addSidewalk(myTypeCont.getSidewalkWidth(myCurrentType));
     }
 }
 

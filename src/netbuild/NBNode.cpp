@@ -1511,6 +1511,7 @@ NBNode::checkCrossing(EdgeVector candidates, bool sidewalkFrom, bool sidewalkTo)
                     prevAngle = angle;
                 }
             }
+            // XXX do not build crossings for uncontrolled junctions if the edges allow high speeds
             addCrossing(candidates, DEFAULT_CROSSING_WIDTH, isTLControlled());
             if (gDebugFlag1) std::cout << "adding crossing: " << toString(candidates) << "\n";
             return 1;

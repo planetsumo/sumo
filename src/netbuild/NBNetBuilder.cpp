@@ -220,6 +220,13 @@ NBNetBuilder::compute(OptionsCont& oc,
         NBRampsComputer::computeRamps(*this, oc);
         PROGRESS_DONE_MESSAGE();
     }
+    // guess sidewalks
+    if (oc.getBool("sidewalks.guess")) {
+        const int sidewalks = myEdgeCont.guessSidewalks(oc.getFloat("default.sidewalkWidth"), 
+                oc.getFloat("sidewalks.guess.min-speed"),
+                oc.getFloat("sidewalks.guess.max-speed"));
+        WRITE_MESSAGE("Guessed " + toString(sidewalks) + " sidewalks.");
+    }
 
     // check whether any not previously setable connections may be set now
     myEdgeCont.recheckPostProcessConnections();
