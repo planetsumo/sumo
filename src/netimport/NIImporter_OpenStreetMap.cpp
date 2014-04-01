@@ -490,9 +490,8 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         LaneSpreadFunction lsf = addBackward ? LANESPREAD_RIGHT : LANESPREAD_CENTER;
         if (addForward) {
             assert(numLanesForward > 0);
-            PositionVector forwardShape = shape;
             NBEdge* nbe = new NBEdge(StringUtils::escapeXML(id), from, to, type, speed, numLanesForward, tc.getPriority(type),
-                                     tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, forwardShape, StringUtils::escapeXML(e->streetName), lsf, true);
+                                     tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, shape, StringUtils::escapeXML(e->streetName), lsf, true);
             nbe->setPermissions(permissions);
             if (addSidewalk) {
                 nbe->addSidewalk(tc.getSidewalkWidth(type));
@@ -505,9 +504,8 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         }
         if (addBackward) {
             assert(numLanesBackward > 0);
-            PositionVector backwardShape = shape.reverse();
             NBEdge* nbe = new NBEdge(StringUtils::escapeXML(id), to, from, type, speed, numLanesBackward, tc.getPriority(type),
-                                     tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, backwardShape, StringUtils::escapeXML(e->streetName), lsf, true);
+                                     tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, shape.reverse(), StringUtils::escapeXML(e->streetName), lsf, true);
             nbe->setPermissions(permissions);
             if (addSidewalk) {
                 nbe->addSidewalk(tc.getSidewalkWidth(type));

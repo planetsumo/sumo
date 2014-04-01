@@ -2236,9 +2236,9 @@ NBEdge::addSidewalk(SUMOReal width) {
 void 
 NBEdge::shiftToLanesToEdge(NBEdge* to, unsigned int laneOff) {
     /// XXX could we repurpose the function replaceInConnections ?
-    for (std::vector<Connection>::iterator i = myConnections.begin(); i != myConnections.end(); ++i) {
-        if ((*i).toEdge == to) {
-            (*i).toLane += laneOff;
+    for (std::vector<Connection>::iterator it = myConnections.begin(); it != myConnections.end(); ++it) {
+        if ((*it).toEdge == to && (*it).toLane >= 0) {
+            (*it).toLane += laneOff;
         }
     }
 }
