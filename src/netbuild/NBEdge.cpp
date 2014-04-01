@@ -2230,6 +2230,7 @@ NBEdge::addSidewalk(SUMOReal width) {
     for (EdgeVector::const_iterator it = incoming.begin(); it != incoming.end(); ++it) {
         (*it)->shiftToLanesToEdge(this, 1);
     }
+    computeLaneShapes();
 }
 
 
