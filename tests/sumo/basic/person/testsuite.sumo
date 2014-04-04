@@ -34,6 +34,3 @@ abort_impossible_ride
 # test whether a chain of walks rides and stops works
 trip_chain
 
-# tests related to walking persons using a physical pedestrian model
-# (i.e. not ghosting around)
-pedestrian
