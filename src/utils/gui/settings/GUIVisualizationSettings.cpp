@@ -56,6 +56,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
       laneShowBorders(false), showLinkDecals(true), showRails(true),
       edgeName(false, 50, RGBColor(255, 128, 0, 255)),
       internalEdgeName(false, 40, RGBColor(128, 64, 0, 255)),
+      cwaEdgeName(false, 50, RGBColor::MAGENTA),
       streetName(false, 55, RGBColor::YELLOW),
       hideConnectors(false), laneWidthExaggeration(1),
       vehicleQuality(0), minVehicleSize(1), vehicleExaggeration(1), showBlinker(true),
@@ -326,6 +327,7 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
         << "\" hideConnectors=\"" << hideConnectors << "\"\n"
         << "               " << edgeName.print("edgeName") << "\n"
         << "               " << internalEdgeName.print("internalEdgeName") << "\n"
+        << "               " << cwaEdgeName.print("cwaEdgeName") << "\n"
         << "               " << streetName.print("streetName") << ">\n";
     laneColorer.save(dev);
 #ifdef HAVE_INTERNAL
@@ -425,6 +427,9 @@ GUIVisualizationSettings::operator==(const GUIVisualizationSettings& v2) {
         return false;
     }
     if (internalEdgeName != v2.internalEdgeName) {
+        return false;
+    }
+    if (cwaEdgeName != v2.cwaEdgeName) {
         return false;
     }
     if (streetName != v2.streetName) {

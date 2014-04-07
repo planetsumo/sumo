@@ -292,9 +292,10 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
 #endif
     // (optionally) draw the name and/or the street name
     const bool drawEdgeName = s.edgeName.show && myFunction == EDGEFUNCTION_NORMAL;
-    const bool drawInternalEdgeName = s.internalEdgeName.show && myFunction != EDGEFUNCTION_NORMAL;
+    const bool drawInternalEdgeName = s.internalEdgeName.show && myFunction == EDGEFUNCTION_INTERNAL;
+    const bool drawCwaEdgeName = s.cwaEdgeName.show && (myFunction == EDGEFUNCTION_CROSSING || myFunction == EDGEFUNCTION_WALKINGAREA);
     const bool drawStreetName = s.streetName.show && myStreetName != "";
-    if (drawEdgeName || drawInternalEdgeName || drawStreetName) {
+    if (drawEdgeName || drawInternalEdgeName || drawCwaEdgeName || drawStreetName) {
         GUILane* lane1 = dynamic_cast<GUILane*>((*myLanes)[0]);
         GUILane* lane2 = dynamic_cast<GUILane*>((*myLanes).back());
         if (lane1 != 0 && lane2 != 0) {
@@ -310,6 +311,8 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
                 drawName(p, s.scale, s.edgeName, angle);
             } else if (drawInternalEdgeName) {
                 drawName(p, s.scale, s.internalEdgeName, angle);
+            } else if (drawCwaEdgeName) {
+                drawName(p, s.scale, s.cwaEdgeName, angle);
             }
             if (drawStreetName) {
                 GLHelper::drawText(getStreetName(), p, GLO_MAX,
