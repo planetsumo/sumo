@@ -1781,7 +1781,7 @@ NBNode::buildWalkingAreas() {
         if (gDebugFlag1) std::cout << "  combinations=" << combinations << " connectedPoints=" << connectedPoints << "\n";
         wa.length = POSITION_EPS;
         if (combinations > 0) {
-            wa.length = lengthSum / combinations;
+            wa.length = MAX2(POSITION_EPS, lengthSum / combinations);
         }
         myWalkingAreas.push_back(wa);
     }
