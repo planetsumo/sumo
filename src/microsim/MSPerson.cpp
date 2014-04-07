@@ -182,6 +182,12 @@ MSPerson::MSPersonStage_Walking::getWaitingTime(SUMOTime now) const {
 }
 
 
+SUMOReal
+MSPerson::MSPersonStage_Walking::getSpeed() const {
+    return myPedestrianState->getSpeed(*this);
+}
+
+
 void
 MSPerson::MSPersonStage_Walking::proceed(MSNet* net, MSPerson* person, SUMOTime now,
         MSEdge* previousEdge, const SUMOReal at) {
@@ -377,6 +383,12 @@ MSPerson::MSPersonStage_Driving::getWaitingTime(SUMOTime now) const {
 }
 
 
+SUMOReal
+MSPerson::MSPersonStage_Driving::getSpeed() const {
+    return myVehicle == 0 ? 0 : myVehicle->getSpeed();
+}
+
+
 std::string
 MSPerson::MSPersonStage_Driving::getStageTypeName() const {
     return isWaiting4Vehicle() ? "waiting for " + joinToString(myLines, ",") : "driving";
@@ -512,6 +524,13 @@ MSPerson::MSPersonStage_Waiting::getWaitingTime(SUMOTime now) const {
 }
 
 
+SUMOReal
+MSPerson::MSPersonStage_Waiting::getSpeed() const {
+    return 0;
+}
+
+
+
 
 /* -------------------------------------------------------------------------
  * MSPerson - methods
@@ -595,6 +614,37 @@ MSPerson::routeOutput(OutputDevice& os) const {
     }
 }
 
+SUMOReal 
+MSPerson::getEdgePos() const {
+    return (*myStep)->getEdgePos(MSNet::getInstance()->getCurrentTimeStep());
+}
+
+Position 
+MSPerson::getPosition() const {
+    lockPerson();
+    const Position result = (*myStep)->getPosition(MSNet::getInstance()->getCurrentTimeStep());
+    unlockPerson();
+    return result;
+}
+
+
+SUMOReal 
+MSPerson::getAngle() const {
+    lockPerson();
+    const SUMOReal result = (*myStep)->getAngle(MSNet::getInstance()->getCurrentTimeStep());
+    unlockPerson();
+    return result;
+}
+
+SUMOReal 
+MSPerson::getWaitingSeconds() const {
+    return STEPS2TIME((*myStep)->getWaitingTime(MSNet::getInstance()->getCurrentTimeStep()));
+}
+
+SUMOReal 
+MSPerson::getSpeed() const {
+    return (*myStep)->getSpeed();
+}
 
 /****************************************************************************/
 

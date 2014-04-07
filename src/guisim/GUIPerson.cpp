@@ -136,17 +136,17 @@ GUIParameterTableWindow*
 GUIPerson::getParameterWindow(GUIMainWindow& app,
                               GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 7);
+        new GUIParameterTableWindow(app, *this, 8);
     // add items
     //ret->mkItem("type [NAME]", false, myType->getID());
-    const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
     ret->mkItem("stage", false, getCurrentStageTypeName());
     ret->mkItem("start edge [id]", false, getFromEdge()->getID());
     ret->mkItem("dest edge [id]", false, getDestination().getID());
     ret->mkItem("edge [id]", false, getEdge()->getID());
-    ret->mkItem("position [m]", false, getEdgePos(now));
-    ret->mkItem("angle [degree]", false, getAngle(now));
-    ret->mkItem("waiting time [s]", false, STEPS2TIME(getWaitingTime(now)));
+    ret->mkItem("position [m]", true, new FunctionBinding<GUIPerson, SUMOReal>(this, &GUIPerson::getEdgePos));
+    ret->mkItem("speed [m/s]", true, new FunctionBinding<GUIPerson, SUMOReal>(this, &GUIPerson::getSpeed));
+    ret->mkItem("angle [degree]", true, new FunctionBinding<GUIPerson, SUMOReal>(this, &GUIPerson::getAngle));
+    ret->mkItem("waiting time [s]", true, new FunctionBinding<GUIPerson, SUMOReal>(this, &GUIPerson::getWaitingSeconds));
     // close building
     ret->closeBuilding();
     return ret;
@@ -156,7 +156,7 @@ GUIPerson::getParameterWindow(GUIMainWindow& app,
 Boundary
 GUIPerson::getCenteringBoundary() const {
     Boundary b;
-    b.add(getPosition(MSNet::getInstance()->getCurrentTimeStep()));
+    b.add(getPosition());
     b.grow(20);
     return b;
 }
@@ -166,8 +166,7 @@ void
 GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
     glPushName(getGlID());
     glPushMatrix();
-    const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
-    Position p1 = getPosition(now);
+    Position p1 = getPosition();
     glTranslated(p1.x(), p1.y(), getType());
     glRotated(90, 0, 0, 1);
     // XXX use person specific gui settings
@@ -314,8 +313,10 @@ GUIPerson::getColorValue(size_t activeScheme) const {
                 return (SUMOReal)getCurrentStageType();
             }
         case 5:
-            return STEPS2TIME(getWaitingTime(MSNet::getInstance()->getCurrentTimeStep()));
+            return getSpeed();
         case 6:
+            return getWaitingSeconds();
+        case 7:
             return gSelected.isSelected(GLO_PERSON, getGlID());
     }
     return 0;
@@ -323,20 +324,19 @@ GUIPerson::getColorValue(size_t activeScheme) const {
 
 
 Position
-GUIPerson::getPosition(SUMOTime now) const {
+GUIPerson::getPosition() const {
     AbstractMutex::ScopedLocker locker(myLock);
     if (getCurrentStageType() == DRIVING && !isWaiting4Vehicle()) {
         return myPositionInVehicle;
     }
-    return MSPerson::getPosition(now);
+    return MSPerson::getPosition();
 }
 
 
 void
 GUIPerson::drawAction_drawAsTriangle(const GUIVisualizationSettings& /* s */) const {
     // draw triangle pointing forward
-    const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
-    glRotated(getAngle(now), 0, 0, 1);
+    glRotated(getAngle(), 0, 0, 1);
     glScaled(getVehicleType().getLength(), getVehicleType().getWidth(), 1);
     glBegin(GL_TRIANGLES);
     glVertex2d(0., 0.);
@@ -349,8 +349,7 @@ GUIPerson::drawAction_drawAsTriangle(const GUIVisualizationSettings& /* s */) co
 void
 GUIPerson::drawAction_drawAsPoly(const GUIVisualizationSettings& /* s */) const {
     // draw pedestrian shape
-    const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
-    glRotated(getAngle(now), 0, 0, 1);
+    glRotated(getAngle(), 0, 0, 1);
     glScaled(getVehicleType().getLength(), getVehicleType().getWidth(), 1);
     RGBColor lighter = GLHelper::getColor().changedBrightness(51);
     glTranslated(0, 0, .045);
@@ -378,8 +377,7 @@ GUIPerson::drawAction_drawAsImage(const GUIVisualizationSettings& s) const {
     const std::string& file = getVehicleType().getImgFile();
     if (file != "") {
         if (getVehicleType().getGuiShape() == SVS_PEDESTRIAN) {
-            const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
-            glRotated(getAngle(now), 0, 0, 1);
+            glRotated(getAngle(), 0, 0, 1);
         }
         int textureID = GUITexturesHelper::getTextureID(file);
         if (textureID > 0) {

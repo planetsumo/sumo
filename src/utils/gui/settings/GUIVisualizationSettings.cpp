@@ -234,6 +234,11 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     personColorer.addScheme(GUIColorScheme("uniform", RGBColor::YELLOW, "", true));
     personColorer.addScheme(GUIColorScheme("given/assigned person color", RGBColor::YELLOW, "", true));
     personColorer.addScheme(GUIColorScheme("given/assigned type color", RGBColor::YELLOW, "", true));
+    scheme = GUIColorScheme("by speed", RGBColor::RED);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)(2.5 / 3.6));
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)(5 / 3.6));
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)(10 / 3.6));
+    personColorer.addScheme(scheme);
     scheme = GUIColorScheme("by mode", RGBColor::YELLOW); // walking
     scheme.addColor(RGBColor::BLUE, (SUMOReal)(1)); // riding
     scheme.addColor(RGBColor::RED, (SUMOReal)(2)); // stopped

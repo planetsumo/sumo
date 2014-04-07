@@ -276,7 +276,7 @@ MSPModel_Striping::getNextLane(const Pedestrian& ped, const MSLane* currentLane,
            const SUMOReal arrivalPos = (nextRouteEdge == ped.myStage->getRoute().back() 
                    ? ped.myStage->getArrivalPos() 
                    : (nextRouteEdgeDir == FORWARD ? 0 : nextRouteEdge->getLength()));
-           MSNet::getInstance()->getPedestrianRouter().compute(currentEdge, nextRouteEdge, 0, arrivalPos, ped.myStage->getSpeed(), 0, junction, crossingRoute, true);
+           MSNet::getInstance()->getPedestrianRouter().compute(currentEdge, nextRouteEdge, 0, arrivalPos, ped.myStage->getMaxSpeed(), 0, junction, crossingRoute, true);
            if DEBUGCOND(ped.myPerson->getID()) { 
                std::cout 
                    << "   nreDir=" << nextRouteEdgeDir
@@ -480,7 +480,7 @@ MSPModel_Striping::moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& ch
             const MSLane* nextLane = p.myNLI.lane;
             const MSLink* link = p.myNLI.link;
             const SUMOReal dist = p.distToLaneEnd();
-            const SUMOReal speed = p.myStage->getSpeed();
+            const SUMOReal speed = p.myStage->getMaxSpeed();
             if (nextLane != 0) {
                 currentObs = mergeObstacles(currentObs, getNextLaneObstacles(
                             nextLanesObs, nextLane, stripes, dir, lane->getLength(), dir), dir);
@@ -609,7 +609,7 @@ MSPModel_Striping::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonSt
             arrivalPos = nextRouteEdgeDir == FORWARD ? 0 : nextRouteEdge->getLength();
         }
         std::vector<const MSEdge*> crossingRoute;
-        MSNet::getInstance()->getPedestrianRouter().compute(currentEdge, nextRouteEdge, myX, arrivalPos, myStage->getSpeed(), 0, nextJunction, crossingRoute, true);
+        MSNet::getInstance()->getPedestrianRouter().compute(currentEdge, nextRouteEdge, myX, arrivalPos, myStage->getMaxSpeed(), 0, nextJunction, crossingRoute, true);
         if (crossingRoute.size() > 1 && crossingRoute.back() == nextRouteEdge) {
             // route found
             nextEdge = crossingRoute[1];
@@ -743,7 +743,7 @@ MSPModel_Striping::Pedestrian::walk(const Obstacles& obs, SUMOTime currentTime) 
     const int stripes = (int)obs.size();
     const int sMax =  stripes - 1;
     assert(stripes == numStripes(myLane));
-    const SUMOReal vMax = myStage->getSpeed();
+    const SUMOReal vMax = myStage->getMaxSpeed();
     // ultimate goal is to chose the prefered stripe (chosen)
     const int current = stripe();
     const int other = otherStripe();
@@ -874,7 +874,7 @@ MSPModel_Striping::Pedestrian::walk(const Obstacles& obs, SUMOTime currentTime) 
             << " vy=" << ySpeed
             << " xd=" << xDist
             << " yd=" << yDist
-            << " vMax=" << myStage->getSpeed()
+            << " vMax=" << myStage->getMaxSpeed()
             << " wTime=" << myStage->getWaitingTime(currentTime)
             << "\n distance=" << toString(distance) 
             << " utility=" << toString(utility) 
@@ -903,6 +903,7 @@ MSPModel_Striping::Pedestrian::getImpatience(SUMOTime now) const {
 
 SUMOReal 
 MSPModel_Striping::Pedestrian::getEdgePos(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
+    UNUSED_PARAMETER(stage);
     return myX;
 }
 
@@ -926,6 +927,7 @@ MSPModel_Striping::Pedestrian::getPosition(const MSPerson::MSPersonStage_Walking
 
 SUMOReal 
 MSPModel_Striping::Pedestrian::getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
+    UNUSED_PARAMETER(stage);
     const PositionVector& shp = myWalkingAreaPath == 0 ? myLane->getShape() : myWalkingAreaPath->shape;
     return -shp.rotationDegreeAtOffset(myX) + (myDir == MSPModel::BACKWARD ? 180 : 0);
 }
@@ -936,6 +938,12 @@ MSPModel_Striping::Pedestrian::getWaitingTime(const MSPerson::MSPersonStage_Walk
     return myWaitingTime;
 }
 
+
+SUMOReal 
+MSPModel_Striping::Pedestrian::getSpeed(const MSPerson::MSPersonStage_Walking& stage) const {
+    UNUSED_PARAMETER(stage);
+    return mySpeed;
+}
 
 // ===========================================================================
 // MSPModel_Striping::MovePedestrians method definitions

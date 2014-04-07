@@ -93,6 +93,7 @@ private:
         Position getPosition(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const;
         SUMOReal getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const;
         SUMOTime getWaitingTime(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const;
+        SUMOReal getSpeed(const MSPerson::MSPersonStage_Walking& stage) const;
         /// @}
 
         /// @brief compute walking time on edge and update state members

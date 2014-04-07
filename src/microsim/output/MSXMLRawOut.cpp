@@ -121,8 +121,8 @@ MSXMLRawOut::writeEdge(OutputDevice& of, const MSEdge& edge, SUMOTime timestep) 
         for (std::vector<MSPerson*>::const_iterator it_p = persons.begin(); it_p != persons.end(); ++it_p) {
             of.openTag(SUMO_TAG_PERSON);
             of.writeAttr(SUMO_ATTR_ID, (*it_p)->getID());
-            of.writeAttr(SUMO_ATTR_POSITION, (*it_p)->getCurrentStage()->getEdgePos(timestep));
-            of.writeAttr(SUMO_ATTR_ANGLE, (*it_p)->getAngle(timestep));
+            of.writeAttr(SUMO_ATTR_POSITION, (*it_p)->getEdgePos());
+            of.writeAttr(SUMO_ATTR_ANGLE, (*it_p)->getAngle());
             of.writeAttr("stage", (*it_p)->getCurrentStageTypeName());
             of.closeTag();
         }

@@ -128,6 +128,9 @@ public:
         /// @brief the time this person spent waiting
         virtual SUMOTime getWaitingTime(SUMOTime now) const = 0;
 
+        /// @brief the time this person spent waiting
+        virtual SUMOReal getSpeed() const = 0;
+
         /// @brief get position on edge e at length at with orthogonal offset
         Position getEdgePosition(const MSEdge* e, SUMOReal at, SUMOReal offset) const;
 
@@ -214,6 +217,8 @@ public:
 
         SUMOTime getWaitingTime(SUMOTime now) const;
 
+        SUMOReal getSpeed() const;
+
         std::string getStageTypeName() const {
             return "walking";
         }
@@ -248,7 +253,7 @@ public:
 
         /// @brief accessors to be used by MSPModel
         //@{
-        inline SUMOReal getSpeed() const { return mySpeed; }
+        inline SUMOReal getMaxSpeed() const { return mySpeed; }
         inline SUMOReal getDepartPos() const { return myDepartPos;}
         inline SUMOReal getArrivalPos() const { return myArrivalPos;}
 
@@ -352,6 +357,8 @@ public:
         /// @brief time spent waiting for a ride
         SUMOTime getWaitingTime(SUMOTime now) const;
 
+        SUMOReal getSpeed() const;
+
         void setVehicle(SUMOVehicle* v) {
             myVehicle = v;
         }
@@ -428,6 +435,8 @@ public:
         SUMOReal getAngle(SUMOTime now) const;
 
         SUMOTime getWaitingTime(SUMOTime now) const;
+
+        SUMOReal getSpeed() const;
 
         std::string getStageTypeName() const {
             return "waiting (" + myActType + ")";
@@ -545,25 +554,20 @@ public:
         return (*myStep)->getFromEdge();
     }
 
-    SUMOReal getEdgePos(SUMOTime now) const {
-        return (*myStep)->getEdgePos(now);
-    }
+    /// @brief return the offset from the start of the current edge
+    SUMOReal getEdgePos() const; 
 
-    ///
-    virtual Position getPosition(SUMOTime now) const {
-        lockPerson();
-        const Position result = (*myStep)->getPosition(now);
-        unlockPerson();
-        return result;
-    }
+    /// @brief return the 3D-Position of the person
+    virtual Position getPosition() const;
 
+    /// @brief return the current angle of the person
+    SUMOReal getAngle() const;
 
-    SUMOReal getAngle(SUMOTime now) const {
-        lockPerson();
-        const SUMOReal result = (*myStep)->getAngle(now);
-        unlockPerson();
-        return result;
-    }
+    /// @brief the time this person spent waiting in seconds
+    SUMOReal getWaitingSeconds() const;
+
+    /// @brief the current speed of the person
+    SUMOReal getSpeed() const;
 
     ///
     StageType getCurrentStageType() const {
@@ -603,11 +607,6 @@ public:
         return (*myStep)->isWaiting4Vehicle();
     }
 
-
-    /// @brief the time this person spent waiting for a vehicle
-    SUMOTime getWaitingTime(SUMOTime now) const {
-        return (*myStep)->getWaitingTime(now);
-    }
 
     const SUMOVehicleParameter& getParameter() const {
         return *myParameter;

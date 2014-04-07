@@ -95,6 +95,7 @@ public:
     virtual Position getPosition(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
     virtual SUMOReal getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
     virtual SUMOTime getWaitingTime(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+    virtual SUMOReal getSpeed(const MSPerson::MSPersonStage_Walking& stage) const = 0;
 };
 
 
