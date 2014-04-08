@@ -163,6 +163,7 @@ void
 MSPModel_Striping::cleanupHelper() {
     myActiveLanes.clear();
     myNumActivePedestrians = 0;
+    myWalkingAreaPaths.clear(); // need to recompute when lane pointers change
 }
 
 
@@ -607,10 +608,11 @@ MSPModel_Striping::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonSt
                     nextRouteEdge->getToJunction() == next2->getToJunction() 
                     ? FORWARD : BACKWARD);
             arrivalPos = nextRouteEdgeDir == FORWARD ? 0 : nextRouteEdge->getLength();
+            if DEBUGCOND(myPerson->getID()) std::cout << "  initialize dir for " << myPerson->getID() << " next=" << nextRouteEdge->getID() << " next2=" << next2->getID() << " nextDir=" << nextRouteEdgeDir << "\n";
         }
         std::vector<const MSEdge*> crossingRoute;
         MSNet::getInstance()->getPedestrianRouter().compute(currentEdge, nextRouteEdge, myX, arrivalPos, myStage->getMaxSpeed(), 0, nextJunction, crossingRoute, true);
-        if (crossingRoute.size() > 1 && crossingRoute.back() == nextRouteEdge) {
+        if (crossingRoute.size() > 1) {
             // route found
             nextEdge = crossingRoute[1];
             if (nextEdge->getFromJunction() == currentEdge->getFromJunction() || nextEdge->getToJunction() == currentEdge->getFromJunction()) {
@@ -618,6 +620,12 @@ MSPModel_Striping::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonSt
             }
         } else {
             // there is no connectivity, walk forward by default
+        }
+        if DEBUGCOND(myPerson->getID()) { 
+            std::cout 
+                << "   aPos=" << arrivalPos
+                << " crossingRoute=" << toString(crossingRoute) 
+                << "\n";
         }
     } else {
         // only a single edge, move towards end pos
@@ -910,6 +918,10 @@ MSPModel_Striping::Pedestrian::getEdgePos(const MSPerson::MSPersonStage_Walking&
 
 Position 
 MSPModel_Striping::Pedestrian::getPosition(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
+    if (myLane == 0) {
+        // pedestrian has already finished
+        return Position::INVALID;
+    }
     const SUMOReal lateral_offset = myY + (STRIPE_WIDTH - myLane->getWidth()) * 0.5;
     if (myWalkingAreaPath == 0) {
         return stage.getLanePosition(myLane, myX, lateral_offset);
@@ -928,6 +940,10 @@ MSPModel_Striping::Pedestrian::getPosition(const MSPerson::MSPersonStage_Walking
 SUMOReal 
 MSPModel_Striping::Pedestrian::getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
     UNUSED_PARAMETER(stage);
+    if (myLane == 0) {
+        // pedestrian has already finished
+        return 0;
+    }
     const PositionVector& shp = myWalkingAreaPath == 0 ? myLane->getShape() : myWalkingAreaPath->shape;
     return -shp.rotationDegreeAtOffset(myX) + (myDir == MSPModel::BACKWARD ? 180 : 0);
 }

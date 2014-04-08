@@ -206,8 +206,8 @@ MSPerson::MSPersonStage_Walking::proceed(MSNet* net, MSPerson* person, SUMOTime 
             mySpeed = computeAverageSpeed();
         }
     }
-    ((MSEdge*) *myRouteStep)->addPerson(person);
     myPedestrianState = MSPModel::getModel()->add(person, this, now);
+    ((MSEdge*) *myRouteStep)->addPerson(person);
 }
 
 
