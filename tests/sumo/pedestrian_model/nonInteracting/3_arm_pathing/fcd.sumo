@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Mon Apr  7 09:51:41 2014 by SUMO sumo Version dev-SVN-r16106
+<!-- generated on Tue Apr  8 15:27:06 2014 by SUMO sumo Version dev-SVN-r16151
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -1034,5 +1034,8 @@
     <timestep time="210.00">
         <person id="pNE" x="198.45" y="-1.65" angle="90.00" speed="1.00" pos="97.00" edge="CE" slope="0.00"/>
     </timestep>
-    <timestep time="211.00"/>
+    <timestep time="211.00">
+        <person id="pNE" x="199.45" y="-1.65" angle="90.00" speed="1.00" pos="98.00" edge="CE" slope="0.00"/>
+    </timestep>
+    <timestep time="212.00"/>
 </fcd-export>

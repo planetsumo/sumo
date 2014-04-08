@@ -297,7 +297,7 @@ private:
     static Obstacles getNeighboringObstacles(const Pedestrians& pedestrians, int egoIndex, int stripes); 
     
     const Obstacles& getNextLaneObstacles(NextLanesObstacles& nextLanesObs, const MSLane* nextLane, int stripes, 
-            int nextDir, SUMOReal currentLength, int currentDir); 
+            SUMOReal nextLength, int nextDir, SUMOReal currentLength, int currentDir); 
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     Pedestrians& getPedestrians(const MSLane* lane);

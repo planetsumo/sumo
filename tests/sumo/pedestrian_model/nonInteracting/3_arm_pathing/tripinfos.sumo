@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Mar 26 15:25:20 2014 by SUMO sumo Version dev-SVN-r16032
+<!-- generated on Tue Apr  8 15:27:06 2014 by SUMO sumo Version dev-SVN-r16151
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -11,6 +11,7 @@
     </input>
 
     <output>
+        <fcd-output value="fcd.xml"/>
         <tripinfo-output value="tripinfos.xml"/>
     </output>
 
@@ -49,6 +50,6 @@
     </personinfo>
     <personinfo id="pNE" depart="15.00">
         <stop arrival="15.00"/>
-        <walk arrival="211.00"/>
+        <walk arrival="212.00"/>
     </personinfo>
 </tripinfos>
