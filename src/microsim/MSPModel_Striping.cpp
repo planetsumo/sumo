@@ -855,6 +855,13 @@ MSPModel_Striping::Pedestrian::walk(const Obstacles& obs, SUMOTime currentTime) 
             && obs[current].speed < 0) {
         utility[current] -= ONCOMING_CONFLICT;
     }
+    // bonus to leave the leftmost lane (in walking direction) if there
+    // are oncoming
+    if (((myDir == BACKWARD && current == sMax)
+             || (myDir == FORWARD && current == 0))
+            && obs[current].speed < 0) {
+        utility[current] += ONCOMING_CONFLICT;
+    }
 
     // select best stripe 
     for (int i = 0; i < stripes; ++i) {
