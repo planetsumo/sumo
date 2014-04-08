@@ -1114,7 +1114,7 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
                 setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
             }
             // set simulation step begin information
-            updateTimeLCD(ec->myNet->getCurrentTimeStep());
+            myLCDLabel->setText("-------------");
         }
     }
     getApp()->endWaitCursor();
@@ -1166,17 +1166,18 @@ GUIApplicationWindow::checkGamingEvents() {
     MSVehicleControl::constVehIt it = vc.loadedVehBegin();
     MSVehicleControl::constVehIt end = vc.loadedVehEnd();
     if (myJamSounds.getOverallProb() > 0) {
-        // play honking sound if some vehicle is waiting to long
+        // play honking sound if some vehicle is waiting too long
         for (; it != end; ++it) {
             // XXX use impatience instead of waiting time ?
             if (it->second->getWaitingTime() > TIME2STEPS(myJamSoundTime)) {
                 const std::string cmd = myJamSounds.get(&myGamingRNG);
-                if (cmd != "")
+                if (cmd != "") {
                     // yay! fun with dangerous commands... Never use this over the internet
                     SysUtils::runHiddenCommand(cmd);
+                    // one sound per simulation step is enough
+                    break;
+                }
             }
-            // one sound per simulation step is enough
-            break;
         }
     }
     // updated peformance indicators
@@ -1311,6 +1312,7 @@ GUIApplicationWindow::setStatusBarText(const std::string& text) {
 
 void
 GUIApplicationWindow::updateTimeLCD(SUMOTime time) {
+    time -= DELTA_T; // synchronize displayed time with netstate output
     if (myAmGaming) {
         // show time counting backwards
         time = myRunThread->getSimEndTime() - time;
