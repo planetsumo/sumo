@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Mon Mar 17 17:35:56 2014 by SUMO netconvert Version dev-SVN-r15906
+<!-- generated on Wed Apr  9 12:52:27 2014 by SUMO netconvert Version dev-SVN-r16151
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -210,7 +210,7 @@
         <phase duration="4" state="rrrrrryrrrrrryyrrrrrr"/>
     </tlLogic>
 
-    <junction id="C" type="traffic_light" x="100.00" y="100.00" incLanes="NC_0 NC_1 NC_2 NC_3 EC_0 EC_1 EC_2 EC_3 SC_0 SC_1 SC_2 SC_3 WC_0 WC_1 WC_2 WC_3 :C_w4_0 :C_w2_0 :C_w5_0 :C_w3_0 :C_w6_0 :C_w0_0" intLanes=":C_0_0 :C_1_0 :C_1_1 :C_15_0 :C_4_0 :C_5_0 :C_16_0 :C_7_0 :C_8_0 :C_8_1 :C_17_0 :C_11_0 :C_12_0 :C_18_0 :C_19_0 :C_c0_0 :C_c1_0 :C_c2_0 :C_c3_0 :C_c4_0 :C_c5_0" shape="83.85,126.30 119.35,119.04 120.55,117.57 120.50,83.77 118.56,78.45 83.61,78.58 82.28,80.75 87.32,90.86 84.44,105.72 80.22,116.21">
+    <junction id="C" type="traffic_light" x="100.00" y="100.00" incLanes="NC_0 NC_1 NC_2 NC_3 EC_0 EC_1 EC_2 EC_3 SC_0 SC_1 SC_2 SC_3 WC_0 WC_1 WC_2 WC_3 _0 :C_w2_0 _0 :C_w3_0 _0 :C_w0_0" intLanes=":C_0_0 :C_1_0 :C_1_1 :C_15_0 :C_4_0 :C_5_0 :C_16_0 :C_7_0 :C_8_0 :C_8_1 :C_17_0 :C_11_0 :C_12_0 :C_18_0 :C_19_0 :C_c0_0 :C_c1_0 :C_c2_0 :C_c3_0 :C_c4_0 :C_c5_0" shape="83.85,126.30 119.35,119.04 120.55,117.57 120.50,83.77 118.56,78.45 83.61,78.58 82.28,80.75 87.32,90.86 84.44,105.72 80.22,116.21">
         <request index="0" response="100000000000000000000" foes="100000100010000100000" cont="0"/>
         <request index="1" response="001000000000000000000" foes="001000011110001100000" cont="0"/>
         <request index="2" response="001000000000000000000" foes="001000011110001100000" cont="0"/>

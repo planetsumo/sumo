@@ -434,11 +434,9 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool che
             }
         }
     }
-    const std::vector<NBNode::WalkingArea>& WalkingAreas = n.getWalkingAreas();
-    for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
-        if ((*it).nextCrossing != "") {
-            incLanes += ' ' + (*it).id + "_0";
-        }
+    const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
+    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+        incLanes += ' ' + (*it).prevWalkingArea + "_0";
     }
     into.writeAttr(SUMO_ATTR_INCLANES, incLanes);
     // write the internal lanes
@@ -463,7 +461,6 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool che
             }
         }
     }
-    const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
     for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
         intLanes += ' ' + (*it).id + "_0";
     }

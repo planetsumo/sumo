@@ -142,6 +142,8 @@ public:
         SUMOReal width;
         /// @brief the (edge)-id of this crossing
         std::string id;
+        /// @brief the lane-id of the previous walkingArea
+        std::string prevWalkingArea;
         /// @brief the lane-id of the next walkingArea
         std::string nextWalkingArea;
         /// @brief whether the pedestrians have priority

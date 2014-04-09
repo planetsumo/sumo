@@ -1704,6 +1704,7 @@ NBNode::buildWalkingAreas() {
             if ((*it).edges.front() == normalizedLanes[prev].first 
                     && !(normalizedLanes[start].first->isTurningDirectionAt(this, normalizedLanes[prev].first))) {
                 // crossing starts
+                (*it).prevWalkingArea = wa.id;
                 wa.nextCrossing = (*it).id;
                 startCrossingWidth = (*it).width;
                 connectsCrossing = true;

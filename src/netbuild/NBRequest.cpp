@@ -504,6 +504,7 @@ NBRequest::writeLaneResponse(OutputDevice& od, NBEdge* from,
 int
 NBRequest::writeCrossingResponse(OutputDevice& od, const NBNode::Crossing& crossing, int pos, int normalConnections) const {
     std::string foes(myCrossings.size(), '0');
+    std::string response(myCrossings.size(), '0');
     // conflicts with normal connections 
     for (EdgeVector::const_reverse_iterator i = myIncoming.rbegin(); i != myIncoming.rend(); i++) {
         //const std::vector<NBEdge::Connection> &allConnections = (*i)->getConnections();
@@ -514,6 +515,8 @@ NBRequest::writeCrossingResponse(OutputDevice& od, const NBNode::Crossing& cross
             int size = (int) connected.size();
             for (int k = size; k-- > 0;) {
                 const NBEdge* to = connected[k].toEdge;
+                const LinkDirection dir = myJunction->getDirection(from, to);
+                const bool mustYield = dir == LINKDIR_LEFT || dir == LINKDIR_RIGHT;
                 bool foe = false;
                 for (EdgeVector::const_iterator it_e = crossing.edges.begin(); it_e != crossing.edges.end(); ++it_e) {
                     if ((*it_e) == from || (*it_e) == to) {
@@ -521,11 +524,21 @@ NBRequest::writeCrossingResponse(OutputDevice& od, const NBNode::Crossing& cross
                         break;
                     }
                 }
+                // left and right turns must yield to unprioritized crossings only on their destination edge
+                bool destinationFoe = false;
+                if (mustYield) {
+                    for (EdgeVector::const_iterator it_e = crossing.edges.begin(); it_e != crossing.edges.end(); ++it_e) {
+                        if ((*it_e) == to) {
+                            destinationFoe = true;
+                            break;
+                        }
+                    }
+                }
                 foes += foe ? '1' : '0';
+                response += crossing.priority || (mustYield && destinationFoe) || !foe ? '0' : '1';
             }
         }
     }
-    const std::string response = (crossing.priority ? std::string(normalConnections + myCrossings.size(), '0') : foes); 
     od.openTag(SUMO_TAG_REQUEST);
     od.writeAttr(SUMO_ATTR_INDEX, pos++);
     od.writeAttr(SUMO_ATTR_RESPONSE, response);
@@ -545,11 +558,14 @@ NBRequest::getResponseString(const NBEdge* const from, const NBEdge* const to,
     }
     std::string result;
     // crossings
+    const LinkDirection dir = myJunction->getDirection(from, to);
+    const bool mustYield = dir == LINKDIR_LEFT || dir == LINKDIR_RIGHT;
     for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
         bool foes = false;
-        if ((*i).priority) {
+        if ((*i).priority || mustYield) {
             for (EdgeVector::const_iterator it_e = (*i).edges.begin(); it_e != (*i).edges.end(); ++it_e) {
-                if ((*it_e) == from || (*it_e) == to) {
+                // left and right turns must yield to unprioritized crossings only on their destination edge
+                if (((*it_e) == from && (*i).priority) || (*it_e) == to) {
                     foes = true;
                     break;
                 }

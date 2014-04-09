@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Mon Mar 17 17:35:57 2014 by SUMO netconvert Version dev-SVN-r15906
+<!-- generated on Wed Apr  9 12:52:27 2014 by SUMO netconvert Version dev-SVN-r16151
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -92,7 +92,7 @@
         <lane id="WC_1" index="1" disallow="pedestrian" speed="13.89" length="96.90" shape="0.00,48.35 96.90,48.35"/>
     </edge>
 
-    <junction id="C" type="priority" x="100.00" y="50.00" incLanes="NC_0 EC_0 EC_1 WC_0 WC_1 :C_w0_0 :C_w1_0" intLanes=":C_0_0 :C_4_0 :C_2_0 :C_5_0 :C_c0_0 :C_c1_0" shape="98.40,57.45 101.60,57.45 103.10,55.95 103.10,44.05 101.60,42.55 98.40,42.55 96.90,44.05 96.90,55.95">
+    <junction id="C" type="priority" x="100.00" y="50.00" incLanes="NC_0 EC_0 EC_1 WC_0 WC_1 :C_w1_0 :C_w0_0" intLanes=":C_0_0 :C_4_0 :C_2_0 :C_5_0 :C_c0_0 :C_c1_0" shape="98.40,57.45 101.60,57.45 103.10,55.95 103.10,44.05 101.60,42.55 98.40,42.55 96.90,44.05 96.90,55.95">
         <request index="0" response="000000" foes="111000" cont="0"/>
         <request index="1" response="000100" foes="010100" cont="1"/>
         <request index="2" response="000000" foes="110010" cont="0"/>
