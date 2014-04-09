@@ -424,6 +424,13 @@ public:
      */
     bool mustBrake(const NBEdge* const from, const NBEdge* const to, int toLane) const;
 
+    /** @brief Returns the information whether the described flow must brake for the given crossing
+     * @param[in] from The connection's start edge
+     * @param[in] to The connection's end edge
+     * @param[in] crossing The pedestrian crossing to check 
+     * @return Whether the described connection must brake (has higher priorised foes)
+     */
+    bool mustBrakeForCrossing(const NBEdge* const from, const NBEdge* const to, const Crossing& crossing) const;
 
     /** @brief Returns the information whether "prohibited" flow must let "prohibitor" flow pass
      * @param[in] possProhibitedFrom The maybe prohibited connection's begin

@@ -321,7 +321,19 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
                 state[i1] = 'r';
             }
         }
-
+        // correct behaviour for those that are in conflict with a pedestrian crossing
+        for (unsigned int i1 = 0; i1 < pos; ++i1) {
+            if (state[i1] == 'G') {
+                for (int ic = 0; ic < (int)crossings.size(); ++ic) {
+                    const NBNode::Crossing& crossing = crossings[ic];
+                    const int i2 = pos + ic;
+                    if (state[i2] == 'G' && crossing.node->mustBrakeForCrossing(fromEdges[i1], toEdges[i1], crossing)) {
+                        state[i1] = 'g';
+                        break;
+                    }
+                }
+            }
+        }
         // add step
         logic->addStep(greenTime, state);
 

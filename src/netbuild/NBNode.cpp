@@ -1089,6 +1089,11 @@ NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int /* toLan
     return myRequest->mustBrake(from, to);
 }
 
+bool
+NBNode::mustBrakeForCrossing(const NBEdge* const from, const NBEdge* const to, const NBNode::Crossing& crossing) const {
+    return myRequest->mustBrakeForCrossing(from, to, crossing);
+}
+
 
 bool
 NBNode::isLeftMover(const NBEdge* const from, const NBEdge* const to) const {
