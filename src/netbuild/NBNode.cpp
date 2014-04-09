@@ -1797,6 +1797,7 @@ NBNode::buildWalkingAreas() {
             WalkingArea wa(":" + getID() + "_w" + toString(index++), prev.width);
             prev.nextWalkingArea = wa.id;
             wa.nextCrossing = next.id;
+            next.prevWalkingArea = wa.id;
             if (isTLControlled()) {
                 wa.tlID = (*getControllingTLS().begin())->getID();
                 wa.tlLinkNo = next.tlLinkNo;

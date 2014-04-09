@@ -515,8 +515,6 @@ NBRequest::writeCrossingResponse(OutputDevice& od, const NBNode::Crossing& cross
             int size = (int) connected.size();
             for (int k = size; k-- > 0;) {
                 const NBEdge* to = connected[k].toEdge;
-                const LinkDirection dir = myJunction->getDirection(from, to);
-                const bool mustYield = dir == LINKDIR_LEFT || dir == LINKDIR_RIGHT;
                 bool foe = false;
                 for (EdgeVector::const_iterator it_e = crossing.edges.begin(); it_e != crossing.edges.end(); ++it_e) {
                     if ((*it_e) == from || (*it_e) == to) {
@@ -524,18 +522,8 @@ NBRequest::writeCrossingResponse(OutputDevice& od, const NBNode::Crossing& cross
                         break;
                     }
                 }
-                // left and right turns must yield to unprioritized crossings only on their destination edge
-                bool destinationFoe = false;
-                if (mustYield) {
-                    for (EdgeVector::const_iterator it_e = crossing.edges.begin(); it_e != crossing.edges.end(); ++it_e) {
-                        if ((*it_e) == to) {
-                            destinationFoe = true;
-                            break;
-                        }
-                    }
-                }
                 foes += foe ? '1' : '0';
-                response += crossing.priority || (mustYield && destinationFoe) || !foe ? '0' : '1';
+                response += mustBrakeForCrossing(from, to, crossing) || !foe ? '0' : '1';
             }
         }
     }
@@ -558,20 +546,8 @@ NBRequest::getResponseString(const NBEdge* const from, const NBEdge* const to,
     }
     std::string result;
     // crossings
-    const LinkDirection dir = myJunction->getDirection(from, to);
-    const bool mustYield = dir == LINKDIR_LEFT || dir == LINKDIR_RIGHT;
     for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
-        bool foes = false;
-        if ((*i).priority || mustYield) {
-            for (EdgeVector::const_iterator it_e = (*i).edges.begin(); it_e != (*i).edges.end(); ++it_e) {
-                // left and right turns must yield to unprioritized crossings only on their destination edge
-                if (((*it_e) == from && (*i).priority) || (*it_e) == to) {
-                    foes = true;
-                    break;
-                }
-            }
-        }
-        result += foes ? '1' : '0';
+        result += mustBrakeForCrossing(from, to, *i) ? '1' : '0';
     }
     // normal connections 
     for (EdgeVector::const_reverse_iterator i = myIncoming.rbegin(); i != myIncoming.rend(); i++) {
@@ -742,6 +718,27 @@ NBRequest::mustBrake(const NBEdge* const from, const NBEdge* const to) const {
         //assert(myDone[idx1][idx2]);
         if (myDone[idx1][idx2] && myForbids[idx1][idx2]) {
             return true;
+        }
+    }
+    // maybe we need to brake for a pedestrian crossing
+    for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
+        if (mustBrakeForCrossing(from, to, *i)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+NBRequest::mustBrakeForCrossing(const NBEdge* const from, const NBEdge* const to, const NBNode::Crossing& crossing) const {
+    const LinkDirection dir = myJunction->getDirection(from, to);
+    const bool mustYield = dir == LINKDIR_LEFT || dir == LINKDIR_RIGHT;
+    if (crossing.priority || mustYield) {
+        for (EdgeVector::const_iterator it_e = crossing.edges.begin(); it_e != crossing.edges.end(); ++it_e) {
+            // left and right turns must yield to unprioritized crossings only on their destination edge
+            if (((*it_e) == from && crossing.priority) || (*it_e) == to) {
+                return true;
+            }
         }
     }
     return false;

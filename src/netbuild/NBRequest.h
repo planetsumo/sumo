@@ -105,6 +105,14 @@ public:
      */
     bool mustBrake(const NBEdge* const from, const NBEdge* const to) const;   // !!!
 
+    /** @brief Returns the information whether the described flow must brake for the given crossing
+     * @param[in] from The connection's start edge
+     * @param[in] to The connection's end edge
+     * @param[in] crossing The pedestrian crossing to check 
+     * @return Whether the described connection must brake (has higher priorised foes)
+     */
+    bool mustBrakeForCrossing(const NBEdge* const from, const NBEdge* const to, const NBNode::Crossing& crossing) const;
+
     /** @brief Returns the information whether the given flows cross
      * @param[in] from1 The starting edge of the first stream
      * @param[in] to1 The ending edge of the first stream
@@ -221,6 +229,7 @@ private:
 
     /// @brief return to total number of edge-to-edge connections of this request-logic
     inline size_t numLinks() const;
+
 
 private:
     /// the node the request is assigned to
