@@ -263,7 +263,6 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                 // with the wrong permissions we need to inherit them from the successor
                 const NBEdge::Lane& successor = (*k).toEdge->getLanes()[(*k).toLane];
                 const SUMOReal length = lengthSum[toEdge] / numLanes[toEdge];
-                //const SUMOReal length = MAX2((*k).shape.length(), (SUMOReal)POSITION_EPS);
                 const SUMOReal width = (successor.permissions != SVC_PEDESTRIAN ? successor.width : 
                         (successor.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : successor.width) + 1.5);
                 writeLane(into, internalEdgeID, (*k).getInternalLaneID(), (*k).vmax,

@@ -85,7 +85,7 @@ const SUMOReal MSPModel_Striping::LATERAL_PENALTY(-1);
 const SUMOReal MSPModel_Striping::SQUEEZE(0.7);
 const SUMOReal MSPModel_Striping::BLOCKER_LOOKAHEAD(10.0);
 const SUMOReal MSPModel_Striping::RESERVE_FOR_ONCOMING_FACTOR(0.0);
-const SUMOReal MSPModel_Striping::MAX_WAIT_TOLERANCE(120);
+const SUMOReal MSPModel_Striping::MAX_WAIT_TOLERANCE(120.); // seconds
 const SUMOReal MSPModel_Striping::LATERAL_SPEED_FACTOR(0.4);
 
 
@@ -126,8 +126,8 @@ MSPModel_Striping::blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, st
     for (Pedestrians::const_iterator it_ped = pedestrians.begin(); it_ped != pedestrians.end(); ++it_ped) {
         const Pedestrian& ped = **it_ped;
         const SUMOReal leaderBackDist = (ped.myDir == FORWARD 
-                ? distToCrossing - (ped.myX - ped.getLength() - MSPModel_Striping::SAFETY_GAP)
-                : (ped.myX + ped.getLength() + MSPModel_Striping::SAFETY_GAP) - distToCrossing); 
+                ? distToCrossing - (ped.myX - ped.getLength() - MSPModel::SAFETY_GAP)
+                : (ped.myX + ped.getLength() + MSPModel::SAFETY_GAP) - distToCrossing); 
         //std::cout << SIMTIME << " foe=" << foeLane->getID() << " dir=" << p.myDir << " pX=" << ped.myX << " pL=" << ped.getLength() << " fDTC=" << distToCrossing << " lBD=" << leaderBackDist << "\n";
         if (leaderBackDist >= 0 && leaderBackDist <= BLOCKER_LOOKAHEAD) {
             // found one pedestrian that is not completely past the crossing point
