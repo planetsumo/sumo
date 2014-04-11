@@ -1554,6 +1554,15 @@ NBNode::buildInnerEdges(bool buildCrossingsAndWalkingAreas) {
     if (buildCrossingsAndWalkingAreas) {
         buildCrossings(lno);
         buildWalkingAreas();
+        // ensure that all crossings are properly connected
+        for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
+            if ((*it).prevWalkingArea == "" || (*it).nextWalkingArea == "") {
+                // there is no way to check this apart from trying to build all
+                // walkingAreas and there is no way to recover because the junction
+                // logic assumes that the crossing can be built.
+                throw ProcessError("Invalid crossing at node '" + getID() + "' with edges '" + toString((*it).edges) + "'.");
+            }
+        }
     }
 
 }
