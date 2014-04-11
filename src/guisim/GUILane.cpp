@@ -500,10 +500,6 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
                 GLHelper::drawFilledPolyTesselated(myShape, true);
             }
             glTranslated(0, 0, -.2);
-
-            glTranslated(0, 0, -100);
-            drawName(myShape.getCentroid(), s.scale, s.internalJunctionName);
-            glTranslated(0, 0, +100);
 #ifdef GUILane_DEBUG_DRAW_WALKING_AREA_VERTICES
               RGBColor color = RGBColor::fromHSV(RandHelper::rand(360), 1, 1);
               glTranslated(0, 0, .4);
