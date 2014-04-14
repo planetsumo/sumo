@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Apr  9 13:28:36 2014 by SUMO netconvert Version dev-SVN-r16151
+<!-- generated on Mon Apr 14 16:44:00 2014 by SUMO netconvert Version dev-SVN-r16172
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -103,7 +103,7 @@
         <lane id=":E_c0_0" index="0" allow="pedestrian" speed="1.00" length="16.30" width="4.00" shape="202.00,108.15 202.00,91.85"/>
     </edge>
     <edge id=":E_w0" function="walkingarea">
-        <lane id=":E_w0_0" index="0" allow="pedestrian" speed="1.00" length="12.29" width="4.00" shape="204.00,108.25 200.00,108.25 200.00,111.25 204.00,111.25"/>
+        <lane id=":E_w0_0" index="0" allow="pedestrian" speed="1.00" length="2.56" width="4.00" shape="204.00,108.25 200.00,108.25 200.00,111.25 204.00,111.25"/>
     </edge>
     <edge id=":E_w1" function="walkingarea">
         <lane id=":E_w1_0" index="0" allow="pedestrian" speed="1.00" length="2.56" width="4.00" shape="204.00,88.75 200.00,88.75 200.00,91.75 204.00,91.75"/>
@@ -112,7 +112,7 @@
         <lane id=":N_c0_0" index="0" allow="pedestrian" speed="1.00" length="16.30" width="4.00" shape="91.85,202.00 108.15,202.00"/>
     </edge>
     <edge id=":N_w0" function="walkingarea">
-        <lane id=":N_w0_0" index="0" allow="pedestrian" speed="1.00" length="12.29" width="4.00" shape="91.75,204.00 91.75,200.00 88.75,200.00 88.75,204.00"/>
+        <lane id=":N_w0_0" index="0" allow="pedestrian" speed="1.00" length="2.56" width="4.00" shape="91.75,204.00 91.75,200.00 88.75,200.00 88.75,204.00"/>
     </edge>
     <edge id=":N_w1" function="walkingarea">
         <lane id=":N_w1_0" index="0" allow="pedestrian" speed="1.00" length="2.56" width="4.00" shape="111.25,204.00 111.25,200.00 108.25,200.00 108.25,204.00"/>
@@ -121,7 +121,7 @@
         <lane id=":S_c0_0" index="0" allow="pedestrian" speed="1.00" length="16.30" width="4.00" shape="108.15,-2.00 91.85,-2.00"/>
     </edge>
     <edge id=":S_w0" function="walkingarea">
-        <lane id=":S_w0_0" index="0" allow="pedestrian" speed="1.00" length="12.29" width="4.00" shape="108.25,-4.00 108.25,0.00 111.25,0.00 111.25,-4.00"/>
+        <lane id=":S_w0_0" index="0" allow="pedestrian" speed="1.00" length="2.56" width="4.00" shape="108.25,-4.00 108.25,0.00 111.25,0.00 111.25,-4.00"/>
     </edge>
     <edge id=":S_w1" function="walkingarea">
         <lane id=":S_w1_0" index="0" allow="pedestrian" speed="1.00" length="2.56" width="4.00" shape="88.75,-4.00 88.75,0.00 91.75,0.00 91.75,-4.00"/>
@@ -130,7 +130,7 @@
         <lane id=":W_c0_0" index="0" allow="pedestrian" speed="1.00" length="16.30" width="4.00" shape="-2.00,91.85 -2.00,108.15"/>
     </edge>
     <edge id=":W_w0" function="walkingarea">
-        <lane id=":W_w0_0" index="0" allow="pedestrian" speed="1.00" length="12.29" width="4.00" shape="-4.00,91.75 0.00,91.75 0.00,88.75 -4.00,88.75"/>
+        <lane id=":W_w0_0" index="0" allow="pedestrian" speed="1.00" length="2.56" width="4.00" shape="-4.00,91.75 0.00,91.75 0.00,88.75 -4.00,88.75"/>
     </edge>
     <edge id=":W_w1" function="walkingarea">
         <lane id=":W_w1_0" index="0" allow="pedestrian" speed="1.00" length="2.56" width="4.00" shape="-4.00,111.25 0.00,111.25 0.00,108.25 -4.00,108.25"/>
