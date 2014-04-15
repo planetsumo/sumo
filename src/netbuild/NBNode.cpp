@@ -98,8 +98,12 @@ NBNode::ApproachingDivider::ApproachingDivider(
     // collect lanes which are expliclity targeted
     std::set<int> approachedLanes;
     for (EdgeVector::iterator it = myApproaching->begin(); it != myApproaching->end(); ++it) {
-        std::vector<int> connLanes = (*it)->getConnectionLanes(myCurrentOutgoing);
-        approachedLanes.insert(connLanes.begin(), connLanes.end());
+        const std::vector<NBEdge::Connection> conns = (*it)->getConnections();
+        for (std::vector<NBEdge::Connection>::const_iterator it_con = conns.begin(); it_con != conns.end(); ++it_con) {
+            if ((*it_con).toEdge == myCurrentOutgoing) {
+                approachedLanes.insert((*it_con).toLane);
+            }
+        }
     }
     // compute the indices of lanes that should be targeted (excluding pedestrian 
     // lanes that will be connected from walkingAreas and forbidden lanes)
