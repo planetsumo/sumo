@@ -112,7 +112,7 @@ public:
         /// @brief Destructor
         ~ApproachingDivider();
 
-        unsigned int numAvailablesLanes() const {
+        unsigned int numAvailableLanes() const {
             return myAvailableLanes.size();
         }
 

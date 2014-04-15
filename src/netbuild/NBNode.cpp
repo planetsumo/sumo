@@ -730,10 +730,10 @@ NBNode::computeLanes2Lanes() {
         NBEdge* currentOutgoing = *i;
         // get the information about edges that do approach this edge
         EdgeVector* approaching = getEdgesThatApproach(currentOutgoing);
-        if (approaching->size() != 0) {
+        const unsigned int numApproaching = (unsigned int)approaching->size();
+        if (numApproaching != 0) {
             ApproachingDivider divider(approaching, currentOutgoing);
-            Bresenham::compute(&divider, static_cast<unsigned int>(approaching->size()),
-                               divider.numAvailablesLanes());
+            Bresenham::compute(&divider, numApproaching, divider.numAvailableLanes());
         }
         delete approaching;
     }
