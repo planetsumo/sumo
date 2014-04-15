@@ -571,7 +571,7 @@ RORouteHandler::routePedestrian(const SUMOSAXAttributes& attrs, OutputDevice& pl
     myPedestrianRouter->compute(from, to, 
             SUMOVehicleParameter::interpretEdgePos(departPos, from->getLength(), SUMO_ATTR_DEPARTPOS, "person walking from " + fromID),
             SUMOVehicleParameter::interpretEdgePos(arrivalPos, to->getLength(), SUMO_ATTR_ARRIVALPOS, "person walking to " + toID),
-            DEFAULT_PERSON_SPEED, 0, 0, myActiveRoute);
+            SUMOVTypeParameter::getDefaultMaxSpeed(SVC_PEDESTRIAN), 0, 0, myActiveRoute);
     if (myActiveRoute.empty()) {
         ok = false;
         const std::string error = "No connection found between '" + fromID + "' and '" + toID + "' for person '" + myVehicleParameter->id + "'.";

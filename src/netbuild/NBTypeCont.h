@@ -84,7 +84,7 @@ public:
      * @return Whether the type could be added (no type with the same id existed)
      */
     bool insert(const std::string& id, int noLanes, SUMOReal maxSpeed, int prio,
-                SUMOReal width, SUMOVehicleClass vClasses = SVC_UNKNOWN, bool oneWayIsDefault=false,
+                SUMOReal width, SUMOVehicleClass vClasses = SVC_IGNORING, bool oneWayIsDefault=false,
                 SUMOReal sidewalkWidth=NBEdge::UNSPECIFIED_WIDTH );
 
     /** @brief Adds a type into the list
@@ -205,7 +205,7 @@ private:
         /// @brief Constructor
         TypeDefinition() :
             noLanes(1), speed((SUMOReal) 13.9), priority(-1),
-            permissions(SVCFreeForAll),
+            permissions(SVCAll),
             oneWay(true), discard(false), 
             width(NBEdge::UNSPECIFIED_WIDTH), 
             sidewalkWidth(NBEdge::UNSPECIFIED_WIDTH)

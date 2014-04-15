@@ -190,7 +190,7 @@ public:
      * @return The lanes that may be used to reach the given edge, 0 if no such lanes exist
      */
     const std::vector<MSLane*>* allowedLanes(const MSEdge& destination,
-            SUMOVehicleClass vclass = SVC_UNKNOWN) const;
+            SUMOVehicleClass vclass = SVC_IGNORING) const;
 
 
     /** @brief Get the allowed lanes for the given vehicle class.
@@ -200,7 +200,7 @@ public:
      * @param[in] vclass The vehicle class for which this information shall be returned
      * @return The lanes that may be used by the given vclass
      */
-    const std::vector<MSLane*>* allowedLanes(SUMOVehicleClass vclass = SVC_UNKNOWN) const;
+    const std::vector<MSLane*>* allowedLanes(SUMOVehicleClass vclass = SVC_IGNORING) const;
     /// @}
 
 
@@ -593,7 +593,7 @@ protected:
      * @return The lanes that may be used to reach the given edge, 0 if no such lanes exist
      */
     const std::vector<MSLane*>* allowedLanes(const MSEdge* destination,
-            SUMOVehicleClass vclass = SVC_UNKNOWN) const;
+            SUMOVehicleClass vclass = SVC_IGNORING) const;
 
 
     /// @brief lookup in map and return 0 if not found

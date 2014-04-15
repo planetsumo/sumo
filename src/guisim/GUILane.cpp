@@ -661,8 +661,8 @@ GUILane::getParameterWindow(GUIMainWindow& app,
     ret->mkItem("street name", false, myEdge->getStreetName());
     ret->mkItem("stored traveltime [s]", true, new FunctionBinding<GUILane, SUMOReal>(this, &GUILane::getStoredEdgeTravelTime));
     ret->mkItem("edge type", false, myEdge->getEdgeType());
-    ret->mkItem("allowed vehicle class", false, getAllowedVehicleClassNames(myPermissions));
-    ret->mkItem("disallowed vehicle class", false, getAllowedVehicleClassNames(~myPermissions));
+    ret->mkItem("allowed vehicle class", false, getVehicleClassNames(myPermissions));
+    ret->mkItem("disallowed vehicle class", false, getVehicleClassNames(~myPermissions));
     ret->mkItem("permission code", false, myPermissions);
     // close building
     ret->closeBuilding();

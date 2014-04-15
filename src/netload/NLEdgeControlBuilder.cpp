@@ -115,6 +115,10 @@ NLEdgeControlBuilder::build() {
         }
 #endif
     }
+    if (!deprecatedVehicleClassesSeen.empty()) {
+        WRITE_WARNING("Deprecated vehicle classes '" + toString(deprecatedVehicleClassesSeen) + "' in input network.");
+        deprecatedVehicleClassesSeen.clear();
+    }
     return new MSEdgeControl(myEdges);
 }
 
