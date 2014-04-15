@@ -28,13 +28,12 @@
                                                                                                
       <type id="highway.bus_guideway"   numLanes="1" speed="8.33"  priority="1"  oneway="true"                   allow="bus"/>
       <type id="highway.raceway"        numLanes="2" speed="83.33" priority="14"                                 allow="vip"/>
-      <type id="highway.ford"           numLanes="1" speed="2.78"  priority="1"                                  allow="public_army"/>
+      <type id="highway.ford"           numLanes="1" speed="2.78"  priority="1"                                  allow="army"/>
                                                                                               
-      <type id="railway.rail"           numLanes="1" speed="83.33" priority="15" oneway="true"                   allow="rail_fast rail_slow"/>
-      <type id="railway.tram"           numLanes="1" speed="27.78" priority="15" oneway="true"                   allow="cityrail"           />
-      <type id="railway.light_rail"     numLanes="1" speed="27.78" priority="15" oneway="true"                   allow="lightrail"          />
-      <type id="railway.subway"         numLanes="1" speed="27.78" priority="15" oneway="true"                   allow="cityrail"           />
-      <type id="railway.preserved"      numLanes="1" speed="27.78" priority="15" oneway="true"                   allow="lightrail"          />
-      <type id="railway.monorail"       numLanes="1" speed="83.33" priority="15" oneway="true"                   allow="lightrail"          /> 
+      <type id="railway.rail"           numLanes="1" speed="83.33" priority="15" oneway="true"                   allow="rail"/>
+      <type id="railway.tram"           numLanes="1" speed="27.78" priority="15" oneway="true"                   allow="tram"/>
+      <type id="railway.light_rail"     numLanes="1" speed="27.78" priority="15" oneway="true"                   allow="rail_urban"/>
+      <type id="railway.subway"         numLanes="1" speed="27.78" priority="15" oneway="true"                   allow="rail_urban"/>
+      <type id="railway.preserved"      numLanes="1" speed="27.78" priority="15" oneway="true"                   allow="rail"/>
 
 </types>

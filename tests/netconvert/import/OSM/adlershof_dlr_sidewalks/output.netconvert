@@ -7,7 +7,7 @@ done.
  Removed 24 traffic lights before loading plain-XML
  Import done:
    453 nodes loaded.
-   34 types loaded.
+   33 types loaded.
    876 edges loaded.
 Proj projection parameters used: '+proj=utm +zone=33 +ellps=WGS84 +datum=WGS84 +units=m +no_defs'.
 Removing self-loops... done.
@@ -40,8 +40,9 @@ Computing traffic light logics... done.
 Summary:
  Node type statistics:
   Unregulated junctions       : 35
-  Priority junctions          : 229
-  Right-before-left junctions : 75
+  Dead-end junctions          : 25
+  Priority junctions          : 213
+  Right-before-left junctions : 66
  Network boundaries:
   Original boundary  : 13.46,52.42,13.54,52.45
   Applied offset     : -395408.93,-5809112.45
