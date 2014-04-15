@@ -95,11 +95,20 @@ NBNode::ApproachingDivider::ApproachingDivider(
     myApproaching(approaching), myCurrentOutgoing(currentOutgoing) {
     // check whether origin lanes have been given
     assert(myApproaching != 0);
+    // collect lanes which are expliclity targeted
+    std::set<int> approachedLanes;
+    for (EdgeVector::iterator it = myApproaching->begin(); it != myApproaching->end(); ++it) {
+        std::vector<int> connLanes = (*it)->getConnectionLanes(myCurrentOutgoing);
+        approachedLanes.insert(connLanes.begin(), connLanes.end());
+    }
     // compute the indices of lanes that should be targeted (excluding pedestrian 
     // lanes that will be connected from walkingAreas and forbidden lanes)
+    // if the lane is targeted by an explicitly set connection we need
+    // to make it available anyway
     for (int i = 0; i < (int)currentOutgoing->getNumLanes(); ++i) {
-        if (currentOutgoing->getPermissions(i) == SVC_PEDESTRIAN 
-                || isForbidden(currentOutgoing->getPermissions(i))) {
+        if ((currentOutgoing->getPermissions(i) == SVC_PEDESTRIAN 
+                || isForbidden(currentOutgoing->getPermissions(i)))
+                && approachedLanes.count(i) == 0) {
             continue;
         }
         myAvailableLanes.push_back((unsigned int)i);
