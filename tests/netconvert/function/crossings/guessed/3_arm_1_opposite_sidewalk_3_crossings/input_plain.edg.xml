@@ -25,25 +25,25 @@
 <edges version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/edges_file.xsd">
     <edge id="CE" from="C" to="E" priority="2" numLanes="4" speed="13.89">
         <lane index="0" allow="pedestrian" width="3.00"/>
-        <lane index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" width="1.50"/>
+        <lane index="1" disallow="all" width="1.50"/>
         <lane index="2" allow="passenger"/>
         <lane index="3" allow="passenger"/>
     </edge>
     <edge id="CN" from="C" to="N" priority="2" numLanes="4" speed="13.89">
         <lane index="0" allow="pedestrian" width="3.00"/>
-        <lane index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" width="1.50"/>
+        <lane index="1" disallow="all" width="1.50"/>
         <lane index="2" allow="passenger"/>
         <lane index="3" allow="passenger"/>
     </edge>
     <edge id="NC" from="N" to="C" priority="2" numLanes="4" speed="13.89">
         <lane index="0" allow="pedestrian" width="3.00"/>
-        <lane index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" width="1.50"/>
+        <lane index="1" disallow="all" width="1.50"/>
         <lane index="2" allow="passenger"/>
         <lane index="3" allow="passenger"/>
     </edge>
     <edge id="WC" from="W" to="C" priority="2" numLanes="4" speed="13.89">
         <lane index="0" allow="pedestrian" width="3.00"/>
-        <lane index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" width="1.50"/>
+        <lane index="1" disallow="all" width="1.50"/>
         <lane index="2" allow="passenger"/>
         <lane index="3" allow="passenger"/>
     </edge>

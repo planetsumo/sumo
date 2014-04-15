@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Mon Apr 14 16:02:39 2014 by SUMO netconvert Version dev-SVN-r16172
+<!-- generated on Tue Apr 15 15:11:31 2014 by SUMO netconvert Version dev-SVN-r16196
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -53,13 +53,13 @@
     </edge>
     <edge id="CW" from="C" to="W" priority="2">
         <lane id="CW_0" index="0" allow="pedestrian" speed="13.89" length="100.00" width="3.00" shape="100.00,9.75 0.00,9.75"/>
-        <lane id="CW_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="100.00" width="1.50" shape="100.00,7.40 0.00,7.40"/>
+        <lane id="CW_1" index="1" disallow="all" speed="13.89" length="100.00" width="1.50" shape="100.00,7.40 0.00,7.40"/>
         <lane id="CW_2" index="2" allow="passenger" speed="13.89" length="100.00" shape="100.00,4.95 0.00,4.95"/>
         <lane id="CW_3" index="3" allow="passenger" speed="13.89" length="100.00" shape="100.00,1.65 0.00,1.65"/>
     </edge>
     <edge id="EC" from="E" to="C" priority="2">
         <lane id="EC_0" index="0" allow="pedestrian" speed="13.89" length="99.47" width="3.00" shape="200.00,9.75 100.00,9.75"/>
-        <lane id="EC_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="99.47" width="1.50" shape="200.00,7.40 100.29,7.40"/>
+        <lane id="EC_1" index="1" disallow="all" speed="13.89" length="99.47" width="1.50" shape="200.00,7.40 100.29,7.40"/>
         <lane id="EC_2" index="2" allow="passenger" speed="13.89" length="99.47" shape="200.00,4.95 100.66,4.95"/>
         <lane id="EC_3" index="3" allow="passenger" speed="13.89" length="99.47" shape="200.00,1.65 101.16,1.65"/>
     </edge>

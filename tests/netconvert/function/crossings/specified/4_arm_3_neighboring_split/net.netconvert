@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Apr  9 14:11:36 2014 by SUMO netconvert Version dev-SVN-r16159
+<!-- generated on Tue Apr 15 15:11:30 2014 by SUMO netconvert Version dev-SVN-r16196
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -152,49 +152,49 @@
 
     <edge id="CE" from="C" to="E" priority="2" shape="118.84,95.12 176.09,95.03 200.00,100.00">
         <lane id="CE_0" index="0" allow="pedestrian" speed="13.89" length="81.23" width="3.00" shape="120.50,85.37 177.09,85.28 201.98,90.45"/>
-        <lane id="CE_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="81.23" width="1.50" shape="120.50,87.72 176.85,87.63 201.51,92.75"/>
+        <lane id="CE_1" index="1" disallow="all" speed="13.89" length="81.23" width="1.50" shape="120.50,87.72 176.85,87.63 201.51,92.75"/>
         <lane id="CE_2" index="2" allow="passenger" speed="13.89" length="81.23" shape="120.51,90.17 176.60,90.08 201.01,95.15"/>
         <lane id="CE_3" index="3" allow="passenger" speed="13.89" length="81.23" shape="120.51,93.47 176.26,93.38 200.34,98.38"/>
     </edge>
     <edge id="CN" from="C" to="N" priority="2" shape="107.66,118.53 119.14,174.64 100.00,200.00">
         <lane id="CN_0" index="0" allow="pedestrian" speed="13.89" length="91.56" width="3.00" shape="117.78,119.36 129.57,177.00 107.78,205.87"/>
-        <lane id="CN_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="91.56" width="1.50" shape="115.48,119.83 127.06,176.43 105.91,204.46"/>
+        <lane id="CN_1" index="1" disallow="all" speed="13.89" length="91.56" width="1.50" shape="115.48,119.83 127.06,176.43 105.91,204.46"/>
         <lane id="CN_2" index="2" allow="passenger" speed="13.89" length="91.56" shape="113.08,120.32 124.44,175.84 103.95,202.98"/>
         <lane id="CN_3" index="3" allow="passenger" speed="13.89" length="91.56" shape="109.85,120.98 120.91,175.04 101.32,200.99"/>
     </edge>
     <edge id="CS" from="C" to="S" priority="2" shape="94.97,80.36 94.74,18.32 100.00,0.00">
         <lane id="CS_0" index="0" allow="pedestrian" speed="13.89" length="80.97" width="3.00" shape="85.21,78.57 84.98,16.97 90.63,-2.69"/>
-        <lane id="CS_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="80.97" width="1.50" shape="87.56,78.56 87.34,17.29 92.89,-2.04"/>
+        <lane id="CS_1" index="1" disallow="all" speed="13.89" length="80.97" width="1.50" shape="87.56,78.56 87.34,17.29 92.89,-2.04"/>
         <lane id="CS_2" index="2" allow="passenger" speed="13.89" length="80.97" shape="90.01,78.56 89.79,17.63 95.24,-1.37"/>
         <lane id="CS_3" index="3" allow="passenger" speed="13.89" length="80.97" shape="93.31,78.54 93.09,18.09 98.41,-0.46"/>
     </edge>
     <edge id="CW" from="C" to="W" priority="2" shape="82.75,104.99 69.90,99.83 0.00,100.00">
         <lane id="CW_0" index="0" allow="pedestrian" speed="13.89" length="83.28" width="3.00" shape="80.82,114.72 68.03,109.58 0.02,109.75"/>
-        <lane id="CW_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="83.28" width="1.50" shape="81.70,112.54 68.48,107.23 0.01,107.40"/>
+        <lane id="CW_1" index="1" disallow="all" speed="13.89" length="83.28" width="1.50" shape="81.70,112.54 68.48,107.23 0.01,107.40"/>
         <lane id="CW_2" index="2" allow="passenger" speed="13.89" length="83.28" shape="82.61,110.27 68.95,104.78 -0.00,104.95"/>
         <lane id="CW_3" index="3" allow="passenger" speed="13.89" length="83.28" shape="83.84,107.21 69.58,101.48 -0.02,101.65"/>
     </edge>
     <edge id="EC" from="E" to="C" priority="2" shape="200.00,100.00 175.81,106.22 118.84,106.22">
         <lane id="EC_0" index="0" allow="pedestrian" speed="13.89" length="81.75" width="3.00" shape="202.43,109.44 177.04,115.97 120.55,115.97"/>
-        <lane id="EC_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="81.75" width="1.50" shape="201.84,107.17 176.75,113.62 120.54,113.62"/>
+        <lane id="EC_1" index="1" disallow="all" speed="13.89" length="81.75" width="1.50" shape="201.84,107.17 176.75,113.62 120.54,113.62"/>
         <lane id="EC_2" index="2" allow="passenger" speed="13.89" length="81.75" shape="201.23,104.79 176.44,111.17 120.54,111.17"/>
         <lane id="EC_3" index="3" allow="passenger" speed="13.89" length="81.75" shape="200.41,101.60 176.02,107.87 120.53,107.87"/>
     </edge>
     <edge id="NC" from="N" to="C" priority="2" shape="100.00,200.00 106.94,175.24 93.75,118.81">
         <lane id="NC_0" index="0" allow="pedestrian" speed="13.89" length="75.42" width="3.00" shape="90.61,197.37 96.88,175.02 85.41,125.98"/>
-        <lane id="NC_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="75.42" width="1.50" shape="92.87,198.00 99.30,175.07 87.72,125.51"/>
+        <lane id="NC_1" index="1" disallow="all" speed="13.89" length="75.42" width="1.50" shape="92.87,198.00 99.30,175.07 87.72,125.51"/>
         <lane id="NC_2" index="2" allow="passenger" speed="13.89" length="75.42" shape="95.23,198.66 101.83,175.13 90.12,125.02"/>
         <lane id="NC_3" index="3" allow="passenger" speed="13.89" length="75.42" shape="98.41,199.55 105.24,175.20 93.35,124.36"/>
     </edge>
     <edge id="SC" from="S" to="C" priority="2" shape="100.00,0.00 107.83,18.17 107.19,80.27">
         <lane id="SC_0" index="0" allow="pedestrian" speed="13.89" length="82.54" width="3.00" shape="108.95,-3.86 117.60,16.21 116.96,78.46"/>
-        <lane id="SC_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="82.54" width="1.50" shape="106.80,-2.93 115.25,16.68 114.61,78.46"/>
+        <lane id="SC_1" index="1" disallow="all" speed="13.89" length="82.54" width="1.50" shape="106.80,-2.93 115.25,16.68 114.61,78.46"/>
         <lane id="SC_2" index="2" allow="passenger" speed="13.89" length="82.54" shape="104.55,-1.96 112.79,17.17 112.16,78.47"/>
         <lane id="SC_3" index="3" allow="passenger" speed="13.89" length="82.54" shape="101.52,-0.65 109.48,17.84 108.86,78.49"/>
     </edge>
     <edge id="WC" from="W" to="C" priority="2" shape="0.00,100.00 70.05,99.53 82.28,93.43">
         <lane id="WC_0" index="0" allow="pedestrian" speed="13.89" length="86.62" width="3.00" shape="-0.07,90.25 67.72,89.80 82.99,82.18"/>
-        <lane id="WC_1" index="1" disallow="private public_transport public_emergency public_authority public_army vip ignoring passenger hov taxi bus delivery transport lightrail cityrail rail_slow rail_fast motorcycle bicycle pedestrian custom1 custom2" speed="13.89" length="86.62" width="1.50" shape="-0.05,92.60 68.28,92.14 84.04,84.28"/>
+        <lane id="WC_1" index="1" disallow="all" speed="13.89" length="86.62" width="1.50" shape="-0.05,92.60 68.28,92.14 84.04,84.28"/>
         <lane id="WC_2" index="2" allow="passenger" speed="13.89" length="86.62" shape="-0.03,95.05 68.87,94.59 85.13,86.48"/>
         <lane id="WC_3" index="3" allow="passenger" speed="13.89" length="86.62" shape="-0.01,98.35 69.66,97.88 86.61,89.43"/>
     </edge>
