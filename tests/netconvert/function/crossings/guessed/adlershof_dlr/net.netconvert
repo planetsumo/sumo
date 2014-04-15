@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Mon Apr 14 16:44:01 2014 by SUMO netconvert Version dev-SVN-r16172
+<!-- generated on Tue Apr 15 15:25:30 2014 by SUMO netconvert Version dev-SVN-r16196
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -3235,13 +3235,13 @@
         <lane id=":1789928382_0_0" index="0" disallow="pedestrian" speed="22.22" length="2.94" shape="4455.58,1005.07 4453.13,1003.44"/>
     </edge>
     <edge id=":1789928382_1" function="internal">
-        <lane id=":1789928382_1_0" index="0" allow="cityrail" speed="25.00" length="9.60" shape="4455.58,1005.07 4455.46,1004.30 4455.97,1002.56 4457.11,999.85 4458.87,996.17"/>
+        <lane id=":1789928382_1_0" index="0" allow="tram" speed="25.00" length="9.60" shape="4455.58,1005.07 4455.46,1004.30 4455.97,1002.56 4457.11,999.85 4458.87,996.17"/>
     </edge>
     <edge id=":1789928382_2" function="internal">
         <lane id=":1789928382_2_0" index="0" disallow="pedestrian" speed="22.22" length="4.82" shape="4455.58,1005.07 4454.99,1003.70 4455.09,1002.78 4455.89,1002.32 4457.37,1002.30"/>
     </edge>
     <edge id=":1789928382_3" function="internal">
-        <lane id=":1789928382_3_0" index="0" allow="cityrail" speed="25.00" length="7.46" shape="4453.34,999.60 4454.76,1000.11 4456.15,999.71 4457.52,998.40 4458.87,996.17"/>
+        <lane id=":1789928382_3_0" index="0" allow="tram" speed="25.00" length="7.46" shape="4453.34,999.60 4454.76,1000.11 4456.15,999.71 4457.52,998.40 4458.87,996.17"/>
     </edge>
     <edge id=":1789928382_4" function="internal">
         <lane id=":1789928382_4_0" index="0" disallow="pedestrian" speed="22.22" length="4.86" shape="4453.34,999.60 4457.37,1002.30"/>
@@ -3253,7 +3253,7 @@
         <lane id=":1789928382_6_0" index="0" disallow="pedestrian" speed="25.00" length="6.37" shape="4451.15,1009.13 4452.52,1006.98 4453.30,1005.31 4453.51,1004.14 4453.13,1003.44"/>
     </edge>
     <edge id=":1789928382_7" function="internal">
-        <lane id=":1789928382_7_0" index="0" allow="cityrail" speed="27.78" length="15.09" shape="4451.15,1009.13 4453.24,1006.00 4455.24,1002.79 4457.12,999.51 4458.87,996.17"/>
+        <lane id=":1789928382_7_0" index="0" allow="tram" speed="27.78" length="15.09" shape="4451.15,1009.13 4453.24,1006.00 4455.24,1002.79 4457.12,999.51 4458.87,996.17"/>
     </edge>
     <edge id=":1789928382_8" function="internal">
         <lane id=":1789928382_8_0" index="0" disallow="pedestrian" speed="25.00" length="9.42" shape="4451.15,1009.13 4453.49,1005.89 4455.31,1003.67 4456.60,1002.47 4457.37,1002.30"/>
@@ -9739,10 +9739,10 @@
         <lane id="156294408_0" index="0" allow="delivery pedestrian" speed="5.56" length="62.53" shape="4499.35,871.94 4470.97,927.66"/>
     </edge>
     <edge id="158236729#0" from="1704693343" to="1789928382" priority="15" type="railway.tram" spreadType="center" shape="4414.49,1050.06 4441.78,1020.36 4449.17,1011.97 4455.41,1002.99">
-        <lane id="158236729#0_0" index="0" allow="cityrail" speed="27.78" length="54.98" shape="4414.49,1050.06 4441.78,1020.36 4449.17,1011.97 4451.15,1009.13"/>
+        <lane id="158236729#0_0" index="0" allow="tram" speed="27.78" length="54.98" shape="4414.49,1050.06 4441.78,1020.36 4449.17,1011.97 4451.15,1009.13"/>
     </edge>
     <edge id="158236729#1" from="1789928382" to="1704693564" priority="15" type="railway.tram" spreadType="center" shape="4455.41,1002.99 4457.17,999.76 4458.88,996.15 4589.05,734.79 4591.99,729.80 4595.84,724.44 4598.66,722.36 4603.45,719.44 4610.14,717.38 4616.46,717.14 4625.87,717.75 4633.90,720.62 4652.28,731.54 4670.62,745.56">
-        <lane id="158236729#1_0" index="0" allow="cityrail" speed="27.78" length="389.26" shape="4458.87,996.17 4589.05,734.79 4591.99,729.80 4595.84,724.44 4598.66,722.36 4603.45,719.44 4610.14,717.38 4616.46,717.14 4625.87,717.75 4633.90,720.62 4652.28,731.54 4670.62,745.56"/>
+        <lane id="158236729#1_0" index="0" allow="tram" speed="27.78" length="389.26" shape="4458.87,996.17 4589.05,734.79 4591.99,729.80 4595.84,724.44 4598.66,722.36 4603.45,719.44 4610.14,717.38 4616.46,717.14 4625.87,717.75 4633.90,720.62 4652.28,731.54 4670.62,745.56"/>
     </edge>
     <edge id="161788770" from="1568241639" to="1568241637" priority="1" type="highway.footway" spreadType="center">
         <lane id="161788770_0" index="0" allow="pedestrian" speed="8.33" length="14.01" shape="4159.25,876.95 4173.22,875.89"/>
