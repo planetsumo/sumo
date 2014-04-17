@@ -137,9 +137,8 @@ MSRouteHandler::myStartElement(int element,
             }
             SUMOReal speed = SUMOVTypeParameter::getDefaultMaxSpeed(SVC_PEDESTRIAN);
             const MSVehicleType* vtype = MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid);
-            assert(vType != 0);
             // need to check for explicitly set speed since we might have // DEFAULT_VEHTYPE
-            if (vtype->wasSet(VTYPEPARS_MAXSPEED_SET)) {
+            if (vtype != 0 && vtype->wasSet(VTYPEPARS_MAXSPEED_SET)) {
                 speed = vtype->getMaxSpeed();
             }
             speed = attrs.getOpt<SUMOReal>(SUMO_ATTR_SPEED, 0, ok, speed);
