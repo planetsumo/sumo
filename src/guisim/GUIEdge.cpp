@@ -320,13 +320,15 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
             }
         }
     }
-    myLock.lock();
-    for (std::set<MSPerson*>::const_iterator i = myPersons.begin(); i != myPersons.end(); ++i) {
-        GUIPerson* person = dynamic_cast<GUIPerson*>(*i);
-        assert(person != 0);
-        person->drawGL(s);
+    if (s.scale > s.minPersonSize) {
+        myLock.lock();
+        for (std::set<MSPerson*>::const_iterator i = myPersons.begin(); i != myPersons.end(); ++i) {
+            GUIPerson* person = dynamic_cast<GUIPerson*>(*i);
+            assert(person != 0);
+            person->drawGL(s);
+        }
+        myLock.unlock();
     }
-    myLock.unlock();
 }
 
 #ifdef HAVE_INTERNAL
