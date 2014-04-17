@@ -32,6 +32,7 @@
 #include <utils/options/OptionsCont.h>
 #include "MSNet.h"
 #include "MSEdge.h"
+#include "MSJunction.h"
 #include "MSLane.h"
 #include "MSPModel_Striping.h"
 #include "MSPModel_NonInteracting.h"
@@ -101,6 +102,27 @@ MSPModel::getSidewalk(const MSEdge* edge) {
         }
     }
     return lanes.front();
+}
+
+
+bool 
+MSPModel::canTraverse(int dir, const std::vector<const MSEdge*>& route) {
+    const MSJunction* junction = 0;
+    for (std::vector<const MSEdge*>::const_iterator it = route.begin(); it != route.end(); ++it) {
+        const MSEdge* edge = *it;
+        if (junction != 0) {
+            //std::cout << " junction=" << junction->getID() << " edge=" << edge->getID() << "\n";
+            if (junction == edge->getFromJunction()) {
+                dir = FORWARD;
+            } else if (junction == edge->getToJunction()) {
+                dir = BACKWARD;
+            } else {
+                return false;
+            } 
+        }
+        junction = dir == FORWARD ? edge->getToJunction() : edge->getFromJunction();
+    }
+    return true;
 }
 
 /****************************************************************************/

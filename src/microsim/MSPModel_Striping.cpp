@@ -626,48 +626,35 @@ MSPModel_Striping::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonSt
 { 
     const MSEdge* currentEdge = &lane->getEdge();
     assert(!currentEdge->isWalkingArea());
-    const MSEdge* nextRouteEdge = myStage->getNextRouteEdge();
-    const MSEdge* nextEdge = nextRouteEdge;
-    if (nextRouteEdge != 0) {
-        // initialize myDir by routing
-        const MSJunction* nextJunction = 0;
-        SUMOReal arrivalPos = myStage->getArrivalPos(); 
-        if (nextRouteEdge != myStage->getRoute().back()) {
-            // figure out nextJunction from the edge after nextRouteEdge
-            const MSEdge* next2 = myStage->getRoute()[2];
-            const int nextRouteEdgeDir = (
-                    nextRouteEdge->getToJunction() == next2->getFromJunction() ||
-                    nextRouteEdge->getToJunction() == next2->getToJunction() 
-                    ? FORWARD : BACKWARD);
-            arrivalPos = nextRouteEdgeDir == FORWARD ? 0 : nextRouteEdge->getLength();
-            if DEBUGCOND(myPerson->getID()) std::cout << "  initialize dir for " << myPerson->getID() << " next=" << nextRouteEdge->getID() << " next2=" << next2->getID() << " nextDir=" << nextRouteEdgeDir << "\n";
-        }
-        std::vector<const MSEdge*> crossingRoute;
-        MSNet::getInstance()->getPedestrianRouter().compute(currentEdge, nextRouteEdge, myX, arrivalPos, myStage->getMaxSpeed(), 0, nextJunction, crossingRoute, true);
-        if (crossingRoute.size() > 1) {
-            // route found
-            nextEdge = crossingRoute[1];
-            if (nextEdge->getFromJunction() == currentEdge->getFromJunction() || nextEdge->getToJunction() == currentEdge->getFromJunction()) {
-                myDir = BACKWARD;
-            }
-        } else {
-            // there is no connectivity, walk forward by default
-        }
-        if DEBUGCOND(myPerson->getID()) { 
-            std::cout 
-                << "   aPos=" << arrivalPos
-                << " crossingRoute=" << toString(crossingRoute) 
-                << "\n";
-        }
-    } else {
+    const std::vector<const MSEdge*>& route = myStage->getRoute();
+    if (route.size() == 1) {
         // only a single edge, move towards end pos
         myDir = (myX <= myStage->getArrivalPos()) ? FORWARD : BACKWARD;
+    } else {
+        const bool mayStartForward = canTraverse(FORWARD, route);
+        const bool mayStartBackward = canTraverse(BACKWARD, route);
+        if DEBUGCOND(myPerson->getID()) std::cout << "  initialize dir for " << myPerson->getID() << " forward=" << mayStartForward << " backward=" << mayStartBackward << "\n";
+        if (mayStartForward && mayStartBackward) {
+            // figure out the best direction via routing
+            std::vector<const MSEdge*> crossingRoute;
+            MSNet::getInstance()->getPedestrianRouter().compute(currentEdge, route.back(), myX, myStage->getArrivalPos(), myStage->getMaxSpeed(), 0, 0, crossingRoute, true);
+            if (crossingRoute.size() > 1) {
+                // route found
+                const MSEdge* nextEdge = crossingRoute[1];
+                if (nextEdge->getFromJunction() == currentEdge->getFromJunction() || nextEdge->getToJunction() == currentEdge->getFromJunction()) {
+                    myDir = BACKWARD;
+                }
+            } 
+            if DEBUGCOND(myPerson->getID()) std::cout << " crossingRoute=" << toString(crossingRoute) << "\n";
+        } else {
+            myDir = !mayStartBackward ? FORWARD : BACKWARD;
+        }
     }
     if (myDir == FORWARD) {
         // start at the right side of the sidewalk
         myY = STRIPE_WIDTH * (numStripes(lane) - 1);
     }
-    if DEBUGCOND(myPerson->getID()) std::cout << "  added new pedestrian " << myPerson->getID() << " on " << lane->getID() << " myX=" << myX << " myY=" << myY << " dir=" << myDir << " nextRouteEdge=" << (nextRouteEdge == 0 ? "NULL" : nextRouteEdge->getID()) << " route=" << toString(myStage->getRoute()) << "\n";
+    if DEBUGCOND(myPerson->getID()) std::cout << "  added new pedestrian " << myPerson->getID() << " on " << lane->getID() << " myX=" << myX << " myY=" << myY << " dir=" << myDir << " route=" << toString(myStage->getRoute()) << "\n";
 
     myNLI = getNextLane(*this, lane, 0);
 }
