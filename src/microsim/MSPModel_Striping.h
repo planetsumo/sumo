@@ -74,10 +74,10 @@ public:
     ///@{
 
     // @brief the width of a pedstrian stripe
-    static SUMOReal STRIPE_WIDTH;
+    static SUMOReal stripeWidth;
 
     // @brief the factor for random slow-down
-    static SUMOReal DAWDLING;
+    static SUMOReal dawdling;
 
     // @brief the distance to look ahead for changing stripes 
     static const SUMOReal LOOKAHEAD_SAMEDIR;

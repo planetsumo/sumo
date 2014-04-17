@@ -77,8 +77,8 @@ MSPModel_Striping::Pedestrians MSPModel_Striping::noPedestrians;
 
 
 // model parameters (static to simplify access from class Pedestrian
-SUMOReal MSPModel_Striping::STRIPE_WIDTH;
-SUMOReal MSPModel_Striping::DAWDLING;
+SUMOReal MSPModel_Striping::stripeWidth;
+SUMOReal MSPModel_Striping::dawdling;
 const SUMOReal MSPModel_Striping::LOOKAHEAD_SAMEDIR(4.0); // seconds
 const SUMOReal MSPModel_Striping::LOOKAHEAD_ONCOMING(10.0); // seconds
 const SUMOReal MSPModel_Striping::LATERAL_PENALTY(-1);
@@ -100,8 +100,8 @@ MSPModel_Striping::MSPModel_Striping(const OptionsCont& oc, MSNet* net) :
     net->getBeginOfTimestepEvents().addEvent(myCommand, net->getCurrentTimeStep() + DELTA_T, MSEventControl::ADAPT_AFTER_EXECUTION);
     initWalkingAreaPaths(net);
     // configurable parameters
-    STRIPE_WIDTH = oc.getFloat("pedestrian.stripe-width");
-    DAWDLING = oc.getFloat("pedestrian.dawdling");
+    stripeWidth = oc.getFloat("pedestrian.stripe-width");
+    dawdling = oc.getFloat("pedestrian.dawdling");
 }
 
 
@@ -169,7 +169,7 @@ MSPModel_Striping::cleanupHelper() {
 
 int 
 MSPModel_Striping::numStripes(const MSLane* lane) {
-    return (int)floor(lane->getWidth() / STRIPE_WIDTH); 
+    return (int)floor(lane->getWidth() / stripeWidth); 
 }
 
 int 
@@ -652,7 +652,7 @@ MSPModel_Striping::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonSt
     }
     if (myDir == FORWARD) {
         // start at the right side of the sidewalk
-        myY = STRIPE_WIDTH * (numStripes(lane) - 1);
+        myY = stripeWidth * (numStripes(lane) - 1);
     }
     if DEBUGCOND(myPerson->getID()) std::cout << "  added new pedestrian " << myPerson->getID() << " on " << lane->getID() << " myX=" << myX << " myY=" << myY << " dir=" << myDir << " route=" << toString(myStage->getRoute()) << "\n";
 
@@ -669,7 +669,7 @@ MSPModel_Striping::Pedestrian::getLength() const {
 int 
 MSPModel_Striping::Pedestrian::stripe() const {
     const int max = numStripes(myLane) - 1;
-    return MIN2(MAX2(0, (int)floor((myY + 0.5 * STRIPE_WIDTH) / STRIPE_WIDTH)), max);
+    return MIN2(MAX2(0, (int)floor((myY + 0.5 * stripeWidth) / stripeWidth)), max);
 }
 
 
@@ -677,8 +677,8 @@ int
 MSPModel_Striping::Pedestrian::otherStripe() const {
     const int max = numStripes(myLane) - 1;
     const int s = stripe();
-    const SUMOReal offset = myY - s * STRIPE_WIDTH;
-    const SUMOReal threshold = MAX2((SUMOReal)NUMERICAL_EPS, STRIPE_WIDTH - SQUEEZE * myPerson->getVehicleType().getWidth());
+    const SUMOReal offset = myY - s * stripeWidth;
+    const SUMOReal threshold = MAX2((SUMOReal)NUMERICAL_EPS, stripeWidth - SQUEEZE * myPerson->getVehicleType().getWidth());
     int result;
     if (offset > threshold) {
         result = s + 1;
@@ -753,10 +753,10 @@ MSPModel_Striping::Pedestrian::moveToNextLane(SUMOTime currentTime) {
             }
             // adjust to change in direction
             if (myDir != oldDir) {
-                myY = (numStripes(oldLane) - 1) * STRIPE_WIDTH - myY;
+                myY = (numStripes(oldLane) - 1) * stripeWidth - myY;
             }
             // adjust to differences in sidewalk width
-            myY += 0.5 * STRIPE_WIDTH * (numStripes(myLane) - oldStripes);
+            myY += 0.5 * stripeWidth * (numStripes(myLane) - oldStripes);
         }
         return true;
     } else {
@@ -869,7 +869,7 @@ MSPModel_Striping::Pedestrian::walk(const Obstacles& obs, SUMOTime currentTime) 
         xSpeed = 0;
     }
     // dawdling
-    const SUMOReal dawdle = MIN2(xSpeed, RandHelper::rand() * vMax * DAWDLING);
+    const SUMOReal dawdle = MIN2(xSpeed, RandHelper::rand() * vMax * dawdling);
     xSpeed -= dawdle;
 
     // XXX ensure that diagonal speed <= vMax
@@ -885,7 +885,7 @@ MSPModel_Striping::Pedestrian::walk(const Obstacles& obs, SUMOTime currentTime) 
     //}
     const SUMOReal maxYSpeed = MAX2(vMax * LATERAL_SPEED_FACTOR, vMax - xSpeed);
     SUMOReal ySpeed = 0;
-    const SUMOReal yDist = (chosen * STRIPE_WIDTH) - myY;
+    const SUMOReal yDist = (chosen * stripeWidth) - myY;
     if (fabs(yDist) > NUMERICAL_EPS) {
         ySpeed = (yDist > 0 ? 
                 MIN2( maxYSpeed, yDist) :
@@ -949,7 +949,7 @@ MSPModel_Striping::Pedestrian::getPosition(const MSPerson::MSPersonStage_Walking
         // pedestrian has already finished
         return Position::INVALID;
     }
-    const SUMOReal lateral_offset = myY + (STRIPE_WIDTH - myLane->getWidth()) * 0.5;
+    const SUMOReal lateral_offset = myY + (stripeWidth - myLane->getWidth()) * 0.5;
     if (myWalkingAreaPath == 0) {
         return stage.getLanePosition(myLane, myX, lateral_offset);
     } else {
