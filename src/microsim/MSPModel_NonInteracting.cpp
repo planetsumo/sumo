@@ -45,7 +45,6 @@
 #define DEBUG1 "disabled"
 #define DEBUG2 "disabled"
 #define DEBUGCOND(PEDID) (PEDID == DEBUG1 || PEDID == DEBUG2)
-#define LOG_ALL false
 
 // ===========================================================================
 // named (internal) constants
@@ -80,7 +79,7 @@ MSPModel_NonInteracting::add(MSPerson* person, MSPerson::MSPersonStage_Walking* 
     myNet->getBeginOfTimestepEvents().addEvent(new MoveToNextEdge(person, *stage),
             now + firstEdgeDuration, MSEventControl::ADAPT_AFTER_EXECUTION);
 
-    //std::cout << SIMTIME << " pedestrian inserted on " << stage->getEdge()->getID() << "\n";
+    //if DEBUGCOND(person->getID()) std::cout << SIMTIME << " " << person->getID() << " inserted on " << stage->getEdge()->getID() << "\n";
     return state;
 }
 
@@ -90,6 +89,7 @@ MSPModel_NonInteracting::blockedAtDist(const MSLane* lane, SUMOReal distToCrossi
     return false;
 }
 
+
 SUMOTime 
 MSPModel_NonInteracting::MoveToNextEdge::execute(SUMOTime currentTime) {
     PState* state = dynamic_cast<PState*>(myParent.getPedestrianState());
@@ -98,10 +98,10 @@ MSPModel_NonInteracting::MoveToNextEdge::execute(SUMOTime currentTime) {
     if (arrived) {
         // walk finished. clean up state
         delete state;
-        //std::cout << SIMTIME << " pedestrian arrived on " << old->getID() << "\n";
+        //if DEBUGCOND(myPerson->getID()) std::cout << SIMTIME << " " << myPerson->getID() << " arrived on " << old->getID() << "\n";
         return 0;
     } else {
-        //std::cout << SIMTIME << " pedestrian moves to " << myParent.getEdge()->getID() << "\n";
+        //if DEBUGCOND(myPerson->getID()) std::cout << SIMTIME << " " << myPerson->getID() << " moves to " << myParent.getEdge()->getID() << "\n";
         return state->computeWalkingTime(old, myParent, currentTime);
     }
 }
@@ -131,7 +131,7 @@ MSPModel_NonInteracting::PState::computeWalkingTime(const MSEdge* prev, const MS
     }
     // ensure that a result > 0 is returned even if the walk ends immediately
     myCurrentDuration = MAX2((SUMOTime)1, TIME2STEPS(fabs(myCurrentEndPos - myCurrentBeginPos) / stage.getMaxSpeed()));
-    //std::cout << SIMTIME << " dir=" << dir << " curBeg=" << myCurrentBeginPos << " curEnd=" << myCurrentEndPos << " dur=" << myCurrentDuration << "\n";
+    //std::cout << SIMTIME << " dir=" << dir << " curBeg=" << myCurrentBeginPos << " curEnd=" << myCurrentEndPos << " speed=" << stage.getMaxSpeed() << " dur=" << myCurrentDuration << "\n";
     return myCurrentDuration;
 }
 
