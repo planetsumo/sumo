@@ -219,7 +219,7 @@ MSPerson::MSPersonStage_Walking::computeAverageSpeed() const {
     }
     length -= myDepartPos;
     length -= myRoute.back()->getLength() - myArrivalPos;
-    return length / STEPS2TIME(myWalkingTime);
+    return length / STEPS2TIME(myWalkingTime + 1); // avoid systematic rounding errors
 }
 
 
