@@ -323,6 +323,13 @@ GUIPerson::getColorValue(size_t activeScheme) const {
 }
 
 
+SUMOReal 
+GUIPerson::getEdgePos() const {
+    AbstractMutex::ScopedLocker locker(myLock);
+    return MSPerson::getEdgePos();
+}
+
+
 Position
 GUIPerson::getPosition() const {
     AbstractMutex::ScopedLocker locker(myLock);
@@ -330,6 +337,27 @@ GUIPerson::getPosition() const {
         return myPositionInVehicle;
     }
     return MSPerson::getPosition();
+}
+
+
+SUMOReal 
+GUIPerson::getAngle() const {
+    AbstractMutex::ScopedLocker locker(myLock);
+    return MSPerson::getAngle();
+}
+
+
+SUMOReal 
+GUIPerson::getWaitingSeconds() const {
+    AbstractMutex::ScopedLocker locker(myLock);
+    return MSPerson::getWaitingSeconds();
+}
+
+
+SUMOReal 
+GUIPerson::getSpeed() const {
+    AbstractMutex::ScopedLocker locker(myLock);
+    return MSPerson::getSpeed();
 }
 
 

@@ -523,9 +523,6 @@ public:
     /// destructor
     virtual ~MSPerson();
 
-    virtual void lockPerson() const {};
-    virtual void unlockPerson() const {};
-
     /// returns the person id
     const std::string& getID() const;
 
@@ -555,19 +552,19 @@ public:
     }
 
     /// @brief return the offset from the start of the current edge
-    SUMOReal getEdgePos() const; 
+    virtual SUMOReal getEdgePos() const; 
 
-    /// @brief return the 3D-Position of the person
+    /// @brief return the Network coordinate of the person
     virtual Position getPosition() const;
 
     /// @brief return the current angle of the person
-    SUMOReal getAngle() const;
+    virtual SUMOReal getAngle() const;
 
     /// @brief the time this person spent waiting in seconds
-    SUMOReal getWaitingSeconds() const;
+    virtual SUMOReal getWaitingSeconds() const;
 
     /// @brief the current speed of the person
-    SUMOReal getSpeed() const;
+    virtual SUMOReal getSpeed() const;
 
     ///
     StageType getCurrentStageType() const {

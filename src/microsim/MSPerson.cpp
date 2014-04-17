@@ -621,19 +621,13 @@ MSPerson::getEdgePos() const {
 
 Position 
 MSPerson::getPosition() const {
-    lockPerson();
-    const Position result = (*myStep)->getPosition(MSNet::getInstance()->getCurrentTimeStep());
-    unlockPerson();
-    return result;
+    return (*myStep)->getPosition(MSNet::getInstance()->getCurrentTimeStep());
 }
 
 
 SUMOReal 
 MSPerson::getAngle() const {
-    lockPerson();
-    const SUMOReal result = (*myStep)->getAngle(MSNet::getInstance()->getCurrentTimeStep());
-    unlockPerson();
-    return result;
+    return (*myStep)->getAngle(MSNet::getInstance()->getCurrentTimeStep());
 }
 
 SUMOReal 
