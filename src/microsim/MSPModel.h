@@ -93,10 +93,20 @@ private:
 /// @brief abstract base class for managing callbacks to retrieve various state information from the model
 class PedestrianState {
 public:
+
+    /// @brief return the offset from the start of the current edge measured in its natural direction
     virtual SUMOReal getEdgePos(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+
+    /// @brief return the network coordinate of the person
     virtual Position getPosition(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+
+    /// @brief return the direction in which the person faces in degrees
     virtual SUMOReal getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+
+    /// @brief return the time the person spent standing
     virtual SUMOTime getWaitingTime(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const = 0;
+
+    /// @brief return the current speed of the person
     virtual SUMOReal getSpeed(const MSPerson::MSPersonStage_Walking& stage) const = 0;
 };
 
