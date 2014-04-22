@@ -154,6 +154,9 @@ private:
     /** @brief Informs edges about being controlled by a tls */
     void setTLControllingInformation() const;
 
+    /// @brief repair the plan if controlled nodes received pedestrian crossings
+    void patchIfCrossingsAdded();
+
 private:
     /// @brief class for identifying connections
     class connection_equal {

@@ -33,5 +33,8 @@ motorway_split
 # tests/sumo/basic/person/pedestrians/pedestrina_interactions/jam_trafficlight
 tl_controlled_path
 
+# guess sidewalks and crossings for a loaded net.xml and patch the traffic light plans
+patch_tls_from_sumonet
+
 # a complex network
 adlershof_dlr
