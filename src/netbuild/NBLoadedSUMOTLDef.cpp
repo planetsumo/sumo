@@ -226,5 +226,14 @@ NBLoadedSUMOTLDef::collectLinks() {
         collectAllLinks();
     }
 }
+
+
+/// @brief patches signal plans by modifying lane indices
+void 
+NBLoadedSUMOTLDef::shiftTLConnectionLaneIndex(NBEdge* edge, int offset) {
+    for (NBConnectionVector::iterator it = myControlledLinks.begin(); it != myControlledLinks.end(); it++) {
+        (*it).shiftLaneIndex(edge, offset);
+    }
+}
 /****************************************************************************/
 

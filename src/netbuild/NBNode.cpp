@@ -337,6 +337,13 @@ NBNode::invalidateTLS(NBTrafficLightLogicCont& tlCont) {
 }
 
 
+void 
+NBNode::shiftTLConnectionLaneIndex(NBEdge* edge, int offset) {
+    for (std::set<NBTrafficLightDefinition*>::iterator it = myTrafficLights.begin(); it != myTrafficLights.end(); ++it) {
+        (*it)->shiftTLConnectionLaneIndex(edge, offset);
+    }
+}
+
 // ----------- Prunning the input
 unsigned int
 NBNode::removeSelfLoops(NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tc) {

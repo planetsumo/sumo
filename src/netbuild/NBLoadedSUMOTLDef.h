@@ -93,6 +93,9 @@ public:
     void replaceRemoved(NBEdge* removed, int removedLane,
                         NBEdge* by, int byLane);
 
+    /// @brief patches signal plans by modifying lane indices
+    void shiftTLConnectionLaneIndex(NBEdge* edge, int offset);
+
     /** @brief Adds a phase to the logic
      * the new phase is inserted at the end of the list of already added phases
      * @param[in] duration The duration of the phase to add in SECONDS!
