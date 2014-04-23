@@ -231,9 +231,11 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
     std::vector<NBNode::Crossing> crossings;
     for (std::vector<NBNode*>::iterator i = myControlledNodes.begin(); i != myControlledNodes.end(); i++) {
         const std::vector<NBNode::Crossing>& c = (*i)->getCrossings();
+        // set tl indices for crossings
+        (*i)->setCrossingTLIndices(noLinksAll);
         copy(c.begin(), c.end(), std::back_inserter(crossings));
+        noLinksAll += c.size();
     }
-    noLinksAll += crossings.size();
 
     NBTrafficLightLogic* logic = new NBTrafficLightLogic(getID(), getProgramID(), noLinksAll, myOffset, myType);
     EdgeVector toProc = incoming;
@@ -370,15 +372,19 @@ NBOwnTLDef::patchStateForCrossings(const std::string& state, const std::vector<N
     const unsigned int pos = (unsigned int)(state.size() - crossings.size()); // number of controlled vehicle links
     for (int ic = 0; ic < (int)crossings.size(); ++ic) {
         const int i1 = pos + ic;
+        const NBNode::Crossing& cross = crossings[ic];
         bool isForbidden = false;
         for (unsigned int i2 = 0; i2 < pos && !isForbidden; ++i2) {
-            for (EdgeVector::const_iterator it = crossings[ic].edges.begin(); it != crossings[ic].edges.end(); ++it) {
-                const NBEdge* edge = *it;
-                const LinkDirection i2dir = crossings[ic].node->getDirection(fromEdges[i2], toEdges[i2]);
-                if (state[i2] == 'G' && (edge == fromEdges[i2] || 
-                            (edge == toEdges[i2] && (i2dir == LINKDIR_STRAIGHT || i2dir == LINKDIR_PARTLEFT || i2dir == LINKDIR_PARTRIGHT)))) {
-                    isForbidden = true;
-                    break;
+            // only check connections at this crossings node
+            if (fromEdges[i2] != 0 && toEdges[i2] != 0 && fromEdges[i2]->getToNode() == cross.node) {
+                for (EdgeVector::const_iterator it = cross.edges.begin(); it != cross.edges.end(); ++it) {
+                    const NBEdge* edge = *it;
+                    const LinkDirection i2dir = cross.node->getDirection(fromEdges[i2], toEdges[i2]);
+                    if (state[i2] == 'G' && (edge == fromEdges[i2] || 
+                                (edge == toEdges[i2] && (i2dir == LINKDIR_STRAIGHT || i2dir == LINKDIR_PARTLEFT || i2dir == LINKDIR_PARTRIGHT)))) {
+                        isForbidden = true;
+                        break;
+                    }
                 }
             }
         }
@@ -394,10 +400,12 @@ NBOwnTLDef::patchStateForCrossings(const std::string& state, const std::vector<N
         if (result[i1] == 'G') {
             for (int ic = 0; ic < (int)crossings.size(); ++ic) {
                 const NBNode::Crossing& crossing = crossings[ic];
-                const int i2 = pos + ic;
-                if (result[i2] == 'G' && crossing.node->mustBrakeForCrossing(fromEdges[i1], toEdges[i1], crossing)) {
-                    result[i1] = 'g';
-                    break;
+                if (fromEdges[i1] != 0 && toEdges[i1] != 0 && fromEdges[i1]->getToNode() == crossing.node) {
+                    const int i2 = pos + ic;
+                    if (result[i2] == 'G' && crossing.node->mustBrakeForCrossing(fromEdges[i1], toEdges[i1], crossing)) {
+                        result[i1] = 'g';
+                        break;
+                    }
                 }
             }
         }

@@ -1578,7 +1578,7 @@ NBNode::buildInnerEdges(bool buildCrossingsAndWalkingAreas) {
         (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
     }
     if (buildCrossingsAndWalkingAreas) {
-        buildCrossings(lno);
+        buildCrossings();
         buildWalkingAreas();
         // ensure that all crossings are properly connected
         for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
@@ -1595,7 +1595,7 @@ NBNode::buildInnerEdges(bool buildCrossingsAndWalkingAreas) {
 
 
 unsigned int
-NBNode::buildCrossings(unsigned int tlIndex) {
+NBNode::buildCrossings() {
     //gDebugFlag1 = getID() == "C";
     unsigned int index = 0;
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
@@ -1620,13 +1620,6 @@ NBNode::buildCrossings(unsigned int tlIndex) {
         crossingEnd.shape.extrapolate((*it).width / 2);
         (*it).shape.push_back(crossingBeg.shape[begDir == FORWARD ? 0 : -1]);
         (*it).shape.push_back(crossingEnd.shape[endDir == FORWARD ? -1 : 0]);
-        if (isTLControlled()) {
-            if (getControllingTLS().size() > 1) {
-                WRITE_WARNING("Nodes with more than 1 traffic light not yet implemented");
-            }
-            (*it).tlLinkNo = tlIndex++;
-        }
-        if (gDebugFlag1) std::cout << "  crossing=" << (*it).id << " tlLinkNo=" << (*it).tlLinkNo << "\n";
     }
     return index;
 }
@@ -1751,7 +1744,6 @@ NBNode::buildWalkingAreas() {
                 connectsCrossing = true;
                 if (isTLControlled()) {
                     wa.tlID = (*getControllingTLS().begin())->getID();
-                    wa.tlLinkNo = (*it).tlLinkNo;
                 }
                 connectedPoints.push_back((*it).shape[0]);
                 if (gDebugFlag1) std::cout << "    crossing " << (*it).id << " starts\n";
@@ -1760,7 +1752,6 @@ NBNode::buildWalkingAreas() {
                 << " cFront=" << (*it).edges.front()->getID() << " cBack=" << (*it).edges.back()->getID() 
                 << " wEnd=" << normalizedLanes[end].first->getID() << " wStart=" << normalizedLanes[start].first->getID() 
                 << " wStartPrev=" << normalizedLanes[prev].first->getID() 
-                << " tlLinkNo=" << (*it).tlLinkNo
                 << "\n";
         }
         if (count < 2 && !connectsCrossing) {
@@ -1841,7 +1832,6 @@ NBNode::buildWalkingAreas() {
             next.prevWalkingArea = wa.id;
             if (isTLControlled()) {
                 wa.tlID = (*getControllingTLS().begin())->getID();
-                wa.tlLinkNo = next.tlLinkNo;
             }
             // back of previous crossing
             PositionVector tmp = prev.shape;
@@ -1859,10 +1849,6 @@ NBNode::buildWalkingAreas() {
             // length (special case)
             wa.length = MAX2(POSITION_EPS, prev.shape.back().distanceTo2D(next.shape.front()));
         }
-    }
-    if (isTLControlled()) {
-        // sort by tlLinkNo 
-        sort(myWalkingAreas.begin(), myWalkingAreas.end(), walkingAreas_by_tlLinkno_sorter());
     }
 }
 
@@ -1948,6 +1934,15 @@ NBNode::getCrossing(const std::string& id) const {
     }
     throw ProcessError("Request for unknown crossing '" + id + "'");
 }
+
+
+void 
+NBNode::setCrossingTLIndices(unsigned int startIndex) {
+    for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); ++it) {
+        (*it).tlLinkNo = startIndex++;
+    }
+}
+
 
 int 
 NBNode::numNormalConnections() const {

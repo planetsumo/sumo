@@ -157,6 +157,9 @@ private:
     /// @brief repair the plan if controlled nodes received pedestrian crossings
     void patchIfCrossingsAdded();
 
+    /// @brief set of edges with shifted lane indices (to avoid shifting twice)
+    std::set<NBEdge*> myShifted;
+
 private:
     /// @brief class for identifying connections
     class connection_equal {

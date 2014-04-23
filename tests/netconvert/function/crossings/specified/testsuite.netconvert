@@ -30,3 +30,7 @@
 
 # a pedestrian path crosses a street with sidewalks
 path_across_street
+
+# add crossings to two nodes which share a traffic light
+joined_tls
+patch_joined_tls_from_sumonet

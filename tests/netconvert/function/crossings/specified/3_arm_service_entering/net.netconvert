@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Wed Apr  9 14:11:35 2014 by SUMO netconvert Version dev-SVN-r16159
+<!-- generated on Wed Apr 23 15:27:31 2014 by SUMO netconvert Version dev-SVN-r16229
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -60,11 +60,11 @@
     <edge id=":C_c1" function="crossing">
         <lane id=":C_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.50" shape="97.50,103.25 97.50,96.75"/>
     </edge>
-    <edge id=":C_w1" function="walkingarea">
-        <lane id=":C_w1_0" index="0" allow="pedestrian" speed="1.00" length="5.39" width="4.50" shape="100.25,96.65 104.75,96.65 104.75,94.65 103.25,92.55 100.05,92.55 99.95,92.55 96.75,92.55 95.25,94.65 95.25,96.65 99.75,96.65"/>
-    </edge>
     <edge id=":C_w0" function="walkingarea">
         <lane id=":C_w0_0" index="0" allow="pedestrian" speed="1.00" length="5.70" width="4.50" shape="99.75,103.35 95.25,103.35 95.25,105.35 104.75,105.35 104.75,103.35 100.25,103.35"/>
+    </edge>
+    <edge id=":C_w1" function="walkingarea">
+        <lane id=":C_w1_0" index="0" allow="pedestrian" speed="1.00" length="5.39" width="4.50" shape="100.25,96.65 104.75,96.65 104.75,94.65 103.25,92.55 100.05,92.55 99.95,92.55 96.75,92.55 95.25,94.65 95.25,96.65 99.75,96.65"/>
     </edge>
     <edge id=":E_w0" function="walkingarea">
         <lane id=":E_w0_0" index="0" allow="pedestrian" speed="1.00" length="8.70" width="4.00" shape="204.00,103.35 200.00,103.35 200.00,105.35 200.00,94.65 200.00,96.65 204.00,96.65"/>
@@ -143,14 +143,14 @@
 
     <connection from=":C_c0" to=":C_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_c1" to=":C_w1" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":C_w0" to=":C_c1" fromLane="0" toLane="0" tl="C" linkIndex="7" dir="s" state="M"/>
+    <connection from=":C_w0" to="CW" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="EC" to=":C_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_w1" to=":C_c0" fromLane="0" toLane="0" tl="C" linkIndex="6" dir="s" state="M"/>
     <connection from=":C_w1" to="CE" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_w1" to="CS" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="SC" to=":C_w1" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="WC" to=":C_w1" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":C_w0" to=":C_c1" fromLane="0" toLane="0" tl="C" linkIndex="7" dir="s" state="M"/>
-    <connection from=":C_w0" to="CW" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from="EC" to=":C_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":E_w0" to="EC" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="CE" to=":E_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":S_w0" to="SC" fromLane="0" toLane="0" dir="s" state="M"/>

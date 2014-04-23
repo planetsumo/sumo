@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Tue Apr 15 15:11:30 2014 by SUMO netconvert Version dev-SVN-r16196
+<!-- generated on Wed Apr 23 15:27:31 2014 by SUMO netconvert Version dev-SVN-r16229
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -92,6 +92,9 @@
     <edge id=":C_c3" function="crossing">
         <lane id=":C_c3_0" index="0" allow="pedestrian" speed="1.00" length="16.30" width="4.50" shape="89.40,108.15 89.40,91.85"/>
     </edge>
+    <edge id=":C_w0" function="walkingarea">
+        <lane id=":C_w0_0" index="0" allow="pedestrian" speed="1.00" length="3.82" width="4.50" shape="91.65,108.25 87.15,108.25 87.15,111.25 88.75,112.85 91.75,112.85 91.75,108.35"/>
+    </edge>
     <edge id=":C_w1" function="walkingarea">
         <lane id=":C_w1_0" index="0" allow="pedestrian" speed="1.00" length="3.82" width="4.50" shape="108.25,108.35 108.25,112.85 111.25,112.85 112.85,111.25 112.85,108.25 108.35,108.25"/>
     </edge>
@@ -100,9 +103,6 @@
     </edge>
     <edge id=":C_w3" function="walkingarea">
         <lane id=":C_w3_0" index="0" allow="pedestrian" speed="1.00" length="3.82" width="4.50" shape="91.75,91.65 91.75,87.15 88.75,87.15 87.15,88.75 87.15,91.75 91.65,91.75"/>
-    </edge>
-    <edge id=":C_w0" function="walkingarea">
-        <lane id=":C_w0_0" index="0" allow="pedestrian" speed="1.00" length="3.82" width="4.50" shape="91.65,108.25 87.15,108.25 87.15,111.25 88.75,112.85 91.75,112.85 91.75,108.35"/>
     </edge>
     <edge id=":E_w0" function="walkingarea">
         <lane id=":E_w0_0" index="0" allow="pedestrian" speed="1.00" length="19.50" width="4.00" shape="204.00,108.25 200.00,108.25 200.00,111.25 200.00,88.75 200.00,91.75 204.00,91.75"/>
@@ -245,6 +245,9 @@
     <connection from=":C_c1" to=":C_w1" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_c2" to=":C_w2" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_c3" to=":C_w3" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":C_w0" to=":C_c3" fromLane="0" toLane="0" tl="C" linkIndex="17" dir="s" state="M"/>
+    <connection from=":C_w0" to="CW" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="NC" to=":C_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":C_w1" to=":C_c0" fromLane="0" toLane="0" tl="C" linkIndex="14" dir="s" state="M"/>
     <connection from=":C_w1" to="CN" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="EC" to=":C_w1" fromLane="0" toLane="0" dir="s" state="M"/>
@@ -254,9 +257,6 @@
     <connection from=":C_w3" to=":C_c2" fromLane="0" toLane="0" tl="C" linkIndex="16" dir="s" state="M"/>
     <connection from=":C_w3" to="CS" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="WC" to=":C_w3" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":C_w0" to=":C_c3" fromLane="0" toLane="0" tl="C" linkIndex="17" dir="s" state="M"/>
-    <connection from=":C_w0" to="CW" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from="NC" to=":C_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":E_w0" to="EC" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from="CE" to=":E_w0" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":N_w0" to="NC" fromLane="0" toLane="0" dir="s" state="M"/>

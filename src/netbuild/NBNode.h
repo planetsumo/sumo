@@ -161,8 +161,7 @@ public:
             id(_id), 
             width(_width),
             nextCrossing(""),
-            tlID(""),
-            tlLinkNo(-1)
+            tlID("")
         {}
         /// @brief the (edge)-id of this walkingArea
         std::string id;
@@ -176,8 +175,6 @@ public:
         std::string nextCrossing;
         /// @brief the traffic light id of the next crossing or ""
         std::string tlID;
-        /// @brief the traffic light index of the next crossing (if controlled)
-        int tlLinkNo;
         /// @brief the lane-id of the next sidewalk lane or ""
         std::vector<std::string> nextSidewalks;
         /// @brief the lane-id of the previous sidewalk lane or ""
@@ -534,10 +531,9 @@ public:
     void buildInnerEdges(bool buildCrossingsAndWalkingAreas);
 
     /* @brief build pedestrian crossings 
-     * @param[in] index The starting index for naming the created internal lanes
      * @return The next index for creating internal lanes 
      * */
-    unsigned int buildCrossings(unsigned int tlIndex);
+    unsigned int buildCrossings();
 
     /* @brief build pedestrian walking areas and set connections from/to walkingAreas
      * @param[in] index The starting index for naming the created internal lanes
@@ -578,6 +574,9 @@ public:
     /// @brief return the crossing with the given id
     const Crossing& getCrossing(const std::string& id) const;
 
+    /// @brief set tl indices of this nodes crossing starting at the given index
+    void setCrossingTLIndices(unsigned int startIndex);
+
     /// @brief return the number of lane-to-lane connections at this junction (excluding crossings)
     int numNormalConnections() const;
 
@@ -612,23 +611,6 @@ public:
     private:
         /// @brief The node to compute the relative angle of
         NBNode* myNode;
-
-    };
-
-    /**
-     * @class walkingAreas_by_tlLinkno_sorter
-     * @brief Used for sorting the cells by the begin time they describe
-     */
-    class walkingAreas_by_tlLinkno_sorter {
-    public:
-        /// @brief Constructor
-        explicit walkingAreas_by_tlLinkno_sorter() { }
-
-        /** @brief Comparing operator
-         */
-        int operator()(const WalkingArea& wa1, const WalkingArea& wa2) const {
-            return wa1.tlLinkNo < wa2.tlLinkNo;
-        }
 
     };
 
