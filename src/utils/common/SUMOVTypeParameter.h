@@ -136,14 +136,6 @@ public:
     SUMOVehicleClass vehicleClass;
     /// @brief The vehicle's impatience (willingness to obstruct others)
     SUMOReal impatience;
-    /* /// @brief The vehicle's minimum headway time (tau) // will be moved here from the cfModel eventually
-    SUMOReal headwayTime;
-    /// @brief The vehicle's maximum acceleration
-    SUMOReal maxAccel;
-    /// @brief The vehicle's maximum deceleration
-    SUMOReal maxDecel;
-    /// @brief The driver's imperfection (dawdling factor in Krauss-like models)
-    SUMOReal imperfection; */
 
 
     /// @name Values for drawing this class' vehicles
@@ -186,28 +178,29 @@ public:
     /// @brief Information whether this is a type-stub, being only referenced but not defined (needed by routers)
     mutable bool onlyReferenced;
 
-    static SUMOReal getDefaultMaxSpeed(const SUMOVehicleClass vc = SVC_IGNORING);
+    /** @brief Returns the default acceleration for the given vehicle class
+     * This needs to be a function because the actual value is stored in the car following model
+     * @param[in] vc the vehicle class
+     * @return the acceleration in m/s^2
+     */
     static SUMOReal getDefaultAccel(const SUMOVehicleClass vc = SVC_IGNORING);
+
+    /** @brief Returns the default deceleration for the given vehicle class
+     * This needs to be a function because the actual value is stored in the car following model
+     * @param[in] vc the vehicle class
+     * @return the deceleration in m/s^2
+     */
     static SUMOReal getDefaultDecel(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultSigma(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultLength(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultMinGap(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultTau(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultImpatience(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultSpeedFactor(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultSpeedDev(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultWidth(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultHeight(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SumoXMLTag getDefaultFollowModel(const SUMOVehicleClass vc = SVC_IGNORING);
-    static LaneChangeModel getDefaultLaneChangeModel(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOVehicleShape getDefaultShape(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOEmissionClass getDefaultEmissionClass(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultTmp1(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultTmp2(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultTmp3(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultTmp4(const SUMOVehicleClass vc = SVC_IGNORING);
-    static SUMOReal getDefaultTmp5(const SUMOVehicleClass vc = SVC_IGNORING);
-        
+
+    /** @brief Returns the default driver's imperfection (sigma or epsilon in Krauss' model) for the given vehicle class
+     * This needs to be a function because the actual value is stored in the car following model
+     * @param[in] vc the vehicle class
+     * @return the imperfection as a value between 0 and 1
+     */
+    static SUMOReal getDefaultImperfection(const SUMOVehicleClass vc = SVC_IGNORING);
+
+    /// @brief return the default parameters, this is a function due to the http://www.parashift.com/c++-faq/static-init-order.html
+    static const SUMOVTypeParameter& getDefault();
 
 };
 
