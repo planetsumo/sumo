@@ -550,9 +550,11 @@ MSPModel_Striping::moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& ch
                 }
             }
             p.walk(currentObs, currentTime);
-            Obstacle o(p, dir);
-            obs[p.stripe()] = o;
-            obs[p.otherStripe()] = o;
+            if (!p.myWaitingToEnter) {
+                Obstacle o(p, dir);
+                obs[p.stripe()] = o;
+                obs[p.otherStripe()] = o;
+            }
             //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << lane->getID() << " x=" << p.myX << "\n";
         }
 
