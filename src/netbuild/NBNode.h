@@ -521,11 +521,9 @@ public:
 
     /* @brief check whether a crossing should be build for the candiate edges and build 0 to n crossings
      * @param[in] candidates The candidate vector of edges to be crossed
-     * @param[in] sidewalkFrom whether a sidewalk at the starting side of the crossing is known to exist
-     * @param[in] sidewalkTo whether a sidewalk at the destination side of the crossing is known to exist
      * @return The number of crossings built
      * */
-    int checkCrossing(EdgeVector candidates, bool sidewalkFrom=false, bool sidewalkTo=false);
+    int checkCrossing(EdgeVector candidates);
 
     /// @brief build internal lanes, pedestrian crossings and walking areas
     void buildInnerEdges(bool buildCrossingsAndWalkingAreas);

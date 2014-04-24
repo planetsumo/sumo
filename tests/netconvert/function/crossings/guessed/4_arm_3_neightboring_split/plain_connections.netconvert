@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Mon Apr  7 15:56:06 2014 by SUMO netconvert Version dev-SVN-r16106
+<!-- generated on Thu Apr 24 08:45:05 2014 by SUMO netconvert Version dev-SVN-r16229
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -61,9 +61,4 @@
     <crossing node="C" edges="CE" priority="1"/>
     <crossing node="C" edges="SC" priority="1"/>
     <crossing node="C" edges="CS" priority="1"/>
-    <crossing node="E" edges="EC" priority="0"/>
-    <crossing node="E" edges="CE" priority="0"/>
-    <crossing node="N" edges="NC" priority="0"/>
-    <crossing node="N" edges="CN" priority="0"/>
-    <crossing node="W" edges="WC CW" priority="0"/>
 </connections>
