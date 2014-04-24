@@ -109,7 +109,7 @@ MSLink::setRequestInformation(int index, bool isCrossing, bool isCont,
                 std::vector<SUMOReal> intersections1 = lane->getShape().intersectsAtLengths2D((*it_lane)->getShape());
                 //std::cout << " number of intersections1=" << intersections1.size() << "\n";
                 if (intersections1.size() == 0) {
-                    intersections1.push_back(std::numeric_limits<SUMOReal>::max()); // disregard this foe
+                    intersections1.push_back(10000.0); // disregard this foe (using maxdouble leads to nasty problems down the line)
                 } else if (intersections1.size() > 1) {
                     std::sort(intersections1.begin(), intersections1.end());
                 }
