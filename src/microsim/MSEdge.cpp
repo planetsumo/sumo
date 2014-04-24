@@ -157,7 +157,9 @@ MSEdge::closeBuilding() {
             toL = (*j)->getViaLane();
             if (toL != 0) {
                 MSEdge& to = toL->getEdge();
-                to.myPredeccesors.push_back(this);
+                if (std::find(to.myPredeccesors.begin(), to.myPredeccesors.end(), this) == to.myPredeccesors.end()) {
+                    to.myPredeccesors.push_back(this);
+                }
             }
 #endif
         }
