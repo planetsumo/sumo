@@ -259,11 +259,11 @@ MSFrame::fillOptions() {
     oc.doRegister("pedestrian.model", new Option_String("striping"));
     oc.addDescription("pedestrian.model", "Processing", "The pedestrian model to use. Options are ['nonInteracting', 'striping']");
 
-    oc.doRegister("pedestrian.stripe-width", new Option_Float(0.65));
-    oc.addDescription("pedestrian.stripe-width", "Processing", "Width of parallel stripes for segmenting a sidewalk (meters)");
+    oc.doRegister("pedestrian.striping.stripe-width", new Option_Float(0.65));
+    oc.addDescription("pedestrian.striping.stripe-width", "Processing", "Width of parallel stripes for segmenting a sidewalk (meters) for use with model 'striping'");
 
-    oc.doRegister("pedestrian.dawdling", new Option_Float(0.2));
-    oc.addDescription("pedestrian.dawdling", "Processing", "factor for random slow-downs [0,1]");
+    oc.doRegister("pedestrian.striping.dawdling", new Option_Float(0.2));
+    oc.addDescription("pedestrian.striping.dawdling", "Processing", "factor for random slow-downs [0,1] for use with model 'striping'");
 
     // devices
     oc.addOptionSubTopic("Emissions");

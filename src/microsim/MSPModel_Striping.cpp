@@ -100,8 +100,8 @@ MSPModel_Striping::MSPModel_Striping(const OptionsCont& oc, MSNet* net) :
     net->getBeginOfTimestepEvents().addEvent(myCommand, net->getCurrentTimeStep() + DELTA_T, MSEventControl::ADAPT_AFTER_EXECUTION);
     initWalkingAreaPaths(net);
     // configurable parameters
-    stripeWidth = oc.getFloat("pedestrian.stripe-width");
-    dawdling = oc.getFloat("pedestrian.dawdling");
+    stripeWidth = oc.getFloat("pedestrian.striping.stripe-width");
+    dawdling = oc.getFloat("pedestrian.striping.dawdling");
 }
 
 
