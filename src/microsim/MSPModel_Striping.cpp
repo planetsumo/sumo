@@ -289,9 +289,9 @@ MSPModel_Striping::getNextLane(const Pedestrian& ped, const MSLane* currentLane,
                const MSEdge* nextEdge = crossingRoute[1];
                nextLane = getSidewalk(crossingRoute[1]);
                // need to check that the route actually goes across the current junction
-               // XXX limit search depth to avoid search the whole network in case of failure?
-               if ((nextEdge->getFromJunction() == junction || nextEdge->getToJunction() == junction)
-                       && nextLane != prevLane) {
+               if ((nextEdge->getFromJunction() == junction || nextEdge->getToJunction() == junction))
+                       // && nextLane != prevLane)  XXX prevent walking backwards?
+               {
                    nextDir = connectedDirection(currentLane, nextLane);
                    if DEBUGCOND(ped.myPerson->getID()) std::cout << " nextDir=" << nextDir << "\n";
                    assert(nextDir != UNDEFINED_DIRECTION);
@@ -307,7 +307,7 @@ MSPModel_Striping::getNextLane(const Pedestrian& ped, const MSLane* currentLane,
                } else {
                    WRITE_WARNING("Could not find route across junction from '" + (currentEdge == 0 ? "NULL" : currentEdge->getID())
                            + "' to '" + (nextRouteEdge == 0 ? "NULL" : nextRouteEdge->getID())
-                           + "' for pedestrian '" + ped.myPerson->getID() + "' (found only detour using " + nextLane->getID() + ").");
+                           + "' for pedestrian '" + ped.myPerson->getID() + "' (found only detour using " + toString(crossingRoute) + ").");
                }
            } else {
                if DEBUGCOND(ped.myPerson->getID()) {
