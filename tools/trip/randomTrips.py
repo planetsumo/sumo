@@ -73,6 +73,9 @@ def get_options():
     if not options.netfile:
         optParser.print_help()
         sys.exit()
+
+    if options.pedestrians and options.vclass is None:
+        options.vclass = pedestrian
     return options
 
 
