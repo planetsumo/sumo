@@ -976,7 +976,11 @@ MSPModel_Striping::Pedestrian::getAngle(const MSPerson::MSPersonStage_Walking& s
         return 0;
     }
     const PositionVector& shp = myWalkingAreaPath == 0 ? myLane->getShape() : myWalkingAreaPath->shape;
-    return -shp.rotationDegreeAtOffset(myX) + (myDir == MSPModel::BACKWARD ? 180 : 0);
+    SUMOReal angle = -shp.rotationDegreeAtOffset(myX) + (myDir == MSPModel::BACKWARD ? 180 : 0);
+    if (angle > 180) {
+        angle -= 360;
+    }
+    return angle;
 }
 
 
