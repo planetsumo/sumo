@@ -257,7 +257,7 @@ MSFrame::fillOptions() {
                       "Select among routing algorithms ['dijkstra', 'astar']");
     // pedestrian model
     oc.doRegister("pedestrian.model", new Option_String("striping"));
-    oc.addDescription("pedestrian.model", "Processing", "The pedestrian model to use. Options are ['nonInteracting', 'striping']");
+    oc.addDescription("pedestrian.model", "Processing", "Select among pedestrian models ['nonInteracting', 'striping']");
 
     oc.doRegister("pedestrian.striping.stripe-width", new Option_Float(0.65));
     oc.addDescription("pedestrian.striping.stripe-width", "Processing", "Width of parallel stripes for segmenting a sidewalk (meters) for use with model 'striping'");
