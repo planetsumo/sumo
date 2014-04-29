@@ -1188,7 +1188,7 @@ MSLane::getLeaderOnConsecutive(SUMOReal dist, SUMOReal seen, SUMOReal speed, con
         if (linkLeaders.size() > 0) {
             // XXX if there is more than one link leader we should return the most important
             // one (gap, decel) but this is hard to know at this point
-            return linkLeaders[0].first;
+            return linkLeaders[0].vehAndGap;
         }
         bool nextInternal = (*link)->getViaLane() != 0;
 #endif
