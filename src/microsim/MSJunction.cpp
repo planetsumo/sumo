@@ -45,7 +45,6 @@ class MSLink;
 // ===========================================================================
 // static member definitions
 // ===========================================================================
-MSJunction::DictType MSJunction::myDict;
 
 // ===========================================================================
 // member method definition
@@ -66,31 +65,6 @@ MSJunction::getPosition() const {
 
 void
 MSJunction::postloadInit() {}
-
-
-bool
-MSJunction::dictionary(const std::string& id, MSJunction* ptr) {
-    DictType::iterator it = myDict.find(id);
-    if (it == myDict.end()) {
-        // id not in myDict.
-        myDict[id] = ptr;
-        return true;
-    }
-    return false;
-}
-
-
-MSJunction*
-MSJunction::dictionary(const std::string& id) {
-    DictType::iterator it = myDict.find(id);
-    if (it == myDict.end()) {
-        // id not in myDict.
-        return 0;
-    }
-    return it->second;
-}
-
-
 
 
 /****************************************************************************/

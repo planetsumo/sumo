@@ -243,8 +243,8 @@ NLHandler::myEndElement(int element) {
             // build junction graph
             for (JunctionGraph::iterator it = myJunctionGraph.begin(); it != myJunctionGraph.end(); ++it) {
                 MSEdge* edge = MSEdge::dictionary(it->first);
-                MSJunction* from = MSJunction::dictionary(it->second.first);
-                MSJunction* to = MSJunction::dictionary(it->second.second);
+                MSJunction* from = myJunctionControlBuilder.retrieve(it->second.first);
+                MSJunction* to = myJunctionControlBuilder.retrieve(it->second.second);
                 if (edge != 0 && from != 0 && to != 0) {
                     edge->setJunctions(from, to);
                     from->addOutgoing(edge);

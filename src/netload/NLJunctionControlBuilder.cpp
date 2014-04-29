@@ -142,7 +142,6 @@ NLJunctionControlBuilder::closeJunction() {
         if (!myJunctions->add(myActiveID, junction)) {
             throw InvalidArgument("Another junction with the id '" + myActiveID + "' exists.");
         }
-        MSJunction::dictionary(junction->getID(), junction);
     }
 }
 
@@ -429,6 +428,16 @@ NLJunctionControlBuilder::postLoadInitialization() {
         (*it)->init(myDetectorBuilder);
     }
     myNetIsLoaded = true;
+}
+
+
+MSJunction* 
+NLJunctionControlBuilder::retrieve(const std::string id) {
+    if (myJunctions != 0) {
+        return myJunctions->get(id);
+    } else {
+        return 0;
+    }
 }
 
 /****************************************************************************/

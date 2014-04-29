@@ -511,7 +511,6 @@ void
 MSNet::clearAll() {
     // clear container
     MSEdge::clear();
-    MSJunction::clear();
     MSLane::clear();
     MSRoute::clear();
     delete MSVehicleTransfer::getInstance();
