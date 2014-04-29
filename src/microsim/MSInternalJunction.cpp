@@ -34,7 +34,6 @@
 #include "MSInternalJunction.h"
 #include "MSLane.h"
 #include "MSJunctionLogic.h"
-#include "MSBitSetLogic.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>

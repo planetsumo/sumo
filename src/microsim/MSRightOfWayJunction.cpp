@@ -35,7 +35,6 @@
 #include "MSLane.h"
 #include "MSEdge.h"
 #include "MSJunctionLogic.h"
-#include "MSBitSetLogic.h"
 #include "MSGlobals.h"
 #include <algorithm>
 #include <cassert>
