@@ -96,9 +96,10 @@ MSLink::setRequestInformation(int index, bool isCrossing, bool isCont,
     if (internalLaneBefore != 0) {
         // this is an exit link. compute crossing points with all foeLanes
         lane = internalLaneBefore;
-    } else if (myLane->getEdge().isCrossing()) {
-        // this is the link to a pedestrian crossing. compute crossing points with all foeLanes
-        lane = myLane;
+    //} else if (myLane->getEdge().isCrossing()) {
+    //    // this is the link to a pedestrian crossing. compute crossing points with all foeLanes
+    //    // @note not currently used by pedestrians
+    //    lane = myLane;
     }
     if (lane != 0) {
         for (std::vector<MSLane*>::const_iterator it_lane = myFoeLanes.begin(); it_lane != myFoeLanes.end(); ++it_lane) {
