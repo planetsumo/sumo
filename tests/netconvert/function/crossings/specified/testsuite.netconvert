@@ -27,6 +27,10 @@
 
 # crossings have intermediate walking areas
 4_arm_3_neighboring_split
+4_arm_mixed_priority
+
+# reimport .net.xml and keep the crossings with their original priorities
+4_arm_mixed_priority_from_sumonet
 
 # a pedestrian path crosses a street with sidewalks
 path_across_street

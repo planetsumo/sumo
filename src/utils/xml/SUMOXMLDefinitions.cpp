@@ -33,6 +33,7 @@
 #include <config.h>
 #endif
 
+#include <cassert>
 #include "SUMOXMLDefinitions.h"
 #include <utils/common/StringBijection.h>
 
@@ -547,6 +548,18 @@ StringBijection<TrafficLightType> SUMOXMLDefinitions::TrafficLightTypes(
 
 StringBijection<LaneChangeModel> SUMOXMLDefinitions::LaneChangeModels(
     SUMOXMLDefinitions::laneChangeModelValues, LCM_JE2013);
+
+
+std::string 
+SUMOXMLDefinitions::getJunctionIDFromInternalEdge(const std::string internalEdge) {
+    assert(internalEdge[0] == ':');
+    return internalEdge.substr(1, internalEdge.rfind('_') - 1);
+}
+
+std::string 
+SUMOXMLDefinitions::getEdgeIDFromLane(const std::string laneID) {
+    return laneID.substr(0, laneID.rfind('_') - 1);
+}
 
 /****************************************************************************/
 
