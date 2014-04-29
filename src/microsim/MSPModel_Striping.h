@@ -196,9 +196,9 @@ protected:
         /// @brief the current lane of this pedestrian
         const MSLane* myLane; 
         /// @brief the advancement along the current lane
-        SUMOReal myX; 
+        SUMOReal myRelX; 
         /// @brief the orthogonal shift on the current lane
-        SUMOReal myY; 
+        SUMOReal myRelY; 
         /// @brief the walking direction on the current lane (1 forward, -1 backward)
         int myDir;
         /// @brief the current walking speed
@@ -220,7 +220,7 @@ protected:
         /// @brief the absolute distance to the end of the lane in walking direction (or to the arrivalPos)
         SUMOReal distToLaneEnd() const;
 
-        /// @brief return whether this pedestrian has passed the end of the current lane and update myX if so
+        /// @brief return whether this pedestrian has passed the end of the current lane and update myRelX if so
         bool moveToNextLane(SUMOTime currentTime);
 
         /// @brief perform position update
@@ -256,7 +256,7 @@ protected:
     public:
         /// comparing operation
         bool operator()(const PState* p1, const PState* p2) const {
-            return myDir * p1->myX > myDir * p2->myX;
+            return myDir * p1->myRelX > myDir * p2->myRelX;
         }
 
     private:
