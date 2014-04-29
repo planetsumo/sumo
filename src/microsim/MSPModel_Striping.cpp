@@ -76,7 +76,7 @@ MSPModel_Striping::WalkingAreaPaths MSPModel_Striping::myWalkingAreaPaths;
 MSPModel_Striping::Pedestrians MSPModel_Striping::noPedestrians;
 
 
-// model parameters (static to simplify access from class Pedestrian
+// model parameters (static to simplify access from class PState
 SUMOReal MSPModel_Striping::stripeWidth;
 SUMOReal MSPModel_Striping::dawdling;
 const SUMOReal MSPModel_Striping::LOOKAHEAD_SAMEDIR(4.0); // seconds
@@ -113,7 +113,7 @@ PedestrianState*
 MSPModel_Striping::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime) {
     assert(person->getCurrentStageType() == MSPerson::WALKING);
     const MSLane* lane = getSidewalk(person->getEdge());
-    Pedestrian* ped = new Pedestrian(person, stage, lane);
+    PState* ped = new PState(person, stage, lane);
     myActiveLanes[lane].push_back(ped);
     myNumActivePedestrians++;
     return ped;
@@ -124,7 +124,7 @@ bool
 MSPModel_Striping::blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers) {
     const Pedestrians& pedestrians = getPedestrians(lane);
     for (Pedestrians::const_iterator it_ped = pedestrians.begin(); it_ped != pedestrians.end(); ++it_ped) {
-        const Pedestrian& ped = **it_ped;
+        const PState& ped = **it_ped;
         const SUMOReal leaderBackDist = (ped.myDir == FORWARD 
                 ? distToCrossing - (ped.myX - ped.getLength() - MSPModel::SAFETY_GAP)
                 : (ped.myX + ped.getLength() + MSPModel::SAFETY_GAP) - distToCrossing); 
@@ -246,7 +246,7 @@ MSPModel_Striping::initWalkingAreaPaths(const MSNet* net) {
 
 
 MSPModel_Striping::NextLaneInfo 
-MSPModel_Striping::getNextLane(const Pedestrian& ped, const MSLane* currentLane, const MSLane* prevLane) {
+MSPModel_Striping::getNextLane(const PState& ped, const MSLane* currentLane, const MSLane* prevLane) {
     const MSEdge* currentEdge = &currentLane->getEdge();
     const MSJunction* junction = ped.myDir == FORWARD ? currentEdge->getToJunction() : currentEdge->getFromJunction();
     const MSEdge* nextRouteEdge = ped.myStage->getNextRouteEdge();
@@ -404,12 +404,12 @@ MSPModel_Striping::mergeObstacles(const Obstacles& obs1, const Obstacles& obs2, 
 
 MSPModel_Striping::Obstacles
 MSPModel_Striping::getNeighboringObstacles(const Pedestrians& pedestrians, int egoIndex, int stripes) {
-    const Pedestrian& ego = *pedestrians[egoIndex];
+    const PState& ego = *pedestrians[egoIndex];
     const SUMOReal egoBack = ego.myX - ego.myDir * ego.getLength();
     int index = egoIndex + 1;
     Obstacles obs(stripes, Obstacle(ego.myDir));
     while (index < (int)pedestrians.size() && ego.myDir * (pedestrians[index]->myX - egoBack) > 0) {
-        const Pedestrian& p = *pedestrians[index];
+        const PState& p = *pedestrians[index];
         if (!p.myWaitingToEnter) {
             Obstacle o(p, ego.myDir);
             obs[p.stripe()] = o;
@@ -444,7 +444,7 @@ MSPModel_Striping::getNextLaneObstacles(NextLanesObstacles& nextLanesObs, const 
         // XXX consider waitingToEnter on nextLane
         sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(nextDir));
         for (int ii = 0; ii < pedestrians.size(); ++ii) {
-            const Pedestrian& p = *pedestrians[ii];
+            const PState& p = *pedestrians[ii];
             if (p.myWaitingToEnter) {
                 continue;
             }
@@ -488,7 +488,7 @@ MSPModel_Striping::moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& ch
         NextLanesObstacles nextLanesObs; // continously updated
         sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(dir));
         for (int ii = 0; ii < pedestrians.size(); ++ii) {
-            Pedestrian& p = *pedestrians[ii];
+            PState& p = *pedestrians[ii];
             //std::cout << SIMTIME << "CHECKING" << p.myPerson->getID() << "\n";
             Obstacles currentObs = obs;
             if (p.myDir != dir || changedLane.count(p.myPerson) !=0) {
@@ -565,7 +565,7 @@ MSPModel_Striping::moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& ch
         while (checkAdvance) {
             checkAdvance = false;;
             if (pedestrians.size() > 0) {
-                Pedestrian* p = pedestrians.front();
+                PState* p = pedestrians.front();
                 if (p->myDir != dir) {
                     continue;
                 }
@@ -596,7 +596,7 @@ MSPModel_Striping::Obstacle::Obstacle(int dir) :
 {}
 
 
-MSPModel_Striping::Obstacle::Obstacle(const Pedestrian& ped, int dir) :
+MSPModel_Striping::Obstacle::Obstacle(const PState& ped, int dir) :
     description(ped.myPerson->getID())
 {
     assert(!ped.myWaitingToEnter);
@@ -611,11 +611,11 @@ MSPModel_Striping::Obstacle::Obstacle(const Pedestrian& ped, int dir) :
 
 
 // ===========================================================================
-// MSPModel_Striping::Pedestrian method definitions
+// MSPModel_Striping::PState method definitions
 // ===========================================================================
 
 
-MSPModel_Striping::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, const MSLane* lane): 
+MSPModel_Striping::PState::PState(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, const MSLane* lane): 
     myPerson(person),
     myStage(stage),
     myLane(lane),
@@ -665,20 +665,20 @@ MSPModel_Striping::Pedestrian::Pedestrian(MSPerson* person, MSPerson::MSPersonSt
 
 
 SUMOReal 
-MSPModel_Striping::Pedestrian::getLength() const {
+MSPModel_Striping::PState::getLength() const {
     return myPerson->getVehicleType().getLength();
 }
 
 
 int 
-MSPModel_Striping::Pedestrian::stripe() const {
+MSPModel_Striping::PState::stripe() const {
     const int max = numStripes(myLane) - 1;
     return MIN2(MAX2(0, (int)floor((myY + 0.5 * stripeWidth) / stripeWidth)), max);
 }
 
 
 int 
-MSPModel_Striping::Pedestrian::otherStripe() const {
+MSPModel_Striping::PState::otherStripe() const {
     const int max = numStripes(myLane) - 1;
     const int s = stripe();
     const SUMOReal offset = myY - s * stripeWidth;
@@ -699,7 +699,7 @@ MSPModel_Striping::Pedestrian::otherStripe() const {
 
 
 SUMOReal 
-MSPModel_Striping::Pedestrian::distToLaneEnd() const {
+MSPModel_Striping::PState::distToLaneEnd() const {
     if (myStage->getNextRouteEdge() == 0) {
         return myDir * (myStage->getArrivalPos() - myX);
     } else {
@@ -710,7 +710,7 @@ MSPModel_Striping::Pedestrian::distToLaneEnd() const {
 
 
 bool
-MSPModel_Striping::Pedestrian::moveToNextLane(SUMOTime currentTime) {
+MSPModel_Striping::PState::moveToNextLane(SUMOTime currentTime) {
     const SUMOReal dist = distToLaneEnd();
     //if (myPerson->getID() == DEBUG1) {
     //    std::cout << SIMTIME << " myX=" << myX << " dist=" << dist << "\n";
@@ -770,7 +770,7 @@ MSPModel_Striping::Pedestrian::moveToNextLane(SUMOTime currentTime) {
 
 
 void 
-MSPModel_Striping::Pedestrian::walk(const Obstacles& obs, SUMOTime currentTime) {
+MSPModel_Striping::PState::walk(const Obstacles& obs, SUMOTime currentTime) {
     const int stripes = (int)obs.size();
     const int sMax =  stripes - 1;
     assert(stripes == numStripes(myLane));
@@ -933,7 +933,7 @@ MSPModel_Striping::Pedestrian::walk(const Obstacles& obs, SUMOTime currentTime) 
 
 
 SUMOReal 
-MSPModel_Striping::Pedestrian::getImpatience(SUMOTime now) const {
+MSPModel_Striping::PState::getImpatience(SUMOTime now) const {
     return MAX2((SUMOReal)0, MIN2(SUMOReal(1), 
                 myPerson->getVehicleType().getImpatience() 
                 + STEPS2TIME(myStage->getWaitingTime(now)) / MAX_WAIT_TOLERANCE));
@@ -941,14 +941,14 @@ MSPModel_Striping::Pedestrian::getImpatience(SUMOTime now) const {
 
 
 SUMOReal 
-MSPModel_Striping::Pedestrian::getEdgePos(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
+MSPModel_Striping::PState::getEdgePos(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
     UNUSED_PARAMETER(stage);
     return myX;
 }
 
 
 Position 
-MSPModel_Striping::Pedestrian::getPosition(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
+MSPModel_Striping::PState::getPosition(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
     if (myLane == 0) {
         // pedestrian has already finished
         return Position::INVALID;
@@ -969,7 +969,7 @@ MSPModel_Striping::Pedestrian::getPosition(const MSPerson::MSPersonStage_Walking
 
 
 SUMOReal 
-MSPModel_Striping::Pedestrian::getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
+MSPModel_Striping::PState::getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
     UNUSED_PARAMETER(stage);
     if (myLane == 0) {
         // pedestrian has already finished
@@ -985,13 +985,13 @@ MSPModel_Striping::Pedestrian::getAngle(const MSPerson::MSPersonStage_Walking& s
 
 
 SUMOTime 
-MSPModel_Striping::Pedestrian::getWaitingTime(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
+MSPModel_Striping::PState::getWaitingTime(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
     return myWaitingTime;
 }
 
 
 SUMOReal 
-MSPModel_Striping::Pedestrian::getSpeed(const MSPerson::MSPersonStage_Walking& stage) const {
+MSPModel_Striping::PState::getSpeed(const MSPerson::MSPersonStage_Walking& stage) const {
     UNUSED_PARAMETER(stage);
     return mySpeed;
 }
@@ -1017,7 +1017,7 @@ MSPModel_Striping::MovePedestrians::execute(SUMOTime currentTime) {
             sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(FORWARD));
             std::cout << SIMTIME << " lane=" << lane->getID();
             for (int ii = 0; ii < pedestrians.size(); ++ii) {
-                const Pedestrian& p = *pedestrians[ii];
+                const PState& p = *pedestrians[ii];
                 std::cout << " (" << p.myPerson->getID() << " " << p.myX << "," << p.myY << " " << p.myDir << ")";
             }
             std::cout << "\n";

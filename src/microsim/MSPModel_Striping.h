@@ -108,8 +108,8 @@ public:
 protected:
     struct Obstacle;
     struct WalkingAreaPath;
-    class Pedestrian;
-    typedef std::vector<Pedestrian*> Pedestrians;
+    class PState;
+    typedef std::vector<PState*> Pedestrians;
     typedef std::map<const MSLane*, Pedestrians> ActiveLanes;
     typedef std::vector<Obstacle> Obstacles;
     typedef std::map<const MSLane*, Obstacles> NextLanesObstacles;
@@ -141,7 +141,7 @@ protected:
         /// @brief create No-Obstacle
         Obstacle(int dir);
         /// @brief create an obstacle from ped for ego moving in dir
-        Obstacle(const Pedestrian& ped, int dir);
+        Obstacle(const PState& ped, int dir);
         /// @brief create an obstacle from explict values
         Obstacle(SUMOReal _x, SUMOReal _speed, const std::string& _description) : x(_x), speed(_speed), description(_description) {};
 
@@ -174,10 +174,10 @@ protected:
     };
 
     /**
-     * @class Pedestrian
+     * @class PState
      * @brief Container for pedestrian state and individual position update function
      */
-    class Pedestrian : public PedestrianState {
+    class PState : public PedestrianState {
     public:
 
         /// @brief abstract methods inherited from PedestrianState
@@ -189,8 +189,8 @@ protected:
         SUMOReal getSpeed(const MSPerson::MSPersonStage_Walking& stage) const;
         /// @}
 
-        Pedestrian(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, const MSLane* lane);
-        ~Pedestrian() {};
+        PState(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, const MSLane* lane);
+        ~PState() {};
         MSPerson* myPerson;
         MSPerson::MSPersonStage_Walking* myStage;
         /// @brief the current lane of this pedestrian
@@ -255,7 +255,7 @@ protected:
 
     public:
         /// comparing operation
-        bool operator()(const Pedestrian* p1, const Pedestrian* p2) const {
+        bool operator()(const PState* p1, const PState* p2) const {
             return myDir * p1->myX > myDir * p2->myX;
         }
 
@@ -282,7 +282,7 @@ private:
      * @param[in] currentLane The lane the pedestrian is currently on
      * @param[in] ped The pedestrian for which to compute the next lane
      */
-    static NextLaneInfo getNextLane(const Pedestrian& ped, const MSLane* currentLane, const MSLane* prevLane);
+    static NextLaneInfo getNextLane(const PState& ped, const MSLane* currentLane, const MSLane* prevLane);
 
     /// @brief return the next walkingArea in the given direction
     static const MSLane* getNextWalkingArea(const MSLane* currentLane, const int dir, MSLink*& link); 
