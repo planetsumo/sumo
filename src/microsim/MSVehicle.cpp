@@ -1231,6 +1231,11 @@ MSVehicle::executeMove() {
         vSafeMin = 0;
         myHaveToWaitOnNextLink = true;
     }
+    // vehicles inside a roundabout should maintain their requests
+    if (myLane->getEdge().isRoundabout()) {
+        myHaveToWaitOnNextLink = false;
+    }
+
     // XXX braking due to lane-changing is not registered
     bool braking = vSafe < getSpeed();
     // apply speed reduction due to dawdling / lane changing but ensure minimum save speed
@@ -1387,7 +1392,7 @@ MSVehicle::getSpaceTillLastStanding(const MSLane* l, bool& foundStopped) const {
     SUMOReal lengths = 0;
     const MSLane::VehCont& vehs = l->getVehiclesSecure();
     for (MSLane::VehCont::const_iterator i = vehs.begin(); i != vehs.end(); ++i) {
-        if ((*i)->getSpeed() < SUMO_const_haltingSpeed) {
+        if ((*i)->getSpeed() < SUMO_const_haltingSpeed && !(*i)->getLane()->getEdge().isRoundabout()) {
             foundStopped = true;
             const SUMOReal ret = (*i)->getPositionOnLane() - (*i)->getVehicleType().getLengthWithGap() - lengths;
             l->releaseVehicles();
