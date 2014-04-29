@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Tue Apr 29 11:10:34 2014 by SUMO netconvert Version dev-SVN-r16259
+<!-- generated on Tue Apr 29 14:02:05 2014 by SUMO netconvert Version dev-SVN-r16274
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -113,10 +113,10 @@
     <edge id=":1311774301_5" function="internal">
         <lane id=":1311774301_5_0" index="0" speed="13.89" length="2.41" shape="4575.63,388.52 4574.76,388.22 4573.77,387.11"/>
     </edge>
-    <edge id=":1311774301_c0" function="crossing">
+    <edge id=":1311774301_c0" function="crossing" crossingEdges="-172014854#1 172014854#1">
         <lane id=":1311774301_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4579.14,390.51 4572.68,391.15"/>
     </edge>
-    <edge id=":1311774301_c1" function="crossing">
+    <edge id=":1311774301_c1" function="crossing" crossingEdges="172014854#2 -172014854#2">
         <lane id=":1311774301_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4572.46,389.31 4578.90,388.42"/>
     </edge>
     <edge id=":1311774301_w0" function="walkingarea">
@@ -549,10 +549,10 @@
     <edge id=":1520039998_11" function="internal">
         <lane id=":1520039998_11_0" index="0" speed="8.33" length="2.41" shape="3506.83,800.41 3507.39,801.15 3507.57,802.62"/>
     </edge>
-    <edge id=":1520039998_c0" function="crossing">
+    <edge id=":1520039998_c0" function="crossing" crossingEdges="52460499#5 -52460499#5">
         <lane id=":1520039998_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3505.53,795.20 3511.80,796.91"/>
     </edge>
-    <edge id=":1520039998_c1" function="crossing">
+    <edge id=":1520039998_c1" function="crossing" crossingEdges="-52460499#4 52460499#4">
         <lane id=":1520039998_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3509.90,801.55 3504.08,798.65"/>
     </edge>
     <edge id=":1520039998_w0" function="walkingarea">
@@ -597,10 +597,10 @@
     <edge id=":1520040021_11" function="internal">
         <lane id=":1520040021_11_0" index="0" speed="8.33" length="2.41" shape="3476.07,861.95 3476.58,862.71 3476.70,864.20"/>
     </edge>
-    <edge id=":1520040021_c0" function="crossing">
+    <edge id=":1520040021_c0" function="crossing" crossingEdges="52460499#4 -52460499#4">
         <lane id=":1520040021_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3475.76,855.59 3481.58,858.48"/>
     </edge>
-    <edge id=":1520040021_c1" function="crossing">
+    <edge id=":1520040021_c1" function="crossing" crossingEdges="-52460499#3 52460499#3">
         <lane id=":1520040021_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3479.07,863.23 3473.40,860.06"/>
     </edge>
     <edge id=":1520040021_w0" function="walkingarea">
@@ -693,10 +693,10 @@
     <edge id=":1520040094_11" function="internal">
         <lane id=":1520040094_11_0" index="0" speed="8.33" length="2.41" shape="3410.65,981.79 3411.19,982.55 3411.33,984.03"/>
     </edge>
-    <edge id=":1520040094_c0" function="crossing">
+    <edge id=":1520040094_c0" function="crossing" crossingEdges="52460499#2 -52460499#2">
         <lane id=":1520040094_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3410.54,975.10 3416.28,978.17"/>
     </edge>
-    <edge id=":1520040094_c1" function="crossing">
+    <edge id=":1520040094_c1" function="crossing" crossingEdges="-52460499#1 52460499#1">
         <lane id=":1520040094_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3413.69,983.02 3407.95,979.95"/>
     </edge>
     <edge id=":1520040094_w0" function="walkingarea">
@@ -771,10 +771,10 @@
     <edge id=":1520040140_11" function="internal">
         <lane id=":1520040140_11_0" index="0" speed="8.33" length="2.41" shape="3310.34,1166.57 3310.85,1167.34 3310.94,1168.82"/>
     </edge>
-    <edge id=":1520040140_c0" function="crossing">
+    <edge id=":1520040140_c0" function="crossing" crossingEdges="52460499#1 -52460499#1">
         <lane id=":1520040140_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3310.23,1160.10 3315.96,1163.17"/>
     </edge>
-    <edge id=":1520040140_c1" function="crossing">
+    <edge id=":1520040140_c1" function="crossing" crossingEdges="-52460499#0 52460499#0">
         <lane id=":1520040140_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3313.33,1167.90 3307.71,1164.63"/>
     </edge>
     <edge id=":1520040140_w0" function="walkingarea">
@@ -819,7 +819,7 @@
     <edge id=":1552842714_1" function="internal">
         <lane id=":1552842714_1_0" index="0" disallow="pedestrian" speed="13.89" length="9.81" shape="3488.80,722.77 3496.03,716.14"/>
     </edge>
-    <edge id=":1552842714_c0" function="crossing">
+    <edge id=":1552842714_c0" function="crossing" crossingEdges="141968810">
         <lane id=":1552842714_c0_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3491.24,723.54 3490.09,720.55"/>
     </edge>
     <edge id=":1552842714_w0" function="walkingarea">
@@ -834,7 +834,7 @@
     <edge id=":1552842722_1" function="internal">
         <lane id=":1552842722_1_0" index="0" disallow="pedestrian" speed="13.89" length="8.84" shape="3501.32,730.89 3499.04,729.73 3497.34,728.30 3496.23,726.60 3495.71,724.64"/>
     </edge>
-    <edge id=":1552842722_c0" function="crossing">
+    <edge id=":1552842722_c0" function="crossing" crossingEdges="141968807">
         <lane id=":1552842722_c0_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3493.50,731.18 3492.79,728.06"/>
     </edge>
     <edge id=":1552842722_w0" function="walkingarea">
@@ -858,13 +858,13 @@
     <edge id=":1552842725_4" function="internal">
         <lane id=":1552842725_4_0" index="0" speed="13.89" length="2.41" shape="3475.71,730.42 3475.57,731.33 3474.64,732.50"/>
     </edge>
-    <edge id=":1552842725_c0" function="crossing">
+    <edge id=":1552842725_c0" function="crossing" crossingEdges="141968807">
         <lane id=":1552842725_c0_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3477.21,730.06 3477.45,733.25"/>
     </edge>
-    <edge id=":1552842725_c1" function="crossing">
+    <edge id=":1552842725_c1" function="crossing" crossingEdges="141968810">
         <lane id=":1552842725_c1_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3477.63,726.44 3479.13,729.26"/>
     </edge>
-    <edge id=":1552842725_c2" function="crossing">
+    <edge id=":1552842725_c2" function="crossing" crossingEdges="-141968830#1 141968830#1">
         <lane id=":1552842725_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3477.04,733.41 3475.05,727.22"/>
     </edge>
     <edge id=":1552842725_w0" function="walkingarea">
@@ -882,7 +882,7 @@
     <edge id=":1552842729_1" function="internal">
         <lane id=":1552842729_1_0" index="0" disallow="pedestrian" speed="13.89" length="4.98" shape="3510.60,732.22 3505.63,732.61"/>
     </edge>
-    <edge id=":1552842729_c0" function="crossing">
+    <edge id=":1552842729_c0" function="crossing" crossingEdges="141968913">
         <lane id=":1552842729_c0_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3509.21,736.66 3506.31,738.01"/>
     </edge>
     <edge id=":1552842729_w0" function="walkingarea">
@@ -903,13 +903,13 @@
     <edge id=":1552842738_3" function="internal">
         <lane id=":1552842738_3_0" index="0" disallow="pedestrian" speed="8.33" length="11.27" shape="3516.40,746.16 3515.79,750.33 3514.87,751.99 3513.66,751.15 3512.14,747.79"/>
     </edge>
-    <edge id=":1552842738_c0" function="crossing">
+    <edge id=":1552842738_c0" function="crossing" crossingEdges="-52460499#5 52460499#5">
         <lane id=":1552842738_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3517.78,749.79 3511.28,750.05"/>
     </edge>
-    <edge id=":1552842738_c1" function="crossing">
+    <edge id=":1552842738_c1" function="crossing" crossingEdges="141873658">
         <lane id=":1552842738_c1_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3514.64,748.02 3517.83,748.29"/>
     </edge>
-    <edge id=":1552842738_c2" function="crossing">
+    <edge id=":1552842738_c2" function="crossing" crossingEdges="141968913">
         <lane id=":1552842738_c2_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3511.32,750.21 3514.33,749.13"/>
     </edge>
     <edge id=":1552842738_w0" function="walkingarea">
@@ -957,13 +957,13 @@
     <edge id=":1552842740_11" function="internal">
         <lane id=":1552842740_11_0" index="0" speed="13.89" length="2.41" shape="3374.80,762.22 3374.61,763.12 3373.62,764.23"/>
     </edge>
-    <edge id=":1552842740_c0" function="crossing">
+    <edge id=":1552842740_c0" function="crossing" crossingEdges="-152447118 152447118">
         <lane id=":1552842740_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3385.25,766.41 3378.85,767.54"/>
     </edge>
-    <edge id=":1552842740_c1" function="crossing">
+    <edge id=":1552842740_c1" function="crossing" crossingEdges="141968830#1 -141968830#1">
         <lane id=":1552842740_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3384.40,756.13 3386.35,762.34"/>
     </edge>
-    <edge id=":1552842740_c2" function="crossing">
+    <edge id=":1552842740_c2" function="crossing" crossingEdges="-141968830#0 141968830#0">
         <lane id=":1552842740_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3375.96,765.27 3374.33,758.98"/>
     </edge>
     <edge id=":1552842740_w0" function="walkingarea">
@@ -993,10 +993,10 @@
     <edge id=":1553912623_5" function="internal">
         <lane id=":1553912623_5_0" index="0" speed="8.33" length="2.41" shape="3320.96,776.11 3320.79,777.01 3319.83,778.15"/>
     </edge>
-    <edge id=":1553912623_c0" function="crossing">
+    <edge id=":1553912623_c0" function="crossing" crossingEdges="141968830#0 -141968830#0">
         <lane id=":1553912623_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3316.58,773.93 3318.24,780.22"/>
     </edge>
-    <edge id=":1553912623_c1" function="crossing">
+    <edge id=":1553912623_c1" function="crossing" crossingEdges="-141968799 141968799">
         <lane id=":1553912623_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3322.21,779.11 3320.37,772.88"/>
     </edge>
     <edge id=":1553912623_w0" function="walkingarea">
@@ -1032,10 +1032,10 @@
     <edge id=":1560223378_8" function="internal">
         <lane id=":1560223378_8_0" index="0" speed="13.89" length="2.41" shape="4558.58,367.89 4558.24,368.74 4557.07,369.66"/>
     </edge>
-    <edge id=":1560223378_c0" function="crossing">
+    <edge id=":1560223378_c0" function="crossing" crossingEdges="190083608#0 -190083608#0">
         <lane id=":1560223378_c0_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4557.15,361.45 4558.59,374.47"/>
     </edge>
-    <edge id=":1560223378_c1" function="crossing">
+    <edge id=":1560223378_c1" function="crossing" crossingEdges="-190083609#1 190083609#0">
         <lane id=":1560223378_c1_0" index="0" allow="pedestrian" speed="1.00" length="16.40" width="4.00" shape="4559.73,377.67 4558.40,361.33"/>
     </edge>
     <edge id=":1560223378_w0" function="walkingarea">
@@ -1082,13 +1082,13 @@
     <edge id=":1560223382_13" function="internal">
         <lane id=":1560223382_13_0" index="0" speed="13.89" length="2.41" shape="4567.08,366.94 4566.76,367.81 4565.62,368.76"/>
     </edge>
-    <edge id=":1560223382_c0" function="crossing">
+    <edge id=":1560223382_c0" function="crossing" crossingEdges="-172014854#2 172014854#2">
         <lane id=":1560223382_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4577.07,375.06 4570.63,375.94"/>
     </edge>
-    <edge id=":1560223382_c1" function="crossing">
+    <edge id=":1560223382_c1" function="crossing" crossingEdges="190083608#1 -190083608#1">
         <lane id=":1560223382_c1_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4577.13,359.11 4578.89,372.08"/>
     </edge>
-    <edge id=":1560223382_c2" function="crossing">
+    <edge id=":1560223382_c2" function="crossing" crossingEdges="-190083608#0 190083608#0">
         <lane id=":1560223382_c2_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4568.14,373.41 4566.70,360.39"/>
     </edge>
     <edge id=":1560223382_w0" function="walkingarea">
@@ -1162,16 +1162,16 @@
     <edge id=":1560223404_21" function="internal">
         <lane id=":1560223404_21_0" index="0" speed="13.89" length="2.41" shape="4399.72,381.21 4399.39,382.07 4398.24,383.01"/>
     </edge>
-    <edge id=":1560223404_c0" function="crossing">
+    <edge id=":1560223404_c0" function="crossing" crossingEdges="-190083618#1 190083618#0">
         <lane id=":1560223404_c0_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4416.85,392.00 4403.76,392.41"/>
     </edge>
-    <edge id=":1560223404_c1" function="crossing">
+    <edge id=":1560223404_c1" function="crossing" crossingEdges="190083609#0 -190083609#1">
         <lane id=":1560223404_c1_0" index="0" allow="pedestrian" speed="1.00" length="16.40" width="4.00" shape="4419.40,372.77 4420.87,389.11"/>
     </edge>
-    <edge id=":1560223404_c2" function="crossing">
+    <edge id=":1560223404_c2" function="crossing" crossingEdges="239335494#0 -239335494#0">
         <lane id=":1560223404_c2_0" index="0" allow="pedestrian" speed="1.00" length="8.88" width="4.00" shape="4410.48,376.52 4417.26,370.79"/>
     </edge>
-    <edge id=":1560223404_c3" function="crossing">
+    <edge id=":1560223404_c3" function="crossing" crossingEdges="-196674458#1 196674458#0">
         <lane id=":1560223404_c3_0" index="0" allow="pedestrian" speed="1.00" length="16.40" width="4.00" shape="4400.70,387.70 4399.12,371.38"/>
     </edge>
     <edge id=":1560223404_w0" function="walkingarea">
@@ -1207,10 +1207,10 @@
     <edge id=":1560223468_8" function="internal">
         <lane id=":1560223468_8_0" index="0" speed="13.89" length="2.41" shape="4338.20,385.57 4337.89,386.44 4336.76,387.41"/>
     </edge>
-    <edge id=":1560223468_c0" function="crossing">
+    <edge id=":1560223468_c0" function="crossing" crossingEdges="196674458#0 -196674458#1">
         <lane id=":1560223468_c0_0" index="0" allow="pedestrian" speed="1.00" length="16.40" width="4.00" shape="4337.46,375.74 4338.55,392.10"/>
     </edge>
-    <edge id=":1560223468_c1" function="crossing">
+    <edge id=":1560223468_c1" function="crossing" crossingEdges="-190083610#1 190083610#1">
         <lane id=":1560223468_c1_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4339.36,392.02 4337.72,379.02"/>
     </edge>
     <edge id=":1560223468_w0" function="walkingarea">
@@ -1257,13 +1257,13 @@
     <edge id=":1560223484_10" function="internal">
         <lane id=":1560223484_10_0" index="0" disallow="pedestrian" speed="13.89" length="4.82" shape="4137.11,418.56 4138.02,417.38 4138.87,417.03 4139.67,417.50 4140.40,418.80"/>
     </edge>
-    <edge id=":1560223484_c0" function="crossing">
+    <edge id=":1560223484_c0" function="crossing" crossingEdges="190083610#1 -190083610#1">
         <lane id=":1560223484_c0_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4142.86,399.37 4144.14,412.41"/>
     </edge>
-    <edge id=":1560223484_c1" function="crossing">
+    <edge id=":1560223484_c1" function="crossing" crossingEdges="-190083610#0 190083610#0">
         <lane id=":1560223484_c1_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4133.10,413.51 4131.79,400.48"/>
     </edge>
-    <edge id=":1560223484_c2" function="crossing">
+    <edge id=":1560223484_c2" function="crossing" crossingEdges="142575699#0 -142575699#0">
         <lane id=":1560223484_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4142.14,416.92 4135.66,416.45"/>
     </edge>
     <edge id=":1560223484_w0" function="walkingarea">
@@ -1289,13 +1289,13 @@
         <lane id=":1560223510_4_0" index="0" disallow="pedestrian" speed="13.89" length="11.68" shape="3956.85,425.14 3962.30,424.67 3966.22,424.75 3968.60,425.37 3969.44,426.55"/>
         <lane id=":1560223510_4_1" index="1" disallow="pedestrian" speed="13.89" length="11.68" shape="3956.85,425.14 3960.87,424.83 3963.75,424.99 3965.52,425.62 3966.15,426.72"/>
     </edge>
-    <edge id=":1560223510_c0" function="crossing">
+    <edge id=":1560223510_c0" function="crossing" crossingEdges="81096583 -81096583">
         <lane id=":1560223510_c0_0" index="0" allow="pedestrian" speed="1.00" length="9.83" width="4.00" shape="3970.94,424.47 3961.19,425.72"/>
     </edge>
-    <edge id=":1560223510_c1" function="crossing">
+    <edge id=":1560223510_c1" function="crossing" crossingEdges="176039655">
         <lane id=":1560223510_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3972.80,418.84 3973.19,425.33"/>
     </edge>
-    <edge id=":1560223510_c2" function="crossing">
+    <edge id=":1560223510_c2" function="crossing" crossingEdges="142575669">
         <lane id=":1560223510_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3959.03,426.49 3958.25,420.04"/>
     </edge>
     <edge id=":1560223510_w0" function="walkingarea">
@@ -1337,10 +1337,10 @@
     <edge id=":1560223591_8" function="internal">
         <lane id=":1560223591_8_0" index="0" disallow="pedestrian" speed="13.89" length="4.82" shape="4128.83,531.53 4129.75,530.36 4130.60,530.01 4131.39,530.48 4132.12,531.78"/>
     </edge>
-    <edge id=":1560223591_c0" function="crossing">
+    <edge id=":1560223591_c0" function="crossing" crossingEdges="-142575699#1 142575699#1">
         <lane id=":1560223591_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4128.19,518.57 4134.67,519.04"/>
     </edge>
-    <edge id=":1560223591_c1" function="crossing">
+    <edge id=":1560223591_c1" function="crossing" crossingEdges="142575699#2 -142575699#2">
         <lane id=":1560223591_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4133.87,529.91 4127.39,529.42"/>
     </edge>
     <edge id=":1560223591_w0" function="walkingarea">
@@ -1460,10 +1460,10 @@
     <edge id=":1560223635_8" function="internal">
         <lane id=":1560223635_8_0" index="0" disallow="pedestrian" speed="22.22" length="4.82" shape="4417.72,544.58 4418.90,545.49 4419.25,546.34 4418.79,547.14 4417.50,547.88"/>
     </edge>
-    <edge id=":1560223635_c0" function="crossing">
+    <edge id=":1560223635_c0" function="crossing" crossingEdges="-24214694#1 24214694#1">
         <lane id=":1560223635_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4430.27,550.97 4423.80,551.60"/>
     </edge>
-    <edge id=":1560223635_c1" function="crossing">
+    <edge id=":1560223635_c1" function="crossing" crossingEdges="24214694#2 -24214694#2">
         <lane id=":1560223635_c1_0" index="0" allow="pedestrian" speed="1.00" length="7.47" width="4.00" shape="4423.21,545.47 4429.33,541.18"/>
     </edge>
     <edge id=":1560223635_w0" function="walkingarea">
@@ -1490,7 +1490,7 @@
     <edge id=":1560223686_3" function="internal">
         <lane id=":1560223686_3_0" index="0" disallow="pedestrian" speed="13.89" length="9.32" shape="4427.16,586.49 4427.94,583.33 4428.83,582.24 4429.83,583.23 4430.95,586.28"/>
     </edge>
-    <edge id=":1560223686_c0" function="crossing">
+    <edge id=":1560223686_c0" function="crossing" crossingEdges="24214694#0 -24214694#0">
         <lane id=":1560223686_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4426.59,580.52 4433.06,579.90"/>
     </edge>
     <edge id=":1560223686_w0" function="walkingarea">
@@ -1539,10 +1539,10 @@
     <edge id=":1560223789_12" function="internal">
         <lane id=":1560223789_12_0" index="0" speed="13.89" length="2.41" shape="3929.74,639.52 3930.47,640.09 3931.01,641.48"/>
     </edge>
-    <edge id=":1560223789_c0" function="crossing">
+    <edge id=":1560223789_c0" function="crossing" crossingEdges="206579063#1 -206579063#2">
         <lane id=":1560223789_c0_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3924.28,633.04 3933.96,634.58"/>
     </edge>
-    <edge id=":1560223789_c1" function="crossing">
+    <edge id=":1560223789_c1" function="crossing" crossingEdges="-206579063#0 206579063#0">
         <lane id=":1560223789_c1_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3933.00,639.85 3923.41,637.81"/>
     </edge>
     <edge id=":1560223789_w0" function="walkingarea">
@@ -2134,10 +2134,10 @@
     <edge id=":1560225335_8" function="internal">
         <lane id=":1560225335_8_0" index="0" disallow="pedestrian" speed="13.89" length="4.82" shape="4019.04,1237.26 4019.42,1238.70 4019.19,1239.59 4018.34,1239.94 4016.86,1239.74"/>
     </edge>
-    <edge id=":1560225335_c0" function="crossing">
+    <edge id=":1560225335_c0" function="crossing" crossingEdges="135777010#2 -135777010#2">
         <lane id=":1560225335_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4029.67,1244.61 4025.29,1249.41"/>
     </edge>
-    <edge id=":1560225335_c1" function="crossing">
+    <edge id=":1560225335_c1" function="crossing" crossingEdges="-135777010#1 135777010#1">
         <lane id=":1560225335_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4017.31,1242.26 4021.60,1237.38"/>
     </edge>
     <edge id=":1560225335_w0" function="walkingarea">
@@ -2185,10 +2185,10 @@
     <edge id=":1560592097_8" function="internal">
         <lane id=":1560592097_8_0" index="0" allow="delivery pedestrian" speed="5.56" length="4.82" shape="4575.83,433.35 4577.27,432.97 4578.16,433.21 4578.50,434.07 4578.30,435.54"/>
     </edge>
-    <edge id=":1560592097_c0" function="crossing">
+    <edge id=":1560592097_c0" function="crossing" crossingEdges="-172014854#0 172014854#0">
         <lane id=":1560592097_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4586.97,428.95 4582.15,433.31"/>
     </edge>
-    <edge id=":1560592097_c1" function="crossing">
+    <edge id=":1560592097_c1" function="crossing" crossingEdges="172014854#1 -172014854#1">
         <lane id=":1560592097_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4579.11,429.53 4584.99,426.75"/>
     </edge>
     <edge id=":1560592097_w0" function="walkingarea">
@@ -2254,10 +2254,10 @@
     <edge id=":1568241231_5" function="internal">
         <lane id=":1568241231_5_0" index="0" speed="13.89" length="2.41" shape="4483.48,152.42 4483.42,153.34 4482.59,154.57"/>
     </edge>
-    <edge id=":1568241231_c0" function="crossing">
+    <edge id=":1568241231_c0" function="crossing" crossingEdges="-73058506#1 73058506#1">
         <lane id=":1568241231_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4492.64,154.32 4486.35,155.94"/>
     </edge>
-    <edge id=":1568241231_c1" function="crossing">
+    <edge id=":1568241231_c1" function="crossing" crossingEdges="169076556#0 -169076556#0">
         <lane id=":1568241231_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4485.05,155.29 4482.57,149.28"/>
     </edge>
     <edge id=":1568241231_w0" function="walkingarea">
@@ -2302,10 +2302,10 @@
     <edge id=":1568241232_11" function="internal">
         <lane id=":1568241232_11_0" index="0" speed="13.89" length="2.41" shape="4459.37,162.30 4459.27,163.21 4458.39,164.41"/>
     </edge>
-    <edge id=":1568241232_c0" function="crossing">
+    <edge id=":1568241232_c0" function="crossing" crossingEdges="-169076556#0 169076556#0">
         <lane id=":1568241232_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4462.37,157.62 4464.85,163.63"/>
     </edge>
-    <edge id=":1568241232_c1" function="crossing">
+    <edge id=":1568241232_c1" function="crossing" crossingEdges="169076556#1 -169076556#1">
         <lane id=":1568241232_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4460.81,165.23 4458.59,159.12"/>
     </edge>
     <edge id=":1568241232_w0" function="walkingarea">
@@ -2350,10 +2350,10 @@
     <edge id=":1568241247_11" function="internal">
         <lane id=":1568241247_11_0" index="0" speed="8.33" length="2.41" shape="4343.29,177.04 4342.96,177.90 4341.81,178.84"/>
     </edge>
-    <edge id=":1568241247_c0" function="crossing">
+    <edge id=":1568241247_c0" function="crossing" crossingEdges="71960633#2 -71960633#2">
         <lane id=":1568241247_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4348.74,173.34 4349.05,179.83"/>
     </edge>
-    <edge id=":1568241247_c1" function="crossing">
+    <edge id=":1568241247_c1" function="crossing" crossingEdges="-71960633#1 71960633#1">
         <lane id=":1568241247_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4343.96,180.24 4343.33,173.77"/>
     </edge>
     <edge id=":1568241247_w0" function="walkingarea">
@@ -2398,13 +2398,13 @@
     <edge id=":1568241285_8" function="internal">
         <lane id=":1568241285_8_0" index="0" disallow="pedestrian" speed="8.33" length="4.82" shape="4318.02,265.96 4319.33,266.65 4319.83,267.43 4319.50,268.29 4318.36,269.24"/>
     </edge>
-    <edge id=":1568241285_c0" function="crossing">
+    <edge id=":1568241285_c0" function="crossing" crossingEdges="-143308601#0 143308601#0">
         <lane id=":1568241285_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4330.69,263.05 4331.35,269.51"/>
     </edge>
-    <edge id=":1568241285_c1" function="crossing">
+    <edge id=":1568241285_c1" function="crossing" crossingEdges="-143308515 143308515">
         <lane id=":1568241285_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4321.80,261.68 4328.27,261.06"/>
     </edge>
-    <edge id=":1568241285_c2" function="crossing">
+    <edge id=":1568241285_c2" function="crossing" crossingEdges="143308601#1 -143308601#1">
         <lane id=":1568241285_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4320.51,270.63 4319.84,264.16"/>
     </edge>
     <edge id=":1568241285_w0" function="walkingarea">
@@ -2443,13 +2443,13 @@
     <edge id=":1568241303_8" function="internal">
         <lane id=":1568241303_8_0" index="0" disallow="pedestrian" speed="8.33" length="4.82" shape="4210.58,277.33 4211.92,277.97 4212.44,278.73 4212.15,279.60 4211.04,280.59"/>
     </edge>
-    <edge id=":1568241303_c0" function="crossing">
+    <edge id=":1568241303_c0" function="crossing" crossingEdges="-143308601#1 143308601#1">
         <lane id=":1568241303_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4223.05,274.15 4223.72,280.61"/>
     </edge>
-    <edge id=":1568241303_c1" function="crossing">
+    <edge id=":1568241303_c1" function="crossing" crossingEdges="143308484 -143308485">
         <lane id=":1568241303_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4214.17,272.86 4220.64,272.19"/>
     </edge>
-    <edge id=":1568241303_c2" function="crossing">
+    <edge id=":1568241303_c2" function="crossing" crossingEdges="143308601#2 -143308601#2">
         <lane id=":1568241303_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4213.25,281.89 4212.33,275.46"/>
     </edge>
     <edge id=":1568241303_w0" function="walkingarea">
@@ -2630,10 +2630,10 @@
     <edge id=":158710664_9" function="internal">
         <lane id=":158710664_9_0" index="0" disallow="pedestrian" speed="15.28" length="14.65" shape="3495.96,572.57 3501.60,571.43 3505.70,571.29 3508.27,572.12 3509.30,573.95"/>
     </edge>
-    <edge id=":158710664_c0" function="crossing">
+    <edge id=":158710664_c0" function="crossing" crossingEdges="96834893 -96834893">
         <lane id=":158710664_c0_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="3513.94,571.40 3500.93,572.89"/>
     </edge>
-    <edge id=":158710664_c1" function="crossing">
+    <edge id=":158710664_c1" function="crossing" crossingEdges="-206579059 180239842">
         <lane id=":158710664_c1_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="3501.91,560.37 3514.72,563.10"/>
     </edge>
     <edge id=":158710664_w0" function="walkingarea">
@@ -2663,7 +2663,7 @@
     <edge id=":158710666_6" function="internal">
         <lane id=":158710666_6_0" index="0" disallow="pedestrian" speed="13.89" length="4.82" shape="3514.16,616.50 3513.48,617.83 3512.70,618.33 3511.84,618.01 3510.88,616.88"/>
     </edge>
-    <edge id=":158710666_c0" function="crossing">
+    <edge id=":158710666_c0" function="crossing" crossingEdges="-96834893 96834893">
         <lane id=":158710666_c0_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="3506.23,619.42 3519.25,617.94"/>
     </edge>
     <edge id=":158710666_w0" function="walkingarea">
@@ -2881,10 +2881,10 @@
     <edge id=":1653119660_8" function="internal">
         <lane id=":1653119660_8_0" index="0" allow="delivery pedestrian" speed="2.78" length="4.82" shape="4509.08,248.80 4510.45,248.22 4511.37,248.33 4511.83,249.12 4511.84,250.61"/>
     </edge>
-    <edge id=":1653119660_c0" function="crossing">
+    <edge id=":1653119660_c0" function="crossing" crossingEdges="-73058506#0 73058506#0">
         <lane id=":1653119660_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4516.99,241.52 4514.55,247.54"/>
     </edge>
-    <edge id=":1653119660_c1" function="crossing">
+    <edge id=":1653119660_c1" function="crossing" crossingEdges="73058506#1 -73058506#1">
         <lane id=":1653119660_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4510.61,243.99 4516.35,240.93"/>
     </edge>
     <edge id=":1653119660_w0" function="walkingarea">
@@ -2931,10 +2931,10 @@
     <edge id=":1654992589_13" function="internal">
         <lane id=":1654992589_13_0" index="0" speed="13.89" length="2.41" shape="4378.15,99.21 4377.25,99.01 4376.16,98.00"/>
     </edge>
-    <edge id=":1654992589_c0" function="crossing">
+    <edge id=":1654992589_c0" function="crossing" crossingEdges="-46150481#0 46150481#0">
         <lane id=":1654992589_c0_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4386.19,104.48 4373.47,107.61"/>
     </edge>
-    <edge id=":1654992589_c1" function="crossing">
+    <edge id=":1654992589_c1" function="crossing" crossingEdges="46150481#1 -46150481#1">
         <lane id=":1654992589_c1_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4371.87,101.11 4384.60,97.99"/>
     </edge>
     <edge id=":1654992589_w0" function="walkingarea">
@@ -2979,10 +2979,10 @@
     <edge id=":1654992651_11" function="internal">
         <lane id=":1654992651_11_0" index="0" speed="13.89" length="2.41" shape="4448.93,166.09 4448.83,167.01 4447.94,168.20"/>
     </edge>
-    <edge id=":1654992651_c0" function="crossing">
+    <edge id=":1654992651_c0" function="crossing" crossingEdges="-169076556#1 169076556#1">
         <lane id=":1654992651_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4454.65,160.56 4456.87,166.67"/>
     </edge>
-    <edge id=":1654992651_c1" function="crossing">
+    <edge id=":1654992651_c1" function="crossing" crossingEdges="169076556#2 -169076556#2">
         <lane id=":1654992651_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4450.37,169.03 4448.15,162.92"/>
     </edge>
     <edge id=":1654992651_w0" function="walkingarea">
@@ -3072,10 +3072,10 @@
     <edge id=":1787023433_5" function="internal">
         <lane id=":1787023433_5_0" index="0" speed="13.89" length="2.41" shape="4425.69,537.31 4424.83,536.98 4423.89,535.83"/>
     </edge>
-    <edge id=":1787023433_c0" function="crossing">
+    <edge id=":1787023433_c0" function="crossing" crossingEdges="-24214694#2 24214694#2">
         <lane id=":1787023433_c0_0" index="0" allow="pedestrian" speed="1.00" length="7.47" width="4.00" shape="4428.92,537.00 4422.81,541.29"/>
     </edge>
-    <edge id=":1787023433_c1" function="crossing">
+    <edge id=":1787023433_c1" function="crossing" crossingEdges="24214694#3 -24214694#3">
         <lane id=":1787023433_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4422.49,537.97 4428.96,537.35"/>
     </edge>
     <edge id=":1787023433_w0" function="walkingarea">
@@ -3147,10 +3147,10 @@
     <edge id=":1832089444_11" function="internal">
         <lane id=":1832089444_11_0" index="0" speed="8.33" length="2.41" shape="3386.97,190.38 3386.05,190.42 3384.73,189.75"/>
     </edge>
-    <edge id=":1832089444_c0" function="crossing">
+    <edge id=":1832089444_c0" function="crossing" crossingEdges="-31763024#0 31763024#0">
         <lane id=":1832089444_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3392.66,193.90 3386.99,197.07"/>
     </edge>
-    <edge id=":1832089444_c1" function="crossing">
+    <edge id=":1832089444_c1" function="crossing" crossingEdges="31763024#1 -31763024#1">
         <lane id=":1832089444_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3384.31,192.27 3389.98,189.10"/>
     </edge>
     <edge id=":1832089444_w0" function="walkingarea">
@@ -3195,10 +3195,10 @@
     <edge id=":1832089447_11" function="internal">
         <lane id=":1832089447_11_0" index="0" speed="13.89" length="2.41" shape="3448.17,200.88 3448.22,201.80 3447.55,203.13"/>
     </edge>
-    <edge id=":1832089447_c0" function="crossing">
+    <edge id=":1832089447_c0" function="crossing" crossingEdges="-145586617#0 145586617#0">
         <lane id=":1832089447_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3451.64,195.16 3454.86,200.81"/>
     </edge>
-    <edge id=":1832089447_c1" function="crossing">
+    <edge id=":1832089447_c1" function="crossing" crossingEdges="145586617#1 -145586617#1">
         <lane id=":1832089447_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3450.08,203.53 3446.86,197.88"/>
     </edge>
     <edge id=":1832089447_w0" function="walkingarea">
@@ -3263,13 +3263,13 @@
     <edge id=":1906766898_7" function="internal">
         <lane id=":1906766898_7_0" index="0" speed="13.89" length="0.10" shape="4027.09,419.14 4027.10,419.17"/>
     </edge>
-    <edge id=":1906766898_c0" function="crossing">
+    <edge id=":1906766898_c0" function="crossing" crossingEdges="190083610#0 -190083610#0">
         <lane id=":1906766898_c0_0" index="0" allow="pedestrian" speed="1.00" length="13.20" width="4.00" shape="4043.75,409.36 4046.71,422.23"/>
     </edge>
-    <edge id=":1906766898_c1" function="crossing">
+    <edge id=":1906766898_c1" function="crossing" crossingEdges="224769559">
         <lane id=":1906766898_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4029.23,420.52 4028.61,414.05"/>
     </edge>
-    <edge id=":1906766898_c2" function="crossing">
+    <edge id=":1906766898_c2" function="crossing" crossingEdges="180239858#0">
         <lane id=":1906766898_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.52" width="4.00" shape="4029.78,423.52 4028.61,417.10"/>
     </edge>
     <edge id=":1906766898_w0" function="walkingarea">
@@ -3285,10 +3285,10 @@
         <lane id=":1906766906_0_0" index="0" disallow="pedestrian" speed="13.89" length="8.65" shape="3984.55,431.29 3975.96,432.48"/>
         <lane id=":1906766906_0_1" index="1" disallow="pedestrian" speed="13.89" length="8.65" shape="3984.08,428.03 3975.52,429.21"/>
     </edge>
-    <edge id=":1906766906_c0" function="crossing">
+    <edge id=":1906766906_c0" function="crossing" crossingEdges="180239858#0">
         <lane id=":1906766906_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3981.88,426.72 3982.79,433.16"/>
     </edge>
-    <edge id=":1906766906_c1" function="crossing">
+    <edge id=":1906766906_c1" function="crossing" crossingEdges="180239858#1">
         <lane id=":1906766906_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3978.16,433.79 3977.28,427.35"/>
     </edge>
     <edge id=":1906766906_w0" function="walkingarea">
@@ -3326,16 +3326,16 @@
     <edge id=":1906766907_10" function="internal">
         <lane id=":1906766907_10_0" index="0" disallow="pedestrian" speed="13.89" length="10.98" shape="3962.36,441.79 3960.73,438.82 3960.77,436.72 3962.47,435.48 3965.84,435.12"/>
     </edge>
-    <edge id=":1906766907_c0" function="crossing">
+    <edge id=":1906766907_c0" function="crossing" crossingEdges="180239858#1">
         <lane id=":1906766907_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3973.12,427.92 3974.00,434.36"/>
     </edge>
-    <edge id=":1906766907_c1" function="crossing">
+    <edge id=":1906766907_c1" function="crossing" crossingEdges="-81096583 81096583">
         <lane id=":1906766907_c1_0" index="0" allow="pedestrian" speed="1.00" length="9.83" width="4.00" shape="3961.41,429.91 3971.16,428.66"/>
     </edge>
-    <edge id=":1906766907_c2" function="crossing">
+    <edge id=":1906766907_c2" function="crossing" crossingEdges="180239843">
         <lane id=":1906766907_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3962.20,435.87 3961.51,429.41"/>
     </edge>
-    <edge id=":1906766907_c3" function="crossing">
+    <edge id=":1906766907_c3" function="crossing" crossingEdges="206579064#0 -206579064#1">
         <lane id=":1906766907_c3_0" index="0" allow="pedestrian" speed="1.00" length="11.65" width="4.00" shape="3967.48,433.16 3957.65,439.39"/>
     </edge>
     <edge id=":1906766907_w0" function="walkingarea">
@@ -3354,10 +3354,10 @@
         <lane id=":1906766908_0_0" index="0" disallow="pedestrian" speed="13.89" length="22.09" shape="3959.84,434.51 3953.30,435.22 3948.82,435.68 3944.33,436.05 3937.77,436.47"/>
         <lane id=":1906766908_0_1" index="1" disallow="pedestrian" speed="13.89" length="22.09" shape="3959.49,431.23 3952.99,431.94 3948.54,432.39 3944.09,432.76 3937.57,433.18"/>
     </edge>
-    <edge id=":1906766908_c0" function="crossing">
+    <edge id=":1906766908_c0" function="crossing" crossingEdges="180239843">
         <lane id=":1906766908_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3957.33,429.85 3958.02,436.32"/>
     </edge>
-    <edge id=":1906766908_c1" function="crossing">
+    <edge id=":1906766908_c1" function="crossing" crossingEdges="180239847">
         <lane id=":1906766908_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3939.86,437.95 3939.47,431.46"/>
     </edge>
     <edge id=":1906766908_w0" function="walkingarea">
@@ -3386,13 +3386,13 @@
     <edge id=":1906766909_7" function="internal">
         <lane id=":1906766909_7_0" index="0" speed="13.89" length="2.42" shape="3865.95,439.06 3865.69,439.95 3864.62,440.99"/>
     </edge>
-    <edge id=":1906766909_c0" function="crossing">
+    <edge id=":1906766909_c0" function="crossing" crossingEdges="180239847">
         <lane id=":1906766909_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3902.81,433.69 3903.32,440.17"/>
     </edge>
-    <edge id=":1906766909_c1" function="crossing">
+    <edge id=":1906766909_c1" function="crossing" crossingEdges="16942869">
         <lane id=":1906766909_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.51" width="4.00" shape="3902.23,429.37 3903.10,435.81"/>
     </edge>
-    <edge id=":1906766909_c2" function="crossing">
+    <edge id=":1906766909_c2" function="crossing" crossingEdges="180239842 -206579059">
         <lane id=":1906766909_c2_0" index="0" allow="pedestrian" speed="1.00" length="13.13" width="4.00" shape="3867.34,445.65 3865.29,432.69"/>
     </edge>
     <edge id=":1906766909_w0" function="walkingarea">
@@ -3423,10 +3423,10 @@
     <edge id=":1906766923_6" function="internal">
         <lane id=":1906766923_6_0" index="0" speed="13.89" length="2.41" shape="3964.27,442.24 3965.01,442.78 3965.63,444.14"/>
     </edge>
-    <edge id=":1906766923_c0" function="crossing">
+    <edge id=":1906766923_c0" function="crossing" crossingEdges="-206579064#1 206579064#0">
         <lane id=":1906766923_c0_0" index="0" allow="pedestrian" speed="1.00" length="11.85" width="4.00" shape="3957.30,443.58 3967.39,437.36"/>
     </edge>
-    <edge id=":1906766923_c1" function="crossing">
+    <edge id=":1906766923_c1" function="crossing" crossingEdges="206579064#2 -206579064#2">
         <lane id=":1906766923_c1_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3967.53,442.42 3957.86,440.84"/>
     </edge>
     <edge id=":1906766923_w0" function="walkingarea">
@@ -3583,10 +3583,10 @@
     <edge id=":2007005037_6" function="internal">
         <lane id=":2007005037_6_0" index="0" speed="13.89" length="2.41" shape="4396.56,195.20 4395.69,194.89 4394.73,193.76"/>
     </edge>
-    <edge id=":2007005037_c0" function="crossing">
+    <edge id=":2007005037_c0" function="crossing" crossingEdges="190083616#0 -190083616#0">
         <lane id=":2007005037_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4399.73,194.23 4393.26,194.78"/>
     </edge>
-    <edge id=":2007005037_c1" function="crossing">
+    <edge id=":2007005037_c1" function="crossing" crossingEdges="-143308576 143308576">
         <lane id=":2007005037_c1_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4390.10,196.32 4403.11,194.79"/>
     </edge>
     <edge id=":2007005037_w0" function="walkingarea">
@@ -3631,10 +3631,10 @@
     <edge id=":2007005081_11" function="internal">
         <lane id=":2007005081_11_0" index="0" speed="13.89" length="2.41" shape="4134.00,483.68 4134.79,484.15 4135.52,485.44"/>
     </edge>
-    <edge id=":2007005081_c0" function="crossing">
+    <edge id=":2007005081_c0" function="crossing" crossingEdges="-142575699#0 142575699#0">
         <lane id=":2007005081_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4131.18,477.60 4137.67,478.07"/>
     </edge>
-    <edge id=":2007005081_c1" function="crossing">
+    <edge id=":2007005081_c1" function="crossing" crossingEdges="142575699#1 -142575699#1">
         <lane id=":2007005081_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4137.26,483.57 4130.78,483.09"/>
     </edge>
     <edge id=":2007005081_w0" function="walkingarea">
@@ -3679,10 +3679,10 @@
     <edge id=":2007005083_11" function="internal">
         <lane id=":2007005083_11_0" index="0" speed="13.89" length="2.41" shape="3953.60,507.06 3954.33,507.63 3954.88,509.01"/>
     </edge>
-    <edge id=":2007005083_c0" function="crossing">
+    <edge id=":2007005083_c0" function="crossing" crossingEdges="-206579064#2 206579064#2">
         <lane id=":2007005083_c0_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3948.14,500.45 3957.81,502.02"/>
     </edge>
-    <edge id=":2007005083_c1" function="crossing">
+    <edge id=":2007005083_c1" function="crossing" crossingEdges="206579061 -206579061">
         <lane id=":2007005083_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3956.86,507.37 3950.49,506.06"/>
     </edge>
     <edge id=":2007005083_w0" function="walkingarea">
@@ -3728,10 +3728,10 @@
     <edge id=":2007005087_12" function="internal">
         <lane id=":2007005087_12_0" index="0" speed="13.89" length="2.41" shape="3946.70,541.29 3947.43,541.85 3947.99,543.23"/>
     </edge>
-    <edge id=":2007005087_c0" function="crossing">
+    <edge id=":2007005087_c0" function="crossing" crossingEdges="-206579062#0 206579062#0">
         <lane id=":2007005087_c0_0" index="0" allow="pedestrian" speed="1.00" length="9.81" width="4.00" shape="3944.45,535.68 3954.17,536.98"/>
     </edge>
-    <edge id=":2007005087_c1" function="crossing">
+    <edge id=":2007005087_c1" function="crossing" crossingEdges="206579062#1 -206579062#2">
         <lane id=":2007005087_c1_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3953.19,542.22 3943.58,540.31"/>
     </edge>
     <edge id=":2007005087_w0" function="walkingarea">
@@ -3806,10 +3806,10 @@
     <edge id=":2007005091_11" function="internal">
         <lane id=":2007005091_11_0" index="0" speed="13.89" length="2.41" shape="4129.06,550.40 4129.85,550.87 4130.58,552.17"/>
     </edge>
-    <edge id=":2007005091_c0" function="crossing">
+    <edge id=":2007005091_c0" function="crossing" crossingEdges="-142575699#2 142575699#2">
         <lane id=":2007005091_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4126.26,544.32 4132.74,544.81"/>
     </edge>
-    <edge id=":2007005091_c1" function="crossing">
+    <edge id=":2007005091_c1" function="crossing" crossingEdges="142575699#3 -142575699#3">
         <lane id=":2007005091_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4132.33,550.30 4125.85,549.81"/>
     </edge>
     <edge id=":2007005091_w0" function="walkingarea">
@@ -3846,10 +3846,10 @@
     <edge id=":2165987550_6" function="internal">
         <lane id=":2165987550_6_0" index="0" speed="13.89" length="2.44" shape="3948.14,532.20 3948.96,532.65 3949.75,533.93"/>
     </edge>
-    <edge id=":2165987550_c0" function="crossing">
+    <edge id=":2165987550_c0" function="crossing" crossingEdges="-206579061 206579061">
         <lane id=":2165987550_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3944.99,532.67 3951.35,533.98"/>
     </edge>
-    <edge id=":2165987550_c1" function="crossing">
+    <edge id=":2165987550_c1" function="crossing" crossingEdges="206579062#0 -206579062#0">
         <lane id=":2165987550_c1_0" index="0" allow="pedestrian" speed="1.00" length="9.81" width="4.00" shape="3954.93,532.84 3945.20,531.55"/>
     </edge>
     <edge id=":2165987550_w0" function="walkingarea">
@@ -3886,10 +3886,10 @@
     <edge id=":2165987556_6" function="internal">
         <lane id=":2165987556_6_0" index="0" speed="13.89" length="2.41" shape="3924.01,666.33 3924.75,666.88 3925.35,668.24"/>
     </edge>
-    <edge id=":2165987556_c0" function="crossing">
+    <edge id=":2165987556_c0" function="crossing" crossingEdges="206579063#0 -206579063#0">
         <lane id=":2165987556_c0_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3917.45,665.71 3927.04,667.76"/>
     </edge>
-    <edge id=":2165987556_c1" function="crossing">
+    <edge id=":2165987556_c1" function="crossing" crossingEdges="-135777011#5 135777011#5">
         <lane id=":2165987556_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3927.27,666.54 3920.86,665.43"/>
     </edge>
     <edge id=":2165987556_w0" function="walkingarea">
@@ -4084,10 +4084,10 @@
     <edge id=":2222983836_11" function="internal">
         <lane id=":2222983836_11_0" index="0" speed="13.89" length="2.41" shape="3173.29,354.04 3173.35,354.96 3172.69,356.29"/>
     </edge>
-    <edge id=":2222983836_c0" function="crossing">
+    <edge id=":2222983836_c0" function="crossing" crossingEdges="-145586617#5 145586617#5">
         <lane id=":2222983836_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3176.89,348.25 3180.06,353.93"/>
     </edge>
-    <edge id=":2222983836_c1" function="crossing">
+    <edge id=":2222983836_c1" function="crossing" crossingEdges="145586617#6 -145586617#7">
         <lane id=":2222983836_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3175.22,356.67 3171.96,351.05"/>
     </edge>
     <edge id=":2222983836_w0" function="walkingarea">
@@ -4711,10 +4711,10 @@
     <edge id=":2335739502_5" function="internal">
         <lane id=":2335739502_5_0" index="0" speed="13.89" length="2.41" shape="4412.97,367.39 4412.11,367.04 4411.19,365.88"/>
     </edge>
-    <edge id=":2335739502_c0" function="crossing">
+    <edge id=":2335739502_c0" function="crossing" crossingEdges="-239335494#0 239335494#0">
         <lane id=":2335739502_c0_0" index="0" allow="pedestrian" speed="1.00" length="9.44" width="4.00" shape="4417.62,366.60 4410.12,372.33"/>
     </edge>
-    <edge id=":2335739502_c1" function="crossing">
+    <edge id=":2335739502_c1" function="crossing" crossingEdges="239335494#1 190083616#1">
         <lane id=":2335739502_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4409.75,368.00 4416.23,367.47"/>
     </edge>
     <edge id=":2335739502_w0" function="walkingarea">
@@ -4774,10 +4774,10 @@
     <edge id=":2380911862_5" function="internal">
         <lane id=":2380911862_5_0" index="0" speed="13.89" length="2.41" shape="4398.86,222.30 4398.00,221.96 4397.07,220.80"/>
     </edge>
-    <edge id=":2380911862_c0" function="crossing">
+    <edge id=":2380911862_c0" function="crossing" crossingEdges="190083616#1 239335494#1">
         <lane id=":2380911862_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4402.36,225.12 4395.88,225.67"/>
     </edge>
-    <edge id=":2380911862_c1" function="crossing">
+    <edge id=":2380911862_c1" function="crossing" crossingEdges="-190083616#0 190083616#0">
         <lane id=":2380911862_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4395.65,222.93 4402.12,222.38"/>
     </edge>
     <edge id=":2380911862_w0" function="walkingarea">
@@ -4843,7 +4843,7 @@
     <edge id=":260702781_0" function="internal">
         <lane id=":260702781_0_0" index="0" disallow="pedestrian" speed="8.33" length="4.82" shape="4177.36,229.37 4175.93,228.96 4175.28,228.30 4175.43,227.39 4176.36,226.22"/>
     </edge>
-    <edge id=":260702781_c0" function="crossing">
+    <edge id=":260702781_c0" function="crossing" crossingEdges="-143308566#2 143308566#2">
         <lane id=":260702781_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4173.97,225.30 4175.93,231.50"/>
     </edge>
     <edge id=":260702781_w0" function="walkingarea">
@@ -5141,16 +5141,16 @@
     <edge id=":280095054_17" function="internal">
         <lane id=":280095054_17_0" index="0" disallow="pedestrian" speed="8.33" length="4.82" shape="4381.85,173.35 4383.12,174.11 4383.58,174.92 4383.20,175.76 4382.01,176.64"/>
     </edge>
-    <edge id=":280095054_c0" function="crossing">
+    <edge id=":280095054_c0" function="crossing" crossingEdges="143308576 -143308576">
         <lane id=":280095054_c0_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4401.37,180.00 4388.36,181.53"/>
     </edge>
-    <edge id=":280095054_c1" function="crossing">
+    <edge id=":280095054_c1" function="crossing" crossingEdges="-169076556#3 169076556#3">
         <lane id=":280095054_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.49" width="4.00" shape="4403.93,170.96 4404.06,177.45"/>
     </edge>
-    <edge id=":280095054_c2" function="crossing">
+    <edge id=":280095054_c2" function="crossing" crossingEdges="46150481#0 -46150481#0">
         <lane id=":280095054_c2_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4386.38,168.86 4399.24,166.38"/>
     </edge>
-    <edge id=":280095054_c3" function="crossing">
+    <edge id=":280095054_c3" function="crossing" crossingEdges="-71960633#2 71960633#2">
         <lane id=":280095054_c3_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4384.08,178.15 4383.77,171.65"/>
     </edge>
     <edge id=":280095054_w0" function="walkingarea">
@@ -5204,10 +5204,10 @@
     <edge id=":283018497_11" function="internal">
         <lane id=":283018497_11_0" index="0" speed="13.89" length="2.40" shape="4432.67,171.39 4432.41,172.27 4431.35,173.31"/>
     </edge>
-    <edge id=":283018497_c0" function="crossing">
+    <edge id=":283018497_c0" function="crossing" crossingEdges="-169076556#2 169076556#2">
         <lane id=":283018497_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4436.38,167.19 4438.60,173.30"/>
     </edge>
-    <edge id=":283018497_c1" function="crossing">
+    <edge id=":283018497_c1" function="crossing" crossingEdges="169076556#3 -169076556#3">
         <lane id=":283018497_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4433.61,174.51 4432.41,168.13"/>
     </edge>
     <edge id=":283018497_w0" function="walkingarea">
@@ -5519,10 +5519,10 @@
     <edge id=":294169342_11" function="internal">
         <lane id=":294169342_11_0" index="0" speed="13.89" length="2.41" shape="4427.86,559.75 4426.99,559.42 4426.05,558.27"/>
     </edge>
-    <edge id=":294169342_c0" function="crossing">
+    <edge id=":294169342_c0" function="crossing" crossingEdges="-24214694#0 24214694#0">
         <lane id=":294169342_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4431.65,565.26 4425.18,565.89"/>
     </edge>
-    <edge id=":294169342_c1" function="crossing">
+    <edge id=":294169342_c1" function="crossing" crossingEdges="24214694#1 -24214694#1">
         <lane id=":294169342_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4424.65,560.41 4431.12,559.79"/>
     </edge>
     <edge id=":294169342_w0" function="walkingarea">
@@ -5553,13 +5553,13 @@
     <edge id=":301292499_6" function="internal">
         <lane id=":301292499_6_0" index="0" speed="13.89" length="2.41" shape="3840.12,618.69 3839.97,619.60 3839.02,620.75"/>
     </edge>
-    <edge id=":301292499_c0" function="crossing">
+    <edge id=":301292499_c0" function="crossing" crossingEdges="46039051">
         <lane id=":301292499_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.53" width="4.00" shape="3838.16,615.76 3840.28,621.94"/>
     </edge>
-    <edge id=":301292499_c1" function="crossing">
+    <edge id=":301292499_c1" function="crossing" crossingEdges="46150483">
         <lane id=":301292499_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3837.94,616.15 3840.64,622.07"/>
     </edge>
-    <edge id=":301292499_c2" function="crossing">
+    <edge id=":301292499_c2" function="crossing" crossingEdges="-141968853#2 141968853#2">
         <lane id=":301292499_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3841.40,621.69 3839.50,615.48"/>
     </edge>
     <edge id=":301292499_w0" function="walkingarea">
@@ -5619,13 +5619,13 @@
     <edge id=":35215927_11" function="internal">
         <lane id=":35215927_11_0" index="0" speed="13.89" length="2.41" shape="3401.02,227.57 3401.05,228.49 3400.35,229.81"/>
     </edge>
-    <edge id=":35215927_c0" function="crossing">
+    <edge id=":35215927_c0" function="crossing" crossingEdges="-145586617#1 145586617#1">
         <lane id=":35215927_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3409.38,219.22 3412.60,224.87"/>
     </edge>
-    <edge id=":35215927_c1" function="crossing">
+    <edge id=":35215927_c1" function="crossing" crossingEdges="31763024#0 -31763024#0">
         <lane id=":35215927_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3400.42,221.08 3406.10,217.91"/>
     </edge>
-    <edge id=":35215927_c2" function="crossing">
+    <edge id=":35215927_c2" function="crossing" crossingEdges="145586617#2 -145586617#2">
         <lane id=":35215927_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3402.87,230.27 3399.78,224.54"/>
     </edge>
     <edge id=":35215927_w0" function="walkingarea">
@@ -5811,10 +5811,10 @@
     <edge id=":456813366_11" function="internal">
         <lane id=":456813366_11_0" index="0" speed="8.33" length="2.41" shape="3442.94,921.36 3443.47,922.11 3443.62,923.59"/>
     </edge>
-    <edge id=":456813366_c0" function="crossing">
+    <edge id=":456813366_c0" function="crossing" crossingEdges="52460499#3 -52460499#3">
         <lane id=":456813366_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3442.96,914.54 3448.63,917.71"/>
     </edge>
-    <edge id=":456813366_c1" function="crossing">
+    <edge id=":456813366_c1" function="crossing" crossingEdges="-52460499#2 52460499#2">
         <lane id=":456813366_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3445.97,922.58 3440.24,919.52"/>
     </edge>
     <edge id=":456813366_w0" function="walkingarea">
@@ -5847,10 +5847,10 @@
     <edge id=":456893959_5" function="internal">
         <lane id=":456893959_5_0" index="0" speed="13.89" length="2.41" shape="3875.83,932.18 3876.57,932.74 3877.15,934.10"/>
     </edge>
-    <edge id=":456893959_c0" function="crossing">
+    <edge id=":456893959_c0" function="crossing" crossingEdges="135777011#0 -135777011#4">
         <lane id=":456893959_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3873.70,925.73 3880.10,926.90"/>
     </edge>
-    <edge id=":456893959_c1" function="crossing">
+    <edge id=":456893959_c1" function="crossing" crossingEdges="135777010#0 -135777010#0">
         <lane id=":456893959_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3879.09,932.42 3872.69,931.25"/>
     </edge>
     <edge id=":456893959_w0" function="walkingarea">
@@ -5865,7 +5865,7 @@
     <edge id=":456893967_1" function="internal">
         <lane id=":456893967_1_0" index="0" disallow="pedestrian" speed="13.89" length="5.32" shape="3518.00,712.44 3518.24,712.84 3518.59,713.81 3519.05,715.36 3519.62,717.49"/>
     </edge>
-    <edge id=":456893967_c0" function="crossing">
+    <edge id=":456893967_c0" function="crossing" crossingEdges="141968823">
         <lane id=":456893967_c0_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3522.93,710.10 3522.78,713.30"/>
     </edge>
     <edge id=":456893967_w0" function="walkingarea">
@@ -5880,7 +5880,7 @@
     <edge id=":456893971_1" function="internal">
         <lane id=":456893971_1_0" index="0" disallow="pedestrian" speed="13.89" length="0.33" shape="3519.90,721.28 3520.22,721.40"/>
     </edge>
-    <edge id=":456893971_c0" function="crossing">
+    <edge id=":456893971_c0" function="crossing" crossingEdges="141968814">
         <lane id=":456893971_c0_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3524.25,718.16 3525.76,720.98"/>
     </edge>
     <edge id=":456893971_w0" function="walkingarea">
@@ -5913,13 +5913,13 @@
     <edge id=":473482356_5" function="internal">
         <lane id=":473482356_5_0" index="0" speed="13.89" length="2.65" shape="3539.23,710.98 3539.15,711.99 3538.23,713.34"/>
     </edge>
-    <edge id=":473482356_c0" function="crossing">
+    <edge id=":473482356_c0" function="crossing" crossingEdges="141968853#0 -141968853#0">
         <lane id=":473482356_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3538.09,707.87 3539.99,714.09"/>
     </edge>
-    <edge id=":473482356_c1" function="crossing">
+    <edge id=":473482356_c1" function="crossing" crossingEdges="141968823">
         <lane id=":473482356_c1_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3539.16,711.13 3538.50,708.00"/>
     </edge>
-    <edge id=":473482356_c2" function="crossing">
+    <edge id=":473482356_c2" function="crossing" crossingEdges="141968814">
         <lane id=":473482356_c2_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3540.70,714.00 3539.42,711.07"/>
     </edge>
     <edge id=":473482356_w0" function="walkingarea">
@@ -5935,10 +5935,10 @@
         <lane id=":493585714_0_0" index="0" disallow="pedestrian" speed="13.89" length="6.48" shape="3976.76,420.21 3983.17,419.74"/>
         <lane id=":493585714_0_1" index="1" disallow="pedestrian" speed="13.89" length="6.48" shape="3976.95,423.50 3983.46,423.03"/>
     </edge>
-    <edge id=":493585714_c0" function="crossing">
+    <edge id=":493585714_c0" function="crossing" crossingEdges="224769559">
         <lane id=":493585714_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3981.03,418.32 3981.61,424.80"/>
     </edge>
-    <edge id=":493585714_c1" function="crossing">
+    <edge id=":493585714_c1" function="crossing" crossingEdges="176039655">
         <lane id=":493585714_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3979.04,424.98 3978.66,418.49"/>
     </edge>
     <edge id=":493585714_w0" function="walkingarea">
@@ -6002,10 +6002,10 @@
         <lane id=":57343510_0_0" index="0" disallow="pedestrian" speed="13.89" length="7.79" shape="3942.56,423.77 3950.36,422.60"/>
         <lane id=":57343510_0_1" index="1" disallow="pedestrian" speed="13.89" length="7.79" shape="3943.15,427.02 3950.76,425.88"/>
     </edge>
-    <edge id=":57343510_c0" function="crossing">
+    <edge id=":57343510_c0" function="crossing" crossingEdges="142575669">
         <lane id=":57343510_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3948.19,421.25 3948.96,427.70"/>
     </edge>
-    <edge id=":57343510_c1" function="crossing">
+    <edge id=":57343510_c1" function="crossing" crossingEdges="16942869">
         <lane id=":57343510_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3945.40,428.24 3944.25,421.84"/>
     </edge>
     <edge id=":57343510_w0" function="walkingarea">
@@ -6020,7 +6020,7 @@
     <edge id=":588394574_1" function="internal">
         <lane id=":588394574_1_0" index="0" disallow="pedestrian" speed="13.89" length="8.16" shape="3517.56,727.55 3515.79,729.51 3514.12,730.93 3512.55,731.83 3511.07,732.19"/>
     </edge>
-    <edge id=":588394574_c0" function="crossing">
+    <edge id=":588394574_c0" function="crossing" crossingEdges="141873658">
         <lane id=":588394574_c0_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3517.91,735.00 3514.72,735.29"/>
     </edge>
     <edge id=":588394574_w0" function="walkingarea">
@@ -6049,10 +6049,10 @@
     <edge id=":59992997_7" function="internal">
         <lane id=":59992997_7_0" index="0" speed="13.89" length="2.41" shape="4417.32,450.58 4416.47,450.23 4415.56,449.06"/>
     </edge>
-    <edge id=":59992997_c0" function="crossing">
+    <edge id=":59992997_c0" function="crossing" crossingEdges="-24214694#5 24214694#5">
         <lane id=":59992997_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4420.49,449.56 4414.02,450.18"/>
     </edge>
-    <edge id=":59992997_c1" function="crossing">
+    <edge id=":59992997_c1" function="crossing" crossingEdges="190083618#0 -190083618#1">
         <lane id=":59992997_c1_0" index="0" allow="pedestrian" speed="1.00" length="13.10" width="4.00" shape="4407.52,451.64 4420.59,450.70"/>
     </edge>
     <edge id=":59992997_w0" function="walkingarea">
@@ -6325,10 +6325,10 @@
     <edge id=":663353215_5" function="internal">
         <lane id=":663353215_5_0" index="0" speed="13.89" length="2.41" shape="3650.80,676.71 3650.64,677.62 3649.70,678.78"/>
     </edge>
-    <edge id=":663353215_c0" function="crossing">
+    <edge id=":663353215_c0" function="crossing" crossingEdges="141968853#1 -141968853#1">
         <lane id=":663353215_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3652.29,672.86 3654.19,679.07"/>
     </edge>
-    <edge id=":663353215_c1" function="crossing">
+    <edge id=":663353215_c1" function="crossing" crossingEdges="-141968853#0 141968853#0">
         <lane id=":663353215_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3652.08,679.72 3650.18,673.50"/>
     </edge>
     <edge id=":663353215_w0" function="walkingarea">
@@ -6355,10 +6355,10 @@
     <edge id=":663353216_5" function="internal">
         <lane id=":663353216_5_0" index="0" speed="13.89" length="2.41" shape="3726.01,653.66 3725.86,654.57 3724.92,655.72"/>
     </edge>
-    <edge id=":663353216_c0" function="crossing">
+    <edge id=":663353216_c0" function="crossing" crossingEdges="141968853#2 -141968853#2">
         <lane id=":663353216_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3727.50,649.80 3729.40,656.02"/>
     </edge>
-    <edge id=":663353216_c1" function="crossing">
+    <edge id=":663353216_c1" function="crossing" crossingEdges="-141968853#1 141968853#1">
         <lane id=":663353216_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3727.30,656.66 3725.39,650.45"/>
     </edge>
     <edge id=":663353216_w0" function="walkingarea">
@@ -6439,10 +6439,10 @@
     <edge id=":664166104_8" function="internal">
         <lane id=":664166104_8_0" index="0" disallow="pedestrian" speed="13.89" length="4.82" shape="3900.21,1128.78 3900.58,1130.23 3900.33,1131.11 3899.47,1131.45 3898.00,1131.24"/>
     </edge>
-    <edge id=":664166104_c0" function="crossing">
+    <edge id=":664166104_c0" function="crossing" crossingEdges="135777010#1 -135777010#1">
         <lane id=":664166104_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3910.70,1136.29 3906.20,1140.98"/>
     </edge>
-    <edge id=":664166104_c1" function="crossing">
+    <edge id=":664166104_c1" function="crossing" crossingEdges="-135777010#0 135777010#0">
         <lane id=":664166104_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3898.42,1133.77 3902.76,1128.93"/>
     </edge>
     <edge id=":664166104_w0" function="walkingarea">
@@ -6764,10 +6764,10 @@
     <edge id=":855356982_5" function="internal">
         <lane id=":855356982_5_0" index="0" speed="13.89" length="2.41" shape="3916.44,709.86 3917.18,710.42 3917.76,711.79"/>
     </edge>
-    <edge id=":855356982_c0" function="crossing">
+    <edge id=":855356982_c0" function="crossing" crossingEdges="135777011#5 -135777011#5">
         <lane id=":855356982_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3913.99,705.29 3920.39,706.40"/>
     </edge>
-    <edge id=":855356982_c1" function="crossing">
+    <edge id=":855356982_c1" function="crossing" crossingEdges="-135777011#4 135777011#0">
         <lane id=":855356982_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3919.70,710.11 3913.31,708.93"/>
     </edge>
     <edge id=":855356982_w0" function="walkingarea">
@@ -6803,10 +6803,10 @@
     <edge id=":948655504_5" function="internal">
         <lane id=":948655504_5_0" index="0" speed="13.89" length="2.41" shape="3347.93,256.23 3347.97,257.16 3347.29,258.48"/>
     </edge>
-    <edge id=":948655504_c0" function="crossing">
+    <edge id=":948655504_c0" function="crossing" crossingEdges="-145586617#2 145586617#2">
         <lane id=":948655504_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3348.52,252.19 3351.61,257.91"/>
     </edge>
-    <edge id=":948655504_c1" function="crossing">
+    <edge id=":948655504_c1" function="crossing" crossingEdges="145586617#3 -145586617#3">
         <lane id=":948655504_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3349.82,258.90 3346.64,253.23"/>
     </edge>
     <edge id=":948655504_w0" function="walkingarea">
@@ -6851,10 +6851,10 @@
     <edge id=":cluster_1292264830_1787023432_11" function="internal">
         <lane id=":cluster_1292264830_1787023432_11_0" index="0" speed="13.89" length="2.41" shape="4421.75,496.47 4420.89,496.13 4419.95,494.98"/>
     </edge>
-    <edge id=":cluster_1292264830_1787023432_c0" function="crossing">
+    <edge id=":cluster_1292264830_1787023432_c0" function="crossing" crossingEdges="-24214694#3 24214694#3">
         <lane id=":cluster_1292264830_1787023432_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4426.46,511.45 4419.99,512.07"/>
     </edge>
-    <edge id=":cluster_1292264830_1787023432_c1" function="crossing">
+    <edge id=":cluster_1292264830_1787023432_c1" function="crossing" crossingEdges="24214694#5 -24214694#5">
         <lane id=":cluster_1292264830_1787023432_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4418.55,497.13 4425.02,496.50"/>
     </edge>
     <edge id=":cluster_1292264830_1787023432_w0" function="walkingarea">
@@ -6931,19 +6931,19 @@
     <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_17" function="internal">
         <lane id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_17_0" index="0" disallow="pedestrian" speed="22.22" length="4.82" shape="4122.43,617.37 4123.34,616.19 4124.19,615.83 4124.98,616.30 4125.72,617.59"/>
     </edge>
-    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c0" function="crossing">
+    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c0" function="crossing" crossingEdges="143308532#4">
         <lane id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4130.46,606.45 4130.02,612.94"/>
     </edge>
-    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c1" function="crossing">
+    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c1" function="crossing" crossingEdges="46039050#3">
         <lane id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4131.02,597.40 4130.61,603.89"/>
     </edge>
-    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c2" function="crossing">
+    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c2" function="crossing" crossingEdges="-142575699#3 142575699#3">
         <lane id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4122.53,593.82 4129.01,594.30"/>
     </edge>
-    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c3" function="crossing">
+    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c3" function="crossing" crossingEdges="46039050#0">
         <lane id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c3_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4119.70,602.83 4120.16,596.35"/>
     </edge>
-    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c4" function="crossing">
+    <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c4" function="crossing" crossingEdges="143308532#7">
         <lane id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_c4_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4118.98,612.43 4119.46,605.95"/>
     </edge>
     <edge id=":cluster_1560223721_1560223744_851572267_851572547_851572934_851573004_w0" function="walkingarea">
@@ -7026,16 +7026,16 @@
     <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_17" function="internal">
         <lane id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_17_0" index="0" disallow="pedestrian" speed="22.22" length="4.82" shape="4236.82,625.48 4237.73,624.30 4238.58,623.95 4239.37,624.42 4240.11,625.71"/>
     </edge>
-    <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c0" function="crossing">
+    <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c0" function="crossing" crossingEdges="143308532#1">
         <lane id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4244.76,614.79 4244.22,621.27"/>
     </edge>
-    <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c1" function="crossing">
+    <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c1" function="crossing" crossingEdges="46039050#6">
         <lane id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4245.43,605.44 4244.95,611.92"/>
     </edge>
-    <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c2" function="crossing">
+    <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c2" function="crossing" crossingEdges="46039050#3">
         <lane id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4233.94,611.14 4234.41,604.66"/>
     </edge>
-    <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c3" function="crossing">
+    <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c3" function="crossing" crossingEdges="143308532#4">
         <lane id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_c3_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4233.28,620.38 4233.74,613.90"/>
     </edge>
     <edge id=":cluster_1560223745_1568241351_1568241357_1568241362_1568241369_671564302_w0" function="walkingarea">
@@ -7098,22 +7098,22 @@
     <edge id=":cluster_1560223815_1560223847_301292612_56231397_11" function="internal">
         <lane id=":cluster_1560223815_1560223847_301292612_56231397_11_0" index="0" disallow="pedestrian" speed="13.89" length="10.98" shape="4415.10,640.00 4417.42,642.47 4417.91,644.51 4416.58,646.13 4413.41,647.33"/>
     </edge>
-    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c0" function="crossing">
+    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c0" function="crossing" crossingEdges="143308546#8">
         <lane id=":cluster_1560223815_1560223847_301292612_56231397_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4435.04,651.13 4433.45,657.44"/>
     </edge>
-    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c1" function="crossing">
+    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c1" function="crossing" crossingEdges="143308542#0">
         <lane id=":cluster_1560223815_1560223847_301292612_56231397_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4437.54,640.64 4436.02,646.95"/>
     </edge>
-    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c2" function="crossing">
+    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c2" function="crossing" crossingEdges="143308590#0">
         <lane id=":cluster_1560223815_1560223847_301292612_56231397_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.48" width="4.00" shape="4429.44,634.95 4435.82,636.08"/>
     </edge>
-    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c3" function="crossing">
+    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c3" function="crossing" crossingEdges="143308587">
         <lane id=":cluster_1560223815_1560223847_301292612_56231397_c3_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="4421.44,633.51 4424.59,634.08"/>
     </edge>
-    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c4" function="crossing">
+    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c4" function="crossing" crossingEdges="46039050#6">
         <lane id=":cluster_1560223815_1560223847_301292612_56231397_c4_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4416.67,642.02 4418.15,635.69"/>
     </edge>
-    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c5" function="crossing">
+    <edge id=":cluster_1560223815_1560223847_301292612_56231397_c5" function="crossing" crossingEdges="143308532#0">
         <lane id=":cluster_1560223815_1560223847_301292612_56231397_c5_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4414.25,652.55 4415.72,646.22"/>
     </edge>
     <edge id=":cluster_1560223815_1560223847_301292612_56231397_w0" function="walkingarea">
@@ -7263,13 +7263,13 @@
     <edge id=":cluster_1568241251_260702783_19" function="internal">
         <lane id=":cluster_1568241251_260702783_19_0" index="0" speed="8.33" length="2.41" shape="4305.12,181.96 4305.03,182.88 4304.16,184.09"/>
     </edge>
-    <edge id=":cluster_1568241251_260702783_c0" function="crossing">
+    <edge id=":cluster_1568241251_260702783_c0" function="crossing" crossingEdges="143308515 -143308515">
         <lane id=":cluster_1568241251_260702783_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4321.03,184.67 4314.56,185.28"/>
     </edge>
-    <edge id=":cluster_1568241251_260702783_c1" function="crossing">
+    <edge id=":cluster_1568241251_260702783_c1" function="crossing" crossingEdges="71960633#1 -71960633#1">
         <lane id=":cluster_1568241251_260702783_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4322.38,175.80 4323.01,182.27"/>
     </edge>
-    <edge id=":cluster_1568241251_260702783_c2" function="crossing">
+    <edge id=":cluster_1568241251_260702783_c2" function="crossing" crossingEdges="143308566#0 -143308566#0">
         <lane id=":cluster_1568241251_260702783_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4306.60,184.88 4304.30,178.80"/>
     </edge>
     <edge id=":cluster_1568241251_260702783_w0" function="walkingarea">
@@ -7341,13 +7341,13 @@
     <edge id=":cluster_1568241274_735390335_19" function="internal">
         <lane id=":cluster_1568241274_735390335_19_0" index="0" speed="8.33" length="2.41" shape="4195.61,221.84 4195.47,222.75 4194.54,223.91"/>
     </edge>
-    <edge id=":cluster_1568241274_735390335_c0" function="crossing">
+    <edge id=":cluster_1568241274_735390335_c0" function="crossing" crossingEdges="-143308485 143308484">
         <lane id=":cluster_1568241274_735390335_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4215.39,222.89 4208.95,223.80"/>
     </edge>
-    <edge id=":cluster_1568241274_735390335_c1" function="crossing">
+    <edge id=":cluster_1568241274_735390335_c1" function="crossing" crossingEdges="-143308566#0 143308566#0">
         <lane id=":cluster_1568241274_735390335_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4200.63,217.97 4202.93,224.05"/>
     </edge>
-    <edge id=":cluster_1568241274_735390335_c2" function="crossing">
+    <edge id=":cluster_1568241274_735390335_c2" function="crossing" crossingEdges="143308566#2 -143308566#2">
         <lane id=":cluster_1568241274_735390335_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4196.93,224.83 4194.96,218.64"/>
     </edge>
     <edge id=":cluster_1568241274_735390335_w0" function="walkingarea">
@@ -7524,13 +7524,13 @@
     <edge id=":cluster_2222976660_35215926_15" function="internal">
         <lane id=":cluster_2222976660_35215926_15_0" index="0" speed="13.89" length="2.41" shape="3245.10,313.86 3245.14,314.79 3244.46,316.11"/>
     </edge>
-    <edge id=":cluster_2222976660_35215926_c0" function="crossing">
+    <edge id=":cluster_2222976660_35215926_c0" function="crossing" crossingEdges="-145586617#3 145586617#3">
         <lane id=":cluster_2222976660_35215926_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3251.52,306.55 3254.70,312.22"/>
     </edge>
-    <edge id=":cluster_2222976660_35215926_c1" function="crossing">
+    <edge id=":cluster_2222976660_35215926_c1" function="crossing" crossingEdges="155586403">
         <lane id=":cluster_2222976660_35215926_c1_0" index="0" allow="pedestrian" speed="1.00" length="3.20" width="4.00" shape="3244.41,307.41 3247.21,305.87"/>
     </edge>
-    <edge id=":cluster_2222976660_35215926_c2" function="crossing">
+    <edge id=":cluster_2222976660_35215926_c2" function="crossing" crossingEdges="145586617#5 -145586617#5">
         <lane id=":cluster_2222976660_35215926_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3246.99,316.53 3243.82,310.86"/>
     </edge>
     <edge id=":cluster_2222976660_35215926_w0" function="walkingarea">
@@ -7568,16 +7568,16 @@
     <edge id=":cluster_38919703_38920751_671564318_7" function="internal">
         <lane id=":cluster_38919703_38920751_671564318_7_0" index="0" disallow="pedestrian" speed="18.05" length="18.49" shape="4594.30,714.81 4597.85,707.99 4600.82,703.33 4603.20,700.83 4605.00,700.50"/>
     </edge>
-    <edge id=":cluster_38919703_38920751_671564318_c0" function="crossing">
+    <edge id=":cluster_38919703_38920751_671564318_c0" function="crossing" crossingEdges="143308546#3">
         <lane id=":cluster_38919703_38920751_671564318_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.52" width="4.00" shape="4600.64,705.32 4597.25,710.89"/>
     </edge>
-    <edge id=":cluster_38919703_38920751_671564318_c1" function="crossing">
+    <edge id=":cluster_38919703_38920751_671564318_c1" function="crossing" crossingEdges="143308542#3">
         <lane id=":cluster_38919703_38920751_671564318_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4605.41,695.23 4602.50,701.05"/>
     </edge>
-    <edge id=":cluster_38919703_38920751_671564318_c2" function="crossing">
+    <edge id=":cluster_38919703_38920751_671564318_c2" function="crossing" crossingEdges="143308542#2">
         <lane id=":cluster_38919703_38920751_671564318_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4594.61,697.08 4597.24,691.14"/>
     </edge>
-    <edge id=":cluster_38919703_38920751_671564318_c3" function="crossing">
+    <edge id=":cluster_38919703_38920751_671564318_c3" function="crossing" crossingEdges="143308546#5">
         <lane id=":cluster_38919703_38920751_671564318_c3_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4590.42,706.01 4593.15,700.11"/>
     </edge>
     <edge id=":cluster_38919703_38920751_671564318_w0" function="walkingarea">
@@ -7663,22 +7663,22 @@
     <edge id=":cluster_492462300_671564296_17" function="internal">
         <lane id=":cluster_492462300_671564296_17_0" index="0" disallow="pedestrian" speed="13.89" length="4.82" shape="3932.21,611.21 3933.17,610.07 3934.03,609.75 3934.81,610.25 3935.49,611.56"/>
     </edge>
-    <edge id=":cluster_492462300_671564296_c0" function="crossing">
+    <edge id=":cluster_492462300_671564296_c0" function="crossing" crossingEdges="143308532#7">
         <lane id=":cluster_492462300_671564296_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3947.11,597.00 3947.26,603.50"/>
     </edge>
-    <edge id=":cluster_492462300_671564296_c1" function="crossing">
+    <edge id=":cluster_492462300_671564296_c1" function="crossing" crossingEdges="46039050#0">
         <lane id=":cluster_492462300_671564296_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3947.51,584.62 3947.38,591.12"/>
     </edge>
-    <edge id=":cluster_492462300_671564296_c2" function="crossing">
+    <edge id=":cluster_492462300_671564296_c2" function="crossing" crossingEdges="-206579062#2 206579062#1">
         <lane id=":cluster_492462300_671564296_c2_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3935.76,579.28 3945.34,581.35"/>
     </edge>
-    <edge id=":cluster_492462300_671564296_c3" function="crossing">
+    <edge id=":cluster_492462300_671564296_c3" function="crossing" crossingEdges="206579057">
         <lane id=":cluster_492462300_671564296_c3_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3923.32,593.69 3922.24,583.94"/>
     </edge>
-    <edge id=":cluster_492462300_671564296_c4" function="crossing">
+    <edge id=":cluster_492462300_671564296_c4" function="crossing" crossingEdges="46039051">
         <lane id=":cluster_492462300_671564296_c4_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="3924.92,605.66 3924.10,599.22"/>
     </edge>
-    <edge id=":cluster_492462300_671564296_c5" function="crossing">
+    <edge id=":cluster_492462300_671564296_c5" function="crossing" crossingEdges="-206579063#2 206579063#1">
         <lane id=":cluster_492462300_671564296_c5_0" index="0" allow="pedestrian" speed="1.00" length="9.80" width="4.00" shape="3937.30,609.75 3927.56,608.70"/>
     </edge>
     <edge id=":cluster_492462300_671564296_w0" function="walkingarea">
@@ -7734,16 +7734,16 @@
     <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_12" function="internal">
         <lane id=":cluster_56231598_56242441_945141647_945141732_945141877_12_0" index="0" speed="13.89" length="4.84" shape="4550.39,679.77 4549.13,681.14 4546.29,682.04"/>
     </edge>
-    <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_c0" function="crossing">
+    <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_c0" function="crossing" crossingEdges="143308546#5">
         <lane id=":cluster_56231598_56242441_945141647_945141732_945141877_c0_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4545.73,680.43 4543.38,686.49"/>
     </edge>
-    <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_c1" function="crossing">
+    <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_c1" function="crossing" crossingEdges="143308542#2">
         <lane id=":cluster_56231598_56242441_945141647_945141732_945141877_c1_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4549.17,671.67 4546.80,677.72"/>
     </edge>
-    <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_c2" function="crossing">
+    <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_c2" function="crossing" crossingEdges="143308542#0">
         <lane id=":cluster_56231598_56242441_945141647_945141732_945141877_c2_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4549.58,677.78 4551.40,671.54"/>
     </edge>
-    <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_c3" function="crossing">
+    <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_c3" function="crossing" crossingEdges="143308546#7">
         <lane id=":cluster_56231598_56242441_945141647_945141732_945141877_c3_0" index="0" allow="pedestrian" speed="1.00" length="6.50" width="4.00" shape="4546.86,687.30 4548.65,681.06"/>
     </edge>
     <edge id=":cluster_56231598_56242441_945141647_945141732_945141877_w0" function="walkingarea">

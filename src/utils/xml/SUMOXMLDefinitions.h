@@ -347,6 +347,8 @@ enum SumoXMLAttr {
     SUMO_ATTR_DURATION,
     SUMO_ATTR_UNTIL,
     SUMO_ATTR_ROUTEPROBE,
+    /* the edges crossed by a pedestrian crossing */
+    SUMO_ATTR_CROSSING_EDGES,
     /** trigger: the time of the step */
     SUMO_ATTR_TIME,
     /** weights: time range begin */
