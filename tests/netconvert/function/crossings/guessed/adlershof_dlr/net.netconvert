@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Thu Apr 24 08:45:05 2014 by SUMO netconvert Version dev-SVN-r16229
+<!-- generated on Tue Apr 29 11:10:34 2014 by SUMO netconvert Version dev-SVN-r16259
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
@@ -3859,7 +3859,7 @@
         <lane id=":2165987550_w1_0" index="0" allow="pedestrian" speed="1.00" length="1.90" width="4.00" shape="3944.48,534.60 3945.29,530.69 3943.34,530.28 3942.78,533.14 3944.74,533.50 3945.46,529.57"/>
     </edge>
     <edge id=":2165987554_0" function="internal">
-        <lane id=":2165987554_0_0" index="0" allow="pedestrian" speed="13.89" length="3.40" width="4.50" shape="3861.64,603.52 3863.75,600.76"/>
+        <lane id=":2165987554_0_0" index="0" allow="pedestrian" speed="13.89" length="3.40" width="3.00" shape="3861.64,603.52 3863.75,600.76"/>
         <lane id=":2165987554_0_1" index="1" disallow="pedestrian" speed="13.89" length="3.40" shape="3861.64,603.52 3865.03,603.70"/>
         <lane id=":2165987554_0_2" index="2" disallow="pedestrian" speed="13.89" length="3.40" shape="3862.97,606.43 3866.35,606.72"/>
         <lane id=":2165987554_0_3" index="3" disallow="pedestrian" speed="13.89" length="3.40" shape="3864.35,609.43 3867.67,609.75"/>
@@ -6864,7 +6864,7 @@
         <lane id=":cluster_1292264830_1787023432_w1_0" index="0" allow="pedestrian" speed="1.00" length="10.36" width="4.00" shape="4426.37,509.45 4426.75,513.43 4429.74,513.14 4431.47,511.38 4431.02,508.22 4431.00,508.12 4430.55,504.95 4427.91,494.21 4424.93,494.50 4425.31,498.48"/>
     </edge>
     <edge id=":cluster_1520039956_456893990_456893991_0" function="internal">
-        <lane id=":cluster_1520039956_456893990_456893991_0_0" index="0" allow="pedestrian" speed="8.33" length="15.13" width="4.70" shape="3758.40,758.06 3753.90,756.81 3751.87,754.74 3752.29,751.88 3755.18,748.21"/>
+        <lane id=":cluster_1520039956_456893990_456893991_0_0" index="0" allow="pedestrian" speed="8.33" length="15.13" shape="3758.40,758.06 3753.90,756.81 3751.87,754.74 3752.29,751.88 3755.18,748.21"/>
     </edge>
     <edge id=":cluster_1520039956_456893990_456893991_w0" function="walkingarea">
         <lane id=":cluster_1520039956_456893990_456893991_w0_0" index="0" allow="pedestrian" speed="1.00" length="5.85" width="4.00" shape="3755.89,755.42 3758.94,754.45 3759.93,752.61 3759.04,749.53 3756.95,748.58 3753.88,749.47 3757.93,756.53 3758.87,759.59 3754.71,746.68 3755.65,749.74"/>
@@ -7596,7 +7596,7 @@
         <lane id=":cluster_38919703_38920751_671564318_w4_0" index="0" allow="pedestrian" speed="1.00" length="4.66" width="4.00" shape="4594.96,700.95 4591.33,699.27 4592.78,696.27 4596.43,697.89"/>
     </edge>
     <edge id=":cluster_456893988_456893989_0" function="internal">
-        <lane id=":cluster_456893988_456893989_0_0" index="0" allow="pedestrian" speed="8.33" length="15.25" width="4.70" shape="3680.12,771.22 3684.69,772.35 3686.80,774.37 3686.45,777.27 3683.65,781.05"/>
+        <lane id=":cluster_456893988_456893989_0_0" index="0" allow="pedestrian" speed="8.33" length="15.25" shape="3680.12,771.22 3684.69,772.35 3686.80,774.37 3686.45,777.27 3683.65,781.05"/>
     </edge>
     <edge id=":cluster_456893988_456893989_w0" function="walkingarea">
         <lane id=":cluster_456893988_456893989_w0_0" index="0" allow="pedestrian" speed="1.00" length="5.94" width="4.00" shape="3681.22,778.53 3684.29,777.61 3680.59,772.75 3679.65,769.69 3684.12,782.58 3683.18,779.52 3682.52,773.74 3679.45,774.63"/>

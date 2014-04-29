@@ -268,11 +268,9 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                 // @note the actual length should be used once sumo supports lanes of
                 // varying length within the same edge
                 //const SUMOReal length = MAX2((*k).shape.length(), (SUMOReal)POSITION_EPS); 
-                const SUMOReal width = (successor.permissions != SVC_PEDESTRIAN ? successor.width : 
-                        (successor.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : successor.width) + 1.5);
                 writeLane(into, internalEdgeID, (*k).getInternalLaneID(), (*k).vmax,
                           successor.permissions, successor.preferred,
-                          NBEdge::UNSPECIFIED_OFFSET, width, (*k).shape, (*k).origID,
+                          NBEdge::UNSPECIFIED_OFFSET, successor.width, (*k).shape, (*k).origID,
                           length, (*k).internalLaneIndex, origNames);
                 haveVia = haveVia || (*k).haveVia;
             }
