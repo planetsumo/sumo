@@ -2,7 +2,7 @@
 /// @file    MSPModel_NonInteracting.h
 /// @author  Jakob Erdmann
 /// @date    Mon, 13 Jan 2014
-/// @version $Id: MSPModel_NonInteracting.cpp 16023 2014-03-25 10:36:03Z namdre $
+/// @version $Id$
 ///
 // The pedestrian following model (prototype)
 /****************************************************************************/
