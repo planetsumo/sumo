@@ -81,12 +81,12 @@ MSLink::~MSLink() {}
 
 
 void
-MSLink::setRequestInformation(int index, bool isCrossing, bool isCont,
+MSLink::setRequestInformation(int index, bool hasFoes, bool isCont,
                               const std::vector<MSLink*>& foeLinks,
                               const std::vector<MSLane*>& foeLanes,
                               MSLane* internalLaneBefore) {
     myIndex = index;
-    myIsCrossing = isCrossing;
+    myHasFoes = hasFoes;
     myAmCont = isCont;
     myFoeLinks = foeLinks;
     myFoeLanes = foeLanes;

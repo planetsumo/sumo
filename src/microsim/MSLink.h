@@ -157,7 +157,7 @@ public:
      *  requests and responses after the initialisation.
      * @todo Unsecure!
      */
-    void setRequestInformation(int index, bool isCrossing, bool isCont,
+    void setRequestInformation(int index, bool hasFoes, bool isCont,
                                const std::vector<MSLink*>& foeLinks, const std::vector<MSLane*>& foeLanes,
                                MSLane* internalLaneBefore = 0);
 
@@ -290,8 +290,8 @@ public:
      *
      * @return Whether any foe links exist
      */
-    bool isCrossing() const {
-        return myIsCrossing;
+    bool hasFoes() const {
+        return myHasFoes;
     }
 
 
@@ -363,7 +363,7 @@ private:
     SUMOReal myLength;
 
     /// @brief Whether any foe links exist
-    bool myIsCrossing;
+    bool myHasFoes;
 
     bool myAmCont;
 

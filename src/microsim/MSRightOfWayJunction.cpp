@@ -93,7 +93,7 @@ MSRightOfWayJunction::postloadInit() {
         }
     }
 
-    bool isCrossing = myLogic->isCrossing();
+    const bool hasFoes = myLogic->hasFoes();
     for (i = myIncomingLanes.begin(); i != myIncomingLanes.end(); ++i) {
         const MSLinkCont& links = (*i)->getLinkCont();
         // ... set information for every link
@@ -167,7 +167,7 @@ MSRightOfWayJunction::postloadInit() {
                 }
             }
 #endif
-            (*j)->setRequestInformation((int)requestPos, isCrossing, cont, myLinkFoeLinks[*j], myLinkFoeInternalLanes[*j]);
+            (*j)->setRequestInformation((int)requestPos, hasFoes, cont, myLinkFoeLinks[*j], myLinkFoeInternalLanes[*j]);
 #ifdef HAVE_INTERNAL_LANES
             // the exit link for a link before an internal junction is handled in MSInternalJunction
             // so we need to skip if cont=true
