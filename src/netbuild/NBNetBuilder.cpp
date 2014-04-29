@@ -222,7 +222,7 @@ NBNetBuilder::compute(OptionsCont& oc,
     }
     // guess sidewalks
     if (oc.getBool("sidewalks.guess")) {
-        const int sidewalks = myEdgeCont.guessSidewalks(oc.getFloat("default.sidewalkWidth"), 
+        const int sidewalks = myEdgeCont.guessSidewalks(oc.getFloat("default.sidewalk-width"), 
                 oc.getFloat("sidewalks.guess.min-speed"),
                 oc.getFloat("sidewalks.guess.max-speed"));
         WRITE_MESSAGE("Guessed " + toString(sidewalks) + " sidewalks.");

@@ -73,8 +73,8 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.addSynonyme("default.priority", "priority", true);
     oc.addDescription("default.priority", "Building Defaults", "The default priority of an edge");
 
-    oc.doRegister("default.sidewalkWidth", new Option_Float((SUMOReal) 2.0));
-    oc.addDescription("default.sidewalkWidth", "Building Defaults", "The default width of added sidewalks");
+    oc.doRegister("default.sidewalk-width", new Option_Float((SUMOReal) 2.0));
+    oc.addDescription("default.sidewalk-width", "Building Defaults", "The default width of added sidewalks");
 
     // register the data processing options
     oc.doRegister("no-internal-links", new Option_Bool(false)); // !!! not described
