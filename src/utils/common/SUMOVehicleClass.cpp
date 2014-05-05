@@ -293,7 +293,7 @@ bool isRailway(SVCPermissions permissions) {
 
 
 bool isForbidden(SVCPermissions permissions) {
-    return (permissions & (2 * SUMOVehicleClass_MAX - 1)) == 0;
+    return (permissions & SVCAll) == 0;
 }
 
 
