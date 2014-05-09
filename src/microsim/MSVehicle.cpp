@@ -52,6 +52,8 @@
 #include <utils/emissions/HelpersHarmonoise.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/StdDefs.h>
+#include <utils/common/StringTokenizer.h>
+#include <utils/common/TplConvert.h>
 #include <utils/geom/GeomHelper.h>
 #include <utils/geom/Line.h>
 #include <utils/iodevices/OutputDevice.h>
@@ -425,6 +427,24 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
     }
     myLaneChangeModel = MSAbstractLaneChangeModel::build(type->getLaneChangeModel(), *this);
     myCFVariables = type->getCarFollowModel().createVehicleVariables();
+    //
+    std::string timeLineS = getParameter().getParameter("colombo.timeline", "");
+    if(timeLineS!="") {
+        try {
+            myInfluencer = new Influencer();
+            std::vector<std::pair<SUMOTime, SUMOReal> > timeLine;
+            StringTokenizer st(timeLineS);
+            SUMOTime t = pars->depart;
+            while(st.hasNext()) {
+                SUMOReal speed = TplConvert::_2SUMOReal(st.next().c_str());
+                timeLine.push_back(std::pair<SUMOTime, SUMOReal>(t, speed));
+                t = t + DELTA_T;
+            }
+            myInfluencer->setSpeedTimeLine(timeLine);
+        } catch (NumberFormatException &) {
+            throw ProcessError("Could not parse the given attribute 'colombo.timeline'.");
+        }
+    }
 }
 
 
