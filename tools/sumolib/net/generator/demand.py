@@ -117,11 +117,12 @@ class Demand:
   def addStream(self, s):
     self.streams.append(s)
   
-  def build(self, b, e, netName, routesName="input_routes.rou.xml"):
+  def build(self, b, e, netName="net.net.xml", routesName="input_routes.rou.xml"):
     vehicles = []
     for s in self.streams:
       vehicles.extend(s.toVehicles(b, e))
-    fdo = open("input_trips.rou.xml", "w")
+    tmpFile = "input_trips.rou.xml"
+    fdo = open(tmpFile, "w")
     fdo.write("<routes>\n")
     for v in sorted(vehicles, key=lambda veh: veh.depart):
       fdo.write('    <trip id="%s" depart="%s" from="%s" to="%s" type="%s"/>\n' % (v.id, v.depart, v.fromEdge, v.toEdge, v.vType))
@@ -129,7 +130,5 @@ class Demand:
     fdo.close()
 
     duarouter = sumolib.checkBinary("duarouter")
-    retCode = subprocess.call([duarouter, "-v", "-n", netName,  "-t", "input_trips.rou.xml", "-o", routesName])
-    os.remove(nodesFile)
-    os.remove(edgesFile)
-    os.remove(connectionsFile)
+    retCode = subprocess.call([duarouter, "-v", "-n", netName,  "-t", tmpFile, "-o", routesName, "--no-warnings"]) # aeh, implizite no-warnings sind nicht schoen
+    os.remove(tmpFile)

@@ -34,7 +34,7 @@ from .edge import Edge
 from .node import Node
 from .connection import Connection
 from .roundabout import Roundabout
-
+import generator
 
 class TLS:
     """Traffic Light Signal for a sumo network"""
