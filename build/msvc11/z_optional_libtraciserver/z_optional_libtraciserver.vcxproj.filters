@@ -36,6 +36,9 @@
     <ClCompile Include="..\..\..\src\traci-server\TraCIServerAPI_MeMeDetector.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\traci-server\TraCIServerAPI_Person.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\traci-server\TraCIServerAPI_POI.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -81,6 +84,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\traci-server\TraCIServerAPI_MeMeDetector.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\traci-server\TraCIServerAPI_Person.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\traci-server\TraCIServerAPI_POI.h">
