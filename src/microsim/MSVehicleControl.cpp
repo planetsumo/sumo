@@ -198,18 +198,6 @@ MSVehicleControl::deleteVehicle(SUMOVehicle* veh, bool discard) {
 }
 
 
-MSVehicleControl::constVehIt
-MSVehicleControl::loadedVehBegin() const {
-    return myVehicleDict.begin();
-}
-
-
-MSVehicleControl::constVehIt
-MSVehicleControl::loadedVehEnd() const {
-    return myVehicleDict.end();
-}
-
-
 bool
 MSVehicleControl::checkVType(const std::string& id) {
     if (id == DEFAULT_VTYPE_ID) {

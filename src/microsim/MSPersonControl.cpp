@@ -71,6 +71,16 @@ MSPersonControl::add(const std::string& id, MSPerson* person) {
 }
 
 
+MSPerson*
+MSPersonControl::get(const std::string& id) const {
+    std::map<std::string, MSPerson*>::const_iterator i = myPersons.find(id);
+    if (i == myPersons.end()) {
+        return 0;
+    }
+    return (*i).second;
+}
+
+
 void
 MSPersonControl::erase(MSPerson* person) {
     const std::string& id = person->getID();
