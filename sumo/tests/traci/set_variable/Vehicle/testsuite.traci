@@ -43,6 +43,9 @@ ADD
 # for removing vehicles
 REMOVE
 
+# for removing parking vehicles
+remove_parking
+
 # rerouting tests
 rerouting
 
@@ -54,5 +57,10 @@ VehicleTypeRelated
 
 # checking SlowDown and SetSpeed
 SlowDownAndSetSpeed
-
 resume_from_stop
+
+# resuming from a triggered stop
+resume_from_stop_triggered
+
+# resuming from a parking stop
+resume_from_stop_parking
