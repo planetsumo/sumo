@@ -96,7 +96,9 @@ GUIRunThread::init(GUINet* net, SUMOTime start, SUMOTime end) {
     // register message callbacks
     MsgHandler::getErrorInstance()->addRetriever(myErrorRetriever);
     MsgHandler::getMessageInstance()->addRetriever(myMessageRetriever);
-    MsgHandler::getWarningInstance()->addRetriever(myWarningRetriever);
+    if (!OptionsCont::getOptions().getBool("no-warnings")) {
+        MsgHandler::getWarningInstance()->addRetriever(myWarningRetriever);
+    }
     // preload the routes especially for TraCI
     mySimulationLock.lock();
     try {
@@ -137,7 +139,9 @@ GUIRunThread::run() {
                 }
             }
             // check whether we shall stop at this step
-            const bool haltAfter = find(GUIGlobals::gBreakpoints.begin(), GUIGlobals::gBreakpoints.end(), myNet->getCurrentTimeStep()) != GUIGlobals::gBreakpoints.end();
+            myBreakpointLock.lock();
+            const bool haltAfter = find(myBreakpoints.begin(), myBreakpoints.end(), myNet->getCurrentTimeStep()) != myBreakpoints.end();
+            myBreakpointLock.unlock();
             // do the step
             makeStep();
             // stop if wished

@@ -13,7 +13,7 @@
 // Sets and checks options for microsim; inits global outputs and settings
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,6 +51,7 @@
 #include <microsim/MSRoute.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSGlobals.h>
+#include <microsim/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <utils/common/RandHelper.h>
@@ -132,6 +133,8 @@ MSFrame::fillOptions() {
     oc.addDescription("queue-output", "Output", "Save the vehicle queues at the junctions (experimental)");
     oc.doRegister("vtk-output", new Option_FileName());
     oc.addDescription("vtk-output", "Output", "Save complete vehicle positions inclusive speed values in the VTK Format (usage: /path/out will produce /path/out_$TIMESTEP$.vtp files)");
+    oc.doRegister("amitran-output", new Option_FileName());
+    oc.addDescription("amitran-output", "Output", "Save the vehicle trajectories in the Amitran format");
 
 
     oc.doRegister("summary-output", new Option_FileName());
@@ -223,10 +226,6 @@ MSFrame::fillOptions() {
     oc.addSynonyme("max-num-vehicles", "too-many-vehicles", true);
     oc.addDescription("max-num-vehicles", "Processing", "Quit simulation if this number of vehicles is exceeded");
 
-    oc.doRegister("incremental-dua-step", new Option_Integer());//!!! deprecated
-    oc.addDescription("incremental-dua-step", "Processing", "Perform the simulation as a step in incremental DUA");
-    oc.doRegister("incremental-dua-base", new Option_Integer(10));//!!! deprecated
-    oc.addDescription("incremental-dua-base", "Processing", "Base value for incremental DUA");
     oc.doRegister("scale", new Option_Float());
     oc.addDescription("scale", "Processing", "Scale demand by the given factor (0..1)");
 
@@ -244,24 +243,39 @@ MSFrame::fillOptions() {
     oc.doRegister("eager-insert", new Option_Bool(false));
     oc.addDescription("eager-insert", "Processing", "Whether each vehicle is checked separately for insertion on an edge");
 
+    oc.doRegister("random-depart-offset", new Option_String("0", "TIME"));
+    oc.addDescription("random-depart-offset", "Processing", "Each vehicle receives a random offset to its depart value drawn uniformly from [0, TIME]");
+
     oc.doRegister("lanechange.allow-swap", new Option_Bool(false));
     oc.addDescription("lanechange.allow-swap", "Processing", "Whether blocking vehicles trying to change lanes may be swapped");
 
     oc.doRegister("lanechange.duration", new Option_String("0", "TIME"));
     oc.addDescription("lanechange.duration", "Processing", "Duration of a lane change maneuver (default 0)");
 
+    oc.doRegister("lanechange.overtake-right", new Option_Bool(false));
+    oc.addDescription("lanechange.overtake-right", "Processing", "Whether overtaking on the right on motorways is permitted");
+
     oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
     oc.addDescription("routing-algorithm", "Processing",
                       "Select among routing algorithms ['dijkstra', 'astar']");
+    // pedestrian model
+    oc.doRegister("pedestrian.model", new Option_String("striping"));
+    oc.addDescription("pedestrian.model", "Processing", "Select among pedestrian models ['nonInteracting', 'striping']");
+
+    oc.doRegister("pedestrian.striping.stripe-width", new Option_Float(0.65));
+    oc.addDescription("pedestrian.striping.stripe-width", "Processing", "Width of parallel stripes for segmenting a sidewalk (meters) for use with model 'striping'");
+
+    oc.doRegister("pedestrian.striping.dawdling", new Option_Float(0.2));
+    oc.addDescription("pedestrian.striping.dawdling", "Processing", "factor for random slow-downs [0,1] for use with model 'striping'");
 
     // devices
     oc.addOptionSubTopic("Emissions");
     std::string plp = getenv("PHEMLIGHT_PATH")==0 ? "./PHEMlight/" : std::string(getenv("PHEMLIGHT_PATH"));
     oc.doRegister("phemlight-path", new Option_FileName(plp));
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
+
     oc.addOptionSubTopic("Communication");
     MSDevice::insertOptions(oc);
-
 
     // register report options
     oc.doRegister("no-duration-log", new Option_Bool(false));
@@ -350,6 +364,7 @@ MSFrame::buildStreams() {
     OutputDevice::createDeviceByOption("emission-output", "emission-export", "emission_file.xsd");
     OutputDevice::createDeviceByOption("full-output", "full-export", "full_file.xsd");
     OutputDevice::createDeviceByOption("queue-output", "queue-export", "queue_file.xsd");
+    OutputDevice::createDeviceByOption("amitran-output", "trajectories", "amitran/trajectories.xsd\" timeStepSize=\"" + toString(STEPS2MS(DELTA_T)));
 
     //OutputDevice::createDeviceByOption("vtk-output", "vtk-export");
     OutputDevice::createDeviceByOption("link-output", "link-output");
@@ -371,15 +386,8 @@ MSFrame::checkOptions() {
         WRITE_ERROR("No network file (-n) specified.");
         ok = false;
     }
-    if (oc.isSet("incremental-dua-step") && oc.isSet("incremental-dua-base")) {
-        WRITE_WARNING("The options 'incremental-dua-step' and 'incremental-dua-base' are deprecated, use 'scale' instead.");
-        if (oc.getInt("incremental-dua-step") > oc.getInt("incremental-dua-base")) {
-            WRITE_ERROR("Invalid dua step.");
-            ok = false;
-        }
-    }
     if (!oc.isDefault("scale")) {
-        if (oc.getFloat("scale") < 0. || oc.getFloat("scale") > 1.) {
+        if (oc.getFloat("scale") < 0.) {
             WRITE_ERROR("Invalid scaling factor.");
             ok = false;
         }
@@ -398,6 +406,18 @@ MSFrame::checkOptions() {
         oc.set("meso-junction-control", "true");
     }
 #endif
+    const SUMOTime begin = string2time(oc.getString("begin"));
+    const SUMOTime end = string2time(oc.getString("end"));
+    if (begin < 0) {
+        WRITE_ERROR("The begin time should not be negative.");
+        ok = false;
+    }
+    if (end != string2time("-1")) {
+        if (end < begin) {
+            WRITE_ERROR("The end time should be after the begin time.");
+            ok = false;
+        }
+    }
 #ifdef HAVE_SUBSECOND_TIMESTEPS
     if (string2time(oc.getString("step-length")) <= 0) {
         WRITE_ERROR("the minimum step-length is 0.001");
@@ -445,6 +465,7 @@ MSFrame::setMSGlobals(OptionsCont& oc) {
         MSGlobals::gUsingInternalLanes = false;
     }
 #endif
+    MSAbstractLaneChangeModel::initGlobalOptions(oc);
 
 #ifdef HAVE_SUBSECOND_TIMESTEPS
     DELTA_T = string2time(oc.getString("step-length"));

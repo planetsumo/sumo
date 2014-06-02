@@ -4,6 +4,7 @@
 /// @author  Daniel Krajzewicz
 /// @author  Axel Wegener
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Mon, 12 Mar 2001
 /// @version $Id$
 ///
@@ -75,6 +76,7 @@ MSInsertionControl::add(SUMOVehicleParameter* pars) {
     flow.isVolatile = pars->departLaneProcedure == DEPART_LANE_RANDOM ||
                       pars->departPosProcedure == DEPART_POS_RANDOM ||
                       MSNet::getInstance()->getVehicleControl().hasVTypeDistribution(pars->vtypeid);
+    flow.index = 0;
     if (!flow.isVolatile) {
         const RandomDistributor<const MSRoute*>* dist = MSRoute::distDictionary(pars->routeid);
         if (dist != 0) {
@@ -206,14 +208,28 @@ MSInsertionControl::checkFlows(SUMOTime time,
     unsigned int noEmitted = 0;
     for (std::vector<Flow>::iterator i = myFlows.begin(); i != myFlows.end();) {
         SUMOVehicleParameter* pars = i->pars;
-        if (!i->isVolatile && i->vehicle != 0) {
+        if (!i->isVolatile && i->vehicle != 0 && pars->repetitionProbability < 0) {
             ++i;
+            //std::cout << SIMTIME << " volatile=" << i->isVolatile << " veh=" << i->vehicle << "\n";
             continue;
         }
+        bool emitByProb = pars->repetitionProbability > 0 && RandHelper::rand() < (pars->repetitionProbability * TS);
+        //std::cout << emitByProb << "\n";
+        //std::cout << SIMTIME 
+        //    << " flow=" << pars->id 
+        //    << " rDo=" << pars->repetitionsDone 
+        //    << " rN=" << pars->repetitionNumber 
+        //    << " rDe=" << pars->depart 
+        //    << " rRo=" << pars->repetitionOffset 
+        //    << " rPo=" << pars->repetitionProbability 
+        //    << " emit=" << emitByProb
+        //    << "\n";
         while (pars->repetitionsDone < pars->repetitionNumber &&
-                pars->depart + pars->repetitionsDone * pars->repetitionOffset < time + DELTA_T) {
+               ((pars->repetitionProbability < 0 && pars->depart + pars->repetitionsDone * pars->repetitionOffset < time + DELTA_T)
+                || emitByProb)) {
+            emitByProb = false;
             SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*pars);
-            newPars->id = pars->id + "." + toString(pars->repetitionsDone);
+            newPars->id = pars->id + "." + toString(i->index);
             newPars->depart = static_cast<SUMOTime>(pars->depart + pars->repetitionsDone * pars->repetitionOffset);
             pars->repetitionsDone++;
             // try to build the vehicle
@@ -221,11 +237,21 @@ MSInsertionControl::checkFlows(SUMOTime time,
                 const MSRoute* route = MSRoute::dictionary(pars->routeid);
                 const MSVehicleType* vtype = vehControl.getVType(pars->vtypeid);
                 i->vehicle = vehControl.buildVehicle(newPars, route, vtype);
-                if (vehControl.isInQuota()) {
+                unsigned int quota = vehControl.getQuota();
+                if (quota > 0) {
                     vehControl.addVehicle(newPars->id, i->vehicle);
                     noEmitted += tryInsert(time, i->vehicle, refusedEmits);
-                    if (!i->isVolatile && i->vehicle != 0) {
+                    i->index++;
+                    if (quota == 1 && !i->isVolatile && i->vehicle != 0) {
                         break;
+                    }
+                    while (--quota > 0) {
+                        SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*pars);
+                        newPars->id = pars->id + "." + toString(pars->repetitionsDone);
+                        i->vehicle = vehControl.buildVehicle(newPars, route, vtype);
+                        vehControl.addVehicle(newPars->id, i->vehicle);
+                        noEmitted += tryInsert(time, i->vehicle, refusedEmits);
+                        i->index++;
                     }
                 } else {
                     vehControl.deleteVehicle(i->vehicle, true);

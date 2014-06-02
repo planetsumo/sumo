@@ -651,6 +651,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\MSPModel.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\MSPModel_NonInteracting.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\MSPModel_Striping.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\MSRightOfWayJunction.cpp"
 				>
 			</File>
@@ -767,10 +779,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\MSLCM_JE2013.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\src\microsim\MSLCM_LC2013.h"
 				>
 			</File>
@@ -804,6 +812,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\MSPersonControl.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\MSPModel.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\MSPModel_NonInteracting.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\MSPModel_Striping.h"
 				>
 			</File>
 			<File

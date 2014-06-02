@@ -1,13 +1,16 @@
 /****************************************************************************/
 /// @file    PHEMCEP.h
 /// @author  Nikolaus Furian
+/// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
+/// @author  Marek Heinrich
 /// @date    Thu, 13.06.2013
 /// @version $$
 ///
 // Helper class for PHEM Light, holds a specific CEP for a PHEM emission class
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -69,7 +72,7 @@ public:
      * @param[in] matrixPollutants Coefficients of the pollutants
      * @param[in] matrixSpeedRotational Table for rotational coefficients over speed
      */
-    PHEMCEP(bool heavyVehicel, SUMOEmissionClass emissionClass,
+    PHEMCEP(bool heavyVehicel, SUMOEmissionClass emissionClass, const std::string& emissionClassIdentifier,
             double vehicleMass, double vehicleLoading, double vehicleMassRot,
             double crossArea, double cWValue,
             double f0, double f1, double f2, double f3, double f4,

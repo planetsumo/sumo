@@ -4,13 +4,14 @@
 /// @author  Eric Nicolay
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
+/// @author  Melanie Knocke
 /// @date    Thu, 16.03.2006
 /// @version $Id$
 ///
 // Sets and checks options for df-routing
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2006-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -109,9 +110,6 @@ RODFFrame::fillOptions() {
 	oc.doRegister("vtype", new Option_Bool(false));
     oc.addDescription("vtype", "Output", "Add vehicle types to the emitters file (PKW, LKW)");
 
-    oc.doRegister("vtype", new Option_Bool(false));
-    oc.addDescription("vtype", "Output", "Add vehicle types to the emitters file (PKW, LKW)");
-
     oc.doRegister("emitters-poi-output", new Option_FileName()); // !!! describe
     oc.addDescription("emitters-poi-output", "Output", "Saves emitter positions as pois to FILE");
 
@@ -149,9 +147,6 @@ RODFFrame::fillOptions() {
     // for route computation
     oc.doRegister("revalidate-routes", new Option_Bool(false));
     oc.addDescription("revalidate-routes", "Processing", "Recomputes routes even if given");
-
-    oc.doRegister("all-end-follower", new Option_Bool(false));
-    oc.addDescription("all-end-follower", "Processing", "Continues routes till the first street after a sink");
 
     oc.doRegister("keep-unfinished-routes", new Option_Bool(false));
     oc.addSynonyme("keep-unfinished-routes", "keep-unfound-ends", true);

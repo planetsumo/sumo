@@ -5,13 +5,14 @@
 /// @author  Clemens Honomichl
 /// @author  Michael Behrisch
 /// @author  Christian Roessel
+/// @author  Jakob Erdmann
 /// @date    Mon, 15 Apr 2002
 /// @version $Id$
 ///
 // Builds detectors for microsim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,6 +46,7 @@
 #include <microsim/output/MSMeanData_Net.h>
 #include <microsim/output/MSMeanData_Emissions.h>
 #include <microsim/output/MSMeanData_Harmonoise.h>
+#include <microsim/output/MSMeanData_Amitran.h>
 #include <microsim/output/MSInstantInductLoop.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/actions/Command_SaveTLCoupledDet.h>
@@ -506,6 +508,9 @@ NLDetectorBuilder::createEdgeLaneMeanData(const std::string& id, SUMOTime freque
     } else if (type == "harmonoise") {
         det = new MSMeanData_Harmonoise(id, begin, end, useLanes, withEmpty,
                                         printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vt);
+    } else if (type == "amitran") {
+        det = new MSMeanData_Amitran(id, begin, end, useLanes, withEmpty,
+                                     printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, haltSpeed, vt);
     } else {
         throw InvalidArgument("Invalid type '" + type + "' for meandata dump '" + id + "'.");
     }

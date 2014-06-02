@@ -1,5 +1,6 @@
 /****************************************************************************/
 /// @file    PlainXMLFormatter.cpp
+/// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
 /// @date    2012
 /// @version $Id$
@@ -7,7 +8,7 @@
 // Static storage of an output device and its base (abstract) implementation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -109,6 +110,15 @@ PlainXMLFormatter::closeTag(std::ostream& into) {
     return false;
 }
 
+
+void 
+PlainXMLFormatter::writePreformattedTag(std::ostream& into, const std::string& val) {
+    if (myHavePendingOpener) {
+        into << ">\n";
+        myHavePendingOpener = false;
+    }
+    into << val;
+}
 
 /****************************************************************************/
 

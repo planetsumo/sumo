@@ -1,13 +1,16 @@
 /****************************************************************************/
 /// @file    PHEMCEPHandler.h
 /// @author  Nikolaus Furian
+/// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
+/// @author  Marek Heinrich
 /// @date    Thu, 13.06.2013
 /// @version $$
 ///
 // Helper singelton class for PHEM Light, holds CEP data for emission computation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -60,14 +63,14 @@ public:
     PHEMCEP* GetCep(SUMOEmissionClass emissionClass);
 
 
-private:
     /** @brief Helper method to load CEP and vehicle files from file system
     * @param[in] emissionClass desired PHEM emission class
     * @return Indicator if loading was successul
     */
-    bool Load(SUMOEmissionClass emissionClass);
+    bool Load(SUMOEmissionClass emissionClass, const std::string& emissionClassIdentifier);
 
 
+private:
     /** @brief Helper method to read a vehicle file from file system
     * @param[in] path The path to PHEMlight data files
     * @param[in] emissionClass desired PHEM emission class

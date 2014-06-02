@@ -1,5 +1,6 @@
 /****************************************************************************/
 /// @file    OutputFormatter.h
+/// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
 /// @date    2012
 /// @version $Id$
@@ -7,7 +8,7 @@
 // Abstract base class for output formatters
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -109,6 +110,7 @@ public:
      */
     virtual bool closeTag(std::ostream& into) = 0;
 
+    virtual void writePreformattedTag(std::ostream& into, const std::string& val) = 0;
 
 };
 

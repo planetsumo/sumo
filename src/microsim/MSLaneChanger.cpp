@@ -5,13 +5,14 @@
 /// @author  Laura Bieker
 /// @author  Michael Behrisch
 /// @author  Friedemann Wesner
+/// @author  Jakob Erdmann
 /// @date    Fri, 01 Feb 2002
 /// @version $Id$
 ///
 // Performs lane changing of vehicles
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -150,12 +151,11 @@ MSLaneChanger::change() {
         return false; // !!! temporary; just because it broke, here
     }
 #endif
-    const std::vector<MSVehicle::LaneQ>& preb = vehicle->getBestLanes();
-    assert(preb.size() == myChanger.size());
+    vehicle->updateBestLanes(); // needed?
     for (int i = 0; i < (int) myChanger.size(); ++i) {
-        ((std::vector<MSVehicle::LaneQ>&) preb)[i].occupation = myChanger[i].dens + preb[i].nextOccupation;
+        vehicle->adaptBestLanesOccupation(i, myChanger[i].dens);
     }
-
+    const std::vector<MSVehicle::LaneQ>& preb = vehicle->getBestLanes();
     std::pair<MSVehicle* const, SUMOReal> leader = getRealThisLeader(myCandi);
     // check whether the vehicle wants and is able to change to right lane
     int state1 = 0;

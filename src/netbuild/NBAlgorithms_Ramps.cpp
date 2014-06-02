@@ -1,13 +1,15 @@
 /****************************************************************************/
 /// @file    NBAlgorithms_Ramps.cpp
 /// @author  Daniel Krajzewicz
+/// @author  Jakob Erdmann
+/// @author  Michael Behrisch
 /// @date    29. March 2012
 /// @version $Id$
 ///
 // Algorithms for highway on-/off-ramps computation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -143,8 +145,8 @@ NBRampsComputer::buildOnRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDist
     NBEdge* potHighway, *potRamp, *cont;
     getOnRampEdges(cur, &potHighway, &potRamp, &cont);
     // compute the number of lanes to append
-    const unsigned int firstLaneNumber = potHighway->getNumLanes();
-    int toAdd = (potRamp->getNumLanes() + firstLaneNumber) - cont->getNumLanes();
+    const unsigned int firstLaneNumber = cont->getNumLanes();
+    int toAdd = (potRamp->getNumLanes() + potHighway->getNumLanes()) - firstLaneNumber;
     NBEdge* first = cont;
     NBEdge* last = cont;
     NBEdge* curr = cont;
@@ -234,8 +236,8 @@ NBRampsComputer::buildOffRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDis
     NBEdge* potHighway, *potRamp, *prev;
     getOffRampEdges(cur, &potHighway, &potRamp, &prev);
     // compute the number of lanes to append
-    const unsigned int firstLaneNumber = potHighway->getNumLanes();
-    int toAdd = (potRamp->getNumLanes() + firstLaneNumber) - prev->getNumLanes();
+    const unsigned int firstLaneNumber = prev->getNumLanes();
+    int toAdd = (potRamp->getNumLanes() + potHighway->getNumLanes()) - firstLaneNumber;
     NBEdge* first = prev;
     NBEdge* last = prev;
     NBEdge* curr = prev;

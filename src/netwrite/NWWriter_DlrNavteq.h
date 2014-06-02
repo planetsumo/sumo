@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    NWWriter_DlrNavteq.h
 /// @author  Jakob Erdmann
+/// @author  Michael Behrisch
 /// @date    26.10.2012
 /// @version $Id$
 ///
 // Exporter writing networks using DlrNavteq (Elmar) format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -66,6 +67,9 @@ public:
      */
     static void writeNetwork(const OptionsCont& oc, NBNetBuilder& nb);
 
+    /// @brief get the navteq road class
+    static int getRoadClass(NBEdge* edge);
+
 private:
     /** @brief Writes the nodes_unsplitted file
      * @param[in] oc The options to use
@@ -93,9 +97,6 @@ private:
 
     /// @brief build the ascii-bit-vector for column vehicle_type
     static std::string getAllowedTypes(SVCPermissions permissions);
-
-    /// @brief get the navteq road class
-    static int getRoadClass(NBEdge* edge);
 
     /// @brief get the navteq speed class based on the speed in km/h
     static int getSpeedCategory(int kph);

@@ -351,11 +351,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_Example.cpp"
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_Emissions.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_HBEFA.cpp"
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_Example.cpp"
 				>
 			</File>
 			<File
@@ -393,11 +393,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_Example.h"
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_Emissions.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\devices\MSDevice_HBEFA.h"
+				RelativePath="..\..\..\src\microsim\devices\MSDevice_Example.h"
 				>
 			</File>
 			<File

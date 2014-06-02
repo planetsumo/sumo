@@ -77,8 +77,8 @@ loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     if (file == "") {
         throw ProcessError("Missing definition of network to load!");
     }
-    if (!FileHelpers::exists(file)) {
-        throw ProcessError("The network file '" + file + "' could not be found.");
+    if (!FileHelpers::isReadable(file)) {
+        throw ProcessError("The network file '" + file + "' could not be accessed.");
     }
     PROGRESS_BEGIN_MESSAGE("Loading net");
     RONetHandler handler(toFill, eb);
@@ -88,6 +88,10 @@ loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
         throw ProcessError();
     } else {
         PROGRESS_DONE_MESSAGE();
+    }
+    if (!deprecatedVehicleClassesSeen.empty()) {
+        WRITE_WARNING("Deprecated vehicle classes '" + toString(deprecatedVehicleClassesSeen) + "' in input network.");
+        deprecatedVehicleClassesSeen.clear();
     }
 }
 

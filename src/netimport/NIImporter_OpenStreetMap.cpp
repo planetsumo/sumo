@@ -137,8 +137,8 @@ NIImporter_OpenStreetMap::load(const OptionsCont& oc, NBNetBuilder& nb) {
     //  for highways
     NBTypeCont& tc = nb.getTypeCont();
     SUMOReal const WIDTH = NBEdge::UNSPECIFIED_WIDTH;
-    tc.insert("highway.motorway",      3, (SUMOReal)(160. / 3.6), 13, WIDTH, SVC_UNKNOWN, true);
-    tc.insert("highway.motorway_link", 1, (SUMOReal)(80. / 3.6), 12, WIDTH, SVC_UNKNOWN, true);
+    tc.insert("highway.motorway",      3, (SUMOReal)(160. / 3.6), 13, WIDTH, SVC_IGNORING, true);
+    tc.insert("highway.motorway_link", 1, (SUMOReal)(80. / 3.6), 12, WIDTH, SVC_IGNORING, true);
     tc.insert("highway.trunk",         2, (SUMOReal)(100. / 3.6), 11, WIDTH); // !!! 130km/h?
     tc.insert("highway.trunk_link",    1, (SUMOReal)(80. / 3.6), 10, WIDTH);
     tc.insert("highway.primary",       2, (SUMOReal)(100. / 3.6),  9, WIDTH);
@@ -152,30 +152,28 @@ NIImporter_OpenStreetMap::load(const OptionsCont& oc, NBNetBuilder& nb) {
     tc.insert("highway.living_street", 1, (SUMOReal)(10. / 3.6),  3, WIDTH);
     tc.insert("highway.service",       1, (SUMOReal)(20. / 3.6),  2, WIDTH, SVC_DELIVERY);
     tc.insert("highway.track",         1, (SUMOReal)(20. / 3.6),  1, WIDTH);
-    tc.insert("highway.services",      1, (SUMOReal)(30. / 3.6),  1, WIDTH);
+    tc.insert("highway.services",      1, (SUMOReal)(30. / 3.6),  1, WIDTH); // service area i.e. on a motorway
     tc.insert("highway.unsurfaced",    1, (SUMOReal)(30. / 3.6),  1, WIDTH); // unofficial value, used outside germany
-    tc.insert("highway.footway",       1, (SUMOReal)(30. / 3.6),  1, WIDTH, SVC_PEDESTRIAN);
-    tc.insert("highway.pedestrian",    1, (SUMOReal)(30. / 3.6),  1, WIDTH, SVC_PEDESTRIAN);
 
-    tc.insert("highway.path",          1, (SUMOReal)(10. / 3.6),  1, WIDTH, SVC_PEDESTRIAN);
+    tc.insert("highway.pedestrian",    1, (SUMOReal)(30. / 3.6),  1, WIDTH, SVC_PEDESTRIAN, true);
+    tc.insert("highway.path",          1, (SUMOReal)(10. / 3.6),  1, WIDTH, SVC_PEDESTRIAN, true);
     tc.insert("highway.bridleway",     1, (SUMOReal)(10. / 3.6),  1, WIDTH, SVC_BICYCLE); // no horse stuff
     tc.insert("highway.cycleway",      1, (SUMOReal)(20. / 3.6),  1, WIDTH, SVC_BICYCLE);
-    tc.insert("highway.footway",       1, (SUMOReal)(10. / 3.6),  1, WIDTH, SVC_PEDESTRIAN);
-    tc.insert("highway.step",          1, (SUMOReal)(5.  / 3.6),  1, WIDTH, SVC_PEDESTRIAN); // additional
-    tc.insert("highway.steps",         1, (SUMOReal)(5.  / 3.6),  1, WIDTH, SVC_PEDESTRIAN); // :-) do not run too fast
-    tc.insert("highway.stairs",        1, (SUMOReal)(5.  / 3.6),  1, WIDTH, SVC_PEDESTRIAN); // additional
+    tc.insert("highway.footway",       1, (SUMOReal)(10. / 3.6),  1, WIDTH, SVC_PEDESTRIAN, true);
+    tc.insert("highway.step",          1, (SUMOReal)(5.  / 3.6),  1, WIDTH, SVC_PEDESTRIAN, true); // additional
+    tc.insert("highway.steps",         1, (SUMOReal)(5.  / 3.6),  1, WIDTH, SVC_PEDESTRIAN, true); // :-) do not run too fast
+    tc.insert("highway.stairs",        1, (SUMOReal)(5.  / 3.6),  1, WIDTH, SVC_PEDESTRIAN, true); // additional
     tc.insert("highway.bus_guideway",  1, (SUMOReal)(30. / 3.6),  1, WIDTH, SVC_BUS);
     tc.insert("highway.raceway",       2, (SUMOReal)(300. / 3.6), 14, WIDTH, SVC_VIP);
-    tc.insert("highway.ford",          1, (SUMOReal)(10. / 3.6),  1, WIDTH, SVC_PUBLIC_ARMY);
+    tc.insert("highway.ford",          1, (SUMOReal)(10. / 3.6),  1, WIDTH, SVC_ARMY);
 
     //  for railways
-    const bool oneWay = OptionsCont::getOptions().getBool("osm.railway.oneway-default");
-    tc.insert("railway.rail",          1, (SUMOReal)(300. / 3.6),  15, WIDTH, SVC_RAIL_FAST, oneWay);
-    tc.insert("railway.tram",          1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_CITYRAIL,  oneWay);
-    tc.insert("railway.light_rail",    1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, oneWay);
-    tc.insert("railway.subway",        1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_CITYRAIL,  oneWay);
-    tc.insert("railway.preserved",     1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, oneWay);
-    tc.insert("railway.monorail",      1, (SUMOReal)(300. / 3.6),  15, WIDTH, SVC_LIGHTRAIL, oneWay); // rail stuff has to be discussed
+    const bool oneWay = oc.getBool("osm.railway.oneway-default");
+    tc.insert("railway.rail",          1, (SUMOReal)(300. / 3.6),  15, WIDTH, SVC_RAIL, oneWay);
+    tc.insert("railway.tram",          1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_TRAM,  oneWay);
+    tc.insert("railway.light_rail",    1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_RAIL_URBAN, oneWay); // might also correspond to higher standard trams
+    tc.insert("railway.subway",        1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_RAIL_URBAN,  oneWay);
+    tc.insert("railway.preserved",     1, (SUMOReal)(100. / 3.6),  15, WIDTH, SVC_RAIL, oneWay);
 
 
     /* Parse file(s)
@@ -185,7 +183,7 @@ NIImporter_OpenStreetMap::load(const OptionsCont& oc, NBNetBuilder& nb) {
     NodesHandler nodesHandler(myOSMNodes, myUniqueNodes, oc.getBool("osm.elevation"));
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
         // nodes
-        if (!FileHelpers::exists(*file)) {
+        if (!FileHelpers::isReadable(*file)) {
             WRITE_ERROR("Could not open osm-file '" + *file + "'.");
             return;
         }
@@ -207,7 +205,7 @@ NIImporter_OpenStreetMap::load(const OptionsCont& oc, NBNetBuilder& nb) {
     }
 
     /* Remove duplicate edges with the same shape and attributes */
-    if (!OptionsCont::getOptions().getBool("osm.skip-duplicates-check")) {
+    if (!oc.getBool("osm.skip-duplicates-check")) {
         PROGRESS_BEGIN_MESSAGE("Removing duplicate edges");
         if (myEdges.size() > 1) {
             std::set<const Edge*, CompareEdges> dupsFinder;
@@ -282,6 +280,7 @@ NIImporter_OpenStreetMap::load(const OptionsCont& oc, NBNetBuilder& nb) {
         }
         insertEdge(e, running, currentFrom, last, passed, nb);
     }
+
     // load relations (after edges are built since we want to apply
     // turn-restrictions directly to NBEdges)
     RelationHandler relationHandler(myOSMNodes, myEdges);
@@ -361,6 +360,7 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
 
     // convert the shape
     PositionVector shape;
+    shape.push_back(from->getPosition());
     for (std::vector<SUMOLong>::const_iterator i = passed.begin(); i != passed.end(); ++i) {
         NIOSMNode* n = myOSMNodes.find(*i)->second;
         Position pos(n->lon, n->lat, n->ele);
@@ -369,6 +369,7 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         }
         shape.push_back_noDoublePos(pos);
     }
+    shape.push_back_noDoublePos(to->getPosition());
 
     std::string type = e->myHighWayType;
     if (!tc.knows(type)) {
@@ -407,6 +408,7 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
                     SUMOReal maxSpeed = 0;
                     int prio = 0;
                     SUMOReal width = NBEdge::UNSPECIFIED_WIDTH;
+                    SUMOReal sidewalkWidth = NBEdge::UNSPECIFIED_WIDTH;
                     bool defaultIsOneWay = false;
                     SVCPermissions permissions = 0;
                     for (std::vector<std::string>::iterator it = types.begin(); it != types.end(); it++) {
@@ -415,9 +417,14 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
                         prio = MAX2(prio, tc.getPriority(*it));
                         defaultIsOneWay &= tc.getIsOneWay(*it);
                         permissions |= tc.getPermissions(*it);
+                        width = MAX2(width, tc.getWidth(*it));
+                        sidewalkWidth = MAX2(sidewalkWidth, tc.getSidewalkWidth(*it));
+                    }
+                    if (width != NBEdge::UNSPECIFIED_WIDTH) {
+                        width = MAX2(width, SUMO_const_laneWidth);
                     }
                     WRITE_MESSAGE("Adding new type \"" + type + "\" (first occurence for edge \"" + id + "\").");
-                    tc.insert(newType, numLanes, maxSpeed, prio, permissions, width, defaultIsOneWay);
+                    tc.insert(newType, numLanes, maxSpeed, prio, permissions, width, defaultIsOneWay, sidewalkWidth);
                     myKnownCompoundTypes[type] = newType;
                     type = newType;
                 }
@@ -432,6 +439,7 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
     SUMOReal speed = tc.getSpeed(type);
     bool defaultsToOneWay = tc.getIsOneWay(type);
     SVCPermissions permissions = tc.getPermissions(type);
+    const bool addSidewalk = (tc.getSidewalkWidth(type) != NBEdge::UNSPECIFIED_WIDTH);
     // check directions
     bool addForward = true;
     bool addBackward = true;
@@ -483,8 +491,11 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         if (addForward) {
             assert(numLanesForward > 0);
             NBEdge* nbe = new NBEdge(StringUtils::escapeXML(id), from, to, type, speed, numLanesForward, tc.getPriority(type),
-                                     tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, shape, StringUtils::escapeXML(e->streetName), lsf);
+                                     tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, shape, StringUtils::escapeXML(e->streetName), lsf, true);
             nbe->setPermissions(permissions);
+            if (addSidewalk) {
+                nbe->addSidewalk(tc.getSidewalkWidth(type));
+            }
             if (!ec.insert(nbe)) {
                 delete nbe;
                 throw ProcessError("Could not add edge '" + id + "'.");
@@ -494,8 +505,11 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
         if (addBackward) {
             assert(numLanesBackward > 0);
             NBEdge* nbe = new NBEdge(StringUtils::escapeXML(id), to, from, type, speed, numLanesBackward, tc.getPriority(type),
-                                     tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, shape.reverse(), StringUtils::escapeXML(e->streetName), lsf);
+                                     tc.getWidth(type), NBEdge::UNSPECIFIED_OFFSET, shape.reverse(), StringUtils::escapeXML(e->streetName), lsf, true);
             nbe->setPermissions(permissions);
+            if (addSidewalk) {
+                nbe->addSidewalk(tc.getSidewalkWidth(type));
+            }
             if (!ec.insert(nbe)) {
                 delete nbe;
                 throw ProcessError("Could not add edge " + id + "'.");

@@ -2,13 +2,14 @@
 /// @file    MS_E2_ZS_CollectorOverLanes.cpp
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Oct 2003
 /// @version $Id$
 ///
 // A detector which joins E2Collectors over consecutive lanes (backward)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2003-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -177,7 +178,7 @@ MS_E2_ZS_CollectorOverLanes::getLanePredeccessorLanes(MSLane* l) {
         MSEdge* e = *i;
         assert(e != 0);
         typedef std::vector<MSLane*> LaneVector;
-        const LaneVector* cl = e->allowedLanes(l->getEdge(), SVC_UNKNOWN);
+        const LaneVector* cl = e->allowedLanes(l->getEdge(), SVC_IGNORING);
         bool fastAbort = false;
         if (cl != 0) {
             for (LaneVector::const_iterator j = cl->begin(); !fastAbort && j != cl->end(); j++) {

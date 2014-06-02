@@ -38,6 +38,7 @@
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
+#include <utils/emissions/PollutantsInterface.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -47,18 +48,122 @@
 // ===========================================================================
 // member method definitions
 // ===========================================================================
-SUMOVTypeParameter::SUMOVTypeParameter()
-    : id(DEFAULT_VTYPE_ID), length(DEFAULT_VEH_LENGTH),
-      minGap(DEFAULT_VEH_MINGAP), maxSpeed(DEFAULT_VEH_MAXSPEED),
+SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicleClass vclass)
+    : id(vtid), length(5./*4.3*/), minGap(2.5), maxSpeed(200./3.6),
       defaultProbability(DEFAULT_VEH_PROB),
-      speedFactor(DEFAULT_VEH_SPEEDFACTOR), speedDev(DEFAULT_VEH_SPEEDDEV),
-      emissionClass(SVE_UNKNOWN), color(RGBColor::DEFAULT_COLOR),
-      vehicleClass(SVC_UNKNOWN),
-      impatience(0),
-      width(DEFAULT_VEH_WIDTH),
-      height(DEFAULT_VEH_HEIGHT), shape(DEFAULT_VEH_SHAPE),
-      cfModel(DEFAULT_VEH_FOLLOW_MODEL), lcModel(DEFAULT_VEH_LANE_CHANGE_MODEL),
+      speedFactor(1.0), speedDev(0.0),
+      emissionClass(PollutantsInterface::getClassByName("unknown", vclass)), color(RGBColor::DEFAULT_COLOR),
+      vehicleClass(vclass), impatience(0.0),
+      width(1.8), height(1.5), shape(SVS_UNKNOWN),
+      cfModel(SUMO_TAG_CF_KRAUSS), lcModel(LCM_LC2013),
       setParameter(0), saved(false), onlyReferenced(false) {
+    switch(vclass) {
+        case SVC_PEDESTRIAN:
+            length = 0.215;
+            minGap = 0.5;
+            maxSpeed = DEFAULT_PEDESTRIAN_SPEED;
+            width = 0.478;
+            height = 1.719;
+            shape = SVS_PEDESTRIAN;
+            break;
+        case SVC_BICYCLE:
+            length = 1.6;
+            minGap = 0.5;
+            maxSpeed = 20./3.6;
+            width = 0.65;
+            height = 1.7;
+            shape = SVS_BICYCLE;
+            break;
+        case SVC_MOPED:
+            length = 2.1;
+            maxSpeed = 60./3.6;
+            width = 0.8;
+            height = 1.7;
+            shape = SVS_MOPED;
+            break;
+        case SVC_MOTORCYCLE:
+            length = 2.2;
+            width = 0.9;
+            height = 1.5;
+            shape = SVS_MOTORCYCLE;
+            break;
+        case SVC_TRUCK:
+            length = 7.1;
+            maxSpeed = 130./3.6;
+            width = 2.4;
+            height = 2.4;
+            shape = SVS_TRUCK;
+            break;
+        case SVC_TRAILER:
+            length = 16.5;
+            maxSpeed = 130./3.6;
+            width = 2.55;
+            height = 4.;
+            shape = SVS_TRUCK_SEMITRAILER;
+            break;
+        case SVC_BUS:
+            length = 12.;
+            maxSpeed = 100./3.6;
+            width = 2.5;
+            height = 3.4;
+            shape = SVS_BUS;
+            break;
+        case SVC_COACH:
+            length = 14.;
+            maxSpeed = 100./3.6;
+            width = 2.6;
+            height = 4.;
+            shape = SVS_BUS_COACH;
+            break;
+        case SVC_TRAM:
+            length = 22.;
+            maxSpeed = 80./3.6;
+            width = 2.4;
+            height = 3.2;
+            shape = SVS_RAIL_CAR;
+            break;
+        case SVC_RAIL_URBAN:
+            length = 36.5 * 3;
+            maxSpeed = 100./3.6;
+            width = 3.0;
+            height = 3.6;
+            shape = SVS_RAIL_CAR;
+            break;
+        case SVC_RAIL:
+            length = 67.5 * 2;
+            maxSpeed = 160./3.6;
+            width = 2.84;
+            height = 3.75;
+            shape = SVS_RAIL;
+            break;
+        case SVC_RAIL_ELECTRIC:
+            length = 25. * 8;
+            maxSpeed = 330./3.6;
+            width = 2.95;
+            height = 3.89;
+            shape = SVS_RAIL;
+            break;
+        case SVC_DELIVERY:
+            length = 6.5;
+            width = 2.16;
+            height = 2.86;
+            shape = SVS_DELIVERY;
+            break;
+        case SVC_EMERGENCY:
+            length = 6.5;
+            width = 2.16;
+            height = 2.86;
+            shape = SVS_DELIVERY;
+            break;
+        case SVC_PASSENGER:
+            shape = SVS_PASSENGER;
+            break;
+        case SVC_E_VEHICLE:
+            shape = SVS_E_VEHICLE;
+            break;
+        default:
+            break;
+    }
 }
 
 
@@ -91,7 +196,7 @@ SUMOVTypeParameter::write(OutputDevice& dev) const {
         dev.writeAttr(SUMO_ATTR_VCLASS, toString(vehicleClass));
     }
     if (wasSet(VTYPEPARS_EMISSIONCLASS_SET)) {
-        dev.writeAttr(SUMO_ATTR_EMISSIONCLASS, getVehicleEmissionTypeName(emissionClass));
+        dev.writeAttr(SUMO_ATTR_EMISSIONCLASS, PollutantsInterface::getName(emissionClass));
     }
     if (wasSet(VTYPEPARS_IMPATIENCE_SET)) {
         if (impatience == -std::numeric_limits<SUMOReal>::max()) {
@@ -118,7 +223,7 @@ SUMOVTypeParameter::write(OutputDevice& dev) const {
     if (wasSet(VTYPEPARS_IMGFILE_SET)) {
         dev.writeAttr(SUMO_ATTR_IMGFILE, imgFile);
     }
-    if (wasSet(VTYPEPARS_LCM_SET)) {
+    if (wasSet(VTYPEPARS_LANE_CHANGE_MODEL_SET)) {
         dev.writeAttr(SUMO_ATTR_LANE_CHANGE_MODEL, lcModel);
     }
 
@@ -150,5 +255,91 @@ SUMOVTypeParameter::get(const SumoXMLAttr attr, const SUMOReal defaultValue) con
 }
 
 
-/****************************************************************************/
+SUMOReal
+SUMOVTypeParameter::getDefaultAccel(const SUMOVehicleClass vc) {
+    switch(vc) {
+        case SVC_PEDESTRIAN:
+            return 1.5;
+        case SVC_BICYCLE:
+            return 1.2;
+        case SVC_MOTORCYCLE:
+            return 6.;
+        case SVC_MOPED:
+            return 1.1;
+        case SVC_TRUCK:
+            return 1.3;
+        case SVC_TRAILER:
+            return 1.1;
+        case SVC_BUS:
+            return 1.2;
+        case SVC_COACH:
+            return 2.;
+        case SVC_TRAM:
+            return 1.;
+        case SVC_RAIL_URBAN:
+            return 1.;
+        case SVC_RAIL:
+            return 0.25;
+        case SVC_RAIL_ELECTRIC:
+            return 0.5;
+        default:
+            return 2.6;//2.9;
+    }
+}
 
+
+SUMOReal
+SUMOVTypeParameter::getDefaultDecel(const SUMOVehicleClass vc) {
+    switch(vc) {
+        case SVC_PEDESTRIAN:
+            return 2.;
+        case SVC_BICYCLE:
+            return 3.;
+        case SVC_MOPED:
+            return 7.;
+        case SVC_MOTORCYCLE:
+            return 10.;
+        case SVC_TRUCK:
+            return 4.;
+        case SVC_TRAILER:
+            return 4.;
+        case SVC_BUS:
+            return 4.;
+        case SVC_COACH:
+            return 4.;
+        case SVC_TRAM:
+            return 3.;
+        case SVC_RAIL_URBAN:
+            return 3.;
+        case SVC_RAIL:
+            return 1.3;
+        case SVC_RAIL_ELECTRIC:
+            return 1.3;
+        default:
+            return 4.5;//7.5;
+    }
+}
+
+
+SUMOReal
+SUMOVTypeParameter::getDefaultImperfection(const SUMOVehicleClass vc) {
+    switch(vc) {
+        case SVC_TRAM:
+        case SVC_RAIL_URBAN:
+        case SVC_RAIL:
+        case SVC_RAIL_ELECTRIC:
+            return 0.;
+        default:
+            return 0.5;
+    }
+}
+
+
+const SUMOVTypeParameter&
+SUMOVTypeParameter::getDefault() {
+    static SUMOVTypeParameter defaultParams("");
+    return defaultParams;
+}
+
+
+/****************************************************************************/

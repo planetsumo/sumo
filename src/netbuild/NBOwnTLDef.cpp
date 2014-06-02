@@ -33,6 +33,7 @@
 
 #include <vector>
 #include <cassert>
+#include <iterator>
 #include "NBTrafficLightDefinition.h"
 #include "NBNode.h"
 #include "NBOwnTLDef.h"
@@ -183,10 +184,9 @@ NBOwnTLDef::getBestPair(EdgeVector& incoming) {
 
 
 NBTrafficLightLogic*
-NBOwnTLDef::myCompute(const NBEdgeCont&,
-                      unsigned int brakingTimeSeconds) {
+NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
     const SUMOTime brakingTime = TIME2STEPS(brakingTimeSeconds);
-    const SUMOTime leftTurnTime = TIME2STEPS(6); // make configurable ?
+    const SUMOTime leftTurnTime = TIME2STEPS(6); // make configurable
     // build complete lists first
     const EdgeVector& incoming = getIncomingEdges();
     EdgeVector fromEdges, toEdges;
@@ -226,6 +226,15 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
             }
         }
     }
+    // collect crossings
+    std::vector<NBNode::Crossing> crossings;
+    for (std::vector<NBNode*>::iterator i = myControlledNodes.begin(); i != myControlledNodes.end(); i++) {
+        const std::vector<NBNode::Crossing>& c = (*i)->getCrossings();
+        // set tl indices for crossings
+        (*i)->setCrossingTLIndices(noLinksAll);
+        copy(c.begin(), c.end(), std::back_inserter(crossings));
+        noLinksAll += (unsigned int)c.size();
+    }
 
     NBTrafficLightLogic* logic = new NBTrafficLightLogic(getID(), getProgramID(), noLinksAll, myOffset, myType);
     EdgeVector toProc = incoming;
@@ -240,7 +249,7 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
             chosen = getBestPair(toProc);
         }
         unsigned int pos = 0;
-        std::string state((size_t) noLinksAll, 'o');
+        std::string state((size_t) noLinksAll, 'r');
         // plain straight movers
         for (unsigned int i1 = 0; i1 < (unsigned int) incoming.size(); ++i1) {
             NBEdge* fromEdge = incoming[i1];
@@ -292,8 +301,11 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
                 }
             }
         }
-        // add step
-        logic->addStep(greenTime, state);
+        state = addPedestrianPhases(logic, greenTime, state, crossings, fromEdges, toEdges);
+        // pedestrians have 'r' from here on
+        for (unsigned int i1 = pos; i1 < pos + crossings.size(); ++i1) {
+            state[i1] = 'r';
+        }
 
         if (brakingTime > 0) {
             // build yellow (straight)
@@ -342,11 +354,88 @@ NBOwnTLDef::myCompute(const NBEdgeCont&,
         if (totalDuration > 3 * (greenTime + 2 * brakingTime + leftTurnTime)) {
             WRITE_WARNING("The traffic light '" + getID() + "' has a high cycle time of " + time2string(totalDuration) + ".");
         }
+        logic->closeBuilding();
         return logic;
     } else {
         delete logic;
         return 0;
     }
+}
+
+
+std::string
+NBOwnTLDef::addPedestrianPhases(NBTrafficLightLogic* logic, SUMOTime greenTime, 
+        std::string state, const std::vector<NBNode::Crossing>& crossings, const EdgeVector& fromEdges, const EdgeVector& toEdges) {
+    const SUMOTime pedClearingTime = TIME2STEPS(5); // compute based on length of the crossing
+    const SUMOTime minPedTime = TIME2STEPS(4); // compute: must be able to reach the middle of the second "Richtungsfahrbahn"
+    const std::string orig = state;
+    state = patchStateForCrossings(state, crossings, fromEdges, toEdges);
+    if (orig == state) {
+        // add step
+        logic->addStep(greenTime, state);
+    } else {
+        const SUMOTime pedTime = greenTime - pedClearingTime;
+        if (pedTime >= minPedTime) {
+            // ensure clearing time for pedestrians
+            const size_t pedStates = crossings.size();
+            logic->addStep(pedTime, state);
+            state = state.substr(0, state.size() - pedStates) + std::string(pedStates, 'r');
+            logic->addStep(pedClearingTime, state);
+        } else {
+            state = orig;
+            // not safe for pedestrians.
+            logic->addStep(greenTime, state);
+        }
+    }
+    return state;
+}
+
+
+std::string
+NBOwnTLDef::patchStateForCrossings(const std::string& state, const std::vector<NBNode::Crossing>& crossings, const EdgeVector& fromEdges, const EdgeVector& toEdges) {
+    std::string result = state;
+    const unsigned int pos = (unsigned int)(state.size() - crossings.size()); // number of controlled vehicle links
+    for (int ic = 0; ic < (int)crossings.size(); ++ic) {
+        const int i1 = pos + ic;
+        const NBNode::Crossing& cross = crossings[ic];
+        bool isForbidden = false;
+        for (unsigned int i2 = 0; i2 < pos && !isForbidden; ++i2) {
+            // only check connections at this crossings node
+            if (fromEdges[i2] != 0 && toEdges[i2] != 0 && fromEdges[i2]->getToNode() == cross.node) {
+                for (EdgeVector::const_iterator it = cross.edges.begin(); it != cross.edges.end(); ++it) {
+                    const NBEdge* edge = *it;
+                    const LinkDirection i2dir = cross.node->getDirection(fromEdges[i2], toEdges[i2]);
+                    if (state[i2] != 'r' && (edge == fromEdges[i2] || 
+                                (edge == toEdges[i2] && (i2dir == LINKDIR_STRAIGHT || i2dir == LINKDIR_PARTLEFT || i2dir == LINKDIR_PARTRIGHT)))) {
+                        isForbidden = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!isForbidden) {
+            result[i1] = 'G';
+        } else {
+            result[i1] = 'r';
+        }
+    }
+
+    // correct behaviour for roads that are in conflict with a pedestrian crossing
+    for (unsigned int i1 = 0; i1 < pos; ++i1) {
+        if (result[i1] == 'G') {
+            for (int ic = 0; ic < (int)crossings.size(); ++ic) {
+                const NBNode::Crossing& crossing = crossings[ic];
+                if (fromEdges[i1] != 0 && toEdges[i1] != 0 && fromEdges[i1]->getToNode() == crossing.node) {
+                    const int i2 = pos + ic;
+                    if (result[i2] == 'G' && crossing.node->mustBrakeForCrossing(fromEdges[i1], toEdges[i1], crossing)) {
+                        result[i1] = 'g';
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return result;
 }
 
 

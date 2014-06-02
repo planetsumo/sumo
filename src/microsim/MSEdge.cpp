@@ -44,6 +44,7 @@
 #include "MSLaneChanger.h"
 #include "MSGlobals.h"
 #include "MSVehicle.h"
+#include "MSPerson.h"
 #include "MSEdgeWeightsStorage.h"
 
 #ifdef HAVE_INTERNAL
@@ -69,10 +70,15 @@ std::vector<MSEdge*> MSEdge::myEdges;
 // ===========================================================================
 MSEdge::MSEdge(const std::string& id, int numericalID,
                const EdgeBasicFunction function,
-               const std::string& streetName) :
+               const std::string& streetName,
+               const std::string& edgeType) :
     Named(id), myNumericalID(numericalID), myLanes(0),
     myLaneChanger(0), myFunction(function), myVaporizationRequests(0),
-    myLastFailedInsertionTime(-1), myStreetName(streetName), myAmRoundabout(false) {}
+    myLastFailedInsertionTime(-1), 
+    myFromJunction(0), myToJunction(0),
+    myStreetName(streetName), 
+    myEdgeType(edgeType), 
+    myAmRoundabout(false) {}
 
 
 MSEdge::~MSEdge() {
@@ -98,7 +104,7 @@ MSEdge::initialize(std::vector<MSLane*>* lanes) {
         myLaneChanger = new MSLaneChanger(myLanes, OptionsCont::getOptions().getBool("lanechange.allow-swap"));
     }
     if (myFunction == EDGEFUNCTION_DISTRICT) {
-        myCombinedPermissions = SVCFreeForAll;
+        myCombinedPermissions = SVCAll;
     }
 }
 
@@ -151,7 +157,9 @@ MSEdge::closeBuilding() {
             toL = (*j)->getViaLane();
             if (toL != 0) {
                 MSEdge& to = toL->getEdge();
-                to.myPredeccesors.push_back(this);
+                if (std::find(to.myPredeccesors.begin(), to.myPredeccesors.end(), this) == to.myPredeccesors.end()) {
+                    to.myPredeccesors.push_back(this);
+                }
             }
 #endif
         }
@@ -172,7 +180,7 @@ MSEdge::rebuildAllowedLanes() {
     }
     myClassedAllowed.clear();
     // rebuild myMinimumPermissions and myCombinedPermissions
-    myMinimumPermissions = SVCFreeForAll;
+    myMinimumPermissions = SVCAll;
     myCombinedPermissions = 0;
     for (std::vector<MSLane*>::iterator i = myLanes->begin(); i != myLanes->end(); ++i) {
         myMinimumPermissions &= (*i)->getPermissions();
@@ -322,7 +330,7 @@ MSEdge::getDepartLane(const MSVehicle& veh) const {
                 return getFreeLane(allowedLanes(**(veh.getRoute().begin() + 1)), veh.getVehicleType().getVehicleClass());
             }
         case DEPART_LANE_BEST_FREE: {
-            const std::vector<MSVehicle::LaneQ>& bl = veh.getBestLanes(false, (*myLanes)[0]);
+            const std::vector<MSVehicle::LaneQ>& bl = veh.getBestLanes();
             SUMOReal bestLength = -1;
             for (std::vector<MSVehicle::LaneQ>::const_iterator i = bl.begin(); i != bl.end(); ++i) {
                 if ((*i).length > bestLength) {
@@ -581,6 +589,25 @@ SUMOReal
 MSEdge::getVehicleMaxSpeed(const SUMOVehicle* const veh) const {
     // @note lanes might have different maximum speeds in theory
     return getLanes()[0]->getVehicleMaxSpeed(veh);
+}
+
+
+std::vector<MSPerson*> 
+MSEdge::getSortedPersons(SUMOTime timestep) const {
+    std::vector<MSPerson*> result(myPersons.begin(), myPersons.end());
+    sort(result.begin(), result.end(), person_by_offset_sorter(timestep));
+    return result;
+}
+
+
+int 
+MSEdge::person_by_offset_sorter::operator()(const MSPerson* const p1, const MSPerson* const p2) const {
+    const SUMOReal pos1 = p1->getCurrentStage()->getEdgePos(myTime);
+    const SUMOReal pos2 = p2->getCurrentStage()->getEdgePos(myTime);
+    if (pos1 != pos2) {
+        return pos1 < pos2;
+    }
+    return p1->getID() < p2->getID();
 }
 
 /****************************************************************************/

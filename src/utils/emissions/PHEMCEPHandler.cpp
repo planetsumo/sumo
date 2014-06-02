@@ -1,13 +1,16 @@
 /****************************************************************************/
 /// @file    PHEMCEPHandler.cpp
 /// @author  Nikolaus Furian
+/// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
+/// @author  Marek Heinrich
 /// @date    Thu, 13.06.2013
 /// @version $$
 ///
 // Helper class for PHEM Light, holds CEP data for emission computation
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -61,10 +64,7 @@ PHEMCEPHandler::getHandlerInstance() {
 
 
 bool
-PHEMCEPHandler::Load(SUMOEmissionClass emissionClass) {
-    // get string identifier for PHEM emission class
-    std::string emissionClassIdentifier = SumoEmissionClassStrings.getString(emissionClass);
-
+PHEMCEPHandler::Load(SUMOEmissionClass emissionClass, const std::string& emissionClassIdentifier) {
     // to hold everything.
     std::vector< std::vector<double> > matrixSpeedInertiaTable;
     std::vector< std::vector<double> > matrixFC;
@@ -106,7 +106,7 @@ PHEMCEPHandler::Load(SUMOEmissionClass emissionClass) {
     }
 
     _ceps[emissionClass] = new PHEMCEP(vehicleMassType == "HV",
-                                       emissionClass,
+                                       emissionClass, emissionClassIdentifier,
                                        vehicleMass, vehicleLoading, vehicleMassRot,
                                        crosssectionalArea, cwValue,
                                        f0, f1, f2, f3, f4,
@@ -121,9 +121,7 @@ PHEMCEP*
 PHEMCEPHandler::GetCep(SUMOEmissionClass emissionClass) {
     // check if Cep has been loaded
     if (_ceps.find(emissionClass) == _ceps.end()) {
-        if (!PHEMCEPHandler::Load(emissionClass)) {
-            throw InvalidArgument("File for PHEM emission class " + SumoEmissionClassStrings.getString(emissionClass) + " not found.");
-        }
+        return 0;
     } // end if
 
     return _ceps[emissionClass];

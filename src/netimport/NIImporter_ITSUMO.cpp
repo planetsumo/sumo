@@ -2,13 +2,14 @@
 /// @file    NIImporter_ITSUMO.cpp
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
+/// @author  Michael Behrisch
 /// @date    2011-09-16
 /// @version $Id$
 ///
 // Importer for networks stored in ITSUMO format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -124,7 +125,7 @@ NIImporter_ITSUMO::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     Handler Handler(nb);
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
         // nodes
-        if (!FileHelpers::exists(*file)) {
+        if (!FileHelpers::isReadable(*file)) {
             WRITE_ERROR("Could not open itsumo-file '" + *file + "'.");
             return;
         }

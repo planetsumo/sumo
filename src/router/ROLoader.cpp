@@ -130,8 +130,8 @@ ROLoader::loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     if (file == "") {
         throw ProcessError("Missing definition of network to load!");
     }
-    if (!FileHelpers::exists(file)) {
-        throw ProcessError("The network file '" + file + "' could not be found.");
+    if (!FileHelpers::isReadable(file)) {
+        throw ProcessError("The network file '" + file + "' is not accessible.");
     }
     PROGRESS_BEGIN_MESSAGE("Loading net");
     RONetHandler handler(toFill, eb);
@@ -142,11 +142,15 @@ ROLoader::loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     } else {
         PROGRESS_DONE_MESSAGE();
     }
+    if (!deprecatedVehicleClassesSeen.empty()) {
+        WRITE_WARNING("Deprecated vehicle classes '" + toString(deprecatedVehicleClassesSeen) + "' in input network.");
+        deprecatedVehicleClassesSeen.clear();
+    }
     if (myOptions.isSet("additional-files", false)) { // dfrouter does not register this option
         std::vector<std::string> files = myOptions.getStringVector("additional-files");
         for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
-            if (!FileHelpers::exists(*fileIt)) {
-                throw ProcessError("The additional file '" + *fileIt + "' could not be found.");
+            if (!FileHelpers::isReadable(*fileIt)) {
+                throw ProcessError("The additional file '" + *fileIt + "' is not accessible.");
             }
             PROGRESS_BEGIN_MESSAGE("Loading additional file '" + *fileIt + "' ");
             handler.setFileName(*fileIt);
@@ -164,8 +168,10 @@ ROLoader::loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
 void
 ROLoader::openRoutes(RONet& net) {
     // build loader
+    // load relevant elements from additinal file
+    bool ok = openTypedRoutes("additional-files", net);
     // load sumo-routes when wished
-    bool ok = openTypedRoutes("route-files", net);
+    ok &= openTypedRoutes("route-files", net);
     // load the XML-trip definitions when wished
     ok &= openTypedRoutes("trip-files", net);
     // load the sumo-alternative file when wished

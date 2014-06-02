@@ -363,7 +363,7 @@ public:
      * @todo Recheck whether a visitor-pattern should be used herefor
      * @see NBEdge::computeLanes2Edges
      */
-    void computeLanes2Edges();
+    void computeLanes2Edges(const bool buildCrossingsAndWalkingAreas);
 
 
     /** @brief Rechecks whether all lanes have a successor for each of the stored edges
@@ -373,7 +373,7 @@ public:
      * @todo Recheck whether a visitor-pattern should be used herefor
      * @see NBEdge::recheckLanes
      */
-    void recheckLanes();
+    void recheckLanes(const bool buildCrossingsAndWalkingAreas);
 
 
     /** @brief Appends turnarounds to all edges stored in the container
@@ -497,6 +497,10 @@ public:
 
     /// @brief assigns street signs to edges based on toNode types
     void generateStreetSigns();
+
+    /// @brief add sidwalks to edges within the given limits and return the number of edges affected
+    int guessSidewalks(SUMOReal width, SUMOReal minSpeed, SUMOReal maxSpeed);
+
 
 private:
     /** @brief Returns the edges which have been built by splitting the edge of the given id

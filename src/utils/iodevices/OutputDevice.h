@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
+/// @author  Mario Krumnow
 /// @date    2004
 /// @version $Id$
 ///
 // Static storage of an output device and its base (abstract) implementation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -290,6 +291,17 @@ public:
         if (val != "" && val != "default") {
             writeAttr(attr, val);
         }
+        return *this;
+    }
+
+
+    /** @brief writes a preformatted tag to the device but ensures that any
+     * pending tags are closed
+     * @param[in] val The preformatted data
+     * @return The OutputDevice for further processing
+     */
+    OutputDevice& writePreformattedTag(const std::string& val) {
+        myFormatter->writePreformattedTag(getOStream(), val);
         return *this;
     }
 

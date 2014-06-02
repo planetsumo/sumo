@@ -1,6 +1,10 @@
 /****************************************************************************/
 /// @file    PHEMCEP.cpp
 /// @author  Nikolaus Furian
+/// @author  Daniel Krajzewicz
+/// @author  Jakob Erdmann
+/// @author  Michael Behrisch
+/// @author  Marek Heinrich
 /// @date    Thu, 13.06.2013
 /// @version $Id$
 ///
@@ -42,7 +46,7 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-PHEMCEP::PHEMCEP(bool heavyVehicel, SUMOEmissionClass emissionClass,
+PHEMCEP::PHEMCEP(bool heavyVehicel, SUMOEmissionClass emissionClass, const std::string& emissionClassIdentifier,
                  double vehicleMass, double vehicleLoading, double vehicleMassRot,
                  double crossArea, double cWValue,
                  double f0, double f1, double f2, double f3, double f4,
@@ -93,7 +97,7 @@ PHEMCEP::PHEMCEP(bool heavyVehicel, SUMOEmissionClass emissionClass,
     _speedPatternRotational.clear();
     for (int i = 0; i < (int)matrixSpeedRotational.size(); i++) {
         if (matrixSpeedRotational[i].size() != 2) {
-            throw InvalidArgument("Error loading vehicle file for: " + SumoEmissionClassStrings.getString(emissionClass));
+            throw InvalidArgument("Error loading vehicle file for: " + emissionClassIdentifier);
         }
 
         _speedPatternRotational.push_back(matrixSpeedRotational[i][0] / 3.6);
@@ -105,7 +109,7 @@ PHEMCEP::PHEMCEP(bool heavyVehicel, SUMOEmissionClass emissionClass,
     _cepCurveFC.clear();
     for (int i = 0; i < (int)matrixFC.size(); i++) {
         if (matrixFC[i].size() != 2) {
-            throw InvalidArgument("Error loading vehicle file for: " + SumoEmissionClassStrings.getString(emissionClass));
+            throw InvalidArgument("Error loading vehicle file for: " + emissionClassIdentifier);
         }
 
         _powerPatternFC.push_back(matrixFC[i][0] * _ratedPower);

@@ -45,6 +45,7 @@
 #include <utils/gui/windows/GUIMainWindow.h>
 #include <utils/common/ValueRetriever.h>
 #include <utils/common/ValueSource.h>
+#include <utils/common/RandomDistributor.h>
 #include "GUISUMOViewParent.h"
 
 
@@ -239,10 +240,13 @@ private:
     void closeAllWindows();
 
     /// @brief updates the simulation time display
-    void updateTimeLCD(const SUMOTime time);
+    void updateTimeLCD(SUMOTime time);
 
     /** opens a new simulation display */
     GUISUMOAbstractView* openNewView(GUISUMOViewParent::ViewType vt = GUISUMOViewParent::VIEW_2D_OPENGL);
+
+    /// @brief handles additional game-related events
+    void checkGamingEvents();
 
 protected:
     /// FOX needs this for static members
@@ -287,8 +291,7 @@ protected:
 
     /// for some menu detaching fun
     FXToolBarShell* myToolBarDrag1, *myToolBarDrag2, *myToolBarDrag3,
-                    *myToolBarDrag4, *myToolBarDrag5,
-                    *myMenuBarDrag;
+                    *myToolBarDrag4, *myToolBarDrag5, *myMenuBarDrag;
 
     ///
     FXRealSpinDial* mySimDelayTarget;
@@ -330,6 +333,24 @@ protected:
 
     /// @brief whether to show time as hour:minute:second
     bool myShowTimeAsHMS;
+
+
+    /// @name game related things
+    /// {
+    RandomDistributor<std::string> myJamSounds;
+    /// @brief waiting time after which vehicles trigger jam sounds
+    SUMOReal myJamSoundTime;
+    /// @brief A random number generator used to choose a gaming sound
+    static MTRand myGamingRNG;
+
+    /// performance indicators
+    FXEX::FXLCDLabel* myWaitingTimeLabel;
+    FXEX::FXLCDLabel* myTimeLossLabel;
+    SUMOTime myWaitingTime;
+    SUMOTime myTimeLoss;
+    FXToolBar *myToolBar6, *myToolBar7;
+    FXToolBarShell *myToolBarDrag6, *myToolBarDrag7;
+    ////}
 
 };
 

@@ -95,16 +95,10 @@ NBEdgeCont::applyOptions(OptionsCont& oc) {
         myEdges2Remove.insert(edges.begin(), edges.end());
     }
     if (oc.exists("keep-edges.by-vclass") && oc.isSet("keep-edges.by-vclass")) {
-        const std::vector<std::string> classes = oc.getStringVector("keep-edges.by-vclass");
-        for (std::vector<std::string>::const_iterator i = classes.begin(); i != classes.end(); ++i) {
-            myVehicleClasses2Keep |= getVehicleClassID(*i);
-        }
+        myVehicleClasses2Keep = parseVehicleClasses(oc.getStringVector("keep-edges.by-vclass"));
     }
     if (oc.exists("remove-edges.by-vclass") && oc.isSet("remove-edges.by-vclass")) {
-        const std::vector<std::string> classes = oc.getStringVector("remove-edges.by-vclass");
-        for (std::vector<std::string>::const_iterator i = classes.begin(); i != classes.end(); ++i) {
-            myVehicleClasses2Remove |= getVehicleClassID(*i);
-        }
+        myVehicleClasses2Remove = parseVehicleClasses(oc.getStringVector("remove-edges.by-vclass"));
     }
     if (oc.exists("keep-edges.by-type") && oc.isSet("keep-edges.by-type")) {
         const std::vector<std::string> types = oc.getStringVector("keep-edges.by-type");
@@ -439,20 +433,8 @@ NBEdgeCont::splitAt(NBDistrictCont& dc,
         geoms.second.push_front(node->getPosition());
     }
     // build and insert the edges
-    NBEdge* one = new NBEdge(firstEdgeName,
-                             edge->myFrom, node, edge->myType, edge->mySpeed, noLanesFirstEdge,
-                             edge->getPriority(), edge->myLaneWidth, 0, geoms.first,
-                             edge->getStreetName(), edge->myLaneSpreadFunction, true);
-    for (unsigned int i = 0; i < noLanesFirstEdge && i < edge->getNumLanes(); i++) {
-        one->setSpeed(i, edge->getLaneSpeed(i));
-    }
-    NBEdge* two = new NBEdge(secondEdgeName,
-                             node, edge->myTo, edge->myType, edge->mySpeed, noLanesSecondEdge,
-                             edge->getPriority(), edge->myLaneWidth, edge->myOffset, geoms.second,
-                             edge->getStreetName(), edge->myLaneSpreadFunction, true);
-    for (unsigned int i = 0; i < noLanesSecondEdge && i < edge->getNumLanes(); i++) {
-        two->setSpeed(i, edge->getLaneSpeed(i));
-    }
+    NBEdge* one = new NBEdge(firstEdgeName, edge->myFrom, node, edge, geoms.first, noLanesFirstEdge);
+    NBEdge* two = new NBEdge(secondEdgeName, node, edge->myTo, edge, geoms.second, noLanesSecondEdge);
     two->copyConnectionsFrom(edge);
     // replace information about this edge within the nodes
     edge->myFrom->replaceOutgoing(edge, one, 0);
@@ -582,17 +564,17 @@ NBEdgeCont::computeEdge2Edges(bool noLeftMovers) {
 
 
 void
-NBEdgeCont::computeLanes2Edges() {
+NBEdgeCont::computeLanes2Edges(const bool buildCrossingsAndWalkingAreas) {
     for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); i++) {
-        (*i).second->computeLanes2Edges();
+        (*i).second->computeLanes2Edges(buildCrossingsAndWalkingAreas);
     }
 }
 
 
 void
-NBEdgeCont::recheckLanes() {
+NBEdgeCont::recheckLanes(const bool buildCrossingsAndWalkingAreas) {
     for (EdgeCont::iterator i = myEdges.begin(); i != myEdges.end(); i++) {
-        (*i).second->recheckLanes();
+        (*i).second->recheckLanes(buildCrossingsAndWalkingAreas);
     }
 }
 
@@ -947,5 +929,20 @@ NBEdgeCont::generateStreetSigns() {
         }
     }
 }
+
+
+int
+NBEdgeCont::guessSidewalks(SUMOReal width, SUMOReal minSpeed, SUMOReal maxSpeed) {
+    int sidewalksCreated = 0;
+    for (EdgeCont::iterator it = myEdges.begin(); it != myEdges.end(); it++) {
+        NBEdge* edge = it->second;
+        if (edge->getSpeed() > minSpeed && edge->getSpeed() <= maxSpeed && edge->getPermissions(0) != SVC_PEDESTRIAN) {
+            edge->addSidewalk(width);
+            sidewalksCreated += 1;
+        }
+    }
+    return sidewalksCreated;
+}
+
 
 /****************************************************************************/

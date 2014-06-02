@@ -223,13 +223,13 @@ public:
     }
 
 
-    /** @brief Returns the information whether the currently vehicle number shall be emitted
-     * considering that only frac of all vehicles shall be emitted overall
+    /** @brief Returns the number of instances of the current vehicle that shall be emitted
+     * considering that "frac" of all vehicles shall be emitted overall
      * if a negative fraction is given the demand scaling factor is used
-     * (--scale or --incremental-dua-step / --incremental-dua-base)
-     * @return True iff the vehicle number is acceptable
+     * (--scale)
+     * @return the number of vehicles to create (something between 0 and ceil(frac))
      */
-    bool isInQuota(SUMOReal frac = -1) const;
+    unsigned int getQuota(SUMOReal frac = -1) const;
 
 
     /** @brief Returns the number of build vehicles that have not been removed
@@ -264,6 +264,11 @@ public:
     /// @brief return the number of teleports (including collisions)
     unsigned int getTeleportCount() const {
         return myCollisions + myTeleportsJam + myTeleportsYield + myTeleportsWrongLane;
+    }
+
+    /// @brief return the number of emergency stops
+    unsigned int getEmergencyStops() const {
+        return myEmergencyStops;
     }
 
 
@@ -380,6 +385,11 @@ public:
         myTeleportsWrongLane++;
     }
 
+    /// @brief register emergency stop
+    void registerEmergencyStop() {
+        myEmergencyStops++;
+    }
+
     /// @name State I/O (mesosim only)
     /// @{
 
@@ -440,6 +450,9 @@ protected:
     /// @brief The number of teleports due to vehicles stuck on the wrong lane
     unsigned int myTeleportsWrongLane;
 
+    /// @brief The number of emergency stops
+    unsigned int myEmergencyStops;
+
     /// @}
 
 
@@ -488,6 +501,10 @@ protected:
 
     /// @brief The scaling factor (especially for inc-dua)
     SUMOReal myScale;
+
+    /// @brief The maximum random offset to be added to vehicles departure times (non-negative)
+    SUMOTime myMaxRandomDepartOffset;
+
 
 private:
     /// @brief invalidated copy constructor

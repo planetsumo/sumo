@@ -66,7 +66,7 @@ public:
      * @see MSEdge
      */
     GUIEdge(const std::string& id, int numericalID,
-            const EdgeBasicFunction function, const std::string& streetName);
+            const EdgeBasicFunction function, const std::string& streetName, const std::string& edgeType);
 
 
     /// @brief Destructor.
@@ -137,12 +137,12 @@ public:
     //@}
 
 
-    void addPerson(MSPerson* p) {
+    void addPerson(MSPerson* p) const {
         AbstractMutex::ScopedLocker locker(myLock);
         MSEdge::addPerson(p);
     }
 
-    void removePerson(MSPerson* p) {
+    void removePerson(MSPerson* p) const {
         AbstractMutex::ScopedLocker locker(myLock);
         MSEdge::removePerson(p);
     }

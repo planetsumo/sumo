@@ -45,12 +45,14 @@
 // ===========================================================================
 bool
 TraCIServerAPI_ArealDetector::processGet(TraCIServer& server, tcpip::Storage& inputStorage,
-                                        tcpip::Storage& outputStorage) {
+        tcpip::Storage& outputStorage) {
     // variable & id
     int variable = inputStorage.readUnsignedByte();
     std::string id = inputStorage.readString();
     // check variable
-    if (variable != ID_LIST && variable != ID_COUNT && variable != JAM_LENGTH_VEHICLE && variable != JAM_LENGTH_METERS) {
+    if (variable != ID_LIST && variable != ID_COUNT && variable != JAM_LENGTH_VEHICLE && variable != JAM_LENGTH_METERS &&
+            variable != LAST_STEP_VEHICLE_NUMBER && variable != LAST_STEP_MEAN_SPEED && variable != LAST_STEP_VEHICLE_ID_LIST
+            && variable != LAST_STEP_VEHICLE_HALTING_NUMBER && variable != ID_COUNT && variable != LAST_STEP_OCCUPANCY) {
         return server.writeErrorStatusCmd(CMD_GET_AREAL_DETECTOR_VARIABLE, "Get Areal Detector Variable: unsupported variable specified", outputStorage);
     }
 
@@ -70,24 +72,44 @@ TraCIServerAPI_ArealDetector::processGet(TraCIServer& server, tcpip::Storage& in
         MSNet::getInstance()->getDetectorControl().getTypedDetectors(SUMO_TAG_LANE_AREA_DETECTOR).insertIDs(ids);
         tempMsg.writeUnsignedByte(TYPE_INTEGER);
         tempMsg.writeInt((int) ids.size());
-    }
-	else {
+    } else {
         MSE2Collector* e2 = static_cast<MSE2Collector*>(MSNet::getInstance()->getDetectorControl().getTypedDetectors(SUMO_TAG_LANE_AREA_DETECTOR).get(id));
         if (e2 == 0) {
             return server.writeErrorStatusCmd(CMD_GET_AREAL_DETECTOR_VARIABLE, "Areal detector '" + id + "' is not known", outputStorage);
         }
+        std::vector<std::string> ids;
         switch (variable) {
             case ID_LIST:
                 break;
-            case JAM_LENGTH_VEHICLE: 
+            case LAST_STEP_VEHICLE_NUMBER:
                 tempMsg.writeUnsignedByte(TYPE_INTEGER);
-				tempMsg.writeInt((int) e2->getCurrentJamLengthInVehicles());
-				break;
-			case JAM_LENGTH_METERS:
-                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-				tempMsg.writeDouble(e2->getCurrentJamLengthInMeters());
+                tempMsg.writeInt((int) e2->getCurrentVehicleNumber());
                 break;
-
+            case LAST_STEP_MEAN_SPEED:
+                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
+                tempMsg.writeDouble(e2->getCurrentMeanSpeed());
+                break;
+            case LAST_STEP_VEHICLE_ID_LIST:
+                tempMsg.writeUnsignedByte(TYPE_STRINGLIST);
+                ids = e2->getCurrentVehicleIDs();
+                tempMsg.writeStringList(ids);
+                break;
+            case LAST_STEP_VEHICLE_HALTING_NUMBER:
+                tempMsg.writeUnsignedByte(TYPE_INTEGER);
+                tempMsg.writeInt((int) e2->getCurrentHaltingNumber());
+                break;
+            case JAM_LENGTH_VEHICLE:
+                tempMsg.writeUnsignedByte(TYPE_INTEGER);
+                tempMsg.writeInt((int) e2->getCurrentJamLengthInVehicles());
+                break;
+            case JAM_LENGTH_METERS:
+                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
+                tempMsg.writeDouble(e2->getCurrentJamLengthInMeters());
+                break;
+            case LAST_STEP_OCCUPANCY:
+                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
+                tempMsg.writeDouble(e2->getCurrentOccupancy());
+                break;
             default:
                 break;
         }

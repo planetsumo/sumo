@@ -4,13 +4,15 @@
 /// @author  Jakob Erdmann
 /// @author  Christian Roessel
 /// @author  Michael Behrisch
+/// @author  Melanie Knocke
+/// @author  Yun-Pang Floetteroed
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // A basic edge for routing applications
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -64,10 +66,13 @@ std::vector<ROEdge*> ROEdge::myEdges;
 // ===========================================================================
 ROEdge::ROEdge(const std::string& id, RONode* from, RONode* to, unsigned int index, const int priority)
     : Named(id), myFromNode(from), myToNode(to), myIndex(index), myPriority(priority),
-      mySpeed(-1), myLength(-1),
+      mySpeed(-1), myLength(0),
       myUsingTTTimeLine(false),
       myUsingETimeLine(false),
-      myCombinedPermissions(0) {
+      myCombinedPermissions(0),
+      myFromJunction(0),
+      myToJunction(0)
+{
     while (myEdges.size() <= index) {
         myEdges.push_back(0);
     }
@@ -84,10 +89,9 @@ ROEdge::~ROEdge() {
 
 void
 ROEdge::addLane(ROLane* lane) {
-    SUMOReal length = lane->getLength();
-    assert(myLength == -1 || length == myLength);
-    myLength = length;
-    SUMOReal speed = lane->getSpeed();
+    assert(myLanes.empty() || lane->getLength() == myLength);
+    myLength = lane->getLength();
+    const SUMOReal speed = lane->getSpeed();
     mySpeed = speed > mySpeed ? speed : mySpeed;
     myLanes.push_back(lane);
 
@@ -142,39 +146,25 @@ ROEdge::getDistanceTo(const ROEdge* other) const {
 
 SUMOReal
 ROEdge::getTravelTime(const ROVehicle* const veh, SUMOReal time) const {
-    return getTravelTime(veh->getType()->maxSpeed, time);
-}
-
-
-SUMOReal
-ROEdge::getTravelTime(const SUMOReal maxSpeed, SUMOReal time) const {
-    return MAX2(myLength / maxSpeed, getTravelTime(time));
-}
-
-
-SUMOReal
-ROEdge::getTravelTime(SUMOReal time) const {
     if (myUsingTTTimeLine) {
-        if (!myHaveTTWarned && !myTravelTimes.describesTime(time)) {
-            WRITE_WARNING("No interval matches passed time " + toString(time)  + " in edge '" + myID + "'.\n Using edge's length / edge's speed.");
-            myHaveTTWarned = true;
-        }
-        if (myInterpolate) {
-            SUMOReal inTT = myTravelTimes.getValue(time);
-            SUMOReal split = (SUMOReal)(myTravelTimes.getSplitTime(time, time + (SUMOTime)inTT) - time);
-            if (split >= 0) {
-                return myTravelTimes.getValue(time + (SUMOTime)inTT) * ((SUMOReal)1. - split / inTT) + split;
+        if (myTravelTimes.describesTime(time)) {
+            SUMOReal lineTT = myTravelTimes.getValue(time);
+            if (myInterpolate) {
+                const SUMOReal inTT = lineTT;
+                const SUMOReal split = (SUMOReal)(myTravelTimes.getSplitTime(time, time + inTT) - time);
+                if (split >= 0) {
+                    lineTT = myTravelTimes.getValue(time + inTT) * ((SUMOReal)1. - split / inTT) + split;
+                }
+            }
+            return MAX2(getMinimumTravelTime(veh), lineTT);
+        } else {
+            if (!myHaveTTWarned) {
+                WRITE_WARNING("No interval matches passed time " + toString(time)  + " in edge '" + myID + "'.\n Using edge's length / max speed.");
+                myHaveTTWarned = true;
             }
         }
-        return myTravelTimes.getValue(time);
     }
-    return myLength / mySpeed;
-}
-
-
-SUMOReal
-ROEdge::getMinimumTravelTime(const ROVehicle* const veh) const {
-    return (SUMOReal)(myLength / MIN2(veh->getType()->maxSpeed, mySpeed));
+    return (SUMOReal)(myLength / MIN2(veh->getType()->maxSpeed, veh->getType()->speedFactor * mySpeed));
 }
 
 
@@ -182,9 +172,10 @@ SUMOReal
 ROEdge::getCOEffort(const ROVehicle* const veh, SUMOReal time) const {
     SUMOReal ret = 0;
     if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultCO(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
+        const SUMOVTypeParameter* const type = veh->getType();
+        const SUMOReal vMax = MIN2(type->maxSpeed, mySpeed);
+        const SUMOReal accel = type->get(SUMO_ATTR_ACCEL, SUMOVTypeParameter::getDefaultAccel(type->vehicleClass)) * type->get(SUMO_ATTR_SIGMA, SUMOVTypeParameter::getDefaultImperfection(type->vehicleClass)) / 2.;
+        ret = PollutantsInterface::computeDefault(type->emissionClass, PollutantsInterface::CO, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -194,9 +185,10 @@ SUMOReal
 ROEdge::getCO2Effort(const ROVehicle* const veh, SUMOReal time) const {
     SUMOReal ret = 0;
     if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultCO2(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
+        const SUMOVTypeParameter* const type = veh->getType();
+        const SUMOReal vMax = MIN2(type->maxSpeed, mySpeed);
+        const SUMOReal accel = type->get(SUMO_ATTR_ACCEL, SUMOVTypeParameter::getDefaultAccel(type->vehicleClass)) * type->get(SUMO_ATTR_SIGMA, SUMOVTypeParameter::getDefaultImperfection(type->vehicleClass)) / 2.;
+        ret = PollutantsInterface::computeDefault(type->emissionClass, PollutantsInterface::CO2, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -206,9 +198,10 @@ SUMOReal
 ROEdge::getPMxEffort(const ROVehicle* const veh, SUMOReal time) const {
     SUMOReal ret = 0;
     if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultPMx(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
+        const SUMOVTypeParameter* const type = veh->getType();
+        const SUMOReal vMax = MIN2(type->maxSpeed, mySpeed);
+        const SUMOReal accel = type->get(SUMO_ATTR_ACCEL, SUMOVTypeParameter::getDefaultAccel(type->vehicleClass)) * type->get(SUMO_ATTR_SIGMA, SUMOVTypeParameter::getDefaultImperfection(type->vehicleClass)) / 2.;
+        ret = PollutantsInterface::computeDefault(type->emissionClass, PollutantsInterface::PM_X, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -218,9 +211,10 @@ SUMOReal
 ROEdge::getHCEffort(const ROVehicle* const veh, SUMOReal time) const {
     SUMOReal ret = 0;
     if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultHC(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
+        const SUMOVTypeParameter* const type = veh->getType();
+        const SUMOReal vMax = MIN2(type->maxSpeed, mySpeed);
+        const SUMOReal accel = type->get(SUMO_ATTR_ACCEL, SUMOVTypeParameter::getDefaultAccel(type->vehicleClass)) * type->get(SUMO_ATTR_SIGMA, SUMOVTypeParameter::getDefaultImperfection(type->vehicleClass)) / 2.;
+        ret = PollutantsInterface::computeDefault(type->emissionClass, PollutantsInterface::HC, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -230,9 +224,10 @@ SUMOReal
 ROEdge::getNOxEffort(const ROVehicle* const veh, SUMOReal time) const {
     SUMOReal ret = 0;
     if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultNOx(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
+        const SUMOVTypeParameter* const type = veh->getType();
+        const SUMOReal vMax = MIN2(type->maxSpeed, mySpeed);
+        const SUMOReal accel = type->get(SUMO_ATTR_ACCEL, SUMOVTypeParameter::getDefaultAccel(type->vehicleClass)) * type->get(SUMO_ATTR_SIGMA, SUMOVTypeParameter::getDefaultImperfection(type->vehicleClass)) / 2.;
+        ret = PollutantsInterface::computeDefault(type->emissionClass, PollutantsInterface::NO_X, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -242,9 +237,10 @@ SUMOReal
 ROEdge::getFuelEffort(const ROVehicle* const veh, SUMOReal time) const {
     SUMOReal ret = 0;
     if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = PollutantsInterface::computeDefaultFuel(veh->getType()->emissionClass, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
+        const SUMOVTypeParameter* const type = veh->getType();
+        const SUMOReal vMax = MIN2(type->maxSpeed, mySpeed);
+        const SUMOReal accel = type->get(SUMO_ATTR_ACCEL, SUMOVTypeParameter::getDefaultAccel(type->vehicleClass)) * type->get(SUMO_ATTR_SIGMA, SUMOVTypeParameter::getDefaultImperfection(type->vehicleClass)) / 2.;
+        ret = PollutantsInterface::computeDefault(type->emissionClass, PollutantsInterface::FUEL, vMax, accel, 0, getTravelTime(veh, time)); // @todo: give correct slope
     }
     return ret;
 }
@@ -313,30 +309,30 @@ ROEdge::setType(ROEdge::EdgeType type) {
 void
 ROEdge::buildTimeLines(const std::string& measure) {
     if (myUsingETimeLine) {
-        SUMOReal value = (SUMOReal)(myLength / mySpeed);
+        SUMOReal value = myLength / mySpeed;
+        const SUMOEmissionClass c = PollutantsInterface::getClassByName("unknown");
         if (measure == "CO") {
-            value = PollutantsInterface::computeCO(SVE_UNKNOWN, mySpeed, 0, 0) * value; // @todo: give correct slope
+            value = PollutantsInterface::compute(c, PollutantsInterface::CO, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "CO2") {
-            value = PollutantsInterface::computeCO2(SVE_UNKNOWN, mySpeed, 0, 0) * value; // @todo: give correct slope
+            value = PollutantsInterface::compute(c, PollutantsInterface::CO2, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "HC") {
-            value = PollutantsInterface::computeHC(SVE_UNKNOWN, mySpeed, 0, 0) * value; // @todo: give correct slope
+            value = PollutantsInterface::compute(c, PollutantsInterface::HC, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "PMx") {
-            value = PollutantsInterface::computePMx(SVE_UNKNOWN, mySpeed, 0, 0) * value; // @todo: give correct slope
+            value = PollutantsInterface::compute(c, PollutantsInterface::PM_X, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "NOx") {
-            value = PollutantsInterface::computeNOx(SVE_UNKNOWN, mySpeed, 0, 0) * value; // @todo: give correct slope
+            value = PollutantsInterface::compute(c, PollutantsInterface::NO_X, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "fuel") {
-            value = PollutantsInterface::computeFuel(SVE_UNKNOWN, mySpeed, 0, 0) * value; // @todo: give correct slope
+            value = PollutantsInterface::compute(c, PollutantsInterface::FUEL, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         myEfforts.fillGaps(value, myUseBoundariesOnOverrideE);
     }
     if (myUsingTTTimeLine) {
-        SUMOReal value = (SUMOReal)(myLength / mySpeed);
-        myTravelTimes.fillGaps(value, myUseBoundariesOnOverrideTT);
+        myTravelTimes.fillGaps(myLength / mySpeed, myUseBoundariesOnOverrideTT);
     }
 }
 

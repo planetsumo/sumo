@@ -4,13 +4,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Laura Bieker
 /// @author  Christoph Sommer
+/// @author  Jakob Erdmann
 /// @date    Tue, 04 Dec 2007
 /// @version $Id$
 ///
 // A device that performs vehicle rerouting based on current edge speeds
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -49,7 +50,7 @@
 // ===========================================================================
 // static member variables
 // ===========================================================================
-std::map<const MSEdge*, SUMOReal> MSDevice_Routing::myEdgeEfforts;
+std::vector<SUMOReal> MSDevice_Routing::myEdgeEfforts;
 Command* MSDevice_Routing::myEdgeWeightSettingCommand = 0;
 SUMOReal MSDevice_Routing::myAdaptationWeight;
 SUMOTime MSDevice_Routing::myAdaptationInterval;
@@ -120,10 +121,13 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
             const bool useLoaded = oc.getBool("device.rerouting.init-with-loaded-weights");
             const SUMOReal currentSecond = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
             for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
+                while ((*i)->getNumericalID() >= (int)myEdgeEfforts.size()) {
+                    myEdgeEfforts.push_back(0);
+                }
                 if (useLoaded) {
-                    myEdgeEfforts[*i] = MSNet::getTravelTime(*i, 0, currentSecond);
+                    myEdgeEfforts[(*i)->getNumericalID()] = MSNet::getTravelTime(*i, 0, currentSecond);
                 } else {
-                    myEdgeEfforts[*i] = (*i)->getCurrentTravelTime();
+                    myEdgeEfforts[(*i)->getNumericalID()] = (*i)->getCurrentTravelTime();
                 }
             }
         }
@@ -223,8 +227,9 @@ MSDevice_Routing::wrappedRerouteCommandExecute(SUMOTime currentTime) {
 
 SUMOReal
 MSDevice_Routing::getEffort(const MSEdge* const e, const SUMOVehicle* const v, SUMOReal) {
-    if (myEdgeEfforts.find(e) != myEdgeEfforts.end()) {
-        return MAX2(myEdgeEfforts.find(e)->second, e->getMinimumTravelTime(v));
+    const int id = e->getNumericalID();
+    if (id < (int)myEdgeEfforts.size()) {
+        return MAX2(myEdgeEfforts[id], e->getMinimumTravelTime(v));
     }
     return 0;
 }
@@ -237,10 +242,11 @@ MSDevice_Routing::adaptEdgeEfforts(SUMOTime /*currentTime*/) {
         it->second->release();
     }
     myCachedRoutes.clear();
-    SUMOReal newWeight = (SUMOReal)(1. - myAdaptationWeight);
+    const SUMOReal newWeightFactor = (SUMOReal)(1. - myAdaptationWeight);
     const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
     for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
-        myEdgeEfforts[*i] = myEdgeEfforts[*i] * myAdaptationWeight + (*i)->getCurrentTravelTime() * newWeight;
+        const int id = (*i)->getNumericalID();
+        myEdgeEfforts[id] = myEdgeEfforts[id] * myAdaptationWeight + (*i)->getCurrentTravelTime() * newWeightFactor;
     }
     return myAdaptationInterval;
 }

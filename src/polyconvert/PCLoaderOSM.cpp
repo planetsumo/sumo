@@ -4,13 +4,14 @@
 /// @author  Jakob Erdmann
 /// @author  Christoph Sommer
 /// @author  Michael Behrisch
+/// @author  Melanie Knocke
 /// @date    Wed, 19.11.2008
 /// @version $Id$
 ///
 // A reader of pois and polygons stored in OSM-format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -67,6 +68,7 @@ const std::set<std::string> PCLoaderOSM::MyKeysToInclude(PCLoaderOSM::initMyKeys
 // ---------------------------------------------------------------------------
 std::set<std::string> PCLoaderOSM::initMyKeysToInclude() {
     std::set<std::string> result;
+    result.insert("highway");
     result.insert("waterway");
     result.insert("aeroway");
     result.insert("aerialway");
@@ -107,7 +109,7 @@ PCLoaderOSM::loadIfSet(OptionsCont& oc, PCPolyContainer& toFill,
     NodesHandler nodesHandler(nodes, withAttributes, *m);
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
         // nodes
-        if (!FileHelpers::exists(*file)) {
+        if (!FileHelpers::isReadable(*file)) {
             WRITE_ERROR("Could not open osm-file '" + *file + "'.");
             return;
         }

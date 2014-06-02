@@ -2,13 +2,14 @@
 /// @file    MsgHandler.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Tue, 17 Jun 2003
 /// @version $Id$
 ///
 // Retrieves messages about the process and gives them further to output
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2003-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -100,8 +101,11 @@ public:
     /// Adds a further retriever to the instance responsible for a certain msg type
     void addRetriever(OutputDevice* retriever);
 
-    /// Removes the retriever from the
+    /// Removes the retriever from the handler
     void removeRetriever(OutputDevice* retriever);
+
+    /// Returns whether the given output device retrieves messages from the handler
+    bool isRetriever(OutputDevice* retriever) const;
 
     /// Returns the information whether any messages were added
     bool wasInformed() const;
