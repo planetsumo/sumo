@@ -108,13 +108,13 @@ public:
          * @param[in] currentOutgoing The outgoing edge
          */
         ApproachingDivider(EdgeVector* approaching,
-                           NBEdge* currentOutgoing);
+                           NBEdge* currentOutgoing, const bool buildCrossingsAndWalkingAreas);
 
         /// @brief Destructor
         ~ApproachingDivider();
 
         unsigned int numAvailableLanes() const {
-            return myAvailableLanes.size();
+            return (unsigned int)myAvailableLanes.size();
         }
 
         /** the bresenham-callback */
@@ -359,7 +359,7 @@ public:
 
 
     /// computes the connections of lanes to edges
-    void computeLanes2Lanes();
+    void computeLanes2Lanes(const bool buildCrossingsAndWalkingAreas);
 
     /// computes the node's type, logic and traffic light
     void computeLogic(const NBEdgeCont& ec, OptionsCont& oc);
@@ -473,8 +473,16 @@ public:
      */
     void computeNodeShape(bool leftHand, SUMOReal mismatchThreshold);
 
-
+    /// @brief retrieve the junction shape
     const PositionVector& getShape() const;
+
+    /// @brief set the junction shape
+    void setCustomShape(const PositionVector& shape);
+
+    /// @brief return whether the shape was set by the user
+    bool hasCustomShape() {
+        return myHaveCustomPoly;
+    }
 
     bool checkIsRemovable() const;
 
@@ -665,6 +673,9 @@ private:
 
     /// the (outer) shape of the junction
     PositionVector myPoly;
+
+    /// @brief whether this nodes shape was set by the user
+    bool myHaveCustomPoly;
 
     NBRequest* myRequest;
 

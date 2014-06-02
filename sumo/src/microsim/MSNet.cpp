@@ -355,6 +355,9 @@ MSNet::closeSimulation(SUMOTime start) {
             }
             msg << "Teleports: " << myVehicleControl->getTeleportCount() << " (" << joinToString(reasons, ", ") << ")\n";
         }
+        if (myVehicleControl->getEmergencyStops() > 0) {
+            msg << "Emergency Stops: " << myVehicleControl->getEmergencyStops() << "\n";
+        }
         WRITE_MESSAGE(msg.str());
     }
     myDetectorControl->close(myStep);
@@ -765,8 +768,7 @@ MSNet::getPedestrianRouter(const std::vector<MSEdge*>& prohibited) const {
     if (myPedestrianRouter == 0) {
         myPedestrianRouter = new MSPedestrianRouterDijkstra();
     }
-    //// XXX implement prohibitions
-    ////myPedestrianRouter->prohibit(prohibited);
+    myPedestrianRouter->prohibit(prohibited);
     return *myPedestrianRouter;
 }
 

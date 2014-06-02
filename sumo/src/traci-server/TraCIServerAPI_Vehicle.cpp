@@ -76,7 +76,7 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
     std::string id = inputStorage.readString();
     // check variable
     if (variable != ID_LIST && variable != VAR_SPEED && variable != VAR_SPEED_WITHOUT_TRACI
-            && variable != VAR_POSITION && variable != VAR_ANGLE
+            && variable != VAR_POSITION && variable != VAR_ANGLE && variable != VAR_POSITION3D
             && variable != VAR_ROAD_ID && variable != VAR_LANE_ID && variable != VAR_LANE_INDEX
             && variable != VAR_TYPE && variable != VAR_ROUTE_ID && variable != VAR_COLOR
             && variable != VAR_LANEPOSITION
@@ -143,6 +143,12 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                 tempMsg.writeDouble(onRoad ? v->getPosition().x() : INVALID_DOUBLE_VALUE);
                 tempMsg.writeDouble(onRoad ? v->getPosition().y() : INVALID_DOUBLE_VALUE);
                 break;
+			case VAR_POSITION3D:
+				tempMsg.writeUnsignedByte(POSITION_3D);
+				tempMsg.writeDouble(onRoad ? v->getPosition().x() : INVALID_DOUBLE_VALUE);
+				tempMsg.writeDouble(onRoad ? v->getPosition().y() : INVALID_DOUBLE_VALUE);
+				tempMsg.writeDouble(onRoad ? v->getPosition().z() : INVALID_DOUBLE_VALUE);
+				break;
             case VAR_ANGLE:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(onRoad ? v->getAngle() : INVALID_DOUBLE_VALUE);
@@ -497,6 +503,10 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Resuming should obtain an empty compound object.", outputStorage);
                 return false;
             }
+            if (!static_cast<MSVehicle*>(v)->hasStops()) {
+                server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Failed to resume vehicle '" + v->getID() + "', it has no stops.", outputStorage);
+                return false;
+            }
             if (!static_cast<MSVehicle*>(v)->resumeFromStopping()) {
                 MSVehicle::Stop& sto = (static_cast<MSVehicle*>(v))->getNextStop();
                 std::ostringstream strs;
@@ -505,7 +515,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 strs << ", edge:" << (*sto.edge)->getID();
                 strs << ", startPos: " << sto.startPos;
                 std::string posStr = strs.str();
-                server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Failed to resume a non parking vehicle: " + v->getID() + ", " + posStr, outputStorage);
+                server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Failed to resume a non parking vehicle '" + v->getID() + "', " + posStr, outputStorage);
                 return false;
             }
         }
@@ -1157,7 +1167,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             Position pos(x, y);
 
             Position vehPos = v->getPosition();
-            v->getBestLanes();
+            v->updateBestLanes();
             bool report = server.vtdDebug();
             if (report) {
                 std::cout << std::endl << "begin vehicle " << v->getID() << " vehPos:" << vehPos << " lane:" << v->getLane()->getID() << std::endl;

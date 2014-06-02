@@ -145,7 +145,6 @@ MSLane::pWagGenericInsertion(MSVehicle& veh, SUMOReal mspeed, SUMOReal maxPos, S
     SUMOReal xIn = maxPos;
     SUMOReal vIn = mspeed;
     SUMOReal leaderDecel;
-    veh.getBestLanes(true, this);
     if (myVehicles.size() != 0) {
         MSVehicle* leader = myVehicles.front();
         xIn = leader->getPositionOnLane() - leader->getVehicleType().getLength() - veh.getVehicleType().getMinGap();
@@ -190,7 +189,6 @@ bool
 MSLane::pWagSimpleInsertion(MSVehicle& veh, SUMOReal mspeed, SUMOReal maxPos, SUMOReal minPos) {
     SUMOReal xIn = maxPos;
     SUMOReal vIn = mspeed;
-    veh.getBestLanes(true, this);
     if (myVehicles.size() != 0) {
         MSVehicle* leader = myVehicles.front();
         xIn = leader->getPositionOnLane() - leader->getVehicleType().getLength() - veh.getVehicleType().getMinGap();
@@ -432,7 +430,7 @@ MSLane::isInsertionSuccess(MSVehicle* aVehicle,
                       aVehicle->getID() + "'. Inserting at lane end instead.");
         pos = myLength;
     }
-    aVehicle->getBestLanes(true, this);
+    aVehicle->updateBestLanes(true, this);
     const MSCFModel& cfModel = aVehicle->getCarFollowModel();
     const std::vector<MSLane*>& bestLaneConts = aVehicle->getBestLanesContinuation(this);
     std::vector<MSLane*>::const_iterator ri = bestLaneConts.begin();
@@ -606,7 +604,7 @@ MSLane::isInsertionSuccess(MSVehicle* aVehicle,
 
 void
 MSLane::forceVehicleInsertion(MSVehicle* veh, SUMOReal pos) {
-    veh->getBestLanes(true, this);
+    veh->updateBestLanes(true, this);
     incorporateVehicle(veh, pos, veh->getSpeed(), find_if(myVehicles.begin(), myVehicles.end(), bind2nd(VehPosition(), pos)));
 }
 
@@ -692,7 +690,7 @@ MSLane::detectCollisions(SUMOTime timestep, const std::string& stage) {
                 MSNet::getInstance()->getVehicleControl().registerCollision();
                 myBruttoVehicleLengthSum -= vehV->getVehicleType().getLengthWithGap();
                 myNettoVehicleLengthSum -= vehV->getVehicleType().getLength();
-                MSVehicleTransfer::getInstance()->addVeh(timestep, vehV);
+                MSVehicleTransfer::getInstance()->add(timestep, vehV);
                 veh = myVehicles.erase(veh); // remove current vehicle
                 lastVeh = myVehicles.end() - 1;
                 if (veh == myVehicles.end()) {
@@ -762,8 +760,7 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
             }
         } else if (veh->isParking()) {
             // vehicle started to park
-            veh->leaveLane(MSMoveReminder::NOTIFICATION_JUNCTION);
-            MSVehicleTransfer::getInstance()->addVeh(t, veh);
+            MSVehicleTransfer::getInstance()->add(t, veh);
         } else if (veh->getPositionOnLane() > getLength()) {
             // for any reasons the vehicle is beyond its lane...
             // this should never happen because it is handled in MSVehicle::executeMove
@@ -771,7 +768,7 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
             WRITE_WARNING("Teleporting vehicle '" + veh->getID() + "'; beyond end of lane, targetLane='" + getID() + "', time=" +
                           time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
             MSNet::getInstance()->getVehicleControl().registerCollision();
-            MSVehicleTransfer::getInstance()->addVeh(t, veh);
+            MSVehicleTransfer::getInstance()->add(t, veh);
         } else {
             ++i;
             continue;
@@ -807,7 +804,7 @@ MSLane::executeMovements(SUMOTime t, std::vector<MSLane*>& into) {
                     } else {
                         MSNet::getInstance()->getVehicleControl().registerTeleportJam();
                     }
-                    MSVehicleTransfer::getInstance()->addVeh(t, veh);
+                    MSVehicleTransfer::getInstance()->add(t, veh);
                 }
             } // else look for a vehicle that isn't stopped?
         }
@@ -1290,7 +1287,7 @@ int
 MSLane::getCrossingIndex() const {
     for (MSLinkCont::const_iterator i = myLinks.begin(); i != myLinks.end(); ++i) {
         if ((*i)->getLane()->getEdge().isCrossing()) {
-            return i - myLinks.begin();
+            return (int)(i - myLinks.begin());
         }
     }
     return -1;
@@ -1499,7 +1496,7 @@ MSLane::loadState(std::vector<std::string>& vehIds, MSVehicleControl& vc) {
     for (std::vector<std::string>::const_iterator it = vehIds.begin(); it != vehIds.end(); ++it) {
         MSVehicle* v = dynamic_cast<MSVehicle*>(vc.getVehicle(*it));
         assert(v != 0);
-        v->getBestLanes(true, this);
+        v->updateBestLanes(true, this);
         incorporateVehicle(v, v->getPositionOnLane(), v->getSpeed(), myVehicles.end(),
                            MSMoveReminder::NOTIFICATION_JUNCTION);
     }

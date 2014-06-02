@@ -266,6 +266,11 @@ public:
         return myCollisions + myTeleportsJam + myTeleportsYield + myTeleportsWrongLane;
     }
 
+    /// @brief return the number of emergency stops
+    unsigned int getEmergencyStops() const {
+        return myEmergencyStops;
+    }
+
 
     /** @brief Returns the total departure delay
      * @return Sum of steps vehicles had to wait until being inserted
@@ -380,6 +385,11 @@ public:
         myTeleportsWrongLane++;
     }
 
+    /// @brief register emergency stop
+    void registerEmergencyStop() {
+        myEmergencyStops++;
+    }
+
     /// @name State I/O (mesosim only)
     /// @{
 
@@ -440,6 +450,9 @@ protected:
     /// @brief The number of teleports due to vehicles stuck on the wrong lane
     unsigned int myTeleportsWrongLane;
 
+    /// @brief The number of emergency stops
+    unsigned int myEmergencyStops;
+
     /// @}
 
 
@@ -488,6 +501,10 @@ protected:
 
     /// @brief The scaling factor (especially for inc-dua)
     SUMOReal myScale;
+
+    /// @brief The maximum random offset to be added to vehicles departure times (non-negative)
+    SUMOTime myMaxRandomDepartOffset;
+
 
 private:
     /// @brief invalidated copy constructor

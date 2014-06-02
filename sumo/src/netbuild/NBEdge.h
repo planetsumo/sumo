@@ -201,6 +201,8 @@ public:
     static const SUMOReal UNSPECIFIED_WIDTH;
     /// @brief unspecified lane offset
     static const SUMOReal UNSPECIFIED_OFFSET;
+    /// @brief unspecified signal offset
+    static const SUMOReal UNSPECIFIED_SIGNAL_OFFSET;
     /// @brief no length override given
     static const SUMOReal UNSPECIFIED_LOADED_LENGTH;
     /// @brief the distance at which to take the default anglen
@@ -270,10 +272,14 @@ public:
      * @param[in] from The node the edge starts at
      * @param[in] to The node the edge ends at
      * @param[in] tpl The template edge to copy attributes from
+     * @param[in] geom The geometry to use (may be empty)
+     * @param[in] numLanes The number of lanes of the new edge (copy from tpl by default)
      */
     NBEdge(const std::string& id,
            NBNode* from, NBNode* to,
-           NBEdge* tpl);
+           NBEdge* tpl,
+           const PositionVector& geom=PositionVector(),
+           unsigned int numLanes=-1);
 
 
     /** @brief Destructor
@@ -471,6 +477,17 @@ public:
      */
     SUMOReal getEndOffset(int lane) const;
 
+    /** @brief Returns the offset of a traffic signal from the end of this edge
+     */
+    SUMOReal getSignalOffset() const {
+        return mySignalOffset;
+    }
+
+    /** @brief sets the offset of a traffic signal from the end of this edge
+     */
+    void setSignalOffset(SUMOReal offset) {
+        mySignalOffset = offset;
+    }
 
     /** @brief Returns the type name
      * @return The name of this edge's type
@@ -891,11 +908,11 @@ public:
     bool computeEdge2Edges(bool noLeftMovers);
 
     /// computes the edge, step2: computation of which lanes approach the edges)
-    bool computeLanes2Edges();
+    bool computeLanes2Edges(const bool buildCrossingsAndWalkingAreas);
 
     /** recheck whether all lanes within the edge are all right and
         optimises the connections once again */
-    bool recheckLanes();
+    bool recheckLanes(const bool buildCrossingsAndWalkingAreas);
 
     /** @brief Add a connection to the previously computed turnaround, if wished
      *
@@ -1144,7 +1161,7 @@ private:
 
 
     /** divides the lanes on the outgoing edges */
-    void divideOnEdges(const EdgeVector* outgoing);
+    void divideOnEdges(const EdgeVector* outgoing, const bool buildCrossingsAndWalkingAreas);
 
     /** recomputes the edge priorities and manipulates them for a distribution
         of lanes on edges which is more like in real-life */
@@ -1160,14 +1177,14 @@ private:
 
     /** moves a connection one place to the left;
         Attention! no checking for field validity */
-    void moveConnectionToLeft(unsigned int lane);
+    void moveConnectionToLeft(unsigned int lane, const bool buildCrossingsAndWalkingAreas);
 
     /** moves a connection one place to the right;
         Attention! no checking for field validity */
-    void moveConnectionToRight(unsigned int lane);
+    void moveConnectionToRight(unsigned int lane, const bool buildCrossingsAndWalkingAreas);
 
     /// @brief whether the connection can originate on newFromLane
-    bool canMoveConnection(const Connection& con, unsigned int newFromLane) const;
+    bool canMoveConnection(const Connection& con, unsigned int newFromLane, const bool buildCrossingsAndWalkingAreas) const;
     /// @}
 
 
@@ -1270,6 +1287,8 @@ private:
     /// @brief the street signs along this edge
     std::vector<NBSign> mySigns;
 
+    /// @brief the offset of a traffic light signal from the end of this edge (-1 for None)
+    SUMOReal mySignalOffset;
 
 public:
     /**
