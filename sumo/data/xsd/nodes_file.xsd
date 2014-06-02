@@ -50,6 +50,8 @@
         </xsd:attribute>
         <xsd:attribute name="tl" type="xsd:string" use="optional"/>
         <xsd:attribute name="tlType" type="tlTypeType" use="optional"/>
+        <xsd:attribute name="controlledInner" type="xsd:string" use="optional"/>
+        <xsd:attribute name="shape" type="shapeType" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="deleteType">
