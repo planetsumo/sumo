@@ -28,6 +28,9 @@ withparams
 # Checks whether the vehicle class is processed
 with_vehtype_withclass
 
+# Checks whether a deprecated vehicle class is processed
+with_vehtype_withclass_deprecated
+
 # Checks whether the vehicle type can be omitted
 no_vehtype
 
@@ -40,6 +43,9 @@ vtypecheck
 # same as noid_one_time but with a trggiered vehicle and an additional person definition
 with_persons
 
+# ensure that a single person plan is written properly
+with_persons_only
+
 # same as noid_one_time but with a stop
 with_stops
 
@@ -51,4 +57,3 @@ with_stops_expected
 
 # Tests for false user input
 errors
-

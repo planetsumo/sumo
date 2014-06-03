@@ -36,7 +36,6 @@
         <ignore-invalid-detectors value="false" type="BOOL" help="Only warn about unparseable detectors"/>
         <revalidate-detectors value="false" type="BOOL" help="Recomputes detector types even if given"/>
         <revalidate-routes value="false" type="BOOL" help="Recomputes routes even if given"/>
-        <all-end-follower value="false" type="BOOL" help="Continues routes till the first street after a sink"/>
         <keep-unfinished-routes value="false" synonymes="keep-unfound-ends" type="BOOL" help="Keeps routes even if they have exhausted max-search-depth"/>
         <keep-longer-routes value="false" type="BOOL" help="Keeps routes even if a shorter one exists"/>
         <max-search-depth value="30" synonymes="max-nodet-follower" type="INT" help="Number of edges to follow a route without passing a detector"/>
@@ -72,7 +71,7 @@
 
     <report>
         <verbose value="false" synonymes="v" type="BOOL" help="Switches to verbose output"/>
-        <print-options value="false" synonymes="p" type="BOOL" help="Prints option values before processing"/>
+        <print-options value="false" type="BOOL" help="Prints option values before processing"/>
         <help value="false" synonymes="?" type="BOOL" help="Prints this screen"/>
         <version value="false" synonymes="V" type="BOOL" help="Prints the current version"/>
         <xml-validation value="auto" synonymes="X" type="STR" help="Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;)"/>
