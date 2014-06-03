@@ -50,6 +50,8 @@
                     <xsd:enumeration value="normal"/>
                     <xsd:enumeration value="internal"/>
                     <xsd:enumeration value="connector"/>
+                    <xsd:enumeration value="crossing"/>
+                    <xsd:enumeration value="walkingarea"/>
                 </xsd:restriction>
             </xsd:simpleType>
         </xsd:attribute>
@@ -68,6 +70,7 @@
                 </xsd:restriction>
             </xsd:simpleType>
         </xsd:attribute>
+        <xsd:attribute name="crossingEdges" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="laneType">
@@ -111,7 +114,7 @@
         </xsd:attribute>
         <xsd:attribute name="incLanes" type="xsd:string" use="required"/>
         <xsd:attribute name="intLanes" type="xsd:string" use="required"/>
-        <xsd:attribute name="shape" type="shapeTypeTwo" use="optional"/>
+        <xsd:attribute name="shape" type="shapeType" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="requestType">
