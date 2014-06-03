@@ -1,6 +1,8 @@
 """
 @file    phem.py
 @author  Daniel Krajzewicz
+@author  Jakob Erdmann
+@author  Michael Behrisch
 @date    2013-01-15
 @version $Id$
 
@@ -17,14 +19,18 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 from __future__ import print_function
+import math
 import sumolib
 
 def _convType(tID):
-  if tID.lower().startswith("passenger") or tID.lower().startswith("PKW"):
-    return "PKW"
+  if tID.lower().startswith("passenger") or tID.lower().startswith("pkw"):
+    if tID.lower().startswith("passenger_equipped") or tID.lower().startswith("pkw_equipped"): # needed for V2X applications only
+        return "PKW_equipped"
+    else:
+        return "PKW"
   if tID.lower().startswith("bus"):
     return "BUS"
-  if tID.lower().startswith("heavy") or tID.lower().startswith("LKW"):
+  if tID.lower().startswith("heavy") or tID.lower().startswith("lkw"):
     return "LKW"
   print("Could not convert the vehicle type properly")
   return "unknown"
@@ -85,6 +91,7 @@ def fcd2fzp(inpFCD, outSTRM, further):
   vIDm = sumolib._Running()
   vtIDm = sumolib._Running()
   vtIDm.g("PKW")
+  vtIDm.g("PKW_equipped")
   vtIDm.g("LKW")
   vtIDm.g("BUS")
   for q in inpFCD:

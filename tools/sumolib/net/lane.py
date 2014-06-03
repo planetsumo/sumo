@@ -4,13 +4,14 @@
 @author  Laura Bieker
 @author  Karol Stosiek
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2011-11-28
 @version $Id$
 
 This file contains a Python-representation of a single lane.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -21,26 +22,38 @@ the Free Software Foundation; either version 3 of the License, or
 
 # taken from sumo/src/utils/common/SUMOVehicleClass.cpp
 SUMO_VEHICLE_CLASSES = (
+        "public_emergency",  # deprecated
+        "public_authority",  # deprecated
+        "public_army",       # deprecated
+        "public_transport",  # deprecated
+        "transport",         # deprecated
+        "lightrail",         # deprecated
+        "cityrail",          # deprecated
+        "rail_slow",         # deprecated
+        "rail_fast",         # deprecated
+
         "private",           
-        "public_transport",  
-        "public_emergency",  
-        "public_authority",  
-        "public_army",       
+        "emergency",  
+        "authority",  
+        "army",       
         "vip",               
-        "ignoring",          
         "passenger",         
         "hov",               
         "taxi",              
         "bus",               
+        "coach",               
         "delivery",          
-        "transport",         
-        "lightrail",         
-        "cityrail",          
-        "rail_slow",         
-        "rail_fast",         
+        "truck",         
+        "trailer",         
+        "tram",        
+        "rail_urban",        
+        "rail",        
+        "rail_electric",        
         "motorcycle",        
+        "moped",        
         "bicycle",           
-        "pedestrian",        
+        "pedestrian",
+        "evehicle",
         "custom1",           
         "custom2")           
 

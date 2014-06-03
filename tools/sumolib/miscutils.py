@@ -1,20 +1,20 @@
 """
 @file    miscutils.py
 @author  Jakob Erdmann
+@author  Michael Behrisch
 @date    2012-05-08
 @version $Id$
 
 Common utility functions
 
-Copyright (C) 2007-2014 DLR/FS, Germany
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
-
-This is a duplicate of tools/util/miscutils.py from the VABENE repository
 """
 import sys
 import time
@@ -88,6 +88,19 @@ class Statistics:
             self.max_label = label
         if self.counts is not None:
             self.counts[int(round(v/self.scale))] += 1
+
+    def update(self, other):
+        for v in other.values:
+            self.add(v)
+
+    def clear(self):
+        self.min = uMax
+        self.min_label = None
+        self.max = uMin
+        self.max_label = None
+        self.values = []
+        if self.counts:
+            self.counts.clear()
 
     def count(self):
         return len(self.values)

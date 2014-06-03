@@ -2,12 +2,13 @@
 """
 @file    configTemplateToWiki.py
 @author  Michael Behrisch
+@date    2012-01-26
 @version $Id$
 
 Generate Wiki table from configuration template.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -39,7 +40,7 @@ class ConfigReader(handler.ContentHandler):
                     currSect = line
                 elif line[:2] == "{|":
                     self._intro[currSect] = (start, idx)
-                elif line[:4] == "----" or line[:2] == "=S":
+                elif line[:4] == "----" or (len(line) > 2 and line[0] == "=" and line[1] != "="):
                     self._end = idx
                     break
             if currSect == "":

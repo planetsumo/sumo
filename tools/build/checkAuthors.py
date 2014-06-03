@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 """
-@file    checkSvnProps.py
+@file    checkAuthors.py
 @author  Michael Behrisch
+@author  Daniel Krajzewicz
+@date    2011-11-07
 @version $Id$
 
 Checks authors for all files.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

@@ -1,13 +1,15 @@
 """
 @file    polygon.py
 @author  Daniel Krajzewicz
+@author  Melanie Knocke
+@author  Michael Behrisch
 @date    2012-12-04
 @version $Id$
 
 Library for reading and storing polygons.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -29,7 +31,20 @@ class Polygon:
         self.fill = fill
         self.shape = shape
         self.attributes = {}
-        
+
+    def getBoundingBox(self):
+        xmin = self.shape[0][0]
+        xmax = self.shape[0][0]
+        ymin = self.shape[0][1]
+        ymax = self.shape[0][1]
+        for p in self.shape[1:]:
+            xmin = min(xmin, p[0])
+            xmax = max(xmax, p[0])
+            ymin = min(ymin, p[1])
+            ymax = max(ymax, p[1])
+        assert(xmin != xmax or ymin != ymax)
+        return xmin, ymin, xmax, ymax
+
     def toXML(self):
         s = []
         for e in self.shape:

@@ -3,6 +3,8 @@
 """
 @file    protobuf2xml.py
 @author  Michael Behrisch
+@author  Laura Bieker
+@author  Jakob Erdmann
 @date    2014-01-23
 @version $Id$
 
@@ -60,7 +62,7 @@ def read_n(inputf, n):
 def msg2xml(desc, cont, out, depth=1):
     out.write(">\n%s<%s" % (depth*'    ', desc.name))
     haveChildren = False
-    print(depth, cont)
+#    print(depth, cont)
     for attr, value in cont.ListFields():
         if attr.type == google.protobuf.descriptor.FieldDescriptor.TYPE_MESSAGE:
             if attr.label == google.protobuf.descriptor.FieldDescriptor.LABEL_REPEATED:
@@ -68,6 +70,10 @@ def msg2xml(desc, cont, out, depth=1):
                 for item in value:
                     msg2xml(attr, item, out, depth+1)
         else:
+            if attr.type == google.protobuf.descriptor.FieldDescriptor.TYPE_ENUM:
+                value = attr.enum_type.values_by_number[value].name
+                if value[0] == "_" and value[1].isdigit():
+                    value = value[1:]
             out.write(' %s="%s"' % (attr.name, value))
     if haveChildren:
         out.write(">\n%s</%s" % (depth*'    ', desc.name))
@@ -76,27 +82,27 @@ def msg2xml(desc, cont, out, depth=1):
 
 def writeXml(root, module, options):
     with contextlib.closing(xml2csv.getOutStream(options.output)) as outputf:
-        outputf.write('<%s' % root)
-        if (options.source.isdigit()):
-            inputf = xml2csv.getSocketStream(int(options.source))
+        outputf.write('<?xml version="1.0" encoding="UTF-8"?>\n\n<%s' % root)
+        if options.source.isdigit():
+            inp = xml2csv.getSocketStream(int(options.source))
         else:
-            inputf = open(options.source, 'rb')
-        first = True
-        while True:
-            length = struct.unpack('>L', read_n(inputf, 4))[0]
-            if length == 0:
-                break
-            obj = vars(module)[root.capitalize()]()
-            obj.ParseFromString(read_n(inputf, length))
-            for attr, value in obj.ListFields():
-                if attr.type == google.protobuf.descriptor.FieldDescriptor.TYPE_MESSAGE:
-                    if attr.label == google.protobuf.descriptor.FieldDescriptor.LABEL_REPEATED:
-                        for item in value:
-                            msg2xml(attr, item, outputf)
-                elif first:
-                    outputf.write(' %s="%s"' % (attr.name, value))
-            first = False
-        inputf.close()
+            inp = open(options.source, 'rb')
+        with contextlib.closing(inp) as inputf:
+            first = True
+            while True:
+                length = struct.unpack('>L', read_n(inputf, 4))[0]
+                if length == 0:
+                    break
+                obj = vars(module)[root.capitalize()]()
+                obj.ParseFromString(read_n(inputf, length))
+                for attr, value in obj.ListFields():
+                    if attr.type == google.protobuf.descriptor.FieldDescriptor.TYPE_MESSAGE:
+                        if attr.label == google.protobuf.descriptor.FieldDescriptor.LABEL_REPEATED:
+                            for item in value:
+                                msg2xml(attr, item, outputf)
+                    elif first:
+                        outputf.write(' %s="%s"' % (attr.name, value))
+                first = False
         outputf.write(">\n</%s>\n" % root)
 
 
@@ -106,7 +112,7 @@ def main():
     attrFinder = xml2csv.AttrFinder(options.xsd, options.source, False)
     base = os.path.basename(options.xsd).split('.')[0]
     # generate proto format description
-    module = xml2protobuf.generateProto(attrFinder.xsdStruc.root.name, attrFinder.tagAttrs, attrFinder.depthTags,
+    module = xml2protobuf.generateProto(attrFinder.tagAttrs, attrFinder.depthTags,
                                         attrFinder.xsdStruc._namedEnumerations, options.protodir, base)
     writeXml(attrFinder.xsdStruc.root.name, module, options)
 

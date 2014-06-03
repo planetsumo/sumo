@@ -3,6 +3,7 @@
 @file    edgesInDistricts.py
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2007-07-26
 @version $Id$
 
@@ -19,9 +20,9 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-from xml.sax import saxutils, make_parser, handler
+import sys, math
+from xml.sax import parse, handler
 from optparse import OptionParser
-import math
 
 
 def parseShape(shape):
@@ -88,7 +89,7 @@ class NetDistrictEdgeHandler(handler.ContentHandler):
         self._numLanes = {}
 
     def startElement(self, name, attrs):
-        if name == 'taz':    
+        if name == 'taz' or name == 'poly':    
             self._haveDistrict = True
             self._currentID = attrs['id']
             self._districtEdges[self._currentID] = []
@@ -117,7 +118,7 @@ class NetDistrictEdgeHandler(handler.ContentHandler):
             self._shape += content
 
     def endElement(self, name):
-        if name == 'taz':    
+        if name == 'taz' or name == 'poly':    
             self._haveDistrict = False
             if self._shape != '':
                 self._districtShapes[self._currentID] = parseShape(self._shape)
@@ -131,22 +132,40 @@ class NetDistrictEdgeHandler(handler.ContentHandler):
                 self._edgeShapes[self._currentID] = parseShape(self._shape)
                 self._shape = ""
 
-    def computeWithin(self, complete, maxspeed):
-        for edge, shape in self._edgeShapes.iteritems():
+    def computeWithin(self, complete, maxspeed, assignFrom, verbose):
+        for idx, (edge, shape) in enumerate(self._edgeShapes.iteritems()):
             if self._edgeSpeeds[edge] < maxspeed:
-                min, max = getBoundingBox(shape)
+                if assignFrom:
+                    min = max = shape[0]
+                else:
+                    min, max = getBoundingBox(shape)
                 for district, dshape in self._districtShapes.iteritems():
                     dmin, dmax = self._districtBoxes[district]
                     if dmin[0] <= max[0] and dmin[1] <= max[1] and dmax[0] >= min[0] and dmax[1] >= min[1]:
-                        for pos in shape:
-                            if isWithin(pos, dshape):
+                        if assignFrom:
+                            if isWithin(shape[0], dshape):
                                 self._districtEdges[district].append(edge)
                                 self._edgeDistricts[edge].append(district)
                                 break
+                        else:
+                            for pos in shape:
+                                if isWithin(pos, dshape):
+                                    self._districtEdges[district].append(edge)
+                                    self._edgeDistricts[edge].append(district)
+                                    break
+            if verbose and idx % 100 == 0:
+                sys.stdout.write("%s/%s\r" % (idx, len(self._edgeShapes)))
         if complete:
             for edge, districts in self._edgeDistricts.iteritems():
                 if len(districts) > 1:
                     self._invalidatedEdges.append(edge)
+
+    def getEdgeDistrictMap(self):
+        result = {}
+        for edge, districts in self._edgeDistricts.iteritems():
+            if len(districts) == 1:
+                result[edge] = districts[0]
+        return result
 
     def writeResults(self, output, weighted):
         fd = open(output, "w")
@@ -170,6 +189,9 @@ class NetDistrictEdgeHandler(handler.ContentHandler):
                 fd.write("    </taz>\n")
         fd.write("</tazs>\n")
         fd.close()
+    
+    def getTotalLength(self, edge):
+        return self._edgeLengths[edge] * self._numLanes[edge]
                 
         
 if __name__ == "__main__":
@@ -184,23 +206,23 @@ if __name__ == "__main__":
                          help="write results to FILE (default: %default)", metavar="FILE")
     optParser.add_option("-m", "--max-speed", type="float", dest="maxspeed",
                          default=1000.0, help="use lanes where speed is not greater than this (m/s) (default: %default)")
-    optParser.add_option("-w", "--weighted", action="store_true", dest="weighted",
+    optParser.add_option("-w", "--weighted", action="store_true",
                          default=False, help="Weights sources/sinks by lane number and length")
+    optParser.add_option("-f", "--assign-from", action="store_true",
+                         default=False, help="Assign the edge always to the district where the \"from\" node is located")
     (options, args) = optParser.parse_args()
     if not options.netfiles:
         optParser.print_help()
         optParser.exit("Error! Providing networks is mandatory")
 
-    parser = make_parser()
     reader = NetDistrictEdgeHandler()
-    parser.setContentHandler(reader)
     for netfile in options.netfiles.split(","):
         if options.verbose:
             print "Reading net '" + netfile + "'"
-        parser.parse(netfile)
+        parse(netfile, reader)
     if options.verbose:
         print "Calculating"
-    reader.computeWithin(options.complete, options.maxspeed)
+    reader.computeWithin(options.complete, options.maxspeed, options.assign_from, options.verbose)
     if options.verbose:
         print "Writing results"
     reader.writeResults(options.output, options.weighted)

@@ -2,13 +2,14 @@
 """
 @file    areal.py
 @author  Mario Krumnow
+@author  Laura Bieker
 @date    2011-03-16
 @version $Id$
 
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

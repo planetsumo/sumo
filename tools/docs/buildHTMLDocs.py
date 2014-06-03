@@ -2,6 +2,7 @@
 """
 @file    buildHTMLDocs.py
 @author  Daniel Krajzewicz
+@author  Michael Behrisch
 @date    2011-10-20
 @version $Id$
 
@@ -30,7 +31,8 @@ between the <!-- content begins --> / <!-- content ends --> markers. Then,
 the page is saved into options.output/<PAGE_PATH>. All images are copied
 from options.mirror/images to options.output/images.
 
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
