@@ -271,6 +271,14 @@ public:
         return myParameter.imgFile;
     }
 
+
+	/** @brief Get this vehicle type's person capacity
+     * @return The person capacity of this vehicle type
+     */
+    int getPersonCapacity() const {
+        return myParameter.personCapacity;
+    }
+
     /// @}
 
 

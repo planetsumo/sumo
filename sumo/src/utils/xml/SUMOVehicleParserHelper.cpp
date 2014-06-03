@@ -303,11 +303,6 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     } else {
         ret->color = RGBColor::DEFAULT_COLOR;
     }
-    // parse person capacity
-    if (attrs.hasAttribute(SUMO_ATTR_PERSON_CAPACITY)) {
-        ret->setParameter |= VEHPARS_PERSON_CAPACITY_SET;
-        ret->personCapacity = attrs.get<int>(SUMO_ATTR_PERSON_CAPACITY, ret->id.c_str(), ok);
-    }
     // parse person number
     if (attrs.hasAttribute(SUMO_ATTR_PERSON_NUMBER)) {
         ret->setParameter |= VEHPARS_PERSON_NUMBER_SET;
@@ -403,6 +398,10 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
             throw ProcessError();
         }
     }
+	if (attrs.hasAttribute(SUMO_ATTR_PERSON_CAPACITY)) {
+        vtype->personCapacity = attrs.get<int>(SUMO_ATTR_PERSON_CAPACITY, vtype->id.c_str(), ok);
+        vtype->setParameter |= VTYPEPARS_PERSON_CAPACITY;
+    } 
     try {
         parseVTypeEmbedded(*vtype, SUMO_TAG_CF_KRAUSS, attrs, true);
     } catch (ProcessError&) {

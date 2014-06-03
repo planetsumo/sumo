@@ -66,6 +66,7 @@ const int VTYPEPARS_OSGFILE_SET = 2 << 12;
 const int VTYPEPARS_IMGFILE_SET = 2 << 13;
 const int VTYPEPARS_IMPATIENCE_SET = 2 << 14;
 const int VTYPEPARS_LANE_CHANGE_MODEL_SET = 2 << 15;
+const int VTYPEPARS_PERSON_CAPACITY = 2 << 16;
 
 
 // ===========================================================================
@@ -136,6 +137,9 @@ public:
     SUMOVehicleClass vehicleClass;
     /// @brief The vehicle's impatience (willingness to obstruct others)
     SUMOReal impatience;
+	/// @brief The person capacity of the vehicle
+	int personCapacity;
+
 
 
     /// @name Values for drawing this class' vehicles
@@ -170,7 +174,6 @@ public:
 
     /// @brief Information for the router which parameter were set
     int setParameter;
-
 
     /// @brief Information whether this type was already saved (needed by routers)
     mutable bool saved;
