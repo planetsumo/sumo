@@ -154,7 +154,7 @@ MSPersonControl::isWaiting4Vehicle(const MSEdge* const edge, MSPerson* /* p */) 
     return myWaiting4Vehicle.find(edge) != myWaiting4Vehicle.end();
 }
 
-
+/*
 bool
 MSPersonControl::boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle) {
     bool ret = false;
@@ -178,7 +178,40 @@ MSPersonControl::boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle) {
     }
     return ret;
 }
+*/
 
+bool
+	MSPersonControl::boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop) {
+    bool ret = false;
+    if (myWaiting4Vehicle.find(edge) != myWaiting4Vehicle.end()) {
+        PersonVector& waitPersons = myWaiting4Vehicle[edge];
+        for (PersonVector::iterator i = waitPersons.begin(); i != waitPersons.end();) {
+            const std::string& line = vehicle->getParameter().line == "" ? vehicle->getParameter().id : vehicle->getParameter().line;
+			SUMOTime currentTime =  MSNet::getInstance()->getCurrentTimeStep();
+			if ((*i)->isWaitingFor(line) && vehicle->getVehicleType().getPersonCapacity() > vehicle->getPersonNumber() && stop->timeToBoardNextPerson <= currentTime) {
+                edge->removePerson(*i);
+                vehicle->addPerson(*i);
+				//if the time a person needs to enter the vehicle extends the duration of the stop of the vehicle extend
+				//the duration by setting it to the boarding duration of the person
+				if (vehicle->getVehicleType().getBoardingDuration() >= stop->duration) {
+					stop->duration = vehicle->getVehicleType().getBoardingDuration();
+				}
+				//update the time point at which the next person can board the vehicle
+				stop->timeToBoardNextPerson = currentTime + vehicle->getVehicleType().getBoardingDuration();
+
+                static_cast<MSPerson::MSPersonStage_Driving*>((*i)->getCurrentStage())->setVehicle(vehicle);
+                i = waitPersons.erase(i);
+                ret = true;
+            } else {
+                ++i;
+            }
+        }
+        if (waitPersons.size() == 0) {
+            myWaiting4Vehicle.erase(myWaiting4Vehicle.find(edge));
+        }
+    }
+    return ret;
+}
 
 bool
 MSPersonControl::hasPersons() const {

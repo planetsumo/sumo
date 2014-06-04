@@ -67,6 +67,7 @@ const int VTYPEPARS_IMGFILE_SET = 2 << 13;
 const int VTYPEPARS_IMPATIENCE_SET = 2 << 14;
 const int VTYPEPARS_LANE_CHANGE_MODEL_SET = 2 << 15;
 const int VTYPEPARS_PERSON_CAPACITY = 2 << 16;
+const int VTYPEPARS_BOARDING_DURATION = 2 << 17;
 
 
 // ===========================================================================
@@ -138,7 +139,9 @@ public:
     /// @brief The vehicle's impatience (willingness to obstruct others)
     SUMOReal impatience;
 	/// @brief The person capacity of the vehicle
-	int personCapacity;
+	unsigned int personCapacity;
+	/// @brief The time a person needs to board the vehicle
+	SUMOTime boardingDuration;
 
 
 

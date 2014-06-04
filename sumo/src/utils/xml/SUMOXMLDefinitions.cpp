@@ -246,6 +246,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "speedDev",       SUMO_ATTR_SPEEDDEV },
     { "laneChangeModel", SUMO_ATTR_LANE_CHANGE_MODEL },
     { "minGap",         SUMO_ATTR_MINGAP },
+    { "boardingDuration", SUMO_ATTR_BOARDING_DURATION },
 
     { "sigma",          SUMO_ATTR_SIGMA },
     { "tau",            SUMO_ATTR_TAU },

@@ -36,6 +36,7 @@
 #include <vector>
 #include <map>
 #include "MSPerson.h"
+#include "MSVehicle.h"
 
 
 // ===========================================================================
@@ -90,7 +91,7 @@ public:
      * @param[in] the vehicle which is taking on passengers
      * @return Whether any persons have been boarded
      */
-    bool boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle);
+    bool boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop);
 
     /// checks whether any person waits to finish her plan
     bool hasPersons() const;

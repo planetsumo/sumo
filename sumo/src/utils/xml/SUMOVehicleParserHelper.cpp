@@ -402,6 +402,10 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
         vtype->personCapacity = attrs.get<int>(SUMO_ATTR_PERSON_CAPACITY, vtype->id.c_str(), ok);
         vtype->setParameter |= VTYPEPARS_PERSON_CAPACITY;
     } 
+	if (attrs.hasAttribute(SUMO_ATTR_BOARDING_DURATION)) {
+		vtype->boardingDuration = attrs.getSUMOTimeReporting(SUMO_ATTR_BOARDING_DURATION, vtype->id.c_str(), ok);
+        vtype->setParameter |= VTYPEPARS_BOARDING_DURATION;
+    } 
     try {
         parseVTypeEmbedded(*vtype, SUMO_TAG_CF_KRAUSS, attrs, true);
     } catch (ProcessError&) {

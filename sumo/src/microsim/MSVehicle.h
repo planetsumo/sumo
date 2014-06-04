@@ -578,6 +578,9 @@ public:
         bool reached;
         /// @brief IDs of persons the vehicle has to wait for until departing
         std::set<std::string> awaitedPersons;
+		/// @brief The time at which the vehicle is able to board another person
+		SUMOTime timeToBoardNextPerson;
+
     };
 
 

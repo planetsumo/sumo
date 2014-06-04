@@ -678,6 +678,7 @@ MSVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffs
     stop.endPos = stopPar.endPos;
     stop.duration = stopPar.duration;
     stop.until = stopPar.until;
+	stop.timeToBoardNextPerson = 0;
     stop.awaitedPersons = stopPar.awaitedPersons;
     if (stop.until != -1) {
         stop.until += untilOffset;
@@ -779,7 +780,7 @@ MSVehicle::processNextStop(SUMOReal currentVelocity) {
     if (stop.reached) {
         // ok, we have already reached the next stop
         // any waiting persons may board now
-        bool boarded = MSNet::getInstance()->getPersonControl().boardAnyWaiting(&myLane->getEdge(), this);
+        bool boarded = MSNet::getInstance()->getPersonControl().boardAnyWaiting(&myLane->getEdge(), this, &stop);
         boarded &= stop.awaitedPersons.size() == 0;
         if (boarded) {
             if (stop.busstop != 0) {

@@ -310,6 +310,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_SPEEDDEV,
     SUMO_ATTR_LANE_CHANGE_MODEL,
     SUMO_ATTR_MINGAP,
+    SUMO_ATTR_BOARDING_DURATION,
     /* Car following model attributes */
     SUMO_ATTR_SIGMA,    // used by: Krauss
     SUMO_ATTR_TAU,      // Krauss
