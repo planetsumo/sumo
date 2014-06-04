@@ -3,6 +3,7 @@ binary:$TEXTTEST_HOME/toolrunner.py
 copy_test_path:routes.rou.xml
 copy_test_path:routes2.rou.xml
 copy_test_path:net.net.xml
+copy_test_path:input_additional.add.xml
 copy_test_path:three_split.net.xml
 copy_test_path:input_net.net.xml
 copy_test_path:input_trips.trips.xml
@@ -49,6 +50,7 @@ copy_test_path:dest.xml
 copy_test_path:fcd.xml
 copy_test_path:data.txt
 copy_test_path:source.csv
+copy_test_path:osm.xml
 
 [collate_file]
 detectors:e1.add.xml
@@ -87,6 +89,7 @@ match:match.txt
 image:image.png
 csv:out*.csv
 xml:out.xml
+net:net.net.xml
 
 [run_dependent_text]
 output:Begin time
@@ -94,8 +97,10 @@ output:End time
 output:uration:
 output:<!-- generated on
 output:.* files checked{REPLACE <number> files checked}
+output:^calling.*duarouter
 trips:<!-- generated on
 pois:<!--
+routes:<!-- generated on
 errors:Execution of .*duarouter.*'{REPLACE Execution of <path-to>duarouter'}
 errors:Leaked object at 
 errors:*** 9 leaks found
@@ -104,6 +109,7 @@ errors:Traceback{->}XMLSyntaxError
 errors:Traceback{->}IOError
 omnet:<!-- generated on
 shawn:<!-- generated on
+net:<!--{[->]}-->
 
 [unordered_text]
 errors:ERROR:SCHEMA

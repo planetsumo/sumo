@@ -4,13 +4,14 @@
 @author  Lena Kalleske
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2009-03-26
 @version $Id$
 
 Tutorial for traffic light control via the TraCI interface.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
-Copyright (C) 2009-2013 DLR/TS, Germany
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2009-2014 DLR/TS, Germany
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -45,7 +46,6 @@ else:
     # call sumo with the request to run this very same script again in the internal interpreter
     # when this happens, the method traci.isEmbedded() in line 23 will evaluate to true
     # and then the run method will be called
-    retCode = subprocess.call([sumoBinary, "-c", "data/cross.sumocfg",
-                               "--remote-port", "0", "--python-script", __file__],
+    retCode = subprocess.call([sumoBinary, "-c", "data/cross.sumocfg", "--python-script", __file__],
                               stdout=sys.stdout, stderr=sys.stderr)
     sys.exit(retCode)

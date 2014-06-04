@@ -1,19 +1,37 @@
 #!/usr/bin/env python
+"""
+@file    runner.py
+@author  Daniel Krajzewicz
+@author  Michael Behrisch
+@date    2012-10-19
+@version $Id$
 
-import os, subprocess, sys, time, math
+
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+"""
+
+import os, subprocess, sys, time, math, random
 
 sumoHome = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..', '..', '..', '..'))
 sys.path.append(os.path.join(sumoHome, "tools"))
 import traci
 
-if sys.argv[1]=="sumo":
+PORT = random.randint(8000, 50000)
+DELTA_T = 1000
+
+if sys.argv[1] == "sumo":
     sumoBinary = os.environ.get("SUMO_BINARY", os.path.join(sumoHome, 'bin', 'sumo'))
-    addOption = ""
+    addOption = "--remote-port %s" % PORT
 else:
     sumoBinary = os.environ.get("GUISIM_BINARY", os.path.join(sumoHome, 'bin', 'sumo-gui'))
-    addOption = "-S -Q"
-PORT = 8813
-DELTA_T = 1000
+    addOption = "-S -Q --remote-port %s" % PORT
 
 def dist2(v, w):
     return (v[0] - w[0]) ** 2 + (v[1] - w[1]) ** 2

@@ -4,12 +4,13 @@
 @author  Lena Kalleske
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2009-03-26
 @version $Id$
 
 Tutorial for traffic light control via the TraCI interface.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 Copyright (C) 2009-2014 DLR/TS, Germany
 
 This file is part of SUMO.
@@ -34,7 +35,7 @@ except ImportError:
 
 import traci
 # the port used for communicating with your sumo instance
-PORT = 8813
+PORT = 8873
 
 NSGREEN = "GrGr" 
 NSYELLOW = "yryr"
@@ -123,6 +124,6 @@ if __name__ == "__main__":
 
     # this is the normal way of using traci. sumo is started as a
     # subprocess and then the python script connects and runs
-    sumoProcess = subprocess.Popen([sumoBinary, "-c", "data/cross.sumocfg", "--tripinfo-output", "tripinfo.xml"], stdout=sys.stdout, stderr=sys.stderr)
+    sumoProcess = subprocess.Popen([sumoBinary, "-c", "data/cross.sumocfg", "--tripinfo-output", "tripinfo.xml", "--remote-port", str(PORT)], stdout=sys.stdout, stderr=sys.stderr)
     run()
     sumoProcess.wait()

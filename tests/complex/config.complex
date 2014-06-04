@@ -19,6 +19,9 @@ copy_test_path:sumo.sumocfg
 copy_test_path:sumo_log.sumocfg
 copy_test_path:osm.xml
 copy_test_path:data
+copy_test_path:runner.py
+copy_test_path:classes.txt
+copy_test_path:nefz.csv
 test_data_ignore:.svn
 
 [collate_file]
@@ -28,6 +31,7 @@ tripinfo:tripinfo.xml
 net:net.net.xml
 vss:vss.xml
 results:results.csv
+tls_state:tls_state.xml
 
 [run_dependent_text]
 output:\r{REPLACE \n}
@@ -46,11 +50,15 @@ errors:Die Adresse wird bereits verwendet{REPLACE Address already in use}
 errors:Leaked object at 
 errors:*** 9 leaks found
 errors:delete: freed
+errors:send failed: Connection reset by peer{REPLACE send failed: Software caused tcpip::Socket abort}
+errors:send failed: Socket reset by peer{REPLACE send failed: Software caused tcpip::Socket abort}
+errors:send failed: Broken pipe{REPLACE send failed: Software caused tcpip::Socket abort}
 
 [floating_point_tolerance]
 output:0.0001
 net:0.0101
 vss:0.0001
+results:0.00101
 
 [batch_extra_version]
 meso:meso
