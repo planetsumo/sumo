@@ -40,6 +40,7 @@
 #include <guisim/GUIEdge.h>
 #include <guisim/GUILane.h>
 #include <guisim/GUIVehicle.h>
+#include <microsim/output/MSGrid.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSLane.h>
 #include <microsim/MSJunctionControl.h>
@@ -156,6 +157,37 @@ GUIViewTraffic::setColorScheme(const std::string& name) {
     return true;
 }
 
+MSLane *GUIViewTraffic::getLaneUnderPoint(Position pos)
+{
+  MSLane *lane=NULL;
+    const SUMOReal SENSITIVITY = 0.01; // meters
+    Boundary selection;
+    selection.add(pos);
+    selection.grow(SENSITIVITY);
+    const std::vector<GLuint> ids = getObjectsInBoundary(selection);
+    // Interpret results
+    unsigned int idMax = 0;
+    int prevLayer = -1000;
+    
+    for (std::vector<GLuint>::const_iterator it = ids.begin(); it != ids.end(); it++) {
+        GLuint id = *it;
+        GUIGlObject *o = GUIGlObjectStorage::gIDStorage.getObjectBlocking(id);
+        if (o==0) {
+            continue;
+        }
+        
+        lane=dynamic_cast<GUILane*>(o);
+	
+	GUIGlObjectStorage::gIDStorage.unblockObject(id);
+	
+	if (lane)
+	  return lane;
+        }
+        
+
+    return lane;
+}
+
 
 int
 GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
@@ -175,7 +207,6 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
             paintGLGrid();
         }
     }
-    /*
     MSGrid *grid = MSNet::getInstance()->getGrid();
     SUMOReal *values = grid->getValues();
     SUMOReal max = 0;
@@ -202,7 +233,6 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
         }
     }
     }
-    */
 
     glLineWidth(1);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -230,6 +260,22 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
         GUINet::getGUIInstance()->unlock();
         glTranslated(0, 0, .01);
     }
+    
+    /*
+    //#### connect and draw autonomous vehicles
+    static GUIVehicle *autonomous=NULL;
+    MSVehicleControl *vc=(&myNet->getVehicleControl());
+    autonomous=dynamic_cast<GUIVehicle*>(vc->getAutonomousVehicle());
+    
+    if (autonomous)// && autonomous->getLane()==NULL)
+    {
+// 	  Position2D p1 = autonomous->getPosition();
+// 	  std::cout << "aki\t " << p1.x() << "\t" << p1.y();
+	  glTranslated(0,0,-0.5);
+      autonomous->drawGL(*myVisualizationSettings); // nao seria preciso desenhar se nao estiver visivel
+     }
+     */
+       
     glPopMatrix();
     /*
     // draw legends

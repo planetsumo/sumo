@@ -230,11 +230,94 @@ GUISUMOViewParent::onCmdLocate(FXObject*, FXSelector sel, void*) {
     return 1;
 }
 
+#include <guisim/GUIVehicleControl.h>
 
 long
 GUISUMOViewParent::onSimStep(FXObject*, FXSelector, void*) {
     myView->update();
     myView->checkSnapshots();
+  /*
+    GUIViewTraffic *myView1=dynamic_cast<GUIViewTraffic *>(myView);
+     
+  //####update autonomous vehicles
+
+    static GUIVehicle *autonomous=NULL;
+    GUIVehicleControl *vc=dynamic_cast<GUIVehicleControl*>(&myView1->getNet()->getVehicleControl());
+    autonomous=dynamic_cast<GUIVehicle*>(vc->getAutonomousVehicle());
+    static int i=0;
+    static int ok=0;
+
+   
+    if (!myView->makeCurrent() || autonomous==NULL)
+      return 1;
+   
+     if (!ok && autonomous->getLane())
+    {
+      ok=1;
+      std::cout << "autonomous first run\n";
+      MSLane *lan=autonomous->getLane();
+	    lan->getVehiclesSecure();
+	    lan->removeVehicle(autonomous);
+	    lan->resetPartialOccupation(autonomous);
+	    autonomous->setLane(NULL);
+	    lan->releaseVehicles();
+      
+      GUIAutonomousVehicleConnector *conn=new GUIAutonomousVehicleConnector(dynamic_cast<MSVehicle*>(autonomous),myView1->getNet());
+      conn->start();
+    }
+   
+    
+    Position2D p=autonomous->getPosition();
+    MSLane *lane=myView1->getLaneUnderPoint(p);
+    MSLane *lan=autonomous->getLane();
+//      if (lane)
+//      std::cout << "on a lane   " << lane->getID() << std::endl;
+//     if (autonomous && autonomous->getLane())
+//       std::cout << "\t pos on lane=" << autonomous->getPositionOnLane() << std::endl;
+    
+    
+    if (lane!=autonomous->getLane())
+    {
+      
+      
+      std::cout << "######___Saiu da lane id=";
+
+	  if (lan)
+	  {
+	    std::cout << autonomous->getLane()->getID();
+	    lan->getVehiclesSecure();
+	    lan->resetPartialOccupation(autonomous);
+	    lan->removeVehicle(autonomous);
+	    
+	    autonomous->setLane(NULL);
+	    lan->releaseVehicles();
+	  }
+	  else
+	    std::cout << "NULL";
+	  
+	  std::cout << "\tfoi detectada lane=";
+	  if (lane)
+	    std::cout << lane->getID() << std::endl;
+	    else
+	      std::cout << "NULL\n";
+    }
+    
+        
+    if (lan!=lane && lane)
+    { 
+	 std::cout << "Entrou na Lane=" << lane->getID()<< " @ pos_x=" << p.x() << "\ty="<< p.y() << "\tlane=" << lane->getID() << std::endl;
+	
+	  autonomous->setLane(lane);
+	  lane->getVehiclesSecure();
+	  lane->forceVehicleInsertion(autonomous, autonomous->getPositionOnLane());
+	  lane->sortVehiclesInLane();
+	  lane->releaseVehicles();
+    }
+      
+
+
+    myView->makeNonCurrent();
+    */
     return 1;
 }
 

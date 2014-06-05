@@ -96,6 +96,9 @@ public:
     /// @brief get the current simulation time
     SUMOTime getCurrentTimeStep() const;
 
+  
+    MSLane *getLaneUnderPoint(Position p);
+  
 protected:
     int doPaintGL(int mode, const Boundary& bound);
 
