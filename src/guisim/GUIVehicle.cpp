@@ -40,6 +40,7 @@
 #include <foreign/polyfonts/polyfonts.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/SUMOVehicleParameter.h>
+#include <utils/emissions/PollutantsInterface.h>
 #include <utils/gui/globjects/GLIncludes.h>
 #include <utils/gui/windows/GUISUMOAbstractView.h>
 #include <utils/gui/windows/GUIAppEnum.h>
@@ -1239,15 +1240,6 @@ GUIVehicle::drawLinkItem(const Position& pos, SUMOTime arrivalTime, SUMOTime lea
     glTranslated(-pos.x(), -pos.y(), .1);
 }
 
-const std::vector<MSVehicle::LaneQ>&
-GUIVehicle::getBestLanes() const {
-    myLock.lock();
-    const std::vector<MSVehicle::LaneQ>& ret = MSVehicle::getBestLanes();
-    myLock.unlock();
-    return ret;
-}
-
-
 void
 GUIVehicle::setColor(const GUIVisualizationSettings& s) const {
     const GUIColorer& c = s.vehicleColorer;
@@ -1648,7 +1640,7 @@ GUIVehicle::selectBlockingFoes() const {
         }
         std::vector<const SUMOVehicle*> blockingFoes;
         std::vector<const MSPerson*> blockingPersons;
-        dpi.myLink->opened(dpi.myArrivalTime, dpi.myArrivalSpeed, dpi.getLeaveSpeed(), getVehicleType().getLengthWithGap(),
+        dpi.myLink->opened(dpi.myArrivalTime, dpi.myArrivalSpeed, dpi.getLeaveSpeed(), getVehicleType().getLength(),
                            getImpatience(), getCarFollowModel().getMaxDecel(), getWaitingTime(), &blockingFoes);
         for (std::vector<const SUMOVehicle*>::const_iterator it = blockingFoes.begin(); it != blockingFoes.end(); ++it) {
             gSelected.select(static_cast<const GUIVehicle*>(*it)->getGlID());

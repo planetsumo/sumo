@@ -1096,6 +1096,9 @@ protected:
 
     void setBlinkerInformation();
 
+    /// updates LaneQ::nextOccupation and myCurrentLaneInBestLanes
+    void updateOccupancyAndCurrentBestLane(const MSLane* startLane);
+
 
     /// @brief The time the vehicle waits (is not faster than 0.1m/s) in seconds
     SUMOTime myWaitingTime;

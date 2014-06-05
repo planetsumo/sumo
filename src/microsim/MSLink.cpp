@@ -59,20 +59,23 @@ SUMOTime MSLink::myLookaheadTime = TIME2STEPS(1);
 // member method definitions
 // ===========================================================================
 #ifndef HAVE_INTERNAL_LANES
-MSLink::MSLink(MSLane* succLane,
-               LinkDirection dir, LinkState state,
-               SUMOReal length)
-    :
+MSLink::MSLink(MSLane* succLane, LinkDirection dir, LinkState state, SUMOReal length) :
     myLane(succLane),
     myIndex(-1),
-    myState(state), myDirection(dir),  myLength(length)
+    myState(state), 
+    myDirection(dir),  
+    myLength(length),
+    myHasFoes(false),
+    myAmCont(false)
 #else
-MSLink::MSLink(MSLane* succLane, MSLane* via,
-               LinkDirection dir, LinkState state, SUMOReal length)
-    :
+MSLink::MSLink(MSLane* succLane, MSLane* via, LinkDirection dir, LinkState state, SUMOReal length) :
     myLane(succLane),
     myIndex(-1),
-    myState(state), myDirection(dir), myLength(length),
+    myState(state), 
+    myDirection(dir), 
+    myLength(length),
+    myHasFoes(false),
+    myAmCont(false),
     myJunctionInlane(via)
 #endif
 {}
@@ -159,7 +162,7 @@ MSLink::setRequestInformation(int index, bool hasFoes, bool isCont,
 void
 MSLink::setApproaching(const SUMOVehicle* approaching, const SUMOTime arrivalTime, const SUMOReal arrivalSpeed, const SUMOReal leaveSpeed,
                        const bool setRequest, const SUMOTime arrivalTimeBraking, const SUMOReal arrivalSpeedBraking, const SUMOTime waitingTime) {
-    const SUMOTime leaveTime = getLeaveTime(arrivalTime, arrivalSpeed, leaveSpeed, approaching->getVehicleType().getLengthWithGap());
+    const SUMOTime leaveTime = getLeaveTime(arrivalTime, arrivalSpeed, leaveSpeed, approaching->getVehicleType().getLength());
     myApproachingVehicles.insert(std::make_pair(approaching,
                                  ApproachingVehicleInformation(arrivalTime, leaveTime, arrivalSpeed, leaveSpeed, setRequest,
                                          arrivalTimeBraking, arrivalSpeedBraking, waitingTime)));
@@ -202,8 +205,9 @@ MSLink::getApproaching(const SUMOVehicle* veh) const {
 
 
 SUMOTime
-MSLink::getLeaveTime(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength) const {
-    return arrivalTime + TIME2STEPS((getLength() + vehicleLength) / (0.5 * (arrivalSpeed + leaveSpeed)));
+MSLink::getLeaveTime(const SUMOTime arrivalTime, const SUMOReal arrivalSpeed,
+                     const SUMOReal leaveSpeed, const SUMOReal vehicleLength) const {
+    return arrivalTime + TIME2STEPS((getLength() + vehicleLength) / MAX2((SUMOReal)0.5 * (arrivalSpeed + leaveSpeed), NUMERICAL_EPS));
 }
 
 
