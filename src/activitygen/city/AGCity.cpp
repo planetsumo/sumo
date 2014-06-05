@@ -92,13 +92,13 @@ AGCity::completeStreets() {
     }
 
     //completing streets from edges of the network not handled/present in STAT file (no population no work position)
-    for (std::map<std::string, ROEdge*>::const_iterator itE = net->getEdgeMap().begin(); itE != net->getEdgeMap().end(); ++itE) {
+    std::map<std::string, ROEdge*>::const_iterator itE;
+    std::vector<AGStreet>::iterator itS;
+
+    for (itE = net->getEdgeMap().begin(); itE != net->getEdgeMap().end(); ++itE) {
         std::map<std::string, AGStreet*>::iterator itS = streets.find(itE->second->getID());
         if(itS==streets.end() && itE->second->getType() != ROEdge::ET_INTERNAL) {
-            streets[itE->second->getID()] = new AGStreet(itE->second);
-        }
             /*
-        if(itS==streets.end() && itE->second->getType() != ROEdge::ET_INTERNAL) {
         for (itS = streets.begin(); itS != streets.end(); ++itS) {
             if (itS->getName() == itE->second->getID()) {
                 break;
@@ -106,9 +106,9 @@ AGCity::completeStreets() {
         }
         //if this edge isn't represented by a street
         if (itS == streets.end() && itE->second->getType() != ROEdge::ET_INTERNAL) {
-            streets.push_back(AGStreet(itE->second));
-        }
         */
+            streets[itE->second->getID()] = new AGStreet(itE->second);
+        }
     }
     // @todo: we should already have a class that realises the access to a random member of what is originally a map;
     //  not today, hack a new one 
