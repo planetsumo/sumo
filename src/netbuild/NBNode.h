@@ -38,6 +38,7 @@
 #include <utility>
 #include <string>
 #include <set>
+#include <utils/common/StdDefs.h>
 #include <utils/common/Named.h>
 #include <utils/geom/Bresenham.h>
 #include <utils/common/VectorHelper.h>

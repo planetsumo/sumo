@@ -1113,7 +1113,9 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
                         getLaneShape(con.fromLane).back().distanceTo(
                             con.toEdge->getLaneShape(con.toLane).front())
                         / (SUMOReal) 2.0 / (SUMOReal) M_PI;
+        vmax = MAX2(vmax, SUMOReal(5./3.6));
         vmax = MIN2(vmax, ((getSpeed() + con.toEdge->getSpeed()) / (SUMOReal) 2.0));
+
         vmax = (getSpeed() + con.toEdge->getSpeed()) / (SUMOReal) 2.0;
         //
         Position end = con.toEdge->getLaneShape(con.toLane).front();
@@ -1174,6 +1176,33 @@ NBEdge::getAngleAtNode(const NBNode* const atNode) const {
         return myGeom.getEndLine().atan2DegreeAngle();
     }
 }
+
+
+SUMOReal  
+NBEdge::new_getAngle(Position p1, Position p2) { 
+    SUMOReal a = atan2(p2.x()-p1.x(), p2.y()-p1.y()) * (SUMOReal) 180.0 / (SUMOReal) M_PI; 
+    if(a<0) { 
+        return 360+a; 
+    } 
+    return a; 
+} 
+
+
+SUMOReal  
+NBEdge::new_getAngle() { 
+    return new_getAngle(myGeom[0], myGeom[-1]); 
+} 
+
+
+SUMOReal  
+NBEdge::new_getAngleAtNode(const NBNode * const atNode) { 
+    if (atNode == myFrom) { 
+        return new_getAngle(myGeom[0], myGeom[1]); 
+    } else { 
+        assert(atNode == myTo); 
+        return new_getAngle(myGeom[-2], myGeom[-1]); 
+    } 
+} 
 
 
 void

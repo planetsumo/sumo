@@ -806,6 +806,7 @@ public:
     void replaceInConnections(NBEdge* which, NBEdge* by, unsigned int laneOff);
     void replaceInConnections(NBEdge* which, const std::vector<NBEdge::Connection>& origConns);
     void copyConnectionsFrom(NBEdge* src);
+    void setAsUnconnected(NBEdge *e);
 
     /// @brief modifify the toLane for all connections to the given edge
     void shiftToLanesToEdge(NBEdge* to, unsigned int laneOff);
@@ -984,6 +985,9 @@ public:
      */
     SUMOReal getAngleAtNode(const NBNode* const node) const;
 
+    SUMOReal new_getAngle(Position p1, Position p2); 
+    SUMOReal new_getAngle(); 
+    SUMOReal new_getAngleAtNode(const NBNode * const atNode); 
 
     void incLaneNo(unsigned int by);
 
