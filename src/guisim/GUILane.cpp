@@ -260,7 +260,6 @@ GUILane::drawLinkRules(const GUINet& net) const {
         SUMOReal x2 = x1 + w;
         drawLinkRule(net, myLinks[i], getShape(), x1, x2);
         x1 = x2;
-        x2 += w;
     }
 }
 
@@ -336,6 +335,9 @@ GUILane::drawArrows() const {
     glColor3d(1, 1, 1);
     glTranslated(end.x(), end.y(), 0);
     glRotated(rot, 0, 0, 1);
+    if (myWidth < SUMO_const_laneWidth) {
+        glScaled(myWidth / SUMO_const_laneWidth, 1, 1);
+    }
     for (std::vector<MSLink*>::const_iterator i = myLinks.begin(); i != myLinks.end(); ++i) {
         LinkDirection dir = (*i)->getDirection();
         LinkState state = (*i)->getState();
@@ -491,7 +493,6 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
             drawCrossties(0.5, 1.0, getWidth() * 0.5);
             glTranslated(0, 0, -.2);
         } else if (isWalkingArea) {
-            glColor3d(0.3, 0.3, 1);
             glTranslated(0, 0, .2);
             if (s.scale * s.laneWidthExaggeration < 20.) {
                 GLHelper::drawFilledPoly(myShape, true);
@@ -510,8 +511,14 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
 #endif
         } else {
             const SUMOReal laneWidth = isInternal ? myQuarterLaneWidth : myHalfLaneWidth;
-            mustDrawMarkings = !isInternal;
-            GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, laneWidth * s.laneWidthExaggeration);
+            mustDrawMarkings = !isInternal && myPermissions != 0 && myPermissions != SVC_PEDESTRIAN;
+            // recognize full transparency and simply don't draw
+            GLfloat color[4];
+            glGetFloatv(GL_CURRENT_COLOR, color);
+            if (color[3] > 0) {
+                const int cornerDetail = drawDetails ? s.scale * s.laneWidthExaggeration : 0;
+                GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, laneWidth * s.laneWidthExaggeration, cornerDetail);
+            }
         }
         if (!MSGlobals::gUseMesoSim) {
             glPopName();
@@ -574,7 +581,7 @@ GUILane::drawMarkings(const GUIVisualizationSettings& s, SUMOReal scale) const {
 #endif
         setColor(s);
     // optionally draw inverse markings
-    if (myIndex > 0) {
+    if (myIndex > 0 && (myEdge->getLanes()[myIndex - 1]->getPermissions() & myPermissions) != 0) {
         SUMOReal mw = (myHalfLaneWidth + SUMO_const_laneOffset + .01) * scale;
         int e = (int) getShape().size() - 1;
         for (int i = 0; i < e; ++i) {
@@ -753,6 +760,17 @@ GUILane::setFunctionalColor(size_t activeScheme) const {
 SUMOReal
 GUILane::getColorValue(size_t activeScheme) const {
     switch (activeScheme) {
+        case 0:
+            switch (myPermissions) {
+                case SVC_PEDESTRIAN:
+                    return 1;
+                case SVC_BICYCLE:
+                    return 2;
+                case 0:
+                    return 3;
+                default:
+                    return 0;
+            }
         case 1:
             return gSelected.isSelected(getType(), getGlID()) ||
                    gSelected.isSelected(GLO_EDGE, dynamic_cast<GUIEdge*>(myEdge)->getGlID());

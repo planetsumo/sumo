@@ -65,6 +65,7 @@ MSVehicleControl::MSVehicleControl() :
     myTeleportsJam(0),
     myTeleportsYield(0),
     myTeleportsWrongLane(0),
+    myEmergencyStops(0),
     myTotalDepartureDelay(0),
     myTotalTravelTime(0),
     myDefaultVTypeMayBeDeleted(true),
@@ -76,6 +77,7 @@ MSVehicleControl::MSVehicleControl() :
     if (oc.isSet("scale")) {
         myScale = oc.getFloat("scale");
     }
+    myMaxRandomDepartOffset = string2time(oc.getString("random-depart-offset"));
 }
 
 
@@ -103,6 +105,10 @@ MSVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                const MSRoute* route,
                                const MSVehicleType* type) {
     myLoadedVehNo++;
+    if (myMaxRandomDepartOffset > 0) {
+        // round to the closest usable simulation step
+        defs->depart += DELTA_T * int((myVehicleParamsRNG.rand((int)myMaxRandomDepartOffset) + 0.5 * DELTA_T) / DELTA_T);
+    }
     MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG));
     MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
     return built;

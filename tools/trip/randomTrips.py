@@ -79,7 +79,7 @@ def get_options():
         sys.exit()
 
     if options.pedestrians and options.vclass is None:
-        options.vclass = pedestrian
+        options.vclass = 'pedestrian'
     return options
 
 
@@ -171,8 +171,10 @@ def main(options):
     idx = 0
     with open(options.tripfile, 'w') as fouttrips:
         print >> fouttrips, """<?xml version="1.0"?>
-<!-- generated on %s by $Id$ -->
-<trips>""" % datetime.datetime.now()
+<!-- generated on %s by $Id$ 
+  options: %s
+-->
+<trips>""" % (datetime.datetime.now(), (' '.join(sys.argv[1:]).replace('--','<doubleminus>')))
         depart = options.begin
         while depart < options.end:
             label = "%s%s" % (options.tripprefix, idx)
@@ -196,7 +198,7 @@ def main(options):
 
     if options.routefile:
         args = [DUAROUTER, '-n', options.netfile, '-t', options.tripfile, '-o', options.routefile, '--ignore-errors',
-            '--begin', str(options.begin), '--end', str(options.end)]
+            '--begin', str(options.begin), '--end', str(options.end), '--no-step-log']
         if options.additional is not None:
             args += ['--additional-files', options.additional]
         print "calling ", " ".join(args)

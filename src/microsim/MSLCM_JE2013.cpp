@@ -90,6 +90,9 @@
 #define KEEP_RIGHT_TIME (SUMOReal)5.0 // the number of seconds after which a vehicle should move to the right lane
 #define KEEP_RIGHT_ACCEPTANCE (SUMOReal)2.0 // calibration factor for determining the desire to keep right
 
+#define RELGAIN_NORMALIZATION_MIN_SPEED (SUMOReal)10.0 
+
+#define TURN_LANE_DIST (SUMOReal)200.0 // the distance at which a lane leading elsewhere is considered to be a turn-lane that must be avoided
 
 //#define DEBUG_COND (myVehicle.getID() == "pkw22806" || myVehicle.getID() == "pkw22823")
 //#define DEBUG_COND (myVehicle.getID() == "pkw150478" || myVehicle.getID() == "pkw150494" || myVehicle.getID() == "pkw150289")
@@ -672,6 +675,7 @@ MSLCM_JE2013::_wantsChange(
     const bool changeToBest = (right && bestLaneOffset < 0) || (!right && bestLaneOffset > 0);
     // keep information about being a leader/follower
     int ret = (myOwnState & 0xffff0000);
+    int req = 0; // the request to change or stay
 
     // VARIANT_5 (disableAMBACKBLOCKER1)
     /*
@@ -839,13 +843,13 @@ MSLCM_JE2013::_wantsChange(
         } else if (bestLaneOffset == 0
                    && (leader.first == 0 || !leader.first->isStopped())
                    && neigh.bestContinuations.back()->getLinkCont().size() != 0
-                   && roundaboutEdgesAhead == 0) {
+                   && roundaboutEdgesAhead == 0
+                   && neighDist < TURN_LANE_DIST) {
             // VARIANT_21 (stayOnBest)
-            // XXX this should depend on distance somehow
             // we do not want to leave the best lane for a lane which leads elsewhere
             // unless our leader is stopped or we are approaching a roundabout
             if (gDebugFlag2) {
-                std::cout << " veh=" << myVehicle.getID() << " does not want to leave the bestLane\n";
+                std::cout << " veh=" << myVehicle.getID() << " does not want to leave the bestLane (neighDist=" << neighDist << ")\n";
             }
             ret = ret | LCA_STAY | LCA_STRATEGIC;
         }
@@ -886,7 +890,7 @@ MSLCM_JE2013::_wantsChange(
         }
 
         const SUMOReal remainingSeconds = ((ret & LCA_TRACI) == 0 ?
-                                           MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY) :
+                                           MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / MAX2(myLookAheadSpeed, NUMERICAL_EPS) / abs(bestLaneOffset) / URGENCY) :
                                            myVehicle.getInfluencer().changeRequestRemainingSeconds(currentTime));
         const SUMOReal plannedSpeed = informLeader(msgPass, blocked, myLca, neighLead, remainingSeconds);
         if (plannedSpeed >= 0) {
@@ -910,9 +914,12 @@ MSLCM_JE2013::_wantsChange(
         // try to use the inner lanes of a roundabout to increase throughput
         // unless we are approaching the exit
         if (lca == LCA_LEFT) {
-            return ret | lca | LCA_COOPERATIVE;
+            req = ret | lca | LCA_COOPERATIVE;
         } else {
-            return ret | LCA_STAY | LCA_COOPERATIVE;
+            req = ret | LCA_STAY | LCA_COOPERATIVE;
+        }
+        if (!cancelRequest(req)) {
+            return ret | req;
         }
     }
 
@@ -923,7 +930,10 @@ MSLCM_JE2013::_wantsChange(
             if (gDebugFlag2) {
                 std::cout << " veh=" << myVehicle.getID() << " does not want to get stranded on the on-ramp of a highway\n";
             }
-            return ret | LCA_STAY | LCA_STRATEGIC;
+            req = ret | LCA_STAY | LCA_STRATEGIC;
+            if (!cancelRequest(req)) {
+                return ret | req;
+            }
         }
     }
     // --------
@@ -948,7 +958,10 @@ MSLCM_JE2013::_wantsChange(
                       << (((myOwnState & myLcaCounter) != 0) ? " (counter)" : "")
                       << "\n";
         }
-        return ret | lca | LCA_COOPERATIVE | LCA_URGENT ;//| LCA_CHANGE_TO_HELP;
+        req = ret | lca | LCA_COOPERATIVE | LCA_URGENT ;//| LCA_CHANGE_TO_HELP;
+        if (!cancelRequest(req)) {
+            return ret | req;
+        }
     }
 
     // --------
@@ -981,10 +994,12 @@ MSLCM_JE2013::_wantsChange(
         thisLaneVSafe = MIN2(thisLaneVSafe, myCarFollowModel.followSpeed(&myVehicle, myVehicle.getSpeed(), leader.second, leader.first->getSpeed(), leader.first->getCarFollowModel().getMaxDecel()));
     }
 
-    thisLaneVSafe = MIN3(thisLaneVSafe, myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
-    neighLaneVSafe = MIN3(neighLaneVSafe, myVehicle.getVehicleType().getMaxSpeed(), neighLane.getVehicleMaxSpeed(&myVehicle));
+    const SUMOReal vMax = MIN2(myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
+    thisLaneVSafe = MIN2(thisLaneVSafe, vMax);
+    neighLaneVSafe = MIN2(neighLaneVSafe, vMax);
+    const SUMOReal relativeGain = (neighLaneVSafe - thisLaneVSafe) / MAX2(neighLaneVSafe, 
+            RELGAIN_NORMALIZATION_MIN_SPEED);
 
-    const SUMOReal relativeGain = (neighLaneVSafe - thisLaneVSafe) / neighLaneVSafe;
     if (right) {
         // ONLY FOR CHANGING TO THE RIGHT
         if (thisLaneVSafe - 5 / 3.6 > neighLaneVSafe) {
@@ -999,7 +1014,6 @@ MSLCM_JE2013::_wantsChange(
             // honor the obligation to keep right (Rechtsfahrgebot)
             // XXX consider fast approaching followers on the current lane
             //const SUMOReal vMax = myLookAheadSpeed;
-            const SUMOReal vMax = MIN2(myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
             const SUMOReal acceptanceTime = KEEP_RIGHT_ACCEPTANCE * vMax * MAX2((SUMOReal)1, myVehicle.getSpeed()) / myVehicle.getLane()->getSpeedLimit();
             SUMOReal fullSpeedGap = MAX2((SUMOReal)0, neighDist - myVehicle.getCarFollowModel().brakeGap(vMax));
             SUMOReal fullSpeedDrivingSeconds = MIN2(acceptanceTime, fullSpeedGap / vMax);
@@ -1030,7 +1044,10 @@ MSLCM_JE2013::_wantsChange(
                     << "\n";
             }
             if (myKeepRightProbability < -CHANGE_PROB_THRESHOLD_RIGHT) {
-                return ret | lca | LCA_KEEPRIGHT;
+                req = ret | lca | LCA_KEEPRIGHT;
+                if (!cancelRequest(req)) {
+                    return ret | req;
+                }
             }
         }
 
@@ -1048,7 +1065,10 @@ MSLCM_JE2013::_wantsChange(
 
         if (mySpeedGainProbability < -CHANGE_PROB_THRESHOLD_RIGHT 
                 && neighDist / MAX2((SUMOReal) .1, myVehicle.getSpeed()) > 20.) { //./MAX2((SUMOReal) .1, myVehicle.getSpeed())) { // -.1
-            return ret | lca | LCA_SPEEDGAIN;
+            req = ret | lca | LCA_SPEEDGAIN;
+            if (!cancelRequest(req)) {
+                return ret | req;
+            }
         }
     } else {
         // ONLY FOR CHANGING TO THE LEFT
@@ -1071,14 +1091,20 @@ MSLCM_JE2013::_wantsChange(
         //    }
         //}
         if (mySpeedGainProbability > CHANGE_PROB_THRESHOLD_LEFT && neighDist / MAX2((SUMOReal) .1, myVehicle.getSpeed()) > 20.) { // .1
-            return ret | lca | LCA_SPEEDGAIN;
+            req = ret | lca | LCA_SPEEDGAIN;
+            if (!cancelRequest(req)) {
+                return ret | req;
+            }
         }
     }
     // --------
     if (changeToBest && bestLaneOffset == curr.bestLaneOffset
             && (right ? mySpeedGainProbability < 0 : mySpeedGainProbability > 0)) {
         // change towards the correct lane, speedwise it does not hurt
-        return ret | lca | LCA_STRATEGIC;
+        req = ret | lca | LCA_STRATEGIC;
+        if (!cancelRequest(req)) {
+            return ret | req;
+        }
     }
     if (gDebugFlag2) {
         std::cout << STEPS2TIME(currentTime)

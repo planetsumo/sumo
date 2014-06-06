@@ -33,6 +33,7 @@
 #include <limits>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Command.h>
+#include <utils/options/OptionsCont.h>
 #include <microsim/MSPerson.h>
 #include <microsim/MSPModel.h>
 
@@ -54,6 +55,9 @@ class MSJunction;
  *
  */
 class MSPModel_Striping : public MSPModel {
+
+    friend class GUIPerson; // for debugging
+
 public:
 
     /// @brief Constructor (it should not be necessary to construct more than one instance)
@@ -238,14 +242,15 @@ protected:
     };
 
     class MovePedestrians : public Command {
-        public:
-            MovePedestrians(MSPModel_Striping* model) : myModel(model) {};
-            ~MovePedestrians() {};
-            SUMOTime execute(SUMOTime currentTime);
-        private:
-            /// @brief Invalidated assignment operator.
-            MovePedestrians& operator=(const MovePedestrians&);
-            MSPModel_Striping* myModel;
+    public:
+        MovePedestrians(MSPModel_Striping* model) : myModel(model) {};
+        ~MovePedestrians() {};
+        SUMOTime execute(SUMOTime currentTime);
+    private:
+        MSPModel_Striping* const myModel;
+    private:
+        /// @brief Invalidated assignment operator.
+        MovePedestrians& operator=(const MovePedestrians&);
     };
 
     class by_xpos_sorter {
@@ -264,6 +269,10 @@ protected:
 
     private:
         const int myDir;
+
+    private:
+        /// @brief Invalidated assignment operator.
+        by_xpos_sorter& operator=(const by_xpos_sorter&);
     };
 
 

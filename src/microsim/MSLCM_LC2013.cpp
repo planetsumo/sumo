@@ -86,6 +86,7 @@
 #define KEEP_RIGHT_TIME (SUMOReal)5.0 // the number of seconds after which a vehicle should move to the right lane
 #define KEEP_RIGHT_ACCEPTANCE (SUMOReal)2.0 // calibration factor for determining the desire to keep right
 
+#define RELGAIN_NORMALIZATION_MIN_SPEED (SUMOReal)10.0 
 
 // ===========================================================================
 // member method definitions
@@ -433,6 +434,7 @@ MSLCM_LC2013::_wantsChange(
     const bool changeToBest = (right && bestLaneOffset < 0) || (!right && bestLaneOffset > 0);
     // keep information about being a leader/follower
     int ret = (myOwnState & 0xffff0000);
+    int req = 0; // the request to change or stay
 
     ret = slowDownForBlocked(lastBlocked, ret);
     if (lastBlocked != firstBlocked) {
@@ -556,7 +558,7 @@ MSLCM_LC2013::_wantsChange(
         }
 
         const SUMOReal remainingSeconds = ((ret & LCA_TRACI) == 0 ?
-                                           MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY) :
+                                           MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / MAX2(myLookAheadSpeed, NUMERICAL_EPS) / abs(bestLaneOffset) / URGENCY) :
                                            myVehicle.getInfluencer().changeRequestRemainingSeconds(currentTime));
         const SUMOReal plannedSpeed = informLeader(msgPass, blocked, myLca, neighLead, remainingSeconds);
         if (plannedSpeed >= 0) {
@@ -571,9 +573,12 @@ MSLCM_LC2013::_wantsChange(
         // try to use the inner lanes of a roundabout to increase throughput
         // unless we are approaching the exit
         if (lca == LCA_LEFT) {
-            return ret | lca | LCA_COOPERATIVE;
+            req = ret | lca | LCA_COOPERATIVE;
         } else {
-            return ret | LCA_STAY | LCA_COOPERATIVE;
+            req = ret | LCA_STAY | LCA_COOPERATIVE;
+        }
+        if (!cancelRequest(req)) {
+            return ret | req;
         }
     }
 
@@ -581,7 +586,10 @@ MSLCM_LC2013::_wantsChange(
     //  in this case, we do not want to get to the dead-end of an on-ramp
     if (right) {
         if (bestLaneOffset == 0 && myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle) > 80. / 3.6 && myLookAheadSpeed > SUMO_const_haltingSpeed) {
-            return ret | LCA_STAY | LCA_STRATEGIC;
+            req = ret | LCA_STAY | LCA_STRATEGIC;
+            if (!cancelRequest(req)) {
+                return ret | req;
+            }
         }
     }
     // --------
@@ -596,7 +604,10 @@ MSLCM_LC2013::_wantsChange(
     if (amBlockingFollowerPlusNB()
             && (changeToBest || currentDistAllows(neighDist, abs(bestLaneOffset) + 1, laDist))) {
 
-        return ret | lca | LCA_COOPERATIVE | LCA_URGENT ;//| LCA_CHANGE_TO_HELP;
+        req = ret | lca | LCA_COOPERATIVE | LCA_URGENT ;//| LCA_CHANGE_TO_HELP;
+        if (!cancelRequest(req)) {
+            return ret | req;
+        }
     }
 
     // --------
@@ -629,10 +640,12 @@ MSLCM_LC2013::_wantsChange(
         thisLaneVSafe = MIN2(thisLaneVSafe, myCarFollowModel.followSpeed(&myVehicle, myVehicle.getSpeed(), leader.second, leader.first->getSpeed(), leader.first->getCarFollowModel().getMaxDecel()));
     }
 
-    thisLaneVSafe = MIN3(thisLaneVSafe, myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
-    neighLaneVSafe = MIN3(neighLaneVSafe, myVehicle.getVehicleType().getMaxSpeed(), neighLane.getVehicleMaxSpeed(&myVehicle));
+    const SUMOReal vMax = MIN2(myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
+    thisLaneVSafe = MIN2(thisLaneVSafe, vMax);
+    neighLaneVSafe = MIN2(neighLaneVSafe, vMax);
+    const SUMOReal relativeGain = (neighLaneVSafe - thisLaneVSafe) / MAX2(neighLaneVSafe, 
+            RELGAIN_NORMALIZATION_MIN_SPEED);
 
-    const SUMOReal relativeGain = (neighLaneVSafe - thisLaneVSafe) / neighLaneVSafe;
     if (right) {
         // ONLY FOR CHANGING TO THE RIGHT
         if (thisLaneVSafe - 5 / 3.6 > neighLaneVSafe) {
@@ -648,7 +661,6 @@ MSLCM_LC2013::_wantsChange(
             // honor the obligation to keep right (Rechtsfahrgebot)
             // XXX consider fast approaching followers on the current lane
             //const SUMOReal vMax = myLookAheadSpeed;
-            const SUMOReal vMax = MIN2(myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
             const SUMOReal acceptanceTime = KEEP_RIGHT_ACCEPTANCE * vMax * MAX2((SUMOReal)1, myVehicle.getSpeed()) / myVehicle.getLane()->getSpeedLimit();
             SUMOReal fullSpeedGap = MAX2((SUMOReal)0, neighDist - myVehicle.getCarFollowModel().brakeGap(vMax));
             SUMOReal fullSpeedDrivingSeconds = MIN2(acceptanceTime, fullSpeedGap / vMax);
@@ -679,13 +691,19 @@ MSLCM_LC2013::_wantsChange(
                     << "\n";
             }
             if (myKeepRightProbability < -CHANGE_PROB_THRESHOLD_RIGHT) {
-                return ret | lca | LCA_KEEPRIGHT;
+                req = ret | lca | LCA_KEEPRIGHT;
+                if (!cancelRequest(req)) {
+                    return ret | req;
+                }
             }
         }
 
         if (mySpeedGainProbability < -CHANGE_PROB_THRESHOLD_RIGHT
                 && neighDist / MAX2((SUMOReal) .1, myVehicle.getSpeed()) > 20.) { //./MAX2((SUMOReal) .1, myVehicle.getSpeed())) { // -.1
-            return ret | lca | LCA_SPEEDGAIN;
+            req = ret | lca | LCA_SPEEDGAIN;
+            if (!cancelRequest(req)) {
+                return ret | req;
+            }
         }
     } else {
         // ONLY FOR CHANGING TO THE LEFT
@@ -699,14 +717,20 @@ MSLCM_LC2013::_wantsChange(
             mySpeedGainProbability += relativeGain;
         }
         if (mySpeedGainProbability > CHANGE_PROB_THRESHOLD_LEFT && neighDist / MAX2((SUMOReal) .1, myVehicle.getSpeed()) > 20.) { // .1
-            return ret | lca | LCA_SPEEDGAIN;
+            req = ret | lca | LCA_SPEEDGAIN;
+            if (!cancelRequest(req)) {
+                return ret | req;
+            }
         }
     }
     // --------
     if (changeToBest && bestLaneOffset == curr.bestLaneOffset
             && (right ? mySpeedGainProbability < 0 : mySpeedGainProbability > 0)) {
         // change towards the correct lane, speedwise it does not hurt
-        return ret | lca | LCA_STRATEGIC;
+        req = ret | lca | LCA_STRATEGIC;
+        if (!cancelRequest(req)) {
+            return ret | req;
+        }
     }
 
     return ret;

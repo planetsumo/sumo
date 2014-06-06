@@ -32,23 +32,25 @@ _SCORES= 30
 
 _LANGUAGE_EN = {'title': 'Interactive Traffic Light',
                 'cross': 'Simple Junction',
+                'cross_demo': 'Simple Junction (Demo)',
                 'square': 'Four Junctions',
                 'kuehne': 'Prof. Kühne',
                 'bs3d': '3D Junction',
                 'ramp': 'Highway Scenario',
                 'high': 'Highscore',
                 'reset': 'Reset Highscore',
-                'lang': 'deutsch',
+                'lang': 'Deutsch',
                 'quit': 'Quit'}
 _LANGUAGE_DE = {'title': 'Interaktives Ampelspiel',
                 'cross': 'Einfache Kreuzung',
+                'cross_demo': 'Einfache Kreuzung (Demo)',
                 'square': 'Vier Kreuzungen',
                 'kuehne': 'Prof. Kühne',
                 'bs3d': '3D Kreuzung',
                 'ramp': 'Autobahnauffahrt',
                 'high': 'Highscore',
                 'reset': 'Highscore zurücksetzen',
-                'lang': 'englisch',
+                'lang': 'Englisch',
                 'quit': 'Beenden'}
 
 def loadHighscore():
@@ -99,9 +101,9 @@ class StartDialog:
         configs = glob.glob(os.path.join(base, "*.sumocfg"))
         numButtons = len(configs) + 3
         # button dimensions
-        bWidth_start = 15
+        bWidth_start = 20
         bWidth_high = 7
-        bWidth_control = 26   
+        bWidth_control = 31   
 
         self.gametime = 0
         self.ret = 0
@@ -277,6 +279,7 @@ while True:
     totalDistance = 0
     totalFuel = 0
     totalArrived = 0
+    totalWaitingTime = 0
     complete = True
     for line in open(os.path.join(base, "netstate.xml")):
         m = re.search('<interval begin="0(.00)?" end="([^"]*)"', line)
@@ -291,6 +294,9 @@ while True:
         m = re.search('arrived="([^"]*)"', line)
         if m:
             totalArrived += float(m.group(1))
+        m = re.search('waitingTime="([^"]*)"', line)
+        if m:
+            totalWaitingTime += float(m.group(1))
     switch = []
     lastProg = {}
     for line in open(os.path.join(base, "tlsstate.xml")):
@@ -301,7 +307,8 @@ while True:
             if tls not in lastProg or lastProg[tls] != program:
                 lastProg[tls] = program
                 switch += [m.group(3), m.group(1)]
-    score = totalArrived
+    # doing nothing gives a waitingTime of 6033 for cross and 6700 for square
+    score = 10000 - totalWaitingTime 
     if _DEBUG:
         print switch, score, totalArrived, complete
     if complete:

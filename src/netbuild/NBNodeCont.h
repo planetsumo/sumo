@@ -264,7 +264,7 @@ public:
 
 
     /// divides the incoming lanes on outgoing lanes
-    void computeLanes2Lanes();
+    void computeLanes2Lanes(const bool buildCrossingsAndWalkingAreas);
 
     /// build the list of outgoing edges and lanes
     void computeLogics(const NBEdgeCont& ec, OptionsCont& oc);
@@ -323,7 +323,7 @@ public:
     /* @brief discards traffic lights
      * @param[in] geometryLike Whether only tls at geometry-like nodes shall be discarded
      */
-    void discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike);
+    void discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike, bool guessSignals);
 
 private:
     /// @name Helper methods for for joining nodes

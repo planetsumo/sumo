@@ -239,6 +239,9 @@ MSFrame::fillOptions() {
     oc.doRegister("eager-insert", new Option_Bool(false));
     oc.addDescription("eager-insert", "Processing", "Whether each vehicle is checked separately for insertion on an edge");
 
+    oc.doRegister("random-depart-offset", new Option_String("0", "TIME"));
+    oc.addDescription("random-depart-offset", "Processing", "Each vehicle receives a random offset to its depart value drawn uniformly from [0, TIME]");
+
     oc.doRegister("lanechange.allow-swap", new Option_Bool(false));
     oc.addDescription("lanechange.allow-swap", "Processing", "Whether blocking vehicles trying to change lanes may be swapped");
 
@@ -398,6 +401,18 @@ MSFrame::checkOptions() {
         oc.set("meso-junction-control", "true");
     }
 #endif
+    const SUMOTime begin = string2time(oc.getString("begin"));
+    const SUMOTime end = string2time(oc.getString("end"));
+    if (begin < 0) {
+        WRITE_ERROR("The begin time should not be negative.");
+        ok = false;
+    }
+    if (end != string2time("-1")) {
+        if (end < begin) {
+            WRITE_ERROR("The end time should be after the begin time.");
+            ok = false;
+        }
+    }
 #ifdef HAVE_SUBSECOND_TIMESTEPS
     if (string2time(oc.getString("step-length")) <= 0) {
         WRITE_ERROR("the minimum step-length is 0.001");

@@ -88,6 +88,9 @@ struct PedestrianTrip {
     const SUMOReal arrivalPos;
     const SUMOReal speed;
     const SUMOReal departTime;
+private:
+    /// @brief Invalidated assignment operator.
+    PedestrianTrip& operator=(const PedestrianTrip&);
 };
 
 
@@ -303,7 +306,7 @@ public:
             }
         }
         // ensure that 'normal' edges always have a higher weight than connector edges
-        length = MAX2(length, (SUMOReal)POSITION_EPS);
+        length = MAX2(length, POSITION_EPS);
         SUMOReal tlsDelay = 0;
         if (myEdge->isCrossing() && myLane->getIncomingLinkState() == LINKSTATE_TL_RED) {
             // red traffic lights occurring later in the route may be green by the time we arive
@@ -413,9 +416,17 @@ public:
         throw ProcessError("Do not use this method");
     }
 
-    virtual SUMOReal recomputeCosts(const std::vector<const E*>&,
-                                    const _PedestrianTrip* const, SUMOTime) const {
+    SUMOReal recomputeCosts(const std::vector<const E*>&, const _PedestrianTrip* const, SUMOTime) const {
         throw ProcessError("Do not use this method");
+    }
+
+    void prohibit(const std::vector<E*>& toProhibit) {
+        std::vector<_PedestrianEdge*> toProhibitPE;
+        for (typename std::vector<E*>::const_iterator it = toProhibit.begin(); it != toProhibit.end(); ++it) {
+            toProhibitPE.push_back(_PedestrianEdge::getBothDirections(*it).first);
+            toProhibitPE.push_back(_PedestrianEdge::getBothDirections(*it).second);
+        }
+        myInternalRouter->prohibit(toProhibitPE);
     }
 
 private:

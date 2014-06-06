@@ -223,9 +223,9 @@ MSMeanData::MeanDataValueTracker::write(OutputDevice& dev,
 }
 
 
-size_t
+int
 MSMeanData::MeanDataValueTracker::getNumReady() const {
-    size_t result = 0;
+    int result = 0;
     for (std::list<TrackerEntry*>::const_iterator it = myCurrentData.begin(); it != myCurrentData.end(); ++it) {
         if ((*it)->myNumVehicleEntered == (*it)->myNumVehicleLeft) {
             result++;
@@ -444,10 +444,10 @@ void
 MSMeanData::writeXMLOutput(OutputDevice& dev,
                            SUMOTime startTime, SUMOTime stopTime) {
     // check whether this dump shall be written for the current time
-    size_t numReady = myDumpBegin < stopTime && myDumpEnd - DELTA_T >= startTime;
+    int numReady = myDumpBegin < stopTime && myDumpEnd - DELTA_T >= startTime ? 1 : 0;
     if (myTrackVehicles && myDumpBegin < stopTime) {
         myPendingIntervals.push_back(std::make_pair(startTime, stopTime));
-        numReady = myPendingIntervals.size();
+        numReady = (int)myPendingIntervals.size();
         for (std::vector<std::vector<MeanDataValues*> >::const_iterator i = myMeasures.begin(); i != myMeasures.end(); ++i) {
             for (std::vector<MeanDataValues*>::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
                 numReady = MIN2(numReady, ((MeanDataValueTracker*)*j)->getNumReady());

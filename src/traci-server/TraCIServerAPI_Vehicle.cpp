@@ -503,6 +503,10 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Resuming should obtain an empty compound object.", outputStorage);
                 return false;
             }
+            if (!static_cast<MSVehicle*>(v)->hasStops()) {
+                server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Failed to resume vehicle '" + v->getID() + "', it has no stops.", outputStorage);
+                return false;
+            }
             if (!static_cast<MSVehicle*>(v)->resumeFromStopping()) {
                 MSVehicle::Stop& sto = (static_cast<MSVehicle*>(v))->getNextStop();
                 std::ostringstream strs;
@@ -511,7 +515,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 strs << ", edge:" << (*sto.edge)->getID();
                 strs << ", startPos: " << sto.startPos;
                 std::string posStr = strs.str();
-                server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Failed to resume a non parking vehicle: " + v->getID() + ", " + posStr, outputStorage);
+                server.writeStatusCmd(CMD_SET_VEHICLE_VARIABLE, RTYPE_ERR, "Failed to resume a non parking vehicle '" + v->getID() + "', " + posStr, outputStorage);
                 return false;
             }
         }
@@ -929,7 +933,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             vehicleParams.departPos = pos;
             if (vehicleParams.departPos < 0) {
                 const int proc = static_cast<int>(-vehicleParams.departPos);
-                if (proc >= static_cast<int>(DEPART_POS_DEF_MAX)) {
+                if (fabs(proc + vehicleParams.departPos) > NUMERICAL_EPS || proc >= static_cast<int>(DEPART_POS_DEF_MAX) || proc == static_cast<int>(DEPART_POS_GIVEN)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Invalid departure position.", outputStorage);
                 }
                 vehicleParams.departPosProcedure = (DepartPosDefinition)proc;
@@ -1163,7 +1167,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             Position pos(x, y);
 
             Position vehPos = v->getPosition();
-            v->getBestLanes();
+            v->updateBestLanes();
             bool report = server.vtdDebug();
             if (report) {
                 std::cout << std::endl << "begin vehicle " << v->getID() << " vehPos:" << vehPos << " lane:" << v->getLane()->getID() << std::endl;

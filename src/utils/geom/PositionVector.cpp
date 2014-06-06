@@ -191,7 +191,7 @@ PositionVector::operator[](int index) const {
     if (index >= 0) {
         return at(index);
     } else {
-        return at(size() + index);
+        return at((int)size() + index);
     }
 }
 
@@ -201,19 +201,19 @@ PositionVector::operator[](int index) {
     if (index >= 0) {
         return at(index);
     } else {
-        return at(size() + index);
+        return at((int)size() + index);
     }
 }
 
 
 Position
-PositionVector::positionAtOffset(SUMOReal pos) const {
+PositionVector::positionAtOffset(SUMOReal pos, SUMOReal lateralOffset) const {
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
         const SUMOReal nextLength = (*i).distanceTo(*(i + 1));
         if (seenLength + nextLength > pos) {
-            return positionAtOffset(*i, *(i + 1), pos - seenLength);
+            return positionAtOffset(*i, *(i + 1), pos - seenLength, lateralOffset);
         }
         seenLength += nextLength;
     } while (++i != end() - 1);
@@ -222,13 +222,13 @@ PositionVector::positionAtOffset(SUMOReal pos) const {
 
 
 Position
-PositionVector::positionAtOffset2D(SUMOReal pos) const {
+PositionVector::positionAtOffset2D(SUMOReal pos, SUMOReal lateralOffset) const {
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
         const SUMOReal nextLength = (*i).distanceTo2D(*(i + 1));
         if (seenLength + nextLength > pos) {
-            return positionAtOffset2D(*i, *(i + 1), pos - seenLength);
+            return positionAtOffset2D(*i, *(i + 1), pos - seenLength, lateralOffset);
         }
         seenLength += nextLength;
     } while (++i != end() - 1);
@@ -238,6 +238,9 @@ PositionVector::positionAtOffset2D(SUMOReal pos) const {
 
 SUMOReal
 PositionVector::rotationDegreeAtOffset(SUMOReal pos) const {
+    if (pos < 0) {
+        pos += length();
+    }
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
@@ -271,10 +274,15 @@ PositionVector::slopeDegreeAtOffset(SUMOReal pos) const {
 Position
 PositionVector::positionAtOffset(const Position& p1,
                                  const Position& p2,
-                                 SUMOReal pos) {
+                                 SUMOReal pos, SUMOReal lateralOffset) {
     const SUMOReal dist = p1.distanceTo(p2);
     if (dist < pos) {
         return Position(-1, -1);
+    }
+    if (lateralOffset != 0) {
+        Line l(p1, p2);
+        l.move2side(-lateralOffset); // move in the same direction as Position::move2side
+        return l.getPositionAtDistance(pos);
     }
     return p1 + (p2 - p1) * (pos / dist);
 }
@@ -283,10 +291,15 @@ PositionVector::positionAtOffset(const Position& p1,
 Position
 PositionVector::positionAtOffset2D(const Position& p1,
                                    const Position& p2,
-                                   SUMOReal pos) {
+                                   SUMOReal pos, SUMOReal lateralOffset) {
     const SUMOReal dist = p1.distanceTo2D(p2);
     if (dist < pos) {
         return Position(-1, -1);
+    }
+    if (lateralOffset != 0) {
+        Line l(p1, p2);
+        l.move2side(-lateralOffset); // move in the same direction as Position::move2side
+        return l.getPositionAtDistance2D(pos);
     }
     return p1 + (p2 - p1) * (pos / dist);
 }
@@ -343,6 +356,10 @@ PositionVector::getCentroid() const {
             x += (tmp[i].x() + tmp[i + 1].x()) * length / 2;
             y += (tmp[i].y() + tmp[i + 1].y()) * length / 2;
             lengthSum += length;
+        }
+        if (lengthSum == 0) {
+            // it is probably only one point
+            return tmp[0];
         }
         return Position(x / lengthSum, y / lengthSum);
     }
@@ -729,7 +746,7 @@ PositionVector::pruneFromBeginAt(const Position& p) {
 PositionVector 
 PositionVector::getSubpartByIndex(int beginIndex, int count) const {
     if (beginIndex < 0) {
-        beginIndex += size();
+        beginIndex += (int)size();
     }
     assert(count > 0);
     assert(beginIndex < (int)size());
