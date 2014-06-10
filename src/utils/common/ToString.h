@@ -3,13 +3,14 @@
 /// @author  Christian Roessel
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
+/// @author  Michael Behrisch
 /// @date    Wed, 23 Sep 2002
 /// @version $Id$
 ///
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -35,6 +36,7 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <algorithm>
 #include <utils/xml/SUMOXMLDefinitions.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include "StdDefs.h"
@@ -58,10 +60,10 @@ inline std::string toString(const T& t, std::streamsize accuracy = OUTPUT_ACCURA
 
 
 template<typename T>
-inline std::string toHex(const T i, std::streamsize numDigits=0) {
+inline std::string toHex(const T i, std::streamsize numDigits = 0) {
     // taken from http://stackoverflow.com/questions/5100718/int-to-hex-string-in-c
     std::stringstream stream;
-    stream << "0x" << std::setfill ('0') << std::setw(numDigits == 0 ? sizeof(T)*2 : numDigits) << std::hex << i;
+    stream << "0x" << std::setfill('0') << std::setw(numDigits == 0 ? sizeof(T) * 2 : numDigits) << std::hex << i;
     return stream.str();
 }
 
@@ -160,6 +162,25 @@ inline std::string joinToString(const std::vector<T>& v, const T_BETWEEN& betwee
         oss << toString(*it, accuracy);
     }
     return oss.str();
+}
+
+
+template <typename T, typename T_BETWEEN>
+inline std::string joinToStringSorting(const std::vector<T>& v, const T_BETWEEN& between, std::streamsize accuracy = OUTPUT_ACCURACY) {
+    std::vector<T> sorted(v);
+    std::sort(sorted.begin(), sorted.end());
+    return joinToString(sorted, between, accuracy);
+}
+
+
+template <typename V>
+inline std::string toString(const std::set<V*>& v, std::streamsize accuracy = OUTPUT_ACCURACY) {
+    UNUSED_PARAMETER(accuracy);
+    std::vector<std::string> ids;
+    for (typename std::set<V*>::const_iterator it = v.begin(); it != v.end(); ++it) {
+        ids.push_back((*it)->getID());
+    }
+    return joinToStringSorting(ids, " ");
 }
 
 

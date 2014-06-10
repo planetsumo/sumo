@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
+/// @author  Yun-Pang Floetteroed
 /// @date    05 Apr. 2006
 /// @version $Id$
 ///
 // An O/D (origin/destination) matrix
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2006-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -30,22 +31,24 @@
 #include <config.h>
 #endif
 
-#include "ODMatrix.h"
-#include <utils/options/OptionsCont.h>
-#include <utils/common/StdDefs.h>
-#include <utils/common/MsgHandler.h>
-#include <utils/common/ToString.h>
 #include <iostream>
 #include <algorithm>
 #include <list>
 #include <iterator>
+#include <utils/options/OptionsCont.h>
+#include <utils/common/StdDefs.h>
+#include <utils/common/MsgHandler.h>
+#include <utils/common/ToString.h>
 #include <utils/common/RandHelper.h>
-#include <utils/iodevices/OutputDevice.h>
-#include <utils/importio/LineReader.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/TplConvert.h>
 #include <utils/common/StringTokenizer.h>
 #include <utils/common/SUMOTime.h>
+#include <utils/iodevices/OutputDevice.h>
+#include <utils/importio/LineReader.h>
+#include <utils/xml/XMLSubSys.h>
+#include "ODAmitranHandler.h"
+#include "ODMatrix.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -470,12 +473,7 @@ ODMatrix::applyCurve(const Distribution_Points& ps) {
 
 void
 ODMatrix::loadMatrix(OptionsCont& oc) {
-    std::vector<std::string> files = oc.getStringVector("od-files");
-    //  check
-    if (files.size() == 0) {
-        throw ProcessError("No files to parse are given.");
-    }
-    //  parse
+    std::vector<std::string> files = oc.getStringVector("od-matrix-files");
     for (std::vector<std::string>::iterator i = files.begin(); i != files.end(); ++i) {
         LineReader lr(*i);
         if (!lr.good()) {
@@ -501,6 +499,19 @@ ODMatrix::loadMatrix(OptionsCont& oc) {
             readO(lr, oc.getFloat("scale"), oc.getString("vtype"), type.find('M') != std::string::npos);
         } else {
             throw ProcessError("'" + *i + "' uses an unknown matrix type '" + type + "'.");
+        }
+    }
+    std::vector<std::string> amitranFiles = oc.getStringVector("od-amitran-files");
+    for (std::vector<std::string>::iterator i = amitranFiles.begin(); i != amitranFiles.end(); ++i) {
+        if (!FileHelpers::isReadable(*i)) {
+            throw ProcessError("Could not access matrix file '" + *i + "' to load.");
+        }
+        PROGRESS_BEGIN_MESSAGE("Loading matrix in Amitran format from '" + *i + "'");
+        ODAmitranHandler handler(*this, *i);
+        if (!XMLSubSys::runParser(handler, *i)) {
+            PROGRESS_FAILED_MESSAGE();
+        } else {
+            PROGRESS_DONE_MESSAGE();
         }
     }
 }

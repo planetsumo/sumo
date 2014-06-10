@@ -4,13 +4,14 @@
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
 /// @author  Laura Bieker
+/// @author  Yun-Pang Floetteroed
 /// @date    Thu, 12 September 2002
 /// @version $Id$
 ///
 // Main for OD2TRIPS
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -96,6 +97,11 @@ fillOptions() {
     oc.addSynonyme("od-matrix-files", "od");
     oc.addDescription("od-matrix-files", "Input", "Loads O/D-files from FILE(s)");
 
+    oc.doRegister("od-amitran-files", new Option_FileName());
+    oc.addSynonyme("od-amitran-files", "amitran-files");
+    oc.addSynonyme("od-amitran-files", "amitran");
+    oc.addDescription("od-amitran-files", "Input", "Loads O/D-matrix in Amitran format from FILE(s)");
+
 
     // register the file output options
     oc.doRegister("output-file", 'o', new Option_FileName());
@@ -176,7 +182,7 @@ checkOptions() {
         WRITE_ERROR("No net input file (-n) specified.");
         ok = false;
     }
-    if (!oc.isSet("od-matrix-files")) {
+    if (!oc.isSet("od-matrix-files") && !oc.isSet("od-amitran-files")) {
         WRITE_ERROR("No input specified.");
         ok = false;
     }
@@ -269,14 +275,14 @@ main(int argc, char** argv) {
         }
         // write
         bool haveOutput = false;
-        if (OutputDevice::createDeviceByOption("output-file", "routes")) {
+        if (OutputDevice::createDeviceByOption("output-file", "routes", "routes_file.xsd")) {
             matrix.write(string2time(oc.getString("begin")), string2time(oc.getString("end")),
                          OutputDevice::getDeviceByOption("output-file"),
                          oc.getBool("spread.uniform"), oc.getBool("ignore-vehicle-type"),
                          oc.getString("prefix"), !oc.getBool("no-step-log"));
             haveOutput = true;
         }
-        if (OutputDevice::createDeviceByOption("flow-output", "routes")) {
+        if (OutputDevice::createDeviceByOption("flow-output", "routes", "routes_file.xsd")) {
             matrix.writeFlows(string2time(oc.getString("begin")), string2time(oc.getString("end")),
                               OutputDevice::getDeviceByOption("flow-output"),
                               oc.getBool("ignore-vehicle-type"), oc.getString("prefix"));

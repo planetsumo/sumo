@@ -2,6 +2,7 @@
 /// @file    MSActuatedTrafficLightLogic.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Sept 2002
 /// @version $Id$
 ///

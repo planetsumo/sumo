@@ -51,12 +51,6 @@
 class GUISUMOAbstractView;
 class GUIGLObjectPopupMenu;
 class MSDevice_Vehroutes;
-#ifdef HAVE_OSG
-class GUIOSGView;
-namespace osg {
-class ShapeDrawable;
-}
-#endif
 
 
 // ===========================================================================
@@ -173,16 +167,6 @@ public:
     SUMOReal getLastLaneChangeOffset() const;
 
 
-    /** @brief Returns the description of best lanes to use in order to continue the route
-     *
-     * Prevents parallel reading and generation of the information by locking
-     *  "myLock" before calling MSVehicle::getBestLanes.
-     * @return The best lanes structure holding matching the current vehicle position and state ahead
-     * @see MSVehicle::getBestLanes
-     */
-    const std::vector<LaneQ>& getBestLanes() const;
-
-
     /**
      * @class GUIVehiclePopupMenu
      *
@@ -284,21 +268,13 @@ public:
     /// @brief adds the blocking foes to the current selection
     void selectBlockingFoes() const;
 
-#ifdef HAVE_OSG
-    void setGeometry(GUIOSGView* view, osg::ShapeDrawable* geom) {
-        myGeom[view] = geom;
-    }
-
-    void updateColor(GUIOSGView* view);
-#endif
+    /// @brief gets the color value according to the current scheme index
+    SUMOReal getColorValue(size_t activeScheme) const;
 
 
 private:
     /// @brief sets the color according to the currente settings
     void setColor(const GUIVisualizationSettings& s) const;
-
-    /// @brief gets the color value according to the current scheme index
-    SUMOReal getColorValue(size_t activeScheme) const;
 
     /// @brief sets the color according to the current scheme index and some vehicle function
     bool setFunctionalColor(size_t activeScheme) const;
@@ -320,8 +296,8 @@ private:
     /* @brief draw train with individual carriages. The number of carriages is
      * determined from defaultLength of carriages and vehicle length
      * passengerSeats are computed beginning at firstPassengerCarriage */
-    void drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, SUMOReal carriageGap, 
-            int firstPassengerCarriage, bool asImage) const;
+    void drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, SUMOReal carriageGap,
+                                      int firstPassengerCarriage, bool asImage) const;
     /// @}
 
     /// @brief draws the given guiShape if it has distinc carriages/modules and eturns true if so
@@ -358,10 +334,6 @@ private:
 
     /// @brief positions of seats in the vehicle (updated at every drawing step)
     mutable PositionVector mySeatPositions;
-
-#ifdef HAVE_OSG
-    std::map<GUIOSGView*, osg::ShapeDrawable*> myGeom;
-#endif
 
 };
 

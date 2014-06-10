@@ -36,6 +36,7 @@
 #include <vector>
 #include <microsim/MSRoute.h>
 #include <microsim/MSEdge.h>
+#include <microsim/MSJunction.h>
 #include <microsim/MSVehicleType.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSInsertionControl.h>
@@ -128,6 +129,31 @@ MSRouteHandler::myStartElement(int element,
         case SUMO_TAG_WALK: {
             myActiveRoute.clear();
             bool ok = true;
+            SUMOReal departPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_DEPARTPOS, myVehicleParameter->id.c_str(), ok, 0);
+            SUMOReal arrivalPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ARRIVALPOS, myVehicleParameter->id.c_str(), ok, -NUMERICAL_EPS);
+            const SUMOTime duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, 0, ok, -1);
+            if (attrs.hasAttribute(SUMO_ATTR_DURATION) && duration <= 0) {
+                throw ProcessError("Non-positive walking duration for  '" + myVehicleParameter->id + "'.");
+            }
+            SUMOReal speed = DEFAULT_PEDESTRIAN_SPEED;
+            const MSVehicleType* vtype = MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid);
+            // need to check for explicitly set speed since we might have // DEFAULT_VEHTYPE
+            if (vtype != 0 && vtype->wasSet(VTYPEPARS_MAXSPEED_SET)) {
+                speed = vtype->getMaxSpeed();
+            }
+            speed = attrs.getOpt<SUMOReal>(SUMO_ATTR_SPEED, 0, ok, speed);
+            if (speed <= 0) {
+                throw ProcessError("Non-positive walking speed for  '" + myVehicleParameter->id + "'.");
+            }
+            std::string bsID = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
+            MSBusStop* bs = 0;
+            if (bsID != "") {
+                bs = MSNet::getInstance()->getBusStop(bsID);
+                if (bs == 0) {
+                    throw ProcessError("Unknown bus stop '" + bsID + "' for person '" + myVehicleParameter->id + "'.");
+                }
+                arrivalPos = bs->getEndLanePosition();
+            }
             if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
                 MSEdge::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_EDGES, myVehicleParameter->id.c_str(), ok), myActiveRoute, myActiveRouteID);
             } else {
@@ -142,7 +168,22 @@ MSRouteHandler::myStartElement(int element,
                     if (to == 0) {
                         throw ProcessError("The to edge '" + toID + "' within a walk of person '" + myVehicleParameter->id + "' is not known.");
                     }
-                    MSNet::getInstance()->getRouterTT().compute(from, to, 0, 0, myActiveRoute); // @todo: only footways, current time?
+                    MSNet::getInstance()->getPedestrianRouter().compute(from, to, 
+                            SUMOVehicleParameter::interpretEdgePos(departPos, from->getLength(), SUMO_ATTR_DEPARTPOS, "person walking from " + from->getID()),
+                            SUMOVehicleParameter::interpretEdgePos(arrivalPos, to->getLength(), SUMO_ATTR_ARRIVALPOS, "person walking to " + to->getID()),
+                            speed, 0, 0, myActiveRoute);
+                    if (myActiveRoute.empty()) {
+                        const std::string error = "No connection found between '" + from->getID() + "' and '" + to->getID() + "' for person '" + myVehicleParameter->id + "'.";
+                        if (OptionsCont::getOptions().getBool("ignore-route-errors")) {
+                            myActiveRoute.push_back(from);
+                            // XXX
+                            //myActiveRoute.push_back(to);
+                            //WRITE_WARNING(error);
+                        } else {
+                            WRITE_ERROR(error);
+                        }
+                    }
+                    //std::cout << myVehicleParameter->id << " edges=" << toString(myActiveRoute) << "\n";
                 }
             }
             if (myActiveRoute.empty()) {
@@ -150,27 +191,6 @@ MSRouteHandler::myStartElement(int element,
             }
             if (!myActivePlan->empty() && &myActivePlan->back()->getDestination() != myActiveRoute.front()) {
                 throw ProcessError("Disconnected plan for person '" + myVehicleParameter->id + "' (" + myActiveRoute.front()->getID() + "!=" + myActivePlan->back()->getDestination().getID() + ").");
-            }
-            SUMOReal departPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_DEPARTPOS, myVehicleParameter->id.c_str(), ok, 0);
-            SUMOReal arrivalPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ARRIVALPOS, myVehicleParameter->id.c_str(), ok, -1);
-            const SUMOTime duration = attrs.getOptSUMOTimeReporting(SUMO_ATTR_DURATION, 0, ok, -1);
-            if (attrs.hasAttribute(SUMO_ATTR_DURATION) && duration <= 0) {
-                throw ProcessError("Non-positive walking duration for  '" + myVehicleParameter->id + "'.");
-            }
-            SUMOReal speed = DEFAULT_PERSON_SPEED;
-            if (attrs.hasAttribute(SUMO_ATTR_SPEED)) {
-                speed = attrs.getOpt<SUMOReal>(SUMO_ATTR_SPEED, 0, ok, speed);
-                if (speed <= 0) {
-                    throw ProcessError("Non-positive walking speed for  '" + myVehicleParameter->id + "'.");
-                }
-            }
-            std::string bsID = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
-            MSBusStop* bs = 0;
-            if (bsID != "") {
-                bs = MSNet::getInstance()->getBusStop(bsID);
-                if (bs == 0) {
-                    throw ProcessError("Unknown bus stop '" + bsID + "' for person '" + myVehicleParameter->id + "'.");
-                }
             }
             if (myActivePlan->empty()) {
                 myActivePlan->push_back(new MSPerson::MSPersonStage_Waiting(
@@ -496,12 +516,21 @@ MSRouteHandler::closeVehicle() {
     if (vehControl.getVehicle(myVehicleParameter->id) == 0) {
         vehicle = vehControl.buildVehicle(myVehicleParameter, route, vtype);
         // maybe we do not want this vehicle to be inserted due to scaling
-        if (vehControl.isInQuota()) {
-            // add the vehicle to the vehicle control
+        unsigned int quota = vehControl.getQuota();
+        if (quota > 0) {
             vehControl.addVehicle(myVehicleParameter->id, vehicle);
             if (myVehicleParameter->departProcedure == DEPART_TRIGGERED) {
                 vehControl.addWaiting(*route->begin(), vehicle);
                 vehControl.registerOneWaitingForPerson();
+            } else {
+                // !!! no scaling for triggered vehicles yet
+                for (unsigned int i = 1; i < quota; i++) {
+                    MSNet::getInstance()->getInsertionControl().add(vehicle);
+                    SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*myVehicleParameter);
+                    newPars->id = myVehicleParameter->id + "." + toString(i);
+                    vehicle = vehControl.buildVehicle(newPars, route, vtype);
+                    vehControl.addVehicle(newPars->id, vehicle);
+                }
             }
             registerLastDepart();
             myVehicleParameter = 0;
@@ -542,10 +571,16 @@ MSRouteHandler::closePerson() {
     }
     MSPerson* person = MSNet::getInstance()->getPersonControl().buildPerson(myVehicleParameter, type, myActivePlan);
     // @todo: consider myScale?
-    if ((myAddVehiclesDirectly || checkLastDepart()) && MSNet::getInstance()->getPersonControl().add(myVehicleParameter->id, person)) {
-        MSNet::getInstance()->getPersonControl().setDeparture(myVehicleParameter->depart, person);
-        registerLastDepart();
+    if (myAddVehiclesDirectly || checkLastDepart()) {
+        if (MSNet::getInstance()->getPersonControl().add(myVehicleParameter->id, person)) {
+            MSNet::getInstance()->getPersonControl().setDeparture(myVehicleParameter->depart, person);
+            registerLastDepart();
+        } else {
+            delete person;
+            throw ProcessError("Another person with the id '" + myVehicleParameter->id + "' exists.");
+        }
     } else {
+        // warning already given
         delete person;
     }
     myVehicleParameter = 0;
@@ -555,9 +590,12 @@ MSRouteHandler::closePerson() {
 
 void
 MSRouteHandler::closeFlow() {
+    if (myVehicleParameter->repetitionNumber == 0) {
+        return;
+    }
     // let's check whether vehicles had to depart before the simulation starts
     myVehicleParameter->repetitionsDone = 0;
-    SUMOTime offsetToBegin = string2time(OptionsCont::getOptions().getString("begin")) - myVehicleParameter->depart;
+    const SUMOTime offsetToBegin = string2time(OptionsCont::getOptions().getString("begin")) - myVehicleParameter->depart;
     while (myVehicleParameter->repetitionsDone * myVehicleParameter->repetitionOffset < offsetToBegin) {
         myVehicleParameter->repetitionsDone++;
         if (myVehicleParameter->repetitionsDone == myVehicleParameter->repetitionNumber) {
@@ -646,7 +684,7 @@ MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
             WRITE_WARNING("Deprecated attribute 'pos' in description of stop" + errorSuffix);
             stop.endPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_POSITION, 0, ok, stop.endPos);
         }
-        stop.startPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_STARTPOS, 0, ok, MAX2(0., stop.endPos - 2 * POSITION_EPS));
+        stop.startPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_STARTPOS, 0, ok, MAX2((SUMOReal)0., stop.endPos - 2 * POSITION_EPS));
         const bool friendlyPos = attrs.getOpt<bool>(SUMO_ATTR_FRIENDLY_POS, 0, ok, false);
         if (!ok || !checkStopPos(stop.startPos, stop.endPos, MSLane::dictionary(stop.lane)->getLength(), POSITION_EPS, friendlyPos)) {
             WRITE_ERROR("Invalid start or end position for stop on lane '" + stop.lane + "'" + errorSuffix);

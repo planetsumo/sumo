@@ -6,13 +6,14 @@
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
 /// @author  Laura Bieker
+/// @author  Melanie Knocke
 /// @date    Thu, 16.03.2006
 /// @version $Id$
 ///
 // Class representing a detector within the DFROUTER
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2006-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -234,24 +235,24 @@ RODFDetector::getRouteVector() const {
 
 
 void
-RODFDetector::addPriorDetector(RODFDetector* det) {
-    myPriorDetectors.push_back(det);
+RODFDetector::addPriorDetector(const RODFDetector* det) {
+    myPriorDetectors.insert(det);
 }
 
 
 void
-RODFDetector::addFollowingDetector(RODFDetector* det) {
-    myFollowingDetectors.push_back(det);
+RODFDetector::addFollowingDetector(const RODFDetector* det) {
+    myFollowingDetectors.insert(det);
 }
 
 
-const std::vector<RODFDetector*>&
+const std::set<const RODFDetector*>&
 RODFDetector::getPriorDetectors() const {
     return myPriorDetectors;
 }
 
 
-const std::vector<RODFDetector*>&
+const std::set<const RODFDetector*>&
 RODFDetector::getFollowerDetectors() const {
     return myFollowingDetectors;
 }
@@ -279,7 +280,7 @@ RODFDetector::hasRoutes() const {
     return myRoutes != 0 && myRoutes->get().size() != 0;
 }
 
-
+ 
 bool
 RODFDetector::writeEmitterDefinition(const std::string& file,
                                      const std::map<size_t, RandomDistributor<size_t>* >& dists,
@@ -605,6 +606,12 @@ RODFDetectorCon::getDetector(const std::string& id) const {
 }
 
 
+RODFDetector&
+RODFDetectorCon::getModifiableDetector(const std::string& id) const {
+    return *(myDetectorMap.find(id)->second);
+}
+
+
 bool
 RODFDetectorCon::knows(const std::string& id) const {
     return myDetectorMap.find(id) != myDetectorMap.end();
@@ -626,7 +633,7 @@ RODFDetectorCon::writeEmitters(const std::string& file,
     }
     //
     OutputDevice& out = OutputDevice::getDevice(file);
-    out.writeXMLHeader("additional");
+    out.writeXMLHeader("additional", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo-sim.org/xsd/additional_file.xsd\"");
     for (std::vector<RODFDetector*>::const_iterator i = myDetectors.begin(); i != myDetectors.end(); ++i) {
         RODFDetector* det = *i;
         // get file name for values (emitter/calibrator definition)
@@ -668,7 +675,7 @@ void
 RODFDetectorCon::writeEmitterPOIs(const std::string& file,
                                   const RODFDetectorFlows& flows) {
     OutputDevice& out = OutputDevice::getDevice(file);
-    out.writeXMLHeader("additional");
+    out.writeXMLHeader("additional", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo-sim.org/xsd/additional_file.xsd\"");
     for (std::vector<RODFDetector*>::const_iterator i = myDetectors.begin(); i != myDetectors.end(); ++i) {
         RODFDetector* det = *i;
         SUMOReal flow = flows.getFlowSumSecure(det->getID());
@@ -747,7 +754,7 @@ RODFDetectorCon::writeSpeedTrigger(const RODFNet* const net,
                                    SUMOTime startTime, SUMOTime endTime,
                                    SUMOTime stepOffset) {
     OutputDevice& out = OutputDevice::getDevice(file);
-    out.writeXMLHeader("additional");
+    out.writeXMLHeader("additional", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo-sim.org/xsd/additional_file.xsd\"");
     for (std::vector<RODFDetector*>::const_iterator i = myDetectors.begin(); i != myDetectors.end(); ++i) {
         RODFDetector* det = *i;
         // write the declaration into the file
@@ -765,7 +772,7 @@ RODFDetectorCon::writeSpeedTrigger(const RODFNet* const net,
 void
 RODFDetectorCon::writeEndRerouterDetectors(const std::string& file) {
     OutputDevice& out = OutputDevice::getDevice(file);
-    out.writeXMLHeader("additional");
+    out.writeXMLHeader("additional", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo-sim.org/xsd/additional_file.xsd\"");
     for (std::vector<RODFDetector*>::const_iterator i = myDetectors.begin(); i != myDetectors.end(); ++i) {
         RODFDetector* det = *i;
         // write the declaration into the file
@@ -841,41 +848,42 @@ RODFDetectorCon::guessEmptyFlows(RODFDetectorFlows& flows) {
     // routes must be built (we have ensured this in main)
     // detector followers/prior must be build (we have ensured this in main)
     //
-    bool changed = true;
-    while (changed) {
-        for (std::vector<RODFDetector*>::const_iterator i = myDetectors.begin(); i != myDetectors.end(); ++i) {
-            RODFDetector* det = *i;
-            const std::vector<RODFDetector*>& prior = det->getPriorDetectors();
-            const std::vector<RODFDetector*>& follower = det->getFollowerDetectors();
-            size_t noFollowerWithRoutes = 0;
-            size_t noPriorWithRoutes = 0;
-            // count occurences of detectors with/without routes
-            std::vector<RODFDetector*>::const_iterator j;
-            for (j = prior.begin(); j != prior.end(); ++j) {
-                if (flows.knows((*j)->getID())) {
-                    ++noPriorWithRoutes;
-                }
+    for (std::vector<RODFDetector*>::const_iterator i = myDetectors.begin(); i != myDetectors.end(); ++i) {
+        RODFDetector* det = *i;
+        const std::set<const RODFDetector*>& prior = det->getPriorDetectors();
+        const std::set<const RODFDetector*>& follower = det->getFollowerDetectors();
+        size_t noFollowerWithRoutes = 0;
+        size_t noPriorWithRoutes = 0;
+        // count occurences of detectors with/without routes
+        std::set<const RODFDetector*>::const_iterator j;
+        for (j = prior.begin(); j != prior.end(); ++j) {
+            if (flows.knows((*j)->getID())) {
+                ++noPriorWithRoutes;
             }
-            assert(noPriorWithRoutes <= prior.size());
-            for (j = follower.begin(); j != follower.end(); ++j) {
-                if (flows.knows((*j)->getID())) {
-                    ++noFollowerWithRoutes;
-                }
-            }
-            assert(noFollowerWithRoutes <= follower.size());
-
-            // do not process detectors which have no routes
-            if (!flows.knows(det->getID())) {
-                continue;
-            }
-
-            // plain case: some of the following detectors have no routes
-            if (noFollowerWithRoutes == follower.size()) {
-                // the number of vehicles is the sum of all vehicles on prior
-                continue;
-            }
-
         }
+        for (j = follower.begin(); j != follower.end(); ++j) {
+            if (flows.knows((*j)->getID())) {
+                ++noFollowerWithRoutes;
+            }
+        }
+
+        // do not process detectors which have no routes
+        if (!flows.knows(det->getID())) {
+            continue;
+        }
+
+        // plain case: all of the prior detectors have routes
+        if (noPriorWithRoutes == prior.size()) {
+            // the number of vehicles is the sum of all vehicles on prior
+            continue;
+        }
+
+        // plain case: all of the follower detectors have routes
+        if (noFollowerWithRoutes == follower.size()) {
+            // the number of vehicles is the sum of all vehicles on follower
+            continue;
+        }
+
     }
 }
 

@@ -4,13 +4,15 @@
 /// @author  Jakob Erdmann
 /// @author  Christian Roessel
 /// @author  Michael Behrisch
+/// @author  Melanie Knocke
+/// @author  Yun-Pang Floetteroed
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // A basic edge for routing applications
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -38,6 +40,7 @@
 #include <vector>
 #include <algorithm>
 #include <utils/common/Named.h>
+#include <utils/common/StdDefs.h>
 #include <utils/common/ValueTimeLine.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/SUMOVTypeParameter.h>
@@ -49,7 +52,6 @@
 // class declarations
 // ===========================================================================
 class ROLane;
-class ROVehicle;
 
 
 // ===========================================================================
@@ -79,7 +81,11 @@ public:
         ET_SOURCE,
         /// @brief An edge where vehicles disappear (no vehicle may leave this edge)
         ET_SINK,
-        /// @brief An internal edge which models driving across a junction. This is currently not used for routing
+        /// @brief An internal edge which models walking areas for pedestrians
+        ET_WALKINGAREA,
+        /// @brief An internal edge which models pedestrian crossings
+        ET_CROSSING,
+        /// @brief An internal edge which models vehicles driving across a junction. This is currently not used for routing
         ET_INTERNAL
     };
 
@@ -127,6 +133,20 @@ public:
      */
     void setType(EdgeType type);
 
+    /// @brief return whether this edge is an internal edge
+    inline bool isInternal() const {
+        return myType == ET_INTERNAL;
+    }
+
+    /// @brief return whether this edge is a pedestrian crossing
+    inline bool isCrossing() const {
+        return myType == ET_CROSSING;
+    }
+
+    /// @brief return whether this edge is walking area
+    inline bool isWalkingArea() const {
+        return myType == ET_WALKINGAREA;
+    }
 
     /** @brief Builds the internal representation of the travel time/effort
      *
@@ -312,21 +332,14 @@ public:
     SUMOReal getTravelTime(const ROVehicle* const veh, SUMOReal time) const;
 
 
-    /** @brief Returns the travel time for this edge
-     *
-     * @param[in] maxSpeed The maximum speed to assume if no travel times are stored
-     * @param[in] time The time in seconds(!) for which the traveltime shall be returned
-     * @return The traveltime needed to pass the edge at the given time
-     */
-    SUMOReal getTravelTime(const SUMOReal maxSpeed, SUMOReal time) const;
-
-
-    /** @brief Returns the travel time for this edge without using any stored timeLine
+    /** @brief Returns a lower bound for the travel time on this edge without using any stored timeLine
      *
      * @param[in] veh The vehicle for which the effort on this edge shall be retrieved
      * @param[in] time The time for which the effort shall be returned [s]
      */
-    SUMOReal getMinimumTravelTime(const ROVehicle* const veh) const;
+    inline SUMOReal getMinimumTravelTime(const ROVehicle* const veh) const {
+        return myLength / MIN2(veh->getType()->maxSpeed, SUMOReal(2. * veh->getType()->speedDev + 1.) * veh->getType()->speedFactor * mySpeed);
+    }
 
 
     SUMOReal getCOEffort(const ROVehicle* const veh, SUMOReal time) const;
@@ -365,6 +378,27 @@ public:
         return myPriority;
     }
 
+    const RONode* getFromJunction() const {
+        return myFromJunction;
+    }
+
+    const RONode* getToJunction() const {
+        return myToJunction;
+    }
+
+
+    void setJunctions(RONode* from, RONode* to) {
+        myFromJunction = from;
+        myToJunction = to;
+    }
+
+    /** @brief Returns this edge's lanes
+     *
+     * @return This edge's lanes
+     */
+    const std::vector<ROLane*>& getLanes() const {
+        return myLanes;
+    }
 protected:
     /** @brief Retrieves the stored effort
      *
@@ -432,15 +466,10 @@ protected:
 
     static std::vector<ROEdge*> myEdges;
 
+    /// @brief the junctions for this edge
+    RONode* myFromJunction;
+    RONode* myToJunction;
 
-private:
-    /** @brief Returns the minimum travel time for this edge
-     * If there is a timeline-value for the given time it is returned, otherwise
-     * the maximum speed of the edge is assumed
-     * @param[in] veh The vehicle for which the traveltime on this edge shall be retrieved
-     * @return The minimum traveltime needed to pass the edge at the given time
-     */
-    SUMOReal getTravelTime(SUMOReal time) const;
 
 private:
     /// @brief Invalidated copy constructor

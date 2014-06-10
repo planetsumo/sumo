@@ -220,6 +220,13 @@ NBNetBuilder::compute(OptionsCont& oc,
         NBRampsComputer::computeRamps(*this, oc);
         PROGRESS_DONE_MESSAGE();
     }
+    // guess sidewalks
+    if (oc.getBool("sidewalks.guess")) {
+        const int sidewalks = myEdgeCont.guessSidewalks(oc.getFloat("default.sidewalk-width"), 
+                oc.getFloat("sidewalks.guess.min-speed"),
+                oc.getFloat("sidewalks.guess.max-speed"));
+        WRITE_MESSAGE("Guessed " + toString(sidewalks) + " sidewalks.");
+    }
 
     // check whether any not previously setable connections may be set now
     myEdgeCont.recheckPostProcessConnections();
@@ -230,8 +237,29 @@ NBNetBuilder::compute(OptionsCont& oc,
             oc.getFloat("geometry.min-radius"),
             oc.getBool("geometry.min-radius.fix"));
     }
+
+    // GEOMETRY COMPUTATION
     //
+    PROGRESS_BEGIN_MESSAGE("Computing turning directions");
+    NBTurningDirectionsComputer::computeTurnDirections(myNodeCont);
+    PROGRESS_DONE_MESSAGE();
+    //
+    PROGRESS_BEGIN_MESSAGE("Sorting nodes' edges");
+    NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"));
+    PROGRESS_DONE_MESSAGE();
     myEdgeCont.computeLaneShapes();
+    //
+    PROGRESS_BEGIN_MESSAGE("Computing node shapes");
+    if (oc.exists("geometry.junction-mismatch-threshold")) {
+        myNodeCont.computeNodeShapes(oc.getBool("lefthand"), oc.getFloat("geometry.junction-mismatch-threshold"));
+    } else {
+        myNodeCont.computeNodeShapes(oc.getBool("lefthand"));
+    }
+    PROGRESS_DONE_MESSAGE();
+    //
+    PROGRESS_BEGIN_MESSAGE("Computing edge shapes");
+    myEdgeCont.computeEdgeShapes();
+    PROGRESS_DONE_MESSAGE();
 
     // APPLY SPEED MODIFICATIONS
     if (oc.exists("speed.offset")) {
@@ -248,17 +276,28 @@ NBNetBuilder::compute(OptionsCont& oc,
 
     // CONNECTIONS COMPUTATION
     //
-    PROGRESS_BEGIN_MESSAGE("Computing turning directions");
-    NBTurningDirectionsComputer::computeTurnDirections(myNodeCont);
-    PROGRESS_DONE_MESSAGE();
-    //
-    PROGRESS_BEGIN_MESSAGE("Sorting nodes' edges");
-    NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"));
-    PROGRESS_DONE_MESSAGE();
-    //
     PROGRESS_BEGIN_MESSAGE("Computing node types");
     NBNodeTypeComputer::computeNodeTypes(myNodeCont);
     PROGRESS_DONE_MESSAGE();
+    //
+    bool buildCrossingsAndWalkingAreas = false;
+    if (oc.getBool("crossings.guess")) {
+        buildCrossingsAndWalkingAreas = true;
+        int crossings = 0;
+        for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
+            crossings += (*i).second->guessCrossings();
+        }
+        WRITE_MESSAGE("Guessed " + toString(crossings) + " pedestrian crossings.");
+    }
+    if (!oc.getBool("no-internal-links") && !buildCrossingsAndWalkingAreas) {
+        // recheck whether we had crossings in the input
+        for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
+            if (i->second->getCrossings().size() > 0) {
+                buildCrossingsAndWalkingAreas = true;
+                break;
+            }
+        }
+    }
     //
     PROGRESS_BEGIN_MESSAGE("Computing priorities");
     NBEdgePriorityComputer::computeEdgePriorities(myNodeCont);
@@ -275,11 +314,11 @@ NBNetBuilder::compute(OptionsCont& oc,
     }
     //
     PROGRESS_BEGIN_MESSAGE("Computing approaching lanes");
-    myEdgeCont.computeLanes2Edges();
+    myEdgeCont.computeLanes2Edges(buildCrossingsAndWalkingAreas);
     PROGRESS_DONE_MESSAGE();
     //
     PROGRESS_BEGIN_MESSAGE("Dividing of lanes on approached lanes");
-    myNodeCont.computeLanes2Lanes();
+    myNodeCont.computeLanes2Lanes(buildCrossingsAndWalkingAreas);
     myEdgeCont.sortOutgoingLanesConnections();
     PROGRESS_DONE_MESSAGE();
     //
@@ -292,22 +331,7 @@ NBNetBuilder::compute(OptionsCont& oc,
     PROGRESS_DONE_MESSAGE();
     //
     PROGRESS_BEGIN_MESSAGE("Rechecking of lane endings");
-    myEdgeCont.recheckLanes();
-    PROGRESS_DONE_MESSAGE();
-
-
-    // GEOMETRY COMPUTATION
-    //
-    PROGRESS_BEGIN_MESSAGE("Computing node shapes");
-    if (oc.exists("geometry.junction-mismatch-threshold")) {
-        myNodeCont.computeNodeShapes(oc.getBool("lefthand"), oc.getFloat("geometry.junction-mismatch-threshold"));
-    } else {
-        myNodeCont.computeNodeShapes(oc.getBool("lefthand"));
-    }
-    PROGRESS_DONE_MESSAGE();
-    //
-    PROGRESS_BEGIN_MESSAGE("Computing edge shapes");
-    myEdgeCont.computeEdgeShapes();
+    myEdgeCont.recheckLanes(buildCrossingsAndWalkingAreas);
     PROGRESS_DONE_MESSAGE();
 
 
@@ -366,8 +390,9 @@ NBNetBuilder::compute(OptionsCont& oc,
         for (std::map<std::string, NBEdge*>::const_iterator i = myEdgeCont.begin(); i != myEdgeCont.end(); ++i) {
             (*i).second->sortOutgoingConnectionsByIndex();
         }
+        // walking areas shall only be built if crossings are wished as well
         for (std::map<std::string, NBNode*>::const_iterator i = myNodeCont.begin(); i != myNodeCont.end(); ++i) {
-            (*i).second->buildInnerEdges();
+            (*i).second->buildInnerEdges(buildCrossingsAndWalkingAreas);
         }
         PROGRESS_DONE_MESSAGE();
     }

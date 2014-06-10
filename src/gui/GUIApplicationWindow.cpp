@@ -40,6 +40,9 @@
 #include <algorithm>
 
 #include <guisim/GUINet.h>
+#include <guisim/GUILane.h>
+#include <microsim/MSEdge.h>
+#include <microsim/MSVehicle.h>
 
 #include "GUISUMOViewParent.h"
 #include "GUILoadThread.h"
@@ -49,6 +52,7 @@
 #include "GUIEvent_SimulationEnded.h"
 
 #include <utils/common/ToString.h>
+#include <utils/common/RandHelper.h>
 #include <utils/foxtools/MFXUtils.h>
 #include <utils/foxtools/FXLCDLabel.h>
 #include <utils/foxtools/FXRealSpinDial.h>
@@ -73,11 +77,6 @@
 #include "dialogs/GUIDialog_AboutSUMO.h"
 #include "dialogs/GUIDialog_AppSettings.h"
 #include "dialogs/GUIDialog_Breakpoints.h"
-
-#ifndef NO_TRACI
-#include <traci-server/TraCIServer.h>
-#include "TraCIServerAPI_GUI.h"
-#endif
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -157,6 +156,11 @@ FXDEFMAP(GUIApplicationWindow) GUIApplicationWindowMap[] = {
 FXIMPLEMENT(GUIApplicationWindow, FXMainWindow, GUIApplicationWindowMap, ARRAYNUMBER(GUIApplicationWindowMap))
 
 // ===========================================================================
+// static members
+// ===========================================================================
+MTRand GUIApplicationWindow::myGamingRNG;
+
+// ===========================================================================
 // member method definitions
 // ===========================================================================
 GUIApplicationWindow::GUIApplicationWindow(FXApp* a,
@@ -167,7 +171,12 @@ GUIApplicationWindow::GUIApplicationWindow(FXApp* a,
       myAlternateSimDelay(0),
       myRecentNets(a, "nets"), myConfigPattern(configPattern),
       hadDependentBuild(false),
-      myShowTimeAsHMS(false) {
+      myShowTimeAsHMS(false),
+      // game specific
+      myJamSoundTime(60),
+      myWaitingTime(0),
+      myTimeLoss(0)
+{
     GUIIconSubSys::init(a);
 }
 
@@ -230,12 +239,9 @@ GUIApplicationWindow::dependentBuild(bool game) {
     fillMenuBar();
     if (game) {
         onCmdGaming(0, 0, 0);
-        myMenuBar->hide();
-        myToolBar1->hide();
-        myToolBar2->hide();
-        myToolBar4->hide();
-        myToolBar5->hide();
-        myMessageWindow->hide();
+    } else {
+        myToolBar6->hide();
+        myToolBar7->hide();
     }
     // build additional threads
     myLoadThread = new GUILoadThread(getApp(), this, myEvents, myLoadThreadEvent);
@@ -265,7 +271,13 @@ GUIApplicationWindow::create() {
     myMenuBarDrag->create();
     myToolBarDrag1->create();
     myToolBarDrag2->create();
+    myToolBarDrag3->create();
+    myToolBarDrag4->create();
+    myToolBarDrag5->create();
+    myToolBarDrag6->create();
+    myToolBarDrag7->create();
     myFileMenu->create();
+    mySelectByPermissions->create();
     myEditMenu->create();
     mySettingsMenu->create();
     myLocatorMenu->create();
@@ -299,6 +311,7 @@ GUIApplicationWindow::~GUIApplicationWindow() {
     delete myRunThread;
     delete myFileMenu;
     delete myEditMenu;
+    delete mySelectByPermissions;
     delete mySettingsMenu;
     delete myLocatorMenu;
     delete myControlMenu;
@@ -381,11 +394,21 @@ GUIApplicationWindow::fillMenuBar() {
                       0, this, MID_QUIT, 0);
 
     // build edit menu
+    mySelectByPermissions = new FXMenuPane(this);
+    std::vector<std::string> vehicleClasses = SumoVehicleClassStrings.getStrings();
+    for (std::vector<std::string>::iterator it = vehicleClasses.begin(); it != vehicleClasses.end(); ++it) {
+        new FXMenuCommand(mySelectByPermissions,
+                (*it).c_str(), NULL, this, MID_EDITCHOSEN);
+    }
+
     myEditMenu = new FXMenuPane(this);
     new FXMenuTitle(myMenuBar, "&Edit", NULL, myEditMenu);
     new FXMenuCommand(myEditMenu,
                       "Edit Selected...\tCtl-E\tOpens a Dialog for editing the List of Selected Items.",
                       GUIIconSubSys::getIcon(ICON_FLAG), this, MID_EDITCHOSEN);
+    new FXMenuCascade(myEditMenu,
+                      "Select lanes which allow...\t\tOpens a menu for selecting a vehicle class by which to selected lanes.",
+                      GUIIconSubSys::getIcon(ICON_FLAG), mySelectByPermissions);
     new FXMenuSeparator(myEditMenu);
     new FXMenuCommand(myEditMenu,
                       "Edit Breakpoints...\tCtl-B\tOpens a Dialog for editing breakpoints.",
@@ -398,7 +421,7 @@ GUIApplicationWindow::fillMenuBar() {
                       "Application Settings...\t\tOpen a Dialog for Application Settings editing.",
                       NULL, this, MID_APPSETTINGS);
     new FXMenuCheck(mySettingsMenu,
-                    "Gaming Mode\t\tToggle gaming mode on/off.",
+                    "Gaming Mode\tCtl-G\tToggle gaming mode on/off.",
                     this, MID_GAMING);
     // build Locate menu
     myLocatorMenu = new FXMenuPane(this);
@@ -580,6 +603,32 @@ GUIApplicationWindow::buildToolBars() {
                      ICON_ABOVE_TEXT | BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
 #endif
     }
+    {
+        /// game specific stuff
+        // total waitingTime
+        myToolBarDrag6 = new FXToolBarShell(this, FRAME_NORMAL);
+        myToolBar6 = new FXToolBar(myTopDock, myToolBarDrag6, LAYOUT_DOCK_SAME | LAYOUT_SIDE_TOP | FRAME_RAISED);
+        new FXToolBarGrip(myToolBar6, myToolBar6, FXToolBar::ID_TOOLBARGRIP, TOOLBARGRIP_DOUBLE);
+        new FXLabel(myToolBar6, "Waiting Time:\t\tTime spent waiting accumulated for all vehicles", 0, LAYOUT_TOP | LAYOUT_LEFT);
+        myWaitingTimeLabel = new FXEX::FXLCDLabel(myToolBar6, 13, 0, 0, JUSTIFY_RIGHT);
+        myWaitingTimeLabel->setHorizontal(2);
+        myWaitingTimeLabel->setVertical(6);
+        myWaitingTimeLabel->setThickness(2);
+        myWaitingTimeLabel->setGroove(2);
+        myWaitingTimeLabel->setText("-------------");
+
+        // idealistic time loss
+        myToolBarDrag7 = new FXToolBarShell(this, FRAME_NORMAL);
+        myToolBar7 = new FXToolBar(myTopDock, myToolBarDrag7, LAYOUT_DOCK_SAME | LAYOUT_SIDE_TOP | FRAME_RAISED);
+        new FXToolBarGrip(myToolBar7, myToolBar7, FXToolBar::ID_TOOLBARGRIP, TOOLBARGRIP_DOUBLE);
+        new FXLabel(myToolBar7, "Time Loss:\t\tTime lost due to being unable to drive with maximum speed for all vehicles", 0, LAYOUT_TOP | LAYOUT_LEFT);
+        myTimeLossLabel = new FXEX::FXLCDLabel(myToolBar7, 13, 0, 0, JUSTIFY_RIGHT);
+        myTimeLossLabel->setHorizontal(2);
+        myTimeLossLabel->setVertical(6);
+        myTimeLossLabel->setThickness(2);
+        myTimeLossLabel->setGroove(2);
+        myTimeLossLabel->setText("-------------");
+    }
 }
 
 
@@ -599,18 +648,43 @@ GUIApplicationWindow::onCmdQuit(FXObject*, FXSelector, void*) {
 
 
 long
-GUIApplicationWindow::onCmdEditChosen(FXObject*, FXSelector, void*) {
-    GUIDialog_GLChosenEditor* chooser =
-        new GUIDialog_GLChosenEditor(this, &gSelected);
-    chooser->create();
-    chooser->show();
+GUIApplicationWindow::onCmdEditChosen(FXObject* menu, FXSelector, void*) {
+    FXMenuCommand* mc = dynamic_cast<FXMenuCommand*>(menu);
+    if (mc->getText() == "Edit Selected...") {
+        GUIDialog_GLChosenEditor* chooser =
+            new GUIDialog_GLChosenEditor(this, &gSelected);
+        chooser->create();
+        chooser->show();
+    } else {
+        if (!myAmLoading && myRunThread->simulationAvailable()) {
+            const SUMOVehicleClass svc = SumoVehicleClassStrings.get(mc->getText().text());
+            for (size_t i = 0; i < MSEdge::dictSize(); ++i) {
+                const std::vector<MSLane*>& lanes = MSEdge::dictionary(i)->getLanes();
+                for (std::vector<MSLane*>::const_iterator it = lanes.begin(); it != lanes.end(); ++it) {
+                    GUILane* lane = dynamic_cast<GUILane*>(*it);
+                    assert(lane != 0);
+                    if ((lane->getPermissions() & svc) != 0) {
+                        gSelected.select(lane->getGlID());
+                    }
+                }
+            }
+            if (myMDIClient->numChildren() > 0) {
+                GUISUMOViewParent* w = dynamic_cast<GUISUMOViewParent*>(myMDIClient->getActiveChild());
+                if (w != 0) {
+                    // color by selection
+                    w->getView()->getVisualisationSettings()->laneColorer.setActive(1);
+                }
+            }
+        }
+        updateChildren();
+    }
     return 1;
 }
 
 
 long
 GUIApplicationWindow::onCmdEditBreakpoints(FXObject*, FXSelector, void*) {
-    GUIDialog_Breakpoints* chooser = new GUIDialog_Breakpoints(this);
+    GUIDialog_Breakpoints* chooser = new GUIDialog_Breakpoints(this, myRunThread->getBreakpoints(), myRunThread->getBreakpointLock());
     chooser->create();
     chooser->show();
     return 1;
@@ -852,8 +926,33 @@ long
 GUIApplicationWindow::onCmdGaming(FXObject*, FXSelector, void*) {
     myAmGaming = !myAmGaming;
     if (myAmGaming) {
-        mySimDelayTarget->setValue(1000);
+        myMenuBar->hide();
+        myStatusbar->hide();
+        myToolBar1->hide();
+        myToolBar2->hide();
+        myToolBar4->hide();
+        myToolBar5->hide();
+        myToolBar6->show();
+        myToolBar7->show();
+        myMessageWindow->hide();
+        myLCDLabel->setFgColor(MFXUtils::getFXColor(RGBColor::RED));
+        myWaitingTimeLabel->setFgColor(MFXUtils::getFXColor(RGBColor::RED));
+        myTimeLossLabel->setFgColor(MFXUtils::getFXColor(RGBColor::RED));
+        gSchemeStorage.getDefault().gaming = true;
+    } else {
+        myMenuBar->show();
+        myStatusbar->show();
+        myToolBar1->show();
+        myToolBar2->show();
+        myToolBar4->show();
+        myToolBar5->show();
+        myToolBar6->hide();
+        myToolBar7->hide();
+        myMessageWindow->show();
+        myLCDLabel->setFgColor(MFXUtils::getFXColor(RGBColor::GREEN));
+        gSchemeStorage.getDefault().gaming = false;
     }
+    update();
     return 1;
 }
 
@@ -951,22 +1050,6 @@ void
 GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
     myAmLoading = false;
     GUIEvent_SimulationLoaded* ec = static_cast<GUIEvent_SimulationLoaded*>(e);
-    if (ec->myNet != 0) {
-#ifndef NO_TRACI
-        std::map<int, TraCIServer::CmdExecutor> execs;
-        execs[CMD_GET_GUI_VARIABLE] = &TraCIServerAPI_GUI::processGet;
-        execs[CMD_SET_GUI_VARIABLE] = &TraCIServerAPI_GUI::processSet;
-        try {
-            TraCIServer::openSocket(execs);
-        } catch (ProcessError& e) {
-            myMessageWindow->appendText(EVENT_ERROR_OCCURED, e.what());
-            WRITE_ERROR(e.what());
-            delete ec->myNet;
-            ec->myNet = 0;
-        }
-#endif
-    }
-
     // check whether the loading was successfull
     if (ec->myNet == 0) {
         // report failure
@@ -1012,7 +1095,13 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
                         mySimDelayTarget->setValue(settings.getDelay());
                     }
                     if (settings.getBreakpoints().size() > 0) {
-                        GUIGlobals::gBreakpoints = settings.getBreakpoints();
+                        myRunThread->getBreakpointLock().lock();
+                        myRunThread->getBreakpoints().assign(settings.getBreakpoints().begin(), settings.getBreakpoints().end());
+                        myRunThread->getBreakpointLock().unlock();
+                    }
+                    myJamSounds = settings.getEventDistribution("jam");
+                    if (settings.getJamSoundTime() > 0) {
+                        myJamSoundTime = settings.getJamSoundTime();
                     }
                 }
             } else {
@@ -1027,7 +1116,7 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
                 setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
             }
             // set simulation step begin information
-            updateTimeLCD(ec->myNet->getCurrentTimeStep());
+            myLCDLabel->setText("-------------");
         }
     }
     getApp()->endWaitCursor();
@@ -1043,6 +1132,9 @@ void
 GUIApplicationWindow::handleEvent_SimulationStep(GUIEvent*) {
     updateChildren();
     updateTimeLCD(myRunThread->getNet().getCurrentTimeStep());
+    if (myAmGaming) {
+        checkGamingEvents();
+    }
     update();
 }
 
@@ -1069,6 +1161,42 @@ GUIApplicationWindow::handleEvent_SimulationEnded(GUIEvent* e) {
     }
 }
 
+
+void 
+GUIApplicationWindow::checkGamingEvents() {
+    MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
+    MSVehicleControl::constVehIt it = vc.loadedVehBegin();
+    MSVehicleControl::constVehIt end = vc.loadedVehEnd();
+    if (myJamSounds.getOverallProb() > 0) {
+        // play honking sound if some vehicle is waiting too long
+        for (; it != end; ++it) {
+            // XXX use impatience instead of waiting time ?
+            if (it->second->getWaitingTime() > TIME2STEPS(myJamSoundTime)) {
+                const std::string cmd = myJamSounds.get(&myGamingRNG);
+                if (cmd != "") {
+                    // yay! fun with dangerous commands... Never use this over the internet
+                    SysUtils::runHiddenCommand(cmd);
+                    // one sound per simulation step is enough
+                    break;
+                }
+            }
+        }
+    }
+    // updated peformance indicators
+    
+    for (it = vc.loadedVehBegin(); it != end; ++it) {
+        const MSVehicle* veh = dynamic_cast<MSVehicle*>(it->second);
+        assert(veh != 0);
+        const SUMOReal vmax = MIN2(veh->getVehicleType().getMaxSpeed(), veh->getEdge()->getSpeedLimit());
+        if (veh->isOnRoad() && veh->getSpeed() < SUMO_const_haltingSpeed) {
+            myWaitingTime += DELTA_T;
+        }
+        myTimeLoss += TS * TIME2STEPS(vmax - veh->getSpeed()) / vmax; // may be negative with speedFactor > 1
+        myWaitingTimeLabel->setText(time2string(myWaitingTime).c_str());
+        myTimeLossLabel->setText(time2string(myTimeLoss).c_str());
+    }
+
+}
 
 
 void
@@ -1185,7 +1313,12 @@ GUIApplicationWindow::setStatusBarText(const std::string& text) {
 
 
 void
-GUIApplicationWindow::updateTimeLCD(const SUMOTime time) {
+GUIApplicationWindow::updateTimeLCD(SUMOTime time) {
+    time -= DELTA_T; // synchronize displayed time with netstate output
+    if (myAmGaming) {
+        // show time counting backwards
+        time = myRunThread->getSimEndTime() - time;
+    } 
     SUMOReal fracSeconds = STEPS2TIME(time);
     const bool hideFraction = myAmGaming || fmod(TS, 1.) == 0.;
     const int BuffSize = 100;

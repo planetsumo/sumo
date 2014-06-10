@@ -88,6 +88,7 @@
     <ClCompile Include="..\..\..\src\marouter\ROMAEdge.cpp" />
     <ClCompile Include="..\..\..\src\marouter\ROMAEdgeBuilder.cpp" />
     <ClCompile Include="..\..\..\src\marouter\ROMAFrame.cpp" />
+    <ClCompile Include="..\..\..\src\od2trips\ODAmitranHandler.cpp" />
     <ClCompile Include="..\..\..\src\od2trips\ODDistrict.cpp" />
     <ClCompile Include="..\..\..\src\od2trips\ODDistrictCont.cpp" />
     <ClCompile Include="..\..\..\src\od2trips\ODDistrictHandler.cpp" />
@@ -98,6 +99,7 @@
     <ClInclude Include="..\..\..\src\marouter\ROMAEdge.h" />
     <ClInclude Include="..\..\..\src\marouter\ROMAEdgeBuilder.h" />
     <ClInclude Include="..\..\..\src\marouter\ROMAFrame.h" />
+    <ClInclude Include="..\..\..\src\od2trips\ODAmitranHandler.h" />
     <ClInclude Include="..\..\..\src\od2trips\ODCell.h" />
     <ClInclude Include="..\..\..\src\od2trips\ODDistrict.h" />
     <ClInclude Include="..\..\..\src\od2trips\ODDistrictCont.h" />
@@ -122,6 +124,14 @@
     </ProjectReference>
     <ProjectReference Include="..\z_libutils_distribution\z_libutils_distribution.vcxproj">
       <Project>{f5d8313c-621d-4cce-a6da-83effbde7ce6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\z_libutils_emissions\z_libutils_emissions.vcxproj">
+      <Project>{fa4a6c00-dcae-43cb-a396-15daec3b0141}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\z_libutils_geom\z_libutils_geom.vcxproj">
       <Project>{334df447-d0b3-4cea-9693-f755eb11c18f}</Project>

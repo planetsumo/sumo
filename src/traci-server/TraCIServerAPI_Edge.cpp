@@ -5,13 +5,14 @@
 /// @author  Jerome Haerri
 /// @author  Michael Behrisch
 /// @author  Laura Bieker
+/// @author  Mario Krumnow
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -99,7 +100,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 SUMOReal value;
-                if (!MSNet::getInstance()->getWeightsStorage().retrieveExistingTravelTime(e, 0, time, value)) {
+                if (!MSNet::getInstance()->getWeightsStorage().retrieveExistingTravelTime(e, time, value)) {
                     tempMsg.writeDouble(-1);
                 } else {
                     tempMsg.writeDouble(value);
@@ -114,7 +115,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 SUMOReal value;
-                if (!MSNet::getInstance()->getWeightsStorage().retrieveExistingEffort(e, 0, time, value)) {
+                if (!MSNet::getInstance()->getWeightsStorage().retrieveExistingEffort(e, time, value)) {
                     tempMsg.writeDouble(-1);
                 } else {
                     tempMsg.writeDouble(value);

@@ -151,10 +151,10 @@ public:
     Position& operator[](int index);
 
     /// Returns the position at the given length
-    Position positionAtOffset(SUMOReal pos) const;
+    Position positionAtOffset(SUMOReal pos, SUMOReal lateralOffset=0) const;
 
     /// Returns the position at the given length
-    Position positionAtOffset2D(SUMOReal pos) const;
+    Position positionAtOffset2D(SUMOReal pos, SUMOReal lateralOffset=0) const;
 
     /// Returns the rotation at the given length
     SUMOReal rotationDegreeAtOffset(SUMOReal pos) const;
@@ -164,11 +164,11 @@ public:
 
     /// Returns the position between the two given point at the specified position */
     static Position positionAtOffset(const Position& p1,
-                                     const Position& p2, SUMOReal pos);
+                                     const Position& p2, SUMOReal pos, SUMOReal lateralOffset);
 
     /// Returns the position between the two given point at the specified position */
     static Position positionAtOffset2D(const Position& p1,
-                                       const Position& p2, SUMOReal pos);
+                                       const Position& p2, SUMOReal pos, SUMOReal lateralOffset);
 
     /// Returns a boundary enclosing this list of lines
     Boundary getBoxBoundary() const;
@@ -180,8 +180,11 @@ public:
     /** @brief Returns the centroid (closes the polygon if unclosed) */
     Position getCentroid() const;
 
-    /** @brief enlarges/shrinks the polygon based at the centroid */
-    void scaleSize(SUMOReal factor);
+    /** @brief enlarges/shrinks the polygon by a factor based at the centroid */
+    void scaleRelative(SUMOReal factor);
+
+    /** @brief enlarges/shrinks the polygon by an absolute offset based at the centroid */
+    void scaleAbsolute(SUMOReal offset);
 
     Position getLineCenter() const;
 
@@ -219,6 +222,8 @@ public:
     PositionVector getSubpart(SUMOReal beginOffset, SUMOReal endOffset) const;
 
     PositionVector getSubpart2D(SUMOReal beginOffset, SUMOReal endOffset) const;
+
+    PositionVector getSubpartByIndex(int beginIndex, int count) const;
 
     void sortAsPolyCWByAngle();
 

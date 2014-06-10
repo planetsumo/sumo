@@ -179,7 +179,7 @@ public:
      * @param[in] route The new route to pass
      * @return Whether the new route was accepted
      */
-    bool replaceRoute(const MSRoute* route, bool onInit = false, int offset=0);
+    bool replaceRoute(const MSRoute* route, bool onInit = false, int offset = 0);
 
 
     /** @brief Returns whether the vehicle wil pass the given edge
@@ -339,7 +339,7 @@ public:
 
 
     /** @brief Returns the starting point for reroutes (usually the current edge)
-     * 
+     *
      * This differs from *myCurrEdge only if the vehicle is on an internal edge
      * @return The rerouting start point
      */
@@ -469,6 +469,11 @@ public:
     };
 
     /** @brief Returns the description of best lanes to use in order to continue the route
+     * @return The best lanes structure holding matching the current vehicle position and state ahead
+     */
+    const std::vector<LaneQ>& getBestLanes() const;
+
+    /** @brief computes the best lanes to use in order to continue the route
      *
      * The information is rebuilt if the vehicle is on a different edge than
      *  the one stored in "myLastBestLanesEdge" or "forceRebuild" is true.
@@ -476,7 +481,7 @@ public:
      * Otherwise, only the density changes on the stored lanes are adapted to
      *  the container only.
      *
-     * A rebuild must be done if the vehicle leaves a stop; then, another lane may get
+     * A rebuild must be done if the vehicle leaves a stop; then, another lane may become
      *  the best one.
      *
      * If no starting lane ("startLane") is given, the vehicle's current lane ("myLane")
@@ -484,9 +489,8 @@ public:
      *
      * @param[in] forceRebuild Whether the best lanes container shall be rebuilt even if the vehicle's edge has not changed
      * @param[in] startLane The lane the process shall start at ("myLane" will be used if ==0)
-     * @return The best lanes structure holding matching the current vehicle position and state ahead
      */
-    virtual const std::vector<LaneQ>& getBestLanes(bool forceRebuild = false, MSLane* startLane = 0) const;
+    void updateBestLanes(bool forceRebuild = false, const MSLane* startLane = 0);
 
 
     /** @brief Returns the subpart of best lanes that describes the vehicle's current lane and their successors
@@ -503,6 +507,9 @@ public:
 
     /// @brief returns the current offset from the best lane
     int getBestLaneOffset() const;
+
+    /// @brief update occupation from MSLaneChanger
+    void adaptBestLanesOccupation(int laneIndex, SUMOReal density);
 
     /// @}
 
@@ -637,7 +644,7 @@ public:
      * @param dist		up to which distance to look for a leader
      * @return The leading vehicle together with the gap; (0, -1) if no leader was found.
      */
-    std::pair<const MSVehicle* const, SUMOReal> getLeader(SUMOReal dist=0) const;
+    std::pair<const MSVehicle* const, SUMOReal> getLeader(SUMOReal dist = 0) const;
 
     /** @brief Returns the time gap in seconds to the leader of the vehicle looking for a fixed distance.
      *
@@ -920,6 +927,34 @@ public:
         void setConsiderMaxDeceleration(bool value);
 
 
+        /** @brief Sets whether junction priority rules shall be respected
+         * @param[in] value Whether junction priority rules be respected
+         */
+        void setRespectJunctionPriority(bool value);
+
+
+        /** @brief Returns whether junction priority rules shall be respected
+         * @return Whether junction priority rules be respected
+         */
+        inline bool getRespectJunctionPriority() const {
+            return myRespectJunctionPriority;
+        }
+
+
+        /** @brief Sets whether red lights shall be a reason to brake
+         * @param[in] value Whether red lights shall be a reason to brake
+         */
+        void setEmergencyBrakeRedLight(bool value);
+
+
+        /** @brief Returns whether red lights shall be a reason to brake
+         * @return Whether red lights shall be a reason to brake
+         */
+        inline bool getEmergencyBrakeRedLight() const {
+            return myEmergencyBrakeRedLight;
+        }
+
+
         /** @brief Sets lane changing behavior
          * @param[in] value a bitset controlling the different modes
          */
@@ -929,7 +964,7 @@ public:
         /** @brief Returns the originally longitudinal speed to use
          * @return The speed given before influence
          */
-        SUMOReal getOriginalSpeed() const {
+        inline SUMOReal getOriginalSpeed() const {
             return myOriginalSpeed;
         }
 
@@ -968,6 +1003,12 @@ public:
 
         /// @brief Whether the maximum deceleration shall be regarded
         bool myConsiderMaxDeceleration;
+
+        /// @brief Whether the junction priority rules are respected
+        bool myRespectJunctionPriority;
+
+        /// @brief Whether red lights are a reason to brake
+        bool myEmergencyBrakeRedLight;
 
         bool myAmVTDControlled;
         MSLane* myVTDLane;
@@ -1061,11 +1102,11 @@ protected:
 
     MSAbstractLaneChangeModel* myLaneChangeModel;
 
-    mutable const MSEdge* myLastBestLanesEdge;
-    mutable const MSLane* myLastBestLanesInternalLane;
+    const MSEdge* myLastBestLanesEdge;
+    const MSLane* myLastBestLanesInternalLane;
 
-    mutable std::vector<std::vector<LaneQ> > myBestLanes;
-    mutable std::vector<LaneQ>::iterator myCurrentLaneInBestLanes;
+    std::vector<std::vector<LaneQ> > myBestLanes;
+    std::vector<LaneQ>::iterator myCurrentLaneInBestLanes;
     static std::vector<MSLane*> myEmptyLaneVector;
 
     /// @brief The vehicle's list of stops
@@ -1186,7 +1227,7 @@ protected:
     void adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
                        const SUMOReal seen, DriveProcessItem* const lastLink,
                        const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass,
-                       SUMOReal distToCrossing=-1) const;
+                       SUMOReal distToCrossing = -1) const;
 
 #ifdef HAVE_INTERNAL_LANES
     /// @brief ids of vehicles being followed across a link (for resolving priority)

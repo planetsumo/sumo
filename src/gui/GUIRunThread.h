@@ -107,6 +107,18 @@ public:
     /// Retrieves messages from the loading module
     void retrieveMessage(const MsgHandler::MsgType type, const std::string& msg);
 
+    SUMOTime getSimEndTime() const {
+        return mySimEndTime;
+    }
+
+    std::vector<SUMOTime>& getBreakpoints() {
+        return myBreakpoints;
+    }
+
+    MFXMutex& getBreakpointLock() {
+        return myBreakpointLock;
+    }
+
 protected:
     void makeStep();
 
@@ -145,6 +157,12 @@ protected:
     FXEX::FXThreadEvent& myEventThrow;
 
     MFXMutex mySimulationLock;
+
+    /// @brief List of breakpoints
+    std::vector<SUMOTime> myBreakpoints;
+
+    /// @brief Lock for modifying the list of breakpoints
+    MFXMutex myBreakpointLock;
 
 };
 

@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Laura Bieker
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    07.05.2009
 /// @version $Id$
 ///
 // APIs for getting/setting traffic light values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -139,7 +140,7 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
             }
             break;
             case TL_CONTROLLED_LANES: {
-                const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLanes();
+                const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLaneVectors();
                 tempMsg.writeUnsignedByte(TYPE_STRINGLIST);
                 std::vector<std::string> laneIDs;
                 for (MSTrafficLightLogic::LaneVectorVector::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
@@ -152,7 +153,7 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
             }
             break;
             case TL_CONTROLLED_LINKS: {
-                const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLanes();
+                const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLaneVectors();
                 const MSTrafficLightLogic::LinkVectorVector& links = vars.getActive()->getLinks();
                 //
                 tempMsg.writeUnsignedByte(TYPE_COMPOUND);

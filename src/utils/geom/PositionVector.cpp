@@ -92,7 +92,9 @@ PositionVector::pop_front() {
 bool
 PositionVector::around(const Position& p, SUMOReal offset) const {
     if (offset != 0) {
-        //throw 1; // !!! not yet implemented
+        PositionVector tmp(*this);
+        tmp.scaleAbsolute(offset);
+        return tmp.around(p);
     }
     SUMOReal angle = 0;
     for (const_iterator i = begin(); i != end() - 1; i++) {
@@ -205,13 +207,13 @@ PositionVector::operator[](int index) {
 
 
 Position
-PositionVector::positionAtOffset(SUMOReal pos) const {
+PositionVector::positionAtOffset(SUMOReal pos, SUMOReal lateralOffset) const {
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
         const SUMOReal nextLength = (*i).distanceTo(*(i + 1));
         if (seenLength + nextLength > pos) {
-            return positionAtOffset(*i, *(i + 1), pos - seenLength);
+            return positionAtOffset(*i, *(i + 1), pos - seenLength, lateralOffset);
         }
         seenLength += nextLength;
     } while (++i != end() - 1);
@@ -220,13 +222,13 @@ PositionVector::positionAtOffset(SUMOReal pos) const {
 
 
 Position
-PositionVector::positionAtOffset2D(SUMOReal pos) const {
+PositionVector::positionAtOffset2D(SUMOReal pos, SUMOReal lateralOffset) const {
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
         const SUMOReal nextLength = (*i).distanceTo2D(*(i + 1));
         if (seenLength + nextLength > pos) {
-            return positionAtOffset2D(*i, *(i + 1), pos - seenLength);
+            return positionAtOffset2D(*i, *(i + 1), pos - seenLength, lateralOffset);
         }
         seenLength += nextLength;
     } while (++i != end() - 1);
@@ -236,6 +238,9 @@ PositionVector::positionAtOffset2D(SUMOReal pos) const {
 
 SUMOReal
 PositionVector::rotationDegreeAtOffset(SUMOReal pos) const {
+    if (pos < 0) {
+        pos += length();
+    }
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
@@ -269,10 +274,15 @@ PositionVector::slopeDegreeAtOffset(SUMOReal pos) const {
 Position
 PositionVector::positionAtOffset(const Position& p1,
                                  const Position& p2,
-                                 SUMOReal pos) {
+                                 SUMOReal pos, SUMOReal lateralOffset) {
     const SUMOReal dist = p1.distanceTo(p2);
     if (dist < pos) {
         return Position(-1, -1);
+    }
+    if (lateralOffset != 0) {
+        Line l(p1, p2);
+        l.move2side(-lateralOffset); // move in the same direction as Position::move2side
+        return l.getPositionAtDistance(pos);
     }
     return p1 + (p2 - p1) * (pos / dist);
 }
@@ -281,10 +291,15 @@ PositionVector::positionAtOffset(const Position& p1,
 Position
 PositionVector::positionAtOffset2D(const Position& p1,
                                    const Position& p2,
-                                   SUMOReal pos) {
+                                   SUMOReal pos, SUMOReal lateralOffset) {
     const SUMOReal dist = p1.distanceTo2D(p2);
     if (dist < pos) {
         return Position(-1, -1);
+    }
+    if (lateralOffset != 0) {
+        Line l(p1, p2);
+        l.move2side(-lateralOffset); // move in the same direction as Position::move2side
+        return l.getPositionAtDistance2D(pos);
     }
     return p1 + (p2 - p1) * (pos / dist);
 }
@@ -348,10 +363,19 @@ PositionVector::getCentroid() const {
 
 
 void
-PositionVector::scaleSize(SUMOReal factor) {
+PositionVector::scaleRelative(SUMOReal factor) {
     Position centroid = getCentroid();
     for (int i = 0; i < static_cast<int>(size()); i++) {
         (*this)[i] = centroid + (((*this)[i] - centroid) * factor);
+    }
+}
+
+
+void
+PositionVector::scaleAbsolute(SUMOReal offset) {
+    Position centroid = getCentroid();
+    for (int i = 0; i < static_cast<int>(size()); i++) {
+        (*this)[i] = centroid + (((*this)[i] - centroid) + offset);
     }
 }
 
@@ -712,6 +736,22 @@ PositionVector::pruneFromBeginAt(const Position& p) {
             assert(*(begin()) != *(end() - 1));
         }
     }
+}
+
+
+PositionVector 
+PositionVector::getSubpartByIndex(int beginIndex, int count) const {
+    if (beginIndex < 0) {
+        beginIndex += (int)size();
+    }
+    assert(count > 0);
+    assert(beginIndex < (int)size());
+    assert(beginIndex + count <= (int)size());
+    PositionVector result;
+    for (int i = beginIndex; i < beginIndex + count; ++i) {
+        result.push_back((*this)[i]);
+    }
+    return result;
 }
 
 

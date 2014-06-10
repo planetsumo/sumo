@@ -65,20 +65,19 @@ MSVehicleControl::MSVehicleControl() :
     myTeleportsJam(0),
     myTeleportsYield(0),
     myTeleportsWrongLane(0),
+    myEmergencyStops(0),
     myTotalDepartureDelay(0),
     myTotalTravelTime(0),
     myDefaultVTypeMayBeDeleted(true),
     myWaitingForPerson(0),
     myScale(-1) {
-    SUMOVTypeParameter defType;
+    SUMOVTypeParameter defType(DEFAULT_VTYPE_ID, SVC_IGNORING);
     myVTypeDict[DEFAULT_VTYPE_ID] = MSVehicleType::build(defType);
     OptionsCont& oc = OptionsCont::getOptions();
-    if (oc.isSet("incremental-dua-step")) {
-        myScale = oc.getInt("incremental-dua-step") / static_cast<SUMOReal>(oc.getInt("incremental-dua-base"));
-    }
     if (oc.isSet("scale")) {
         myScale = oc.getFloat("scale");
     }
+    myMaxRandomDepartOffset = string2time(oc.getString("random-depart-offset"));
 }
 
 
@@ -106,6 +105,10 @@ MSVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                const MSRoute* route,
                                const MSVehicleType* type) {
     myLoadedVehNo++;
+    if (myMaxRandomDepartOffset > 0) {
+        // round to the closest usable simulation step
+        defs->depart += DELTA_T * int((myVehicleParamsRNG.rand((int)myMaxRandomDepartOffset) + 0.5 * DELTA_T) / DELTA_T);
+    }
     MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG));
     MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
     return built;
@@ -313,17 +316,22 @@ MSVehicleControl::abortWaiting() {
 }
 
 
-bool
-MSVehicleControl::isInQuota(SUMOReal frac) const {
+unsigned int
+MSVehicleControl::getQuota(SUMOReal frac) const {
     frac = frac < 0 ? myScale : frac;
-    if (frac < 0) {
-        return true;
+    if (frac < 0 || frac == 1.) {
+        return 1;
     }
-    const unsigned int resolution = 1000;
-    const unsigned int intFrac = (unsigned int)floor(frac * resolution + 0.5);
     // the vehicle in question has already been loaded, hence  the '-1'
+    const unsigned int loaded = frac > 1. ? (unsigned int)(myLoadedVehNo / frac) : myLoadedVehNo - 1;
+    const unsigned int base = (unsigned int)frac;
+    const unsigned int resolution = 1000;
+    const unsigned int intFrac = (unsigned int)floor((frac-base) * resolution + 0.5);
     // apply % twice to avoid integer overflow
-    return (((myLoadedVehNo - 1) % resolution) * intFrac) % resolution < intFrac;
+    if (((loaded % resolution) * intFrac) % resolution < intFrac) {
+        return base + 1;
+    }
+    return base;
 }
 
 /****************************************************************************/

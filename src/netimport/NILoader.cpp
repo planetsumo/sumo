@@ -106,7 +106,8 @@ NILoader::load(OptionsCont& oc) {
     NIImporter_MATSim::loadNetwork(oc, myNetBuilder);
     NIImporter_ITSUMO::loadNetwork(oc, myNetBuilder);
     if (oc.getBool("tls.discard-loaded") || oc.getBool("tls.discard-simple")) {
-        myNetBuilder.getNodeCont().discardTrafficLights(myNetBuilder.getTLLogicCont(), oc.getBool("tls.discard-simple"));
+        myNetBuilder.getNodeCont().discardTrafficLights(myNetBuilder.getTLLogicCont(), oc.getBool("tls.discard-simple"), 
+                oc.getBool("tls.guess-signals"));
         size_t removed = myNetBuilder.getTLLogicCont().getNumExtracted();
         if (removed > 0) {
             WRITE_MESSAGE(" Removed " + toString(removed) + " traffic lights before loading plain-XML");
@@ -156,6 +157,9 @@ NILoader::loadXML(OptionsCont& oc) {
                                       myNetBuilder.getTLLogicCont(),
                                       oc),
                 oc.getStringVector("edge-files"), "edges");
+    if (!deprecatedVehicleClassesSeen.empty()) {
+        WRITE_WARNING("Deprecated vehicle class(es) '" + toString(deprecatedVehicleClassesSeen) + "' in input edge files.");
+    }
     // load the connections
     loadXMLType(new NIXMLConnectionsHandler(myNetBuilder.getEdgeCont(), myNetBuilder.getTLLogicCont()),
                 oc.getStringVector("connection-files"), "connections");
@@ -174,7 +178,7 @@ NILoader::loadXMLType(SUMOSAXHandler* handler, const std::vector<std::string>& f
     // start the parsing
     try {
         for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
-            if (!FileHelpers::exists(*file)) {
+            if (!FileHelpers::isReadable(*file)) {
                 WRITE_ERROR("Could not open " + type + "-file '" + *file + "'.");
                 exceptMsg = "Process Error";
                 continue;

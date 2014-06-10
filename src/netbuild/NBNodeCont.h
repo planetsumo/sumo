@@ -2,7 +2,7 @@
 /// @file    NBNodeCont.h
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
-/// @author  Yun-Pang Wang
+/// @author  Yun-Pang Floetteroed
 /// @author  Michael Behrisch
 /// @author  Walter Bamberger
 /// @date    Tue, 20 Nov 2001
@@ -82,7 +82,7 @@ public:
      * @return Whether the node could be added (no other with the same id or position is stored)
      */
     bool insert(const std::string& id, const Position& position,
-                NBDistrict* district=0);
+                NBDistrict* district = 0);
 
 
     /** @brief Inserts a node into the map
@@ -264,7 +264,7 @@ public:
 
 
     /// divides the incoming lanes on outgoing lanes
-    void computeLanes2Lanes();
+    void computeLanes2Lanes(const bool buildCrossingsAndWalkingAreas);
 
     /// build the list of outgoing edges and lanes
     void computeLogics(const NBEdgeCont& ec, OptionsCont& oc);
@@ -287,7 +287,7 @@ public:
      * @param[in] lefhand Whether the network uses left-hand traffic
      * @param[in] mismatchThreshold The threshold for warning about shapes which are away from myPosition
      */
-    void computeNodeShapes(bool leftHand, SUMOReal mismatchThreshold=-1);
+    void computeNodeShapes(bool leftHand, SUMOReal mismatchThreshold = -1);
 
     /** @brief Prints statistics about built nodes
      *
@@ -323,7 +323,7 @@ public:
     /* @brief discards traffic lights
      * @param[in] geometryLike Whether only tls at geometry-like nodes shall be discarded
      */
-    void discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike);
+    void discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike, bool guessSignals);
 
 private:
     /// @name Helper methods for for joining nodes

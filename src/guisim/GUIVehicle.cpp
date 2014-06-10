@@ -33,13 +33,10 @@
 #include <cmath>
 #include <vector>
 #include <string>
-#ifdef HAVE_OSG
-#include <osg/ShapeDrawable>
-#include <osgview/GUIOSGView.h>
-#endif
 #include <foreign/polyfonts/polyfonts.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/SUMOVehicleParameter.h>
+#include <utils/emissions/PollutantsInterface.h>
 #include <utils/gui/globjects/GLIncludes.h>
 #include <utils/gui/windows/GUISUMOAbstractView.h>
 #include <utils/gui/windows/GUIAppEnum.h>
@@ -262,11 +259,6 @@ GUIVehicle::~GUIVehicle() {
     for (std::map<GUISUMOAbstractView*, int>::iterator i = myAdditionalVisualizations.begin(); i != myAdditionalVisualizations.end(); ++i) {
         while (i->first->removeAdditionalGLVisualisation(this));
     }
-#ifdef HAVE_OSG
-    for (std::map<GUIOSGView*, osg::ShapeDrawable*>::iterator i = myGeom.begin(); i != myGeom.end(); ++i) {
-        i->first->remove(this);
-    }
-#endif
     myLock.unlock();
     GLObjectValuePassConnector<SUMOReal>::removeObject(*this);
     delete myRoutes;
@@ -344,11 +336,14 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
     ret->mkItem("last lane change [s]", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getLastLaneChangeOffset));
     ret->mkItem("desired depart [s]", false, time2string(getParameter().depart));
-    if (getParameter().repetitionNumber > 0) {
-        ret->mkItem("left same route [#]", false, (unsigned int) getParameter().repetitionNumber);
+    if (getParameter().repetitionNumber < INT_MAX) {
+        ret->mkItem("remaining [#]", false, (unsigned int) getParameter().repetitionNumber - getParameter().repetitionsDone);
     }
     if (getParameter().repetitionOffset > 0) {
         ret->mkItem("insertion period [s]", false, time2string(getParameter().repetitionOffset));
+    }
+    if (getParameter().repetitionProbability > 0) {
+        ret->mkItem("insertion probability", false, getParameter().repetitionProbability);
     }
     ret->mkItem("stop info", false, getStopInfo());
     ret->mkItem("CO2 [mg/s]", true,
@@ -372,7 +367,7 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
     ret->mkItem("length", false, myType->getLength());
     ret->mkItem("minGap", false, myType->getMinGap());
     ret->mkItem("vehicle class", false, SumoVehicleClassStrings.getString(myType->getVehicleClass()));
-    ret->mkItem("emission class", false, SumoEmissionClassStrings.getString(myType->getEmissionClass()));
+    ret->mkItem("emission class", false, PollutantsInterface::getName(myType->getEmissionClass()));
     ret->mkItem("maximum speed [m/s]", false, getMaxSpeed());
     ret->mkItem("maximum acceleration [m/s^2]", false, getCarFollowModel().getMaxAccel());
     ret->mkItem("maximum deceleration [m/s^2]", false, getCarFollowModel().getMaxDecel());
@@ -476,6 +471,7 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             glTranslated(0, 0, -.04);
             break;
         case SVS_BICYCLE:
+        case SVS_MOPED:
         case SVS_MOTORCYCLE: {
             glPushMatrix();
             glTranslated(.5, 0, 0);
@@ -520,9 +516,9 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             drawPoly(vehiclePoly_DeliveryMediumRightGlass, 4.5);
             drawPoly(vehiclePoly_DeliveryMediumLeftGlass, 4.5);
             break;
-        case SVS_TRANSPORT:
-        case SVS_TRANSPORT_SEMITRAILER:
-        case SVS_TRANSPORT_1TRAILER:
+        case SVS_TRUCK:
+        case SVS_TRUCK_SEMITRAILER:
+        case SVS_TRUCK_1TRAILER:
             glScaled(1. / (length), 1, 1.);
             drawPoly(vehiclePoly_TransportBody, 4);
             glColor3d(0, 0, 0);
@@ -531,8 +527,8 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             drawPoly(vehiclePoly_TransportLeftGlass, 4.5);
             break;
         case SVS_BUS:
-        case SVS_BUS_TROLLEY:
-        case SVS_BUS_CITY: {
+        case SVS_BUS_COACH:
+        case SVS_BUS_TROLLEY: {
             SUMOReal ml = length;
             glScaled(1. / (length), 1, 1.);
             glTranslated(0, 0, .04);
@@ -578,13 +574,9 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             glTranslated(0, 0, -.045);
         }
         break;
-        case SVS_BUS_CITY_FLEXIBLE:
-        case SVS_BUS_OVERLAND:
+        case SVS_BUS_FLEXIBLE:
         case SVS_RAIL:
-        case SVS_RAIL_LIGHT:
-        case SVS_RAIL_CITY:
-        case SVS_RAIL_SLOW:
-        case SVS_RAIL_FAST:
+        case SVS_RAIL_CAR:
         case SVS_RAIL_CARGO:
             drawAction_drawCarriageClass(s, shape, false);
             break;
@@ -674,6 +666,7 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             glVertex2d(0, 0);
             glEnd();
             break;
+        case SVS_MOPED:
         case SVS_MOTORCYCLE:
             //glScaled(length, 1, 1.);
             glBegin(GL_TRIANGLE_FAN);
@@ -709,15 +702,15 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
         case SVS_PASSENGER_VAN:
         case SVS_DELIVERY:
             break;
-        case SVS_TRANSPORT:
+        case SVS_TRUCK:
             GLHelper::setColor(current);
             GLHelper::drawBoxLine(Position(2.3, 0), 90., length - 2.3, .5);
             break;
-        case SVS_TRANSPORT_SEMITRAILER:
+        case SVS_TRUCK_SEMITRAILER:
             GLHelper::setColor(current);
             GLHelper::drawBoxLine(Position(2.8, 0), 90., length - 2.8, .5);
             break;
-        case SVS_TRANSPORT_1TRAILER: {
+        case SVS_TRUCK_1TRAILER: {
             GLHelper::setColor(current);
             SUMOReal l = length - 2.3;
             l = l / 2.;
@@ -739,14 +732,10 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             glPopMatrix();
             break;
         case SVS_BUS:
-        case SVS_BUS_CITY:
-        case SVS_BUS_CITY_FLEXIBLE:
-        case SVS_BUS_OVERLAND:
+        case SVS_BUS_COACH:
+        case SVS_BUS_FLEXIBLE:
         case SVS_RAIL:
-        case SVS_RAIL_LIGHT:
-        case SVS_RAIL_CITY:
-        case SVS_RAIL_SLOW:
-        case SVS_RAIL_FAST:
+        case SVS_RAIL_CAR:
         case SVS_RAIL_CARGO:
         case SVS_E_VEHICLE:
         case SVS_ANT:
@@ -848,27 +837,20 @@ GUIVehicle::drawAction_drawVehicleAsImage(const GUIVisualizationSettings& s, SUM
 }
 
 
-bool 
+bool
 GUIVehicle::drawAction_drawCarriageClass(const GUIVisualizationSettings& s, SUMOVehicleShape guiShape, bool asImage) const {
     switch (guiShape) {
-        case SVS_BUS_CITY_FLEXIBLE:
-        case SVS_BUS_OVERLAND:
+        case SVS_BUS_FLEXIBLE:
             drawAction_drawRailCarriages(s, 8.25, 0, 0, asImage); // 16.5 overall, 2 modules http://de.wikipedia.org/wiki/Ikarus_180
             break;
         case SVS_RAIL:
             drawAction_drawRailCarriages(s, 24.5, 1, 1, asImage); // http://de.wikipedia.org/wiki/UIC-Y-Wagen_%28DR%29
             break;
-        case SVS_RAIL_LIGHT:
+        case SVS_RAIL_CAR:
             drawAction_drawRailCarriages(s, 16.85, 1, 0, asImage); // 67.4m overall, 4 carriages http://de.wikipedia.org/wiki/DB-Baureihe_423
-            break;
-        case SVS_RAIL_CITY:
-            drawAction_drawRailCarriages(s, 5.71, 0, 0, asImage); // 40.0m overall, 7 modules http://de.wikipedia.org/wiki/Bombardier_Flexity_Berlin
-            break;
-        case SVS_RAIL_SLOW:
-            drawAction_drawRailCarriages(s, 9.44, 1, 1, asImage); // actually length of the locomotive http://de.wikipedia.org/wiki/KJI_Nr._20_und_21
-            break;
-        case SVS_RAIL_FAST:
-            drawAction_drawRailCarriages(s, 24.775, 0, 0, asImage); // http://de.wikipedia.org/wiki/ICE_3
+//            drawAction_drawRailCarriages(s, 5.71, 0, 0, asImage); // 40.0m overall, 7 modules http://de.wikipedia.org/wiki/Bombardier_Flexity_Berlin
+//            drawAction_drawRailCarriages(s, 9.44, 1, 1, asImage); // actually length of the locomotive http://de.wikipedia.org/wiki/KJI_Nr._20_und_21
+//            drawAction_drawRailCarriages(s, 24.775, 0, 0, asImage); // http://de.wikipedia.org/wiki/ICE_3
             break;
         case SVS_RAIL_CARGO:
             drawAction_drawRailCarriages(s, 13.86, 1, 0, asImage); // UIC 571-1 http://de.wikipedia.org/wiki/Flachwagen
@@ -997,11 +979,8 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
             case SVS_BICYCLE:
             case SVS_ANT:
             case SVS_RAIL:
-            case SVS_RAIL_LIGHT:
-            case SVS_RAIL_SLOW:
-            case SVS_RAIL_FAST:
             case SVS_RAIL_CARGO:
-                // only SVS_RAIL_CITY has blinkers and brake lights
+                // only SVS_RAIL_CAR has blinkers and brake lights
                 break;
             default:
                 drawAction_drawVehicleBlinker(*this, myCarriageLength);
@@ -1135,14 +1114,6 @@ GUIVehicle::drawLinkItem(const Position& pos, SUMOTime arrivalTime, SUMOTime lea
     glTranslated(-pos.x(), -pos.y(), .1);
 }
 
-const std::vector<MSVehicle::LaneQ>&
-GUIVehicle::getBestLanes() const {
-    myLock.lock();
-    const std::vector<MSVehicle::LaneQ>& ret = MSVehicle::getBestLanes();
-    myLock.unlock();
-    return ret;
-}
-
 
 void
 GUIVehicle::setColor(const GUIVisualizationSettings& s) const {
@@ -1236,7 +1207,7 @@ GUIVehicle::getColorValue(size_t activeScheme) const {
         case 10:
             return getLastLaneChangeOffset();
         case 11:
-            return getMaxSpeed();
+            return MIN2(getMaxSpeed(), getLane()->getVehicleMaxSpeed(this));
         case 12:
             return getCO2Emissions();
         case 13:
@@ -1425,8 +1396,14 @@ GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMO
     // draw individual carriages
     for (int i = 0; i < numCarriages; ++i) {
         while (carriageOffset < 0) {
-            lane = getPreviousLane(lane, furtherIndex);
-            carriageOffset += lane->getLength();
+            MSLane* prev = getPreviousLane(lane, furtherIndex);
+            if (prev != lane) {
+                carriageOffset += lane->getLength();
+            } else {
+                // no lane available for drawing.
+                carriageOffset = 0;
+            }
+            lane = prev;
         }
         while (carriageBackOffset < 0) {
             backLane = getPreviousLane(backLane, backFurtherIndex);
@@ -1537,35 +1514,36 @@ GUIVehicle::selectBlockingFoes() const {
             continue;
         }
         std::vector<const SUMOVehicle*> blockingFoes;
+        std::vector<const MSPerson*> blockingPersons;
         dpi.myLink->opened(dpi.myArrivalTime, dpi.myArrivalSpeed, dpi.getLeaveSpeed(), getVehicleType().getLengthWithGap(),
-                getImpatience(), getCarFollowModel().getMaxDecel(), getWaitingTime(), &blockingFoes);
+                           getImpatience(), getCarFollowModel().getMaxDecel(), getWaitingTime(), &blockingFoes);
         for (std::vector<const SUMOVehicle*>::const_iterator it = blockingFoes.begin(); it != blockingFoes.end(); ++it) {
             gSelected.select(static_cast<const GUIVehicle*>(*it)->getGlID());
         }
 #ifdef HAVE_INTERNAL_LANES
-        const MSLink::LinkLeaders linkLeaders = (dpi.myLink)->getLeaderInfo(dist, getVehicleType().getMinGap());
+        const MSLink::LinkLeaders linkLeaders = (dpi.myLink)->getLeaderInfo(dist, getVehicleType().getMinGap(), &blockingPersons);
         for (MSLink::LinkLeaders::const_iterator it = linkLeaders.begin(); it != linkLeaders.end(); ++it) {
             // the vehicle to enter the junction first has priority
-            const MSVehicle* leader = it->first.first;
-            if ((static_cast<const GUIVehicle*>(leader))->myLinkLeaders.count(getID()) == 0) {
-                // leader isn't already following us, now we follow it
-                gSelected.select(static_cast<const GUIVehicle*>(leader)->getGlID());
+            const GUIVehicle* leader = dynamic_cast<const GUIVehicle*>(it->vehAndGap.first);
+            if (leader != 0) {
+                if (leader->myLinkLeaders.count(getID()) == 0) {
+                    // leader isn't already following us, now we follow it
+                    gSelected.select(leader->getGlID());
+                }
+            } else {
+                for (std::vector<const MSPerson*>::iterator it_p = blockingPersons.begin(); it_p != blockingPersons.end(); ++it_p) {
+                    const GUIPerson* foe = dynamic_cast<const GUIPerson*>(*it_p);
+                    if (foe != 0) {
+                        gSelected.select(foe->getGlID());
+                        //std::cout << SIMTIME << " veh=" << getID() << " is blocked on link " << dpi.myLink->getRespondIndex() << " to " << dpi.myLink->getViaLaneOrLane()->getID() << " by pedestrian. dist=" << it->second << "\n"; 
+                    }
+                }
             }
         }
 #endif
         dist += dpi.myLink->getViaLaneOrLane()->getLength();
     }
 }
-
-
-#ifdef HAVE_OSG
-void
-GUIVehicle::updateColor(GUIOSGView* view) {
-    const GUIVisualizationSettings* s = view->getVisualisationSettings();
-    const RGBColor& col = s->vehicleColorer.getScheme().getColor(getColorValue(s->vehicleColorer.getActive()));
-    myGeom[view]->setColor(osg::Vec4(col.red() / 255., col.green() / 255., col.blue() / 255., col.alpha() / 255.));
-}
-#endif
 
 /****************************************************************************/
 

@@ -9,7 +9,7 @@
 // Encapsulated SAX-Attributes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -71,7 +71,7 @@ SUMOSAXAttributes::getSUMOTimeReporting(int attr, const char* objectid,
         return -1;
     }
     try {
-        return (SUMOTime)(getFloat(attr) * 1000.);
+        return TIME2STEPS(getFloat(attr));
     } catch (NumberFormatException&) {
         if (report) {
             emitFormatError(getName(attr), "a time value", objectid);

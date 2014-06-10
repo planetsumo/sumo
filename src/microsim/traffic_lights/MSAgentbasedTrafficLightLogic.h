@@ -3,6 +3,7 @@
 /// @author  Julia Ringel
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Wed, 01. Oct 2003
 /// @version $Id$
 ///

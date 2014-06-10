@@ -3,6 +3,7 @@
 /// @author  Daniel Krajzewicz
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Tue, 20 Nov 2001
 /// @version $Id$
 ///
@@ -58,8 +59,7 @@ public:
     /** computes the relative angle between the two angles */
     static SUMOReal relAngle(SUMOReal angle1, SUMOReal angle2);
 
-    /** normalises angle <-170 and >170 to 180 after the computation with
-        "relAngle" */
+    ///@brief ensure that reverse relAngles (>=179.999) always count as turnarounds (-180)
     static SUMOReal normRelAngle(SUMOReal angle1, SUMOReal angle2);
 
     /** converts the numerical id to its "normal" string representation */

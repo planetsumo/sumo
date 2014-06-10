@@ -9,7 +9,7 @@
 // Utility methods for initialising, closing and using the XML-subsystem
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -130,10 +130,10 @@ XMLSubSys::runParser(GenericSAXHandler& handler,
     } catch (ProcessError& e) {
         WRITE_ERROR(std::string(e.what()) != std::string("") ? std::string(e.what()) : std::string("Process Error"));
         return false;
-    } catch(const std::runtime_error& re) {
+    } catch (const std::runtime_error& re) {
         WRITE_ERROR("Runtime error: " + std::string(re.what()) + " while parsing '" + file + "'");
         return false;
-    } catch(const std::exception& ex) {
+    } catch (const std::exception& ex) {
         WRITE_ERROR("Error occurred: " + std::string(ex.what()) + " while parsing '" + file + "'");
         return false;
     } catch (...) {

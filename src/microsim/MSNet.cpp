@@ -7,6 +7,8 @@
 /// @author  Eric Nicolay
 /// @author  Mario Krumnow
 /// @author  Michael Behrisch
+/// @author  Mario Krumnow
+/// @author  Christoph Sommer
 /// @date    Tue, 06 Mar 2001
 /// @version $Id$
 ///
@@ -45,6 +47,7 @@
 #include <algorithm>
 #include <cassert>
 #include <vector>
+#include <ctime>
 #include <utils/common/UtilExceptions.h>
 #include "MSNet.h"
 #include "MSPersonControl.h"
@@ -80,13 +83,15 @@
 #include "output/MSQueueExport.h"
 #include "output/MSVTKExport.h"
 #include "output/MSXMLRawOut.h"
+#include "output/MSAmitranTrajectories.h"
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/common/SysUtils.h>
 #include <utils/common/WrappingCommand.h>
 #include <utils/options/OptionsCont.h>
+#include <utils/common/PedestrianRouter.h>
 #include "MSGlobals.h"
+#include "MSPModel.h"
 #include <utils/geom/GeoConvHelper.h>
-#include <ctime>
 #include "MSPerson.h"
 #include "MSEdgeWeightsStorage.h"
 #include "MSStateHandler.h"
@@ -122,10 +127,10 @@ SUMOReal
 MSNet::getEffort(const MSEdge* const e, const SUMOVehicle* const v, SUMOReal t) {
     SUMOReal value;
     const MSVehicle* const veh = dynamic_cast<const MSVehicle* const>(v);
-    if (veh != 0 && veh->getWeightsStorage().retrieveExistingEffort(e, v, t, value)) {
+    if (veh != 0 && veh->getWeightsStorage().retrieveExistingEffort(e, t, value)) {
         return value;
     }
-    if (getInstance()->getWeightsStorage().retrieveExistingEffort(e, v, t, value)) {
+    if (getInstance()->getWeightsStorage().retrieveExistingEffort(e, t, value)) {
         return value;
     }
     return 0;
@@ -136,10 +141,10 @@ SUMOReal
 MSNet::getTravelTime(const MSEdge* const e, const SUMOVehicle* const v, SUMOReal t) {
     SUMOReal value;
     const MSVehicle* const veh = dynamic_cast<const MSVehicle* const>(v);
-    if (veh != 0 && veh->getWeightsStorage().retrieveExistingTravelTime(e, v, t, value)) {
+    if (veh != 0 && veh->getWeightsStorage().retrieveExistingTravelTime(e, t, value)) {
         return value;
     }
-    if (getInstance()->getWeightsStorage().retrieveExistingTravelTime(e, v, t, value)) {
+    if (getInstance()->getWeightsStorage().retrieveExistingTravelTime(e, t, value)) {
         return value;
     }
     return e->getMinimumTravelTime(v);
@@ -166,7 +171,9 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
     myRouterTTInitialized(false),
     myRouterTTDijkstra(0),
     myRouterTTAStar(0),
-    myRouterEffort(0) {
+    myRouterEffort(0),
+    myPedestrianRouter(0) 
+{
     if (myInstance != 0) {
         throw ProcessError("A network was already constructed.");
     }
@@ -348,6 +355,9 @@ MSNet::closeSimulation(SUMOTime start) {
             }
             msg << "Teleports: " << myVehicleControl->getTeleportCount() << " (" << joinToString(reasons, ", ") << ")\n";
         }
+        if (myVehicleControl->getEmergencyStops() > 0) {
+            msg << "Emergency Stops: " << myVehicleControl->getEmergencyStops() << "\n";
+        }
         WRITE_MESSAGE(msg.str());
     }
     myDetectorControl->close(myStep);
@@ -510,6 +520,8 @@ MSNet::clearAll() {
     MSDevice_Routing::cleanup();
     MSTrigger::cleanup();
     MSCalibrator::cleanup();
+    MSPModel::cleanup();
+    PedestrianEdge<MSEdge, MSLane, MSJunction>::cleanup();
 }
 
 
@@ -541,6 +553,11 @@ MSNet::writeOutput() {
     // check queue dumps
     if (OptionsCont::getOptions().isSet("queue-output")) {
         MSQueueExport::write(OutputDevice::getDeviceByOption("queue-output"), myStep);
+    }
+
+    // check amitran dumps
+    if (OptionsCont::getOptions().isSet("amitran-output")) {
+        MSAmitranTrajectories::write(OutputDevice::getDeviceByOption("amitran-output"), myStep);
     }
 
     // check vtk dumps
@@ -743,6 +760,16 @@ MSNet::getRouterEffort(const std::vector<MSEdge*>& prohibited) const {
     }
     myRouterEffort->prohibit(prohibited);
     return *myRouterEffort;
+}
+
+
+MSNet::MSPedestrianRouterDijkstra& 
+MSNet::getPedestrianRouter(const std::vector<MSEdge*>& prohibited) const {
+    if (myPedestrianRouter == 0) {
+        myPedestrianRouter = new MSPedestrianRouterDijkstra();
+    }
+    myPedestrianRouter->prohibit(prohibited);
+    return *myPedestrianRouter;
 }
 
 

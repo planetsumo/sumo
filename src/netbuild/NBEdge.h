@@ -122,8 +122,8 @@ public:
      */
     struct Lane {
         Lane(NBEdge* e) :
-            speed(e->getSpeed()), permissions(SVCFreeForAll), preferred(0),
-            offset(e->getOffset()), width(e->getLaneWidth()) {}
+            speed(e->getSpeed()), permissions(SVCAll), preferred(0),
+            endOffset(e->getEndOffset()), width(e->getLaneWidth()) {}
         /// @brief The lane's shape
         PositionVector shape;
         /// @brief The speed allowed on this lane
@@ -133,7 +133,7 @@ public:
         /// @brief List of vehicle types that are preferred on this lane
         SVCPermissions preferred;
         /// @brief This lane's offset to the intersection begin
-        SUMOReal offset;
+        SUMOReal endOffset;
         /// @brief This lane's width
         SUMOReal width;
         /// @brief An original ID, if given (@todo: is only seldom used, should be stored somewhere else, probably)
@@ -201,6 +201,8 @@ public:
     static const SUMOReal UNSPECIFIED_WIDTH;
     /// @brief unspecified lane offset
     static const SUMOReal UNSPECIFIED_OFFSET;
+    /// @brief unspecified signal offset
+    static const SUMOReal UNSPECIFIED_SIGNAL_OFFSET;
     /// @brief no length override given
     static const SUMOReal UNSPECIFIED_LOADED_LENGTH;
     /// @brief the distance at which to take the default anglen
@@ -270,10 +272,14 @@ public:
      * @param[in] from The node the edge starts at
      * @param[in] to The node the edge ends at
      * @param[in] tpl The template edge to copy attributes from
+     * @param[in] geom The geometry to use (may be empty)
+     * @param[in] numLanes The number of lanes of the new edge (copy from tpl by default)
      */
     NBEdge(const std::string& id,
            NBNode* from, NBNode* to,
-           NBEdge* tpl);
+           NBEdge* tpl,
+           const PositionVector& geom=PositionVector(),
+           unsigned int numLanes=-1);
 
 
     /** @brief Destructor
@@ -462,15 +468,26 @@ public:
     /** @brief Returns the offset to the destination node
      * @return The offset to the destination node
      */
-    SUMOReal getOffset() const {
-        return myOffset;
+    SUMOReal getEndOffset() const {
+        return myEndOffset;
     }
 
     /** @brief Returns the offset to the destination node a the specified lane
      * @return The offset to the destination node
      */
-    SUMOReal getOffset(int lane) const;
+    SUMOReal getEndOffset(int lane) const;
 
+    /** @brief Returns the offset of a traffic signal from the end of this edge
+     */
+    SUMOReal getSignalOffset() const {
+        return mySignalOffset;
+    }
+
+    /** @brief sets the offset of a traffic signal from the end of this edge
+     */
+    void setSignalOffset(SUMOReal offset) {
+        mySignalOffset = offset;
+    }
 
     /** @brief Returns the type name
      * @return The name of this edge's type
@@ -488,7 +505,12 @@ public:
     }
     //@}
 
+    /// @brief return the first lane with permissions other than SVC_PEDESTRIAN
+    int getFirstNonPedestrianLaneIndex(int direction) const;
+    NBEdge::Lane getFirstNonPedestrianLane(int direction) const;
 
+    /// @brief return the angle for computing pedestrian crossings at the given node
+    SUMOReal getCrossingAngle(NBNode* node);
 
     /// @name Edge geometry access and computation
     //@{
@@ -704,9 +726,10 @@ public:
      * Turnaround edge is ignored!
      * @param[in] destEdge The connection's destination edge
      * @param[in] destLane The connection's destination lane
+     * @param[in] fromLane If a value >= 0 is given, only return true if a connection from the given lane exists
      * @return whether a connection to the specified lane exists
      */
-    bool hasConnectionTo(NBEdge* destEdge, unsigned int destLane) const;
+    bool hasConnectionTo(NBEdge* destEdge, unsigned int destLane, int fromLane=-1) const;
 
 
     /** @brief Returns the information whethe a connection to the given edge has been added (or computed)
@@ -783,6 +806,9 @@ public:
     void replaceInConnections(NBEdge* which, NBEdge* by, unsigned int laneOff);
     void replaceInConnections(NBEdge* which, const std::vector<NBEdge::Connection>& origConns);
     void copyConnectionsFrom(NBEdge* src);
+
+    /// @brief modifify the toLane for all connections to the given edge
+    void shiftToLanesToEdge(NBEdge* to, unsigned int laneOff);
     /// @}
 
 
@@ -873,7 +899,7 @@ public:
     bool hasLaneSpecificSpeed() const;
 
     /// @brief whether lanes differ in offset
-    bool hasLaneSpecificOffset() const;
+    bool hasLaneSpecificEndOffset() const;
 
     /// @brief whether lanes differ in width
     bool hasLaneSpecificWidth() const;
@@ -882,11 +908,11 @@ public:
     bool computeEdge2Edges(bool noLeftMovers);
 
     /// computes the edge, step2: computation of which lanes approach the edges)
-    bool computeLanes2Edges();
+    bool computeLanes2Edges(const bool buildCrossingsAndWalkingAreas);
 
     /** recheck whether all lanes within the edge are all right and
         optimises the connections once again */
-    bool recheckLanes();
+    bool recheckLanes(const bool buildCrossingsAndWalkingAreas);
 
     /** @brief Add a connection to the previously computed turnaround, if wished
      *
@@ -961,6 +987,9 @@ public:
 
     void markAsInLane2LaneState();
 
+    /// add a pedestrian sidewalk of the given width and shift existing connctions
+    void addSidewalk(SUMOReal width);
+
     /// @brief set allowed/disallowed classes for the given lane or for all lanes if -1 is given
     void setPermissions(SVCPermissions permissions, int lane = -1);
 
@@ -974,12 +1003,11 @@ public:
     void preferVehicleClass(int lane, SUMOVehicleClass vclass);
 
 
-
     /// @brief set lane specific width (negative lane implies set for all lanes)
     void setLaneWidth(int lane, SUMOReal width);
 
     /// @brief set lane specific end-offset (negative lane implies set for all lanes)
-    void setOffset(int lane, SUMOReal offset);
+    void setEndOffset(int lane, SUMOReal offset);
 
     /// @brief set lane specific speed (negative lane implies set for all lanes)
     void setSpeed(int lane, SUMOReal speed);
@@ -1133,11 +1161,11 @@ private:
 
 
     /** divides the lanes on the outgoing edges */
-    void divideOnEdges(const EdgeVector* outgoing);
+    void divideOnEdges(const EdgeVector* outgoing, const bool buildCrossingsAndWalkingAreas);
 
-    /** recomputes the priorities and manipulates them for a distribution
+    /** recomputes the edge priorities and manipulates them for a distribution
         of lanes on edges which is more like in real-life */
-    std::vector<unsigned int>* preparePriorities(
+    std::vector<unsigned int>* prepareEdgePriorities(
         const EdgeVector* outgoing);
 
     /** computes the sum of the given list's entries (sic!) */
@@ -1149,11 +1177,14 @@ private:
 
     /** moves a connection one place to the left;
         Attention! no checking for field validity */
-    void moveConnectionToLeft(unsigned int lane);
+    void moveConnectionToLeft(unsigned int lane, const bool buildCrossingsAndWalkingAreas);
 
     /** moves a connection one place to the right;
         Attention! no checking for field validity */
-    void moveConnectionToRight(unsigned int lane);
+    void moveConnectionToRight(unsigned int lane, const bool buildCrossingsAndWalkingAreas);
+
+    /// @brief whether the connection can originate on newFromLane
+    bool canMoveConnection(const Connection& con, unsigned int newFromLane, const bool buildCrossingsAndWalkingAreas) const;
     /// @}
 
 
@@ -1217,7 +1248,7 @@ private:
     LaneSpreadFunction myLaneSpreadFunction;
 
     /// @brief This edges's offset to the intersection begin (will be applied to all lanes)
-    SUMOReal myOffset;
+    SUMOReal myEndOffset;
 
     /// @brief This width of this edge's lanes
     SUMOReal myLaneWidth;
@@ -1256,6 +1287,8 @@ private:
     /// @brief the street signs along this edge
     std::vector<NBSign> mySigns;
 
+    /// @brief the offset of a traffic light signal from the end of this edge (-1 for None)
+    SUMOReal mySignalOffset;
 
 public:
     /**
@@ -1317,15 +1350,19 @@ public:
     class connections_toedgelane_finder {
     public:
         /// constructor
-        connections_toedgelane_finder(NBEdge* const edge2find, int lane2find) : myEdge2Find(edge2find), myLane2Find(lane2find) { }
+        connections_toedgelane_finder(NBEdge* const edge2find, int lane2find, int fromLane2find) : 
+            myEdge2Find(edge2find), 
+            myLane2Find(lane2find),
+            myFromLane2Find(fromLane2find) { }
 
         bool operator()(const Connection& c) const {
-            return c.toEdge == myEdge2Find && c.toLane == myLane2Find;
+            return c.toEdge == myEdge2Find && c.toLane == myLane2Find && (myFromLane2Find < 0 || c.fromLane == myFromLane2Find);
         }
 
     private:
         NBEdge* const myEdge2Find;
         int myLane2Find;
+        int myFromLane2Find;
 
     private:
         /// @brief invalidated assignment operator
@@ -1379,17 +1416,9 @@ public:
     };
 
     /**
-     * connections_sorter
+     * connections_sorter sort by fromLane, toEdge and toLane
      */
-    static bool connections_sorter(const Connection& c1, const Connection& c2) {
-        if (c1.fromLane != c2.fromLane) {
-            return c1.fromLane < c2.fromLane;
-        }
-        if (c1.toEdge != c2.toEdge) {
-            return c1.toEdge->getID().compare(c1.toEdge->getID()) < 0;
-        }
-        return c1.toLane < c2.toLane;
-    }
+    static bool connections_sorter(const Connection& c1, const Connection& c2);
 
     /**
      * connections_relative_edgelane_sorter

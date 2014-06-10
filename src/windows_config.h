@@ -5,6 +5,7 @@
 /// @author  Axel Wegener
 /// @author  Michael Behrisch
 /// @author  Felix Brack
+/// @author  Jakob Erdmann
 /// @date    Mon, 17 Dec 2001
 /// @version $Id$
 ///
@@ -52,10 +53,10 @@
 #define SUMOLong long long
 
 /* defines the epsilon to use on position comparison */
-#define POSITION_EPS 0.1
+#define POSITION_EPS (SUMOReal)0.1
 
 /* defines the epsilon to use on general floating point comparison */
-#define NUMERICAL_EPS 0.001
+#define NUMERICAL_EPS (SUMOReal)0.001
 
 /* defines the number of digits after the comma in output */
 #define OUTPUT_ACCURACY 2

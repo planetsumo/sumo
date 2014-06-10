@@ -45,6 +45,7 @@
 class MSLane;
 class SUMOVehicle;
 class MSVehicle;
+class MSPerson;
 class OutputDevice;
 
 
@@ -74,7 +75,16 @@ class OutputDevice;
 class MSLink {
 public:
 
-    typedef std::vector<std::pair<std::pair<MSVehicle*, SUMOReal>, SUMOReal> > LinkLeaders;
+    struct LinkLeader {
+        LinkLeader(MSVehicle* _veh, SUMOReal _gap, SUMOReal _distToCrossing) :
+            vehAndGap(std::make_pair(_veh, _gap)),
+            distToCrossing(_distToCrossing) {}
+
+        std::pair<MSVehicle*, SUMOReal> vehAndGap;
+        SUMOReal distToCrossing;
+    };
+
+    typedef std::vector<LinkLeader> LinkLeaders;
 
     /** @struct ApproachingVehicleInformation
      * @brief A structure holding the information about vehicles approaching a link
@@ -156,7 +166,7 @@ public:
      *  requests and responses after the initialisation.
      * @todo Unsecure!
      */
-    void setRequestInformation(unsigned int requestIdx, unsigned int respondIdx, bool isCrossing, bool isCont,
+    void setRequestInformation(int index, bool hasFoes, bool isCont,
                                const std::vector<MSLink*>& foeLinks, const std::vector<MSLane*>& foeLanes,
                                MSLane* internalLaneBefore = 0);
 
@@ -227,8 +237,7 @@ public:
      * @param[in] decel The maximum deceleration of the checking vehicle
      * @return Whether a foe of this link is approaching
      */
-    bool hasApproachingFoe(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal speed,
-                           SUMOReal decel = DEFAULT_VEH_DECEL) const;
+    bool hasApproachingFoe(SUMOTime arrivalTime, SUMOTime leaveTime, SUMOReal speed, SUMOReal decel) const;
 
 
     /** @brief Returns the current state of the link
@@ -265,7 +274,9 @@ public:
      *
      * @return The respond index for this link
      */
-    unsigned int getRespondIndex() const;
+    inline int getIndex() const {
+        return myIndex;
+    }
 
 
     /** @brief Returns whether this link is a major link
@@ -288,8 +299,8 @@ public:
      *
      * @return Whether any foe links exist
      */
-    bool isCrossing() const {
-        return myIsCrossing;
+    bool hasFoes() const {
+        return myHasFoes;
     }
 
 
@@ -313,10 +324,11 @@ public:
     /** @brief Returns all potential link leaders (vehicles on foeLanes)
      * Valid during the planMove() phase
      * @param[in] dist The distance of the vehicle who is asking about the leader to this link
-     * @param[in] dist The minGap of the vehicle who is asking about the leader to this link
+     * @param[in] minGap The minGap of the vehicle who is asking about the leader to this link
+     * @param[out] blocking Return blocking pedestrians if a vector is given
      * @return The all vehicles on foeLanes and their (virtual) distances to the asking vehicle
      */
-    LinkLeaders getLeaderInfo(SUMOReal dist, SUMOReal minGap) const;
+    LinkLeaders getLeaderInfo(SUMOReal dist, SUMOReal minGap, std::vector<const MSPerson*>* collectBlockers=0) const;
 #endif
 
     /// @brief return the via lane if it exists and the lane otherwise
@@ -324,7 +336,7 @@ public:
 
 
     /// @brief return the expected time at which the given vehicle will clear the link
-    SUMOTime getLeaveTime(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength) const;
+    SUMOTime getLeaveTime(const SUMOTime arrivalTime, const SUMOReal arrivalSpeed, const SUMOReal leaveSpeed, const SUMOReal vehicleLength) const;
 
     /// @brief write information about all approaching vehicles to the given output device
     void writeApproaching(OutputDevice& od, const std::string fromLaneID) const;
@@ -347,11 +359,8 @@ private:
     std::map<const SUMOVehicle*, ApproachingVehicleInformation> myApproachingVehicles;
     std::set<MSLink*> myBlockedFoeLinks;
 
-    /// @brief The position of the link within this request
-    unsigned int myRequestIdx;
-
     /// @brief The position within this respond
-    unsigned int myRespondIdx;
+    int myIndex;
 
     /// @brief The state of the link
     LinkState myState;
@@ -363,7 +372,7 @@ private:
     SUMOReal myLength;
 
     /// @brief Whether any foe links exist
-    bool myIsCrossing;
+    bool myHasFoes;
 
     bool myAmCont;
 

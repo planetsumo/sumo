@@ -72,8 +72,10 @@ NLEdgeControlBuilder::~NLEdgeControlBuilder() {
 void
 NLEdgeControlBuilder::beginEdgeParsing(
     const std::string& id, const MSEdge::EdgeBasicFunction function,
-    const std::string& streetName) {
-    myActiveEdge = buildEdge(id, function, streetName);
+    const std::string& streetName,
+    const std::string& edgeType) 
+{
+    myActiveEdge = buildEdge(id, function, streetName, edgeType);
     if (MSEdge::dictionary(id) != 0) {
         throw InvalidArgument("Another edge with the id '" + id + "' exists.");
     }
@@ -113,13 +115,30 @@ NLEdgeControlBuilder::build() {
         }
 #endif
     }
+    // mark internal edges belonging to a roundabout (after all edges are build)
+    if (MSGlobals::gUsingInternalLanes) {
+        for (EdgeCont::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
+            MSEdge* edge = *i1;
+            if (edge->isInternal()) {
+                assert(edge->getNoFollowing() == 1);
+                assert(edge->getIncomingEdges().size() == 1);
+                if (edge->getFollower(0)->isRoundabout() || edge->getIncomingEdges()[0]->isRoundabout()) {
+                    edge->markAsRoundabout();
+                }
+            }
+        }
+    }
+    if (!deprecatedVehicleClassesSeen.empty()) {
+        WRITE_WARNING("Deprecated vehicle classes '" + toString(deprecatedVehicleClassesSeen) + "' in input network.");
+        deprecatedVehicleClassesSeen.clear();
+    }
     return new MSEdgeControl(myEdges);
 }
 
 
 MSEdge*
-NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, const std::string& streetName) {
-    return new MSEdge(id, myCurrentNumericalEdgeID++, function, streetName);
+NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, const std::string& streetName, const std::string& edgeType) {
+    return new MSEdge(id, myCurrentNumericalEdgeID++, function, streetName, edgeType);
 }
 
 

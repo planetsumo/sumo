@@ -48,8 +48,8 @@ std::vector<std::pair<SUMOReal, SUMOReal> > GLHelper::myCircleCoords;
 
 
 void APIENTRY combCallback(GLdouble coords[3],
-    GLdouble* vertex_data[4],
-    GLfloat weight[4], GLdouble** dataOut) {
+                           GLdouble* vertex_data[4],
+                           GLfloat weight[4], GLdouble** dataOut) {
     UNUSED_PARAMETER(weight);
     UNUSED_PARAMETER(*vertex_data);
     GLdouble* vertex;
@@ -99,7 +99,7 @@ GLHelper::drawFilledPolyTesselated(const PositionVector& v, bool close) {
     gluTessProperty(tobj, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_ODD);
     gluTessBeginPolygon(tobj, NULL);
     gluTessBeginContour(tobj);
-    double* points = new double[v.size() * 3];
+    double* points = new double[(v.size() + int(close)) * 3];
 
     for (size_t i = 0; i != v.size(); ++i) {
         points[3 * i] = v[(int)i].x();
@@ -108,7 +108,11 @@ GLHelper::drawFilledPolyTesselated(const PositionVector& v, bool close) {
         gluTessVertex(tobj, points + 3 * i, points + 3 * i);
     }
     if (close) {
-        gluTessVertex(tobj, points + 3, points + 3);
+        const size_t i = v.size();
+        points[3 * i] = v[0].x();
+        points[3 * i + 1] = v[0].y();
+        points[3 * i + 2] = 0;
+        gluTessVertex(tobj, points + 3 * i, points + 3 * i);
     }
     gluTessEndContour(tobj);
     gluTessEndPolygon(tobj);
@@ -153,10 +157,19 @@ void
 GLHelper::drawBoxLines(const PositionVector& geom,
                        const std::vector<SUMOReal>& rots,
                        const std::vector<SUMOReal>& lengths,
-                       SUMOReal width) {
+                       SUMOReal width, int cornerDetail) {
     int e = (int) geom.size() - 1;
     for (int i = 0; i < e; i++) {
         drawBoxLine(geom[i], rots[i], lengths[i], width);
+    }
+    if (cornerDetail > 0) {
+        for (int i = 1; i < e; i++) {
+            glPushMatrix();
+            glTranslated(geom[i].x(), geom[i].y(), 0);
+            drawFilledCircle(width, cornerDetail);
+            glEnd();
+            glPopMatrix();
+        }
     }
 }
 

@@ -12,7 +12,7 @@
 // Builder of microsim-junctions and tls
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -466,6 +466,16 @@ NLJunctionControlBuilder::postLoadInitialization() {
         (*it)->init(myDetectorBuilder);
     }
     myNetIsLoaded = true;
+}
+
+
+MSJunction* 
+NLJunctionControlBuilder::retrieve(const std::string id) {
+    if (myJunctions != 0) {
+        return myJunctions->get(id);
+    } else {
+        return 0;
+    }
 }
 
 /****************************************************************************/

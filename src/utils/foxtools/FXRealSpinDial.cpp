@@ -1,26 +1,27 @@
-/********************************************************************************
-*                                                                               *
-*       R e a l - V a l u e d   S p i n n e r / D i a l    W i d g e t          *
-*                                                                               *
-*********************************************************************************
-* Copyright (C) 2004 by Bill Baxter.         All Rights Reserved.               *
-*********************************************************************************
-* This library is free software; you can redistribute it and/or                 *
-* modify it under the terms of the GNU Lesser General Public                    *
-* License as published by the Free Software Foundation; either                  *
-* version 2.1 of the License, or (at your option) any later version.            *
-*                                                                               *
-* This library is distributed in the hope that it will be useful,               *
-* but WITHOUT ANY WARRANTY; without even the implied warranty of                *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU             *
-* Lesser General Public License for more details.                               *
-*                                                                               *
-* You should have received a copy of the GNU Lesser General Public              *
-* License along with this library; if not, write to the Free Software           *
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.    *
-*********************************************************************************
-* $Id$                   *
-********************************************************************************/
+/****************************************************************************/
+/// @file    FXRealSpinDial.cpp
+/// @author  Bill Baxter
+/// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
+/// @author  Laura Bieker
+/// @date    2004-03-19
+/// @version $Id$
+///
+// 
+/****************************************************************************/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
+/****************************************************************************/
+//
+//   This file is part of SUMO.
+//   SUMO is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+/****************************************************************************/
+
+
 /* =========================================================================
  * included modules
  * ======================================================================= */
@@ -460,7 +461,8 @@ FXRealSpinDial::FXRealSpinDial(FXComposite* p, FXint cols, FXObject* tgt, FXSele
     dial->setRevolutionIncrement(DIALINCR);
     upButton = new FXRealSpinDialBtn(this, this, ID_INCREMENT, FRAME_RAISED | FRAME_THICK | ARROW_UP | ARROW_REPEAT, 0, 0, 0, 0, 0, 0, 0, 0);
     downButton = new FXRealSpinDialBtn(this, this, ID_DECREMENT, FRAME_RAISED | FRAME_THICK | ARROW_DOWN | ARROW_REPEAT, 0, 0, 0, 0, 0, 0, 0, 0);
-    textField = new FXRealSpinDialText(this, cols, this, ID_ENTRY, (opts & FRAME_RIDGE) | TEXTFIELD_REAL | JUSTIFY_RIGHT, 0, 0, 0, 0, pl, pr, pt, pb);
+    // flag SPINDIAL_NOMAX collides with flag TEXTFIELD_PASSWORD
+    textField = new FXRealSpinDialText(this, cols, this, ID_ENTRY, (opts & ~SPINDIAL_NOMAX) | TEXTFIELD_REAL | JUSTIFY_RIGHT, 0, 0, 0, 0, pl, pr, pt, pb);
     textField->setText("0");
     range[0] = (options & SPINDIAL_NOMIN) ? -DBL_MAX : 0;
     range[1] = (options & SPINDIAL_NOMAX) ?  DBL_MAX : 100;
