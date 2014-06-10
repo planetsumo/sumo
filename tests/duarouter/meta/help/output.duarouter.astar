@@ -1,4 +1,4 @@
-SUMO duarouter Version dev-SVN-r15485
+SUMO duarouter Version dev-SVN-r16170
  Copyright (C) 2001-2014 DLR and contributors; http://sumo-sim.org
 Shortest path router and DUE computer for the microscopic road traffic
   simulation SUMO.
@@ -23,6 +23,8 @@ Input Options:
   --lane-weight-files FILE         Read lane-based network weights from FILE(s)
   -x, --weight-attribute STR       Name of the xml attribute which gives the
                                      edge weight
+  --phemlight-path FILE            Determines where to load PHEMlight
+                                     definitions from.
   -t, --trip-files FILE            Read trip-definitions from FILE(s)
   -r, --route-files FILE           Read sumo-routes from FILE(s)
 
@@ -49,7 +51,8 @@ Processing Options:
                                      'astar', 'bulkstar', 'CH', 'CHWrapper']
   --weight-period TIME             Aggregation period for the given weight
                                      files;
-                                     triggers rebuilding of Contraction Hirarchy
+                                     triggers rebuilding of Contraction
+                                     Hierarchy
   --weights.expand                 Expand weights behind the simulation's end
   --gawron.beta FLOAT              Use FLOAT as Gawron's beta
   --gawron.a FLOAT                 Use FLOAT as Gawron's a
@@ -84,7 +87,7 @@ Time Options:
 
 Report Options:
   -v, --verbose                    Switches to verbose output
-  -p, --print-options              Prints option values before processing
+  --print-options                  Prints option values before processing
   -?, --help                       Prints this screen
   -V, --version                    Prints the current version
   -X, --xml-validation STR         Set schema validation scheme of XML inputs

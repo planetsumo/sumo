@@ -42,6 +42,9 @@
         <!-- Name of the xml attribute which gives the edge weight -->
         <weight-attribute value="traveltime" synonymes="measure x" type="STR"/>
 
+        <!-- Determines where to load PHEMlight definitions from. -->
+        <phemlight-path value="./PHEMlight/" type="FILE"/>
+
         <!-- Read trip-definitions from FILE(s) -->
         <trip-files value="" synonymes="t trip-defs trips" type="FILE"/>
 
@@ -90,7 +93,7 @@
         <!-- Select among routing algorithms [&apos;dijkstra&apos;, &apos;astar&apos;, &apos;bulkstar&apos;, &apos;CH&apos;, &apos;CHWrapper&apos;] -->
         <routing-algorithm value="" type="STR"/>
 
-        <!-- Aggregation period for the given weight files; triggers rebuilding of Contraction Hirarchy -->
+        <!-- Aggregation period for the given weight files; triggers rebuilding of Contraction Hierarchy -->
         <weight-period value="3600" type="TIME"/>
 
         <!-- Expand weights behind the simulation&apos;s end -->
@@ -163,7 +166,7 @@
         <verbose value="false" synonymes="v" type="BOOL"/>
 
         <!-- Prints option values before processing -->
-        <print-options value="false" synonymes="p" type="BOOL"/>
+        <print-options value="false" type="BOOL"/>
 
         <!-- Prints this screen -->
         <help value="false" synonymes="?" type="BOOL"/>
