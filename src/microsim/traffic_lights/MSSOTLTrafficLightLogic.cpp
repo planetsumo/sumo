@@ -118,7 +118,7 @@ MSSOTLTrafficLightLogic::init(NLDetectorBuilder &nb) throw(ProcessError) {
 
                 //Adding Sensors to the ingoing Lanes
 
-                LaneVectorVector lvv = getLanes();
+                LaneVectorVector lvv = getLaneVectors();
 
                 DBG(
 					WRITE_MESSAGE("Listing lanes for TLS "+getID());

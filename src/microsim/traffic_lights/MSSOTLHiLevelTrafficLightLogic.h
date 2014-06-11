@@ -28,7 +28,6 @@
 #else
 #include <config.h>
 #endif
-using namespace std;
 
 #define SWARM_DEBUG
 #include <utils/common/SwarmDebug.h>

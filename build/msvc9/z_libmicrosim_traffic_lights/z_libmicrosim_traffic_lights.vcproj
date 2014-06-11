@@ -351,6 +351,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSDeterministicHiLevelTrafficLightLogic.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSOffTrafficLightLogic.cpp"
 				>
 			</File>
@@ -367,7 +371,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLCongestionPolicy.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLE2Sensors.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLHiLevelTrafficLightLogic.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLMarchingPolicy.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPhasePolicy.cpp"
 				>
 			</File>
 			<File
@@ -375,7 +395,31 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonPolicy.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonTrafficLightLogic.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyBasedTrafficLightLogic.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyDesirability.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyStimulus.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.cpp"
 				>
 			</File>
 			<File
@@ -420,6 +464,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSDeterministicHiLevelTrafficLightLogic.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSOffTrafficLightLogic.h"
 				>
 			</File>
@@ -436,6 +484,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLCongestionPolicy.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLDefinitions.h"
 				>
 			</File>
@@ -444,11 +496,47 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLHiLevelTrafficLightLogic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLMarchingPolicy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPhasePolicy.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPhaseTrafficLightLogic.h"
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonPolicy.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonTrafficLightLogic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyBasedTrafficLightLogic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyDesirability.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyStimulus.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.h"
 				>
 			</File>
 			<File

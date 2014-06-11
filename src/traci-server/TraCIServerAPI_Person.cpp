@@ -89,15 +89,14 @@ TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStor
         }
         switch (variable) {
             case VAR_POSITION: {
-                SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
                 tempMsg.writeUnsignedByte(POSITION_2D);
-                tempMsg.writeDouble(p->getPosition(now).x());
-                tempMsg.writeDouble(p->getPosition(now).y());
+                tempMsg.writeDouble(p->getPosition().x());
+                tempMsg.writeDouble(p->getPosition().y());
                 }
                 break;
             case VAR_ANGLE:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(p->getAngle(MSNet::getInstance()->getCurrentTimeStep()));
+                tempMsg.writeDouble(p->getAngle());
                 break;
             case VAR_ROAD_ID:
                 tempMsg.writeUnsignedByte(TYPE_STRING);
@@ -105,7 +104,7 @@ TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStor
                 break;
             case VAR_LANEPOSITION:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(p->getEdgePos(MSNet::getInstance()->getCurrentTimeStep()));
+                tempMsg.writeDouble(p->getEdgePos());
                 break;
             case VAR_COLOR:
                 tempMsg.writeUnsignedByte(TYPE_COLOR);

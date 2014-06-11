@@ -7,9 +7,9 @@ import numpy as np
 from mpl_toolkits.mplot3d import axes3d
 
 
-flow1def = "0;2400;200".split(";")
-flow2def = "0;2400;200".split(";")
-types = ["static", "actuated", "sotl_phase", "sotl_platoon", "sotl_request", "swarm"] 
+flow1def = "0;2000;200".split(";")
+flow2def = "0;2000;200".split(";")
+types = ["static", "actuated", "swarm"]#["static", "agentbased", "actuated", "sotl_phase", "sotl_platoon", "sotl_wave", "sotl_marching", "swarm"] 
 fillSteps = 3600#3600
 measureSteps = 3600#36000 
 simSteps = fillSteps + measureSteps 
@@ -38,7 +38,9 @@ for t in types:
             vehNum = 0
             # summary
             pd = sumolib.output.parse("results/tripinfos_%s_%s_%s.xml" % (t, f1, f2), "tripinfo")
-            for v in pd:
+            for v in pd:       
+                if float(v.depart)<3600:
+                    continue
                 duration = duration + float(v.duration)
                 waitSteps = waitSteps + float(v.waitSteps)
                 vehNum = vehNum + 1
@@ -69,13 +71,13 @@ def makeIMSHOWfigure(matrix, oname, t, rangeX, rangeY, minMax=None):
         im = imshow(matrix, interpolation='nearest')
     legend()
     cb = colorbar(shrink=0.5)
-    xticks(range(0, len(matrix)), rangeX, size=16)
-    yticks(range(0, len(matrix[0])), rangeY, size=16)
+    xticks(range(0, len(matrix)), rangeX, size=14)
+    yticks(range(0, len(matrix[0])), rangeY, size=14)
     title(t)
     savefig(oname)
     clf()
 
 
 for t in types:
-    makeIMSHOWfigure(durationM[t], "duration_%s_png" % t, "average travel time\n(%s)" %t, f1range, rf2range, durationMinMax)
-    makeIMSHOWfigure(waitStepsM[t], "waitSteps_%s_png" % t, "average waiting steps\n(%s)" %t, f1range, rf2range, waitStepsMinMax)
+    makeIMSHOWfigure(durationM[t], "durationSS_%s_png" % t, "average travel time\n(%s)" %t, f1range, rf2range, durationMinMax)
+    makeIMSHOWfigure(waitStepsM[t], "waitStepsSS_%s_png" % t, "average waiting steps\n(%s)" %t, f1range, rf2range, waitStepsMinMax)

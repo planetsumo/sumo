@@ -7,7 +7,7 @@
 ///
 // A device which collects vehicular emissions
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
 // Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
@@ -34,10 +34,11 @@
 #include <set>
 #include <vector>
 #include <map>
-#include "MSDevice.h"
 #include <utils/common/SUMOTime.h>
-#include <microsim/MSVehicle.h>
 #include <utils/common/WrappingCommand.h>
+#include <utils/emissions/PollutantsInterface.h>
+#include <microsim/MSVehicle.h>
+#include "MSDevice.h"
 
 
 // ===========================================================================
@@ -54,8 +55,8 @@ class MSLane;
  * @brief A device which collects vehicular emissions
  *
  * Each device collects the vehicular emissions / fuel consumption by being
- *  called each time step, computing the current values using 
- *  PollutantsInterface, and aggregating them into internal storages over 
+ *  called each time step, computing the current values using
+ *  PollutantsInterface, and aggregating them into internal storages over
  *  the complete journey.
  *
  * @see MSDevice
@@ -128,12 +129,8 @@ private:
 
 
 private:
-    /// @name Internal storages for pollutant/fuel sum in mg or ml
-    /// @{
-
-    SUMOReal myCO2, myCO, myHC, myPMx, myNOx, myFuel;
-
-    /// @}
+    /// @brief Internal storages for pollutant/fuel sum in mg or ml
+    PollutantsInterface::Emissions myEmissions;
 
 
 private:

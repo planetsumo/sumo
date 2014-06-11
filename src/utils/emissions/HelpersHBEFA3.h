@@ -1,14 +1,14 @@
 /****************************************************************************/
-/// @file    HelpersPHEMlight.h
+/// @file    HelpersHBEFA3.h
 /// @author  Daniel Krajzewicz
-/// @author  Nikolaus Furian
-/// @date    Sat, 20.04.2013
-/// @version $Id: HelpersPHEMlight.h 16560 2014-06-09 20:54:15Z behrisch $
+/// @author  Michael Behrisch
+/// @date    Mon, 10.05.2004
+/// @version $Id: HelpersHBEFA3.h 16560 2014-06-09 20:54:15Z behrisch $
 ///
-// Helper methods for PHEMlight-based emission computation
+// Helper methods for HBEFA3-based emission computation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-// Copyright (C) 2013-2012 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -18,8 +18,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef HelpersPHEMlight_h
-#define HelpersPHEMlight_h
+#ifndef HelpersHBEFA3_h
+#define HelpersHBEFA3_h
 
 
 // ===========================================================================
@@ -35,32 +35,32 @@
 #include <limits>
 #include <cmath>
 #include <utils/common/StdDefs.h>
+#include <utils/geom/GeomHelper.h>
+#include <utils/common/SUMOVehicleClass.h>
 #include "PollutantsInterface.h"
-#include "PHEMCEPHandler.h"
 
 
 // ===========================================================================
 // class definitions
 // ===========================================================================
 /**
- * @class HelpersPHEMlight
- * @brief Helper methods for PHEMlight-based emission computation
+ * @class HelpersHBEFA3
+ * @brief Helper methods for HBEFA3-based emission computation
+ *
+ * The parameter are stored per vehicle class; 6*6 parameter are used, sorted by
+ *  the pollutant (CO2, CO, HC, fuel, NOx, PMx), and the function part
+ *  (c0, cav1, cav2, c1, c2, c3).
  */
-class HelpersPHEMlight : public PollutantsInterface::Helper {
+class HelpersHBEFA3 : public PollutantsInterface::Helper {
 public:
-    static const int PHEMLIGHT_BASE = 2 << 16;
 
 
-    /** @brief Constructor
+    static const int HBEFA3_BASE = 1 << 16;
+
+
+    /** @brief Constructor (initializes myEmissionClassStrings)
      */
-    HelpersPHEMlight();
-
-
-    /** @brief Checks whether the string describes a known vehicle class
-     * @param[in] eClass The string describing the vehicle emission class
-     * @return whether it describes a valid emission class
-     */
-    SUMOEmissionClass getClassByName(const std::string& eClass, const SUMOVehicleClass vc);
+    HelpersHBEFA3();
 
 
     /** @brief Returns the emission class described by the given parameters.
@@ -91,35 +91,43 @@ public:
      */
     int getEuroClass(const SUMOEmissionClass c) const;
 
-    /** @brief Returns a reference weight in kg described by this emission class as described in the Amitran interface
-     * This implementation returns only meaningful values for Solo_LKW (truck without trailer) and LNF (light duty vehicles).
-     * @param[in] c the emission class
-     * @return a reference weight
-     */
-    SUMOReal getWeight(const SUMOEmissionClass c) const;
 
-    /** @brief Returns the maximum possible acceleration
-     * @param[in] c The vehicle emission class
+    /** @brief Computes the emitted pollutant amount using the given speed and acceleration
+     *
+     * As the functions are defining emissions in g/hour, the function's result is normed
+     *  by 3.6 (seconds in an hour/1000) yielding mg/s. For fuel ml/s is returned.
+     *  Negative acceleration results directly in zero emission.
+     *
+     * @param[in] c emission class for the function parameters to use
+     * @param[in] e the type of emission (CO, CO2, ...)
      * @param[in] v The vehicle's current velocity
      * @param[in] a The vehicle's current acceleration
      * @param[in] slope The road's slope at vehicle's position [°]
-     * @return The maximum possible acceleration
+     * @return The amount emitted by the given emission class when moving with the given velocity and acceleration [mg/s or ml/s]
      */
-    SUMOReal getMaxAccel(SUMOEmissionClass c, double v, double a, double slope);
+    inline SUMOReal compute(const SUMOEmissionClass c, const PollutantsInterface::EmissionType e, const double v, const double a, const double slope) const {
+        UNUSED_PARAMETER(slope);
+        if (c == HBEFA3_BASE || a < 0.) {
+            return 0.;
+        }
+        const int index = (c & ~PollutantsInterface::HEAVY_BIT) - HBEFA3_BASE - 1;
+        SUMOReal scale = 3.6;
+        if (e == PollutantsInterface::FUEL) {
+            if (getFuel(c) == "Diesel") {
+                scale *= 836.;
+            } else {
+                scale *= 742.;
+            }
+        }
+        const double* f = myFunctionParameter[index][e];
+        return (SUMOReal) MAX2((f[0] + f[1] * a * v + f[2] * a * a * v + f[3] * v + f[4] * v * v + f[5] * v * v * v) / scale, 0.);
+    }
 
-
-    /** @brief Returns the amount of emitted pollutant given the vehicle type and state (in mg/s or in ml/s for fuel)
-     * @param[in] c The vehicle emission class
-     * @param[in] v The vehicle's current velocity
-     * @param[in] a The vehicle's current acceleration
-     * @param[in] slope The road's slope at vehicle's position [°]
-     * @return The amount of the pollutant emitted by the given emission class when moving with the given velocity and acceleration [mg/s or ml/s]
-     */
-    SUMOReal compute(const SUMOEmissionClass c, const PollutantsInterface::EmissionType e, const double v, const double a, const double slope) const;
 
 private:
-    /// @brief the index of the next class
-    int myIndex;
+    /// @brief The function parameter
+    static double myFunctionParameter[45][6][6];
+
 };
 
 

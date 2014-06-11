@@ -80,14 +80,14 @@ unsigned int MSSOTLWaveTrafficLightLogic::countVehicles() {
 
 	string state = getCurrentPhaseDef().getState();
 	int vehicles = 0;
-	for (int i = 0; i < getLanes().size(); i++) {
+    for (int i = 0; i < getLaneVectors().size(); i++) {
 		if (i > 0
-				&& ((getLanes()[i][0]->getID()).compare(
-						getLanes()[i - 1][0]->getID()) == 0)) {
+				&& ((getLaneVectors()[i][0]->getID()).compare(
+						getLaneVectors()[i - 1][0]->getID()) == 0)) {
 			continue;
 		}
 		if (state[i] != 'r') {
-			vehicles += getSensors()->countVehicles(getLanes()[i][0]);
+			vehicles += getSensors()->countVehicles(getLaneVectors()[i][0]);
 		}
 
 	}

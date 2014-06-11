@@ -6,10 +6,10 @@ import sys,os,subprocess,random,shutil
 sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', '..', '..', '..', "tools"))
 from sumolib import checkBinary
 
-flow1def = "0;2400;200".split(";")
-flow2def = "0;2400;200".split(";")
+flow1def = "0;2000;200".split(";")
+flow2def = "0;2000;200".split(";")
 fillSteps = 3600#3600
-measureSteps = 3600#36000 
+measureSteps = 10000#36000 
 simSteps = fillSteps + measureSteps 
 
 try: os.mkdir("results")
@@ -62,7 +62,7 @@ def patchTLSType(ifile, itype, ofile, otype):
     fdi.close()
     
       
-sumo = checkBinary('sumo')
+sumo = ".\\sumo"#checkBinary('sumo')
 assert(sumo)
 
 
@@ -74,7 +74,7 @@ for f1 in range(int(flow1def[0]), int(flow1def[1]), int(flow1def[2])):
         pSN = pNS
         print "Computing for %s<->%s" % (f1, f2)
         buildDemand(simSteps, pWE, pEW, pNS, pSN)
-        for t in ["static", "agentbased", "actuated", "sotl_phase", "sotl_platoon", "sotl_request", "swarm"]:
+        for t in ["static", "agentbased", "actuated", "sotl_phase", "sotl_platoon", "sotl_request", "sotl_wave", "sotl_marching", "swarm"]:
             print " for tls-type %s" % t
             patchTLSType('input_additional_template.add.xml', '%tls_type%', 'input_additional.add.xml', t)
             args = [sumo,
@@ -83,11 +83,17 @@ for f1 in range(int(flow1def[0]), int(flow1def[1]), int(flow1def[2])):
               '--additional-files', 'input_additional.add.xml',
               '--tripinfo-output', 'results/tripinfos_%s_%s_%s.xml' % (t, f1, f2),
               '--summary-output', 'results/summary_%s_%s_%s.xml' % (t, f1, f2),
-              '--device.hbefa.probability', '1',
-              '--sloppy-insert'
+              '--device.emissions.probability', '1',
+              '--queue-output', 'results/queue_%s_%s_%s.xml' % (t, f1, f2),
             ]
             retCode = subprocess.call(args)
             shutil.move("results/e2_output.xml", "results/e2_output_%s_%s_%s.xml" % (t, f1, f2))
             shutil.move("results/e2_tl0_output.xml", "results/e2_tl0_output_%s_%s_%s.xml" % (t, f1, f2))
+            shutil.move("results/edgeData_3600.xml", "results/edgeData_3600_%s_%s_%s.xml" % (t, f1, f2))
+            shutil.move("results/laneData_3600.xml", "results/laneData_3600_%s_%s_%s.xml" % (t, f1, f2))
+            shutil.move("results/edgesEmissions_3600.xml", "results/edgesEmissions_3600_%s_%s_%s.xml" % (t, f1, f2))
+            shutil.move("results/lanesEmissions_3600.xml", "results/lanesEmissions_3600_%s_%s_%s.xml" % (t, f1, f2))
+            shutil.move("results/TLSStates.xml", "results/TLSStates_%s_%s_%s.xml" % (t, f1, f2))
+            shutil.move("results/TLSSwitchTimes.xml", "results/TLSSwitchTimes_%s_%s_%s.xml" % (t, f1, f2))
+            shutil.move("results/TLSSwitchStates.xml", "results/TLSSwitchStates_%s_%s_%s.xml" % (t, f1, f2))
          
-

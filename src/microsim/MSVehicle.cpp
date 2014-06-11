@@ -48,6 +48,8 @@
 #include <utils/common/FileHelpers.h>
 #include <utils/common/DijkstraRouterTT.h>
 #include <utils/common/RandHelper.h>
+#include <utils/common/StringTokenizer.h>
+#include <utils/common/TplConvert.h>
 #include <utils/emissions/PollutantsInterface.h>
 #include <utils/emissions/HelpersHarmonoise.h>
 #include <utils/common/StringUtils.h>
