@@ -2,6 +2,7 @@
 """
 @file    plot_tripinfo_distributions.py
 @author  Daniel Krajzewicz
+@author  Laura Bieker
 @date    2013-11-11
 @version $Id$
 
@@ -10,7 +11,7 @@ matplotlib (http://matplotlib.org/) has to be installed for this purpose
  
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -46,10 +47,12 @@ def main(args=None):
                          default="duration", help="Define which measure to plot")
   optParser.add_option("--bins", dest="bins", 
                          type="int", default=20, help="Define the bin number")
+  optParser.add_option("--norm", dest="norm", 
+                         type="float", default=1., help="Read values will be devided by this number")
   optParser.add_option("--minV", dest="minV", 
-                         type="float", default=None, help="Define the minimum boundary")
+                         type="float", default=None, help="Define the minimum value boundary")
   optParser.add_option("--maxV", dest="maxV", 
-                         type="float", default=None, help="Define the maximum boundary")
+                         type="float", default=None, help="Define the maximum value boundary")
   # standard plot options
   helpers.addInteractionOptions(optParser)
   helpers.addPlotOptions(optParser)
@@ -60,15 +63,17 @@ def main(args=None):
     print "Error: at least one tripinfo file must be given"
     sys.exit(1)
 
-  minV = None
-  maxV = None
+  minV = options.minV
+  maxV = options.maxV
   files = options.tripinfos.split(",")
   values = {}
   for f in files:
     if options.verbose: print "Reading '%s'..." % f
     nums = sumolib.output.parse_sax__asList(f, "tripinfo", [options.measure])
-    fv = sumolib.output.toList(nums, options.measure)
-    sumolib.output.prune(fv, options.minV, options.maxV) 
+    fvp = sumolib.output.toList(nums, options.measure)
+    fv = [x / options.norm for x in fvp]
+    sumolib.output.prune(fv, options.minV, options.maxV)
+     
     values[f] = fv 
     if minV==None: 
       minV = fv[0]
@@ -77,11 +82,11 @@ def main(args=None):
     maxV = max(maxV, max(fv))
   
   hists = {}
-  binWidth = (maxV-minV+1) / float(options.bins)
+  binWidth = (maxV-minV) / float(options.bins)
   for f in files:
     h = [0] * options.bins
     for v in values[f]:
-      i = int((v-minV)/binWidth)
+      i = min(int((v-minV)/binWidth), options.bins-1)
       h[i] = h[i] + 1
     hists[f] = h
   

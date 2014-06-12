@@ -4,6 +4,7 @@
 @file    xml2csv.py
 @author  Jakob Erdmann
 @author  Michael Behrisch
+@author  Laura Bieker
 @date    2013-12-08
 @version $Id$
 
@@ -20,8 +21,7 @@ the Free Software Foundation; either version 3 of the License, or
 """
 
 from __future__ import print_function
-import os, sys, socket
-from collections import defaultdict
+import os, sys, socket, collections
 from optparse import OptionParser
 import xml.sax
 try:
@@ -52,7 +52,7 @@ class AttrFinder(NestingHandler):
     def __init__(self, xsdFile, source, split):
         NestingHandler.__init__(self)
         self.tagDepths = {} # tag -> depth of appearance
-        self.tagAttrs = defaultdict(dict) # tag -> set of attrs
+        self.tagAttrs = collections.defaultdict(collections.OrderedDict) # tag -> set of attrs
         self.renamedAttrs = {} # (name, attr) -> renamedAttr
         self.attrs = {}
         self.depthTags = {} # child of root: depth of appearance -> tag list
@@ -119,7 +119,7 @@ class CSVWriter(NestingHandler):
         NestingHandler.__init__(self)
         self.attrFinder = attrFinder
         self.options = options
-        self.currentValues = defaultdict(lambda: "")
+        self.currentValues = collections.defaultdict(lambda: "")
         self.haveUnsavedValues = False
         self.outfiles = {}
         self.rootDepth = 1 if options.split else 0
@@ -188,7 +188,7 @@ def getSocketStream(port, mode='rb'):
 def getOutStream(output):
     if output.isdigit():
         return getSocketStream(int(output), 'wb')
-    return open(output, 'w')
+    return open(output, 'wb')
     
 def get_options():
     optParser = OptionParser(usage=os.path.basename(sys.argv[0]) + " [<options>] <input_file_or_port>")

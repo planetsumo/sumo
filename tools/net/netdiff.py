@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
 @file    netdiff.py
+@author  Daniel Krajzewicz
+@author  Michael Behrisch
 @author  Jakob Erdmann
 @date    2011-10-04
 @version $Id$
@@ -9,7 +11,7 @@ Reads two networks (source, dest) and tries to produce the minimal plain-xml inp
 which can be loaded with netconvert alongside source to create dest
 
 SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
-Copyright (C) 2011 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
