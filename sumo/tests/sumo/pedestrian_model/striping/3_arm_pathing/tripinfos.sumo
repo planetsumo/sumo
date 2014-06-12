@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Tue Mar 25 16:18:03 2014 by SUMO sumo Version dev-SVN-r16032
+<!-- generated on 06/12/14 09:21:40 by SUMO sumo Version dev-SVN-r16457
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -11,8 +11,13 @@
     </input>
 
     <output>
+        <fcd-output value="fcd.xml"/>
         <tripinfo-output value="tripinfos.xml"/>
     </output>
+
+    <processing>
+        <pedestrian.model value="striping"/>
+    </processing>
 
     <report>
         <xml-validation value="never"/>
@@ -37,7 +42,7 @@
     </personinfo>
     <personinfo id="pNW" depart="10.00">
         <stop arrival="10.00"/>
-        <walk arrival="124.00"/>
+        <walk arrival="125.00"/>
     </personinfo>
     <personinfo id="pWE" depart="5.00">
         <stop arrival="5.00"/>
