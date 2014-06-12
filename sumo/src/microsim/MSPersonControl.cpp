@@ -193,7 +193,8 @@ bool
                 vehicle->addPerson(*i);
 				//if the time a person needs to enter the vehicle extends the duration of the stop of the vehicle extend
 				//the duration by setting it to the boarding duration of the person
-				if (vehicle->getVehicleType().getBoardingDuration() >= stop->duration) {
+				SUMOTime auxBoardingDuration = vehicle->getVehicleType().getBoardingDuration();
+				if (vehicle->getVehicleType().getBoardingDuration() >= stop->duration) {					
 					stop->duration = vehicle->getVehicleType().getBoardingDuration();
 				}
 				//update the time point at which the next person can board the vehicle

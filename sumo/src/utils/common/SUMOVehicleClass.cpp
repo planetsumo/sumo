@@ -82,7 +82,10 @@ StringBijection<SUMOVehicleClass>::Entry sumoVehicleClassStringInitializer[] = {
     {"pedestrian",        SVC_PEDESTRIAN},
     {"evehicle",          SVC_E_VEHICLE},
     {"custom1",           SVC_CUSTOM1},
-    {"custom2",           SVC_CUSTOM2}
+    {"custom2",           SVC_CUSTOM2},
+	{"ship",			  SVC_SHIP},
+	{"freighter",		  SVC_FREIGHTER},
+	{"passenger_ship",	  SVC_PASSENGER_SHIP},
 };
 
 StringBijection<SUMOVehicleClass> SumoVehicleClassStrings(

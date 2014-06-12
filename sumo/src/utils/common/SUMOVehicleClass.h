@@ -93,7 +93,14 @@ enum SUMOVehicleShape {
     /// @brief render as a (futuristic) e-vehicle
     SVS_E_VEHICLE,
     /// @brief render as a giant ant
-    SVS_ANT
+    SVS_ANT,
+	/// @brief render as a arbitrary ship
+	SVS_SHIP,
+	/// @brie frender as a freighter
+	SVS_FREIGHTER,
+	/// @brief render as a passenger ship
+	SVS_PASSENGER_SHIP
+
 };
 
 
@@ -179,7 +186,13 @@ enum SUMOVehicleClass {
     /// @brief is a user-defined type
     SVC_CUSTOM1 = 1 << 22,
     /// @brief is a user-defined type
-    SVC_CUSTOM2 = 1 << 23
+    SVC_CUSTOM2 = 1 << 23,
+	/// @brief is an arbitrary ship
+	SVC_SHIP = 1 << 24,
+	/// @brief is a freighter
+	SVC_FREIGHTER = 1 << 25,
+	/// @brief is passenger ship
+	SVC_PASSENGER_SHIP = 1 << 26
                   //@}
 };
 

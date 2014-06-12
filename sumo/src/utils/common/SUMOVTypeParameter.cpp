@@ -174,6 +174,30 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
         case SVC_E_VEHICLE:
             shape = SVS_E_VEHICLE;
             break;
+		case SVC_SHIP:
+            length = 30.0;
+            width = 7.0;
+            height = 7.0;
+            maxSpeed = 15.0;
+			//TODO: a shape for ships has to be created
+            shape = SVS_RAIL;
+            break;
+		case SVC_FREIGHTER:
+            length = 30.0;
+            width = 7.0;
+            height = 7.0;
+            maxSpeed = 15.0;
+			//TODO: a shape for ships has to be created
+            shape = SVS_RAIL;
+            break;
+		case SVC_PASSENGER_SHIP:
+            length = 30.0;
+            width = 7.0;
+            height = 7.0;
+            maxSpeed = 15.0;
+			//TODO: a shape for ships has to be created
+            shape = SVS_RAIL;
+            break;
         default:
             break;
     }
