@@ -171,7 +171,7 @@ main(int argc, char **argv) {
                 SUMOEmissionClass c = (SUMOEmissionClass) ci;
                 if (SumoEmissionClassStrings.has(c)) {
                     single(oc.getString("output-file")+getVehicleEmissionTypeName(c)+".csv", getVehicleEmissionTypeName(c), 
-                        c, vMin, vMax, vStep, aMin, aMax, aStep, sMin, sMax, sStep, oc.getBool("verbose"));
+                       c, vMin, vMax, vStep, aMin, aMax, aStep, sMin, sMax, sStep, oc.getBool("verbose"));
                 }
             }
         }

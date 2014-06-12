@@ -154,12 +154,9 @@ main(int argc, char **argv) {
                 if(inKMH) {
                     v = v / 3.6;
                 }
-                l += v;
-                SUMOReal a = 0;
-                if(!computeA) {
-                    a = TplConvert::_2SUMOReal<char>(st.next().c_str());
-                } else {
-                    a = v - lastV;
+                StringTokenizer st(StringUtils::prune(line), ";");
+                if (st.size() < 2) {
+                    throw ProcessError("Each line must at least include the time and the speed.");
                 }
                 lastV = v;
                 SUMOReal s = oc.getFloat("slope");
@@ -185,6 +182,11 @@ main(int argc, char **argv) {
                 throw ProcessError("Missing an entry in line '" + line + "'.");
             } catch (NumberFormatException &) {
                 throw ProcessError("Not numeric entry in line '" + line + "'.");
+            }
+            if (!quiet) {
+                std::cout << "sums"  << std::endl
+                          << "length:" << l << std::endl;
+                handler.writeSums(std::cout, "");
             }
         }
         std::cout << "sums"  << std::endl

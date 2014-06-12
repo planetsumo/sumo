@@ -250,7 +250,7 @@ MSLane::maxSpeedGapInsertion(MSVehicle& veh, SUMOReal mspeed) {
                 const SUMOReal currentMaxSpeed = lhs - tauDecel;
                 if (MIN2(currentMaxSpeed, mspeed) > maxSpeed) {
                     maxSpeed = currentMaxSpeed;
-                    maxPos = leaderRearPos + frontGap;
+                    maxPos = MIN2(leaderRearPos + frontGap, myLength);
                     maxIt = predIt + 1;
                 }
             }
@@ -1193,7 +1193,6 @@ MSLane::getLeaderOnConsecutive(SUMOReal dist, SUMOReal seen, SUMOReal speed, con
         if (nextLane == 0) {
             break;
         }
-        arrivalTime += TIME2STEPS(nextLane->getLength() / MAX2(speed, NUMERICAL_EPS));
         MSVehicle* leader = nextLane->getLastVehicle();
         if (leader != 0) {
             return std::make_pair(leader, seen + leader->getPositionOnLane() - leader->getVehicleType().getLength() - veh.getVehicleType().getMinGap());
@@ -1207,6 +1206,10 @@ MSLane::getLeaderOnConsecutive(SUMOReal dist, SUMOReal seen, SUMOReal speed, con
             dist = veh.getCarFollowModel().brakeGap(nextLane->getVehicleMaxSpeed(&veh));
         }
         seen += nextLane->getLength();
+        if (seen <= dist) {
+            // delaying the update of arrivalTime and making it conditional to avoid possible integer overflows
+            arrivalTime += TIME2STEPS(nextLane->getLength() / MAX2(speed, NUMERICAL_EPS));
+        }
 #ifdef HAVE_INTERNAL_LANES
         if (!nextInternal) {
             view++;
@@ -1247,7 +1250,7 @@ MSLane::getLogicalPredecessorLane() const {
 }
 
 
-LinkState 
+LinkState
 MSLane::getIncomingLinkState() const {
     MSLane* pred = getLogicalPredecessorLane();
     if (pred == 0) {
@@ -1258,7 +1261,7 @@ MSLane::getIncomingLinkState() const {
 }
 
 
-std::vector<const MSLane*> 
+std::vector<const MSLane*>
 MSLane::getOutgoingLanes() const {
     std::vector<const MSLane*> result;
     for (MSLinkCont::const_iterator i = myLinks.begin(); i != myLinks.end(); ++i) {
@@ -1320,7 +1323,7 @@ MSLane::getNettoOccupancy() const {
         }
     }
     releaseVehicles();
-    return (myBruttoVehicleLengthSum + fractions) / myLength;
+    return (myNettoVehicleLengthSum + fractions) / myLength;
 }
 
 
