@@ -95,11 +95,7 @@ enum SUMOVehicleShape {
     /// @brief render as a giant ant
     SVS_ANT,
 	/// @brief render as a arbitrary ship
-	SVS_SHIP,
-	/// @brie frender as a freighter
-	SVS_FREIGHTER,
-	/// @brief render as a passenger ship
-	SVS_PASSENGER_SHIP
+	SVS_SHIP
 
 };
 
