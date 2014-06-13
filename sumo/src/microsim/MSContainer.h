@@ -1,0 +1,497 @@
+/****************************************************************************/
+/// @file    MSContainer.h
+/// @author  Melanie Weber
+/// @author  Andreas Kendziorra
+/// @date    Thu, 12 Jun 2014
+/// @version $$
+///
+// The class for modelling container-movements
+/****************************************************************************/
+// SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+/****************************************************************************/
+//
+//   This file is part of SUMO.
+//   SUMO is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+/****************************************************************************/
+#ifndef MSContainer_h
+#define MSContainer_h
+
+// ===========================================================================
+// included modules
+// ===========================================================================
+#ifdef _MSC_VER
+#include <windows_config.h>
+#else
+#include <config.h>
+#endif
+
+#include <string>
+#include <vector>
+#include <set>
+#include <utils/common/SUMOTime.h>
+//#include <utils/common/Command.h>
+#include <utils/geom/Position.h>
+#include <utils/geom/PositionVector.h>
+
+
+// ===========================================================================
+// class declarations
+// ===========================================================================
+class MSNet;
+class MSEdge;
+class MSLane;
+class OutputDevice;
+//class SUMOVehicleParameter;
+//class MSBusStop;
+class MSTerminalStop;
+class SUMOVehicle;
+//class MSVehicleType;
+//class MSPModel;
+//class PedestrianState;
+
+//typedef std::vector<const MSEdge*> MSEdgeVector;
+
+
+// ===========================================================================
+// class definitions
+// ===========================================================================
+/**
+  * @class MSContainer
+  *
+  * The class holds a simulated container together with its movement stages
+  */
+
+
+class MSContainer {
+public:
+	enum StageType {
+        DRIVING = 0,
+        WAITING = 1
+    };
+
+	 /**
+     * The "abstract" class for a single stage of a container movement
+     * Contains the destination of the current movement step
+     */
+    class MSContainerStage {
+    public:
+        /// constructor
+        MSContainerStage(const MSEdge& destination, StageType type);
+
+        /// destructor
+        virtual ~MSContainerStage();
+
+		/// returns the destination edge
+        const MSEdge& getDestination() const;
+
+		/// Returns the current edge
+        virtual const MSEdge* getEdge() const = 0;
+        virtual const MSEdge* getFromEdge() const = 0;
+        virtual SUMOReal getEdgePos(SUMOTime now) const = 0;
+
+		///
+        virtual Position getPosition(SUMOTime now) const = 0;
+
+		///
+        StageType getStageType() const {
+            return myType;
+        }
+
+        /// @brief return string representation of the current stage
+        virtual std::string getStageTypeName() const = 0;
+
+        /// proceeds to the next step
+		virtual void proceed(MSNet* net, MSContainer* container, SUMOTime now, MSEdge* previousEdge, const SUMOReal at) = 0;
+
+		/// logs end of the step
+        void setDeparted(SUMOTime now);
+
+        /// logs end of the step
+        void setArrived(SUMOTime now);
+
+        /// Whether the container waits for a vehicle of the line specified.
+        virtual bool isWaitingFor(const std::string& line) const;
+
+        /// @brief Whether the container waits for a vehicle
+        virtual bool isWaiting4Vehicle() const {
+            return false;
+        }
+		
+        /// @brief the time this container spent waiting
+        virtual SUMOTime getWaitingTime(SUMOTime now) const = 0;
+
+        /// @brief the speed of the container
+        virtual SUMOReal getSpeed() const = 0;
+
+        /// @brief get position on edge e at length at with orthogonal offset
+        Position getEdgePosition(const MSEdge* e, SUMOReal at, SUMOReal offset) const;
+
+        /// @brief get position on lane at length at with orthogonal offset
+        Position getLanePosition(const MSLane* lane, SUMOReal at, SUMOReal offset) const;
+
+		/** @brief Called on writing tripinfo output
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void tripInfoOutput(OutputDevice& os) const = 0;
+
+		/** @brief Called on writing vehroute output
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void routeOutput(OutputDevice& os) const = 0;
+
+		/** @brief Called for writing the events output (begin of an action)
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void beginEventOutput(const MSContainer& container, SUMOTime t, OutputDevice& os) const = 0;
+
+		/** @brief Called for writing the events output (end of an action)
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void endEventOutput(const MSContainer& container, SUMOTime t, OutputDevice& os) const = 0;
+	
+	protected:
+        /// the next edge to reach by getting transported
+        const MSEdge& myDestination;
+
+		/// the time at which this stage started
+        SUMOTime myDeparted;
+
+		/// the time at which this stage ended
+        SUMOTime myArrived;
+
+        /// The type of this stage
+        StageType myType;
+
+    private:
+        /// @brief Invalidated copy constructor.
+        MSContainerStage(const MSContainerStage&);
+
+        /// @brief Invalidated assignment operator.
+        MSContainerStage& operator=(const MSContainerStage&);
+
+    };
+
+	/**
+     * A "real" stage performing the travelling by a transport system
+     * A container is in this stage if it is on a ride or if its waiting for a ride.
+     * The given route will be chosen. The travel time is computed by the simulation
+     */
+    class MSContainerStage_Driving : public MSContainerStage {
+    public:
+        /// constructor
+        MSContainerStage_Driving(const MSEdge& destination, MSTerminalStop* toTS,
+                              const std::vector<std::string>& lines);
+
+		/// destructor
+        ~MSContainerStage_Driving();
+
+        /// proceeds to the next step
+        virtual void proceed(MSNet* net, MSContainer* container, SUMOTime now, MSEdge* previousEdge, const SUMOReal at);
+		
+        /// Returns the current edge
+        const MSEdge* getEdge() const;
+        const MSEdge* getFromEdge() const;
+        SUMOReal getEdgePos(SUMOTime now) const;
+
+        ///
+        Position getPosition(SUMOTime now) const;
+
+        /// @brief returns string representation of the current stage
+        std::string getStageTypeName() const;
+
+        /// Whether the container waits for a vehicle of the line specified.
+        bool isWaitingFor(const std::string& line) const;
+
+		/// @brief Whether the container waits for a vehicle
+        bool isWaiting4Vehicle() const;
+
+        /// @brief time spent waiting for a ride
+        SUMOTime getWaitingTime(SUMOTime now) const;
+
+		/** @brief the speed of the container
+         *
+         * If the container is still waiting for a ride zero will be returned.
+         * If the container is on a ride the speed of the corresponding vehicle
+         * will be returned.
+         */
+        SUMOReal getSpeed() const;
+
+		/// @brief assign a vehicle to the container
+		void setVehicle(SUMOVehicle* v) {
+            myVehicle = v;
+        }
+
+		/** @brief Called on writing tripinfo output
+         *
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void tripInfoOutput(OutputDevice& os) const;
+
+        /** @brief Called on writing vehroute output
+         *
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void routeOutput(OutputDevice& os) const;
+
+        /** @brief Called for writing the events output
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void beginEventOutput(const MSContainer& container, SUMOTime t, OutputDevice& os) const;
+
+        /** @brief Called for writing the events output (end of an action)
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void endEventOutput(const MSContainer& container, SUMOTime t, OutputDevice& os) const;
+
+	private:
+        /// the lines  to choose from
+        const std::set<std::string> myLines;
+
+        /// @brief The taken vehicle
+        SUMOVehicle* myVehicle;
+
+        MSTerminalStop* myDestinationTerminalStop;
+
+        SUMOReal myWaitingPos;
+
+        /// @brief The time since which this container is waiting for a ride
+        SUMOTime myWaitingSince;
+
+        const MSEdge* myWaitingEdge;
+
+	private:
+        /// @brief Invalidated copy constructor.
+        MSContainerStage_Driving(const MSContainerStage_Driving&);
+
+        /// @brief Invalidated assignment operator.
+        MSContainerStage_Driving& operator=(const MSContainerStage_Driving&);
+
+	};
+
+    /**
+     * A "real" stage performing a waiting over the specified time
+     * A container is in this stage if it is not on a ride or waiting for a ride, e.g. 
+     * if it is stored, or if gets filled or emptied.
+     */
+    class MSContainerStage_Waiting : public MSContainerStage {
+    public:
+        /// constructor
+        MSContainerStage_Waiting(const MSEdge& destination,
+                              SUMOTime duration, SUMOTime until, SUMOReal pos, const std::string& actType);
+
+        /// destructor
+        ~MSContainerStage_Waiting();
+
+        /// Returns the current edge
+        const MSEdge* getEdge() const;
+
+        /// Returns the current edge
+        const MSEdge* getFromEdge() const;
+
+        SUMOReal getEdgePos(SUMOTime now) const;
+
+        /// Returns time until the container waits
+        SUMOTime getUntil() const;
+
+        Position getPosition(SUMOTime now) const;
+        
+        SUMOTime getWaitingTime(SUMOTime now) const;
+
+        /// Returns the speed of the container which is always zero in that stage
+        SUMOReal getSpeed() const;
+
+        std::string getStageTypeName() const {
+            return "waiting (" + myActType + ")";
+        }
+
+        /// proceeds to the next step
+        virtual void proceed(MSNet* net, MSContainer* container, SUMOTime now, MSEdge* previousEdge, const SUMOReal at);
+
+        /** @brief Called on writing tripinfo output
+         *
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void tripInfoOutput(OutputDevice& os) const;
+
+        /** @brief Called on writing vehroute output
+         *
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void routeOutput(OutputDevice& os) const;
+
+        /** @brief Called for writing the events output
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void beginEventOutput(const MSContainer& container, SUMOTime t, OutputDevice& os) const;
+        
+        /** @brief Called for writing the events output (end of an action)
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void endEventOutput(const MSContainer& container, SUMOTime t, OutputDevice& os) const;
+
+    private:
+        /// the time the container is waiting
+        SUMOTime myWaitingDuration;
+
+        /// the time until the container is waiting
+        SUMOTime myWaitingUntil;
+
+        /// the time the container started waiting
+        SUMOTime myWaitingStart;
+
+        /// @brief The type of activity
+        std::string myActType;
+
+        SUMOReal myStartPos;
+
+
+    private:
+        /// @brief Invalidated copy constructor.
+        MSContainerStage_Waiting(const MSContainerStage_Waiting&);
+
+        /// @brief Invalidated assignment operator.
+        MSContainerStage_Waiting& operator=(const MSContainerStage_Waiting&);
+
+    };
+
+public:
+    /// the structure holding the plan of a container
+    typedef std::vector<MSContainerStage*> MSContainerPlan;
+
+protected:
+    /// the plan of the container
+    const SUMOVehicleParameter* myParameter;
+
+    /// @brief This container's type. (mainly used for drawing related information
+    /// Note sure if it is really necessary
+//    const MSVehicleType* myVType;
+
+    /// the plan of the container
+    MSContainerPlan* myPlan;
+
+    /// the iterator over the route
+    MSContainerPlan::iterator myStep;
+
+    /// @brief Whether events shall be written
+    bool myWriteEvents;
+
+public:
+    /// constructor
+    MSContainer(const SUMOVehicleParameter* pars,  MSContainerPlan* plan);
+    
+    /// destructor
+    virtual ~MSContainer();
+
+    /// returns the container id
+    const std::string& getID() const;
+
+    /* @brief proceeds to the next step of the route,
+     * @return Whether the containers plan continues  */
+    bool proceed(MSNet* net, SUMOTime time);
+
+    /// Returns the desired departure time.
+    SUMOTime getDesiredDepart() const;
+
+    /// logs depart time of the current stage
+    void setDeparted(SUMOTime now);
+
+    /// Returns the current destination.
+    const MSEdge& getDestination() const {
+        return (*myStep)->getDestination();
+    }
+
+    /// @brief Returns the current edge
+    const MSEdge* getEdge() const {
+        return (*myStep)->getEdge();
+    }
+
+    /// @brief Returns the departure edge
+    const MSEdge* getFromEdge() const {
+        return (*myStep)->getFromEdge();
+    }
+
+    /// @brief Return the position on the edge
+    virtual SUMOReal getEdgePos() const; 
+
+    /// @brief Return the Network coordinate of the container
+    virtual Position getPosition() const;
+
+    /// @brief the time this container spent waiting in seconds
+    virtual SUMOReal getWaitingSeconds() const;
+
+    /// @brief the current speed of the container
+    virtual SUMOReal getSpeed() const;
+
+    /// @brief the current stage type of the container
+    StageType getCurrentStageType() const {
+        return (*myStep)->getStageType();
+    }
+
+    /// @brief Return string representation of the current stage
+    std::string getCurrentStageTypeName() const {
+        return (*myStep)->getStageTypeName();
+    }
+    
+    /// @brief Return the current stage
+    MSContainerStage* getCurrentStage() const {
+        return *myStep;
+    }
+
+    /** @brief Called on writing tripinfo output
+     *
+     * @param[in] os The stream to write the information into
+     * @exception IOError not yet implemented
+     */
+    void tripInfoOutput(OutputDevice& os) const;
+
+    /** @brief Called on writing vehroute output
+     *
+     * @param[in] os The stream to write the information into
+     * @exception IOError not yet implemented
+     */
+    void routeOutput(OutputDevice& os) const;
+
+    /// Whether the container waits for a vehicle of the line specified.
+    bool isWaitingFor(const std::string& line) const {
+        return (*myStep)->isWaitingFor(line);
+    }
+
+    /// Whether the container waits for a vehicle
+    bool isWaiting4Vehicle() const {
+        return (*myStep)->isWaiting4Vehicle();
+    }
+
+    const SUMOVehicleParameter& getParameter() const {
+        return *myParameter;
+    }
+
+private:
+    /// @brief Invalidated copy constructor.
+    MSContainer(const MSContainer&);
+
+    /// @brief Invalidated assignment operator.
+    MSContainer& operator=(const MSContainer&);
+
+};
+
+
+#endif
+
+/****************************************************************************/

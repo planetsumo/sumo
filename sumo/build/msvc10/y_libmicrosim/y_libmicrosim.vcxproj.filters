@@ -124,6 +124,9 @@
     <ClCompile Include="..\..\..\src\microsim\MSPModel_Striping.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
+    <ClCompile Include="MSContainer.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.h">
@@ -241,6 +244,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\MSPModel_Striping.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="MSContainer.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

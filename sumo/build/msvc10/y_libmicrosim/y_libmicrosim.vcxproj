@@ -202,6 +202,7 @@
     <ClCompile Include="..\..\..\src\microsim\MSVehicleControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSVehicleTransfer.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSVehicleType.cpp" />
+    <ClCompile Include="MSContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.h" />
@@ -243,6 +244,7 @@
     <ClInclude Include="..\..\..\src\microsim\MSVehicleControl.h" />
     <ClInclude Include="..\..\..\src\microsim\MSVehicleTransfer.h" />
     <ClInclude Include="..\..\..\src\microsim\MSVehicleType.h" />
+    <ClInclude Include="MSContainer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
