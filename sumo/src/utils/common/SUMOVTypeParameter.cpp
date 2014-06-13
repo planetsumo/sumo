@@ -180,7 +180,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             height = 7.0;
             maxSpeed = 15.0;
 			//TODO: a shape for ships has to be created
-            shape = SVS_RAIL;
+            shape = SVS_SHIP;
             break;
 		case SVC_FREIGHTER:
             length = 30.0;
@@ -188,7 +188,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             height = 7.0;
             maxSpeed = 15.0;
 			//TODO: a shape for ships has to be created
-            shape = SVS_RAIL;
+            shape = SVS_SHIP;
             break;
 		case SVC_PASSENGER_SHIP:
             length = 30.0;
@@ -196,7 +196,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             height = 7.0;
             maxSpeed = 15.0;
 			//TODO: a shape for ships has to be created
-            shape = SVS_RAIL;
+            shape = SVS_SHIP;
             break;
         default:
             break;
