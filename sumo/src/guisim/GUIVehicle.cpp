@@ -639,8 +639,6 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             break;
 		//TODO: define the shape of ships
 		case SVS_SHIP:
-		case SVS_FREIGHTER:
-		case SVS_PASSENGER_SHIP:
         default: // same as passenger
             drawPoly(vehiclePoly_PassengerCarBody, 4);
             glColor3d(1, 1, 1);
