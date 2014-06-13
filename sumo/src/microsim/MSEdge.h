@@ -59,6 +59,7 @@ class MSVehicle;
 class MSLane;
 class MSPerson;
 class MSJunction;
+class MSContainer;
 
 
 // ===========================================================================
@@ -491,6 +492,19 @@ public:
         }
     }
 
+    /// @brief Add a container to myContainers
+    virtual void addContainer(MSContainer* container) const {
+        myContainers.insert(container);
+    }
+
+    /// @brief Remove container from myContainers
+    virtual void removeContainer(MSContainer* container) const {
+        std::set<MSContainer*>::iterator i = myContainers.find(container);
+        if (i != myContainers.end()) {
+            myContainers.erase(i);
+        }
+    }
+
     inline bool isRoundabout() const {
         return myAmRoundabout;
     }
@@ -630,6 +644,9 @@ protected:
 
     /// @brief Persons on the edge (only for drawing)
     mutable std::set<MSPerson*> myPersons;
+
+    /// @brief Containers on the edge 
+    mutable std::set<MSContainer*> myContainers;
 
     /// @name Storages for allowed lanes (depending on vehicle classes)
     /// @{

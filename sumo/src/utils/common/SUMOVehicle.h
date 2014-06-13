@@ -48,6 +48,7 @@ class MSEdge;
 class MSLane;
 class MSDevice;
 class MSPerson;
+class MSContainer;
 class SUMOSAXAttributes;
 
 typedef std::vector<const MSEdge*> MSEdgeVector;
@@ -189,6 +190,14 @@ public:
      * @param[in] person The person to add
      */
     virtual void addPerson(MSPerson* person) = 0;
+
+    /** @brief Adds a container to this vehicle
+     *
+     * May do nothing since containers are not supported by default
+     *
+     * @param[in] container The container to add
+     */
+    virtual void addContainer(MSContainer* container) = 0;
 
     /** @brief Adds a stop
      *
