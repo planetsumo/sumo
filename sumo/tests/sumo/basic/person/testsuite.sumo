@@ -1,8 +1,11 @@
-# person ride for restricted capacity
-boarding_duration
+# busses have a large boarding duration such that the stop duration will be extended by the boarding of the passengers
+boarding_duration_extension
 
 # person with a single ride
 ride
+
+# busses have a small boarding duration such that the stop duration will not be extended by the boarding of the passengers
+boarding_duration_no_extension
 
 # person with a single walk
 walk
