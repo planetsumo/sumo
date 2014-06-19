@@ -124,7 +124,10 @@
     <ClCompile Include="..\..\..\src\microsim\MSPModel_Striping.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="MSContainer.cpp">
+    <ClCompile Include="..\..\..\src\microsim\MSContainer.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\MSContainerControl.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -246,7 +249,10 @@
     <ClInclude Include="..\..\..\src\microsim\MSPModel_Striping.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="MSContainer.h">
+    <ClInclude Include="..\..\..\src\microsim\MSContainer.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\MSContainerControl.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

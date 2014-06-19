@@ -166,6 +166,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSBaseVehicle.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\MSContainer.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\MSContainerControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSEdge.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSEdgeControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSEdgeWeightsStorage.cpp" />
@@ -202,12 +204,13 @@
     <ClCompile Include="..\..\..\src\microsim\MSVehicleControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSVehicleTransfer.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSVehicleType.cpp" />
-    <ClCompile Include="MSContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.h" />
     <ClInclude Include="..\..\..\src\microsim\MSBaseVehicle.h" />
     <ClInclude Include="..\..\..\src\microsim\MSBitSetLogic.h" />
+    <ClInclude Include="..\..\..\src\microsim\MSContainer.h" />
+    <ClInclude Include="..\..\..\src\microsim\MSContainerControl.h" />
     <ClInclude Include="..\..\..\src\microsim\MSEdge.h" />
     <ClInclude Include="..\..\..\src\microsim\MSEdgeControl.h" />
     <ClInclude Include="..\..\..\src\microsim\MSEdgeWeightsStorage.h" />
@@ -244,7 +247,6 @@
     <ClInclude Include="..\..\..\src\microsim\MSVehicleControl.h" />
     <ClInclude Include="..\..\..\src\microsim\MSVehicleTransfer.h" />
     <ClInclude Include="..\..\..\src\microsim\MSVehicleType.h" />
-    <ClInclude Include="MSContainer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,6 +4,7 @@ libmicrosim_a_SOURCES = MSBitSetLogic.h \
 MSBaseVehicle.cpp MSBaseVehicle.h \
 MSAbstractLaneChangeModel.h MSAbstractLaneChangeModel.cpp \
 MSContainer.cpp MSContainer.h \
+MSContainerControl.cpp MSContainerControl.h \
 MSEdge.cpp MSEdge.h MSEdgeControl.cpp MSEdgeControl.h \
 MSEdgeWeightsStorage.cpp MSEdgeWeightsStorage.h \
 MSEventControl.cpp MSEventControl.h \
