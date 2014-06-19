@@ -90,6 +90,9 @@
 #define KEEP_RIGHT_TIME (SUMOReal)5.0 // the number of seconds after which a vehicle should move to the right lane
 #define KEEP_RIGHT_ACCEPTANCE (SUMOReal)2.0 // calibration factor for determining the desire to keep right
 
+#define RELGAIN_NORMALIZATION_MIN_SPEED (SUMOReal)10.0
+
+#define TURN_LANE_DIST (SUMOReal)200.0 // the distance at which a lane leading elsewhere is considered to be a turn-lane that must be avoided
 
 //#define DEBUG_COND (myVehicle.getID() == "pkw22806" || myVehicle.getID() == "pkw22823")
 //#define DEBUG_COND (myVehicle.getID() == "pkw150478" || myVehicle.getID() == "pkw150494" || myVehicle.getID() == "pkw150289")
@@ -840,13 +843,13 @@ MSLCM_JE2013::_wantsChange(
         } else if (bestLaneOffset == 0
                    && (leader.first == 0 || !leader.first->isStopped())
                    && neigh.bestContinuations.back()->getLinkCont().size() != 0
-                   && roundaboutEdgesAhead == 0) {
+                   && roundaboutEdgesAhead == 0
+                   && neighDist < TURN_LANE_DIST) {
             // VARIANT_21 (stayOnBest)
-            // XXX this should depend on distance somehow
             // we do not want to leave the best lane for a lane which leads elsewhere
             // unless our leader is stopped or we are approaching a roundabout
             if (gDebugFlag2) {
-                std::cout << " veh=" << myVehicle.getID() << " does not want to leave the bestLane\n";
+                std::cout << " veh=" << myVehicle.getID() << " does not want to leave the bestLane (neighDist=" << neighDist << ")\n";
             }
             ret = ret | LCA_STAY | LCA_STRATEGIC;
         }
@@ -887,7 +890,7 @@ MSLCM_JE2013::_wantsChange(
         }
 
         const SUMOReal remainingSeconds = ((ret & LCA_TRACI) == 0 ?
-                                           MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / myLookAheadSpeed / abs(bestLaneOffset) / URGENCY) :
+                                           MAX2((SUMOReal)STEPS2TIME(TS), myLeftSpace / MAX2(myLookAheadSpeed, NUMERICAL_EPS) / abs(bestLaneOffset) / URGENCY) :
                                            myVehicle.getInfluencer().changeRequestRemainingSeconds(currentTime));
         const SUMOReal plannedSpeed = informLeader(msgPass, blocked, myLca, neighLead, remainingSeconds);
         if (plannedSpeed >= 0) {
@@ -991,10 +994,12 @@ MSLCM_JE2013::_wantsChange(
         thisLaneVSafe = MIN2(thisLaneVSafe, myCarFollowModel.followSpeed(&myVehicle, myVehicle.getSpeed(), leader.second, leader.first->getSpeed(), leader.first->getCarFollowModel().getMaxDecel()));
     }
 
-    thisLaneVSafe = MIN3(thisLaneVSafe, myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
-    neighLaneVSafe = MIN3(neighLaneVSafe, myVehicle.getVehicleType().getMaxSpeed(), neighLane.getVehicleMaxSpeed(&myVehicle));
+    const SUMOReal vMax = MIN2(myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
+    thisLaneVSafe = MIN2(thisLaneVSafe, vMax);
+    neighLaneVSafe = MIN2(neighLaneVSafe, vMax);
+    const SUMOReal relativeGain = (neighLaneVSafe - thisLaneVSafe) / MAX2(neighLaneVSafe,
+                                  RELGAIN_NORMALIZATION_MIN_SPEED);
 
-    const SUMOReal relativeGain = (neighLaneVSafe - thisLaneVSafe) / neighLaneVSafe;
     if (right) {
         // ONLY FOR CHANGING TO THE RIGHT
         if (thisLaneVSafe - 5 / 3.6 > neighLaneVSafe) {
@@ -1009,35 +1014,34 @@ MSLCM_JE2013::_wantsChange(
             // honor the obligation to keep right (Rechtsfahrgebot)
             // XXX consider fast approaching followers on the current lane
             //const SUMOReal vMax = myLookAheadSpeed;
-            const SUMOReal vMax = MIN2(myVehicle.getVehicleType().getMaxSpeed(), myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle));
             const SUMOReal acceptanceTime = KEEP_RIGHT_ACCEPTANCE * vMax * MAX2((SUMOReal)1, myVehicle.getSpeed()) / myVehicle.getLane()->getSpeedLimit();
             SUMOReal fullSpeedGap = MAX2((SUMOReal)0, neighDist - myVehicle.getCarFollowModel().brakeGap(vMax));
             SUMOReal fullSpeedDrivingSeconds = MIN2(acceptanceTime, fullSpeedGap / vMax);
             if (neighLead.first != 0 && neighLead.first->getSpeed() < vMax) {
                 fullSpeedGap = MAX2((SUMOReal)0, MIN2(fullSpeedGap,
-                            neighLead.second - myVehicle.getCarFollowModel().getSecureGap(
-                                vMax, neighLead.first->getSpeed(), neighLead.first->getCarFollowModel().getMaxDecel()))); 
+                                                      neighLead.second - myVehicle.getCarFollowModel().getSecureGap(
+                                                              vMax, neighLead.first->getSpeed(), neighLead.first->getCarFollowModel().getMaxDecel())));
                 fullSpeedDrivingSeconds = MIN2(fullSpeedDrivingSeconds, fullSpeedGap / (vMax - neighLead.first->getSpeed()));
             }
             const SUMOReal deltaProb = (CHANGE_PROB_THRESHOLD_RIGHT
-                    * STEPS2TIME(DELTA_T) 
-                    * (fullSpeedDrivingSeconds / acceptanceTime) / KEEP_RIGHT_TIME);
+                                        * STEPS2TIME(DELTA_T)
+                                        * (fullSpeedDrivingSeconds / acceptanceTime) / KEEP_RIGHT_TIME);
             myKeepRightProbability -= deltaProb;
 
             if (gDebugFlag2) {
                 std::cout << STEPS2TIME(currentTime)
-                    << " veh=" << myVehicle.getID()
-                    << " vMax=" << vMax
-                    << " neighDist=" << neighDist
-                    << " brakeGap=" << myVehicle.getCarFollowModel().brakeGap(myVehicle.getSpeed())
-                    << " leaderSpeed=" << (neighLead.first == 0 ? -1 : neighLead.first->getSpeed())
-                    << " secGap=" << (neighLead.first == 0 ? -1 : myVehicle.getCarFollowModel().getSecureGap(
-                                myVehicle.getSpeed(), neighLead.first->getSpeed(), neighLead.first->getCarFollowModel().getMaxDecel()))
-                    << " acceptanceTime=" << acceptanceTime
-                    << " fullSpeedGap=" << fullSpeedGap
-                    << " fullSpeedDrivingSeconds=" << fullSpeedDrivingSeconds
-                    << " dProb=" << deltaProb
-                    << "\n";
+                          << " veh=" << myVehicle.getID()
+                          << " vMax=" << vMax
+                          << " neighDist=" << neighDist
+                          << " brakeGap=" << myVehicle.getCarFollowModel().brakeGap(myVehicle.getSpeed())
+                          << " leaderSpeed=" << (neighLead.first == 0 ? -1 : neighLead.first->getSpeed())
+                          << " secGap=" << (neighLead.first == 0 ? -1 : myVehicle.getCarFollowModel().getSecureGap(
+                                                myVehicle.getSpeed(), neighLead.first->getSpeed(), neighLead.first->getCarFollowModel().getMaxDecel()))
+                          << " acceptanceTime=" << acceptanceTime
+                          << " fullSpeedGap=" << fullSpeedGap
+                          << " fullSpeedDrivingSeconds=" << fullSpeedDrivingSeconds
+                          << " dProb=" << deltaProb
+                          << "\n";
             }
             if (myKeepRightProbability < -CHANGE_PROB_THRESHOLD_RIGHT) {
                 req = ret | lca | LCA_KEEPRIGHT;
@@ -1059,7 +1063,7 @@ MSLCM_JE2013::_wantsChange(
                       << "\n";
         }
 
-        if (mySpeedGainProbability < -CHANGE_PROB_THRESHOLD_RIGHT 
+        if (mySpeedGainProbability < -CHANGE_PROB_THRESHOLD_RIGHT
                 && neighDist / MAX2((SUMOReal) .1, myVehicle.getSpeed()) > 20.) { //./MAX2((SUMOReal) .1, myVehicle.getSpeed())) { // -.1
             req = ret | lca | LCA_SPEEDGAIN;
             if (!cancelRequest(req)) {

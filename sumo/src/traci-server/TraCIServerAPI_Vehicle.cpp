@@ -143,12 +143,12 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                 tempMsg.writeDouble(onRoad ? v->getPosition().x() : INVALID_DOUBLE_VALUE);
                 tempMsg.writeDouble(onRoad ? v->getPosition().y() : INVALID_DOUBLE_VALUE);
                 break;
-			case VAR_POSITION3D:
-				tempMsg.writeUnsignedByte(POSITION_3D);
-				tempMsg.writeDouble(onRoad ? v->getPosition().x() : INVALID_DOUBLE_VALUE);
-				tempMsg.writeDouble(onRoad ? v->getPosition().y() : INVALID_DOUBLE_VALUE);
-				tempMsg.writeDouble(onRoad ? v->getPosition().z() : INVALID_DOUBLE_VALUE);
-				break;
+            case VAR_POSITION3D:
+                tempMsg.writeUnsignedByte(POSITION_3D);
+                tempMsg.writeDouble(onRoad ? v->getPosition().x() : INVALID_DOUBLE_VALUE);
+                tempMsg.writeDouble(onRoad ? v->getPosition().y() : INVALID_DOUBLE_VALUE);
+                tempMsg.writeDouble(onRoad ? v->getPosition().z() : INVALID_DOUBLE_VALUE);
+                break;
             case VAR_ANGLE:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(onRoad ? v->getAngle() : INVALID_DOUBLE_VALUE);
@@ -565,7 +565,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             if (!server.readTypeCheckingInt(inputStorage, duration)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "The second slow down parameter must be the duration given as an integer.", outputStorage);
             }
-            if (duration < 0) {
+            if (duration < 0 || STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep()) + STEPS2TIME(duration) > STEPS2TIME(SUMOTime_MAX - DELTA_T)) {
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Invalid time interval", outputStorage);
             }
             std::vector<std::pair<SUMOTime, SUMOReal> > speedTimeLine;
@@ -848,7 +848,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             std::vector<std::pair<SUMOTime, SUMOReal> > speedTimeLine;
             if (speed >= 0) {
                 speedTimeLine.push_back(std::make_pair(MSNet::getInstance()->getCurrentTimeStep(), speed));
-                speedTimeLine.push_back(std::make_pair(SUMOTime_MAX, speed));
+                speedTimeLine.push_back(std::make_pair(SUMOTime_MAX - DELTA_T, speed));
             }
             v->getInfluencer().setSpeedTimeLine(speedTimeLine);
         }
@@ -933,7 +933,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             vehicleParams.departPos = pos;
             if (vehicleParams.departPos < 0) {
                 const int proc = static_cast<int>(-vehicleParams.departPos);
-                if (proc >= static_cast<int>(DEPART_POS_DEF_MAX)) {
+                if (fabs(proc + vehicleParams.departPos) > NUMERICAL_EPS || proc >= static_cast<int>(DEPART_POS_DEF_MAX) || proc == static_cast<int>(DEPART_POS_GIVEN)) {
                     return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Invalid departure position.", outputStorage);
                 }
                 vehicleParams.departPosProcedure = (DepartPosDefinition)proc;

@@ -175,8 +175,7 @@ GUIApplicationWindow::GUIApplicationWindow(FXApp* a,
       // game specific
       myJamSoundTime(60),
       myWaitingTime(0),
-      myTimeLoss(0)
-{
+      myTimeLoss(0) {
     GUIIconSubSys::init(a);
 }
 
@@ -322,7 +321,7 @@ GUIApplicationWindow::~GUIApplicationWindow() {
 
     while (!myEvents.empty()) {
         // get the next event
-        GUIEvent* e = static_cast<GUIEvent*>(myEvents.top());
+        GUIEvent* e = myEvents.top();
         myEvents.pop();
         delete e;
     }
@@ -398,7 +397,7 @@ GUIApplicationWindow::fillMenuBar() {
     std::vector<std::string> vehicleClasses = SumoVehicleClassStrings.getStrings();
     for (std::vector<std::string>::iterator it = vehicleClasses.begin(); it != vehicleClasses.end(); ++it) {
         new FXMenuCommand(mySelectByPermissions,
-                (*it).c_str(), NULL, this, MID_EDITCHOSEN);
+                          (*it).c_str(), NULL, this, MID_EDITCHOSEN);
     }
 
     myEditMenu = new FXMenuPane(this);
@@ -1016,7 +1015,7 @@ void
 GUIApplicationWindow::eventOccured() {
     while (!myEvents.empty()) {
         // get the next event
-        GUIEvent* e = static_cast<GUIEvent*>(myEvents.top());
+        GUIEvent* e = myEvents.top();
         myEvents.pop();
         // process
         switch (e->getOwnType()) {
@@ -1142,7 +1141,7 @@ GUIApplicationWindow::handleEvent_SimulationStep(GUIEvent*) {
 void
 GUIApplicationWindow::handleEvent_Message(GUIEvent* e) {
     GUIEvent_Message* ec = static_cast<GUIEvent_Message*>(e);
-    myMessageWindow->appendText(ec->getOwnType(), ec->getMsg());
+    myMessageWindow->appendMsg(ec->getOwnType(), ec->getMsg());
 }
 
 
@@ -1162,7 +1161,7 @@ GUIApplicationWindow::handleEvent_SimulationEnded(GUIEvent* e) {
 }
 
 
-void 
+void
 GUIApplicationWindow::checkGamingEvents() {
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
     MSVehicleControl::constVehIt it = vc.loadedVehBegin();
@@ -1183,7 +1182,7 @@ GUIApplicationWindow::checkGamingEvents() {
         }
     }
     // updated peformance indicators
-    
+
     for (it = vc.loadedVehBegin(); it != end; ++it) {
         const MSVehicle* veh = dynamic_cast<MSVehicle*>(it->second);
         assert(veh != 0);
@@ -1318,7 +1317,7 @@ GUIApplicationWindow::updateTimeLCD(SUMOTime time) {
     if (myAmGaming) {
         // show time counting backwards
         time = myRunThread->getSimEndTime() - time;
-    } 
+    }
     SUMOReal fracSeconds = STEPS2TIME(time);
     const bool hideFraction = myAmGaming || fmod(TS, 1.) == 0.;
     const int BuffSize = 100;

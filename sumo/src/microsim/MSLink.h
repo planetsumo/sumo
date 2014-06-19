@@ -328,7 +328,7 @@ public:
      * @param[out] blocking Return blocking pedestrians if a vector is given
      * @return The all vehicles on foeLanes and their (virtual) distances to the asking vehicle
      */
-    LinkLeaders getLeaderInfo(SUMOReal dist, SUMOReal minGap, std::vector<const MSPerson*>* collectBlockers=0) const;
+    LinkLeaders getLeaderInfo(SUMOReal dist, SUMOReal minGap, std::vector<const MSPerson*>* collectBlockers = 0) const;
 #endif
 
     /// @brief return the via lane if it exists and the lane otherwise
@@ -336,7 +336,7 @@ public:
 
 
     /// @brief return the expected time at which the given vehicle will clear the link
-    SUMOTime getLeaveTime(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength) const;
+    SUMOTime getLeaveTime(const SUMOTime arrivalTime, const SUMOReal arrivalSpeed, const SUMOReal leaveSpeed, const SUMOReal vehicleLength) const;
 
     /// @brief write information about all approaching vehicles to the given output device
     void writeApproaching(OutputDevice& od, const std::string fromLaneID) const;

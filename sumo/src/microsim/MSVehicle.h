@@ -432,6 +432,11 @@ public:
     void enterLaneAtInsertion(MSLane* enteredLane, SUMOReal pos, SUMOReal speed,
                               MSMoveReminder::Notification notification);
 
+    /** @brief set tentative lane and position during insertion to ensure that
+     * all cfmodels work (some of them require veh->getLane() to return a valid lane)
+     * Once the vehicle is sucessfully inserted the lane is set again (see enterLaneAtInsertion)
+     */
+    void setTentativeLaneAndPosition(MSLane* lane, const SUMOReal pos);
 
     /** @brief Update when the vehicle enters a new lane in the laneChange step.
      *
@@ -1109,6 +1114,9 @@ protected:
 
 
     void setBlinkerInformation();
+
+    /// updates LaneQ::nextOccupation and myCurrentLaneInBestLanes
+    void updateOccupancyAndCurrentBestLane(const MSLane* startLane);
 
 
     /// @brief The time the vehicle waits (is not faster than 0.1m/s) in seconds

@@ -65,14 +65,13 @@ NIVissimSingleTypeParser_Zuflussdefinition::parse(std::istream& from) {
         }
     }
     // read q
-    bool exact = false;
-    SUMOReal q;
+    // bool exact = false;
     tag = myRead(from);
     if (tag == "exakt") {
-        exact = true;
+        // exact = true;
         tag = myRead(from);
     }
-    q = TplConvert::_2SUMOReal(tag.c_str());
+    // SUMOReal q = TplConvert::_2SUMOReal(tag.c_str());
     // read the vehicle types
     from >> tag;
     int vehicle_combination;
@@ -88,8 +87,7 @@ NIVissimSingleTypeParser_Zuflussdefinition::parse(std::istream& from) {
         from >> tag;
         from >> end;
     }
-    return NIVissimSource::dictionary(id, name, edgeid, q, exact, vehicle_combination,
-                                      beg, end);
+    return NIVissimSource::dictionary(id, name, edgeid);
 }
 
 

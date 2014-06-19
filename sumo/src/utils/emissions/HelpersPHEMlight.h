@@ -78,19 +78,19 @@ public:
      * @return the name of the vehicle class
      */
     std::string getAmitranVehicleClass(const SUMOEmissionClass c) const;
-        
+
     /** @brief Returns the fuel type described by this emission class as described in the Amitran interface (Gasoline, Diesel, ...)
      * @param[in] c the emission class
      * @return the fuel type
      */
     std::string getFuel(const SUMOEmissionClass c) const;
-        
+
     /** @brief Returns the Euro emission class described by this emission class as described in the Amitran interface (0, ..., 6)
      * @param[in] c the emission class
      * @return the Euro class
      */
     int getEuroClass(const SUMOEmissionClass c) const;
-        
+
     /** @brief Returns a reference weight in kg described by this emission class as described in the Amitran interface
      * This implementation returns only meaningful values for Solo_LKW (truck without trailer) and LNF (light duty vehicles).
      * @param[in] c the emission class
@@ -105,7 +105,7 @@ public:
      * @param[in] slope The road's slope at vehicle's position [°]
      * @return The maximum possible acceleration
      */
-    SUMOReal getMaxAccel(SUMOEmissionClass c, double v, double a, double slope);
+    SUMOReal getMaxAccel(SUMOEmissionClass c, double v, double a, double slope) const;
 
 
     /** @brief Returns the amount of emitted pollutant given the vehicle type and state (in mg/s or in ml/s for fuel)

@@ -102,10 +102,10 @@ main(int argc, char** argv) {
     oc.addDescription("kmh", "Processing", "If set, the given speed is interpreted as being given in km/h.");
 
     oc.doRegister("have-slope", new Option_Bool(false));
-    oc.addDescription("have-slope", "Processing", "If set, the fourth column is read and used as slope (in [°]).");
+    oc.addDescription("have-slope", "Processing", "If set, the fourth column is read and used as slope (in deg).");
 
     oc.doRegister("slope", new Option_Float(0));
-    oc.addDescription("slope", "Processing", "Sets a global slope (in [°]) that is used if the file does not contain slope information.");
+    oc.addDescription("slope", "Processing", "Sets a global slope (in deg) that is used if the file does not contain slope information.");
 
     oc.addOptionSubTopic("Output");
     oc.doRegister("output-file", 'o', new Option_String());
@@ -168,7 +168,7 @@ main(int argc, char** argv) {
                     continue;
                 }
                 StringTokenizer st(StringUtils::prune(line), ";");
-                if (st.size()<2) {
+                if (st.size() < 2) {
                     throw ProcessError("Each line must at least include the time and the speed.");
                 }
                 try {
@@ -189,7 +189,7 @@ main(int argc, char** argv) {
             }
             if (!quiet) {
                 std::cout << "sums"  << std::endl
-                    << "length:" << l << std::endl;
+                          << "length:" << l << std::endl;
                 handler.writeSums(std::cout, "");
             }
         }

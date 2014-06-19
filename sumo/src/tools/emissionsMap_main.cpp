@@ -106,23 +106,23 @@ main(int argc, char** argv) {
     oc.addDescription("emission-class", "Processing", "Defines the name of the emission class to generate the map for.");
 
     oc.doRegister("v-min", new Option_Float(0.));
-    oc.addDescription("v-min", "Processing", "Defines the minimum velocity boundary of the map to generate (in [m/s]).");
+    oc.addDescription("v-min", "Processing", "Defines the minimum velocity boundary of the map to generate (in m/s).");
     oc.doRegister("v-max", new Option_Float(50.));
-    oc.addDescription("v-max", "Processing", "Defines the maximum velocity boundary of the map to generate (in [m/s]).");
+    oc.addDescription("v-max", "Processing", "Defines the maximum velocity boundary of the map to generate (in m/s).");
     oc.doRegister("v-step", new Option_Float(2.));
-    oc.addDescription("v-step", "Processing", "Defines the velocity step size (in [m/s]).");
+    oc.addDescription("v-step", "Processing", "Defines the velocity step size (in m/s).");
     oc.doRegister("a-min", new Option_Float(-4.));
-    oc.addDescription("a-min", "Processing", "Defines the minimum acceleration boundary of the map to generate (in [m/s^2]).");
+    oc.addDescription("a-min", "Processing", "Defines the minimum acceleration boundary of the map to generate (in m/s^2).");
     oc.doRegister("a-max", new Option_Float(4.));
-    oc.addDescription("a-max", "Processing", "Defines the maximum acceleration boundary of the map to generate (in [m/s^2]).");
+    oc.addDescription("a-max", "Processing", "Defines the maximum acceleration boundary of the map to generate (in m/s^2).");
     oc.doRegister("a-step", new Option_Float(.5));
-    oc.addDescription("a-step", "Processing", "Defines the acceleration step size (in [m/s^2]).");
+    oc.addDescription("a-step", "Processing", "Defines the acceleration step size (in m/s^2).");
     oc.doRegister("s-min", new Option_Float(-10.));
-    oc.addDescription("s-min", "Processing", "Defines the minimum slope boundary of the map to generate (in [°]).");
+    oc.addDescription("s-min", "Processing", "Defines the minimum slope boundary of the map to generate (in deg).");
     oc.doRegister("s-max", new Option_Float(10.));
-    oc.addDescription("s-max", "Processing", "Defines the maximum slope boundary of the map to generate (in [°]).");
+    oc.addDescription("s-max", "Processing", "Defines the maximum slope boundary of the map to generate (in deg).");
     oc.doRegister("s-step", new Option_Float(1.));
-    oc.addDescription("s-step", "Processing", "Defines the slope step size (in [°]).");
+    oc.addDescription("s-step", "Processing", "Defines the slope step size (in deg).");
 
     oc.addOptionSubTopic("Output");
     oc.doRegister("output-file", 'o', new Option_String());
@@ -174,7 +174,7 @@ main(int argc, char** argv) {
             for (std::vector<SUMOEmissionClass>::const_iterator ci = classes.begin(); ci != classes.end(); ++ci) {
                 SUMOEmissionClass c = *ci;
                 single(oc.getString("output-file") + PollutantsInterface::getName(c) + ".csv", PollutantsInterface::getName(c),
-                        c, vMin, vMax, vStep, aMin, aMax, aStep, sMin, sMax, sStep, oc.getBool("verbose"));
+                       c, vMin, vMax, vStep, aMin, aMax, aStep, sMin, sMax, sStep, oc.getBool("verbose"));
             }
         }
     } catch (InvalidArgument& e) {

@@ -191,7 +191,7 @@ PositionVector::operator[](int index) const {
     if (index >= 0) {
         return at(index);
     } else {
-        return at(size() + index);
+        return at((int)size() + index);
     }
 }
 
@@ -201,7 +201,7 @@ PositionVector::operator[](int index) {
     if (index >= 0) {
         return at(index);
     } else {
-        return at(size() + index);
+        return at((int)size() + index);
     }
 }
 
@@ -356,6 +356,10 @@ PositionVector::getCentroid() const {
             x += (tmp[i].x() + tmp[i + 1].x()) * length / 2;
             y += (tmp[i].y() + tmp[i + 1].y()) * length / 2;
             lengthSum += length;
+        }
+        if (lengthSum == 0) {
+            // it is probably only one point
+            return tmp[0];
         }
         return Position(x / lengthSum, y / lengthSum);
     }
@@ -739,7 +743,7 @@ PositionVector::pruneFromBeginAt(const Position& p) {
 }
 
 
-PositionVector 
+PositionVector
 PositionVector::getSubpartByIndex(int beginIndex, int count) const {
     if (beginIndex < 0) {
         beginIndex += (int)size();

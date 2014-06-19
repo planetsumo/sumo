@@ -71,17 +71,20 @@ HelpersPHEMlight::getClassByName(const std::string& eClass, const SUMOVehicleCla
         myIndex--;
         throw InvalidArgument("File for PHEM emission class " + eClass + " not found.");
     }
+    std::string eclower = eClass;
+    std::transform(eclower.begin(), eclower.end(), eclower.begin(), tolower);
+    myEmissionClassStrings.addAlias(eclower, index);
     return index;
 }
 
 
 SUMOReal
-HelpersPHEMlight::getMaxAccel(SUMOEmissionClass c, double v, double a, double slope) {
+HelpersPHEMlight::getMaxAccel(SUMOEmissionClass c, double v, double a, double slope) const {
     PHEMCEP* currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
     if (currCep == 0) {
         return -1.;
     }
-	return currCep->GetMaxAccel(v, a, slope); 
+    return currCep->GetMaxAccel(v, a, slope);
 }
 
 
@@ -134,7 +137,7 @@ HelpersPHEMlight::getClass(const SUMOEmissionClass base, const std::string& vCla
     } else if (vClass == "Coach") {
         desc = "RB_D_EU" + eClassOffset;
     } else if (vClass == "Truck") {
-        desc = "Solo_LKW_D_EU" + eClassOffset+ "_I";
+        desc = "Solo_LKW_D_EU" + eClassOffset + "_I";
         if (weight > 1305.) {
             desc += "I";
         }
@@ -247,12 +250,12 @@ HelpersPHEMlight::compute(const SUMOEmissionClass c, const PollutantsInterface::
             return currCep->GetEmission("PM", power) / SECONDS_PER_HOUR * 1000.;
         case PollutantsInterface::FUEL: {
             std::string fuelType = currCep->GetVehicleFuelType();
-	        if(fuelType == "D") { // divide by average diesel density of 836 g/l
-		        return currCep->GetEmission("FC", power) / 836. / SECONDS_PER_HOUR * 1000.;
-            } else if(fuelType == "G") { // divide by average gasoline density of 742 g/l
-		        return currCep->GetEmission("FC", power) / 742. / SECONDS_PER_HOUR * 1000.;
+            if (fuelType == "D") { // divide by average diesel density of 836 g/l
+                return currCep->GetEmission("FC", power) / 836. / SECONDS_PER_HOUR * 1000.;
+            } else if (fuelType == "G") { // divide by average gasoline density of 742 g/l
+                return currCep->GetEmission("FC", power) / 742. / SECONDS_PER_HOUR * 1000.;
             } else {
-		        return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR * 1000.; // surely false, but at least not additionally modified
+                return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR * 1000.; // surely false, but at least not additionally modified
             }
         }
     }
