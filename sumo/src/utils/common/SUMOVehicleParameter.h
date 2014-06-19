@@ -65,6 +65,7 @@ const int VEHPARS_LINE_SET = 2 << 10;
 const int VEHPARS_TAZ_SET = 2 << 11;
 const int VEHPARS_FORCE_REROUTE = 2 << 12;
 const int VEHPARS_PERSON_NUMBER_SET = 2 << 13;
+const int VEHPARS_CONTAINER_NUMBER_SET = 2 << 14;
 
 const int STOP_INDEX_END = -1;
 const int STOP_INDEX_FIT = -2;
@@ -484,6 +485,9 @@ public:
 
     /// @brief The number of persons in the vehicle
     unsigned int personNumber;
+
+    /// @brief The number of containers in the vehicle
+    unsigned int containerNumber;
 
     /// @brief Information for the router which parameter were set
     mutable int setParameter;

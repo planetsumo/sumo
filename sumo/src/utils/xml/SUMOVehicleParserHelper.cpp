@@ -308,6 +308,11 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
         ret->setParameter |= VEHPARS_PERSON_NUMBER_SET;
         ret->personNumber = attrs.get<int>(SUMO_ATTR_PERSON_NUMBER, ret->id.c_str(), ok);
     }
+    // parse container number
+    if (attrs.hasAttribute(SUMO_ATTR_CONTAINER_NUMBER)) {
+        ret->setParameter |= VEHPARS_CONTAINER_NUMBER_SET;
+        ret->containerNumber = attrs.get<int>(SUMO_ATTR_CONTAINER_NUMBER, ret->id.c_str(), ok);
+    }
 }
 
 

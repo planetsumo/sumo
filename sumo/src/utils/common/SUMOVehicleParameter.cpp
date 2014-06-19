@@ -234,6 +234,9 @@ SUMOVehicleParameter::write(OutputDevice& dev, const OptionsCont& oc) const {
     if (wasSet(VEHPARS_PERSON_NUMBER_SET)) {
         dev.writeAttr(SUMO_ATTR_PERSON_NUMBER, personNumber);
     }
+    if (wasSet(VEHPARS_CONTAINER_NUMBER_SET)) {
+        dev.writeAttr(SUMO_ATTR_CONTAINER_NUMBER, containerNumber);
+    }
 }
 
 
