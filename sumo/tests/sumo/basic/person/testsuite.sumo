@@ -40,5 +40,8 @@ abort_impossible_ride
 # test whether a chain of walks rides and stops works
 trip_chain
 
+# test wheather the personNumber of a vehicle decreases if persons leave the vehicle at a stop
+person_number
+
 # person ride for restricted capacity
 capacity
