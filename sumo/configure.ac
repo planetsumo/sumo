@@ -48,6 +48,12 @@ AM_PROG_LIBTOOL
 
 dnl Check for enable-features that shall go into config.h
 AC_ARG_ENABLE([memcheck], [AS_HELP_STRING([--enable-memcheck],[enable compilation of memory leak checks [default=no].])])
+if test x$enable_memcheck = xyes; then
+    if test $CXX = clang++; then
+        AC_MSG_WARN([--enable-memcheck does not work with clang yet])
+        enable_memcheck="no"
+    fi
+fi
 AM_CONDITIONAL(CHECK_MEMORY_LEAKS, test x$enable_memcheck = xyes)
 if test x$enable_memcheck = xyes; then
     AC_DEFINE(CHECK_MEMORY_LEAKS, 1, [Define to 1 in order to enable memory checks.])
@@ -82,8 +88,8 @@ else
     ac_disabled="$ac_disabled Subsecond"
 fi
 
-AC_DEFINE([POSITION_EPS], [0.1], [defines the epsilon to use on position comparison])
-AC_DEFINE([NUMERICAL_EPS], [0.001], [defines the epsilon to use on general floating point comparison])
+AC_DEFINE([POSITION_EPS], [(SUMOReal)0.1], [defines the epsilon to use on position comparison])
+AC_DEFINE([NUMERICAL_EPS], [(SUMOReal)0.001], [defines the epsilon to use on general floating point comparison])
 AC_DEFINE([OUTPUT_ACCURACY], [2], [defines the number of digits after the comma in output])
 AC_DEFINE([GEO_OUTPUT_ACCURACY], [6], [defines the number of digits after the comma in geo-coordinates output])
 AC_DEFINE([SUMOLong], [long long int], [defines the type for very long integers])
