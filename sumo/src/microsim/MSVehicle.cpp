@@ -62,11 +62,14 @@
 #include <microsim/MSGlobals.h>
 #include "trigger/MSBusStop.h"
 #include "devices/MSDevice_Person.h"
+#include "devices/MSDevice_Container.h"
 #include "MSEdgeWeightsStorage.h"
 #include "MSAbstractLaneChangeModel.h"
 #include "MSMoveReminder.h"
 #include "MSPerson.h"
 #include "MSPersonControl.h"
+#include "MSContainer.h"
+#include "MSContainerControl.h"
 #include "MSLane.h"
 #include "MSVehicle.h"
 #include "MSEdge.h"
@@ -2215,11 +2218,36 @@ MSVehicle::addPerson(MSPerson* person) {
     }
 }
 
+void
+MSVehicle::addContainer(MSContainer* container) {
+    if (myContainerDevice == 0) {
+        myContainerDevice = MSDevice_Container::buildVehicleDevices(*this, myDevices);
+        myMoveReminders.push_back(std::make_pair(myContainerDevice, 0.));
+    }
+    myContainerDevice->addContainer(container);
+    if (myStops.size() > 0 && myStops.front().reached && myStops.front().triggered) {
+        unsigned int numExpected = (unsigned int) myStops.front().awaitedContainers.size();
+        if (numExpected != 0) {
+            myStops.front().awaitedContainers.erase(container->getID());
+            numExpected = (unsigned int) myStops.front().awaitedContainers.size();
+        }
+        if (numExpected == 0) {
+            myStops.front().duration = 0;
+        }
+    }
+}
+
 
 unsigned int
 MSVehicle::getPersonNumber() const {
     unsigned int boarded = myPersonDevice == 0 ? 0 : myPersonDevice->size();
     return boarded + myParameter->personNumber;
+}
+
+unsigned int
+MSVehicle::getContainerNumber() const {
+    unsigned int loaded = myContainerDevice == 0 ? 0 : myContainerDevice->size();
+    return loaded + myParameter->containerNumber;
 }
 
 

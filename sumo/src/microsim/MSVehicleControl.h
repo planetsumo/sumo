@@ -232,12 +232,12 @@ public:
     unsigned int getQuota(SUMOReal frac = -1) const;
 
 
-    /** @brief Returns the number of build vehicles that have not been removed
-     * or need to wait for a passenger
+    /** @brief Returns the number of build vehicles that have not been removed or
+     * need to wait for a passenger or a container
      * @return Number of active vehicles
      */
     int getActiveVehicleCount() const {
-        return myLoadedVehNo - (myWaitingForPerson + myEndedVehNo);
+        return myLoadedVehNo - (myWaitingForPerson + myWaitingForContainer + myEndedVehNo);
     }
 
 
@@ -363,6 +363,12 @@ public:
      */
     void unregisterOneWaitingForPerson() {
         myWaitingForPerson--;
+    }
+
+    /** @brief decreases the count of vehicles waiting for a container to allow recogniztion of container related deadlocks
+     */
+    void unregisterOneWaitingForContainer() {
+        myWaitingForContainer--;
     }
 
     /// @brief registers one collision-related teleport
@@ -496,8 +502,11 @@ protected:
     /// the lists of waiting vehicles
     std::map<const MSEdge* const, std::vector<SUMOVehicle*> > myWaiting;
 
-    /// the number of vehicles contained in myWaiting which can only continue by being triggered
+    /// the number of vehicles wainting for persons contained in myWaiting which can only continue by being triggered
     unsigned int myWaitingForPerson;
+
+    /// the number of vehicles wainting for containers contained in myWaiting which can only continue by being triggered
+    unsigned int myWaitingForContainer;
 
     /// @brief The scaling factor (especially for inc-dua)
     SUMOReal myScale;

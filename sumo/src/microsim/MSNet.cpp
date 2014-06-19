@@ -51,6 +51,7 @@
 #include <utils/common/UtilExceptions.h>
 #include "MSNet.h"
 #include "MSPersonControl.h"
+#include "MSContainerControl.h"
 #include "MSEdgeControl.h"
 #include "MSJunctionControl.h"
 #include "MSInsertionControl.h"
@@ -93,6 +94,7 @@
 #include "MSPModel.h"
 #include <utils/geom/GeoConvHelper.h>
 #include "MSPerson.h"
+#include "MSContainer.h"
 #include "MSEdgeWeightsStorage.h"
 #include "MSStateHandler.h"
 
@@ -190,6 +192,7 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
     myRouteLoaders = 0;
     myLogics = 0;
     myPersonControl = 0;
+    myContainerControl = 0;
     myEdgeWeights = 0;
     myShapeContainer = shapeCont == 0 ? new ShapeContainer() : shapeCont;
 
@@ -249,6 +252,9 @@ MSNet::~MSNet() {
     delete myVehicleControl;
     if (myPersonControl != 0) {
         delete myPersonControl;
+    }
+    if (myContainerControl != 0) {
+        delete myContainerControl;
     }
     delete myShapeContainer;
     delete myEdgeWeights;
@@ -430,6 +436,10 @@ MSNet::simulationStep() {
     if (myPersonControl != 0) {
         myPersonControl->checkWaitingPersons(this, myStep);
     }
+    // containers
+    if (myContainerControl != 0) {
+        myContainerControl->checkWaitingContainers(this, myStep);
+    }
     // insert Vehicles
     myInsertionEvents->execute(myStep);
     myInserter->emitVehicles(myStep);
@@ -474,9 +484,13 @@ MSNet::simulationState(SUMOTime stopTime) const {
         if (myInsertionEvents->isEmpty()
                 && (myVehicleControl->getActiveVehicleCount() == 0)
                 && (myInserter->getPendingFlowCount() == 0)
-                && (myPersonControl == 0 || !myPersonControl->hasNonWaiting())) {
+                && (myPersonControl == 0 || !myPersonControl->hasNonWaiting())
+                && (myContainerControl == 0 || !myContainerControl->hasNonWaiting())) {
             if (myPersonControl) {
                 myPersonControl->abortWaiting();
+            }
+            if (myContainerControl) {
+                myContainerControl->abortWaiting();
             }
             myVehicleControl->abortWaiting();
             return SIMSTATE_NO_FURTHER_VEHICLES;
@@ -630,6 +644,14 @@ MSNet::getPersonControl() {
         myPersonControl = new MSPersonControl();
     }
     return *myPersonControl;
+}
+
+MSContainerControl&
+MSNet::getContainerControl() {
+    if (myContainerControl == 0) {
+        myContainerControl = new MSContainerControl();
+    }
+    return *myContainerControl;
 }
 
 

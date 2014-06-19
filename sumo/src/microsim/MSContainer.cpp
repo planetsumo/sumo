@@ -38,8 +38,8 @@
 #include "MSEdge.h"
 #include "MSLane.h"
 #include "MSContainer.h"
-//#include "MSContainerControl.h"
-//#include "MSInsertionControl.h"
+#include "MSContainerControl.h"
+#include "MSInsertionControl.h"
 #include "MSVehicle.h"
 //#include "MSPModel.h"
 
@@ -158,7 +158,7 @@ MSContainer::MSContainerStage_Driving::getPosition(SUMOTime /* now */) const {
         return myVehicle->getEdge()->getLanes()[0]->getShape().positionAtOffset(myVehicle->getPositionOnLane());
     }
 	//TODO: make class MSCModel
-    return getEdgePosition(myWaitingEdge, myWaitingPos, MSCModel::CONTAINER_DEFAULT_OFFSET);//SIDEWALK_OFFSET
+    return getEdgePosition(myWaitingEdge, myWaitingPos, 0.0);
 }
 
 std::string
@@ -174,6 +174,11 @@ MSContainer::MSContainerStage_Driving::isWaitingFor(const std::string& line) con
 bool
 MSContainer::MSContainerStage_Driving::isWaiting4Vehicle() const {
     return myVehicle == 0;
+}
+
+SUMOTime
+MSContainer::MSContainerStage_Driving::getWaitingTime(SUMOTime now) const {
+    return isWaiting4Vehicle() ? now - myWaitingSince : 0;
 }
 
 SUMOReal
@@ -242,7 +247,7 @@ MSContainer::MSContainerStage_Waiting::getUntil() const {
 
 Position
 MSContainer::MSContainerStage_Waiting::getPosition(SUMOTime /* now */) const {
-    return getEdgePosition(&myDestination, myStartPos, MSCModel::CONTAINER_DEFAULT_OFFSET);
+    return getEdgePosition(&myDestination, myStartPos, 0.0);
 }
 
 SUMOTime

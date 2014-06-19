@@ -65,6 +65,8 @@ class MSEdgeWeightsStorage;
 class OutputDevice;
 class Position;
 class MSDevice_Person;
+class MSDevice_Container;
+class MSContainer;
 
 
 // ===========================================================================
@@ -578,6 +580,8 @@ public:
         bool reached;
         /// @brief IDs of persons the vehicle has to wait for until departing
         std::set<std::string> awaitedPersons;
+        /// @brief IDs of containers the vehicle has to wait for until departing
+        std::set<std::string> awaitedContainers;
 		/// @brief The time at which the vehicle is able to board another person
 		SUMOTime timeToBoardNextPerson;
 
@@ -713,11 +717,24 @@ public:
      */
     void addPerson(MSPerson* person);
 
+    /// @name Interaction with containers
+    //@{
+
+    /** @brief Adds a container
+     * @param[in] container The container to add
+     */
+    void addContainer(MSContainer* container);
+
 
     /** @brief Returns the number of persons
      * @return The number of passengers on-board
      */
     unsigned int getPersonNumber() const;
+
+    /** @brief Returns the number of containers
+     * @return The number of contaiers on-board
+     */
+    unsigned int getContainerNumber() const;
 
     /// @name Access to bool signals
     /// @{
@@ -1117,6 +1134,9 @@ protected:
 
     /// @brief The passengers this vehicle may have
     MSDevice_Person* myPersonDevice;
+
+    /// @brief The containers this vehicle may have
+    MSDevice_Container* myContainerDevice;
 
     /// @brief The current acceleration after dawdling in m/s
     SUMOReal myAcceleration;
