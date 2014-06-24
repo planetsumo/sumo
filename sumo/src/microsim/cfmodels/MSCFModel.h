@@ -32,6 +32,7 @@
 #include <config.h>
 #endif
 
+#include <math.h>
 #include <string>
 #include <utils/common/StdDefs.h>
 #include <utils/common/FileHelpers.h>
@@ -221,6 +222,21 @@ public:
         const SUMOReal speedReduction = ACCEL2SPEED(decel);
         const int steps = int(speed / speedReduction);
         return SPEED2DIST(steps * speed - speedReduction * steps * (steps + 1) / 2) + speed * headwayTime;
+    }
+
+
+    inline static SUMOReal freeSpeed(const SUMOReal decel, const SUMOReal seen, const SUMOReal maxSpeed) {
+        // adapt speed to succeeding lane, no reaction time is involved
+        // when breaking for y steps the following distance g is covered
+        // (drive with v in the final step)
+        // g = (y^2 + y) * 0.5 * b + y * v
+        // y = ((((sqrt((b + 2.0*v)*(b + 2.0*v) + 8.0*b*g)) - b)*0.5 - v)/b)
+        const SUMOReal b = ACCEL2SPEED(decel);
+        const SUMOReal v = SPEED2DIST(maxSpeed);
+        const SUMOReal y = MAX2(0.0, ((sqrt((b + 2.0 * v) * (b + 2.0 * v) + 8.0 * b * seen) - b) * 0.5 - v) / b);
+        const SUMOReal yFull = floor(y);
+        const SUMOReal exactGap = (yFull * yFull + yFull) * 0.5 * b + yFull * v + (y > yFull ? v : 0.0);
+        return MAX2((SUMOReal)0.0, seen - exactGap) / (yFull + 1) + yFull * b + maxSpeed;
     }
 
 
