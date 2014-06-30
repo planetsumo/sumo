@@ -4,7 +4,8 @@ endif
 
 bin_PROGRAMS = emissionsDrivingCycle emissionsMap
 
-emissionsDrivingCycle_SOURCES = emissionsDrivingCycle_main.cpp
+emissionsDrivingCycle_SOURCES = emissionsDrivingCycle_main.cpp \
+TrajectoriesHandler.cpp TrajectoriesHandler.h
 
 emissionsDrivingCycle_LDFLAGS = $(XERCES_LDFLAGS)
 

@@ -214,6 +214,15 @@ protected:
 
 	bool canRelease();
 
+	/*
+	 * Computes how much time will pass after decideNextPhase will be executed again
+	 */
+	virtual SUMOTime computeReturnTime() {
+
+		return DELTA_T;
+
+	}
+
 	/**
 	 * @brief Resets pheromone levels
 	 */

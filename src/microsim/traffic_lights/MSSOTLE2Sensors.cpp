@@ -209,14 +209,23 @@ unsigned int MSSOTLE2Sensors::countVehicles(std::string laneId) {
 }
 
 double MSSOTLE2Sensors::getMaxSpeed(std::string laneId) {
-	MSLaneID_MaxSpeedMap::const_iterator sensorsIterator = myMaxSpeedMap_InLanes.find(
+	MSLaneID_MaxSpeedMap::const_iterator sensorsIteratorIn = myMaxSpeedMap_InLanes.find(
 			laneId);
 
-	if (sensorsIterator == myMaxSpeedMap_InLanes.end()) {
-		assert(0);
-		return 0;
+	if (sensorsIteratorIn == myMaxSpeedMap_InLanes.end()) {
+		MSLaneID_MaxSpeedMap::const_iterator sensorsIteratorOut =
+				myMaxSpeedMap_OutLanes.find(laneId);
+		if (sensorsIteratorOut == myMaxSpeedMap_OutLanes.end()) {
+			assert(0);
+			WRITE_ERROR(
+					"MSSOTLE2Sensors::meanVehiclesSpeed:: No lane found "
+							+ laneId);
+			return 0;
+		} else {
+			return sensorsIteratorOut->second;
+		}
 	} else
-		return sensorsIterator->second;
+		return sensorsIteratorIn->second;
 }
 
 double MSSOTLE2Sensors::meanVehiclesSpeed(MSLane* lane) {

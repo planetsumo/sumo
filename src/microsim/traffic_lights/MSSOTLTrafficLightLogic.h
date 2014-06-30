@@ -174,7 +174,7 @@ protected:
 	/*
 	 * Computes how much time will pass after decideNextPhase will be executed again
 	 */
-	SUMOTime computeReturnTime() {
+	virtual SUMOTime computeReturnTime() {
 		if (getCurrentPhaseDef().isTransient()) {
 			return getCurrentPhaseDef().duration;
 
@@ -195,7 +195,7 @@ protected:
 
 private:
 	/*
-	 * Pointer to the lensor logic regarding the junction controlled by this SOTLTrafficLightLogic
+	 * Pointer to the sensor logic regarding the junction controlled by this SOTLTrafficLightLogic
 	 */
 	MSSOTLSensors *mySensors;
 

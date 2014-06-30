@@ -171,7 +171,7 @@ MSE2Collector::detectorUpdate(const SUMOTime /* step */) {
     myCurrentMeanSpeed = 0;
     myCurrentMeanLength = 0;
     myCurrentStartedHalts = 0;
-    myCurrentHaltingsNumber = 0;
+	myCurrentHaltingsNumber = 0;
 
     // go through the (sorted) list of vehicles positioned on the detector
     //  sum up values and prepare the list of jams
@@ -206,7 +206,7 @@ MSE2Collector::detectorUpdate(const SUMOTime /* step */) {
         bool isInJam = false;
         // first, check whether the vehicle is slow enough to be states as halting
         if (veh->getSpeed() < myJamHaltingSpeedThreshold) {
-            myCurrentHaltingsNumber++;
+			myCurrentHaltingsNumber++;
             // we have to track the time it was halting;
             //  so let's look up whether it was halting before and compute the overall halting time
             bool wasHalting = myHaltingVehicleDurations.find(veh) != myHaltingVehicleDurations.end();

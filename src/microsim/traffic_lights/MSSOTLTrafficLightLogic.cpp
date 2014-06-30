@@ -108,7 +108,14 @@ MSSOTLTrafficLightLogic::setToATargetPhase() {
 void 
 MSSOTLTrafficLightLogic::init(NLDetectorBuilder &nb) throw(ProcessError) {
 
-    //In case sensors has been externally assigned, there is no need to build a new set of sensors
+	MSTrafficLightLogic::init(nb);
+
+	//In case sensors has been externally assigned, there is no need to build a new set of sensors
+	DBG(
+			std::ostringstream message;
+			message << this->mySensors==NULL;
+			WRITE_MESSAGE(message.str());
+			)
 	if (sensorsSelfBuilt) {
         //Building SOTLSensors
 		switch (SENSORS_TYPE) {
@@ -182,8 +189,6 @@ MSSOTLTrafficLightLogic::init(NLDetectorBuilder &nb) throw(ProcessError) {
 
 		}
 	}
-
-
 }
 
 unsigned int
@@ -239,7 +244,25 @@ MSSOTLTrafficLightLogic::countVehicles(MSPhaseDefinition phase) {
 
 bool 
 MSSOTLTrafficLightLogic::isThresholdPassed() {
+
+	DBG(
+			WRITE_MESSAGE("\n" +time2string(MSNet::getInstance()->getCurrentTimeStep()) +"\tMSSOTLTrafficLightLogic::isThresholdPassed()::  " + " tlsid=" + getID());
+			std::ostringstream threshold_str;
+			threshold_str << "tlsid=" << getID() << " targetPhaseCTS size=" << targetPhasesCTS.size();
+			WRITE_MESSAGE(threshold_str.str());
+		)
+
 	for (map<size_t, unsigned int>::const_iterator iterator = targetPhasesCTS.begin(); iterator!= targetPhasesCTS.end(); iterator++) {
+
+		DBG(
+				std::ostringstream threshold_str;
+				threshold_str << "(getThreshold()= " << getThreshold() << ", targetPhaseCTS= " << iterator->second << " )"
+						<< " phase="<<getPhase(iterator->first).getState();
+				SUMOTime step  = MSNet::getInstance()->getCurrentTimeStep();
+				WRITE_MESSAGE("\tTL " +getID()+" time "
+					+time2string(step)+threshold_str.str());
+			)
+
 		//Note that the current chain is not eligible to be directly targeted again, it would be unfair
 		if ((iterator->first != lastChain) && (getThreshold() <= iterator->second)) {
 			return true;
