@@ -1023,6 +1023,10 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 laneNum = -laneNum;
             }
             Position pos(x, y);
+            angle *= -1.;
+            if(fabs(angle)>180.) {
+                angle = 180. - angle;
+            }
 
             Position vehPos = v->getPosition();
             v->getBestLanes();
@@ -1455,10 +1459,14 @@ TraCIServerAPI_Vehicle::vtdMap_t2(const Position& pos, const std::string& origID
         const std::vector<MSLane*>& lanes = e->getLanes();
         for (std::vector<MSLane*>::const_iterator k = lanes.begin(); k != lanes.end(); ++k) {
             MSLane* lane = *k;
-            SUMOReal dist = lane->getShape().distance(pos);
-            maxDist = MAX2(maxDist, dist);
             SUMOReal off = lane->getShape().nearest_offset_to_point2D(pos);
-            SUMOReal langle = lane->getShape().rotationDegreeAtOffset(off);
+            SUMOReal langle = 180.;
+            SUMOReal dist = 1000.;
+            if(off>=0) {
+                dist = lane->getShape().distance(pos);
+                langle = lane->getShape().rotationDegreeAtOffset(off);
+            }
+            maxDist = MAX2(maxDist, dist);
             bool sameEdge = &lane->getEdge()==&v.getLane()->getEdge() && v.getEdge()->getLanes()[0]->getLength()>v.getPositionOnLane()+SPEED2DIST(speed);
             const MSEdge *rNextEdge = nextEdge;
             if(rNextEdge==0&&lane->getEdge().getPurpose()==MSEdge::EDGEFUNCTION_INTERNAL) {
@@ -1479,7 +1487,7 @@ TraCIServerAPI_Vehicle::vtdMap_t2(const Position& pos, const std::string& origID
         MSLane *l = (*i).first;
         const LaneUtility &u = (*i).second;
         SUMOReal distN = 1. - (u.dist / maxDist);
-        SUMOReal angleDiffN = u.angleDiff;
+        SUMOReal angleDiffN = 1. - (u.angleDiff / 180.);
         SUMOReal idN = u.ID ? 1 : 0;
         SUMOReal onRouteN = u.onRoute ? 1 : 0;
         SUMOReal sameEdgeN = u.sameEdge ? 1 : 0;
@@ -1489,7 +1497,7 @@ TraCIServerAPI_Vehicle::vtdMap_t2(const Position& pos, const std::string& origID
             + onRouteN*0.5
             + sameEdgeN*0.5
             ;
-        std::cout << " x; l:" << l->getID() << " d:" << u.dist << " dN:" << distN << " aD:" << u.angleDiff << 
+        std::cout << " x; l:" << l->getID() << " d:" << u.dist << " dN:" << distN << " aD:" << angleDiffN << 
             " ID:" << idN << " oRN:" << onRouteN << " sEN:" << sameEdgeN << " value:" << value << std::endl;
         if(value>bestValue || bestLane==0) {
             bestValue = value;
@@ -1503,6 +1511,10 @@ TraCIServerAPI_Vehicle::vtdMap_t2(const Position& pos, const std::string& origID
     bestDistance = u.dist;
     *lane = bestLane;
     lanePos = bestLane->getShape().nearest_offset_to_point2D(pos);
+    if(lanePos<0) {
+        int bla = MSNet::getInstance()->getCurrentTimeStep();
+        int bla2 = 0;
+    }
     const MSEdge *prevEdge = u.prevEdge;
     if(u.onRoute) {
         const MSEdgeVector &ev = v.getRoute().getEdges();
