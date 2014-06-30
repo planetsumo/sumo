@@ -90,8 +90,29 @@ private:
             SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges);
     static bool vtdMap_matchingNearest(const Position& pos, const std::string& origID, MSVehicle& v, traci::TraCIServer& server, bool report,
                                        SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges);
+    static bool vtdMap_t1(const Position& pos, const std::string& origID, MSVehicle& v, traci::TraCIServer& server, bool report,
+                                       SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges);
+    static bool vtdMap_t2(const Position& pos, const std::string& origID, const SUMOReal angle, MSVehicle& v, traci::TraCIServer& server, bool report,
+                                       SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges);
 
     static std::map<std::string, std::vector<MSLane*> > gVTDMap;
+
+
+    class LaneUtility {
+    public:
+        LaneUtility(SUMOReal dist_, SUMOReal angleDiff_, bool ID_, bool onRoute_, bool sameEdge_, const MSEdge* prevEdge_, const MSEdge* nextEdge_) : 
+          dist(dist_), angleDiff(angleDiff_), ID(ID_), onRoute(onRoute_), sameEdge(sameEdge_), prevEdge(prevEdge_), nextEdge(nextEdge_) {}
+        LaneUtility() {}
+        ~LaneUtility() {}
+
+        SUMOReal dist;
+        SUMOReal angleDiff;
+        bool ID;
+        bool onRoute;
+        bool sameEdge;
+        const MSEdge* prevEdge;
+        const MSEdge* nextEdge;
+    };
 
 
 private:
