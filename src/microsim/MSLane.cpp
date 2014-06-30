@@ -671,11 +671,11 @@ MSLane::detectCollisions(SUMOTime timestep, int stage) {
     VehCont::iterator lastVeh = myVehicles.end() - 1;
     for (VehCont::iterator veh = myVehicles.begin(); veh != lastVeh;) {
         VehCont::iterator pred = veh + 1;
-        if ((*veh)->hasInfluencer() && (*veh)->getInfluencer().isVTDControlled()) {
+        if ((*veh)->hasInfluencer() && (*veh)->getInfluencer().getLastAccessTimeStep()<timestep+DELTA_T*10) {
             ++veh;
             continue;
         }
-        if ((*pred)->hasInfluencer() && (*pred)->getInfluencer().isVTDControlled()) {
+        if ((*pred)->hasInfluencer() && (*pred)->getInfluencer().getLastAccessTimeStep()<timestep+DELTA_T*10) {
             ++veh;
             continue;
         }
