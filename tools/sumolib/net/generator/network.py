@@ -103,6 +103,7 @@ class Net:
     if self._defaultEdge==None: self._defaultEdge = Edge(None, None, None, 2, 13.89)
     self._defaultNode = defaultNode
     if self._defaultNode==None: self._defaultNode = Node(None, None, None, "traffic_light")
+    self.netName = None
 
   def addNode(self, n):
     self._nodes[n.nid] = n
@@ -220,3 +221,4 @@ class Net:
     os.remove(nodesFile)
     os.remove(edgesFile)
     os.remove(connectionsFile)
+    self.netName = netName

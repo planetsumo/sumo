@@ -23,6 +23,8 @@ import subprocess
 import math
 
 
+PIVOT__PEAK = 10000
+
 
 class LinearChange:
   def __init__(self, beginFlow, endFlow, beginTime, endTime):
