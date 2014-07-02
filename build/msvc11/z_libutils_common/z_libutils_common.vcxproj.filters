@@ -172,7 +172,7 @@
     <ClInclude Include="..\..\..\src\utils\common\NamedRTree.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\utils\common\SwarmDebug.h">
+    <ClInclude Include="..\..\..\src\utils\common\PedestrianRouter.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>
