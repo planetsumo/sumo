@@ -173,7 +173,8 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
     myRouterTTDijkstra(0),
     myRouterTTAStar(0),
     myRouterEffort(0),
-    myPedestrianRouter(0) 
+    myPedestrianRouter(0) ,
+    myGrid(0)
 {
     if (myInstance != 0) {
         throw ProcessError("A network was already constructed.");

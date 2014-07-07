@@ -208,6 +208,7 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
         }
     }
     MSGrid *grid = MSNet::getInstance()->getGrid();
+if(grid!=0) {
     SUMOReal *values = grid->getValues();
     SUMOReal max = 0;
     for(unsigned int y=0; y<grid->getYNumber(); ++y) {
@@ -233,6 +234,7 @@ GUIViewTraffic::doPaintGL(int mode, const Boundary& bound) {
         }
     }
     }
+}
 
     glLineWidth(1);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
