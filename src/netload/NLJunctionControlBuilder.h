@@ -263,7 +263,7 @@ public:
     void postLoadInitialization();
 
     /// @brief try to retrieve junction by id
-    MSJunction* retrieve(const std::string id);
+    MSJunction* retrieve(const std::string& id);
 
 
 protected:
