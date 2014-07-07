@@ -445,11 +445,13 @@ GUILane::drawLane2LaneConnections() const {
 void
 GUILane::drawGL(const GUIVisualizationSettings& s) const {
     glPushMatrix();
-    const bool isCrossing = myEdge->getPurpose() == MSEdge::EDGEFUNCTION_CROSSING;
-    const bool isWalkingArea = myEdge->getPurpose() == MSEdge::EDGEFUNCTION_WALKINGAREA;
-    const bool isInternal = isCrossing || isWalkingArea || myEdge->getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL;
+    const MSEdge::EdgeBasicFunction ebf = myEdge->getPurpose();
+    const bool isCrossing = ebf == MSEdge::EDGEFUNCTION_CROSSING;
+    const bool isWalkingArea = ebf == MSEdge::EDGEFUNCTION_WALKINGAREA;
+    const bool isInternal = isCrossing || isWalkingArea || ebf == MSEdge::EDGEFUNCTION_INTERNAL;
+    const SUMOReal visScale = s.scale * s.laneWidthExaggeration;
     bool mustDrawMarkings = false;
-    const bool drawDetails =  s.scale * s.laneWidthExaggeration > 5;
+    const bool drawDetails =  visScale > 5;
     if (isCrossing || isWalkingArea) {
         // draw internal lanes on top of junctions
         glTranslated(0, 0, GLO_JUNCTION + 0.1);
@@ -463,7 +465,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
     }
     // draw lane
     // check whether it is not too small
-    if (s.scale * s.laneWidthExaggeration < 1.) {
+    if (visScale < 1.) {
         GLHelper::drawLine(myShape);
         if (!MSGlobals::gUseMesoSim) {
             glPopName();
@@ -495,7 +497,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
             glTranslated(0, 0, -.2);
         } else if (isWalkingArea) {
             glTranslated(0, 0, .2);
-            if (s.scale * s.laneWidthExaggeration < 20.) {
+            if (visScale < 20.) {
                 GLHelper::drawFilledPoly(myShape, true);
             } else {
                 GLHelper::drawFilledPolyTesselated(myShape, true);
@@ -517,7 +519,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
             GLfloat color[4];
             glGetFloatv(GL_CURRENT_COLOR, color);
             if (color[3] > 0) {
-                const int cornerDetail = drawDetails ? s.scale * s.laneWidthExaggeration : 0;
+                const int cornerDetail = drawDetails ? visScale : 0;
                 GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, laneWidth * s.laneWidthExaggeration, cornerDetail);
             }
         }
