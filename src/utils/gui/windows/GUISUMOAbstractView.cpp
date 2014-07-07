@@ -825,7 +825,7 @@ GUISUMOAbstractView::makeSnapshot(const std::string& destFile) {
             minB[1] = viewPort.ymin();
             maxB[0] = viewPort.xmax();
             maxB[1] = viewPort.ymax();
-            myVisualizationSettings->scale = m2p(SUMO_const_laneWidth);
+            myVisualizationSettings->scale = 3.;
             glEnable(GL_POLYGON_OFFSET_FILL);
             glEnable(GL_POLYGON_OFFSET_LINE);
             myGrid->Search(minB, maxB, *myVisualizationSettings);
