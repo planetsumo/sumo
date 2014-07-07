@@ -845,6 +845,10 @@ MSVehicle::processNextStop(SUMOReal currentVelocity) {
                 // ok, we may stop (have reached the stop)
                 stop.reached = true;
                 MSNet::getInstance()->getVehicleControl().addWaiting(&myLane->getEdge(), this);
+                //if this stop is a busstop add this vehicle to the list of waiting vehicles at this busstop
+                if (stop.busstop != 0){
+                    MSNet::getInstance()->getVehicleControl().addWaitingToBusStop(stop.busstop, this);
+                }
                 MSNet::getInstance()->informVehicleStateListener(this, MSNet::VEHICLE_STATE_STARTING_STOP);
                 // compute stopping time
                 if (stop.until >= 0) {

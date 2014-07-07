@@ -306,13 +306,51 @@ MSVehicleControl::removeWaiting(const MSEdge* const edge, SUMOVehicle* vehicle) 
     }
 }
 
+void
+MSVehicleControl::addWaitingToBusStop(const MSBusStop* const busStop, SUMOVehicle* vehicle) {
+    if (myWaitingAtBusStop.find(busStop) == myWaitingAtBusStop.end()) {
+        myWaitingAtBusStop[busStop] = std::vector<SUMOVehicle*>();
+    }
+    myWaitingAtBusStop[busStop].push_back(vehicle);
+}
+
+
+void
+MSVehicleControl::removeWaitingFromBusStop(const MSBusStop* const busStop, SUMOVehicle* vehicle) {
+    if (myWaitingAtBusStop.find(busStop) != myWaitingAtBusStop.end()) {
+        std::vector<SUMOVehicle*>::iterator it = std::find(myWaitingAtBusStop[busStop].begin(), myWaitingAtBusStop[busStop].end(), vehicle);
+        if (it != myWaitingAtBusStop[busStop].end()) {
+            myWaitingAtBusStop[busStop].erase(it);
+        }
+    }
+}
 
 SUMOVehicle*
-MSVehicleControl::getWaitingVehicle(const MSEdge* const edge, const std::set<std::string>& lines) {
+    MSVehicleControl::getWaitingVehicleAtBusStop(const MSBusStop* busStop, const std::set<std::string>& lines){
+    if (myWaitingAtBusStop.find(busStop) != myWaitingAtBusStop.end()) {
+        // for every vehicle waiting vehicle at this busstop
+        for (std::vector<SUMOVehicle*>::const_iterator it = myWaitingAtBusStop[busStop].begin(); it != myWaitingAtBusStop[busStop].end(); ++it) {
+            const std::string& line = (*it)->getParameter().line == "" ? (*it)->getParameter().id : (*it)->getParameter().line;
+            // if the line of the vehicle is contained in the set of given lines and the vehicle is stopped 
+            if (lines.count(line)) {
+                return (*it);
+            }
+        }
+    }
+    return 0;
+}
+
+SUMOVehicle*
+MSVehicleControl::getWaitingVehicle(const MSEdge* const edge, const std::set<std::string>& lines, const SUMOReal position) {
     if (myWaiting.find(edge) != myWaiting.end()) {
+        // for every vehicle waiting vehicle at this edge
         for (std::vector<SUMOVehicle*>::const_iterator it = myWaiting[edge].begin(); it != myWaiting[edge].end(); ++it) {
             const std::string& line = (*it)->getParameter().line == "" ? (*it)->getParameter().id : (*it)->getParameter().line;
-            if (lines.count(line)) {
+            // if the line of the vehicle is contained in the set of given lines and the vehicle is stopped and is positioned
+            // in the interval [position - t, position + t] for a tolerance t=10
+            SUMOReal vehiclePosition = (*it)->getPositionOnLane();
+            std::cout << SIMTIME << " vehicle " <<  (*it)->getID() << " " <<lines.count(line)<< " " <<  (*it)->isStopped()<< " " << vehiclePosition<< "\n";
+            if (lines.count(line)  && (position - 10 <= vehiclePosition) && (vehiclePosition <= position + 10)) {
                 return (*it);
             }
         }

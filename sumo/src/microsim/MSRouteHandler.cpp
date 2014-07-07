@@ -520,6 +520,8 @@ MSRouteHandler::closeVehicle() {
         if (quota > 0) {
             vehControl.addVehicle(myVehicleParameter->id, vehicle);
             if (myVehicleParameter->departProcedure == DEPART_TRIGGERED) {
+                const MSEdge* const firstEdge = vehicle->getRoute().getEdges()[0];
+                static_cast<MSVehicle*>(vehicle)->setTentativeLaneAndPosition(firstEdge->getLanes()[0], myVehicleParameter->departPos);
                 vehControl.addWaiting(*route->begin(), vehicle);
                 vehControl.registerOneWaitingForPerson();
             } else {
