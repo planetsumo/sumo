@@ -367,6 +367,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPSDK.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\cfmodels\MSCFModel_PWag2009.cpp"
 				>
 			</File>
@@ -410,6 +414,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPSDK.h"
 				>
 			</File>
 			<File

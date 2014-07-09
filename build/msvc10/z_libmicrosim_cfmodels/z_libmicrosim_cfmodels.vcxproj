@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -50,6 +50,7 @@
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_Krauss.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussOrig1.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.h" />
+    <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPSDK.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_PWag2009.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_SmartSK.h" />
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_Wiedemann.h" />
@@ -62,6 +63,7 @@
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_Krauss.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussOrig1.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPSDK.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_PWag2009.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_SmartSK.cpp" />
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_Wiedemann.cpp" />

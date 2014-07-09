@@ -1,12 +1,12 @@
 /****************************************************************************/
-/// @file    MSCFModel_KraussPS.cpp
+/// @file    MSCFModel_KraussPSDK.cpp
 /// @author  Tobias Mayer
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
 /// @author  Laura Bieker
 /// @date    Mon, 04 Aug 2009
-/// @version $Id$
+/// @version $Id: MSCFModel_KraussPSDK.cpp 16537 2014-06-05 10:19:18Z dkrajzew $
 ///
 // Krauss car-following model, changing accel and speed by slope
 /****************************************************************************/
@@ -35,36 +35,41 @@
 #include <utils/geom/GeomHelper.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSLane.h>
-#include "MSCFModel_KraussPS.h"
+#include "MSCFModel_KraussPSDK.h"
 
 
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MSCFModel_KraussPS::MSCFModel_KraussPS(const MSVehicleType* vtype, SUMOReal accel, SUMOReal decel,
+MSCFModel_KraussPSDK::MSCFModel_KraussPSDK(const MSVehicleType* vtype, SUMOReal accel, SUMOReal decel,
                                        SUMOReal dawdle, SUMOReal headwayTime)
     : MSCFModel_Krauss(vtype, accel, decel, dawdle, headwayTime) {
 }
 
 
-MSCFModel_KraussPS::~MSCFModel_KraussPS() {}
+MSCFModel_KraussPSDK::~MSCFModel_KraussPSDK() {}
 
 
 
 SUMOReal
-MSCFModel_KraussPS::maxNextSpeed(SUMOReal speed, const MSVehicle* const veh) const {
-    const SUMOReal gravity = 9.80665;
-    const SUMOReal aMax = MAX2(0., getMaxAccel() - gravity * sin(DEG2RAD(veh->getSlope())));
-    // assuming drag force is proportional to the square of speed
-    const SUMOReal vMax = sqrt(aMax / getMaxAccel()) * myType->getMaxSpeed();
+MSCFModel_KraussPSDK::maxNextSpeed(SUMOReal speed, const MSVehicle* const veh) const {
+    const SUMOReal lp = veh->getPositionOnLane();
+    const MSLane* const lane = veh->getLane();
+    const SUMOReal gp = lane->interpolateLanePosToGeometryPos(veh->getPositionOnLane());
+    const SUMOReal slope = lane->getShape().slopeDegreeAtOffset(gp);
+    const SUMOReal cSlope = sin(slope);
+	SUMOReal aMax = getMaxAccel();
+    aMax = aMax - aMax*cSlope;
+	SUMOReal vMax = myType->getMaxSpeed();
+    vMax = vMax - vMax*cSlope;
     return MIN2(speed + (SUMOReal) ACCEL2SPEED(aMax), vMax);
 }
 
 
 
 MSCFModel*
-MSCFModel_KraussPS::duplicate(const MSVehicleType* vtype) const {
-    return new MSCFModel_KraussPS(vtype, myAccel, myDecel, myDawdle, myHeadwayTime);
+MSCFModel_KraussPSDK::duplicate(const MSVehicleType* vtype) const {
+    return new MSCFModel_KraussPSDK(vtype, myAccel, myDecel, myDawdle, myHeadwayTime);
 }
 
 

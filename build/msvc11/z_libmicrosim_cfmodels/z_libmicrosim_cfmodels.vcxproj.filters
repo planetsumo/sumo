@@ -35,6 +35,9 @@
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPSDK.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\cfmodels\MSCFModel_PWag2009.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
@@ -65,6 +68,9 @@
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPS.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_KraussPSDK.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\cfmodels\MSCFModel_PWag2009.cpp">
