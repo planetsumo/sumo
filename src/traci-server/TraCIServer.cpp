@@ -109,8 +109,9 @@ bool TraCIServer::myDoCloseConnection = false;
 // ===========================================================================
 // method definitions
 // ===========================================================================
-TraCIServer::TraCIServer(const SUMOTime begin, const int port)
-    : mySocket(0), myTargetTime(begin), myDoingSimStep(false), myHaveWarnedDeprecation(false), myAmEmbedded(port == 0) {
+TraCIServer::TraCIServer(const SUMOTime begin, bool printVTDdebug, bool printVTDAngleDebug, const int port)
+    : myPrintVTDMappingDebug(printVTDdebug), myPrintVTDAngleDebug(printVTDAngleDebug),
+    mySocket(0), myTargetTime(begin), myDoingSimStep(false), myHaveWarnedDeprecation(false), myAmEmbedded(port == 0) {
 
     myVehicleStateChanges[MSNet::VEHICLE_STATE_BUILT] = std::vector<std::string>();
     myVehicleStateChanges[MSNet::VEHICLE_STATE_DEPARTED] = std::vector<std::string>();
@@ -187,7 +188,9 @@ TraCIServer::openSocket(const std::map<int, CmdExecutor>& execs) {
     if (myInstance == 0) {
         if (!myDoCloseConnection && OptionsCont::getOptions().getInt("remote-port") != 0) {
             myInstance = new traci::TraCIServer(string2time(OptionsCont::getOptions().getString("begin")),
-                                                OptionsCont::getOptions().getInt("remote-port"));
+                OptionsCont::getOptions().getBool("debug.vtd"),
+                OptionsCont::getOptions().getBool("debug.vtd-angle"),
+                OptionsCont::getOptions().getInt("remote-port"));
             for (std::map<int, CmdExecutor>::const_iterator i = execs.begin(); i != execs.end(); ++i) {
                 myInstance->myExecutors[i->first] = i->second;
             }
@@ -232,12 +235,6 @@ TraCIServer::postProcessVTD() {
 }
 
 
-bool
-TraCIServer::vtdDebug() const {
-    return true;
-}
-
-
 // ---------- Initialisation and Shutdown
 
 
@@ -255,6 +252,8 @@ TraCIServer::processCommandsUntilSimStep(SUMOTime step) {
         if (myInstance == 0) {
             if (!myDoCloseConnection && OptionsCont::getOptions().getInt("remote-port") != 0) {
                 myInstance = new traci::TraCIServer(string2time(OptionsCont::getOptions().getString("begin")),
+                OptionsCont::getOptions().getBool("debug.vtd"),
+                OptionsCont::getOptions().getBool("debug.vtd-angle"),
                                                     OptionsCont::getOptions().getInt("remote-port"));
             } else {
                 return;

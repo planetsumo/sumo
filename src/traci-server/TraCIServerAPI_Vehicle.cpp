@@ -1030,11 +1030,8 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
 
             Position vehPos = v->getPosition();
             v->getBestLanes();
-            bool report = server.vtdDebug();
-            if (report) {
+            if (server.myPrintVTDMappingDebug) {
                 std::cout << std::endl << "begin vehicle " << v->getID() << " vehPos:" << vehPos << " lane:" << v->getLane()->getID() << std::endl;
-            }
-            if (report) {
                 std::cout << " want pos:" << pos << " edge:" << edgeID << " laneNum:" << laneNum << " angle:" << angle << std::endl;
             }
 
@@ -1047,13 +1044,13 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
             int routeOffsetA, routeOffsetB, routeOffsetC, routeOffsetD;
             routeOffsetA = routeOffsetB = routeOffsetC = routeOffsetD = 0;
             // case a): edge/lane is known and matches route
-            bool aFound = vtdMap_matchingEdgeLane(pos, origID, *v, report, bestDistanceA, &laneA, lanePosA, routeOffsetA, edgesA);
+            bool aFound = vtdMap_matchingEdgeLane(pos, origID, *v, server.myPrintVTDMappingDebug, bestDistanceA, &laneA, lanePosA, routeOffsetA, edgesA);
             // case b): position is at route, should be somewhere near to it
-            bool bFound = vtdMap_matchingRoutePosition(pos, origID, *v, report, bestDistanceB, &laneB, lanePosB, routeOffsetB, edgesB);
+            bool bFound = vtdMap_matchingRoutePosition(pos, origID, *v, server.myPrintVTDMappingDebug, bestDistanceB, &laneB, lanePosB, routeOffsetB, edgesB);
             // case c) nearest matching lane
-            bool cFound = vtdMap_matchingNearest(pos, origID, *v, server, report, bestDistanceC, &laneC, lanePosC, routeOffsetC, edgesC);
+            bool cFound = vtdMap_matchingNearest(pos, origID, *v, server, server.myPrintVTDMappingDebug, bestDistanceC, &laneC, lanePosC, routeOffsetC, edgesC);
             // case a): edge/lane is known and matches route
-            bool dFound = vtdMap_t2(pos, origID, angle, *v, server, report, bestDistanceD, &laneD, lanePosD, routeOffsetD, edgesD);
+            bool dFound = vtdMap_t2(pos, origID, angle, *v, server, server.myPrintVTDMappingDebug, bestDistanceD, &laneD, lanePosD, routeOffsetD, edgesD);
             //
             SUMOReal maxRouteDistance = 100;
             /*
@@ -1179,6 +1176,16 @@ TraCIServerAPI_Vehicle::vtdMap_matchingRoutePosition(const Position& pos, const 
             std::cout << "  b failed - no best route lane" << std::endl;
         }
         return false;
+    }
+    // position may be inaccurate; let's checkt the given index, too
+    if (bestRouteLane->getEdge().getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
+        const std::vector<MSLane*> &lanes = bestRouteLane->getEdge().getLanes();
+        for(std::vector<MSLane*>::const_iterator i=lanes.begin(); i!=lanes.end(); ++i) {
+            if((*i)->getParameter("origId", "")==origID) {
+                bestRouteLane = *i;
+                break;
+            }
+        }
     }
     lanePos = MAX2(SUMOReal(0), MIN2(SUMOReal(bestRouteLane->getLength() - POSITION_EPS), bestRouteLane->getShape().nearest_offset_to_point2D(pos, false)));
     routeOffset = lastBestRouteEdge;
@@ -1416,9 +1423,6 @@ TraCIServerAPI_Vehicle::vtdMap_t2(const Position& pos, const std::string& origID
     std::map<MSLane*, LaneUtility> lane2utility;
     for (std::set<std::string>::const_iterator j = into.begin(); j != into.end(); ++j) {
         MSEdge* e = MSEdge::dictionary(*j);
-        if(e->getID()=="-45.0.00"||e->getID()=="48.0.00") {
-            int bla = 0;
-        }
         const MSEdge* prevEdge = 0;
         const MSEdge* nextEdge = 0;
         MSEdge::EdgeBasicFunction ef = e->getPurpose();
@@ -1473,7 +1477,9 @@ TraCIServerAPI_Vehicle::vtdMap_t2(const Position& pos, const std::string& origID
                 MSLane *next = lane->getLinkCont()[0]->getLane();
                 rNextEdge = next==0 ? 0 : &next->getEdge();
             }
-            std::cout << lane->getID() << ": " << langle << " " << off << std::endl;
+            if(server.myPrintVTDAngleDebug) {
+                std::cout << lane->getID() << ": " << langle << " " << off << std::endl;
+            }
             lane2utility[lane] = LaneUtility(
                 dist, GeomHelper::getMinAngleDiff(angle, langle), 
                 lane->getParameter("origId", "")==origID,
@@ -1497,8 +1503,10 @@ TraCIServerAPI_Vehicle::vtdMap_t2(const Position& pos, const std::string& origID
             + onRouteN*0.5
             + sameEdgeN*0.5
             ;
-        std::cout << " x; l:" << l->getID() << " d:" << u.dist << " dN:" << distN << " aD:" << angleDiffN << 
-            " ID:" << idN << " oRN:" << onRouteN << " sEN:" << sameEdgeN << " value:" << value << std::endl;
+        if(report) {
+            std::cout << " x; l:" << l->getID() << " d:" << u.dist << " dN:" << distN << " aD:" << angleDiffN << 
+                " ID:" << idN << " oRN:" << onRouteN << " sEN:" << sameEdgeN << " value:" << value << std::endl;
+        }
         if(value>bestValue || bestLane==0) {
             bestValue = value;
             bestLane = l;

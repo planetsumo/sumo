@@ -271,6 +271,10 @@ MSFrame::fillOptions() {
     oc.addOptionSubTopic("TraCI Server");
     oc.doRegister("remote-port", new Option_Integer(0));
     oc.addDescription("remote-port", "TraCI Server", "Enables TraCI Server if set");
+    oc.doRegister("debug.vtd", new Option_Bool(false));
+    oc.addDescription("debug.vtd", "TraCI Server", "Enables debug messages for VTD mapping");
+    oc.doRegister("debug.vtd-angle", new Option_Bool(false));
+    oc.addDescription("debug.vtd-angle", "TraCI Server", "Enables debug messages for VTD angle");
 #ifdef HAVE_PYTHON
     oc.doRegister("python-script", new Option_String());
     oc.addDescription("python-script", "TraCI Server", "Runs TraCI script with embedded python");

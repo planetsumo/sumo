@@ -116,8 +116,6 @@ public:
 
     void postProcessVTD();
 
-    bool vtdDebug() const;
-
 
 
 #ifdef HAVE_PYTHON
@@ -262,11 +260,19 @@ public:
     bool readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector& into);
     /// @}
 
+public:
+    /// @brief Whether !!!
+    const bool myPrintVTDMappingDebug;
+
+    /// @brief Whether !!!
+    const bool myPrintVTDAngleDebug;
+
+
 private:
     /** @brief Constructor
      * @param[in] port The port to listen to (to open)
      */
-    TraCIServer(const SUMOTime begin, const int port = 0);
+    TraCIServer(const SUMOTime begin, bool printVTDdebug, bool printVTDAngleDebug, const int port = 0);
 
 
     /// @brief Destructor
