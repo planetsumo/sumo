@@ -10,6 +10,10 @@ INTERNAL_LIB = ../../src/internal/libinternal.a
 INTERNAL_TESTS = ./internal/HeightMapperTest.o
 endif
 
+if WITH_GUI
+GUI_TESTS = ./utils/foxtools/FXWorkerThreadTest.o
+endif
+
 
 if WITH_GTEST
 bin_PROGRAMS = sumo-unittest
@@ -32,6 +36,7 @@ sumo_unittest_LDADD   = \
 ./netbuild/NBTrafficLightLogicTest.o \
 ./microsim/MSCFModelTest.o \
 ./microsim/MSEventControlTest.o \
+$(GUI_TESTS) \
 $(INTERNAL_TESTS) \
 ../../src/netbuild/libnetbuild.a \
 ../../src/traci-server/libtraciserver.a \
@@ -59,6 +64,7 @@ $(INTERNAL_LIB) \
 $(MEM_LIBS) \
 $(PYTHON_LIBS) \
 $(XERCES_LIBS) \
+$(FOX_LDFLAGS) \
 $(LIB_GTEST)
 
 SUBDIRS = utils microsim netbuild $(UNITTEST_INTERNAL_DIRS)

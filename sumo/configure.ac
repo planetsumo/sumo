@@ -481,6 +481,7 @@ unittest/src/microsim/Makefile
 unittest/src/netbuild/Makefile
 unittest/src/utils/Makefile
 unittest/src/utils/common/Makefile
+unittest/src/utils/foxtools/Makefile
 unittest/src/utils/geom/Makefile
 unittest/src/utils/iodevices/Makefile
 bin/Makefile
