@@ -93,7 +93,14 @@ class Connection:
     self.fromLane = fromLane    
     self.toEdge = toEdge    
     self.toLane = toLane    
-  
+
+class E1:
+  def __init__(self, id, laneID, pos, freq, outputFile):
+    self.id = id
+    self.laneID= laneID
+    self.pos= pos
+    self.freq= freq
+    self.outputFile= outputFile    
 
 class Net:
   def __init__(self, defaultNode, defaultEdge):
@@ -103,6 +110,7 @@ class Net:
     if self._defaultEdge==None: self._defaultEdge = Edge(None, None, None, 2, 13.89)
     self._defaultNode = defaultNode
     if self._defaultNode==None: self._defaultNode = Node(None, None, None, "traffic_light")
+    self._e1 = {}
     self.netName = None
 
   def addNode(self, n):
@@ -116,6 +124,11 @@ class Net:
   def addEdge(self, e):
     self._edges[e.eid] = e
 
+  def addE1Detectors(self, id, laneID, pos, freq, outputFile):
+    e1= E1(id, laneID, pos, freq, outputFile)
+    self._e1[e1.id]= e1
+    return e1
+    
   def getEdge(self, id):
     if id in self._edges:
       return self._edges[id]
@@ -222,3 +235,16 @@ class Net:
     os.remove(edgesFile)
     os.remove(connectionsFile)
     self.netName = netName
+    return netName
+    
+  def buildDetectors(self, filename):
+    e1File = filename
+    fdo = open(e1File, "w")
+    print >> fdo, "<additional>"
+    for e1id in self._e1:
+      e1 = self._e1[e1id]
+      print >> fdo, '    <e1Detector id="%s" lane="%s" pos="%s" freq="%s" file="%s"/>' % (e1.id ,e1.laneID, e1.pos, e1.freq, e1.outputFile)
+    print >> fdo, "</additional>"
+    fdo.close()
+    
+
