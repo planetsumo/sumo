@@ -236,6 +236,17 @@ NLHandler::myEndElement(int element) {
             break;
         case SUMO_TAG_NET:
             myJunctionControlBuilder.postLoadInitialization();
+            // build junction graph
+            for (JunctionGraph::iterator it = myJunctionGraph.begin(); it != myJunctionGraph.end(); ++it) {
+                MSEdge* edge = MSEdge::dictionary(it->first);
+                MSJunction* from = myJunctionControlBuilder.retrieve(it->second.first);
+                MSJunction* to = myJunctionControlBuilder.retrieve(it->second.second);
+                if (edge != 0 && from != 0 && to != 0) {
+                    edge->setJunctions(from, to);
+                    from->addOutgoing(edge);
+                    to->addIncoming(edge);
+                }
+            }
             break;
         default:
             break;
@@ -264,6 +275,15 @@ NLHandler::beginEdgeParsing(const SUMOSAXAttributes& attrs) {
         myHaveSeenInternalEdge = true;
         myCurrentIsInternalToSkip = true;
         return;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_FROM)) {
+        myJunctionGraph[id] = std::make_pair(
+                                  attrs.get<std::string>(SUMO_ATTR_FROM, 0, ok),
+                                  attrs.get<std::string>(SUMO_ATTR_TO, 0, ok));
+    } else {
+        // must be an internal edge
+        std::string junctionID = SUMOXMLDefinitions::getJunctionIDFromInternalEdge(id);
+        myJunctionGraph[id] = std::make_pair(junctionID, junctionID);
     }
     myCurrentIsInternalToSkip = false;
     // parse the function

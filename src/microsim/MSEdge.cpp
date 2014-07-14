@@ -72,7 +72,8 @@ MSEdge::MSEdge(const std::string& id, int numericalID,
                const std::string& streetName) :
     Named(id), myNumericalID(numericalID), myLanes(0),
     myLaneChanger(0), myFunction(function), myVaporizationRequests(0),
-    myLastFailedInsertionTime(-1), myStreetName(streetName) {}
+    myLastFailedInsertionTime(-1), myStreetName(streetName),
+    myFromJunction(0), myToJunction(0) {}
 
 
 MSEdge::~MSEdge() {
@@ -130,7 +131,9 @@ MSEdge::closeBuilding() {
             toL = (*j)->getViaLane();
             if (toL != 0) {
                 MSEdge& to = toL->getEdge();
-                to.myPredeccesors.push_back(this);
+                if (std::find(to.myPredeccesors.begin(), to.myPredeccesors.end(), this) == to.myPredeccesors.end()) {
+                    to.myPredeccesors.push_back(this);
+                }
             }
 #endif
         }

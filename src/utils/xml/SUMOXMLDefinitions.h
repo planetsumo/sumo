@@ -704,6 +704,17 @@ public:
     static StringBijection<LaneChangeModel> LaneChangeModels;
     //@}
 
+    /// @name Helper functions for ID-string manipulations
+    //@{
+
+    /// @brief return the junction id when given an edge of type internal, crossing or WalkingArea
+    static std::string getJunctionIDFromInternalEdge(const std::string internalEdge);
+
+    /// @brief return edge id when given the lane ID
+    static std::string getEdgeIDFromLane(const std::string laneID);
+
+    //@}
+
 private:
 
     static StringBijection<SumoXMLNodeType>::Entry sumoNodeTypeValues[];

@@ -58,6 +58,7 @@ class SUMOVehicleParameter;
 class MSVehicle;
 class MSLane;
 class MSPerson;
+class MSJunction;
 
 
 // ===========================================================================
@@ -256,6 +257,21 @@ public:
      */
     const MSEdge* getFollower(unsigned int n) const {
         return mySuccessors[n];
+    }
+
+
+    const MSJunction* getFromJunction() const {
+        return myFromJunction;
+    }
+
+    const MSJunction* getToJunction() const {
+        return myToJunction;
+    }
+
+
+    void setJunctions(MSJunction* from, MSJunction* to) {
+        myFromJunction = from;
+        myToJunction = to;
     }
     /// @}
 
@@ -553,6 +569,10 @@ protected:
 
     /// @brief The preceeding edges
     std::vector<MSEdge*> myPredeccesors;
+
+    /// @brief the junctions for this edge
+    MSJunction* myFromJunction;
+    MSJunction* myToJunction;
 
     /// @brief Persons on the edge (only for drawing)
     mutable std::set<MSPerson*> myPersons;
