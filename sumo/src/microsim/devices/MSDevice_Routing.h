@@ -41,6 +41,10 @@
 #include <microsim/MSVehicle.h>
 #include "MSDevice.h"
 
+#ifdef HAVE_GUI
+#include <utils/foxtools/FXWorkerThread.h>
+#endif
+
 
 // ===========================================================================
 // class declarations
@@ -133,6 +137,23 @@ public:
 
 
 private:
+#ifdef HAVE_GUI
+    class WorkerThread : public FXWorkerThread {
+    public:
+        WorkerThread(FXWorkerThread::Pool& pool, SUMOAbstractRouter<MSEdge, SUMOVehicle>* router) : FXWorkerThread(pool), myRouter(router) {}
+        SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
+    };
+
+    class RoutingTask : public FXWorkerThread::Task {
+    public:
+        RoutingTask(const SUMOTime time, const bool onInit) : myTime(time), myOnInit(onInit) {}
+        void run(FXWorkerThread* context);
+    private:
+        const SUMOTime myTime;
+        const bool myOnInit;
+    };
+#endif
+
     /** @brief Constructor
      *
      * @param[in] holder The vehicle that holds this device

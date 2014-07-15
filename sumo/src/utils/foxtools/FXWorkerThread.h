@@ -43,27 +43,46 @@ class FXWorkerThread : public FXThread {
 public:
     class Task {
     public:
-        virtual void run() = 0;
+        virtual void run(FXWorkerThread* context) = 0;
+        void setIndex(const int newIndex) {
+            myIndex = newIndex;
+        }
+        int getIndex() const {
+            return myIndex;
+        }
     private:
         int myIndex;
     };
 
     class Pool {
     public:
-        Pool(int numThreads) {
+        Pool(int numThreads=0) : myRunningIndex(0), myNumFinished(0) {
             while (numThreads > 0) {
-                myWorkers.push_back(new FXWorkerThread(*this));
+                new FXWorkerThread(*this);
                 numThreads--;
             }
         }
         
-        void add(Task* t) {
+        virtual ~Pool() {
+            for (std::vector<FXWorkerThread*>::iterator it = myWorkers.begin(); it != myWorkers.end(); ++it) {
+                delete *it;
+            }
+        }
+
+        void addWorker(FXWorkerThread* const w) {
+            myWorkers.push_back(w);
+        }
+        
+        void add(Task* const t) {
+            t->setIndex(myRunningIndex++);
             RandHelper::getRandomFrom(myWorkers)->add(t);
         }
         
-        void addFinished(Task* t) {
+        void addFinished(Task* const t) {
             myMutex.lock();
+            myNumFinished++;
             myFinishedTasks.push_back(t);
+            myCondition.signal();
             myMutex.unlock();
         }
 
@@ -78,15 +97,27 @@ public:
             return result;
         }
 
+        std::list<Task*> getAll() {
+            myMutex.lock();
+            while (myNumFinished < myRunningIndex) {
+                myCondition.wait(myMutex);
+            }
+            myMutex.unlock();
+            return myFinishedTasks;
+        }
+
     private:
         std::vector<FXWorkerThread*> myWorkers;
         FXMutex myMutex;
+        FXCondition myCondition;
         std::list<Task*> myFinishedTasks;
         int myRunningIndex;
+        int myNumFinished;
     };
 
 public:
     FXWorkerThread(Pool& pool): FXThread(), myPool(pool), myStopped(false) {
+        pool.addWorker(this);
         start();
     }
 
@@ -97,14 +128,14 @@ public:
     void add(Task* t) {
         myMutex.lock();
         myTasks.push_back(t);
-        myMutex.unlock();
         myCondition.signal();
+        myMutex.unlock();
     }
 
     FXint run() {
         while (!myStopped) {
             myMutex.lock();
-            while (myTasks.empty()) {
+            while (!myStopped && myTasks.empty()) {
                 myCondition.wait(myMutex);
             }
             if (myStopped) {
@@ -114,15 +145,18 @@ public:
             Task* t = myTasks.front();
             myTasks.pop_front();
             myMutex.unlock();
-            t->run();
+            t->run(this);
             myPool.addFinished(t);
         }
         return 0;
     }
     
     void stop() {
+        myMutex.lock();
         myStopped = true;
         myCondition.signal();
+        myMutex.unlock();
+        join();
     }
 
 private:

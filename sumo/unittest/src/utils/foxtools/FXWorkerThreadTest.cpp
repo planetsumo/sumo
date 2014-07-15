@@ -32,6 +32,11 @@
 #include <utils/common/StdDefs.h>
 #include <utils/foxtools/FXWorkerThread.h>
 
+class TestTask : public FXWorkerThread::Task {
+public:
+    void run(FXWorkerThread* context) {
+    }
+};
 
 // ===========================================================================
 // test definitions
@@ -40,3 +45,46 @@
 TEST(FXWorkerThread, test_init) {
     FXWorkerThread::Pool g(4);
 }
+
+/* Test adding tasks.*/
+TEST(FXWorkerThread, test_add) {
+    FXWorkerThread::Pool g(4);
+    FXWorkerThread::Task* task1 = new TestTask();
+    FXWorkerThread::Task* task2 = new TestTask();
+    FXWorkerThread::Task* task3 = new TestTask();
+    FXWorkerThread::Task* task4 = new TestTask();
+    g.add(task1);
+    g.add(task2);
+    g.add(task3);
+    g.add(task4);
+}
+
+/* Test retrieving tasks.*/
+TEST(FXWorkerThread, test_retrieve) {
+    FXWorkerThread::Pool g(4);
+    FXWorkerThread::Task* task1 = new TestTask();
+    FXWorkerThread::Task* task2 = new TestTask();
+    FXWorkerThread::Task* task3 = new TestTask();
+    FXWorkerThread::Task* task4 = new TestTask();
+    g.add(task1);
+    g.add(task2);
+    g.add(task3);
+    g.add(task4);
+    FXWorkerThread::Task* t = g.popFinished();
+}
+
+/* Test retrieving all tasks.*/
+TEST(FXWorkerThread, test_get_all) {
+    FXWorkerThread::Pool g(4);
+    FXWorkerThread::Task* task1 = new TestTask();
+    FXWorkerThread::Task* task2 = new TestTask();
+    FXWorkerThread::Task* task3 = new TestTask();
+    FXWorkerThread::Task* task4 = new TestTask();
+    g.add(task1);
+    g.add(task2);
+    g.add(task3);
+    g.add(task4);
+    std::list<FXWorkerThread::Task*> t = g.getAll();
+    EXPECT_EQ(4, t.size());
+}
+

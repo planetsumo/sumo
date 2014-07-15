@@ -50,7 +50,7 @@ $(MESO_LIBS) \
 $(TRACI_LIBS) \
 $(COMMON_LIBS) \
 $(PYTHON_LIBS) \
-$(XERCES_LDFLAGS) $(PROJ_LDFLAGS)
+$(FOX_LDFLAGS) $(XERCES_LDFLAGS) $(PROJ_LDFLAGS)
 
 
 netconvert_SOURCES = netconvert_main.cpp
@@ -90,7 +90,7 @@ $(sumo_LDADD) \
 ./gui/GUIManipulator.o \
 ./gui/GUITLLogicPhasesTrackerWindow.o \
 $(OSG_LIBS) \
-$(FOX_LDFLAGS) $(sumo_LDFLAGS) $(GDAL_LDFLAGS) $(X_LDFLAGS)
+$(sumo_LDFLAGS) $(GDAL_LDFLAGS) $(X_LDFLAGS)
 endif
 
 
