@@ -97,18 +97,40 @@ public:
             return result;
         }
 
-        std::list<Task*> getAll() {
+        void waitAllAndClear() {
             myMutex.lock();
             while (myNumFinished < myRunningIndex) {
                 myCondition.wait(myMutex);
             }
+            for (std::list<Task*>::iterator it = myFinishedTasks.begin(); it != myFinishedTasks.end(); ++it) {
+                delete *it;
+            }
+            myFinishedTasks.clear();
+            myRunningIndex = 0;
+            myNumFinished = 0;
             myMutex.unlock();
-            return myFinishedTasks;
+        }
+        
+        bool getPending() const {
+            return myRunningIndex - myNumFinished;
+        }
+        
+        int size() const {
+            return (int)myWorkers.size();
+        }
+        
+        void lock() {
+            myPoolMutex.lock();
+        }
+
+        void unlock() {
+            myPoolMutex.unlock();
         }
 
     private:
         std::vector<FXWorkerThread*> myWorkers;
         FXMutex myMutex;
+        FXMutex myPoolMutex;
         FXCondition myCondition;
         std::list<Task*> myFinishedTasks;
         int myRunningIndex;
@@ -157,6 +179,14 @@ public:
         myCondition.signal();
         myMutex.unlock();
         join();
+    }
+
+    void poolLock() {
+        myPool.lock();
+    }
+
+    void poolUnlock() {
+        myPool.unlock();
     }
 
 private:

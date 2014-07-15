@@ -84,7 +84,6 @@ TEST(FXWorkerThread, test_get_all) {
     g.add(task2);
     g.add(task3);
     g.add(task4);
-    std::list<FXWorkerThread::Task*> t = g.getAll();
-    EXPECT_EQ(4, t.size());
+    g.waitAllAndClear();
 }
 

@@ -57,6 +57,9 @@ SUMOTime MSDevice_Routing::myAdaptationInterval;
 bool MSDevice_Routing::myWithTaz;
 std::map<std::pair<const MSEdge*, const MSEdge*>, const MSRoute*> MSDevice_Routing::myCachedRoutes;
 SUMOAbstractRouter<MSEdge, SUMOVehicle>* MSDevice_Routing::myRouter = 0;
+#ifdef HAVE_GUI
+FXWorkerThread::Pool MSDevice_Routing::myThreadPool;
+#endif
 
 
 // ===========================================================================
@@ -92,6 +95,9 @@ MSDevice_Routing::insertOptions(OptionsCont& oc) {
 
     oc.doRegister("device.rerouting.init-with-loaded-weights", new Option_Bool(false));
     oc.addDescription("device.rerouting.init-with-loaded-weights", "Routing", "Use given weight files for initializing edge weights");
+
+    oc.doRegister("device.rerouting.threads", new Option_Integer(0));
+    oc.addDescription("device.rerouting.threads", "Routing", "The number of parallel execution threads used for rerouting");
 
     myEdgeWeightSettingCommand = 0;
     myEdgeEfforts.clear();
@@ -207,9 +213,7 @@ MSDevice_Routing::preInsertionReroute(SUMOTime currentTime) {
     if (source && dest) {
         const std::pair<const MSEdge*, const MSEdge*> key = std::make_pair(source, dest);
         if (myCachedRoutes.find(key) == myCachedRoutes.end()) {
-            myHolder.reroute(currentTime, getRouter(), true);
-            myCachedRoutes[key] = &myHolder.getRoute();
-            myHolder.getRoute().addReference();
+            reroute(myHolder, currentTime, true);
         } else {
             myHolder.replaceRoute(myCachedRoutes[key], true);
         }
@@ -220,7 +224,7 @@ MSDevice_Routing::preInsertionReroute(SUMOTime currentTime) {
 
 SUMOTime
 MSDevice_Routing::wrappedRerouteCommandExecute(SUMOTime currentTime) {
-    myHolder.reroute(currentTime, getRouter());
+    reroute(myHolder, currentTime);
     return myPeriod;
 }
 
@@ -252,8 +256,11 @@ MSDevice_Routing::adaptEdgeEfforts(SUMOTime /*currentTime*/) {
 }
 
 
-SUMOAbstractRouter<MSEdge, SUMOVehicle>&
-MSDevice_Routing::getRouter() {
+void
+MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool onInit) {
+#ifdef HAVE_GUI
+    const bool needThread = (myRouter == 0 && myThreadPool.getPending() + 1 > myThreadPool.size());
+#endif
     if (myRouter == 0) {
         const std::string routingAlgorithm = OptionsCont::getOptions().getString("routing-algorithm");
         if (routingAlgorithm == "dijkstra") {
@@ -263,10 +270,25 @@ MSDevice_Routing::getRouter() {
             myRouter = new AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
                 MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
         } else {
-            throw ProcessError("Unknown routing Algorithm '" + routingAlgorithm + "'!");
+            throw ProcessError("Unknown routing algorithm '" + routingAlgorithm + "'!");
         }
     }
-    return *myRouter;
+#ifdef HAVE_GUI
+    if (needThread) {
+        const int numThreads = OptionsCont::getOptions().getInt("device.rerouting.threads");
+        if (myThreadPool.size() < numThreads) {
+            new WorkerThread(myThreadPool, myRouter);
+        }
+        if (myThreadPool.size() < numThreads) {
+            myRouter = 0;
+        }
+    }
+    if (myThreadPool.size() > 0) {
+        myThreadPool.add(new RoutingTask(v, currentTime, onInit));
+        return;
+    }
+#endif
+    v.reroute(currentTime, *myRouter, onInit);
 }
 
 
@@ -277,5 +299,35 @@ MSDevice_Routing::cleanup() {
 }
 
 
+#ifdef HAVE_GUI
+void
+MSDevice_Routing::waitForAll() {
+    if (myThreadPool.size() > 0) {
+        myThreadPool.waitAllAndClear();
+    }
+}
+#endif
+
+
+// ---------------------------------------------------------------------------
+// MSDevice_Routing::RoutingTask-methods
+// ---------------------------------------------------------------------------
+void
+MSDevice_Routing::RoutingTask::run(FXWorkerThread* context) {
+    myVehicle.reroute(myTime, *((WorkerThread*)context)->myRouter, myOnInit);
+    if (myOnInit) {
+        const MSEdge* source = MSEdge::dictionary(myVehicle.getParameter().fromTaz + "-source");
+        const MSEdge* dest = MSEdge::dictionary(myVehicle.getParameter().toTaz + "-sink");
+        const std::pair<const MSEdge*, const MSEdge*> key = std::make_pair(source, dest);
+        context->poolLock();
+        if (MSDevice_Routing::myCachedRoutes.find(key) == MSDevice_Routing::myCachedRoutes.end()) {
+            MSDevice_Routing::myCachedRoutes[key] = &myVehicle.getRoute();
+            myVehicle.getRoute().addReference();
+        }
+        context->poolUnlock();
+    }
+}
+
+        
 /****************************************************************************/
 

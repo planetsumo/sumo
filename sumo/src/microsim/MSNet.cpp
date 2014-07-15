@@ -432,6 +432,9 @@ MSNet::simulationStep() {
     // insert Vehicles
     myInserter->checkFlows(myStep);
     myInsertionEvents->execute(myStep);
+#ifdef HAVE_GUI    
+    MSDevice_Routing::waitForAll();
+#endif
     myInserter->emitVehicles(myStep);
     if (MSGlobals::gCheck4Accidents) {
         myEdges->detectCollisions(myStep, STAGE_INSERTIONS);

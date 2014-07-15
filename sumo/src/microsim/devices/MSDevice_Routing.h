@@ -103,6 +103,10 @@ public:
     /// @brief deletes the router instance
     static void cleanup();
 
+#ifdef HAVE_GUI
+    static void waitForAll();
+#endif
+
 
 
 public:
@@ -140,15 +144,19 @@ private:
 #ifdef HAVE_GUI
     class WorkerThread : public FXWorkerThread {
     public:
-        WorkerThread(FXWorkerThread::Pool& pool, SUMOAbstractRouter<MSEdge, SUMOVehicle>* router) : FXWorkerThread(pool), myRouter(router) {}
+        WorkerThread(FXWorkerThread::Pool& pool,
+                     SUMOAbstractRouter<MSEdge, SUMOVehicle>* router)
+        : FXWorkerThread(pool), myRouter(router) {}
         SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
     };
 
     class RoutingTask : public FXWorkerThread::Task {
     public:
-        RoutingTask(const SUMOTime time, const bool onInit) : myTime(time), myOnInit(onInit) {}
+        RoutingTask(SUMOVehicle& v, const SUMOTime time, const bool onInit)
+        : myVehicle(v), myTime(time), myOnInit(onInit) {}
         void run(FXWorkerThread* context);
     private:
+        SUMOVehicle& myVehicle;
         const SUMOTime myTime;
         const bool myOnInit;
     };
@@ -232,8 +240,8 @@ private:
 
 
 
-    /// @brief get the router, initialize on first use
-    static SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouter();
+    /// @brief initiate the rerouting, create router / thread pool on first use
+    static void reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool onInit=false);
 
 
 
@@ -268,6 +276,9 @@ private:
     /// @brief The router to use
     static SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
 
+#ifdef HAVE_GUI
+    static FXWorkerThread::Pool myThreadPool;
+#endif
 
 private:
     /// @brief Invalidated copy constructor.
