@@ -51,7 +51,7 @@ def generateDetectorDef(out, freq, enableLoop, laneIDs):
     print('<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/additional_file.xsd">', file=out)
     for laneId in laneIDs:
         if enableLoop:
-            print('    <e1Detector id="e1_%s" lane="%s" pos="200" freq="%s" file="detector.xml"/>' % (laneId, laneId, freq), file=out)
+            print('    <e1Detector id="e1_%s" lane="%s" pos="100" freq="%s" file="detector.xml"/>' % (laneId, laneId, freq), file=out)
         print("""    <e2Detector id="e2_%s" lane="%s" pos="0" length="30000" friendlyPos="true" freq="%s" file="detector.xml"/>
         <e3Detector id="e3_%s" freq="%s" file="detector.xml">
             <detEntry lane="%s" pos="0"/>
@@ -62,22 +62,23 @@ def generateDetectorDef(out, freq, enableLoop, laneIDs):
 </additional>""" % (freq, freq), file=out)
 
 
-def checkOutput(args, withLoop, lanes):
+def checkOutput(freq, args, withLoop, lanes):
     handler = OutputHandler(lanes)
     for f in ["detector.xml", "meandataedge.xml", "meandatalane.xml"]:
         if os.path.exists(f):
             parse(f, handler)
     for i in sorted(handler.intervals):
         for lane in lanes:
-            if withLoop:
-                vals = [handler.speed[lane][type].get(i, -1.) for type in ["e1", "e2", "e3", "edge", "lane"]]
-            else:
-                vals = [handler.speed[lane][type].get(i, -1.) for type in ["e2", "e3", "edge", "lane"]]
+            types = ["e1", "e2", "e3", "edge", "lane"]
+            if not withLoop:
+                types = types[1:]
+            vals = [handler.speed[lane][type].get(i, -1.) for type in types]
             for v in vals[:-1]:
                 if abs(v - vals[-1]) > 0.001:
-                    print("failed", args, lane, i, vals)
+                    print("failed", freq, args, lane, i, zip(types, vals))
+                    sys.exit()
                     return
-    print("success", args, lanes)
+    print("success", freq, args, lanes)
 
 def flush():
     sys.stdout.flush()
@@ -102,5 +103,5 @@ for stepLength in [".1", "1"]:
                 flush()
                 if exitCode:
                     sys.exit(exitCode)
-                checkOutput(args, withLoop, lanes[:numLanes])
+                checkOutput(freq, args, withLoop, lanes[:numLanes])
                 flush()
