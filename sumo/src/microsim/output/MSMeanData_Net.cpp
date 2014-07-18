@@ -193,10 +193,8 @@ MSMeanData_Net::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime pe
         return;
     }
     if (sampleSeconds > myParent->myMinSamples) {
-        SUMOReal traveltime = myParent->myMaxTravelTime;
         SUMOReal overlapTraveltime = myParent->myMaxTravelTime;
         if (travelledDistance > 0.f) {
-            traveltime = MIN2(traveltime, myLaneLength * frontSampleSeconds / frontTravelledDistance);
             // one vehicle has to drive lane length + vehicle length before it has left the lane
             // thus we need to scale with an extended length, approximated by lane length + average vehicle length
             overlapTraveltime = MIN2(overlapTraveltime, (myLaneLength + vehLengthSum / sampleSeconds) * sampleSeconds / travelledDistance);
@@ -204,7 +202,14 @@ MSMeanData_Net::MSLaneMeanDataValues::write(OutputDevice& dev, const SUMOTime pe
         if (numVehicles > 0) {
             dev.writeAttr("traveltime", sampleSeconds / numVehicles).writeAttr("waitingTime", waitSeconds).writeAttr("speed", travelledDistance / sampleSeconds);
         } else {
-            dev.writeAttr("traveltime", traveltime).writeAttr("overlapTraveltime", overlapTraveltime)
+            SUMOReal traveltime = myParent->myMaxTravelTime;
+            if (frontTravelledDistance > 0.f) {
+                traveltime = MIN2(traveltime, myLaneLength * frontSampleSeconds / frontTravelledDistance);
+                dev.writeAttr("traveltime", traveltime);
+            } else if (defaultTravelTime >= 0.) {
+                dev.writeAttr("traveltime", defaultTravelTime);
+            }
+            dev.writeAttr("overlapTraveltime", overlapTraveltime)
             .writeAttr("density", sampleSeconds / STEPS2TIME(period) * (SUMOReal) 1000 / myLaneLength)
             .writeAttr("occupancy", vehLengthSum / STEPS2TIME(period) / myLaneLength / numLanes * (SUMOReal) 100)
             .writeAttr("waitingTime", waitSeconds).writeAttr("speed", travelledDistance / sampleSeconds);

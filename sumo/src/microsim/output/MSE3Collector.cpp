@@ -95,18 +95,16 @@ MSE3Collector::MSE3LeaveReminder::MSE3LeaveReminder(
 bool
 MSE3Collector::MSE3LeaveReminder::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
         SUMOReal newPos, SUMOReal newSpeed) {
-    if (newPos <= myPosition) {
+    const SUMOReal backPos = newPos - veh.getVehicleType().getLength();
+    const SUMOReal oldBackPos = oldPos - veh.getVehicleType().getLength();
+    if (backPos < myPosition) {
         // crossSection not yet reached
         return true;
-    }
-    if (oldPos > myPosition) {
-        // crossSection was not passed
-        return false;
     }
     // crossSection left
     const SUMOReal leaveTime = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
     assert(newSpeed != 0); // how could it move across the detector otherwise
-    const SUMOReal fractionTimeOnDet = (myPosition - oldPos) / newSpeed;
+    const SUMOReal fractionTimeOnDet = (myPosition - oldBackPos) / newSpeed;
     myCollector.leave(veh, leaveTime - TS + fractionTimeOnDet, fractionTimeOnDet);
     return false;
 }

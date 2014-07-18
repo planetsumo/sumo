@@ -276,7 +276,20 @@ public:
     /// @}
 
 
-protected:
+private:
+    /** @brief Internal representation of a vehicle
+     */
+    struct VehicleInfo {
+        VehicleInfo(std::string _id, SUMOReal _speed, SUMOReal _timeOnDet, SUMOReal _lengthOnDet, SUMOReal _position)
+            : id(_id), speed(_speed), timeOnDet(_timeOnDet), lengthOnDet(_lengthOnDet), position(_position) {}
+        std::string id;
+        SUMOReal speed;
+        SUMOReal timeOnDet;
+        SUMOReal lengthOnDet;
+        SUMOReal position;
+    };
+
+
     /** @brief Internal representation of a jam
      *
      * Used in execute, instances of this structure are used to track
@@ -284,58 +297,13 @@ protected:
      */
     struct JamInfo {
         /// @brief The first standing vehicle
-        std::list<SUMOVehicle*>::const_iterator firstStandingVehicle;
+        std::vector<VehicleInfo>::const_iterator firstStandingVehicle;
 
         /// @brief The last standing vehicle
-        std::list<SUMOVehicle*>::const_iterator lastStandingVehicle;
+        std::vector<VehicleInfo>::const_iterator lastStandingVehicle;
     };
 
 
-    /** @brief A class used to sort known vehicles by their position
-     *
-     * Sorting is needed, because the order may change if a vehicle has
-     *  entered the lane by lane changing.
-     *
-     * We need to have the lane, because the vehicle's position - used
-     *  for the sorting - may be beyond the lane's end (the vehicle may
-     *  be on a new lane) and we have to ask for the vehicle's position
-     *  using this information.
-     */
-    class by_vehicle_position_sorter {
-    public:
-        /** @brief constructor
-         *
-         * @param[in] lane The lane the detector is placed at
-         */
-        by_vehicle_position_sorter(const MSLane* const lane)
-            : myLane(lane) { }
-
-
-        /** @brief copy constructor
-         *
-         * @param[in] s The instance to copy
-         */
-        by_vehicle_position_sorter(const by_vehicle_position_sorter& s)
-            : myLane(s.myLane) { }
-
-
-        /** @brief Comparison funtcion
-         *
-         * @param[in] v1 First vehicle to compare
-         * @param[in] v2 Second vehicle to compare
-         * @return Whether the position of the first vehicles is smaller than the one of the second
-         */
-        int operator()(const SUMOVehicle* v1, const SUMOVehicle* v2);
-
-    private:
-        by_vehicle_position_sorter& operator=(const by_vehicle_position_sorter&); // just to avoid a compiler warning
-    private:
-        /// @brief The lane the detector is placed at
-        const MSLane* const myLane;
-    };
-
-
-private:
     /// @name Detector parameter
     /// @{
 
@@ -355,13 +323,13 @@ private:
     DetectorUsage myUsage;
 
     /// @brief List of known vehicles
-    std::list<SUMOVehicle*> myKnownVehicles;
+    std::vector<VehicleInfo> myKnownVehicles;
 
     /// @brief Storage for halting durations of known vehicles (for halting vehicles)
-    std::map<const SUMOVehicle*, SUMOTime> myHaltingVehicleDurations;
+    std::map<const std::string, SUMOTime> myHaltingVehicleDurations;
 
     /// @brief Storage for halting durations of known vehicles (current interval)
-    std::map<const SUMOVehicle*, SUMOTime> myIntervalHaltingVehicleDurations;
+    std::map<const std::string, SUMOTime> myIntervalHaltingVehicleDurations;
 
     /// @brief Halting durations of ended halts [s]
     std::vector<SUMOTime> myPastStandingDurations;
@@ -382,7 +350,7 @@ private:
     /// @brief The sum of jam lengths [#veh]
     unsigned myJamLengthInVehiclesSum;
     /// @brief The number of collected samples [#]
-    unsigned myVehicleSamples;
+    SUMOReal myVehicleSamples;
     /// @brief The current aggregation duration [#steps]
     unsigned myTimeSamples;
     /// @brief The sum of occupancies [%]
