@@ -37,17 +37,28 @@ class Scenario:
   def addAdditional(self, name, add):
     self.additional[name].append(add)
     
-  def build(self):
+  def writeSUMOConfig(self, cfgName, addOptions={}):
     cfg = {}
+    for a in addOptions:
+      cfg[a] = addOptions[a]
     cfg["net-file"] = self.netName
     cfg["route-files"] = self.demandName
     for a in self.additional:
       fileName = a+".add.xml" 
-      sumolib.files.additional.write(fileName, self.additional[a])
+      if len(self.additional[a])>0:
+        sumolib.files.additional.write(fileName, self.additional[a])
       if "additional-files" not in cfg:
         cfg["additional-files"] = fileName
       else:
         cfg["additional-files"] = cfg["additional-files"] + "," + fileName
+    fdo = open(cfgName, "w")
+    fdo.write("<c>\n")
+    for v in cfg:
+      fdo.write('  <%s value="%s"/>\n' % (v, cfg[v]))
+    fdo.write("</c>\n")
+    fdo.close()
+      
+    
       
   def getNet(self):
     if self.net!=None:
@@ -71,31 +82,33 @@ class Scenario_BasicCross(Scenario):
     # demand
     demand = demandGenerator.Demand()
     demand.addStream(demandGenerator.Stream(None, 0, 3600, 1000, "2/1_to_1/1", "1/1_to_0/1", { .2:"hdv", .8:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+    self.demandName = "routes.rou.xml"
+    self.demand.build(0, 3600, self.netName, self.demandName)
         
       
 flowsRiLSA1 = [
-    [ "nm", [
-       [ "ms", 159, 9 ],  
-       [ "me", 59, 9 ],  
-       [ "mw", 64, 12 ]  
+    [ "1/2_to_1/1", [
+       [ "1/1_to_1/0", 159, 9 ],  
+       [ "1/1_to_2/1", 59, 9 ],  
+       [ "1/1_to_0/1", 64, 12 ]  
    ] ],
 
-   [ "wm", [
-       [ "me", 708, 10 ],  
-       [ "mn", 80, 14 ],  
-       [ "ms", 130, 2 ]  
+   [ "0/1_to_1/1", [
+       [ "1/1_to_2/1", 708, 10 ],  
+       [ "1/1_to_1/2", 80, 14 ],  
+       [ "1/1_to_1/0", 130, 2 ]  
    ] ],
 
-   [ "em", [
-       [ "mw", 571, 10 ],  
-       [ "mn", 57, 9 ],  
-       [ "ms", 47, 3 ]  
+   [ "2/1_to_1/1", [
+       [ "1/1_to_0/1", 571, 10 ],  
+       [ "1/1_to_1/2", 57, 9 ],  
+       [ "1/1_to_1/0", 47, 3 ]  
    ] ],
 
-   [ "sm", [
-       [ "mn", 154, 2 ],  
-       [ "me", 49, 2 ],  
-       [ "mw", 92, 2 ]  
+   [ "1/0_to_1/1", [
+       [ "1/1_to_1/2", 154, 2 ],  
+       [ "1/1_to_2/1", 49, 2 ],  
+       [ "1/1_to_0/1", 92, 2 ]  
    ] ]
  
 ]
@@ -117,7 +130,8 @@ class Scenario_RiLSA1(Scenario):
         prob = rel[2]/100.
         iprob = 1. - prob
         self.demand.addStream(demandGenerator.Stream(None, 0, 3600, rel[1], f[0], rel[0], { prob:"lkw", iprob:"pkw"}))
-    
+    self.demandName = "routes.rou.xml"
+    self.demand.build(0, 3600, self.netName, self.demandName)
 
 
 def getScenario(name):
