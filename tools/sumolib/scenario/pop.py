@@ -10,6 +10,9 @@ class Scenario:
     self.demand = None
     self.demandName = None
     self.additional = {}
+    self.conn = None
+    
+  
     
   def extrapolateDemand(origDemand, freq, probs, pivot=demandGenerator.PIVOT__PEAK, tBeg=0):
     ret = demandGenerator.Demand()
