@@ -354,18 +354,6 @@ public:
     /// @brief Removes a vehicle from the list of waiting vehicles to a given edge
     void removeWaiting(const MSEdge* const edge, SUMOVehicle* vehicle);
 
-    /// @brief Adds a vehicle to the list of waiting vehiclse to a given busstop
-    void addWaitingToBusStop(const MSBusStop* const busStop, SUMOVehicle* vehicle);
-
-    /// @brief Removes a vehicle from the list of waiting vehicles to a given busStop
-    void removeWaitingFromBusStop(const MSBusStop* const busStop, SUMOVehicle* vehicle);
-
-    /* @brief returns a vehicle of the given lines that is waiting for a for a person at the given busstop
-     * @param[in] busStop The bus stop at which the vehicle is positioned
-     * @param[in] lines The set of lines from which at least one must correspond to the line of the vehicle
-     */
-    SUMOVehicle* getWaitingVehicleAtBusStop(const MSBusStop* busStop, const std::set<std::string>& lines);
-
     /* @brief returns a vehicle of the given lines that is waiting for a for a person at this edge at the given positions
      * @param[in] edge The edge at which the vehicle is positioned.
      * @param[in] lines The set of lines from which at least one must correspond to the line of the vehicle
@@ -521,9 +509,6 @@ protected:
 
     /// the lists of waiting vehicles to a given edge
     std::map<const MSEdge* const, std::vector<SUMOVehicle*> > myWaiting;
-
-    /// the lists of waiting vehicles to a given busstop
-    std::map<const MSBusStop* const, std::vector<SUMOVehicle*> > myWaitingAtBusStop;
 
     /// the number of vehicles wainting for persons contained in myWaiting which can only continue by being triggered
     unsigned int myWaitingForPerson;

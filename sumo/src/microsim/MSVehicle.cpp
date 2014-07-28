@@ -801,6 +801,7 @@ MSVehicle::processNextStop(SUMOReal currentVelocity) {
         // any waiting persons may board now
         bool boarded = MSNet::getInstance()->getPersonControl().boardAnyWaiting(&myLane->getEdge(), this, &stop);
         boarded &= stop.awaitedPersons.size() == 0;
+        // TODO: load containers
         if (boarded) {
             if (stop.busstop != 0) {
                 const std::vector<MSPerson*>& persons = myPersonDevice->getPersons();
@@ -845,10 +846,6 @@ MSVehicle::processNextStop(SUMOReal currentVelocity) {
                 // ok, we may stop (have reached the stop)
                 stop.reached = true;
                 MSNet::getInstance()->getVehicleControl().addWaiting(&myLane->getEdge(), this);
-                //if this stop is a busstop add this vehicle to the list of waiting vehicles at this busstop
-                if (stop.busstop != 0){
-                    MSNet::getInstance()->getVehicleControl().addWaitingToBusStop(stop.busstop, this);
-                }
                 MSNet::getInstance()->informVehicleStateListener(this, MSNet::VEHICLE_STATE_STARTING_STOP);
                 // compute stopping time
                 if (stop.until >= 0) {
