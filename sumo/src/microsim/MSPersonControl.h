@@ -89,6 +89,7 @@ public:
      * Boards any people who wait on that edge for the given vehicle and removes them from myWaiting
      * @param[in] the edge on which the boarding should take place
      * @param[in] the vehicle which is taking on passengers
+     * @param[in] the stop at which the vehicle is stopping
      * @return Whether any persons have been boarded
      */
     bool boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop);

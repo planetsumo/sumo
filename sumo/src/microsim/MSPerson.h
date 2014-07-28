@@ -527,9 +527,6 @@ protected:
     /// the iterator over the route
     MSPersonPlan::iterator myStep;
 
-    /// the current busstop of the person (points to null if the person is not a busstop)
-    MSBusStop* myCurrentBusStop;
-
     /// @brief Whether events shall be written
     bool myWriteEvents;
 
@@ -629,11 +626,6 @@ public:
 
     inline const MSVehicleType& getVehicleType() const {
         return *myVType;
-    }
-
-    /// set the currentBusStop
-    void setCurrentBusStop(MSBusStop* busStop){
-        myCurrentBusStop = busStop;
     }
 
 private:

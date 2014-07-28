@@ -260,7 +260,6 @@ MSPerson::MSPersonStage_Walking::moveToNextEdge(MSPerson* person, SUMOTime curre
         MSNet::getInstance()->getPersonControl().unsetWalking(person);
         if (myDestinationBusStop != 0) {
             myDestinationBusStop->addPerson(person);
-            person->myCurrentBusStop = myDestinationBusStop;
         }
         if (!person->proceed(MSNet::getInstance(), currentTime)) {
             MSNet::getInstance()->getPersonControl().erase(person);
@@ -349,29 +348,14 @@ MSPerson::MSPersonStage_Driving::proceed(MSNet* net, MSPerson* person, SUMOTime 
     myWaitingEdge = previousEdge;
     myWaitingPos = at;
     myWaitingSince = now;
-
-    // if the person is standing at a busstop
-    MSBusStop* currentBusstop = person->myCurrentBusStop;
-    if (currentBusstop != 0){
-        myVehicle = net->getVehicleControl().getWaitingVehicleAtBusStop(currentBusstop, myLines);
-    } else {
-        myVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines, myWaitingPos);
-        std::cout << SIMTIME << " " << myWaitingPos << " " << (myVehicle != 0) << "\n"; 
-    }
-
-    myVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines, myWaitingPos);
-
-	if (myVehicle != 0 && myVehicle->getParameter().departProcedure == DEPART_TRIGGERED) {
+    SUMOVehicle* availableVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines, myWaitingPos);
+	if (availableVehicle != 0 && availableVehicle->getParameter().departProcedure == DEPART_TRIGGERED) {
+        myVehicle = availableVehicle;
         previousEdge->removePerson(person);
         myVehicle->addPerson(person);
         net->getInsertionControl().add(myVehicle);
         net->getVehicleControl().removeWaiting(previousEdge, myVehicle);
         net->getVehicleControl().unregisterOneWaitingForPerson();
-        if (currentBusstop != 0){
-            net->getVehicleControl().removeWaitingFromBusStop(currentBusstop, myVehicle);
-            currentBusstop->removePerson(person);
-            person->setCurrentBusStop(0);
-        }
     } else {
         net->getPersonControl().addWaiting(previousEdge, person);
         previousEdge->addPerson(person);
@@ -552,7 +536,6 @@ MSPerson::MSPersonStage_Waiting::getSpeed() const {
 MSPerson::MSPerson(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSPersonPlan* plan)
     : myParameter(pars), myVType(vtype), myPlan(plan) {
     myStep = myPlan->begin();
-    myCurrentBusStop = 0;
 }
 
 
@@ -582,7 +565,7 @@ MSPerson::proceed(MSNet* net, SUMOTime time) {
         (*myStep)->endEventOutput(*this, time, OutputDevice::getDeviceByOption("person-event-output"));
     }
     */
-    myStep++;
+    myStep++;    
     if (myStep != myPlan->end()) {
         (*myStep)->proceed(net, this, time, arrivedAt, atPos);
         /*

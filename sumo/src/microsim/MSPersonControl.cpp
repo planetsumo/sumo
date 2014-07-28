@@ -160,10 +160,10 @@ bool
     bool ret = false;
     if (myWaiting4Vehicle.find(edge) != myWaiting4Vehicle.end()) {
         PersonVector& waitPersons = myWaiting4Vehicle[edge];
+        const std::string& line = vehicle->getParameter().line == "" ? vehicle->getParameter().id : vehicle->getParameter().line;
+	    SUMOTime currentTime =  MSNet::getInstance()->getCurrentTimeStep();
         for (PersonVector::iterator i = waitPersons.begin(); i != waitPersons.end();) {
-            const std::string& line = vehicle->getParameter().line == "" ? vehicle->getParameter().id : vehicle->getParameter().line;
-			SUMOTime currentTime =  MSNet::getInstance()->getCurrentTimeStep();
-			if ((*i)->isWaitingFor(line) && vehicle->getVehicleType().getPersonCapacity() > vehicle->getPersonNumber() && stop->timeToBoardNextPerson <= currentTime) {
+			if ((*i)->isWaitingFor(line) && vehicle->getVehicleType().getPersonCapacity() > vehicle->getPersonNumber() && stop->timeToBoardNextPerson <= currentTime && stop->startPos <= (*i)->getEdgePos() && (*i)->getEdgePos() <= stop->endPos) {
                 edge->removePerson(*i);
                 vehicle->addPerson(*i);
 				//if the time a person needs to enter the vehicle extends the duration of the stop of the vehicle extend
