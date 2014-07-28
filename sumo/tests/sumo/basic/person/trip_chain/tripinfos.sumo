@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Tue Apr  1 10:28:35 2014 by SUMO sumo Version dev-SVN-r16088
+<!-- generated on 07/25/14 11:05:23 by SUMO sumo Version dev-SVN-r16663
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -36,7 +36,7 @@
         <ride depart="121.00" arrival="140.00"/>
         <walk arrival="184.00"/>
         <stop arrival="204.00"/>
-        <ride depart="204.00" arrival="252.00"/>
+        <ride depart="204.00" arrival="249.00"/>
     </personinfo>
-    <tripinfo id="car0" depart="204.00" departLane="1/4to2/4_0" departPos="5.10" departSpeed="0.00" departDelay="204.00" arrival="252.00" arrivalLane="3/4to4/4_0" arrivalPos="92.00" arrivalSpeed="13.90" duration="48.00" routeLength="267.90" waitSteps="21" rerouteNo="0" devices="tripinfo_car0 person_car0" vType="DEFAULT_VEHTYPE" vaporized=""/>
+    <tripinfo id="car0" depart="204.00" departLane="1/4to2/4_0" departPos="40.00" departSpeed="0.00" departDelay="204.00" arrival="249.00" arrivalLane="3/4to4/4_0" arrivalPos="92.00" arrivalSpeed="13.90" duration="45.00" routeLength="233.00" waitSteps="22" rerouteNo="0" devices="tripinfo_car0 person_car0" vType="DEFAULT_VEHTYPE" vaporized=""/>
 </tripinfos>

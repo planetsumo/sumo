@@ -5,13 +5,13 @@
             <stop lane="beg_0" endPos="50" duration="30"/>
         </route>
     </flow>
-    <person id="p1" depart="20">
+    <person id="p1" depart="20" departPos="50">
         <ride from="beg" to="end" lines="l100"/>
     </person>
-    <person id="p2" depart="20">
+    <person id="p2" depart="20" departPos="50">
         <ride from="beg" to="end" lines="l100"/>
     </person>
-    <person id="p3" depart="20">
+    <person id="p3" depart="20" departPos="50">
         <ride from="beg" to="end" lines="l100"/>
     </person>
 </routes>
