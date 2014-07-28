@@ -22,20 +22,27 @@ import subprocess, optparse, shutil, os
 
 optParser = optparse.OptionParser()
 optParser.add_option("-b", "--begin", type="int",
-                     default=10000, help="start revision")
+                     default=16000, help="first revision to build")
 optParser.add_option("-e", "--end", type="int",
-                     default=100000, help="end revision")
+                     help="last revision to build")
 optParser.add_option("-s", "--step", type="int",
                      default=1, help="increment")
 options, args = optParser.parse_args()
 
-for rev in range(options.begin, options.end, options.step):
+if not options.end:
+    for line in subprocess.check_output('svn info http://svn.code.sf.net/p/sumo/code/trunk/sumo', shell=True).splitlines():
+        l = line.split()
+        if len(l) == 2 and l[0] == "Revision:":
+            options.end = int(l[1])
+for rev in range(options.begin, options.end+1, options.step):
     if not os.path.exists('bin%s' % rev):
         ret = subprocess.call('svn up --ignore-externals -r %s sumo' % rev, shell=True)
         if ret != 0:
             break
-        ret = subprocess.call('cd sumo; make -j 16; cd ..', shell=True)
-        shutil.copytree('sumo/bin', 'bin%s' % rev)
+        subprocess.call('cd sumo; make clean; make -j 16; cd ..', shell=True)
+        shutil.copytree('sumo/bin', 'bin%s' % rev, ignore=shutil.ignore_patterns('Makefile*', '*.bat', '*.jar'))
+        subprocess.call('strip -R .note.gnu.build-id bin%s/*' % rev, shell=True)
+        subprocess.call("sed -i 's/dev-SVN-r%s/dev-SVN-r00000/' bin%s/*" % (rev, rev), shell=True)
 for line in subprocess.check_output('fdupes -1 -q bin*', shell=True).splitlines():
     dups = line.split()
     for d in dups[1:]:

@@ -193,7 +193,7 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
                          0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
         new FXLabel(m21, "Color", 0, LAYOUT_CENTER_Y);
         myLaneEdgeColorMode = new FXComboBox(m21, 30, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
-        myLaneEdgeColorMode->setNumVisible(10);
+        myLaneEdgeColorMode->setNumVisible(20);
         myLaneColorInterpolation = new FXCheckButton(m21, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
         FXScrollWindow* genScroll = new FXScrollWindow(frame2, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
         myLaneColorSettingFrame =
@@ -264,7 +264,7 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         new FXLabel(m32, "Color", 0, LAYOUT_CENTER_Y);
         myVehicleColorMode = new FXComboBox(m32, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
         mySettings->vehicleColorer.fill(*myVehicleColorMode);
-        myVehicleColorMode->setNumVisible(10);
+        myVehicleColorMode->setNumVisible(24);
         myVehicleColorInterpolation = new FXCheckButton(m32, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
 
         FXScrollWindow* genScroll = new FXScrollWindow(frame3, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
@@ -345,7 +345,7 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         new FXLabel(m102, "Color", 0, LAYOUT_CENTER_Y);
         myPersonColorMode = new FXComboBox(m102, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
         mySettings->personColorer.fill(*myPersonColorMode);
-        myPersonColorMode->setNumVisible(10);
+        myPersonColorMode->setNumVisible(9);
         myPersonColorInterpolation = new FXCheckButton(m102, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
 
         FXScrollWindow* genScroll = new FXScrollWindow(frame3, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
@@ -393,7 +393,7 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         new FXLabel(m41, "Color", 0, LAYOUT_CENTER_Y);
         myJunctionColorMode = new FXComboBox(m41, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
         mySettings->junctionColorer.fill(*myJunctionColorMode);
-        myJunctionColorMode->setNumVisible(2);
+        myJunctionColorMode->setNumVisible(3);
         myJunctionColorInterpolation = new FXCheckButton(m41, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
 
         FXScrollWindow* genScroll = new FXScrollWindow(frame4, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
@@ -1029,18 +1029,12 @@ GUIDialog_ViewSettings::onUpdDeleteSetting(FXObject* sender, FXSelector, void* p
 
 long
 GUIDialog_ViewSettings::onCmdExportSetting(FXObject*, FXSelector, void* /*data*/) {
-    FXFileDialog opendialog(this, "Export view settings");
-    opendialog.setIcon(GUIIconSubSys::getIcon(ICON_EMPTY));
-    opendialog.setSelectMode(SELECTFILE_ANY);
-    opendialog.setPatternList("*.xml");
-    if (gCurrentFolder.length() != 0) {
-        opendialog.setDirectory(gCurrentFolder);
-    }
-    if (!opendialog.execute() || !MFXUtils::userPermitsOverwritingWhenFileExists(this, opendialog.getFilename())) {
+    FXString file = MFXUtils::getFilename2Write(this, "Export view settings", ".xml", GUIIconSubSys::getIcon(ICON_EMPTY), gCurrentFolder);
+    if (file == "") {
         return 1;
     }
     try {
-        OutputDevice& dev = OutputDevice::getDevice(opendialog.getFilename().text());
+        OutputDevice& dev = OutputDevice::getDevice(file.text());
         mySettings->save(dev);
         dev.close();
     } catch (IOError& e) {
@@ -1096,17 +1090,11 @@ GUIDialog_ViewSettings::onCmdLoadDecals(FXObject*, FXSelector, void* /*data*/) {
 
 long
 GUIDialog_ViewSettings::onCmdSaveDecals(FXObject*, FXSelector, void* /*data*/) {
-    FXFileDialog opendialog(this, "Save Decals");
-    opendialog.setIcon(GUIIconSubSys::getIcon(ICON_EMPTY));
-    opendialog.setSelectMode(SELECTFILE_ANY);
-    opendialog.setPatternList("*.xml");
-    if (gCurrentFolder.length() != 0) {
-        opendialog.setDirectory(gCurrentFolder);
-    }
-    if (!opendialog.execute() || !MFXUtils::userPermitsOverwritingWhenFileExists(this, opendialog.getFilename())) {
+    FXString file = MFXUtils::getFilename2Write(this, "Save Decals", ".xml", GUIIconSubSys::getIcon(ICON_EMPTY), gCurrentFolder);
+    if (file == "") {
         return 1;
     }
-    saveDecals(opendialog.getFilename().text());
+    saveDecals(file.text());
     return 1;
 }
 

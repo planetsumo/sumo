@@ -30,15 +30,15 @@
 <tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/tripinfo_file.xsd">
     <personinfo id="pEW" depart="20.00">
         <stop arrival="20.00"/>
-        <walk arrival="70.00"/>
+        <walk arrival="28.00"/>
     </personinfo>
     <personinfo id="pEN" depart="25.00">
         <stop arrival="25.00"/>
-        <walk arrival="78.00"/>
+        <walk arrival="32.00"/>
     </personinfo>
     <personinfo id="pWN" depart="0.00">
         <stop arrival="0.00"/>
-        <walk arrival="118.00"/>
+        <walk arrival="110.00"/>
     </personinfo>
     <personinfo id="pNW" depart="10.00">
         <stop arrival="10.00"/>
@@ -46,10 +46,10 @@
     </personinfo>
     <personinfo id="pWE" depart="5.00">
         <stop arrival="5.00"/>
-        <walk arrival="230.00"/>
+        <walk arrival="228.00"/>
     </personinfo>
     <personinfo id="pNE" depart="15.00">
         <stop arrival="15.00"/>
-        <walk arrival="240.00"/>
+        <walk arrival="242.00"/>
     </personinfo>
 </tripinfos>

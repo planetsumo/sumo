@@ -51,6 +51,9 @@ copy_test_path:fcd.xml
 copy_test_path:data.txt
 copy_test_path:source.csv
 copy_test_path:osm.xml
+copy_test_path:weights.src.xml
+copy_test_path:weights.dst.xml
+copy_test_path:weights.via.xml
 
 [collate_file]
 detectors:e1.add.xml
@@ -86,10 +89,13 @@ str:test.str
 gpsdat:gpsdat.txt
 gpx:output.gpx
 match:match.txt
-image:image.png
+image:image.svg
 csv:out*.csv
 xml:out.xml
 net:net.net.xml
+source_weights:weights.src.xml
+dest_weights:weights.dst.xml
+via_weights:weights.via.xml
 
 [run_dependent_text]
 output:Begin time
@@ -110,6 +116,9 @@ errors:Traceback{->}IOError
 omnet:<!-- generated on
 shawn:<!-- generated on
 net:<!--{[->]}-->
+
+[floating_point_tolerance]
+net:0.0101
 
 [unordered_text]
 errors:ERROR:SCHEMA

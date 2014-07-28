@@ -890,9 +890,6 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         }
     }
     lfLinks.clear();
-#ifdef HAVE_INTERNAL_LANES
-    myLinkLeaders.clear();
-#endif
     //
     const MSCFModel& cfModel = getCarFollowModel();
     const SUMOReal vehicleLength = getVehicleType().getLength();
@@ -1029,9 +1026,9 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
                 // leader is a pedestrian. Passing 'this' as a dummy.
                 //std::cout << SIMTIME << " veh=" << getID() << " is blocked on link to " << (*link)->getViaLaneOrLane()->getID() << " by pedestrian. dist=" << it->distToCrossing << "\n";
                 adaptToLeader(std::make_pair(this, -1), seen, lastLink, lane, v, vLinkPass, it->distToCrossing);
-            } else if (leader->myLinkLeaders.count(getID()) == 0) {
+            } else if (leader->myLinkLeaders[(*link)->getJunction()].count(getID()) == 0) {
                 // leader isn't already following us, now we follow it
-                myLinkLeaders.insert(leader->getID());
+                myLinkLeaders[(*link)->getJunction()].insert(leader->getID());
                 adaptToLeader(it->vehAndGap, seen, lastLink, lane, v, vLinkPass, it->distToCrossing);
                 if (lastLink != 0) {
                     // we are not yet on the junction with this linkLeader.
@@ -1345,6 +1342,12 @@ MSVehicle::executeMove() {
                             getLaneChangeModel().endLaneChangeManeuver();
                         }
                     }
+#ifdef HAVE_INTERNAL_LANES 
+                    // erase leaders when past the junction
+                    if (link->getViaLane() == 0) {
+                        myLinkLeaders[link->getJunction()].clear();
+                    }
+#endif 
                     moved = true;
                     if (approachedLane->getEdge().isVaporizing()) {
                         leaveLane(MSMoveReminder::NOTIFICATION_VAPORIZED);
@@ -1904,7 +1907,7 @@ MSVehicle::updateBestLanes(bool forceRebuild, const MSLane* startLane) {
             q.lane = cl;
             q.bestContinuations.push_back(cl);
             q.bestLaneOffset = 0;
-            q.length = cl->getLength();
+            q.length = cl->allowsVehicleClass(myType->getVehicleClass()) ? cl->getLength() : 0;
             q.allowsContinuation = allowed == 0 || find(allowed->begin(), allowed->end(), cl) != allowed->end();
             currentLanes.push_back(q);
         }

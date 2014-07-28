@@ -209,6 +209,7 @@ MSRouteHandler::myStartElement(int element,
                 MSEdge::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_TO, myVehicleParameter->id.c_str(), ok),
                                        myActiveRoute, "for vehicle '" + myVehicleParameter->id + "'");
                 closeRoute(true);
+                myVehicleParameter->setParameter |= VEHPARS_FORCE_REROUTE;
             }
             break;
         case SUMO_TAG_TRIP: {
@@ -597,23 +598,39 @@ MSRouteHandler::closeFlow() {
     }
     // let's check whether vehicles had to depart before the simulation starts
     myVehicleParameter->repetitionsDone = 0;
-    const SUMOTime offsetToBegin = string2time(OptionsCont::getOptions().getString("begin")) - myVehicleParameter->depart;
-    while (myVehicleParameter->repetitionsDone * myVehicleParameter->repetitionOffset < offsetToBegin) {
-        myVehicleParameter->repetitionsDone++;
-        if (myVehicleParameter->repetitionsDone == myVehicleParameter->repetitionNumber) {
-            return;
+    if (myVehicleParameter->repetitionProbability < 0) {
+        const SUMOTime offsetToBegin = string2time(OptionsCont::getOptions().getString("begin")) - myVehicleParameter->depart;
+        while (myVehicleParameter->repetitionsDone * myVehicleParameter->repetitionOffset < offsetToBegin) {
+            myVehicleParameter->repetitionsDone++;
+            if (myVehicleParameter->repetitionsDone == myVehicleParameter->repetitionNumber) {
+                return;
+            }
         }
     }
     if (MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid) == 0) {
-        throw ProcessError("The vehicle type '" + myVehicleParameter->vtypeid + "' for vehicle '" + myVehicleParameter->id + "' is not known.");
+        throw ProcessError("The vehicle type '" + myVehicleParameter->vtypeid + "' for flow '" + myVehicleParameter->id + "' is not known.");
     }
     if (MSRoute::dictionary("!" + myVehicleParameter->id) == 0) {
         // if not, try via the (hopefully) given route-id
         if (MSRoute::dictionary(myVehicleParameter->routeid) == 0) {
             if (myVehicleParameter->routeid != "") {
-                throw ProcessError("The route '" + myVehicleParameter->routeid + "' for vehicle '" + myVehicleParameter->id + "' is not known.");
+                throw ProcessError("The route '" + myVehicleParameter->routeid + "' for flow '" + myVehicleParameter->id + "' is not known.");
             } else {
-                throw ProcessError("Vehicle '" + myVehicleParameter->id + "' has no route.");
+                if (myVehicleParameter->wasSet(VEHPARS_TAZ_SET)) {
+                    myVehicleParameter->setParameter |= VEHPARS_FORCE_REROUTE;
+                    const MSEdge* fromTaz = MSEdge::dictionary(myVehicleParameter->fromTaz + "-source");
+                    if (fromTaz == 0) {
+                        WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' not known for '" + myVehicleParameter->id + "'!");
+                    } else if (fromTaz->getNoFollowing() == 0) {
+                        WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' has no outgoing edges for '" + myVehicleParameter->id + "'!");
+                    } else {
+                        myActiveRoute.push_back(fromTaz->getFollower(0));
+                    }
+                    closeRoute(true);
+                    myVehicleParameter->routeid = "!" + myVehicleParameter->id;
+                } else {
+                    throw ProcessError("Flow '" + myVehicleParameter->id + "' has no route.");
+                }
             }
         }
     } else {

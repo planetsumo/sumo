@@ -22,3 +22,9 @@ vclass_additional_file
 
 # test trips with intermediate waypoints
 intermediate
+
+# write weights for visualization
+weights_output
+
+# load some weights
+loaded_weights
