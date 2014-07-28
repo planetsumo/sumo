@@ -37,7 +37,7 @@
 //#include <map>
 //#include <string>
 #include <set>
-////#include <utils/common/Named.h>
+#include <utils/common/Named.h>
 
 
 // ===========================================================================
@@ -65,19 +65,17 @@ class MSContainerStop;
  */
 class MSContainerTerminal : public Named {
 public:
-//    /** @brief Constructor
-//     *
-//     * @param[in] id The id of the container terminal
-//     * @param[in] net The net the container terminal belongs to
-//     * @param[in] myStops The set of stops that belong to the container terminal
-//     */
-//    MSContainerTerminal(const std::string& id,
-//              const std::vector<std::string>& lines, MSLane& lane,
-//              SUMOReal begPos, SUMOReal endPos);
-//
-//
-//    /// @brief Destructor
-//    virtual ~MSContainerTerminal();
+    /** @brief Constructor
+     *
+     * @param[in] id The id of the container terminal
+     * @param[in] myStops The set of stops that belong to the container terminal
+     */
+    MSContainerTerminal(const std::string& id, 
+              const std::set<MSContainerStop*> stops);
+
+
+    /// @brief Destructor
+    virtual ~MSContainerTerminal();
 //
 //
 //    /** @brief Returns the lane this bus stop is located at
@@ -171,12 +169,11 @@ private:
 
     /// @brief Invalidated assignment operator.
     MSContainerTerminal& operator=(const MSContainerTerminal&);
-//
-//
-//};
-//
-//
-//#endif
+
+};
+
+
+#endif
 
 /****************************************************************************/
 

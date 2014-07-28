@@ -59,6 +59,7 @@ class MSLaneChanger;
 class MSVehicleTransfer;
 class MSAbstractLaneChangeModel;
 class MSBusStop;
+class MSContainerStop;
 class MSPerson;
 class MSDevice;
 class MSEdgeWeightsStorage;
@@ -563,6 +564,8 @@ public:
         const MSLane* lane;
         /// @brief (Optional) bus stop if one is assigned to the stop
         MSBusStop* busstop;
+        /// @brief (Optional) container stop if one is assigned to the stop
+        MSContainerStop* containerstop;
         /// @brief The stopping position start
         SUMOReal startPos;
         /// @brief The stopping position end

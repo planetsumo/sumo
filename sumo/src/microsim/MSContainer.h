@@ -48,7 +48,7 @@ class MSLane;
 class OutputDevice;
 //class SUMOVehicleParameter;
 //class MSBusStop;
-class MSTerminalStop;
+class MSContainerStop;
 class SUMOVehicle;
 //class MSVehicleType;
 //class MSPModel;
@@ -134,6 +134,20 @@ public:
         /// @brief get position on lane at length at with orthogonal offset
         Position getLanePosition(const MSLane* lane, SUMOReal at, SUMOReal offset) const;
 
+        /* @brief Return the current ContainerStop or the destination containe stop
+         *
+         * returns the current container stop if the stage=Waiting and the destination
+         * container stop if stage=Driving
+         */
+        virtual MSContainerStop* getDestinationContainerStop() const = 0;
+
+        /* @brief Return the current ContainerStop or the destination containe stop
+         *
+         * returns the current container stop if the stage=Waiting and the
+         * container stop from wich the container departs if stage=Driving
+         */
+        virtual MSContainerStop* getDepartContainerStop() const = 0;
+
 		/** @brief Called on writing tripinfo output
          * @param[in] os The stream to write the information into
          * @exception IOError not yet implemented
@@ -188,7 +202,7 @@ public:
     class MSContainerStage_Driving : public MSContainerStage {
     public:
         /// constructor
-        MSContainerStage_Driving(const MSEdge& destination, MSTerminalStop* toTS,
+        MSContainerStage_Driving(const MSEdge& destination, MSContainerStop* toCS,
                               const std::vector<std::string>& lines);
 
 		/// destructor
@@ -224,6 +238,12 @@ public:
          * will be returned.
          */
         SUMOReal getSpeed() const;
+
+        /// @brief returns the current destination container stop
+        MSContainerStop* getDestinationContainerStop() const;
+
+        /// @brief returns the container stop from which the container departs
+        MSContainerStop* getDepartContainerStop() const;
 
 		/// @brief assign a vehicle to the container
 		void setVehicle(SUMOVehicle* v) {
@@ -263,7 +283,11 @@ public:
         /// @brief The taken vehicle
         SUMOVehicle* myVehicle;
 
-        MSTerminalStop* myDestinationTerminalStop;
+        /// @brief The destination container stop
+        MSContainerStop* myDestinationContainerStop;
+        
+        /// @brief The container stop from which the container departs
+        MSContainerStop* myDepartContainerStop;
 
         SUMOReal myWaitingPos;
 
@@ -317,6 +341,20 @@ public:
             return "waiting (" + myActType + ")";
         }
 
+        /* @brief returns the container stop at which the container is waiting 
+         *
+         * this method was added to have a method 'getDestinationContainerStop'
+         * for MSContainer.
+         */
+        MSContainerStop* getDestinationContainerStop() const;
+
+        /* @brief returns the container stop at which the container is waiting 
+         *
+         * this method was added to have a method 'getDepartContainerStop'
+         * for MSContainer.
+         */
+        MSContainerStop* getDepartContainerStop() const;
+
         /// proceeds to the next step
         virtual void proceed(MSNet* net, MSContainer* container, SUMOTime now, MSEdge* previousEdge, const SUMOReal at);
 
@@ -361,6 +399,9 @@ public:
 
         SUMOReal myStartPos;
 
+        /// @brief the container stop at which the container is waiting
+        MSContainerStop* myCurrentContainerStop;
+
 
     private:
         /// @brief Invalidated copy constructor.
@@ -374,6 +415,9 @@ public:
 public:
     /// the structure holding the plan of a container
     typedef std::vector<MSContainerStage*> MSContainerPlan;
+
+    /// the last destination of the route of the container
+    const MSEdge* lastDestination;
 
 protected:
     /// the plan of the container
@@ -417,6 +461,12 @@ public:
         return (*myStep)->getDestination();
     }
 
+    /// Returns the destination after the current destination.
+    const MSEdge& getNextDestination() const {
+        MSContainerPlan::iterator nextIterator = std::next(myStep, 1);
+        return (*nextIterator)->getDestination();
+    }
+
     /// @brief Returns the current edge
     const MSEdge* getEdge() const {
         return (*myStep)->getEdge();
@@ -453,6 +503,21 @@ public:
     MSContainerStage* getCurrentStage() const {
         return *myStep;
     }
+
+    /* @brief Return the current ContainerStop or the destination containe stop
+     *
+     * returns the current container stop if the stage=Waiting and the destination
+     * container stop if stage=Driving
+     */
+    virtual MSContainerStop* getDestinationContainerStop() const;
+
+    /* @brief Return the current ContainerStop or the destination containe stop
+     *
+     * returns the current container stop if the stage=Waiting and the
+     * container stop from wich the container departs if stage=Driving
+     */
+    virtual MSContainerStop* getDepartContainerStop() const;
+    
 
     /** @brief Called on writing tripinfo output
      *

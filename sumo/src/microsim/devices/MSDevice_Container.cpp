@@ -29,6 +29,7 @@
 //#include <microsim/MSLane.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSContainer.h>
+#include <microsim/trigger/MSContainerStop.h>
 #include <microsim/MSContainerControl.h>
 #include "MSDevice_Container.h"
 
@@ -66,6 +67,7 @@ MSDevice_Container::~MSDevice_Container() {
 bool
 MSDevice_Container::notifyMove(SUMOVehicle& veh, SUMOReal /*oldPos*/, SUMOReal /*newPos*/, SUMOReal /*newSpeed*/) {
     if (myStopped) {
+        // if veh is not anymore at the stop
         if (!veh.isStopped()) {
             for (std::vector<MSContainer*>::iterator i = myContainers.begin(); i != myContainers.end(); ++i) {
                 (*i)->setDeparted(MSNet::getInstance()->getCurrentTimeStep());
@@ -76,11 +78,15 @@ MSDevice_Container::notifyMove(SUMOVehicle& veh, SUMOReal /*oldPos*/, SUMOReal /
         if (veh.isStopped()) {
             for (std::vector<MSContainer*>::iterator i = myContainers.begin(); i != myContainers.end();) {
                 MSContainer* container = *i;
-                if (&(container->getDestination()) == veh.getEdge()) {
+                const MSContainerStop* currentDestinationStop = container->getDestinationContainerStop();
+               // if (&currentDestination == veh.getEdge()) {
+                if (currentDestinationStop == static_cast<MSVehicle&>(veh).getNextStop().containerstop) {
                     if (!container->proceed(MSNet::getInstance(), MSNet::getInstance()->getCurrentTimeStep())) {
                         MSNet::getInstance()->getContainerControl().erase(container);
                     }
                     i = myContainers.erase(i);
+                    MSContainerStop* departStop = container->getDepartContainerStop();
+                    departStop->addContainer(container);
                 } else {
                     ++i;
                 }

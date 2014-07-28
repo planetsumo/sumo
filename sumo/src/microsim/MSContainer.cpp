@@ -101,9 +101,9 @@ MSContainer::MSContainerStage::getLanePosition(const MSLane* lane, SUMOReal at, 
  * MSContainer::MSContainerStage_Driving - methods
  * ----------------------------------------------------------------------- */
 MSContainer::MSContainerStage_Driving::MSContainerStage_Driving(const MSEdge& destination,
-        MSTerminalStop* toTS, const std::vector<std::string>& lines)
+        MSContainerStop* toCS, const std::vector<std::string>& lines)
     : MSContainerStage(destination, DRIVING), myLines(lines.begin(), lines.end()),
-      myVehicle(0), myDestinationTerminalStop(toTS) {}
+      myVehicle(0), myDestinationContainerStop(toCS) {}
 
 
 MSContainer::MSContainerStage_Driving::~MSContainerStage_Driving() {}
@@ -114,7 +114,7 @@ MSContainer::MSContainerStage_Driving::proceed(MSNet* net, MSContainer* containe
     myWaitingEdge = previousEdge;
     myWaitingPos = at;
     myWaitingSince = now;
-    myVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines);
+    myVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines, myWaitingPos);
 	if (myVehicle != 0 && myVehicle->getParameter().departProcedure == DEPART_TRIGGERED) {
         previousEdge->removeContainer(container);
         myVehicle->addContainer(container);
@@ -184,6 +184,16 @@ MSContainer::MSContainerStage_Driving::getWaitingTime(SUMOTime now) const {
 SUMOReal
 MSContainer::MSContainerStage_Driving::getSpeed() const {
     return myVehicle == 0 ? 0 : myVehicle->getSpeed();
+}
+
+MSContainerStop*
+MSContainer::MSContainerStage_Driving::getDestinationContainerStop() const {
+    return myDestinationContainerStop;
+}
+
+MSContainerStop*
+MSContainer::MSContainerStage_Driving::getDepartContainerStop() const {
+    return myDepartContainerStop;
 }
 
 void
@@ -260,6 +270,16 @@ MSContainer::MSContainerStage_Waiting::getSpeed() const {
     return 0;
 }
 
+MSContainerStop*
+MSContainer::MSContainerStage_Waiting::getDestinationContainerStop() const{
+    return myCurrentContainerStop;
+}
+
+MSContainerStop*
+MSContainer::MSContainerStage_Waiting::getDepartContainerStop() const{
+    return myCurrentContainerStop;
+}
+
 void
 MSContainer::MSContainerStage_Waiting::proceed(MSNet* net, MSContainer* container, SUMOTime now,
         MSEdge* previousEdge, const SUMOReal /* at */) {
@@ -305,6 +325,7 @@ MSContainer::MSContainerStage_Waiting::endEventOutput(const MSContainer& contain
 MSContainer::MSContainer(const SUMOVehicleParameter* pars, MSContainerPlan* plan)
     : myParameter(pars), myPlan(plan) {
     myStep = myPlan->begin();
+    lastDestination = &(myPlan->back())->getDestination();
 }
 
 MSContainer::~MSContainer() {
@@ -363,6 +384,16 @@ MSContainer::getWaitingSeconds() const {
 SUMOReal 
 MSContainer::getSpeed() const {
     return (*myStep)->getSpeed();
+}
+
+MSContainerStop*
+MSContainer::getDestinationContainerStop() const {
+    return (*myStep)->getDestinationContainerStop();
+}
+
+MSContainerStop*
+MSContainer::getDepartContainerStop() const {
+    return (*myStep)->getDepartContainerStop();
 }
 
 void

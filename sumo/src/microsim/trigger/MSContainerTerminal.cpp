@@ -30,11 +30,11 @@
 #include <config.h>
 #endif
 
-#include <cassert>
-#include "MSTrigger.h"
-#include "MSBusStop.h"
-#include <utils/common/SUMOVehicle.h>
-#include <microsim/MSVehicleType.h>
+//#include <cassert>
+//#include "MSTrigger.h"
+#include "MSContainerTerminal.h"
+//#include <utils/common/SUMOVehicle.h>
+//#include <microsim/MSVehicleType.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -44,71 +44,66 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MSBusStop::MSBusStop(const std::string& id,
-                     const std::vector<std::string>& lines,
-                     MSLane& lane,
-                     SUMOReal begPos, SUMOReal endPos)
-    : Named(id), myLines(lines), myLane(lane),
-      myBegPos(begPos), myEndPos(endPos), myLastFreePos(endPos) {
-    computeLastFreePos();
-}
+MSContainerTerminal::MSContainerTerminal(const std::string& id,
+    const std::set<MSContainerStop*> stops)
+    : Named(id), myStops(stops){}
 
 
-MSBusStop::~MSBusStop() {}
+MSContainerTerminal::~MSContainerTerminal() {}
 
-
-const MSLane&
-MSBusStop::getLane() const {
-    return myLane;
-}
-
-
-SUMOReal
-MSBusStop::getBeginLanePosition() const {
-    return myBegPos;
-}
-
-
-SUMOReal
-MSBusStop::getEndLanePosition() const {
-    return myEndPos;
-}
-
-
-void
-MSBusStop::enter(SUMOVehicle* what, SUMOReal beg, SUMOReal end) {
-    myEndPositions[what] = std::pair<SUMOReal, SUMOReal>(beg, end);
-    computeLastFreePos();
-}
-
-
-SUMOReal
-MSBusStop::getLastFreePos(const SUMOVehicle& forVehicle) const {
-    if (myLastFreePos != myEndPos) {
-        return myLastFreePos - forVehicle.getVehicleType().getMinGap();
-    }
-    return myLastFreePos;
-}
-
-
-void
-MSBusStop::leaveFrom(SUMOVehicle* what) {
-    assert(myEndPositions.find(what) != myEndPositions.end());
-    myEndPositions.erase(myEndPositions.find(what));
-    computeLastFreePos();
-}
-
-
-void
-MSBusStop::computeLastFreePos() {
-    myLastFreePos = myEndPos;
-    std::map<SUMOVehicle*, std::pair<SUMOReal, SUMOReal> >::iterator i;
-    for (i = myEndPositions.begin(); i != myEndPositions.end(); i++) {
-        if (myLastFreePos > (*i).second.second) {
-            myLastFreePos = (*i).second.second;
-        }
-    }
-}
+//
+//const MSLane&
+//MSContainerTerminal::getLane() const {
+//    return myLane;
+//}
+//
+//
+//SUMOReal
+//MSContainerTerminal::getBeginLanePosition() const {
+//    return myBegPos;
+//}
+//
+//
+//SUMOReal
+//MSContainerTerminal::getEndLanePosition() const {
+//    return myEndPos;
+//}
+//
+//
+//void
+//MSContainerTerminal::enter(SUMOVehicle* what, SUMOReal beg, SUMOReal end) {
+//    myEndPositions[what] = std::pair<SUMOReal, SUMOReal>(beg, end);
+//    computeLastFreePos();
+//}
+//
+//
+//SUMOReal
+//MSContainerTerminal::getLastFreePos(const SUMOVehicle& forVehicle) const {
+//    if (myLastFreePos != myEndPos) {
+//        return myLastFreePos - forVehicle.getVehicleType().getMinGap();
+//    }
+//    return myLastFreePos;
+//}
+//
+//
+//void
+//MSContainerTerminal::leaveFrom(SUMOVehicle* what) {
+//    assert(myEndPositions.find(what) != myEndPositions.end());
+//    myEndPositions.erase(myEndPositions.find(what));
+//    computeLastFreePos();
+//}
+//
+//
+//void
+//MSContainerTerminal::computeLastFreePos() {
+//    myLastFreePos = myEndPos;
+//    std::map<SUMOVehicle*, std::pair<SUMOReal, SUMOReal> >::iterator i;
+//    for (i = myEndPositions.begin(); i != myEndPositions.end(); i++) {
+//        if (myLastFreePos > (*i).second.second) {
+//            myLastFreePos = (*i).second.second;
+//        }
+//    }
+//}
 
 
 
