@@ -39,6 +39,7 @@
 #include <microsim/MSVehicle.h>
 #include <microsim/MSPModel.h>
 #include <microsim/MSGlobals.h>
+#include <microsim/MSContainer.h>
 #include <utils/iodevices/OutputDevice.h>
 #include "MSXMLRawOut.h"
 
@@ -97,7 +98,8 @@ MSXMLRawOut::writeEdge(OutputDevice& of, const MSEdge& edge, SUMOTime timestep) 
     }
     //en
     const std::vector<MSPerson*>& persons = edge.getSortedPersons(timestep);
-    if (dump || persons.size() > 0) {
+    const std::vector<MSContainer*>& containers = edge.getSortedContainers(timestep);
+    if (dump || persons.size() > 0 || containers.size() > 0) {
         of.openTag("edge") << " id=\"" << edge.getID() << "\"";
         if (dump) {
 #ifdef HAVE_INTERNAL
@@ -124,6 +126,15 @@ MSXMLRawOut::writeEdge(OutputDevice& of, const MSEdge& edge, SUMOTime timestep) 
             of.writeAttr(SUMO_ATTR_POSITION, (*it_p)->getEdgePos());
             of.writeAttr(SUMO_ATTR_ANGLE, (*it_p)->getAngle());
             of.writeAttr("stage", (*it_p)->getCurrentStageDescription());
+            of.closeTag();
+        }
+        // write containers
+        for (std::vector<MSContainer*>::const_iterator it_c = containers.begin(); it_c != containers.end(); ++it_c) {
+            of.openTag(SUMO_TAG_CONTAINER);
+            of.writeAttr(SUMO_ATTR_ID, (*it_c)->getID());
+            of.writeAttr(SUMO_ATTR_POSITION, (*it_c)->getEdgePos());
+            of.writeAttr(SUMO_ATTR_ANGLE, (*it_c)->getAngle());
+            of.writeAttr("stage", (*it_c)->getCurrentStageDescription());
             of.closeTag();
         }
         of.closeTag();

@@ -42,6 +42,7 @@
 #include <microsim/MSNet.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSPerson.h>
+#include <microsim/MSContainer.h>
 
 #ifdef HAVE_MESOSIM
 #include <mesosim/MELoop.h>
@@ -65,6 +66,7 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
     MSVehicleControl::constVehIt end = vc.loadedVehEnd();
 
     of.openTag("timestep").writeAttr(SUMO_ATTR_TIME, time2string(timestep));
+    // write vehicles
     for (; it != end; ++it) {
         const MSVehicle* veh = static_cast<const MSVehicle*>((*it).second);
         if (veh->isOnRoad()) {
@@ -111,6 +113,29 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
             of.writeAttr(SUMO_ATTR_POSITION, p->getEdgePos());
             of.writeAttr(SUMO_ATTR_EDGE, (*e)->getID());
             of.writeAttr(SUMO_ATTR_SLOPE, (*e)->getLanes()[0]->getShape().slopeDegreeAtOffset(p->getEdgePos()));
+            of.closeTag();
+        }
+    }
+    of.closeTag();
+    // write containers
+    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+        const std::vector<MSContainer*>& containers = (*e)->getSortedContainers(timestep);
+        for (std::vector<MSContainer*>::const_iterator it_c = containers.begin(); it_c != containers.end(); ++it_c) {
+            MSContainer* c = *it_c;
+            Position pos = c->getPosition();
+            if (useGeo) {
+                of.setPrecision(GEO_OUTPUT_ACCURACY);
+                GeoConvHelper::getFinal().cartesian2geo(pos);
+            }
+            of.openTag(SUMO_TAG_CONTAINER);
+            of.writeAttr(SUMO_ATTR_ID, c->getID());
+            of.writeAttr(SUMO_ATTR_X, pos.x());
+            of.writeAttr(SUMO_ATTR_Y, pos.y());
+            of.writeAttr(SUMO_ATTR_ANGLE, c->getAngle());
+            of.writeAttr(SUMO_ATTR_SPEED, c->getSpeed());
+            of.writeAttr(SUMO_ATTR_POSITION, c->getEdgePos());
+            of.writeAttr(SUMO_ATTR_EDGE, (*e)->getID());
+            of.writeAttr(SUMO_ATTR_SLOPE, (*e)->getLanes()[0]->getShape().slopeDegreeAtOffset(c->getEdgePos()));
             of.closeTag();
         }
     }
