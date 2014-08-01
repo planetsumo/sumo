@@ -34,7 +34,7 @@
 #include <vector>
 #include <set>
 #include <utils/common/SUMOTime.h>
-//#include <utils/common/Command.h>
+#include <utils/common/Command.h>
 #include <utils/geom/Position.h>
 #include <utils/geom/PositionVector.h>
 
@@ -46,13 +46,12 @@ class MSNet;
 class MSEdge;
 class MSLane;
 class OutputDevice;
-//class SUMOVehicleParameter;
-//class MSBusStop;
+class SUMOVehicleParameter;
 class MSContainerStop;
 class SUMOVehicle;
-//class MSVehicleType;
-//class MSPModel;
-//class PedestrianState;
+class MSVehicleType;
+class MSCModel_NonInteracting;
+class CState;
 
 //typedef std::vector<const MSEdge*> MSEdgeVector;
 
@@ -71,7 +70,8 @@ class MSContainer {
 public:
 	enum StageType {
         DRIVING = 0,
-        WAITING = 1
+        WAITING = 1,
+        TRANSFER = 2
     };
 
 	 /**
@@ -94,8 +94,11 @@ public:
         virtual const MSEdge* getFromEdge() const = 0;
         virtual SUMOReal getEdgePos(SUMOTime now) const = 0;
 
-		///
+		/// returns the position of the container
         virtual Position getPosition(SUMOTime now) const = 0;
+
+        /// returns the angle of the container
+        virtual SUMOReal getAngle(SUMOTime now) const = 0;
 
 		///
         StageType getStageType() const {
@@ -103,7 +106,7 @@ public:
         }
 
         /// @brief return string representation of the current stage
-        virtual std::string getStageTypeName() const = 0;
+        virtual std::string getStageDescription() const = 0;
 
         /// proceeds to the next step
 		virtual void proceed(MSNet* net, MSContainer* container, SUMOTime now, MSEdge* previousEdge, const SUMOReal at) = 0;
@@ -133,6 +136,9 @@ public:
 
         /// @brief get position on lane at length at with orthogonal offset
         Position getLanePosition(const MSLane* lane, SUMOReal at, SUMOReal offset) const;
+
+        /// @brief get angle of the edge at a certain position
+        SUMOReal getEdgeAngle(const MSEdge* e, SUMOReal at) const;
 
         /* @brief Return the current ContainerStop or the destination containe stop
          *
@@ -219,8 +225,11 @@ public:
         ///
         Position getPosition(SUMOTime now) const;
 
-        /// @brief returns string representation of the current stage
-        std::string getStageTypeName() const;
+        /// @brief the angle of the vehicle or the angle of the edge + 90deg
+        SUMOReal getAngle(SUMOTime now) const;
+
+        /// @brief returns the stage description as a string
+        std::string getStageDescription() const;
 
         /// Whether the container waits for a vehicle of the line specified.
         bool isWaitingFor(const std::string& line) const;
@@ -331,13 +340,17 @@ public:
         SUMOTime getUntil() const;
 
         Position getPosition(SUMOTime now) const;
+
+        /// @brief the angle of the edge minus 90deg
+        SUMOReal getAngle(SUMOTime now) const;
         
         SUMOTime getWaitingTime(SUMOTime now) const;
 
         /// Returns the speed of the container which is always zero in that stage
         SUMOReal getSpeed() const;
 
-        std::string getStageTypeName() const {
+        /// Returns the current stage description as a string
+        std::string getStageDescription() const {
             return "waiting (" + myActType + ")";
         }
 
@@ -412,6 +425,146 @@ public:
 
     };
 
+     /**
+     * A "real" stage performing the transfer of a container
+     * A container is in this stage if it gets transferred between two stops that are
+     * assumed to be connected.
+     */
+    class MSContainerStage_Transfer : public MSContainerStage {
+        friend class MSCModel_NonInteracting;
+
+    public:
+        /// constructor
+        MSContainerStage_Transfer(const std::vector<const MSEdge*>& route, MSContainerStop* toCS, SUMOReal speed, SUMOReal departPos, SUMOReal arrivalPos);
+
+        /// destructor
+        ~MSContainerStage_Transfer();
+
+         /// proceeds to the next step
+        virtual void proceed(MSNet* net, MSContainer* container, SUMOTime now, MSEdge* previousEdge, const SUMOReal at);
+        
+        /// Returns the current edge
+        const MSEdge* getEdge() const;
+
+        /// Returns first edge of the containers route
+        const MSEdge* getFromEdge() const;
+
+        /// Returns the offset from the start of the current edge measured in its natural direction
+        SUMOReal getEdgePos(SUMOTime now) const;
+
+        /// Returns the position of the container
+        Position getPosition(SUMOTime now) const;
+
+        /// Returns the angle of the container
+        SUMOReal getAngle(SUMOTime now) const;
+
+        /// Returns the time the container spent waiting
+        SUMOTime getWaitingTime(SUMOTime now) const;
+
+        /// Returns the speed of the container
+        SUMOReal getSpeed() const;
+
+        /// Returns the current stage description as a string
+        std::string getStageDescription() const {
+            return "transfer";
+        }
+        
+        /// @brief returns the current destination container stop
+        MSContainerStop* getDestinationContainerStop() const;
+
+        /// @brief returns the container stop from which the container departs
+        MSContainerStop* getDepartContainerStop() const;
+
+        /** @brief Called on writing tripinfo output
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void tripInfoOutput(OutputDevice& os) const;
+
+        /** @brief Called on writing vehroute output
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void routeOutput(OutputDevice& os) const;
+
+        /** @brief Called for writing the events output
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void beginEventOutput(const MSContainer& c, SUMOTime t, OutputDevice& os) const;
+
+        /** @brief Called for writing the events output (end of an action)
+         * @param[in] os The stream to write the information into
+         * @exception IOError not yet implemented
+         */
+        virtual void endEventOutput(const MSContainer& c, SUMOTime t, OutputDevice& os) const;
+
+        /// @brief move forward and return whether the container arrived
+        bool moveToNextEdge(MSContainer* container, SUMOTime currentTime, MSEdge* nextInternal = 0);
+
+        
+        /// @brief accessors to be used by MSCModel_NonInteracting
+        inline SUMOReal getMaxSpeed() const {
+            return mySpeed;
+        }
+        inline SUMOReal getDepartPos() const {
+            return myDepartPos;
+        }
+        inline SUMOReal getArrivalPos() const {
+            return myArrivalPos;
+        }
+
+        //inline const MSEdge* getRouteEdge() const {
+        //    return *myRouteStep;
+        //}
+        inline const MSEdge* getNextRouteEdge() const {
+            return myRouteStep == myRoute.end() - 1 ? 0 : *(myRouteStep + 1);
+        }
+        //inline const std::vector<const MSEdge*>& getRoute() const {
+        //    return myRoute;
+        //}
+
+        CState* getContainerState() const {
+            return myContainerState;
+        }
+
+    private:                
+        /// @brief The route of the container
+        std::vector<const MSEdge*> myRoute;
+
+        /// current step
+        std::vector<const MSEdge*>::iterator myRouteStep;
+        
+        /// @brief state that is to be manipulated by MSPModel
+        CState* myContainerState;
+
+        /// the depart position
+        SUMOReal myDepartPos;
+
+        /// the arrival position
+        SUMOReal myArrivalPos;
+
+        /// the destination container stop
+        MSContainerStop* myDestinationContainerStop;
+
+        /// @brief The container stop from which the container departs
+        MSContainerStop* myDepartContainerStop;
+
+        ///the speed of the container
+        SUMOReal mySpeed;
+
+        /// @brief The current internal edge this person is on or 0
+        MSEdge* myCurrentInternalEdge;
+
+    private:
+        /// @brief Invalidated copy constructor.
+        MSContainerStage_Transfer(const MSContainerStage_Transfer&);
+
+        /// @brief Invalidated assignment operator.
+        MSContainerStage_Transfer& operator=(const MSContainerStage_Transfer&);
+
+    };
+
 public:
     /// the structure holding the plan of a container
     typedef std::vector<MSContainerStage*> MSContainerPlan;
@@ -425,7 +578,7 @@ protected:
 
     /// @brief This container's type. (mainly used for drawing related information
     /// Note sure if it is really necessary
-//    const MSVehicleType* myVType;
+    const MSVehicleType* myVType;
 
     /// the plan of the container
     MSContainerPlan* myPlan;
@@ -438,7 +591,7 @@ protected:
 
 public:
     /// constructor
-    MSContainer(const SUMOVehicleParameter* pars,  MSContainerPlan* plan);
+    MSContainer(const SUMOVehicleParameter* pars, const MSVehicleType* vtype,  MSContainerPlan* plan);
     
     /// destructor
     virtual ~MSContainer();
@@ -483,6 +636,9 @@ public:
     /// @brief Return the Network coordinate of the container
     virtual Position getPosition() const;
 
+    /// @brief return the current angle of the container
+    virtual SUMOReal getAngle() const;
+
     /// @brief the time this container spent waiting in seconds
     virtual SUMOReal getWaitingSeconds() const;
 
@@ -494,9 +650,9 @@ public:
         return (*myStep)->getStageType();
     }
 
-    /// @brief Return string representation of the current stage
-    std::string getCurrentStageTypeName() const {
-        return (*myStep)->getStageTypeName();
+    /// Returns the current stage description as a string
+    std::string getCurrentStageDescription() const {
+        return (*myStep)->getStageDescription();
     }
     
     /// @brief Return the current stage
@@ -545,6 +701,10 @@ public:
 
     const SUMOVehicleParameter& getParameter() const {
         return *myParameter;
+    }
+
+    inline const MSVehicleType& getVehicleType() const {
+        return *myVType;
     }
 
 private:
