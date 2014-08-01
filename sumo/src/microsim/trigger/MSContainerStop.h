@@ -67,14 +67,13 @@ public:
     /** @brief Constructor
      *
      * @param[in] id The id of the container stop
-     * @param[in] terminalId The id of the container terminal the stop belongs to
      * @param[in] net The net the container stop belongs to
      * @param[in] lines Names of the vehicle lines that halt on this container stop
      * @param[in] lane The lane the container stop is placed on
      * @param[in] begPos Begin position of the container stop on the lane
      * @param[in] endPos End position of the container stop on the lane
      */
-    MSContainerStop(const std::string& id, const std::string& terminalId,
+    MSContainerStop(const std::string& id,
               const std::vector<std::string>& lines, MSLane& lane,
               SUMOReal begPos, SUMOReal endPos);
 

@@ -43,11 +43,11 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MSContainerStop::MSContainerStop(const std::string& id, const std::string& terminalId,
+MSContainerStop::MSContainerStop(const std::string& id,
                      const std::vector<std::string>& lines,
                      MSLane& lane,
                      SUMOReal begPos, SUMOReal endPos)
-    : Named(id), terminalId(terminalId), myLines(lines), myLane(lane),
+    : Named(id), myLines(lines), myLane(lane),
       myBegPos(begPos), myEndPos(endPos), myLastFreePos(endPos) {
     computeLastFreePos();
 }
