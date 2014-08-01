@@ -382,6 +382,70 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         myPersonUpscaleDialer->setRange(0, 10000);
         myPersonUpscaleDialer->setValue(mySettings->personExaggeration);
     }
+
+    {
+        // containers
+        new FXTabItem(tabbook, "Containers", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXVerticalFrame* frame3 =
+            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+
+        FXMatrix* m101 =
+            new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
+        new FXLabel(m101, "Show As", 0, LAYOUT_CENTER_Y);
+        myContainerShapeDetail = new FXComboBox(m101, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
+        myContainerShapeDetail->appendItem("'triangles'");
+        myContainerShapeDetail->appendItem("'boxes'");
+        myContainerShapeDetail->appendItem("'simple shapes'");
+        myContainerShapeDetail->appendItem("'raster images'");
+        myContainerShapeDetail->setNumVisible(4);
+        myContainerShapeDetail->setCurrentItem(settings->containerQuality);
+
+        new FXHorizontalSeparator(frame3, SEPARATOR_GROOVE | LAYOUT_FILL_X);
+
+        FXMatrix* m102 =
+            new FXMatrix(frame3, 3, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
+        new FXLabel(m102, "Color", 0, LAYOUT_CENTER_Y);
+        myContainerColorMode = new FXComboBox(m102, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
+        mySettings->containerColorer.fill(*myContainerColorMode);
+        myContainerColorMode->setNumVisible(9);
+        myContainerColorInterpolation = new FXCheckButton(m102, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
+
+        FXScrollWindow* genScroll = new FXScrollWindow(frame3, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
+        myContainerColorSettingFrame =
+            new FXVerticalFrame(genScroll, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
+
+        new FXHorizontalSeparator(frame3, SEPARATOR_GROOVE | LAYOUT_FILL_X);
+
+        FXMatrix* m103 =
+            new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 10, 5, 5);
+        myContainerNamePanel = new NamePanel(m103, this, "Show container name", mySettings->containerName);
+
+        new FXHorizontalSeparator(frame3, SEPARATOR_GROOVE | LAYOUT_FILL_X);
+
+        FXMatrix* m104 =
+            new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_BOTTOM | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 10, 5, 5);
+        FXMatrix* m1041 =
+            new FXMatrix(m104, 2, LAYOUT_FILL_X | LAYOUT_BOTTOM | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 0, 0, 5, 5);
+        new FXLabel(m1041, "Minimum size", 0, LAYOUT_CENTER_Y);
+        myContainerMinSizeDialer =
+            new FXRealSpinDial(m1041, 10, this, MID_SIMPLE_VIEW_COLORCHANGE,
+                               LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
+        myContainerMinSizeDialer->setValue(mySettings->minContainerSize);
+        FXMatrix* m1042 =
+            new FXMatrix(m104, 2, LAYOUT_FILL_X | LAYOUT_BOTTOM | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 0, 0, 5, 5);
+        new FXLabel(m1042, "Exaggerate by", 0, LAYOUT_CENTER_Y);
+        myContainerUpscaleDialer =
+            new FXRealSpinDial(m1042, 10, this, MID_SIMPLE_VIEW_COLORCHANGE,
+                               LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
+        myContainerUpscaleDialer->setRange(0, 10000);
+        myContainerUpscaleDialer->setValue(mySettings->containerExaggeration);
+    }
     {
         // nodes
         new FXTabItem(tabbook, "Junctions", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
@@ -642,6 +706,12 @@ GUIDialog_ViewSettings::onCmdNameChange(FXObject*, FXSelector, void* data) {
     myPersonMinSizeDialer->setValue(mySettings->minPersonSize);
     myPersonNamePanel->update(mySettings->personName);
 
+    myContainerColorMode->setCurrentItem((FXint) mySettings->containerColorer.getActive());
+    myContainerShapeDetail->setCurrentItem(mySettings->containerQuality);
+    myContainerUpscaleDialer->setValue(mySettings->containerExaggeration);
+    myContainerMinSizeDialer->setValue(mySettings->minContainerSize);
+    myContainerNamePanel->update(mySettings->containerName);
+
     myJunctionColorMode->setCurrentItem((FXint) mySettings->junctionColorer.getActive());
     myShowTLIndex->setCheck(mySettings->drawLinkTLIndex);
     myShowJunctionIndex->setCheck(mySettings->drawLinkJunctionIndex);
@@ -732,6 +802,7 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
     size_t prevLaneMode = mySettings->getLaneEdgeMode();
     size_t prevVehicleMode = mySettings->vehicleColorer.getActive();
     size_t prevPersonMode = mySettings->personColorer.getActive();
+    size_t prevContainerMode = mySettings->containerColorer.getActive();
     size_t prevJunctionMode = mySettings->junctionColorer.getActive();
     bool doRebuildColorMatrices = false;
 
@@ -776,6 +847,12 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
     tmpSettings.personExaggeration = (SUMOReal) myPersonUpscaleDialer->getValue();
     tmpSettings.minPersonSize = (SUMOReal) myPersonMinSizeDialer->getValue();
     tmpSettings.personName = myPersonNamePanel->getSettings();
+
+    tmpSettings.containerColorer.setActive(myContainerColorMode->getCurrentItem());
+    tmpSettings.containerQuality = myContainerShapeDetail->getCurrentItem();
+    tmpSettings.containerExaggeration = (SUMOReal) myContainerUpscaleDialer->getValue();
+    tmpSettings.minContainerSize = (SUMOReal) myContainerMinSizeDialer->getValue();
+    tmpSettings.containerName = myContainerNamePanel->getSettings();
 
     tmpSettings.junctionColorer.setActive(myJunctionColorMode->getCurrentItem());
     tmpSettings.drawLinkTLIndex = (myShowTLIndex->getCheck() != FALSE);
@@ -838,6 +915,20 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
         }
         if (sender == myPersonColorInterpolation) {
             tmpSettings.personColorer.getScheme().setInterpolated(myPersonColorInterpolation->getCheck() != FALSE);
+            doRebuildColorMatrices = true;
+        }
+    } else {
+        doRebuildColorMatrices = true;
+    }
+    // containers
+    if (tmpSettings.containerColorer.getActive() == prevContainerMode) {
+        if (updateColorRanges(sender, myContainerColors.begin(), myContainerColors.end(),
+                              myContainerThresholds.begin(), myContainerThresholds.end(), myContainerButtons.begin(),
+                              tmpSettings.containerColorer.getScheme())) {
+            doRebuildColorMatrices = true;
+        }
+        if (sender == myContainerColorInterpolation) {
+            tmpSettings.containerColorer.getScheme().setInterpolated(myContainerColorInterpolation->getCheck() != FALSE);
             doRebuildColorMatrices = true;
         }
     } else {
@@ -1242,6 +1333,11 @@ GUIDialog_ViewSettings::rebuildColorMatrices(bool doCreate) {
         m->create();
     }
     myPersonColorSettingFrame->getParent()->recalc();
+    m = rebuildColorMatrix(myContainerColorSettingFrame, myContainerColors, myContainerThresholds, myContainerButtons, myContainerColorInterpolation, mySettings->containerColorer.getScheme());
+    if (doCreate) {
+        m->create();
+    }
+    myContainerColorSettingFrame->getParent()->recalc();
     m = rebuildColorMatrix(myJunctionColorSettingFrame, myJunctionColors, myJunctionThresholds, myJunctionButtons, myJunctionColorInterpolation, mySettings->junctionColorer.getScheme());
     if (doCreate) {
         m->create();

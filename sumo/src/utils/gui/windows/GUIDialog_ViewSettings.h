@@ -256,6 +256,14 @@ private:
     FXCheckButton* myPersonColorInterpolation;
     FXRealSpinDial* myPersonMinSizeDialer, *myPersonUpscaleDialer;
 
+    FXComboBox* myContainerColorMode, *myContainerShapeDetail;
+    FXVerticalFrame* myContainerColorSettingFrame;
+    std::vector<FXColorWell*> myContainerColors;
+    std::vector<FXRealSpinDial*> myContainerThresholds;
+    std::vector<FXButton*> myContainerButtons;
+    FXCheckButton* myContainerColorInterpolation;
+    FXRealSpinDial* myContainerMinSizeDialer, *myContainerUpscaleDialer;
+
     FXComboBox* myJunctionColorMode;
     FXVerticalFrame* myJunctionColorSettingFrame;
     std::vector<FXColorWell*> myJunctionColors;
@@ -276,7 +284,7 @@ private:
 
     NamePanel* myEdgeNamePanel, *myInternalEdgeNamePanel, *myCwaEdgeNamePanel, *myStreetNamePanel,
                *myJunctionNamePanel, *myInternalJunctionNamePanel,
-               *myVehicleNamePanel, *myPersonNamePanel,
+               *myVehicleNamePanel, *myPersonNamePanel, *myContainerNamePanel,
                *myAddNamePanel, *myPOINamePanel, *myPolyNamePanel;
     /// @}
 

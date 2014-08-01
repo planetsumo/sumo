@@ -142,6 +142,7 @@ GUICompleteSchemeStorage::init(FXApp* app) {
         vs.hideConnectors = true;
         vs.minVehicleSize = 0;
         vs.personQuality = 2;
+        vs.containerQuality = 2;
         gSchemeStorage.add(vs);
     }
     myNumInitialSettings = (unsigned int) mySortedSchemeNames.size();

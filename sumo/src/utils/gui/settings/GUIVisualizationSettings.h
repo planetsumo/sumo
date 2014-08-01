@@ -172,6 +172,22 @@ public:
     //@}
 
 
+    /// @name container visualization settings
+    //@{
+
+    /// @brief The container colorer
+    GUIColorer containerColorer;
+    /// @brief The quality of container drawing
+    int containerQuality;
+    /// @brief The minimum size of containers to let them be drawn
+    float minContainerSize;
+    /// @brief The container exaggeration (upscale)
+    float containerExaggeration;
+    // Setting bundles for optional drawing container names
+    GUIVisualizationTextSettings containerName;
+    //@}
+
+
     /// @name junction visualization settings
     //@{
 
