@@ -105,6 +105,10 @@ SUMORouteHandler::myStartElement(int element,
             delete myVehicleParameter;
             myVehicleParameter = SUMOVehicleParserHelper::parseVehicleAttributes(attrs);
             break;
+        case SUMO_TAG_CONTAINER:
+            delete myVehicleParameter;
+            myVehicleParameter = SUMOVehicleParserHelper::parseVehicleAttributes(attrs);
+            break;
         case SUMO_TAG_FLOW:
             delete myVehicleParameter;
             myVehicleParameter = SUMOVehicleParserHelper::parseFlowAttributes(attrs, myBeginDefault, myEndDefault);
@@ -157,6 +161,11 @@ SUMORouteHandler::myEndElement(int element) {
             break;
         case SUMO_TAG_PERSON:
             closePerson();
+            delete myVehicleParameter;
+            myVehicleParameter = 0;
+            break;
+        case SUMO_TAG_CONTAINER:
+            closeContainer();
             delete myVehicleParameter;
             myVehicleParameter = 0;
             break;
@@ -268,8 +277,10 @@ SUMORouteHandler::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttri
     stop.busstop = attrs.getOpt<std::string>(SUMO_ATTR_BUS_STOP, 0, ok, "");
     if (stop.busstop != "") {
         errorSuffix = " at '" + stop.busstop + "'" + errorSuffix;
+    } else if (stop.containerstop != "") {
+        errorSuffix = " at '" + stop.containerstop + "'" + errorSuffix;
     } else {
-        errorSuffix = " on lane '" + stop.busstop + "'" + errorSuffix;
+        errorSuffix = " on lane '" + stop.lane + "'" + errorSuffix;
     }
     // get the standing duration
     if (!attrs.hasAttribute(SUMO_ATTR_DURATION) && !attrs.hasAttribute(SUMO_ATTR_UNTIL)) {

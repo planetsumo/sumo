@@ -462,6 +462,8 @@ public:
         std::string lane;
         /// @brief (Optional) bus stop if one is assigned to the stop
         std::string busstop;
+        /// @brief (Optional) container stop if one is assigned to the stop
+        std::string containerstop;
         /// @brief The stopping position start
         SUMOReal startPos;
         /// @brief The stopping position end

@@ -64,15 +64,15 @@ public:
 
     /// destructor
     virtual ~MSContainerControl();
-//
-//    /// adds a single container, returns false if an id clash occured
-//    bool add(const std::string& id, MSContainer* container);
+
+    /// adds a single container, returns false if an id clash occured
+    bool add(const std::string& id, MSContainer* container);
 
     /// removes a single container
     virtual void erase(MSContainer* container);
-//
-//    /// sets the arrival time for a waiting container
-//    void setDeparture(SUMOTime time, MSContainer* container);
+
+    /// sets the arrival time for a waiting container
+    void setDeparture(SUMOTime time, MSContainer* container);
 
     /// sets the arrival time for a waiting container
     void setWaitEnd(SUMOTime time, MSContainer* container);
@@ -99,17 +99,20 @@ public:
 
     /// aborts the plan for any container that is still waiting for a ride
     void abortWaiting();
-//
-//
-//    /** @brief Builds a new container
-//     * @param[in] pars The parameter
-//     * @param[in] vtype The type (reusing vehicle type container here)
-//     * @param[in] plan This container's plan
-//     */
-//    virtual MSContainer* buildContainer(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSContainer::MSContainerPlan* plan) const;
-//
-//    void setWalking(MSContainer* p);
-//    void unsetWalking(MSContainer* p);
+
+
+    /** @brief Builds a new container
+     * @param[in] pars The parameter
+     * @param[in] vtype The type (reusing vehicle type container here)
+     * @param[in] plan This container's plan
+     */
+    virtual MSContainer* buildContainer(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSContainer::MSContainerPlan* plan) const;
+
+    /// adds a container to myTransfer 
+    void setTransfer(MSContainer* c);
+
+    /// removes a container from myTransfer
+    void unsetTransfer(MSContainer* c);
 //
 //    /// @brief returns whether the the given container is waiting for a vehicle on the given edge
 //    bool isWaiting4Vehicle(const MSEdge* const edge, MSContainer* p) const;
@@ -121,9 +124,9 @@ public:
 private:
     /// all containers by id
     std::map<std::string, MSContainer*> myContainers;
-//
-//    /// all containers by id
-//    std::map<std::string, MSContainer*> myWalking;
+
+    /// all containers being transfered
+    std::map<std::string, MSContainer*> myTransfer;
 
     /// @brief Containers waiting for departure
     std::map<SUMOTime, ContainerVector> myWaiting4Departure;

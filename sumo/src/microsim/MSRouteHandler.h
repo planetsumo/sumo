@@ -34,6 +34,7 @@
 
 #include <string>
 #include "MSPerson.h"
+#include "MSContainer.h"
 #include "MSVehicle.h"
 #include <utils/xml/SUMORouteHandler.h>
 #include <utils/common/SUMOTime.h>
@@ -119,6 +120,9 @@ protected:
     /// Ends the processing of a person
     void closePerson();
 
+    /// Ends the processing of a person
+    void closeContainer();
+
     /// Ends the processing of a flow
     void closeFlow();
 
@@ -131,6 +135,9 @@ protected:
 
     /// @brief The plan of the current person
     MSPerson::MSPersonPlan* myActivePlan;
+
+    /// @brief The plan of the current container
+    MSContainer::MSContainerPlan* myActiveContainerPlan;
 
     /// @brief Information whether vehicles shall be directly added to the network or kept within the buffer
     bool myAddVehiclesDirectly;

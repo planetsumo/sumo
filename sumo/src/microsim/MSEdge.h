@@ -182,6 +182,13 @@ public:
      */
     std::vector<MSPerson*> getSortedPersons(SUMOTime timestep) const;
 
+
+    /** @brief Returns this edge's containers sorted by pos
+     *
+     * @return This edge's containers sorted by pos
+     */
+    std::vector<MSContainer*> getSortedContainers(SUMOTime timestep) const;
+
     /** @brief Get the allowed lanes to reach the destination-edge.
      *
      * If there is no such edge, get 0. Then you are on the wrong edge.
@@ -584,7 +591,7 @@ protected:
     };
 
     /** @class person_by_offset_sorter
-     * @brief Sorts edges by their ids
+     * @brief Sorts persons by their positions
      */
     class person_by_offset_sorter {
     public:
@@ -593,6 +600,20 @@ protected:
 
         /// @brief comparing operator
         int operator()(const MSPerson* const p1, const MSPerson* const p2) const;
+    private:
+        SUMOTime myTime;
+    };
+
+    /** @class container_by_position_sorter
+     * @brief Sorts containers by their positions
+     */
+    class container_by_position_sorter {
+    public:
+        /// @brief constructor
+        explicit container_by_position_sorter(SUMOTime timestep): myTime(timestep) { }
+
+        /// @brief comparing operator
+        int operator()(const MSContainer* const c1, const MSContainer* const c2) const;
     private:
         SUMOTime myTime;
     };

@@ -746,6 +746,29 @@ MSNet::getBusStopID(const MSLane* lane, const SUMOReal pos) const {
     return "";
 }
 
+// ------ Insertion and retrieval of container stops ------
+bool
+MSNet::addContainerStop(MSContainerStop* containerStop) {
+    return myContainerStopDict.add(containerStop->getID(), containerStop);
+}
+
+MSContainerStop*
+MSNet::getContainerStop(const std::string& id) const {
+    return myContainerStopDict.get(id);
+}
+
+std::string
+MSNet::getContainerStopID(const MSLane* lane, const SUMOReal pos) const {
+    const std::map<std::string, MSContainerStop*>& vals = myContainerStopDict.getMyMap();
+    for (std::map<std::string, MSContainerStop*>::const_iterator it = vals.begin(); it != vals.end(); ++it) {
+        MSContainerStop* stop = it->second;
+        if (&stop->getLane() == lane && fabs(stop->getEndLanePosition() - pos) < POSITION_EPS) {
+            return stop->getID();
+        }
+    }
+    return "";
+}
+
 
 SUMOAbstractRouter<MSEdge, SUMOVehicle>&
 MSNet::getRouterTT(const std::vector<MSEdge*>& prohibited) const {

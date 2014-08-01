@@ -58,17 +58,17 @@ MSContainerControl::~MSContainerControl() {
     myWaiting4Vehicle.clear();
 }
 
-//
-//bool
-//MSContainerControl::add(const std::string& id, MSContainer* container) {
-//    if (myContainers.find(id) == myContainers.end()) {
-//        myContainers[id] = container;
-//        return true;
-//    }
-//    return false;
-//}
-//
-//
+
+bool
+MSContainerControl::add(const std::string& id, MSContainer* container) {
+    if (myContainers.find(id) == myContainers.end()) {
+        myContainers[id] = container;
+        return true;
+    }
+    return false;
+}
+
+
 void
 MSContainerControl::erase(MSContainer* container) {
     const std::string& id = container->getID();
@@ -91,16 +91,16 @@ MSContainerControl::erase(MSContainer* container) {
         myContainers.erase(i);
     }
 }
-//
-//
-//void
-//MSContainerControl::setDeparture(const SUMOTime time, MSContainer* container) {
-//    const SUMOTime step = time % DELTA_T == 0 ? time : (time / DELTA_T + 1) * DELTA_T;
-//    if (myWaiting4Departure.find(step) == myWaiting4Departure.end()) {
-//        myWaiting4Departure[step] = ContainerVector();
-//    }
-//    myWaiting4Departure[step].push_back(container);
-//}
+
+
+void
+MSContainerControl::setDeparture(const SUMOTime time, MSContainer* container) {
+    const SUMOTime step = time % DELTA_T == 0 ? time : (time / DELTA_T + 1) * DELTA_T;
+    if (myWaiting4Departure.find(step) == myWaiting4Departure.end()) {
+        myWaiting4Departure[step] = ContainerVector();
+    }
+    myWaiting4Departure[step].push_back(container);
+}
 
 
 void
@@ -197,22 +197,22 @@ bool
 MSContainerControl::hasNonWaiting() const {
     return !myWaiting4Departure.empty() || !myWaitingUntil.empty();
 }
-//
-//
-//void
-//MSContainerControl::setWalking(MSContainer* p) {
-//    myWalking[p->getID()] = p;
-//}
-//
-//
-//void
-//MSContainerControl::unsetWalking(MSContainer* p) {
-//    std::map<std::string, MSContainer*>::iterator i = myWalking.find(p->getID());
-//    if (i != myWalking.end()) {
-//        myWalking.erase(i);
-//    }
-//}
-//
+
+
+void
+MSContainerControl::setTransfer(MSContainer* c) {
+    myTransfer[c->getID()] = c;
+}
+
+
+void
+MSContainerControl::unsetTransfer(MSContainer* c) {
+    std::map<std::string, MSContainer*>::iterator i = myTransfer.find(c->getID());
+    if (i != myTransfer.end()) {
+        myTransfer.erase(i);
+    }
+}
+
 
 void
 MSContainerControl::abortWaiting() {
@@ -227,11 +227,11 @@ MSContainerControl::abortWaiting() {
         }
     }
 }
-//
-//
-//MSContainer*
-//MSContainerControl::buildContainer(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSContainer::MSContainerPlan* plan) const {
-//    return new MSContainer(pars, vtype, plan);
-//}
+
+
+MSContainer*
+MSContainerControl::buildContainer(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSContainer::MSContainerPlan* plan) const {
+    return new MSContainer(pars, vtype, plan);
+}
 
 /****************************************************************************/

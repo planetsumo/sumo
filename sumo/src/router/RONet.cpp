@@ -110,6 +110,17 @@ RONet::addBusStop(const std::string& id, SUMOVehicleParameter::Stop* stop) {
 }
 
 
+void
+RONet::addContainerStop(const std::string& id, SUMOVehicleParameter::Stop* stop) {
+    std::map<std::string, SUMOVehicleParameter::Stop*>::const_iterator it = myContainerStops.find(id);
+    if (it != myContainerStops.end()) {
+        WRITE_ERROR("The container stop '" + id + "' occurs at least twice.");
+        delete stop;
+    }
+    myContainerStops[id] = stop;
+}
+
+
 bool
 RONet::addRouteDef(RORouteDef* def) {
     return myRoutes.add(def->getID(), def);
@@ -252,6 +263,11 @@ RONet::addFlow(SUMOVehicleParameter* flow, const bool randomize) {
 void
 RONet::addPerson(const SUMOTime depart, const std::string desc) {
     myPersons.insert(std::pair<const SUMOTime, const std::string>(depart, desc));
+}
+
+void
+RONet::addContainer(const SUMOTime depart, const std::string desc) {
+    myContainers.insert(std::pair<const SUMOTime, const std::string>(depart, desc));
 }
 
 

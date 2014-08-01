@@ -123,6 +123,9 @@ protected:
     /// Ends the processing of a person
     virtual void closePerson() = 0;
 
+    /// Ends the processing of a container
+    virtual void closeContainer() = 0;
+
     /// Ends the processing of a flow
     virtual void closeFlow() = 0;
 
