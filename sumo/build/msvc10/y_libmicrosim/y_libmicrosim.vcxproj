@@ -166,6 +166,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSBaseVehicle.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\MSCModel_NonInteracting.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSContainer.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSContainerControl.cpp" />
     <ClCompile Include="..\..\..\src\microsim\MSEdge.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="..\..\..\src\microsim\MSAbstractLaneChangeModel.h" />
     <ClInclude Include="..\..\..\src\microsim\MSBaseVehicle.h" />
     <ClInclude Include="..\..\..\src\microsim\MSBitSetLogic.h" />
+    <ClInclude Include="..\..\..\src\microsim\MSCModel_NonInteracting.h" />
     <ClInclude Include="..\..\..\src\microsim\MSContainer.h" />
     <ClInclude Include="..\..\..\src\microsim\MSContainerControl.h" />
     <ClInclude Include="..\..\..\src\microsim\MSEdge.h" />

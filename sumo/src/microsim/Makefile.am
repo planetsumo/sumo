@@ -3,6 +3,7 @@ noinst_LIBRARIES = libmicrosim.a
 libmicrosim_a_SOURCES = MSBitSetLogic.h \
 MSBaseVehicle.cpp MSBaseVehicle.h \
 MSAbstractLaneChangeModel.h MSAbstractLaneChangeModel.cpp \
+MSCModel_NonInteracting.h MSCModel_NonInteracting.cpp \
 MSContainer.cpp MSContainer.h \
 MSContainerControl.cpp MSContainerControl.h \
 MSEdge.cpp MSEdge.h MSEdgeControl.cpp MSEdgeControl.h \
