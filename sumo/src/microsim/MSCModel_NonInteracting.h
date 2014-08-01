@@ -44,6 +44,7 @@ class MSNet;
 class MSLink;
 class MSLane;
 class MSJunction;
+class CState;
 
 
 // ===========================================================================
@@ -58,49 +59,20 @@ class MSCModel_NonInteracting {
 public:
 
     /// @brief Constructor (it should not be necessary to construct more than one instance)
-    MSCModel_NonInteracting(const OptionsCont& oc, MSNet* net);
+    MSCModel_NonInteracting(MSNet* net);
 
     ~MSCModel_NonInteracting();
 
-    // @brief walking directions
-    static const int FORWARD;
-    static const int BACKWARD;
-    static const int UNDEFINED_DIRECTION;
-
-    /// @brief the offset for computing container positions when being transfered
-    static const SUMOReal LATERAL_OFFSET;
-
-    class CState {
-    public:
-        CState() {};
-
-        ~CState() {};
-
-        /// @brief return the offset from the start of the current edge measured in its natural direction
-        SUMOReal getEdgePos(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const;
-        /// @brief return the network coordinate of the container
-        Position getPosition(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const;
-        /// @brief return the direction in which the container heading to
-        SUMOReal getAngle(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const;
-        /// @brief return the current speed of the container
-        SUMOReal getSpeed(const MSContainer::MSContainerStage_Transfer& stage) const;
-        /// @brief compute transfer time on edge and update state members
-        SUMOTime computeTransferTime(const MSEdge* prev, const MSContainer::MSContainerStage_Transfer& stage, SUMOTime currentTime);
-
-
-    private:
-        SUMOTime myLastEntryTime;
-        SUMOTime myCurrentDuration;
-        SUMOReal myCurrentBeginPos;
-        SUMOReal myCurrentEndPos;
-
-    };
+    static MSCModel_NonInteracting* getModel();
 
     /// @brief register the given person as a pedestrian
     CState* add(MSContainer* container, MSContainer::MSContainerStage_Transfer* stage, SUMOTime now);
 
     ///// @brief whether a pedestrian is blocking the crossing of lane at offset distToCrossing
     //bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers);
+
+private:
+    static MSCModel_NonInteracting* myModel;
 
 private:
     class MoveToNextEdge : public Command {
@@ -121,6 +93,40 @@ private:
 private:
     /// @brief the net to which to issue moveToNextEdge commands
     MSNet* myNet;
+
+};
+
+class CState {
+public:
+    CState() {};
+
+    ~CState() {};
+   
+    // @brief walking directions
+    static const int FORWARD;
+    static const int BACKWARD;
+    static const int UNDEFINED_DIRECTION;
+
+    /// @brief the offset for computing container positions when being transfered
+    static const SUMOReal LATERAL_OFFSET;
+
+    /// @brief return the offset from the start of the current edge measured in its natural direction
+    SUMOReal getEdgePos(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const;
+    /// @brief return the network coordinate of the container
+    Position getPosition(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const;
+    /// @brief return the direction in which the container heading to
+    SUMOReal getAngle(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const;
+    /// @brief return the current speed of the container
+    SUMOReal getSpeed(const MSContainer::MSContainerStage_Transfer& stage) const;
+    /// @brief compute transfer time on edge and update state members
+    SUMOTime computeTransferTime(const MSEdge* prev, const MSContainer::MSContainerStage_Transfer& stage, SUMOTime currentTime);
+
+
+private:
+    SUMOTime myLastEntryTime;
+    SUMOTime myCurrentDuration;
+    SUMOReal myCurrentBeginPos;
+    SUMOReal myCurrentEndPos;
 
 };
 

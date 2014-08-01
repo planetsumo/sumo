@@ -38,29 +38,41 @@
 #include <microsim/MSJunction.h>
 #include "MSCModel_NonInteracting.h"
 
+// ===========================================================================
+// static members
+// ===========================================================================
+MSCModel_NonInteracting* MSCModel_NonInteracting::myModel(0);
+
 
 // named constants
-const int MSCModel_NonInteracting::FORWARD(1);
-const int MSCModel_NonInteracting::BACKWARD(-1);
-const int MSCModel_NonInteracting::UNDEFINED_DIRECTION(0);
-const SUMOReal MSCModel_NonInteracting::LATERAL_OFFSET(3);
+const int CState::FORWARD(1);
+const int CState::BACKWARD(-1);
+const int CState::UNDEFINED_DIRECTION(0);
+const SUMOReal CState::LATERAL_OFFSET(3);
 
 // ===========================================================================
 // MSCModel_NonInteracting method definitions
 // ===========================================================================
 
-MSCModel_NonInteracting::MSCModel_NonInteracting(const OptionsCont& oc, MSNet* net) :
+MSCModel_NonInteracting::MSCModel_NonInteracting(MSNet* net) :
     myNet(net) {
     assert(myNet != 0);
-    UNUSED_PARAMETER(oc);
 }
 
 
 MSCModel_NonInteracting::~MSCModel_NonInteracting() {
 }
 
+MSCModel_NonInteracting*
+MSCModel_NonInteracting::getModel() {
+    if (myModel == 0) {
+        MSNet* net = MSNet::getInstance();
+        myModel = new MSCModel_NonInteracting(net);
+    }
+    return myModel;
+}
 
-MSCModel_NonInteracting::CState*
+CState*
 MSCModel_NonInteracting::add(MSContainer* container, MSContainer::MSContainerStage_Transfer* stage, SUMOTime now) {
     CState* state = new CState();
     const SUMOTime firstEdgeDuration = state->computeTransferTime(0, *stage, now);
@@ -68,12 +80,6 @@ MSCModel_NonInteracting::add(MSContainer* container, MSContainer::MSContainerSta
             now + firstEdgeDuration, MSEventControl::ADAPT_AFTER_EXECUTION);
     return state;
 }
-
-
-//bool
-//MSCModel_NonInteracting::blockedAtDist(const MSLane*, SUMOReal, std::vector<const MSPerson*>*) {
-//    return false;
-//}
 
 
 SUMOTime
@@ -90,21 +96,15 @@ MSCModel_NonInteracting::MoveToNextEdge::execute(SUMOTime currentTime) {
     }
 }
 
-//MSCModel_NonInteracting::CState() {
-//}
-
-
-//MSCModel_NonInteracting::~CState {
-//}
 
 SUMOReal
-MSCModel_NonInteracting::CState::getEdgePos(const MSContainer::MSContainerStage_Transfer&, SUMOTime now) const {
+CState::getEdgePos(const MSContainer::MSContainerStage_Transfer&, SUMOTime now) const {
     return myCurrentBeginPos + (myCurrentEndPos - myCurrentBeginPos) / myCurrentDuration * (now - myLastEntryTime);
 }
 
 
 Position
-MSCModel_NonInteracting::CState::getPosition(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const {
+CState::getPosition(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const {
     const MSLane* lane = stage.getEdge()->getLanes().front();
     //containers get always an offset with respect to the edge
     return stage.getLanePosition(lane, getEdgePos(stage, now), LATERAL_OFFSET);
@@ -112,7 +112,7 @@ MSCModel_NonInteracting::CState::getPosition(const MSContainer::MSContainerStage
 
 
 SUMOReal
-MSCModel_NonInteracting::CState::getAngle(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const {
+CState::getAngle(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const {
     SUMOReal angle = stage.getEdgeAngle(stage.getEdge(), getEdgePos(stage, now)) + (myCurrentEndPos < myCurrentBeginPos ? 180 : 0);
     if (angle > 180) {
         angle -= 360;
@@ -122,13 +122,13 @@ MSCModel_NonInteracting::CState::getAngle(const MSContainer::MSContainerStage_Tr
 
 
 SUMOReal
-MSCModel_NonInteracting::CState::getSpeed(const MSContainer::MSContainerStage_Transfer& stage) const {
+CState::getSpeed(const MSContainer::MSContainerStage_Transfer& stage) const {
     return stage.getMaxSpeed();
 }
 
 
 SUMOTime
-MSCModel_NonInteracting::CState::computeTransferTime(const MSEdge* prev, const MSContainer::MSContainerStage_Transfer& stage, SUMOTime currentTime) {
+CState::computeTransferTime(const MSEdge* prev, const MSContainer::MSContainerStage_Transfer& stage, SUMOTime currentTime) {
     myLastEntryTime = currentTime;
     const MSEdge* edge = stage.getEdge();
     const MSEdge* next = stage.getNextRouteEdge();
