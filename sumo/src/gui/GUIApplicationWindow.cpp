@@ -249,7 +249,7 @@ GUIApplicationWindow::dependentBuild(bool game) {
     // set the status bar
     myStatusbar->getStatusLine()->setText("Ready.");
     // set the caption
-    setTitle(MFXUtils::getTitleText(("SUMO " + std::string(VERSION_STRING)).c_str()));
+    setTitle(MFXUtils::getTitleText(("SUMO " + getBuildName(VERSION_STRING)).c_str()));
 
     // start the simulation-thread (it will loop until the application ends deciding by itself whether to perform a step or not)
     myRunThread->start();
@@ -1166,6 +1166,7 @@ GUIApplicationWindow::checkGamingEvents() {
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
     MSVehicleControl::constVehIt it = vc.loadedVehBegin();
     MSVehicleControl::constVehIt end = vc.loadedVehEnd();
+#ifdef HAVE_INTERNAL
     if (myJamSounds.getOverallProb() > 0) {
         // play honking sound if some vehicle is waiting too long
         for (; it != end; ++it) {
@@ -1181,6 +1182,7 @@ GUIApplicationWindow::checkGamingEvents() {
             }
         }
     }
+#endif
     // updated peformance indicators
 
     for (it = vc.loadedVehBegin(); it != end; ++it) {

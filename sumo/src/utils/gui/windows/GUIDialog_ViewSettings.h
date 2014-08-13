@@ -72,6 +72,19 @@ public:
         FXColorWell* myColorWell;
     };
 
+    class SizePanel {
+    public:
+        SizePanel(FXMatrix* parent, GUIDialog_ViewSettings* target,
+                  const GUIVisualizationSizeSettings& settings);
+
+        GUIVisualizationSizeSettings getSettings();
+        void update(const GUIVisualizationSizeSettings& settings);
+
+        FXRealSpinDial* myMinSizeDial;
+        FXRealSpinDial* myExaggerateDial;
+        FXCheckButton* myCheck;
+    };
+
     /** @brief Constructor
      * @param[in] parent The view to report changed settings to
      * @param[in, out] settings The current settings that can be changed
@@ -245,7 +258,6 @@ private:
     std::vector<FXRealSpinDial*> myVehicleThresholds;
     std::vector<FXButton*> myVehicleButtons;
     FXCheckButton* myVehicleColorInterpolation;
-    FXRealSpinDial* myVehicleMinSizeDialer, *myVehicleUpscaleDialer;
     FXCheckButton* myShowBlinker, *myShowMinGap; /* *myShowLaneChangePreference,*/
 
     FXComboBox* myPersonColorMode, *myPersonShapeDetail;
@@ -254,7 +266,6 @@ private:
     std::vector<FXRealSpinDial*> myPersonThresholds;
     std::vector<FXButton*> myPersonButtons;
     FXCheckButton* myPersonColorInterpolation;
-    FXRealSpinDial* myPersonMinSizeDialer, *myPersonUpscaleDialer;
 
     FXComboBox* myJunctionColorMode;
     FXVerticalFrame* myJunctionColorSettingFrame;
@@ -263,10 +274,6 @@ private:
     std::vector<FXButton*> myJunctionButtons;
     FXCheckButton* myJunctionColorInterpolation;
     FXCheckButton* myShowTLIndex, *myShowJunctionIndex;
-
-    FXRealSpinDial* myDetectorMinSizeDialer, *myDetectorUpscaleDialer;
-    FXRealSpinDial* myPOIMinSizeDialer, *myPOIUpscaleDialer;
-    FXRealSpinDial* myPolyMinSizeDialer, *myPolyUpscaleDialer;
 
     FXCheckButton* myShowLane2Lane;
     FXCheckButton* myDrawJunctionShape;
@@ -278,6 +285,8 @@ private:
                *myJunctionNamePanel, *myInternalJunctionNamePanel,
                *myVehicleNamePanel, *myPersonNamePanel,
                *myAddNamePanel, *myPOINamePanel, *myPolyNamePanel;
+
+    SizePanel *myVehicleSizePanel, *myPersonSizePanel, *myPOISizePanel, *myPolySizePanel, *myAddSizePanel;
     /// @}
 
 
