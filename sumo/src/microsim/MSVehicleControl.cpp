@@ -99,16 +99,22 @@ MSVehicleControl::~MSVehicleControl() {
     myVTypeDict.clear();
 }
 
+SUMOTime 
+MSVehicleControl::computeRandomDepartOffset() const {
+    if (myMaxRandomDepartOffset > 0) {
+        // round to the closest usable simulation step
+        return DELTA_T * int((myVehicleParamsRNG.rand((int)myMaxRandomDepartOffset) + 0.5 * DELTA_T) / DELTA_T);
+    } else {
+        return 0;
+    }
+}
 
 SUMOVehicle*
 MSVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                const MSRoute* route,
                                const MSVehicleType* type) {
     myLoadedVehNo++;
-    if (myMaxRandomDepartOffset > 0) {
-        // round to the closest usable simulation step
-        defs->depart += DELTA_T * int((myVehicleParamsRNG.rand((int)myMaxRandomDepartOffset) + 0.5 * DELTA_T) / DELTA_T);
-    }
+    defs->depart += computeRandomDepartOffset();
     MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG));
     MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
     return built;
@@ -125,6 +131,7 @@ MSVehicleControl::scheduleVehicleRemoval(SUMOVehicle* veh) {
         (*i)->generateOutput();
     }
     if (OptionsCont::getOptions().isSet("tripinfo-output")) {
+        // close tag after tripinfo (possibly including emissions from another device) have been written
         OutputDevice::getDeviceByOption("tripinfo-output").closeTag();
     }
     deleteVehicle(veh);

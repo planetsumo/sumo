@@ -337,7 +337,7 @@ std::pair<MSVehicle* const, SUMOReal>
 MSLaneChanger::getRealLeader(const ChangerIt& target) const {
     // get the leading vehicle on the lane to change to
     MSVehicle* neighLead = target->lead;
-    // check whether the hopped vehicle got the leader
+    // check whether the hopped vehicle became the leader
     if (target->hoppedVeh != 0) {
         SUMOReal hoppedPos = target->hoppedVeh->getPositionOnLane();
         if (hoppedPos > veh(myCandi)->getPositionOnLane() && (neighLead == 0 || neighLead->getPositionOnLane() > hoppedPos)) {
@@ -368,7 +368,7 @@ MSLaneChanger::getRealLeader(const ChangerIt& target) const {
 std::pair<MSVehicle* const, SUMOReal>
 MSLaneChanger::getRealFollower(const ChangerIt& target) const {
     MSVehicle* neighFollow = veh(target);
-    // check whether the hopped vehicle got the follower
+    // check whether the hopped vehicle became the follower
     if (target->hoppedVeh != 0) {
         SUMOReal hoppedPos = target->hoppedVeh->getPositionOnLane();
         if (hoppedPos <= veh(myCandi)->getPositionOnLane() && (neighFollow == 0 || neighFollow->getPositionOnLane() < hoppedPos)) {
@@ -500,6 +500,22 @@ MSLaneChanger::checkChange(
     int state = blocked | vehicle->getLaneChangeModel().wantsChange(
                     laneOffset, msg, blocked, leader, neighLead, neighFollow, *(target->lane), preb, &(myCandi->lastBlocked), &(myCandi->firstBlocked));
 
+    if (blocked == 0 && (state & LCA_WANTS_LANECHANGE) != 0 && neighLead.first != 0) {
+        // do are more carefull (but expensive) check to ensure that a
+        // safety-critical leader is not being overloocked
+        const SUMOReal seen = myCandi->lane->getLength() - vehicle->getPositionOnLane();
+        const SUMOReal speed = vehicle->getSpeed();
+        const SUMOReal dist = vehicle->getCarFollowModel().brakeGap(speed) + vehicle->getVehicleType().getMinGap();
+        const MSLane* targetLane = (myCandi + laneOffset)->lane;
+        if (seen < dist) {
+            std::pair<MSVehicle* const, SUMOReal> neighLead2 = targetLane->getCriticalLeader(dist, seen, speed, *vehicle);
+            if (neighLead2.first != 0 && neighLead2.first != neighLead.first 
+                    && (neighLead2.second < vehicle->getCarFollowModel().getSecureGap(
+                            vehicle->getSpeed(), neighLead2.first->getSpeed(), neighLead2.first->getCarFollowModel().getMaxDecel()))) {
+                state |= blockedByLeader;
+            }
+        }
+    }
 #ifndef NO_TRACI
     // let TraCI influence the wish to change lanes and the security to take
     //const int oldstate = state;

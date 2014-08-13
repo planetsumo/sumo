@@ -180,17 +180,15 @@ GUISettingsHandler::myStartElement(int element,
         case SUMO_TAG_VIEWSETTINGS_VEHICLES:
             mySettings.vehicleColorer.setActive(TplConvert::_2int(attrs.getStringSecure("vehicleMode", "0").c_str()));
             mySettings.vehicleQuality = TplConvert::_2int(attrs.getStringSecure("vehicleQuality", toString(mySettings.vehicleQuality)).c_str());
-            mySettings.minVehicleSize = TplConvert::_2SUMOReal(attrs.getStringSecure("minVehicleSize", toString(mySettings.minVehicleSize)).c_str());
-            mySettings.vehicleExaggeration = TplConvert::_2SUMOReal(attrs.getStringSecure("vehicleExaggeration", toString(mySettings.vehicleExaggeration)).c_str());
             mySettings.showBlinker = TplConvert::_2bool(attrs.getStringSecure("showBlinker", toString(mySettings.showBlinker)).c_str());
+            mySettings.vehicleSize = parseSizeSettings("vehicle", attrs, mySettings.vehicleSize);
             mySettings.vehicleName = parseTextSettings("vehicleName", attrs, mySettings.vehicleName);
             myCurrentColorer = element;
             break;
         case SUMO_TAG_VIEWSETTINGS_PERSONS:
             mySettings.personColorer.setActive(TplConvert::_2int(attrs.getStringSecure("personMode", "0").c_str()));
             mySettings.personQuality = TplConvert::_2int(attrs.getStringSecure("personQuality", toString(mySettings.personQuality)).c_str());
-            mySettings.minPersonSize = TplConvert::_2SUMOReal(attrs.getStringSecure("minPersonSize", toString(mySettings.minPersonSize)).c_str());
-            mySettings.personExaggeration = TplConvert::_2SUMOReal(attrs.getStringSecure("personExaggeration", toString(mySettings.personExaggeration)).c_str());
+            mySettings.personSize = parseSizeSettings("person", attrs, mySettings.personSize);
             mySettings.personName = parseTextSettings("personName", attrs, mySettings.personName);
             myCurrentColorer = element;
             break;
@@ -206,18 +204,15 @@ GUISettingsHandler::myStartElement(int element,
             break;
         case SUMO_TAG_VIEWSETTINGS_ADDITIONALS:
             mySettings.addMode = TplConvert::_2int(attrs.getStringSecure("addMode", toString(mySettings.addMode)).c_str());
-            mySettings.minAddSize = TplConvert::_2SUMOReal(attrs.getStringSecure("minAddSize", toString(mySettings.minAddSize)).c_str());
-            mySettings.addExaggeration = TplConvert::_2SUMOReal(attrs.getStringSecure("addExaggeration", toString(mySettings.addExaggeration)).c_str());
+            mySettings.addSize = parseSizeSettings("add", attrs, mySettings.addSize);
             mySettings.addName = parseTextSettings("addName", attrs, mySettings.addName);
             break;
         case SUMO_TAG_VIEWSETTINGS_POIS:
-            mySettings.poiExaggeration = TplConvert::_2SUMOReal(attrs.getStringSecure("poiExaggeration", toString(mySettings.poiExaggeration)).c_str());
-            mySettings.minPOISize = TplConvert::_2SUMOReal(attrs.getStringSecure("minPOISize", toString(mySettings.minPOISize)).c_str());
+            mySettings.poiSize = parseSizeSettings("poi", attrs, mySettings.poiSize);
             mySettings.poiName = parseTextSettings("poiName", attrs, mySettings.poiName);
             break;
         case SUMO_TAG_VIEWSETTINGS_POLYS:
-            mySettings.polyExaggeration = TplConvert::_2SUMOReal(attrs.getStringSecure("polyExaggeration", toString(mySettings.polyExaggeration)).c_str());
-            mySettings.minPolySize = TplConvert::_2SUMOReal(attrs.getStringSecure("minPolySize", toString(mySettings.minPolySize)).c_str());
+            mySettings.polySize = parseSizeSettings("poly", attrs, mySettings.polySize);
             mySettings.polyName = parseTextSettings("polyName", attrs, mySettings.polyName);
             break;
         case SUMO_TAG_VIEWSETTINGS_LEGEND:
@@ -285,6 +280,17 @@ GUISettingsHandler::parseTextSettings(
                TplConvert::_2bool(attrs.getStringSecure(prefix + "_show", toString(defaults.show)).c_str()),
                TplConvert::_2SUMOReal(attrs.getStringSecure(prefix + "_size", toString(defaults.size)).c_str()),
                RGBColor::parseColorReporting(attrs.getStringSecure(prefix + "_color", toString(defaults.color)), "edges", 0, true, ok));
+}
+
+
+GUIVisualizationSizeSettings
+GUISettingsHandler::parseSizeSettings(
+    const std::string& prefix, const SUMOSAXAttributes& attrs,
+    GUIVisualizationSizeSettings defaults) {
+    return GUIVisualizationSizeSettings(
+               TplConvert::_2SUMOReal(attrs.getStringSecure(prefix + "_minSize", toString(defaults.minSize)).c_str()),
+               TplConvert::_2SUMOReal(attrs.getStringSecure(prefix + "_exaggeration", toString(defaults.exaggeration)).c_str()),
+               TplConvert::_2bool(attrs.getStringSecure(prefix + "_constantSize", toString(defaults.constantSize)).c_str()));
 }
 
 

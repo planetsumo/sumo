@@ -224,12 +224,18 @@ MSPModel_Striping::initWalkingAreaPaths(const MSNet*) {
                         if (extrapolateBy > POSITION_EPS) {
                             PositionVector fromShp = from->getShape();
                             fromShp.extrapolate(extrapolateBy);
-                            shape.push_back(fromDir == FORWARD ? fromShp.back() : fromShp.front());
+                            shape.push_back_noDoublePos(fromDir == FORWARD ? fromShp.back() : fromShp.front());
                             PositionVector nextShp = to->getShape();
                             nextShp.extrapolate(extrapolateBy);
-                            shape.push_back(toDir == FORWARD ? nextShp.front() : nextShp.back());
+                            shape.push_back_noDoublePos(toDir == FORWARD ? nextShp.front() : nextShp.back());
                         }
-                        shape.push_back(toPos);
+                        shape.push_back_noDoublePos(toPos);
+                        if (shape.size() < 2) {
+                            PositionVector fromShp = from->getShape();
+                            fromShp.extrapolate(1.5 * POSITION_EPS); // noDoublePos requires a difference of POSITION_EPS in at least one coordinate
+                            shape.push_back_noDoublePos(fromDir == FORWARD ? fromShp.back() : fromShp.front());
+                            assert(shape.size() == 2);
+                        }
                         if (fromDir == BACKWARD) {
                             // will be walking backward on walkingArea
                             shape = shape.reverse();
@@ -569,27 +575,23 @@ MSPModel_Striping::moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& ch
             //std::cout << SIMTIME << p.myPerson->getID() << " lane=" << lane->getID() << " x=" << p.myRelX << "\n";
         }
 
-        // advance to the next lane
+        // advance to the next lane / arrive at destination
         sort(pedestrians.begin(), pedestrians.end(), by_xpos_sorter(dir));
-        bool checkAdvance = true;
-        while (checkAdvance) {
-            checkAdvance = false;;
-            if (pedestrians.size() > 0) {
-                PState* p = pedestrians.front();
-                if (p->myDir != dir) {
-                    continue;
+        for (Pedestrians::iterator it = pedestrians.begin(); it != pedestrians.end();) {
+            PState* p = *it;
+            if (p->myDir != dir) {
+                ++it;
+            } else if (p->moveToNextLane(currentTime)) {
+                it = pedestrians.erase(it);
+                if (p->myLane != 0) {
+                    changedLane.insert(p->myPerson);
+                    myActiveLanes[p->myLane].push_back(p);
+                } else {
+                    delete p;
+                    myNumActivePedestrians--;
                 }
-                if (p->moveToNextLane(currentTime)) {
-                    pedestrians.erase(pedestrians.begin());
-                    checkAdvance = true;
-                    if (p->myLane != 0) {
-                        changedLane.insert(p->myPerson);
-                        myActiveLanes[p->myLane].push_back(p);
-                    } else {
-                        delete p;
-                        myNumActivePedestrians--;
-                    }
-                }
+            } else {
+                ++it;
             }
         }
     }
@@ -725,9 +727,9 @@ MSPModel_Striping::PState::distToLaneEnd() const {
 bool
 MSPModel_Striping::PState::moveToNextLane(SUMOTime currentTime) {
     const SUMOReal dist = distToLaneEnd();
-    //if (myPerson->getID() == DEBUG1) {
-    //    std::cout << SIMTIME << " myRelX=" << myRelX << " dist=" << dist << "\n";
-    //}
+    if (myPerson->getID() == DEBUG1) {
+        std::cout << SIMTIME << " myRelX=" << myRelX << " dist=" << dist << "\n";
+    }
     if (dist <= 0) {
         //if (ped.myPerson->getID() == DEBUG1) {
         //    std::cout << SIMTIME << " addToLane x=" << ped.myRelX << " newDir=" << newDir << " newLane=" << newLane->getID() << " walkingAreaShape=" << walkingAreaShape << "\n";

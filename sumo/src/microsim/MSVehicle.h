@@ -65,6 +65,7 @@ class MSEdgeWeightsStorage;
 class OutputDevice;
 class Position;
 class MSDevice_Person;
+class MSJunction;
 
 
 // ===========================================================================
@@ -1046,6 +1047,9 @@ public:
     /// @brief allow TraCI to influence a lane change decision
     int influenceChangeDecision(int state);
 
+    /// @brief compute safe speed for following the given leader
+    SUMOReal getSafeFollowSpeed(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
+                         const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const;
 
 #endif
 
@@ -1233,7 +1237,7 @@ protected:
 
 #ifdef HAVE_INTERNAL_LANES
     /// @brief ids of vehicles being followed across a link (for resolving priority)
-    mutable std::set<std::string> myLinkLeaders;
+    mutable std::map<const MSJunction*, std::set<std::string> > myLinkLeaders;
 #endif
 
 private:

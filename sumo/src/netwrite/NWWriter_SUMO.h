@@ -102,6 +102,14 @@ public:
     /// @brief writes allowed disallowed attributes if needed;
     static void writePreferences(OutputDevice& into, SVCPermissions preferred);
 
+    /** @brief Writes roundabouts
+     * @param[in] into The device to write the edge into
+     * @param[in] roundaboutes The roundabouts to write
+     * @param[in] ec The edge control to retrieve named edges from
+     */
+    static void writeRoundabouts(OutputDevice& into, const std::set<EdgeSet>& roundabouts,
+                                const NBEdgeCont& ec);
+
 protected:
     /// @name Methods for writing network parts
     /// @{
@@ -161,21 +169,11 @@ protected:
     static bool writeInternalConnections(OutputDevice& into, const NBNode& n);
 
 
-    /** @brief Writes a roundabout
-     * @param[in] into The device to write the edge into
-     * @param[in] r The roundabout to write
-     * @param[in] ec The edge control to retrieve named edges from
-     */
-    static void writeRoundabout(OutputDevice& into, const std::vector<std::string>& r,
-                                const NBEdgeCont& ec);
-
-
     /** @brief Writes a district
      * @param[in] into The device to write the edge into
      * @param[in] d The district
      */
     static void writeDistrict(OutputDevice& into, const NBDistrict& d);
-
 
 private:
     /** @brief Writes a single internal connection
@@ -194,6 +192,16 @@ private:
 
     /// @brief the attribute value for a prohibition
     static std::string prohibitionConnection(const NBConnection& c);
+
+    /** @brief Writes a roundabout
+     * @param[in] into The device to write the edge into
+     * @param[in] r The roundabout to write
+     * @param[in] ec The edge control to retrieve named edges from
+     */
+    static void writeRoundabout(OutputDevice& into, const std::vector<std::string>& r,
+                                const NBEdgeCont& ec);
+
+
 };
 
 
