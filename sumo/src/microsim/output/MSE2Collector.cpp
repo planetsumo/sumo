@@ -87,7 +87,7 @@ MSE2Collector::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
         // detector not yet reached
         return true;
     }
-    SUMOReal lengthOnDet = MAX2(veh.getVehicleType().getLength(), newPos - myStartPos);
+    SUMOReal lengthOnDet = MIN2(veh.getVehicleType().getLength(), newPos - myStartPos);
     if (newPos > myEndPos) {
         lengthOnDet = MAX2(SUMOReal(0), lengthOnDet - (newPos - myEndPos));
     }
@@ -99,6 +99,8 @@ MSE2Collector::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
         timeOnDet -= (newPos - veh.getVehicleType().getLength() - myEndPos) / newSpeed;
         if (fabs(timeOnDet) < NUMERICAL_EPS) { // reduce rounding errors
             timeOnDet = 0.;
+        } else {
+            myKnownVehicles.push_back(VehicleInfo(veh.getID(), newSpeed, timeOnDet, lengthOnDet, newPos));
         }
         return false;
     }
@@ -157,7 +159,6 @@ MSE2Collector::reset() {
     }
     myPastStandingDurations.clear();
     myPastIntervalStandingDurations.clear();
-    myKnownVehicles.clear();
 }
 
 
@@ -263,7 +264,7 @@ MSE2Collector::detectorUpdate(const SUMOTime /* step */) {
     // process jam information
     for (std::vector<JamInfo*>::iterator i = jams.begin(); i != jams.end(); ++i) {
         // compute current jam's values
-        SUMOReal jamLengthInMeters =
+        const SUMOReal jamLengthInMeters =
             (*i)->firstStandingVehicle->position
             - (*i)->lastStandingVehicle->position
             + (*i)->lastStandingVehicle->lengthOnDet;
@@ -304,6 +305,7 @@ MSE2Collector::detectorUpdate(const SUMOTime /* step */) {
         delete *i;
     }
     jams.clear();
+    myKnownVehicles.clear();
 }
 
 
@@ -348,7 +350,7 @@ MSE2Collector::writeXMLOutput(OutputDevice& dev, SUMOTime startTime, SUMOTime st
     }
     const SUMOTime intervalMeanHaltingDuration = intervalHaltingNo != 0 ? intervalHaltingDurationSum / intervalHaltingNo : 0;
 
-    dev << "nSamples=\"" << myVehicleSamples << "\" "
+    dev << "sampledSeconds=\"" << myVehicleSamples << "\" "
         << "meanSpeed=\"" << meanSpeed << "\" "
         << "meanOccupancy=\"" << meanOccupancy << "\" "
         << "maxOccupancy=\"" << myMaxOccupancy << "\" "

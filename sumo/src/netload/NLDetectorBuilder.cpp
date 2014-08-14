@@ -256,21 +256,18 @@ NLDetectorBuilder::convUncontE2PosLength(const std::string& id, MSLane* clane,
     // get and check the position
     pos = getPositionChecking(pos, clane, friendlyPos, id);
     // check length
-    if (length < 0) {
-        length = clane->getLength() + length;
-    }
-    if (length + pos > clane->getLength()) {
-        if (friendlyPos) {
-            length = clane->getLength() - pos - (SUMOReal) 0.1;
-        } else {
-            throw InvalidArgument("The length of detector '" + id + "' lies beyond the lane's '" + clane->getID() + "' length.");
-        }
-    }
-    if (length < 0) {
+    if (length <= 0) {
         if (friendlyPos) {
             length = (SUMOReal) 0.1;
         } else {
-            throw InvalidArgument("The length of detector '" + id + "' is almost 0.");
+            throw InvalidArgument("Invalid length for detector '" + id + "'.");
+        }
+    }
+    if (length + pos > clane->getLength()) {
+        if (friendlyPos) {
+            length = clane->getLength() - pos;
+        } else {
+            throw InvalidArgument("The length of detector '" + id + "' reaches beyond the lane's '" + clane->getID() + "' length.");
         }
     }
 }

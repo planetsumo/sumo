@@ -36,7 +36,7 @@ class OutputHandler(handler.ContentHandler):
             self.intervals.add(self.interval)
             if "nVehContrib" in attrs:
                 self.speed[lane]["e1"][self.interval] = float(attrs["speed"])
-            if "nSamples" in attrs:
+            if "meanMaxJamLengthInVehicles" in attrs:
                 self.speed[lane]["e2"][self.interval] = float(attrs["meanSpeed"])
             if "meanSpeedWithin" in attrs:
                 self.speed[lane]["e3"][self.interval] = float(attrs["meanSpeedWithin"])
