@@ -53,7 +53,7 @@
 std::vector<SUMOReal> MSDevice_Routing::myEdgeEfforts;
 Command* MSDevice_Routing::myEdgeWeightSettingCommand = 0;
 SUMOReal MSDevice_Routing::myAdaptationWeight;
-SUMOTime MSDevice_Routing::myAdaptationInterval;
+SUMOTime MSDevice_Routing::myAdaptationInterval = -1;
 bool MSDevice_Routing::myWithTaz;
 std::map<std::pair<const MSEdge*, const MSEdge*>, const MSRoute*> MSDevice_Routing::myCachedRoutes;
 SUMOAbstractRouter<MSEdge, SUMOVehicle>* MSDevice_Routing::myRouter = 0;
@@ -116,11 +116,8 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
     if (needRerouting) {
         // route computation is enabled
         myWithTaz = oc.getBool("device.rerouting.with-taz");
-        // build the device
-        MSDevice_Routing* device = new MSDevice_Routing(v, "routing_" + v.getID(),
-                string2time(oc.getString("device.rerouting.period")),
-                string2time(oc.getString("device.rerouting.pre-period")));
-        into.push_back(device);
+        const SUMOTime period = string2time(oc.getString("device.rerouting.period"));
+        const SUMOTime prePeriod = string2time(oc.getString("device.rerouting.pre-period"));
         // initialise edge efforts if not done before
         if (myEdgeEfforts.size() == 0) {
             const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
@@ -138,12 +135,22 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
             }
         }
         // make the weights be updated
-        if (myEdgeWeightSettingCommand == 0) {
-            myEdgeWeightSettingCommand = new StaticCommand< MSDevice_Routing >(&MSDevice_Routing::adaptEdgeEfforts);
-            MSNet::getInstance()->getEndOfTimestepEvents().addEvent(
-                myEdgeWeightSettingCommand, 0, MSEventControl::ADAPT_AFTER_EXECUTION);
-            myAdaptationWeight = oc.getFloat("device.rerouting.adaptation-weight");
+        if (myAdaptationInterval == -1) {
             myAdaptationInterval = string2time(oc.getString("device.rerouting.adaptation-interval"));
+            if (myAdaptationInterval < 0) {
+                WRITE_ERROR("Negative value for device.rerouting.adaptation-interval!");
+            }
+            myAdaptationWeight = oc.getFloat("device.rerouting.adaptation-weight");
+            if (myAdaptationWeight < 0. || myAdaptationWeight > 1.) {
+                WRITE_ERROR("The value for device.rerouting.adaptation-weight must be between 0 and 1!");
+            }
+            if (myAdaptationWeight < 1. && myAdaptationInterval > 0) {
+                myEdgeWeightSettingCommand = new StaticCommand< MSDevice_Routing >(&MSDevice_Routing::adaptEdgeEfforts);
+                MSNet::getInstance()->getEndOfTimestepEvents().addEvent(
+                    myEdgeWeightSettingCommand, 0, MSEventControl::ADAPT_AFTER_EXECUTION);
+            } else if (period > 0 || prePeriod > 0) {
+                WRITE_WARNING("Rerouting is useless if the edge weights do not get updated!");
+            }
         }
         if (myWithTaz) {
             if (MSEdge::dictionary(v.getParameter().fromTaz + "-source") == 0) {
@@ -155,6 +162,8 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
                 return;
             }
         }
+        // build the device
+        into.push_back(new MSDevice_Routing(v, "routing_" + v.getID(), period, prePeriod));
     }
 }
 
@@ -165,7 +174,7 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
 MSDevice_Routing::MSDevice_Routing(SUMOVehicle& holder, const std::string& id,
                                    SUMOTime period, SUMOTime preInsertionPeriod)
     : MSDevice(holder, id), myPeriod(period), myPreInsertionPeriod(preInsertionPeriod), myRerouteCommand(0) {
-    if (myWithTaz) {
+    if (myWithTaz || myEdgeWeightSettingCommand == 0) {
         myRerouteCommand = new WrappingCommand< MSDevice_Routing >(this, &MSDevice_Routing::preInsertionReroute);
         MSNet::getInstance()->getInsertionEvents().addEvent(
             myRerouteCommand, holder.getParameter().depart,
@@ -191,7 +200,7 @@ MSDevice_Routing::notifyEnter(SUMOVehicle& /*veh*/, MSMoveReminder::Notification
             }
             myRerouteCommand = 0;
         }
-        if (!myWithTaz) {
+        if (!myWithTaz && myEdgeWeightSettingCommand != 0) {
             wrappedRerouteCommandExecute(MSNet::getInstance()->getCurrentTimeStep());
         }
         // build repetition trigger if routing shall be done more often

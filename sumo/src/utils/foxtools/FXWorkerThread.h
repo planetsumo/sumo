@@ -111,7 +111,7 @@ public:
             myMutex.unlock();
         }
         
-        bool getPending() const {
+        int getPending() const {
             return myRunningIndex - myNumFinished;
         }
         
