@@ -321,7 +321,7 @@ if test x"$with_fox_config" != xno; then
         AC_CHECK_HEADER([fxver.h], [AM_CPPFLAGS="$CPPFLAGS $AM_CPPFLAGS"],
                         [AC_MSG_ERROR([fox-includes not found.])])
         CPPFLAGS=$save_cppflags
-        AC_DEFINE([HAVE_GUI], [1], [defined if FOX is available])
+        AC_DEFINE([HAVE_FOX], [1], [defined if FOX is available])
         ac_enabled="$ac_enabled GUI"
     fi
 else

@@ -436,7 +436,7 @@ MSNet::simulationStep() {
     // insert Vehicles
     myInserter->checkFlows(myStep);
     myInsertionEvents->execute(myStep);
-#ifdef HAVE_GUI    
+#ifdef HAVE_FOX    
     MSDevice_Routing::waitForAll();
 #endif
     myInserter->emitVehicles(myStep);

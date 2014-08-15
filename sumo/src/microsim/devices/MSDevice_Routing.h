@@ -41,7 +41,7 @@
 #include <microsim/MSVehicle.h>
 #include "MSDevice.h"
 
-#ifdef HAVE_GUI
+#ifdef HAVE_FOX
 #include <utils/foxtools/FXWorkerThread.h>
 #endif
 
@@ -103,7 +103,7 @@ public:
     /// @brief deletes the router instance
     static void cleanup();
 
-#ifdef HAVE_GUI
+#ifdef HAVE_FOX
     static void waitForAll();
 #endif
 
@@ -141,7 +141,7 @@ public:
 
 
 private:
-#ifdef HAVE_GUI
+#ifdef HAVE_FOX
     class WorkerThread : public FXWorkerThread {
     public:
         WorkerThread(FXWorkerThread::Pool& pool,
@@ -276,7 +276,7 @@ private:
     /// @brief The router to use
     static SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
 
-#ifdef HAVE_GUI
+#ifdef HAVE_FOX
     static FXWorkerThread::Pool myThreadPool;
 #endif
 

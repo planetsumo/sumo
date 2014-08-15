@@ -57,7 +57,7 @@ SUMOTime MSDevice_Routing::myAdaptationInterval;
 bool MSDevice_Routing::myWithTaz;
 std::map<std::pair<const MSEdge*, const MSEdge*>, const MSRoute*> MSDevice_Routing::myCachedRoutes;
 SUMOAbstractRouter<MSEdge, SUMOVehicle>* MSDevice_Routing::myRouter = 0;
-#ifdef HAVE_GUI
+#ifdef HAVE_FOX
 FXWorkerThread::Pool MSDevice_Routing::myThreadPool;
 #endif
 
@@ -258,7 +258,7 @@ MSDevice_Routing::adaptEdgeEfforts(SUMOTime /*currentTime*/) {
 
 void
 MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool onInit) {
-#ifdef HAVE_GUI
+#ifdef HAVE_FOX
     const bool needThread = (myRouter == 0 && myThreadPool.getPending() + 1 > myThreadPool.size());
 #endif
     if (myRouter == 0) {
@@ -273,7 +273,7 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
             throw ProcessError("Unknown routing algorithm '" + routingAlgorithm + "'!");
         }
     }
-#ifdef HAVE_GUI
+#ifdef HAVE_FOX
     if (needThread) {
         const int numThreads = OptionsCont::getOptions().getInt("device.rerouting.threads");
         if (myThreadPool.size() < numThreads) {
@@ -299,14 +299,13 @@ MSDevice_Routing::cleanup() {
 }
 
 
-#ifdef HAVE_GUI
+#ifdef HAVE_FOX
 void
 MSDevice_Routing::waitForAll() {
     if (myThreadPool.size() > 0) {
         myThreadPool.waitAllAndClear();
     }
 }
-#endif
 
 
 // ---------------------------------------------------------------------------
@@ -327,6 +326,7 @@ MSDevice_Routing::RoutingTask::run(FXWorkerThread* context) {
         context->poolUnlock();
     }
 }
+#endif
 
         
 /****************************************************************************/
