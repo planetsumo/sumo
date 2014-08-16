@@ -47,9 +47,6 @@ public:
         void setIndex(const int newIndex) {
             myIndex = newIndex;
         }
-        int getIndex() const {
-            return myIndex;
-        }
     private:
         int myIndex;
     };

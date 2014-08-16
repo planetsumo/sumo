@@ -96,9 +96,11 @@ MSDevice_Routing::insertOptions(OptionsCont& oc) {
     oc.doRegister("device.rerouting.init-with-loaded-weights", new Option_Bool(false));
     oc.addDescription("device.rerouting.init-with-loaded-weights", "Routing", "Use given weight files for initializing edge weights");
 
+#ifdef HAVE_FOX
     oc.doRegister("device.rerouting.threads", new Option_Integer(0));
     oc.addDescription("device.rerouting.threads", "Routing", "The number of parallel execution threads used for rerouting");
-
+#endif
+    
     myEdgeWeightSettingCommand = 0;
     myEdgeEfforts.clear();
 }
@@ -176,8 +178,10 @@ MSDevice_Routing::MSDevice_Routing(SUMOVehicle& holder, const std::string& id,
     : MSDevice(holder, id), myPeriod(period), myPreInsertionPeriod(preInsertionPeriod), myRerouteCommand(0) {
     if (myWithTaz || myEdgeWeightSettingCommand == 0) {
         myRerouteCommand = new WrappingCommand< MSDevice_Routing >(this, &MSDevice_Routing::preInsertionReroute);
+        // if we don't update the edge weights, we might as well reroute now and hopefully use our threads better
+        const SUMOTime execTime = myEdgeWeightSettingCommand == 0 ? 0 : holder.getParameter().depart;
         MSNet::getInstance()->getInsertionEvents().addEvent(
-            myRerouteCommand, holder.getParameter().depart,
+            myRerouteCommand, execTime,
             MSEventControl::ADAPT_AFTER_EXECUTION);
     }
 }
@@ -217,15 +221,19 @@ MSDevice_Routing::notifyEnter(SUMOVehicle& /*veh*/, MSMoveReminder::Notification
 
 SUMOTime
 MSDevice_Routing::preInsertionReroute(SUMOTime currentTime) {
-    const MSEdge* source = MSEdge::dictionary(myHolder.getParameter().fromTaz + "-source");
-    const MSEdge* dest = MSEdge::dictionary(myHolder.getParameter().toTaz + "-sink");
-    if (source && dest) {
-        const std::pair<const MSEdge*, const MSEdge*> key = std::make_pair(source, dest);
-        if (myCachedRoutes.find(key) == myCachedRoutes.end()) {
-            reroute(myHolder, currentTime, true);
-        } else {
-            myHolder.replaceRoute(myCachedRoutes[key], true);
+    if (myWithTaz) {
+        const MSEdge* source = MSEdge::dictionary(myHolder.getParameter().fromTaz + "-source");
+        const MSEdge* dest = MSEdge::dictionary(myHolder.getParameter().toTaz + "-sink");
+        if (source && dest) {
+            const std::pair<const MSEdge*, const MSEdge*> key = std::make_pair(source, dest);
+            if (myCachedRoutes.find(key) == myCachedRoutes.end()) {
+                reroute(myHolder, currentTime, true);
+            } else {
+                myHolder.replaceRoute(myCachedRoutes[key], true);
+            }
         }
+    } else {
+        reroute(myHolder, currentTime, true);
     }
     return myPreInsertionPeriod;
 }
