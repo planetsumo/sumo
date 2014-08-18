@@ -133,7 +133,7 @@ private:
         const SUMOReal cvCost = sqrt(diff / SUMOReal(alternatives.size())) / meanCost;
         // @todo re-evaluate function
     //    if (cvCost > 0.04) { // Magic numbers from Lohse book
-        return M_PI / (sqrt(6.) * cvCost * (min + 1.1)) / 3600.;
+        return 3.1415926535897932384626433832795 / (sqrt(6.) * cvCost * (min + 1.1)) / 3600.;
     //    }
     //    return 1./3600.;
     }
