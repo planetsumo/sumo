@@ -44,10 +44,10 @@
 #include "ROEdge.h"
 #include "RORoute.h"
 #include <utils/vehicle/SUMOAbstractRouter.h>
+#include <utils/vehicle/RouteCostCalculator.h>
 #include "ReferencedItem.h"
 #include "RORouteDef.h"
 #include "ROVehicle.h"
-#include "ROCostCalculator.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -121,7 +121,7 @@ RORouteDef::preComputeCurrentRoute(SUMOAbstractRouter<ROEdge, ROVehicle>& router
         repairCurrentRoute(router, begin, veh);
         return;
     }
-    if (ROCostCalculator::getCalculator().skipRouteCalculation()) {
+    if (RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().skipRouteCalculation()) {
         myPrecomputed = myAlternatives[myLastUsed];
     } else {
         // build a new route to test whether it is better
@@ -274,11 +274,11 @@ RORouteDef::addAlternative(SUMOAbstractRouter<ROEdge, ROVehicle>& router,
                 alt->setProbability(alt->getProbability() * scale);
             }
         }
-        ROCostCalculator::getCalculator().setCosts(alt, newCosts, *i == myAlternatives[myLastUsed]);
+        RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().setCosts(alt, newCosts, *i == myAlternatives[myLastUsed]);
     }
     assert(myAlternatives.size() != 0);
-    ROCostCalculator::getCalculator().calculateProbabilities(myAlternatives, veh, veh->getDepartureTime());
-    if (!ROCostCalculator::getCalculator().keepRoutes()) {
+    RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().calculateProbabilities(myAlternatives, veh, veh->getDepartureTime());
+    if (!RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().keepRoutes()) {
         // remove with probability of 0 (not mentioned in Gawron)
         for (std::vector<RORoute*>::iterator i = myAlternatives.begin(); i != myAlternatives.end();) {
             if ((*i)->getProbability() == 0) {
@@ -289,13 +289,13 @@ RORouteDef::addAlternative(SUMOAbstractRouter<ROEdge, ROVehicle>& router,
             }
         }
     }
-    if (myAlternatives.size() > ROCostCalculator::getCalculator().getMaxRouteNumber()) {
+    if (myAlternatives.size() > RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().getMaxRouteNumber()) {
         // only keep the routes with highest probability
         sort(myAlternatives.begin(), myAlternatives.end(), ComparatorProbability());
-        for (std::vector<RORoute*>::iterator i = myAlternatives.begin() + ROCostCalculator::getCalculator().getMaxRouteNumber(); i != myAlternatives.end(); i++) {
+        for (std::vector<RORoute*>::iterator i = myAlternatives.begin() + RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().getMaxRouteNumber(); i != myAlternatives.end(); i++) {
             delete *i;
         }
-        myAlternatives.erase(myAlternatives.begin() + ROCostCalculator::getCalculator().getMaxRouteNumber(), myAlternatives.end());
+        myAlternatives.erase(myAlternatives.begin() + RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().getMaxRouteNumber(), myAlternatives.end());
         // rescale probabilities
         SUMOReal newSum = 0;
         for (std::vector<RORoute*>::iterator i = myAlternatives.begin(); i != myAlternatives.end(); i++) {

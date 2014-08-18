@@ -44,7 +44,7 @@
 #include <router/ROLoader.h>
 #include <router/RONet.h>
 #include <router/ROEdge.h>
-#include <router/ROCostCalculator.h>
+#include <utils/vehicle/RouteCostCalculator.h>
 #include <utils/vehicle/DijkstraRouterTT.h>
 #include <utils/vehicle/DijkstraRouterEffort.h>
 #include <utils/vehicle/AStarRouter.h>
@@ -219,11 +219,11 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
         // end the processing
         net.closeOutput();
         delete router;
-        ROCostCalculator::cleanup();
+        RouteCostCalculator<RORoute, ROEdge, ROVehicle>::cleanup();
     } catch (ProcessError&) {
         net.closeOutput();
         delete router;
-        ROCostCalculator::cleanup();
+        RouteCostCalculator<RORoute, ROEdge, ROVehicle>::cleanup();
         throw;
     }
 }
