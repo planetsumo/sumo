@@ -35,8 +35,8 @@
 #include <vector>
 #include <typeinfo>
 #include <utils/common/SUMOTime.h>
-#include <utils/common/SUMOAbstractRouter.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include <utils/iodevices/OutputDevice.h>
 
 

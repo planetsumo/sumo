@@ -37,8 +37,8 @@
 #include "RORoute.h"
 #include "RORouteDef.h"
 #include "ROVehicle.h"
-#include <utils/common/SUMOVTypeParameter.h>
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/ToString.h>

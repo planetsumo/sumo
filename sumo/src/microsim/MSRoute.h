@@ -41,7 +41,7 @@
 #include <utils/common/Named.h>
 #include <utils/common/RandomDistributor.h>
 #include <utils/common/RGBColor.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include <utils/common/Parameterised.h>
 
 

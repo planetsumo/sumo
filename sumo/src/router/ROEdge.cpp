@@ -41,7 +41,7 @@
 #include "ROLane.h"
 #include "ROEdge.h"
 #include "ROVehicle.h"
-#include <utils/common/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 #include <utils/emissions/PollutantsInterface.h>
 #include <utils/emissions/HelpersHarmonoise.h>
 

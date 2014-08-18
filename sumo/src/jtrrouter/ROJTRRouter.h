@@ -31,7 +31,7 @@
 #include <config.h>
 #endif
 
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 
 
 // ===========================================================================

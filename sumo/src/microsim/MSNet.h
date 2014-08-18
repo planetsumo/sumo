@@ -52,12 +52,12 @@
 #include <microsim/trigger/MSBusStop.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/NamedObjectCont.h>
-#include <utils/common/SUMOAbstractRouter.h>
-#include <utils/common/DijkstraRouterTT.h>
-#include <utils/common/DijkstraRouterEffort.h>
-#include <utils/common/AStarRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
+#include <utils/vehicle/DijkstraRouterEffort.h>
+#include <utils/vehicle/AStarRouter.h>
 #include <utils/common/NamedRTree.h>
-#include <utils/common/PedestrianRouter.h>
+#include <utils/vehicle/PedestrianRouter.h>
 
 
 // ===========================================================================

@@ -39,8 +39,8 @@
 #include <utils/options/OptionsCont.h>
 #include <utils/common/WrappingCommand.h>
 #include <utils/common/StaticCommand.h>
-#include <utils/common/DijkstraRouterTT.h>
-#include <utils/common/AStarRouter.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
+#include <utils/vehicle/AStarRouter.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>

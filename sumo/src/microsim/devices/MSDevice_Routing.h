@@ -37,7 +37,7 @@
 #include <map>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/WrappingCommand.h>
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include <microsim/MSVehicle.h>
 #include "MSDevice.h"
 

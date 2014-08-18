@@ -32,7 +32,7 @@
 
 #include <map>
 #include <vector>
-#include <utils/common/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 #include "GUIVisualizationSettings.h"
 #include "GUIColorScheme.h"
 

@@ -34,7 +34,7 @@
 #endif
 
 #include <utils/common/SUMOTime.h>
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include <utils/common/ValueTimeLine.h>
 #include <utils/xml/SAXWeightsHandler.h>
 #include <utils/xml/SUMORouteLoaderControl.h>

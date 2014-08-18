@@ -43,7 +43,7 @@
 #include <utils/options/OptionsCont.h>
 #include "ROEdge.h"
 #include "RORoute.h"
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include "ReferencedItem.h"
 #include "RORouteDef.h"
 #include "ROVehicle.h"

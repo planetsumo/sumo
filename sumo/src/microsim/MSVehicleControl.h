@@ -40,7 +40,7 @@
 #include <utils/common/RandHelper.h>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/RandomDistributor.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 
 
 // ===========================================================================

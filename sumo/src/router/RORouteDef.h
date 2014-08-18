@@ -36,7 +36,7 @@
 #include <iostream>
 #include <utils/common/Named.h>
 #include "ReferencedItem.h"
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include "RORoute.h"
 
 

@@ -89,7 +89,7 @@
 #include <utils/common/SysUtils.h>
 #include <utils/common/WrappingCommand.h>
 #include <utils/options/OptionsCont.h>
-#include <utils/common/PedestrianRouter.h>
+#include <utils/vehicle/PedestrianRouter.h>
 #include "MSGlobals.h"
 #include "MSPModel.h"
 #include <utils/geom/GeoConvHelper.h>

@@ -35,7 +35,7 @@
 #include <microsim/MSEdge.h>
 #include <microsim/MSRoute.h>
 #include <microsim/MSVehicleType.h>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/iodevices/OutputDevice_String.h>
 #include "MSDevice_Vehroutes.h"

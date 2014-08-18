@@ -45,6 +45,7 @@ sumo_LDADD   = ./netload/libnetload.a \
 ./microsim/traffic_lights/libmicrosimtls.a \
 $(MESO_LIBS) \
 ./utils/geom/libgeom.a \
+./utils/vehicle/libvehicle.a \
 ./utils/shapes/libshapes.a \
 ./utils/emissions/libemissions.a \
 $(TRACI_LIBS) \

@@ -31,7 +31,7 @@
 #endif
 
 #include <algorithm>
-#include <utils/common/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 #include <utils/common/ToString.h>
 #include <utils/common/TplConvert.h>
 #include <utils/common/MsgHandler.h>

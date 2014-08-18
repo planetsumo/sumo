@@ -43,7 +43,7 @@
 #include <utils/common/StdDefs.h>
 #include <utils/common/ValueTimeLine.h>
 #include <utils/common/SUMOVehicleClass.h>
-#include <utils/common/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 #include "RONode.h"
 #include "ROVehicle.h"
 

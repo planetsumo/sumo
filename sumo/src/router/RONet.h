@@ -40,8 +40,8 @@
 #include "ROVehicle.h"
 #include "RORouteDef.h"
 #include <utils/common/MsgHandler.h>
-#include <utils/common/SUMOVTypeParameter.h>
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include <utils/common/RandomDistributor.h>
 
 

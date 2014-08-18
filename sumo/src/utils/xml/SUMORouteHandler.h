@@ -34,7 +34,7 @@
 
 #include <utils/common/IDSupplier.h>
 #include <utils/common/SUMOTime.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include <utils/xml/SUMOSAXHandler.h>
 
 

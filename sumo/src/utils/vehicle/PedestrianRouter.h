@@ -39,9 +39,9 @@
 #include <utils/common/SUMOTime.h>
 #include <utils/common/ToString.h>
 #include <utils/common/Named.h>
-#include <utils/common/SUMOAbstractRouter.h>
-#include <utils/common/DijkstraRouterTT.h>
-#include <utils/common/AStarRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
+#include <utils/vehicle/AStarRouter.h>
 
 #define TL_RED_PENALTY 20
 

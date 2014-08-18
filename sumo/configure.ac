@@ -475,6 +475,7 @@ src/utils/iodevices/Makefile
 src/utils/options/Makefile
 src/utils/shapes/Makefile
 src/utils/traci/Makefile
+src/utils/vehicle/Makefile
 src/utils/xml/Makefile
 unittest/Makefile
 unittest/src/Makefile

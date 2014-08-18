@@ -45,9 +45,9 @@
 #include <router/RONet.h>
 #include <router/ROEdge.h>
 #include <router/ROCostCalculator.h>
-#include <utils/common/DijkstraRouterTT.h>
-#include <utils/common/DijkstraRouterEffort.h>
-#include <utils/common/AStarRouter.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
+#include <utils/vehicle/DijkstraRouterEffort.h>
+#include <utils/vehicle/AStarRouter.h>
 #include "RODUAEdgeBuilder.h"
 #include <router/ROFrame.h>
 #include <utils/common/MsgHandler.h>

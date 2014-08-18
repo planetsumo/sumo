@@ -41,7 +41,7 @@
 #include <utils/common/Named.h>
 #include <utils/common/Parameterised.h>
 #include <utils/common/SUMOTime.h>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/ValueTimeLine.h>
 #include <utils/common/UtilExceptions.h>

@@ -35,7 +35,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <utils/common/StdDefs.h>
 #include "MSRoute.h"
 #include "MSMoveReminder.h"

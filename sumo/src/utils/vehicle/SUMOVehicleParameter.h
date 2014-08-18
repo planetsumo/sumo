@@ -34,10 +34,10 @@
 #endif
 
 #include <string>
-#include "SUMOVehicleClass.h"
-#include "RGBColor.h"
-#include "SUMOTime.h"
 #include <utils/common/Parameterised.h>
+#include <utils/common/RGBColor.h>
+#include <utils/common/SUMOTime.h>
+#include <utils/common/SUMOVehicleClass.h>
 
 
 // ===========================================================================
