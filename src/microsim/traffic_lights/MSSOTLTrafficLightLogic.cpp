@@ -215,7 +215,7 @@ MSSOTLTrafficLightLogic::updateCTS() {
 	//Iterate over the target phase map and update CTS value for every target phase except for the one belonging to the current steps chain
 	for (map<size_t, unsigned int>::iterator mapIterator = targetPhasesCTS.begin(); mapIterator != targetPhasesCTS.end(); mapIterator++) {
 		unsigned int chain = mapIterator->first;
-		SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
+		SUMOTime now = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
 
 		if (chain != lastChain) {
 			//Get the number of timesteps since the last check for that phase

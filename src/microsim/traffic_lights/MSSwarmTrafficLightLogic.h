@@ -28,7 +28,7 @@
 #include <config.h>
 #endif
 
-#define SWARM_DEBUG
+//#define SWARM_DEBUG
 #include <utils/common/SwarmDebug.h>
 #include "MSSOTLHiLevelTrafficLightLogic.h"
 #include "MSSOTLPhasePolicy.h"
@@ -260,6 +260,13 @@ protected:
 
 	void choosePolicy(double phero_in, double phero_out);
 
+	const std::string& getPoliciesParam() {
+		std::ostringstream key;
+		key << "POLICIES";
+		std::ostringstream def;
+		def << "Platoon;Phase;Marching;Congestion";
+		return getParameter(key.str(), def.str());
+	}
 	bool logData;
 	ofstream swarmLogFile;
 	/**

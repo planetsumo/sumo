@@ -26,11 +26,26 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 		MSSOTLHiLevelTrafficLightLogic(tlcontrol, id, subid, phases, step,
 				delay, parameters) {
 
-	addPolicy(new MSSOTLPlatoonPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
-	addPolicy(new MSSOTLPhasePolicy(new MSSOTLPolicyStimulus(parameters),parameters));
-	addPolicy(new MSSOTLMarchingPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
-	addPolicy(new MSSOTLCongestionPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+	string pols = getPoliciesParam();
+	std::transform(pols.begin(),pols.end(),pols.begin(), ::tolower);
+	DBG(
+			std::ostringstream str;
+			str << pols;
+			WRITE_MESSAGE(str.str());
+	)
 
+	if(pols.find("platoon")!=-1)
+		addPolicy(new MSSOTLPlatoonPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+	if(pols.find("phase")!=-1)
+		addPolicy(new MSSOTLPhasePolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+	if(pols.find("marching")!=-1)
+		addPolicy(new MSSOTLMarchingPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+	if(pols.find("congestion")!=-1)
+		addPolicy(new MSSOTLCongestionPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+
+	if(getPolicies().empty()){
+		WRITE_ERROR("NO VALID POLICY LIST READ");
+	}
 	mustChange = false;
 
 	DBG(
@@ -38,7 +53,7 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 		d_str << getMaxCongestionDuration();
 		vector<MSSOTLPolicy*> policies = getPolicies();
 
-		MsgHandler::getMessageInstance()->inform(
+		WRITE_MESSAGE(
 				"getMaxCongestionDuration " + d_str.str());
 		for (unsigned int i = 0; i < policies.size(); i++) {
 			MSSOTLPolicy* policy = policies[i];
@@ -55,8 +70,8 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 					<< " getThetaSensitivity " << policy->getThetaSensitivity()
 					<< " .";
 			WRITE_MESSAGE(_str.str());
-		)
-	}
+		}
+	)
 	congestion_steps = 0;
 
 }
@@ -365,7 +380,7 @@ double MSSwarmTrafficLightLogic::getPheromoneForOutputLanes() {
 void MSSwarmTrafficLightLogic::decidePolicy() {
 //	MSSOTLPolicy* currentPolicy = getCurrentPolicy();
 	// Decide if it is the case to check for another plan
-	double sampled = (double) rand();
+	double sampled = (double) RandHelper::rand(RAND_MAX);
 	double changeProb = getChangePlanProbability();
 	changeProb = changeProb * RAND_MAX;
 
@@ -398,7 +413,7 @@ void MSSwarmTrafficLightLogic::decidePolicy() {
 void MSSwarmTrafficLightLogic::choosePolicy(double phero_in, double phero_out) {
 	vector<double> thetaStimuli;
 	double thetaSum = 0.0;
-	// Compute simulus for each policy
+	// Compute stimulus for each policy
 	for (unsigned int i = 0; i < getPolicies().size(); i++) {
 		double stimulus = getPolicies()[i]->computeDesirability(phero_in,
 				phero_out);
@@ -419,7 +434,7 @@ void MSSwarmTrafficLightLogic::choosePolicy(double phero_in, double phero_out) {
 	}
 
 	// Compute a random value between 0 and the sum of the thetaSum
-	double r = rand();
+	double r = RandHelper::rand(RAND_MAX);
 	r = r / RAND_MAX * thetaSum;
 
 	double partialSum = 0;
