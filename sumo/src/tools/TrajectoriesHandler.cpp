@@ -35,6 +35,7 @@
 #include <utils/common/MsgHandler.h>
 #include <utils/common/ToString.h>
 #include <utils/emissions/PollutantsInterface.h>
+#include <utils/geom/GeomHelper.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/xml/SUMOSAXHandler.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
@@ -49,9 +50,9 @@
 // method definitions
 // ===========================================================================
 TrajectoriesHandler::TrajectoriesHandler(const bool computeA, const SUMOEmissionClass defaultClass,
-        const SUMOReal defaultSlope, OutputDevice* xmlOut)
+        const SUMOReal defaultSlope, std::ostream* stdOut, OutputDevice* xmlOut)
     : SUMOSAXHandler(""), myComputeA(computeA), myDefaultClass(defaultClass),
-      myDefaultSlope(defaultSlope), myXMLOut(xmlOut), myCurrentTime(-1) {}
+      myDefaultSlope(defaultSlope), myStdOut(stdOut), myXMLOut(xmlOut), myCurrentTime(-1) {}
 
 
 TrajectoriesHandler::~TrajectoriesHandler() {}
@@ -69,7 +70,13 @@ TrajectoriesHandler::myStartElement(int element,
             if (attrs.hasAttribute(SUMO_ATTR_SPEED)) {
                 writeEmissions(std::cout, attrs.getString(SUMO_ATTR_ID), myDefaultClass, myCurrentTime, attrs.getFloat(SUMO_ATTR_SPEED));
             } else {
-                myEmissionClassByVehicle[attrs.getString(SUMO_ATTR_ID)] = myEmissionClassByType[attrs.getString(SUMO_ATTR_ACTORCONFIG)];
+                const std::string acId = attrs.getString(SUMO_ATTR_ACTORCONFIG);
+                const std::string id = attrs.getString(SUMO_ATTR_ID);
+                if (myEmissionClassByType.count(acId) == 0) {
+                    WRITE_WARNING("Unknown actor configuration '" + acId + "' for vehicle '" + id + "'!");
+                } else {
+                    myEmissionClassByVehicle[id] = myEmissionClassByType.count(acId) > 0 ? myEmissionClassByType[acId] : myDefaultClass;
+                }
             }
             break;
         case SUMO_TAG_ACTORCONFIG: {
@@ -83,15 +90,19 @@ TrajectoriesHandler::myStartElement(int element,
         }
         case SUMO_TAG_MOTIONSTATE: {
             const std::string id = attrs.getString(SUMO_ATTR_VEHICLE);
+            if (myEmissionClassByVehicle.count(id) == 0) {
+                WRITE_WARNING("Motion state for unknown vehicle '" + id + "'!");
+                myEmissionClassByVehicle[id] = myDefaultClass;
+            }
             const SUMOEmissionClass c = myEmissionClassByVehicle[id];
             const SUMOReal v = attrs.getFloat(SUMO_ATTR_SPEED) / 100.;
-            const SUMOReal a = attrs.getOpt(SUMO_ATTR_ACCELERATION, id.c_str(), ok, INVALID_VALUE);
-            const SUMOReal s = attrs.getOpt(SUMO_ATTR_SLOPE, id.c_str(), ok, INVALID_VALUE);
+            const SUMOReal a = attrs.hasAttribute(SUMO_ATTR_ACCELERATION) ? attrs.get<SUMOReal>(SUMO_ATTR_ACCELERATION, id.c_str(), ok) / 1000. : INVALID_VALUE;
+            const SUMOReal s = attrs.hasAttribute(SUMO_ATTR_SLOPE) ? RAD2DEG(asin(attrs.get<SUMOReal>(SUMO_ATTR_SLOPE, id.c_str(), ok) / 10000.)) : INVALID_VALUE;
             const SUMOTime time = attrs.getOpt<int>(SUMO_ATTR_TIME, id.c_str(), ok, INVALID_VALUE);
             if (myXMLOut != 0) {
                 writeXMLEmissions(id, c, time, v, a, s);
             } else {
-                writeEmissions(std::cout, id, c, time, v, a, s);
+                writeEmissions(*myStdOut, id, c, time, v, a, s);
             }
             break;
         }

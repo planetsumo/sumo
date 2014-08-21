@@ -534,10 +534,8 @@ public:
     bool isLinkEnd(MSLinkCont::iterator& i);
 
     /// returns the last vehicle
-    virtual MSVehicle* getLastVehicle() const;
-    virtual const MSVehicle* getFirstVehicle() const;
-
-
+    MSVehicle* getLastVehicle() const;
+    MSVehicle* getFirstVehicle() const;
 
 
     /* @brief remove the vehicle from this lane
@@ -589,8 +587,9 @@ public:
 
 
 
-    std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(SUMOReal dist,
-            SUMOReal leaderSpeed, SUMOReal backOffset, SUMOReal predMaxDecel) const;
+    /// @brief return the follower with the largest missing rear gap among all predecessor lanes (within dist)
+    std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(
+            SUMOReal dist, SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
 
 
     /// @brief return by how much further the leader must be inserted to avoid rear end collisions
@@ -784,6 +783,10 @@ protected:
     virtual void incorporateVehicle(MSVehicle* veh, SUMOReal pos, SUMOReal speed,
                                     const MSLane::VehCont::iterator& at,
                                     MSMoveReminder::Notification notification = MSMoveReminder::NOTIFICATION_DEPARTED);
+
+
+    /// @brief issue warning and add the vehicle to MSVehicleTransfer
+    void handleCollision(SUMOTime timestep, const std::string& stage, MSVehicle* collider, MSVehicle* victim, const SUMOReal gap); 
 
 
 protected:
