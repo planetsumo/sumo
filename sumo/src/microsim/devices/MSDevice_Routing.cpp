@@ -285,18 +285,18 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
         const bool mayHaveRestrictions = MSNet::getInstance()->hasRestrictions() || OptionsCont::getOptions().getInt("remote-port") != 0;
         if (routingAlgorithm == "dijkstra") {
             if (mayHaveRestrictions) {
-                myRouter = new DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+                myRouter = new DijkstraRouterTT<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
                     MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
             } else {
-                myRouter = new DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
+                myRouter = new DijkstraRouterTT<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
                     MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
             }
         } else if (routingAlgorithm == "astar") {
             if (mayHaveRestrictions) {
-                myRouter = new AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+                myRouter = new AStarRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
                     MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
             } else {
-                myRouter = new AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
+                myRouter = new AStarRouter<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
                     MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
             }
 #ifdef HAVE_INTERNAL // catchall for internal stuff

@@ -20,8 +20,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef AStarRouterTT_h
-#define AStarRouterTT_h
+#ifndef AStarRouter_h
+#define AStarRouter_h
 
 
 // ===========================================================================
@@ -51,7 +51,7 @@
 // class definitions
 // ===========================================================================
 /**
- * @class AStarRouterTT
+ * @class AStarRouter
  * @brief Computes the shortest path through a network using the Dijkstra algorithm.
  *
  * The template parameters are:
@@ -66,14 +66,12 @@
  *
  */
 template<class E, class V, class PF>
-class AStarRouterTTBase : public SUMOAbstractRouter<E, V>, public PF {
-    using SUMOAbstractRouter<E, V>::startQuery;
-    using SUMOAbstractRouter<E, V>::endQuery;
+class AStarRouter : public SUMOAbstractRouter<E, V>, public PF {
 
 public:
     /// Constructor
-    AStarRouterTTBase(size_t noE, bool unbuildIsWarning):
-        SUMOAbstractRouter<E, V>("AStarRouter"),
+    AStarRouter(size_t noE, bool unbuildIsWarning, Operation operation):
+        SUMOAbstractRouter<E, V>(operation, "AStarRouter"),
         myErrorMsgHandler(unbuildIsWarning ? MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()) {
         for (size_t i = 0; i < noE; i++) {
             myEdgeInfos.push_back(EdgeInfo(i));
@@ -81,7 +79,7 @@ public:
     }
 
     /// Destructor
-    virtual ~AStarRouterTTBase() {}
+    virtual ~AStarRouter() {}
 
     /**
      * @struct EdgeInfo
@@ -136,9 +134,6 @@ public:
             return nod1->heuristicTime > nod2->heuristicTime;
         }
     };
-
-    virtual SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const = 0;
-
 
     void init() {
         // all EdgeInfos touched in the previous query are either in myFrontierList or myFound: clean those up
@@ -255,44 +250,6 @@ protected:
     /// @brief the handler for routing errors
     MsgHandler* const myErrorMsgHandler;
 
-};
-
-
-template<class E, class V, class PF>
-class AStarRouterTT_ByProxi : public AStarRouterTTBase<E, V, PF> {
-public:
-    /// Type of the function that is used to retrieve the edge effort.
-    typedef SUMOReal(* Operation)(const E* const, const V* const, SUMOReal);
-
-    AStarRouterTT_ByProxi(size_t noE, bool unbuildIsWarningOnly, Operation operation):
-        AStarRouterTTBase<E, V, PF>(noE, unbuildIsWarningOnly),
-        myOperation(operation) {}
-
-    inline SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const {
-        return (*myOperation)(e, v, t);
-    }
-
-private:
-    /// @brief The object's operation to perform.
-    Operation myOperation;
-};
-
-
-template<class E, class V, class PF>
-class AStarRouterTT_Direct : public AStarRouterTTBase<E, V, PF> {
-public:
-    /// Type of the function that is used to retrieve the edge effort.
-    typedef SUMOReal(E::* Operation)(const V* const, SUMOReal) const;
-
-    AStarRouterTT_Direct(size_t noE, bool unbuildIsWarningOnly, Operation operation)
-        : AStarRouterTTBase<E, V, PF>(noE, unbuildIsWarningOnly), myOperation(operation) {}
-
-    inline SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const {
-        return (e->*myOperation)(v, t);
-    }
-
-private:
-    Operation myOperation;
 };
 
 

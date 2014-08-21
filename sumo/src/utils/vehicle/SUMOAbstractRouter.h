@@ -52,8 +52,12 @@
 template<class E, class V>
 class SUMOAbstractRouter {
 public:
+    /// Type of the function that is used to retrieve the edge effort.
+    typedef SUMOReal(* Operation)(const E* const, const V* const, SUMOReal);
+
     /// Constructor
-    SUMOAbstractRouter(const std::string& type):
+    SUMOAbstractRouter(Operation operation, const std::string& type):
+        myOperation(operation),
         myType(type),
         myQueryVisits(0),
         myNumQueries(0),
@@ -82,6 +86,10 @@ public:
         assert(false);
     }
 
+    inline SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const {
+        return (*myOperation)(e, v, t);
+    }
+
     inline void startQuery() {
         myNumQueries++;
         myQueryStartTime = SysUtils::getCurrentMillis();
@@ -92,9 +100,14 @@ public:
         myQueryTimeSum += (SysUtils::getCurrentMillis() - myQueryStartTime);
     }
 
+protected:
+    /// @brief The object's operation to perform.
+    Operation myOperation;
+
 private:
     /// @brief the type of this router
     const std::string myType;
+
     /// @brief counters for performance logging
     int myQueryVisits;
     int myNumQueries;

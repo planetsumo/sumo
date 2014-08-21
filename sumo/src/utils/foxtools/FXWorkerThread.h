@@ -67,6 +67,9 @@ public:
         }
 
         void addWorker(FXWorkerThread* const w) {
+            if (myWorkers.empty()) {
+                std::cout << "created pool at " << SysUtils::getCurrentMillis() << std::endl;
+            }
             myWorkers.push_back(w);
         }
         
@@ -98,6 +101,9 @@ public:
             myMutex.lock();
             while (myNumFinished < myRunningIndex) {
                 myCondition.wait(myMutex);
+            }
+            if (myRunningIndex > 0) {
+                std::cout << "finished waiting for " << myRunningIndex << " tasks at " << SysUtils::getCurrentMillis() << std::endl;
             }
             for (std::list<Task*>::iterator it = myFinishedTasks.begin(); it != myFinishedTasks.end(); ++it) {
                 delete *it;
@@ -135,7 +141,7 @@ public:
     };
 
 public:
-    FXWorkerThread(Pool& pool): FXThread(), myPool(pool), myStopped(false) {
+    FXWorkerThread(Pool& pool): FXThread(), myPool(pool), myStopped(false), myCounter(0) {
         pool.addWorker(this);
         start();
     }
@@ -165,8 +171,10 @@ public:
             myTasks.pop_front();
             myMutex.unlock();
             t->run(this);
+            myCounter++;
             myPool.addFinished(t);
         }
+        std::cout << "ran " << myCounter << " tasks " << std::endl;
         return 0;
     }
     
@@ -192,6 +200,7 @@ private:
     FXCondition myCondition;
     std::list<Task*> myTasks;
     bool myStopped;
+    int myCounter;
 };
 
 

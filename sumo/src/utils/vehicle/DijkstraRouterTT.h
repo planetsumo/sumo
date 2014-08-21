@@ -69,14 +69,12 @@
  *
  */
 template<class E, class V, class PF>
-class DijkstraRouterTTBase : public SUMOAbstractRouter<E, V>, public PF {
-    using SUMOAbstractRouter<E, V>::startQuery;
-    using SUMOAbstractRouter<E, V>::endQuery;
+class DijkstraRouterTT : public SUMOAbstractRouter<E, V>, public PF {
 
 public:
     /// Constructor
-    DijkstraRouterTTBase(size_t noE, bool unbuildIsWarning) :
-        SUMOAbstractRouter<E, V>("DijkstraRouterTT"),
+    DijkstraRouterTT(size_t noE, bool unbuildIsWarning, Operation operation) :
+        SUMOAbstractRouter<E, V>(operation, "DijkstraRouterTT"),
         myErrorMsgHandler(unbuildIsWarning ?  MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()) {
         for (size_t i = 0; i < noE; i++) {
             myEdgeInfos.push_back(EdgeInfo(i));
@@ -84,7 +82,7 @@ public:
     }
 
     /// Destructor
-    virtual ~DijkstraRouterTTBase() { }
+    virtual ~DijkstraRouterTT() { }
 
     /**
      * @struct EdgeInfo
@@ -129,9 +127,6 @@ public:
             return nod1->traveltime > nod2->traveltime;
         }
     };
-
-    virtual SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const = 0;
-
 
     void init() {
         // all EdgeInfos touched in the previous query are either in myFrontierList or myFound: clean those up
@@ -243,7 +238,7 @@ public:
         std::copy(tmp.begin(), tmp.end(), std::back_inserter(edges));
     }
 
-protected:
+private:
     /// The container of edge information
     std::vector<EdgeInfo> myEdgeInfos;
 
@@ -256,47 +251,6 @@ protected:
 
     /// @brief the handler for routing errors
     MsgHandler* const myErrorMsgHandler;
-};
-
-
-template<class E, class V, class PF>
-class DijkstraRouterTT_ByProxi : public DijkstraRouterTTBase<E, V, PF> {
-public:
-    /// Type of the function that is used to retrieve the edge effort.
-    typedef SUMOReal(* Operation)(const E* const, const V* const, SUMOReal);
-
-    DijkstraRouterTT_ByProxi(size_t noE, bool unbuildIsWarningOnly, Operation operation):
-        DijkstraRouterTTBase<E, V, PF>(noE, unbuildIsWarningOnly),
-        myOperation(operation) {}
-
-    inline SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const {
-        return (*myOperation)(e, v, t);
-    }
-
-private:
-    /// @brief The object's operation to perform.
-    Operation myOperation;
-
-
-};
-
-
-template<class E, class V, class PF>
-class DijkstraRouterTT_Direct : public DijkstraRouterTTBase<E, V, PF> {
-public:
-    /// Type of the function that is used to retrieve the edge effort.
-    typedef SUMOReal(E::* Operation)(const V* const, SUMOReal) const;
-
-    DijkstraRouterTT_Direct(size_t noE, bool unbuildIsWarningOnly, Operation operation)
-        : DijkstraRouterTTBase<E, V, PF>(noE, unbuildIsWarningOnly), myOperation(operation) {}
-
-    inline SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const {
-        return (e->*myOperation)(v, t);
-    }
-
-private:
-    Operation myOperation;
-
 };
 
 

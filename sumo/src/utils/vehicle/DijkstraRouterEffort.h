@@ -64,14 +64,12 @@
  *
  */
 template<class E, class V, class PF>
-class DijkstraRouterEffortBase : public SUMOAbstractRouter<E, V>, public PF {
-    using SUMOAbstractRouter<E, V>::startQuery;
-    using SUMOAbstractRouter<E, V>::endQuery;
+class DijkstraRouterEffort : public SUMOAbstractRouter<E, V>, public PF {
 
 public:
     /// Constructor
-    DijkstraRouterEffortBase(size_t noE, bool unbuildIsWarning) :
-        SUMOAbstractRouter<E, V>("DijkstraRouterEffort"),
+    DijkstraRouterEffort(size_t noE, bool unbuildIsWarning, Operation effortOperation, Operation ttOperation) :
+        SUMOAbstractRouter<E, V>(effortOperation, "DijkstraRouterEffort"), myTTOperation(ttOperation),
         myErrorMsgHandler(unbuildIsWarning ?  MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()) {
         for (size_t i = 0; i < noE; i++) {
             myEdgeInfos.push_back(EdgeInfo(i));
@@ -79,7 +77,7 @@ public:
     }
 
     /// Destructor
-    virtual ~DijkstraRouterEffortBase() { }
+    virtual ~DijkstraRouterEffort() { }
 
     /**
      * @struct EdgeInfo
@@ -128,9 +126,9 @@ public:
         }
     };
 
-    virtual SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const = 0;
-    virtual SUMOReal getTravelTime(const E* const e, const V* const v, SUMOReal t) const = 0;
-
+    inline SUMOReal getTravelTime(const E* const e, const V* const v, SUMOReal t) const {
+        return (*myTTOperation)(e, v, t);
+    }
 
     void init() {
         // all EdgeInfos touched in the previous query are either in myFrontierList or myFound: clean those up
@@ -232,7 +230,10 @@ public:
         std::copy(tmp.begin(), tmp.end(), std::back_inserter(edges));
     }
 
-protected:
+private:
+    /// @brief The object's operation to perform for travel times
+    Operation myTTOperation;
+
     /// The container of edge information
     std::vector<EdgeInfo> myEdgeInfos;
 
@@ -245,64 +246,6 @@ protected:
 
     /// @brief the handler for routing errors
     MsgHandler* const myErrorMsgHandler;
-
-};
-
-
-template<class E, class V, class PF>
-class DijkstraRouterEffort_ByProxi : public DijkstraRouterEffortBase<E, V, PF> {
-public:
-    /// Type of the function that is used to retrieve the edge effort.
-    typedef SUMOReal(* Operation)(const E* const, const V* const, SUMOReal);
-
-    DijkstraRouterEffort_ByProxi(size_t noE, bool unbuildIsWarningOnly, Operation effortOperation, Operation ttOperation):
-        DijkstraRouterEffortBase<E, V, PF>(noE, unbuildIsWarningOnly),
-        myEffortOperation(effortOperation),
-        myTTOperation(ttOperation) {}
-
-    inline SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const {
-        return (*myEffortOperation)(e, v, t);
-    }
-
-    inline SUMOReal getTravelTime(const E* const e, const V* const v, SUMOReal t) const {
-        return (*myTTOperation)(e, v, t);
-    }
-
-private:
-    /// @brief The object's operation to perform for obtaining the effort
-    Operation myEffortOperation;
-
-    /// @brief The object's operation to perform for obtaining the travel time
-    Operation myTTOperation;
-
-};
-
-
-template<class E, class V, class PF>
-class DijkstraRouterEffort_Direct : public DijkstraRouterEffortBase<E, V, PF> {
-public:
-    /// Type of the function that is used to retrieve the edge effort.
-    typedef SUMOReal(E::* Operation)(const V* const, SUMOReal) const;
-
-    DijkstraRouterEffort_Direct(size_t noE, bool unbuildIsWarningOnly, Operation effortOperation, Operation ttOperation)
-        : DijkstraRouterEffortBase<E, V, PF>(noE, unbuildIsWarningOnly),
-          myEffortOperation(effortOperation), myTTOperation(ttOperation) {}
-
-    inline SUMOReal getEffort(const E* const e, const V* const v, SUMOReal t) const {
-        return (e->*myEffortOperation)(v, t);
-    }
-
-    inline SUMOReal getTravelTime(const E* const e, const V* const v, SUMOReal t) const {
-        return (e->*myTTOperation)(v, t);
-    }
-
-private:
-    /// @brief The object's operation to perform for obtaining the effort
-    Operation myEffortOperation;
-
-    /// @brief The object's operation to perform for obtaining the travel time
-    Operation myTTOperation;
-
 
 };
 

@@ -286,20 +286,20 @@ public:
     /*@brief the function called by RouterTT_direct
      * (distance is used as effort, effort is assumed to be independent of time
      */
-    SUMOReal getEffort(const PedestrianTrip<E, N>* const trip, SUMOReal time) const {
-        if (myAmConnector) {
+    static SUMOReal getEffort(const PedestrianEdge* const edge, const PedestrianTrip<E, N>* const trip, SUMOReal time) {
+        if (edge->myAmConnector) {
             return 0;
         }
-        SUMOReal length = myEdge->getLength();
-        if (myEdge == trip->from) {
-            if (myForward) {
+        SUMOReal length = edge->myEdge->getLength();
+        if (edge->myEdge == trip->from) {
+            if (edge->myForward) {
                 length -= trip->departPos;
             } else {
                 length = trip->departPos;
             }
         }
-        if (myEdge == trip->to) {
-            if (myForward) {
+        if (edge->myEdge == trip->to) {
+            if (edge->myForward) {
                 length = trip->arrivalPos;
             } else {
                 length -= trip->arrivalPos;
@@ -308,7 +308,7 @@ public:
         // ensure that 'normal' edges always have a higher weight than connector edges
         length = MAX2(length, POSITION_EPS);
         SUMOReal tlsDelay = 0;
-        if (myEdge->isCrossing() && myLane->getIncomingLinkState() == LINKSTATE_TL_RED) {
+        if (edge->myEdge->isCrossing() && edge->myLane->getIncomingLinkState() == LINKSTATE_TL_RED) {
             // red traffic lights occurring later in the route may be green by the time we arive
             tlsDelay += MAX2(SUMOReal(0), TL_RED_PENALTY - (time - trip->departTime));
 
@@ -372,7 +372,7 @@ public:
 
     /// Constructor
     PedestrianRouter():
-        SUMOAbstractRouter<E, _PedestrianTrip>("PedestrianRouter") {
+        SUMOAbstractRouter<E, _PedestrianTrip>(0, "PedestrianRouter") {
         _PedestrianEdge::initPedestrianNetwork(E::dictSize());
         myInternalRouter = new INTERNALROUTER(_PedestrianEdge::dictSize(), true, &_PedestrianEdge::getEffort);
     }
@@ -443,7 +443,7 @@ private:
 // common specializations
 template<class E, class L, class N>
 class PedestrianRouterDijkstra : public PedestrianRouter < E, L, N,
-        DijkstraRouterTT_Direct<PedestrianEdge<E, L, N>, PedestrianTrip<E, N>, prohibited_withRestrictions<PedestrianEdge<E, L, N>, PedestrianTrip<E, N> > > > { };
+        DijkstraRouterTT<PedestrianEdge<E, L, N>, PedestrianTrip<E, N>, prohibited_withRestrictions<PedestrianEdge<E, L, N>, PedestrianTrip<E, N> > > > { };
 
 
 // ===========================================================================

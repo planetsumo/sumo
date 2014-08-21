@@ -123,19 +123,19 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
     if (measure == "traveltime") {
         if (routingAlgorithm == "dijkstra") {
             if (net.hasRestrictions()) {
-                router = new DijkstraRouterTT_Direct<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
-                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime);
+                router = new DijkstraRouterTT<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
+                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic);
             } else {
-                router = new DijkstraRouterTT_Direct<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
-                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime);
+                router = new DijkstraRouterTT<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
+                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic);
             }
         } else if (routingAlgorithm == "astar") {
             if (net.hasRestrictions()) {
-                router = new AStarRouterTT_Direct<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
-                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime);
+                router = new AStarRouter<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
+                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic);
             } else {
-                router = new AStarRouterTT_Direct<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
-                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime);
+                router = new AStarRouter<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
+                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic);
             }
 #ifdef HAVE_INTERNAL // catchall for internal stuff
         } else if (routingAlgorithm == "bulkstar") {
@@ -178,19 +178,19 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
         }
 
     } else {
-        DijkstraRouterEffort_Direct<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >::Operation op;
+        DijkstraRouterEffort<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >::Operation op;
         if (measure == "CO") {
-            op = &ROEdge::getCOEffort;
+            op = &ROEdge::getEmissionEffort<PollutantsInterface::CO>;
         } else if (measure == "CO2") {
-            op = &ROEdge::getCO2Effort;
+            op = &ROEdge::getEmissionEffort<PollutantsInterface::CO2>;
         } else if (measure == "PMx") {
-            op = &ROEdge::getPMxEffort;
+            op = &ROEdge::getEmissionEffort<PollutantsInterface::PM_X>;
         } else if (measure == "HC") {
-            op = &ROEdge::getHCEffort;
+            op = &ROEdge::getEmissionEffort<PollutantsInterface::HC>;
         } else if (measure == "NOx") {
-            op = &ROEdge::getNOxEffort;
+            op = &ROEdge::getEmissionEffort<PollutantsInterface::NO_X>;
         } else if (measure == "fuel") {
-            op = &ROEdge::getFuelEffort;
+            op = &ROEdge::getEmissionEffort<PollutantsInterface::FUEL>;
         } else if (measure == "noise") {
             op = &ROEdge::getNoiseEffort;
         } else {
@@ -198,11 +198,11 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
             throw ProcessError("Unknown measure (weight attribute '" + measure + "')!");
         }
         if (net.hasRestrictions()) {
-            router = new DijkstraRouterEffort_Direct<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
-                net.getEdgeNo(), oc.getBool("ignore-errors"), op, &ROEdge::getTravelTime);
+            router = new DijkstraRouterEffort<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
+                net.getEdgeNo(), oc.getBool("ignore-errors"), op, &ROEdge::getTravelTimeStatic);
         } else {
-            router = new DijkstraRouterEffort_Direct<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
-                net.getEdgeNo(), oc.getBool("ignore-errors"), op, &ROEdge::getTravelTime);
+            router = new DijkstraRouterEffort<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
+                net.getEdgeNo(), oc.getBool("ignore-errors"), op, &ROEdge::getTravelTimeStatic);
         }
     }
     net.openOutput(filename, altFilename, oc.getString("vtype-output"));

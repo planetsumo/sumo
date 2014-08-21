@@ -43,6 +43,7 @@
 #include <utils/common/StdDefs.h>
 #include <utils/common/ValueTimeLine.h>
 #include <utils/common/SUMOVehicleClass.h>
+#include <utils/emissions/PollutantsInterface.h>
 #include <utils/vehicle/SUMOVTypeParameter.h>
 #include "RONode.h"
 #include "ROVehicle.h"
@@ -325,11 +326,36 @@ public:
 
     /** @brief Returns the travel time for this edge
      *
-     * @param[in] veh The vehicle for which the effort on this edge shall be retrieved
-     * @param[in] time The time for which the effort shall be returned [s]
-     * @return The traveltime needed by the given vehicle to pass the edge at the given time
+     * @param[in] veh The vehicle for which the travel time on this edge shall be retrieved
+     * @param[in] time The time for which the travel time shall be returned [s]
+     * @return The travel time needed by the given vehicle to pass the edge at the given time
      */
     SUMOReal getTravelTime(const ROVehicle* const veh, SUMOReal time) const;
+
+
+    /** @brief Returns the effort for the given edge
+     *
+     * @param[in] edge The edge for which the effort shall be retrieved
+     * @param[in] veh The vehicle for which the effort on this edge shall be retrieved
+     * @param[in] time The time for which the effort shall be returned [s]
+     * @return The effort needed by the given vehicle to pass the edge at the given time
+     * @todo Recheck whether the vehicle's maximum speed is considered
+     */
+    static inline SUMOReal getEffortStatic(const ROEdge* const edge, const ROVehicle* const veh, SUMOReal time) {
+        return edge->getEffort(veh, time);
+    }
+
+
+    /** @brief Returns the travel time for the given edge
+     *
+     * @param[in] edge The edge for which the travel time shall be retrieved
+     * @param[in] veh The vehicle for which the travel time on this edge shall be retrieved
+     * @param[in] time The time for which the travel time shall be returned [s]
+     * @return The traveltime needed by the given vehicle to pass the edge at the given time
+     */
+    static inline SUMOReal getTravelTimeStatic(const ROEdge* const edge, const ROVehicle* const veh, SUMOReal time) {
+        return edge->getTravelTime(veh, time);
+    }
 
 
     /** @brief Returns a lower bound for the travel time on this edge without using any stored timeLine
@@ -342,13 +368,20 @@ public:
     }
 
 
-    SUMOReal getCOEffort(const ROVehicle* const veh, SUMOReal time) const;
-    SUMOReal getCO2Effort(const ROVehicle* const veh, SUMOReal time) const;
-    SUMOReal getPMxEffort(const ROVehicle* const veh, SUMOReal time) const;
-    SUMOReal getHCEffort(const ROVehicle* const veh, SUMOReal time) const;
-    SUMOReal getNOxEffort(const ROVehicle* const veh, SUMOReal time) const;
-    SUMOReal getFuelEffort(const ROVehicle* const veh, SUMOReal time) const;
-    SUMOReal getNoiseEffort(const ROVehicle* const veh, SUMOReal time) const;
+    template<PollutantsInterface::EmissionType ET>
+    static SUMOReal getEmissionEffort(const ROEdge* const edge, const ROVehicle* const veh, SUMOReal time) {
+        SUMOReal ret = 0;
+        if (!edge->getStoredEffort(time, ret)) {
+            const SUMOVTypeParameter* const type = veh->getType();
+            const SUMOReal vMax = MIN2(type->maxSpeed, edge->mySpeed);
+            const SUMOReal accel = type->get(SUMO_ATTR_ACCEL, SUMOVTypeParameter::getDefaultAccel(type->vehicleClass)) * type->get(SUMO_ATTR_SIGMA, SUMOVTypeParameter::getDefaultImperfection(type->vehicleClass)) / 2.;
+            ret = PollutantsInterface::computeDefault(type->emissionClass, ET, vMax, accel, 0, edge->getTravelTime(veh, time)); // @todo: give correct slope
+        }
+        return ret;
+    }
+
+
+    static SUMOReal getNoiseEffort(const ROEdge* const edge, const ROVehicle* const veh, SUMOReal time);
     //@}
 
 
