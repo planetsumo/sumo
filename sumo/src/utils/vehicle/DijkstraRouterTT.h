@@ -72,6 +72,7 @@ template<class E, class V, class PF>
 class DijkstraRouterTT : public SUMOAbstractRouter<E, V>, public PF {
 
 public:
+    typedef SUMOReal(* Operation)(const E* const, const V* const, SUMOReal);
     /// Constructor
     DijkstraRouterTT(size_t noE, bool unbuildIsWarning, Operation operation) :
         SUMOAbstractRouter<E, V>(operation, "DijkstraRouterTT"),
@@ -146,7 +147,7 @@ public:
     virtual void compute(const E* from, const E* to, const V* const vehicle,
                          SUMOTime msTime, std::vector<const E*>& into) {
         assert(from != 0 && to != 0);
-        startQuery();
+        this->startQuery();
         const SUMOReal time = STEPS2TIME(msTime);
         init();
         // add begin node
@@ -174,14 +175,14 @@ public:
             // check whether the destination node was already reached
             if (minEdge == to) {
                 buildPathFrom(minimumInfo, into);
-                endQuery(num_visited);
+                this->endQuery(num_visited);
 #ifdef DijkstraRouterTT_DEBUG_QUERY_PERF
                 std::cout << "visited " + toString(num_visited) + " edges (final path length: " + toString(into.size()) + ")\n";
 #endif
                 return;
             }
             minimumInfo->visited = true;
-            const SUMOReal traveltime = minimumInfo->traveltime + getEffort(minEdge, vehicle, time + minimumInfo->traveltime);
+            const SUMOReal traveltime = minimumInfo->traveltime + this->getEffort(minEdge, vehicle, time + minimumInfo->traveltime);
             // check all ways from the node with the minimal length
             unsigned int i = 0;
             const unsigned int length_size = minEdge->getNoFollowing();
@@ -207,7 +208,7 @@ public:
                 }
             }
         }
-        endQuery(num_visited);
+        this->endQuery(num_visited);
 #ifdef DijkstraRouterTT_DEBUG_QUERY_PERF
         std::cout << "visited " + toString(num_visited) + " edges (final path length: " + toString(into.size()) + ")\n";
 #endif
@@ -222,7 +223,7 @@ public:
             if (PF::operator()(*i, v)) {
                 return -1;
             }
-            costs += getEffort(*i, v, time + costs);
+            costs += this->getEffort(*i, v, time + costs);
         }
         return costs;
     }

@@ -42,6 +42,12 @@
 #include <utils/vehicle/DijkstraRouterTT.h>
 #include <utils/vehicle/AStarRouter.h>
 
+#ifdef HAVE_INTERNAL // catchall for internal stuff
+#include <internal/BulkStarRouter.h>
+#include <internal/CHRouter.h>
+#include <internal/CHRouterWrapper.h>
+#endif // have HAVE_INTERNAL
+
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
@@ -281,8 +287,9 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
     const bool needThread = (myRouter == 0 && myThreadPool.getPending() + 1 > myThreadPool.size());
 #endif
     if (myRouter == 0) {
-        const std::string routingAlgorithm = OptionsCont::getOptions().getString("routing-algorithm");
-        const bool mayHaveRestrictions = MSNet::getInstance()->hasRestrictions() || OptionsCont::getOptions().getInt("remote-port") != 0;
+        OptionsCont& oc = OptionsCont::getOptions();
+        const std::string routingAlgorithm = oc.getString("routing-algorithm");
+        const bool mayHaveRestrictions = MSNet::getInstance()->hasRestrictions() || oc.getInt("remote-port") != 0;
         if (routingAlgorithm == "dijkstra") {
             if (mayHaveRestrictions) {
                 myRouter = new DijkstraRouterTT<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
@@ -302,26 +309,26 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
 #ifdef HAVE_INTERNAL // catchall for internal stuff
         } else if (routingAlgorithm == "bulkstar") {
             if (mayHaveRestrictions) {
-                myRouter = new BulkStarRouterTT<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
-                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+                myRouter = new BulkStarRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, &MSEdge::getMinimumTravelTime);
             } else {
-                myRouter = new BulkStarRouterTT<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
-                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+                myRouter = new BulkStarRouter<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, &MSEdge::getMinimumTravelTime);
             }
         } else if (routingAlgorithm == "CH") {
             // defaultVehicle is only in constructor and may be safely deleted
             // it is mainly needed for its maximum speed. @todo XXX make this configurable
-            ROVehicle defaultVehicle(SUMOVehicleParameter(), 0, net.getVehicleTypeSecure(DEFAULT_VTYPE_ID), &net);
+            MSVehicle defaultVehicle(SUMOVehicleParameter(), 0, net.getVehicleTypeSecure(DEFAULT_VTYPE_ID), &net);
             const SUMOTime begin = string2time(oc.getString("begin"));
             const SUMOTime weightPeriod = (oc.isSet("weight-files") ?
                                            string2time(oc.getString("weight-period")) :
                                            std::numeric_limits<int>::max());
             if (net.hasRestrictions()) {
-                router = new CHRouter<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
-                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime, &defaultVehicle, begin, weightPeriod, true);
+                myRouter = new CHRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, &defaultVehicle, begin, weightPeriod, true);
             } else {
-                router = new CHRouter<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
-                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime, &defaultVehicle, begin, weightPeriod, false);
+                myRouter = new CHRouter<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, &defaultVehicle, begin, weightPeriod, false);
             }
 
         } else if (routingAlgorithm == "CHWrapper") {
@@ -330,9 +337,8 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
                                            string2time(oc.getString("weight-period")) :
                                            std::numeric_limits<int>::max());
 
-            router = new CHRouterWrapper<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
-                net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime, begin, weightPeriod);
-
+            myRouter = new CHRouterWrapper<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+                MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, begin, weightPeriod);
 #endif // have HAVE_INTERNAL
         } else {
             throw ProcessError("Unknown routing algorithm '" + routingAlgorithm + "'!");

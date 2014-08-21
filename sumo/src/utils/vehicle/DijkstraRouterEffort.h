@@ -67,6 +67,7 @@ template<class E, class V, class PF>
 class DijkstraRouterEffort : public SUMOAbstractRouter<E, V>, public PF {
 
 public:
+    typedef SUMOReal(* Operation)(const E* const, const V* const, SUMOReal);
     /// Constructor
     DijkstraRouterEffort(size_t noE, bool unbuildIsWarning, Operation effortOperation, Operation ttOperation) :
         SUMOAbstractRouter<E, V>(effortOperation, "DijkstraRouterEffort"), myTTOperation(ttOperation),
@@ -148,7 +149,7 @@ public:
     virtual void compute(const E* from, const E* to, const V* const vehicle,
                          SUMOTime msTime, std::vector<const E*>& into) {
         assert(from != 0 && to != 0);
-        startQuery();
+        this->startQuery();
         init();
         // add begin node
         EdgeInfo* const fromInfo = &(myEdgeInfos[from->getNumericalID()]);
@@ -169,11 +170,11 @@ public:
             // check whether the destination node was already reached
             if (minEdge == to) {
                 buildPathFrom(minimumInfo, into);
-                endQuery(num_visited);
+                this->endQuery(num_visited);
                 return;
             }
             minimumInfo->visited = true;
-            const SUMOReal effort = minimumInfo->effort + getEffort(minEdge, vehicle, minimumInfo->leaveTime);
+            const SUMOReal effort = minimumInfo->effort + this->getEffort(minEdge, vehicle, minimumInfo->leaveTime);
             const SUMOReal leaveTime = minimumInfo->leaveTime + getTravelTime(minEdge, vehicle, minimumInfo->leaveTime);
             // check all ways from the node with the minimal length
             unsigned int i = 0;
@@ -201,7 +202,7 @@ public:
                 }
             }
         }
-        endQuery(num_visited);
+        this->endQuery(num_visited);
         myErrorMsgHandler->inform("No connection between '" + from->getID() + "' and '" + to->getID() + "' found.");
     }
 
@@ -213,7 +214,7 @@ public:
             if (PF::operator()(*i, v)) {
                 return -1;
             }
-            costs += getEffort(*i, v, t);
+            costs += this->getEffort(*i, v, t);
             t += getTravelTime(*i, v, t);
         }
         return costs;
