@@ -159,6 +159,9 @@ private:
         SUMOVehicle& myVehicle;
         const SUMOTime myTime;
         const bool myOnInit;
+    private:
+        /// @brief Invalidated assignment operator.
+        RoutingTask& operator=(const RoutingTask&);
     };
 #endif
 
@@ -264,8 +267,11 @@ private:
     /// @brief Information which weight prior edge efforts have
     static SUMOReal myAdaptationWeight;
 
-    /// @brief Information which weight prior edge efforts have
+    /// @brief At which time interval the edge weights get updated
     static SUMOTime myAdaptationInterval;
+
+    /// @brief Information when the last edge weight adaptation occured
+    static SUMOTime myLastAdaptation;
 
     /// @brief whether taz shall be used at initial rerouting
     static bool myWithTaz;

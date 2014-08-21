@@ -393,6 +393,9 @@ MSNet::simulationStep() {
         MSStateHandler::saveState(myStateDumpFiles[dist], myStep);
     }
     myBeginOfTimestepEvents->execute(myStep);
+#ifdef HAVE_FOX
+    MSDevice_Routing::waitForAll();
+#endif
     if (MSGlobals::gCheck4Accidents) {
         myEdges->detectCollisions(myStep, STAGE_EVENTS);
     }
@@ -436,7 +439,7 @@ MSNet::simulationStep() {
     // insert Vehicles
     myInserter->checkFlows(myStep);
     myInsertionEvents->execute(myStep);
-#ifdef HAVE_FOX    
+#ifdef HAVE_FOX
     MSDevice_Routing::waitForAll();
 #endif
     myInserter->emitVehicles(myStep);

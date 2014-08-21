@@ -160,6 +160,20 @@ public:
                        std::vector<SUMOTime> stateDumpTimes, std::vector<std::string> stateDumpFiles);
 
 
+    /** @brief Returns whether the network has vehicle class restrictions
+     * @return whether restrictions are present
+     */
+    bool hasRestrictions() const {
+        return myHaveRestrictions;
+    }
+
+
+    /// @brief Labels the network to contain vehicle class restrictions
+    void setRestrictionFound() {
+        myHaveRestrictions = true;
+    }
+
+
     /** @brief Clears all dictionaries
      * @todo Try to move all this to the destructor
      */
@@ -596,6 +610,9 @@ protected:
     /// @}
 
 
+
+    /// @brief Whether the network contains edges which not all vehicles may pass
+    bool myHaveRestrictions;
 
     /// @brief Storage for maximum vehicle number
     int myTooManyVehicles;

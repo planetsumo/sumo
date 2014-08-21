@@ -382,6 +382,9 @@ NLHandler::addLane(const SUMOSAXAttributes& attrs) {
         return;
     }
     SVCPermissions permissions = parseVehicleClasses(allow, disallow);
+    if (permissions != SVCAll) {
+        myNet.setRestrictionFound();
+    }
     myCurrentIsBroken |= !ok;
     if (!myCurrentIsBroken) {
         try {

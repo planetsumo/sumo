@@ -54,6 +54,7 @@ std::vector<SUMOReal> MSDevice_Routing::myEdgeEfforts;
 Command* MSDevice_Routing::myEdgeWeightSettingCommand = 0;
 SUMOReal MSDevice_Routing::myAdaptationWeight;
 SUMOTime MSDevice_Routing::myAdaptationInterval = -1;
+SUMOTime MSDevice_Routing::myLastAdaptation = -1;
 bool MSDevice_Routing::myWithTaz;
 std::map<std::pair<const MSEdge*, const MSEdge*>, const MSRoute*> MSDevice_Routing::myCachedRoutes;
 SUMOAbstractRouter<MSEdge, SUMOVehicle>* MSDevice_Routing::myRouter = 0;
@@ -124,7 +125,7 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
         if (myEdgeEfforts.size() == 0) {
             const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
             const bool useLoaded = oc.getBool("device.rerouting.init-with-loaded-weights");
-            const SUMOReal currentSecond = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
+            const SUMOReal currentSecond = SIMTIME;
             for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
                 while ((*i)->getNumericalID() >= (int)myEdgeEfforts.size()) {
                     myEdgeEfforts.push_back(0);
@@ -147,7 +148,7 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
                 WRITE_ERROR("The value for device.rerouting.adaptation-weight must be between 0 and 1!");
             }
             if (myAdaptationWeight < 1. && myAdaptationInterval > 0) {
-                myEdgeWeightSettingCommand = new StaticCommand< MSDevice_Routing >(&MSDevice_Routing::adaptEdgeEfforts);
+                myEdgeWeightSettingCommand = new StaticCommand<MSDevice_Routing>(&MSDevice_Routing::adaptEdgeEfforts);
                 MSNet::getInstance()->getEndOfTimestepEvents().addEvent(
                     myEdgeWeightSettingCommand, 0, MSEventControl::ADAPT_AFTER_EXECUTION);
             } else if (period > 0 || prePeriod > 0) {
@@ -176,14 +177,13 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
 MSDevice_Routing::MSDevice_Routing(SUMOVehicle& holder, const std::string& id,
                                    SUMOTime period, SUMOTime preInsertionPeriod)
     : MSDevice(holder, id), myPeriod(period), myPreInsertionPeriod(preInsertionPeriod), myRerouteCommand(0) {
-    if (myWithTaz || myEdgeWeightSettingCommand == 0) {
-        myRerouteCommand = new WrappingCommand< MSDevice_Routing >(this, &MSDevice_Routing::preInsertionReroute);
-        // if we don't update the edge weights, we might as well reroute now and hopefully use our threads better
-        const SUMOTime execTime = myEdgeWeightSettingCommand == 0 ? 0 : holder.getParameter().depart;
-        MSNet::getInstance()->getInsertionEvents().addEvent(
-            myRerouteCommand, execTime,
-            MSEventControl::ADAPT_AFTER_EXECUTION);
-    }
+    // we do always a pre insertion reroute to fill the best lanes of the vehicle with somehow meaningful values (especially for deaprtLane="best")
+    myRerouteCommand = new WrappingCommand<MSDevice_Routing>(this, &MSDevice_Routing::preInsertionReroute);
+    // if we don't update the edge weights, we might as well reroute now and hopefully use our threads better
+    const SUMOTime execTime = myEdgeWeightSettingCommand == 0 ? 0 : holder.getParameter().depart;
+    MSNet::getInstance()->getInsertionEvents().addEvent(
+        myRerouteCommand, execTime,
+        MSEventControl::ADAPT_AFTER_EXECUTION);
 }
 
 
@@ -198,20 +198,21 @@ MSDevice_Routing::~MSDevice_Routing() {
 bool
 MSDevice_Routing::notifyEnter(SUMOVehicle& /*veh*/, MSMoveReminder::Notification reason) {
     if (reason == MSMoveReminder::NOTIFICATION_DEPARTED) {
-        if (myRerouteCommand != 0) { // clean up pre depart rerouting
-            if (myPreInsertionPeriod > 0) {
-                myRerouteCommand->deschedule();
-            }
-            myRerouteCommand = 0;
+        // clean up pre depart rerouting
+        if (myPreInsertionPeriod > 0) {
+            myRerouteCommand->deschedule();
         }
-        if (!myWithTaz && myEdgeWeightSettingCommand != 0) {
-            wrappedRerouteCommandExecute(MSNet::getInstance()->getCurrentTimeStep());
+        myRerouteCommand = 0;
+        // trigger on depart rerouting if the edge weights did change
+        const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
+        if (myHolder.getParameter().depart <= myLastAdaptation && now > myLastAdaptation) {
+            wrappedRerouteCommandExecute(now);
         }
         // build repetition trigger if routing shall be done more often
         if (myPeriod > 0) {
-            myRerouteCommand = new WrappingCommand< MSDevice_Routing >(this, &MSDevice_Routing::wrappedRerouteCommandExecute);
+            myRerouteCommand = new WrappingCommand<MSDevice_Routing>(this, &MSDevice_Routing::wrappedRerouteCommandExecute);
             MSNet::getInstance()->getBeginOfTimestepEvents().addEvent(
-                myRerouteCommand, myPeriod + MSNet::getInstance()->getCurrentTimeStep(),
+                myRerouteCommand, myPeriod + now,
                 MSEventControl::ADAPT_AFTER_EXECUTION);
         }
     }
@@ -257,7 +258,7 @@ MSDevice_Routing::getEffort(const MSEdge* const e, const SUMOVehicle* const v, S
 
 
 SUMOTime
-MSDevice_Routing::adaptEdgeEfforts(SUMOTime /*currentTime*/) {
+MSDevice_Routing::adaptEdgeEfforts(SUMOTime currentTime) {
     std::map<std::pair<const MSEdge*, const MSEdge*>, const MSRoute*>::iterator it = myCachedRoutes.begin();
     for (; it != myCachedRoutes.end(); ++it) {
         it->second->release();
@@ -269,6 +270,7 @@ MSDevice_Routing::adaptEdgeEfforts(SUMOTime /*currentTime*/) {
         const int id = (*i)->getNumericalID();
         myEdgeEfforts[id] = myEdgeEfforts[id] * myAdaptationWeight + (*i)->getCurrentTravelTime() * newWeightFactor;
     }
+    myLastAdaptation = currentTime;
     return myAdaptationInterval;
 }
 
@@ -280,12 +282,58 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
 #endif
     if (myRouter == 0) {
         const std::string routingAlgorithm = OptionsCont::getOptions().getString("routing-algorithm");
+        const bool mayHaveRestrictions = MSNet::getInstance()->hasRestrictions() || OptionsCont::getOptions().getInt("remote-port") != 0;
         if (routingAlgorithm == "dijkstra") {
-            myRouter = new DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
-                MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+            if (mayHaveRestrictions) {
+                myRouter = new DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+            } else {
+                myRouter = new DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+            }
         } else if (routingAlgorithm == "astar") {
-            myRouter = new AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
-                MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+            if (mayHaveRestrictions) {
+                myRouter = new AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+            } else {
+                myRouter = new AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+            }
+#ifdef HAVE_INTERNAL // catchall for internal stuff
+        } else if (routingAlgorithm == "bulkstar") {
+            if (mayHaveRestrictions) {
+                myRouter = new BulkStarRouterTT<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+            } else {
+                myRouter = new BulkStarRouterTT<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
+            }
+        } else if (routingAlgorithm == "CH") {
+            // defaultVehicle is only in constructor and may be safely deleted
+            // it is mainly needed for its maximum speed. @todo XXX make this configurable
+            ROVehicle defaultVehicle(SUMOVehicleParameter(), 0, net.getVehicleTypeSecure(DEFAULT_VTYPE_ID), &net);
+            const SUMOTime begin = string2time(oc.getString("begin"));
+            const SUMOTime weightPeriod = (oc.isSet("weight-files") ?
+                                           string2time(oc.getString("weight-period")) :
+                                           std::numeric_limits<int>::max());
+            if (net.hasRestrictions()) {
+                router = new CHRouter<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
+                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime, &defaultVehicle, begin, weightPeriod, true);
+            } else {
+                router = new CHRouter<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
+                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime, &defaultVehicle, begin, weightPeriod, false);
+            }
+
+        } else if (routingAlgorithm == "CHWrapper") {
+            const SUMOTime begin = string2time(oc.getString("begin"));
+            const SUMOTime weightPeriod = (oc.isSet("weight-files") ?
+                                           string2time(oc.getString("weight-period")) :
+                                           std::numeric_limits<int>::max());
+
+            router = new CHRouterWrapper<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
+                net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTime, begin, weightPeriod);
+
+#endif // have HAVE_INTERNAL
         } else {
             throw ProcessError("Unknown routing algorithm '" + routingAlgorithm + "'!");
         }
