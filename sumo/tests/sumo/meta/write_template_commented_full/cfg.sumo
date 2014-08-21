@@ -300,6 +300,9 @@
         <!-- Use given weight files for initializing edge weights -->
         <device.rerouting.init-with-loaded-weights value="false" type="BOOL"/>
 
+        <!-- The number of parallel execution threads used for rerouting -->
+        <device.rerouting.threads value="0" type="INT"/>
+
     </routing>
 
     <example_device>

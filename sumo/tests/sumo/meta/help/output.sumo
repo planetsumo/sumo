@@ -1,4 +1,4 @@
-SUMO sumo Version dev-SVN-r16832
+SUMO Version dev-SVN-r16873
  Copyright (C) 2001-2014 DLR and contributors; http://sumo-sim.org
 A microscopic road traffic simulation.
 
@@ -179,6 +179,8 @@ Routing Options:
                                          points
   --device.rerouting.init-with-loaded-weights  Use given weight files for
                                          initializing edge weights
+  --device.rerouting.threads INT       The number of parallel execution threads
+                                         used for rerouting
 
 Example Device Options:
   --device.example.explicit STR        Assign a device to named vehicles

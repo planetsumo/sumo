@@ -118,6 +118,7 @@
         <device.rerouting.adaptation-interval value="1" synonymes="device.routing.adaptation-interval" type="TIME" help="The interval for updating the edge weights"/>
         <device.rerouting.with-taz value="false" synonymes="device.routing.with-taz" type="BOOL" help="Use zones (districts) as routing end points"/>
         <device.rerouting.init-with-loaded-weights value="false" type="BOOL" help="Use given weight files for initializing edge weights"/>
+        <device.rerouting.threads value="0" type="INT" help="The number of parallel execution threads used for rerouting"/>
     </routing>
 
     <example_device>
