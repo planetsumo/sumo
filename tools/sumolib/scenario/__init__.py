@@ -15,4 +15,4 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-from . import pop, runsdb
+from . import pop, pop2, runsdb

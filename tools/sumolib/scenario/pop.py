@@ -73,7 +73,7 @@ class Scenario:
 
         
 class Scenario_BasicCross(Scenario):
-  def __init__(self):
+  def __init__(self, demand=None):
     Scenario.__init__(self)
     # network
     defaultEdge = Edge(numLanes=1, maxSpeed=13.89)
@@ -83,10 +83,13 @@ class Scenario_BasicCross(Scenario):
     self.netName = "net.net.xml"
     net.build(self.netName) # not nice, the network name should be given/returned
     # demand
-    demand = demandGenerator.Demand()
-    demand.addStream(demandGenerator.Stream(None, 0, 3600, 1000, "2/1_to_1/1", "1/1_to_0/1", { .2:"hdv", .8:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
     self.demandName = "routes.rou.xml"
-    self.demand.build(0, 3600, self.netName, self.demandName)
+    if demand==None:
+      self.demand = demandGenerator.Demand()
+      self.demand.addStream(demandGenerator.Stream(None, 0, 3600, 1000, "2/1_to_1/1", "1/1_to_0/1", { .2:"hdv", .8:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+      self.demand.build(0, 3600, self.netName, self.demandName)
+    else:
+      self.demand = demand
         
       
 flowsRiLSA1 = [
@@ -137,11 +140,11 @@ class Scenario_RiLSA1(Scenario):
     self.demand.build(0, 3600, self.netName, self.demandName)
 
 
-def getScenario(name):
+def getScenario(name, demand):
   if name=="RiLSA1":
-    return Scenario_RiLSA1()  
+    return Scenario_RiLSA1(demand)  
   elif name=="BasicCross":
-    return Scenario_BasicCross()  
+    return Scenario_BasicCross(demand)  
   raise "unknown scenario '%s'" % name
 
     
