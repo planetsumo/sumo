@@ -285,8 +285,10 @@ void
 MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool onInit) {
 #ifdef HAVE_FOX
     const bool needThread = (myRouter == 0 && myThreadPool.getPending() + 1 > myThreadPool.size());
+#else
+    const bool needThread = true;
 #endif
-    if (myRouter == 0) {
+    if (needThread && myRouter == 0) {
         OptionsCont& oc = OptionsCont::getOptions();
         const std::string routingAlgorithm = oc.getString("routing-algorithm");
         const bool mayHaveRestrictions = MSNet::getInstance()->hasRestrictions() || oc.getInt("remote-port") != 0;
