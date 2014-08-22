@@ -316,21 +316,17 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
                     MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, &MSEdge::getMinimumTravelTime);
             }
         } else if (routingAlgorithm == "CH") {
-            // defaultVehicle is only in constructor and may be safely deleted
-            // it is mainly needed for its maximum speed. @todo XXX make this configurable
-            MSVehicle defaultVehicle(SUMOVehicleParameter(), 0, net.getVehicleTypeSecure(DEFAULT_VTYPE_ID), &net);
             const SUMOTime begin = string2time(oc.getString("begin"));
             const SUMOTime weightPeriod = (oc.isSet("weight-files") ?
                                            string2time(oc.getString("weight-period")) :
                                            std::numeric_limits<int>::max());
-            if (net.hasRestrictions()) {
+            if (mayHaveRestrictions) {
                 myRouter = new CHRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
-                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, &defaultVehicle, begin, weightPeriod, true);
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, v.getVClass(), begin, weightPeriod, true);
             } else {
                 myRouter = new CHRouter<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
-                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, &defaultVehicle, begin, weightPeriod, false);
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, v.getVClass(), begin, weightPeriod, false);
             }
-
         } else if (routingAlgorithm == "CHWrapper") {
             const SUMOTime begin = string2time(oc.getString("begin"));
             const SUMOTime weightPeriod = (oc.isSet("weight-files") ?
