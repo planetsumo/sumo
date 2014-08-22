@@ -193,7 +193,7 @@ ROLoader::openRoutes(RONet& net) {
 
 
 void
-ROLoader::processRoutes(SUMOTime start, SUMOTime end,
+ROLoader::processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime increment,
                         RONet& net, SUMOAbstractRouter<ROEdge, ROVehicle>& router) {
     const SUMOTime absNo = end - start;
     const bool endGiven = !OptionsCont::getOptions().isDefault("end");
@@ -203,7 +203,7 @@ ROLoader::processRoutes(SUMOTime start, SUMOTime end,
     bool errorOccured = false;
     const SUMOTime firstStep = myLoaders.getFirstLoadTime();
     SUMOTime lastStep = firstStep;
-    for (SUMOTime time = firstStep; time < end && !errorOccured && !endReached; time += DELTA_T) {
+    for (SUMOTime time = firstStep; time < end && !errorOccured && !endReached; time += increment) {
         writeStats(time, start, absNo, endGiven);
         myLoaders.loadNext(time);
         net.saveAndRemoveRoutesUntil(myOptions, router, time);

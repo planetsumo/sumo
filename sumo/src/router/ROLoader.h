@@ -85,7 +85,7 @@ public:
     void openRoutes(RONet& net);
 
     /** @brief Loads routes from all previously build route loaders */
-    void processRoutes(SUMOTime start, SUMOTime end,
+    void processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime increment,
                        RONet& net, SUMOAbstractRouter<ROEdge, ROVehicle>& router);
 
 #ifdef HAVE_INTERNAL // catchall for internal stuff

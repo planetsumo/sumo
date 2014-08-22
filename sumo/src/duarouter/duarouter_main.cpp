@@ -212,7 +212,8 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
             loader.processAllRoutesWithBulkRouter(string2time(oc.getString("begin")), string2time(oc.getString("end")), net, *router);
 #endif
         } else {
-            loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")), net, *router);
+            loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")),
+                                 string2time(oc.getString("route-steps")), net, *router);
         }
         // end the processing
         net.closeOutput();

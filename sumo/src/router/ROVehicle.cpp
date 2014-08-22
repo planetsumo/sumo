@@ -55,7 +55,7 @@
 // ===========================================================================
 ROVehicle::ROVehicle(const SUMOVehicleParameter& pars,
                      RORouteDef* route, const SUMOVTypeParameter* type, const RONet* net)
-    : myParameter(pars), myType(type), myRoute(route) {
+    : myParameter(pars), myType(type), myRoute(route), myRoutingSuccess(false) {
     myParameter.stops.clear();
     if (route != 0) {
         for (std::vector<SUMOVehicleParameter::Stop>::const_iterator s = route->getFirstRoute()->getStops().begin(); s != route->getFirstRoute()->getStops().end(); ++s) {

@@ -153,7 +153,8 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
                        (int)(((SUMOReal) net.getEdgeNo()) * OptionsCont::getOptions().getFloat("max-edges-factor")),
                        oc.getBool("ignore-vclasses"), oc.getBool("allow-loops"));
     RORouteDef::setUsingJTRR();
-    loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")), net, router);
+    loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")),
+                         string2time(oc.getString("route-steps")), net, router);
     net.closeOutput();
 }
 

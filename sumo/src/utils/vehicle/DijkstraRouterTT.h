@@ -85,6 +85,10 @@ public:
     /// Destructor
     virtual ~DijkstraRouterTT() { }
 
+    virtual SUMOAbstractRouter* clone() const {
+        return new DijkstraRouterTT<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), myOperation);
+    }
+
     /**
      * @struct EdgeInfo
      * A definition about a route's edge with the effort needed to reach it and

@@ -80,6 +80,10 @@ public:
     /// Destructor
     virtual ~DijkstraRouterEffort() { }
 
+    virtual SUMOAbstractRouter* clone() const {
+        return new DijkstraRouterEffort<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), myOperation, myTTOperation);
+    }
+
     /**
      * @struct EdgeInfo
      * A definition about a route's edge with the effort needed to reach it and

@@ -73,6 +73,8 @@ public:
         }
     }
 
+    virtual SUMOAbstractRouter* clone() const = 0;
+
     /** @brief Builds the route between the given edges using the minimum effort at the given time
         The definition of the effort depends on the wished routing scheme */
     virtual void compute(const E* from, const E* to, const V* const vehicle,

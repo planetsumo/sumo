@@ -82,6 +82,10 @@ public:
     /// Destructor
     virtual ~AStarRouter() {}
 
+    virtual SUMOAbstractRouter* clone() const {
+        return new AStarRouter<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), myOperation);
+    }
+
     /**
      * @struct EdgeInfo
      * A definition about a route's edge with the effort needed to reach it and

@@ -239,7 +239,7 @@ RORouteDef::addAlternative(SUMOAbstractRouter<ROEdge, ROVehicle>& router,
                            const ROVehicle* const veh, RORoute* current, SUMOTime begin) {
     if (myTryRepair) {
         if (myNewRoute) {
-            delete myAlternatives[0];
+            //delete myAlternatives[0];
             myAlternatives.pop_back();
             myAlternatives.push_back(current);
         }

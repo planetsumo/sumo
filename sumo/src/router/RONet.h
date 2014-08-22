@@ -44,6 +44,10 @@
 #include <utils/vehicle/SUMOAbstractRouter.h>
 #include <utils/common/RandomDistributor.h>
 
+#ifdef HAVE_FOX
+#include <utils/foxtools/FXWorkerThread.h>
+#endif
+
 
 // ===========================================================================
 // class declarations
@@ -333,8 +337,9 @@ public:
     }
 
 protected:
-    bool computeRoute(OptionsCont& options,
-                      SUMOAbstractRouter<ROEdge, ROVehicle>& router, const ROVehicle* const veh);
+    static bool computeRoute(SUMOAbstractRouter<ROEdge, ROVehicle>& router,
+                    const ROVehicle* const veh, const bool removeLoops,
+                    MsgHandler* errorHandler);
 
     /// @brief return vehicles for use by RouteAggregator
     ROVehicleCont& getVehicles() {
@@ -411,6 +416,33 @@ protected:
 
     /// @brief handler for ignorable error messages
     MsgHandler* myErrorHandler;
+
+#ifdef HAVE_FOX
+    FXWorkerThread::Pool myThreadPool;
+
+private:
+    class WorkerThread : public FXWorkerThread {
+    public:
+        WorkerThread(FXWorkerThread::Pool& pool,
+                     SUMOAbstractRouter<ROEdge, ROVehicle>* router)
+        : FXWorkerThread(pool), myRouter(router) {}
+        SUMOAbstractRouter<ROEdge, ROVehicle>* myRouter;
+    };
+
+    class RoutingTask : public FXWorkerThread::Task {
+    public:
+        RoutingTask(ROVehicle* v, const bool removeLoops, MsgHandler* errorHandler)
+            : myVehicle(v), myRemoveLoops(removeLoops), myErrorHandler(errorHandler) {}
+        void run(FXWorkerThread* context);
+    private:
+        ROVehicle* const myVehicle;
+        const bool myRemoveLoops;
+        MsgHandler* const myErrorHandler;
+    private:
+        /// @brief Invalidated assignment operator.
+        RoutingTask& operator=(const RoutingTask&);
+    };
+#endif
 
 private:
     /// @brief Invalidated copy constructor
