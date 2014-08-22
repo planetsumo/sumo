@@ -45,6 +45,7 @@
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/ValueTimeLine.h>
 #include <utils/common/UtilExceptions.h>
+#include "MSNet.h"
 #include "MSVehicleType.h"
 
 
@@ -260,7 +261,7 @@ public:
     /** @brief Returns the list of edges which may be reached from this edge
      * @return Edges reachable from this edge
      */
-    void addFollower(MSEdge* edge) {
+    void addSuccessor(MSEdge* edge) {
         mySuccessors.push_back(edge);
     }
 
@@ -269,14 +270,14 @@ public:
      * @return Edges from which this edge may be reached
      */
     const std::vector<MSEdge*>& getIncomingEdges() const {
-        return myPredeccesors;
+        return myPredecessors;
     }
 
 
     /** @brief Returns the number of edges that may be reached from this edge
      * @return The number of following edges
      */
-    unsigned int getNoFollowing() const {
+    unsigned int getNumSuccessors() const {
         return (unsigned int) mySuccessors.size();
     }
 
@@ -285,8 +286,26 @@ public:
      * @param[in] n The index within following edges of the edge to return
      * @return The n-th of the following edges
      */
-    const MSEdge* getFollower(unsigned int n) const {
+    const MSEdge* getSuccessor(unsigned int n) const {
         return mySuccessors[n];
+    }
+
+
+    /** @brief Returns the number of edges this edge is connected to
+     *
+     * @return The number of edges following this edge
+     */
+    unsigned int getNumPredecessors() const {
+        return myPredecessors.size();
+    }
+
+
+    /** @brief Returns the edge at the given position from the list of reachable edges
+     * @param[in] pos The position of the list within the list of approached
+     * @return The following edge, stored at position pos
+     */
+    MSEdge* getPredecessor(unsigned int pos) const {
+        return myPredecessors[pos];
     }
 
 
@@ -361,6 +380,18 @@ public:
         } else {
             return getLength() / getSpeedLimit();
         }
+    }
+
+
+    /** @brief Returns the travel time for the given edge
+     *
+     * @param[in] edge The edge for which the travel time shall be retrieved
+     * @param[in] veh The vehicle for which the travel time on this edge shall be retrieved
+     * @param[in] time The time for which the travel time shall be returned [s]
+     * @return The traveltime needed by the given vehicle to pass the edge at the given time
+     */
+    static inline SUMOReal getTravelTimeStatic(const MSEdge* const edge, const SUMOVehicle* const veh, SUMOReal time) {
+        return MSNet::getInstance()->getTravelTime(edge, veh, time);
     }
 
 
@@ -446,6 +477,10 @@ public:
         }
         const SUMOVehicleClass svc = vehicle->getVehicleType().getVehicleClass();
         return (myCombinedPermissions & svc) != svc;
+    }
+
+    inline SVCPermissions getPermissions() const {
+        return myCombinedPermissions;
     }
 
     void rebuildAllowedLanes();
@@ -622,7 +657,7 @@ protected:
     std::vector<MSEdge*> mySuccessors;
 
     /// @brief The preceeding edges
-    std::vector<MSEdge*> myPredeccesors;
+    std::vector<MSEdge*> myPredecessors;
 
     /// @brief the junctions for this edge
     MSJunction* myFromJunction;

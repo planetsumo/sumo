@@ -223,10 +223,10 @@ MSRouteHandler::myStartElement(int element,
                 const MSEdge* fromTaz = MSEdge::dictionary(myVehicleParameter->fromTaz + "-source");
                 if (fromTaz == 0) {
                     WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' not known for '" + myVehicleParameter->id + "'!");
-                } else if (fromTaz->getNoFollowing() == 0) {
+                } else if (fromTaz->getNumSuccessors() == 0) {
                     WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' has no outgoing edges for '" + myVehicleParameter->id + "'!");
                 } else {
-                    myActiveRoute.push_back(fromTaz->getFollower(0));
+                    myActiveRoute.push_back(fromTaz->getSuccessor(0));
                 }
             }
             closeRoute(true);
@@ -619,10 +619,10 @@ MSRouteHandler::closeFlow() {
                     const MSEdge* fromTaz = MSEdge::dictionary(myVehicleParameter->fromTaz + "-source");
                     if (fromTaz == 0) {
                         WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' not known for '" + myVehicleParameter->id + "'!");
-                    } else if (fromTaz->getNoFollowing() == 0) {
+                    } else if (fromTaz->getNumSuccessors() == 0) {
                         WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' has no outgoing edges for '" + myVehicleParameter->id + "'!");
                     } else {
-                        myActiveRoute.push_back(fromTaz->getFollower(0));
+                        myActiveRoute.push_back(fromTaz->getSuccessor(0));
                     }
                     closeRoute(true);
                     myVehicleParameter->routeid = "!" + myVehicleParameter->id;

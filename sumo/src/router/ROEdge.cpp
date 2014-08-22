@@ -100,7 +100,7 @@ ROEdge::addLane(ROLane* lane) {
 
 
 void
-ROEdge::addFollower(ROEdge* s, std::string) {
+ROEdge::addSuccessor(ROEdge* s, std::string) {
     if (find(myFollowingEdges.begin(), myFollowingEdges.end(), s) == myFollowingEdges.end()) {
         myFollowingEdges.push_back(s);
         s->myApproachingEdges.push_back(this);
@@ -204,7 +204,7 @@ ROEdge::getStoredEffort(SUMOReal time, SUMOReal& ret) const {
 
 
 unsigned int
-ROEdge::getNoFollowing() const {
+ROEdge::getNumSuccessors() const {
     if (getType() == ET_SINK) {
         return 0;
     }
@@ -213,7 +213,7 @@ ROEdge::getNoFollowing() const {
 
 
 unsigned int
-ROEdge::getNumApproaching() const {
+ROEdge::getNumPredecessors() const {
     if (getType() == ET_SOURCE) {
         return 0;
     }

@@ -262,11 +262,11 @@ public:
         return &myEdgeDict[index];
     }
 
-    unsigned int getNoFollowing() const {
+    unsigned int getNumSuccessors() const {
         return (unsigned int)myFollowingEdges.size();
     }
 
-    PedestrianEdge* getFollower(unsigned int i) const {
+    PedestrianEdge* getSuccessor(unsigned int i) const {
         return myFollowingEdges[i];
     }
 

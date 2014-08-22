@@ -91,6 +91,11 @@ public:
      */
     virtual const MSVehicleType& getVehicleType() const = 0;
 
+    /** @brief Returns the vehicle's access class
+     * @return The vehicle's access class
+     */
+    virtual SUMOVehicleClass getVClass() const = 0;
+
     /// Returns the current route
     virtual const MSRoute& getRoute() const = 0;
 

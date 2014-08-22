@@ -126,7 +126,7 @@ public:
      * @todo What about vehicle-type aware connections?
      * @note: if HAVE_INTERNAL is defined, the backward connections is added as well
      */
-    virtual void addFollower(ROEdge* s, std::string dir = "");
+    virtual void addSuccessor(ROEdge* s, std::string dir = "");
 
 
     /** @brief Sets the type of te edge
@@ -246,7 +246,7 @@ public:
     }
 
 
-    /** @brief Returns whether this edge succeding edges prohibit the given vehicle to pass them
+    /** @brief Returns whether this edge succeeding edges prohibit the given vehicle to pass them
      * @param[in] vehicle The vehicle for which the information has to be returned
      * @return Whether the vehicle may continue its route on any of the following edges
      */
@@ -283,33 +283,33 @@ public:
      *
      * @return The number of edges following this edge
      */
-    unsigned int getNoFollowing() const;
+    unsigned int getNumSuccessors() const;
 
 
     /** @brief Returns the edge at the given position from the list of reachable edges
      * @param[in] pos The position of the list within the list of following
      * @return The following edge, stored at position pos
      */
-    ROEdge* getFollower(unsigned int pos) const {
+    ROEdge* getSuccessor(unsigned int pos) const {
         return myFollowingEdges[pos];
     }
 
 
-    /** @brief Returns the number of edges this edge is connected to
+    /** @brief Returns the number of edges connected to this edge
      *
      * If this edge's type is set to "source", 0 is returned, otherwise
      *  the number of edges stored in "myApproachingEdges".
      *
-     * @return The number of edges following this edge
+     * @return The number of edges reaching into this edge
      */
-    unsigned int getNumApproaching() const;
+    unsigned int getNumPredecessors() const;
 
 
-    /** @brief Returns the edge at the given position from the list of reachable edges
-     * @param[in] pos The position of the list within the list of approached
-     * @return The following edge, stored at position pos
+    /** @brief Returns the edge at the given position from the list of incoming edges
+     * @param[in] pos The position of the list within the list of incoming
+     * @return The incoming edge, stored at position pos
      */
-    ROEdge* getApproaching(unsigned int pos) const {
+    ROEdge* getPredecessor(unsigned int pos) const {
         return myApproachingEdges[pos];
     }
 

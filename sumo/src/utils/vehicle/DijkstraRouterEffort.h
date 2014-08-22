@@ -178,9 +178,9 @@ public:
             const SUMOReal leaveTime = minimumInfo->leaveTime + getTravelTime(minEdge, vehicle, minimumInfo->leaveTime);
             // check all ways from the node with the minimal length
             unsigned int i = 0;
-            const unsigned int length_size = minEdge->getNoFollowing();
+            const unsigned int length_size = minEdge->getNumSuccessors();
             for (i = 0; i < length_size; i++) {
-                const E* const follower = minEdge->getFollower(i);
+                const E* const follower = minEdge->getSuccessor(i);
                 EdgeInfo* const followerInfo = &(myEdgeInfos[follower->getNumericalID()]);
                 // check whether it can be used
                 if (PF::operator()(follower, vehicle)) {
