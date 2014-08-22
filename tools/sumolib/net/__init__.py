@@ -88,12 +88,15 @@ class TLSProgram:
         self._phases = []
 
     def addPhase(self, state, duration):
-        self._phases.append( (state, duration) )
+        self._phases.append( [state, duration, None, None] )
 
     def toXML(self, tlsID):
         ret = '  <tlLogic id="%s" type="%s" programID="%s" offset="%s">\n' % (tlsID, self._type, self._id, self._offset)
         for p in self._phases:
-            ret = ret + '    <phase duration="%s" state="%s"/>\n' % (p[1], p[0])
+            ret = ret + '    <phase state="%s" duration="%s"' % (p[0], p[1])
+            if p[2]!=None: ret = ret + ' minDur="%s"' % p[2]
+            if p[3]!=None: ret = ret + ' maxDur="%s"' % p[3]
+            ret = ret + '/>\n'
         ret = ret + '  </tlLogic>\n'
         return ret
 
