@@ -25,4 +25,4 @@ dfrouter_LDADD   = ../router/librouter.a \
 ../utils/emissions/libemissions.a \
 ../foreign/tcpip/libtcpip.a \
 $(MEM_LIBS) \
--l$(LIB_XERCES)
+-l$(LIB_XERCES) $(FOX_LDFLAGS)

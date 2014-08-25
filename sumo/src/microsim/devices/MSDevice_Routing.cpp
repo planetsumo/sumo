@@ -41,12 +41,9 @@
 #include <utils/common/StaticCommand.h>
 #include <utils/vehicle/DijkstraRouterTT.h>
 #include <utils/vehicle/AStarRouter.h>
-
-#ifdef HAVE_INTERNAL // catchall for internal stuff
-#include <internal/BulkStarRouter.h>
-#include <internal/CHRouter.h>
-#include <internal/CHRouterWrapper.h>
-#endif // have HAVE_INTERNAL
+#include <utils/vehicle/BulkStarRouter.h>
+#include <utils/vehicle/CHRouter.h>
+#include <utils/vehicle/CHRouterWrapper.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -308,7 +305,6 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
                 myRouter = new AStarRouter<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
                     MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort);
             }
-#ifdef HAVE_INTERNAL // catchall for internal stuff
         } else if (routingAlgorithm == "bulkstar") {
             if (mayHaveRestrictions) {
                 myRouter = new BulkStarRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
@@ -324,10 +320,10 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
                                            std::numeric_limits<int>::max());
             if (mayHaveRestrictions) {
                 myRouter = new CHRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
-                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, v.getVClass(), begin, weightPeriod, true);
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, v.getVClass(), weightPeriod, true);
             } else {
                 myRouter = new CHRouter<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> >(
-                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, v.getVClass(), begin, weightPeriod, false);
+                    MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, v.getVClass(), weightPeriod, false);
             }
         } else if (routingAlgorithm == "CHWrapper") {
             const SUMOTime begin = string2time(oc.getString("begin"));
@@ -337,7 +333,6 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
 
             myRouter = new CHRouterWrapper<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
                 MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, begin, weightPeriod);
-#endif // have HAVE_INTERNAL
         } else {
             throw ProcessError("Unknown routing algorithm '" + routingAlgorithm + "'!");
         }

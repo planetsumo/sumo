@@ -82,8 +82,8 @@ public:
     /// Destructor
     virtual ~AStarRouter() {}
 
-    virtual SUMOAbstractRouter* clone() const {
-        return new AStarRouter<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), myOperation);
+    virtual SUMOAbstractRouter<E, V>* clone() const {
+        return new AStarRouter<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), this->myOperation);
     }
 
     /**

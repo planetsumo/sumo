@@ -54,10 +54,7 @@
 #include "ROLoader.h"
 #include "ROEdge.h"
 #include "RORouteHandler.h"
-
-#ifdef HAVE_INTERNAL // catchall for internal stuff
-#include <internal/RouteAggregator.h>
-#endif // have HAVE_INTERNAL
+#include "RORouteAggregator.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -223,15 +220,13 @@ ROLoader::processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime
 }
 
 
-#ifdef HAVE_INTERNAL // catchall for internal stuff
 void
 ROLoader::processAllRoutesWithBulkRouter(SUMOTime /* start */, SUMOTime end,
         RONet& net, SUMOAbstractRouter<ROEdge, ROVehicle>& router) {
     myLoaders.loadNext(SUMOTime_MAX);
-    RouteAggregator::processAllRoutes(net, router);
+    RORouteAggregator::processAllRoutes(net, router);
     net.saveAndRemoveRoutesUntil(myOptions, router, end);
 }
-#endif
 
 
 bool

@@ -382,7 +382,7 @@ public:
         delete myInternalRouter;
     }
 
-    virtual SUMOAbstractRouter* clone() const {
+    virtual SUMOAbstractRouter<E, PedestrianTrip<E, N> >* clone() const {
         return new PedestrianRouter<E, L, N, INTERNALROUTER>();
     }
 

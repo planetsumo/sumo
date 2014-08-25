@@ -80,8 +80,8 @@ public:
     /// Destructor
     virtual ~DijkstraRouterEffort() { }
 
-    virtual SUMOAbstractRouter* clone() const {
-        return new DijkstraRouterEffort<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), myOperation, myTTOperation);
+    virtual SUMOAbstractRouter<E, V>* clone() const {
+        return new DijkstraRouterEffort<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), this->myOperation, myTTOperation);
     }
 
     /**

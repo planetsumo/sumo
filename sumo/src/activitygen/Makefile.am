@@ -32,4 +32,4 @@ activitygen_LDADD = ./activities/libagactivities.a \
 ../duarouter/RODUAEdgeBuilder.o \
 ../duarouter/RODUAFrame.o \
 ../router/librouter.a \
-$(COMMON_LIBS)
+$(COMMON_LIBS) $(FOX_LDFLAGS)

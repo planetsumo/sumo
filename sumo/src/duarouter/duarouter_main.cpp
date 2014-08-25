@@ -48,6 +48,9 @@
 #include <utils/vehicle/DijkstraRouterTT.h>
 #include <utils/vehicle/DijkstraRouterEffort.h>
 #include <utils/vehicle/AStarRouter.h>
+#include <utils/vehicle/BulkStarRouter.h>
+#include <utils/vehicle/CHRouter.h>
+#include <utils/vehicle/CHRouterWrapper.h>
 #include "RODUAEdgeBuilder.h"
 #include <router/ROFrame.h>
 #include <utils/common/MsgHandler.h>
@@ -61,12 +64,6 @@
 #include <utils/xml/XMLSubSys.h>
 #include "RODUAFrame.h"
 #include <utils/iodevices/OutputDevice.h>
-
-#ifdef HAVE_INTERNAL // catchall for internal stuff
-#include <internal/BulkStarRouter.h>
-#include <internal/CHRouter.h>
-#include <internal/CHRouterWrapper.h>
-#endif // have HAVE_INTERNAL
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -137,7 +134,6 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
                 router = new AStarRouter<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
                     net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic);
             }
-#ifdef HAVE_INTERNAL // catchall for internal stuff
         } else if (routingAlgorithm == "bulkstar") {
             if (net.hasRestrictions()) {
                 router = new BulkStarRouter<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
@@ -147,20 +143,16 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
                     net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic, &ROEdge::getMinimumTravelTime);
             }
         } else if (routingAlgorithm == "CH") {
-            // defaultVehicle is only in constructor and may be safely deleted
-            // it is mainly needed for its maximum speed. @todo XXX make this configurable
-            const SUMOTime begin = string2time(oc.getString("begin"));
             const SUMOTime weightPeriod = (oc.isSet("weight-files") ?
                                            string2time(oc.getString("weight-period")) :
                                            std::numeric_limits<int>::max());
             if (net.hasRestrictions()) {
                 router = new CHRouter<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
-                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic, SVC_IGNORING, begin, weightPeriod, true);
+                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic, SVC_IGNORING, weightPeriod, true);
             } else {
                 router = new CHRouter<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> >(
-                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic, SVC_IGNORING, begin, weightPeriod, false);
+                    net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic, SVC_IGNORING, weightPeriod, false);
             }
-
         } else if (routingAlgorithm == "CHWrapper") {
             const SUMOTime begin = string2time(oc.getString("begin"));
             const SUMOTime weightPeriod = (oc.isSet("weight-files") ?
@@ -169,12 +161,9 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
 
             router = new CHRouterWrapper<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >(
                 net.getEdgeNo(), oc.getBool("ignore-errors"), &ROEdge::getTravelTimeStatic, begin, weightPeriod);
-
-#endif // have HAVE_INTERNAL
         } else {
             throw ProcessError("Unknown routing Algorithm '" + routingAlgorithm + "'!");
         }
-
     } else {
         DijkstraRouterEffort<ROEdge, ROVehicle, prohibited_withRestrictions<ROEdge, ROVehicle> >::Operation op;
         if (measure == "CO") {
@@ -207,10 +196,8 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
     // process route definitions
     try {
         if (routingAlgorithm == "bulkstar") {
-#ifdef HAVE_INTERNAL // catchall for internal stuff
             // need to load all routes for spatial aggregation
             loader.processAllRoutesWithBulkRouter(string2time(oc.getString("begin")), string2time(oc.getString("end")), net, *router);
-#endif
         } else {
             loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")),
                                  string2time(oc.getString("route-steps")), net, *router);
