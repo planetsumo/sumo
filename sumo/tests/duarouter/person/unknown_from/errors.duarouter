@@ -1,4 +1,5 @@
 Error: The edge 'blub' within a walk of p0 is not known.
  The route can not be build.
 Warning: Discarding person 'p0' because it's plan is empty
+Error: No route input specified or all routes were invalid.
 Quitting (on error).

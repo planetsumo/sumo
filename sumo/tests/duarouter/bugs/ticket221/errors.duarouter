@@ -1,2 +1,3 @@
 Error: The vehicle '0' occurs at least twice.
+Error: No route input specified or all routes were invalid.
 Quitting (on error).

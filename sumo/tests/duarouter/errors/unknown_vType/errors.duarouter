@@ -1,2 +1,3 @@
 Error: The vehicle type 'foo' for vehicle '0' is not known.
+Error: No route input specified or all routes were invalid.
 Quitting (on error).
