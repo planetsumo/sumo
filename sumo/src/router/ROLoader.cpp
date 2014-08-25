@@ -116,7 +116,7 @@ ROLoader::ROLoader(OptionsCont& oc, const bool emptyDestinationsAllowed, const b
     myOptions(oc),
     myEmptyDestinationsAllowed(emptyDestinationsAllowed),
     myLogSteps(logSteps),
-    myLoaders(oc.exists("unsorted-input") && oc.getBool("unsorted-input") ? 0 : DELTA_T)
+    myLoaders(oc.exists("unsorted-input") && oc.getBool("unsorted-input") ? 0 : string2time(oc.getString("route-steps")))
 {}
 
 
@@ -199,20 +199,26 @@ ROLoader::processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime
     const bool endGiven = !OptionsCont::getOptions().isDefault("end");
     // skip routes that begin before the simulation's begin
     // loop till the end
-    bool endReached = false;
-    bool errorOccured = false;
     const SUMOTime firstStep = myLoaders.getFirstLoadTime();
-    SUMOTime lastStep = firstStep;
-    for (SUMOTime time = firstStep; time < end && !errorOccured && !endReached; time += increment) {
+    SUMOTime time = firstStep;
+    while (time <= end) {
         writeStats(time, start, absNo, endGiven);
         myLoaders.loadNext(time);
+        if (!net.furtherStored() || MsgHandler::getErrorInstance()->wasInformed()) {
+            break;
+        }
         net.saveAndRemoveRoutesUntil(myOptions, router, time);
-        endReached = !net.furtherStored();
-        lastStep = time;
-        errorOccured = MsgHandler::getErrorInstance()->wasInformed() && !myOptions.getBool("ignore-errors");
+        if (MsgHandler::getErrorInstance()->wasInformed()) {
+            break;
+        }
+        if (time < end && time + increment > end) {
+            time = end;
+        } else {
+            time += increment;
+        }
     }
     if (myLogSteps) {
-        WRITE_MESSAGE("Routes found between time steps " + time2string(firstStep) + " and " + time2string(lastStep) + ".");
+        WRITE_MESSAGE("Routes found between time steps " + time2string(firstStep) + " and " + time2string(time) + ".");
     }
 }
 

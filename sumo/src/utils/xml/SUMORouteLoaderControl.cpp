@@ -73,7 +73,7 @@ SUMORouteLoaderControl::loadNext(SUMOTime step) {
     if (myAllLoaded) {
         return;
     }
-    SUMOTime loadMaxTime = myLoadAll ? SUMOTime_MAX : step + myInAdvanceStepNo;
+    SUMOTime loadMaxTime = myLoadAll ? SUMOTime_MAX : step;
 
     // load all routes for the specified time period
     bool furtherAvailable = false;

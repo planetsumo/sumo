@@ -334,8 +334,8 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
     if (myVehicles.size() != 0) {
         const std::map<std::string, ROVehicle*>& mmap = myVehicles.getMyMap();
         for (std::map<std::string, ROVehicle*>::const_iterator i = mmap.begin(); i != mmap.end(); ++i) {
-            if (i->second->getDepartureTime() > time) {
-                //!!! we should rather go through the sorted list here and break if necessary
+            if (i->second->getDepartureTime() >= time) {
+                // we cannot go through a sorted list here, because the priority queue in the myVehicles container is not fully sorted
                 continue;
             }
             i->second->setRoutingSuccess(false);
@@ -365,7 +365,7 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
         PersonMap::iterator person = myPersons.begin();
         const SUMOTime personTime = person == myPersons.end() ? SUMOTime_MAX : person->first;
         // check whether it shall not yet be computed
-        if (vehicleTime > time && personTime > time) {
+        if (vehicleTime >= time && personTime >= time) {
             lastTime = MIN2(vehicleTime, personTime);
             break;
         }
