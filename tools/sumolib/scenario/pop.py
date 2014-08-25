@@ -130,14 +130,17 @@ class Scenario_RiLSA1(Scenario):
     self.netName = "RiLSA1.net.xml"
     net.build(self.netName)
     # build the demand model (streams)
-    self.demand = demandGenerator.Demand()
-    for f in flowsRiLSA1:
-      for rel in f[1]:
-        prob = rel[2]/100.
-        iprob = 1. - prob
-        self.demand.addStream(demandGenerator.Stream(None, 0, 3600, rel[1], f[0], rel[0], { prob:"lkw", iprob:"pkw"}))
     self.demandName = "routes.rou.xml"
-    self.demand.build(0, 3600, self.netName, self.demandName)
+    if demand==None:
+      self.demand = demandGenerator.Demand()
+      for f in flowsRiLSA1:
+        for rel in f[1]:
+          prob = rel[2]/100.
+          iprob = 1. - prob
+          self.demand.addStream(demandGenerator.Stream(None, 0, 3600, rel[1], f[0], rel[0], { prob:"lkw", iprob:"pkw"}))
+      self.demand.build(0, 3600, self.netName, self.demandName)
+    else:
+      self.demand = demand
 
 
 def getScenario(name, demand):
