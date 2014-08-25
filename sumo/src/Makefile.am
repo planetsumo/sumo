@@ -95,7 +95,7 @@ $(sumo_LDFLAGS) $(GDAL_LDFLAGS) $(X_LDFLAGS)
 endif
 
 
-SUBDIRS = foreign utils microsim router od2trips $(INTERNAL_DIRS) \
+SUBDIRS = foreign utils microsim router od2trips marouter $(INTERNAL_DIRS) \
 netbuild netwrite netgen netimport netload \
 polyconvert dfrouter duarouter jtrrouter activitygen tools \
 $(TRACI_DIRS) $(GUI_DIRS)
