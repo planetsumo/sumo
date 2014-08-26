@@ -3,6 +3,32 @@ import sumolib.net.generator.demand as demandGenerator
 from sumolib.net.generator.network import *
 
 
+def extrapolateDemand(stream, freq, probs, pivot=demandGenerator.PIVOT__PEAK, tBeg=0):
+  print freq
+  print probs
+  ret = demandGenerator.Demand()
+  if pivot==demandGenerator.PIVOT__PEAK:
+    mmax = 0
+    mpos = []
+    for i,p in enumerate(probs):
+      if p>mmax:
+        mpos = i
+        mmax = p
+    # !!! should be done
+    #if count(probs, p)>1:
+    #  raise "more than one maximum value"
+    #else:
+    #  pivot = mpos
+    pivot = mpos
+  t = tBeg
+  for i,p in enumerate(probs):
+    num = float(stream._numberModel) / probs[pivot] * p # ok, this works just if _numberModel is a number
+    print "%s %s" % (stream._numberModel, num)
+    ret.addStream(demandGenerator.Stream(stream.sid+"_"+str(i), t, t+freq, num, stream._departEdgeModel, stream._arrivalEdgeModel, stream._vTypeModel))
+    t = t + freq
+  return ret
+
+
 class Scenario:
   def __init__(self):
     self.net = None
@@ -14,25 +40,6 @@ class Scenario:
     
   
     
-  def extrapolateDemand(origDemand, freq, probs, pivot=demandGenerator.PIVOT__PEAK, tBeg=0):
-    ret = demandGenerator.Demand()
-    if pivot==Demand.PIVOT__PEAK:
-      mmax = 0
-      mpos = []
-      for i,p in iterate(probs):
-        if p>mmax:
-          mpos = i
-          mmax = p
-      if count(probs, p)>1:
-        raise "more than one maximum value"
-      else:
-        pivot = mpos
-    t = tBeg
-    self.demand = demandGenerator.Demand()
-    for i,p in iterate(probs):
-      for s in origDemand.streams:
-        num = s._numberModel / 100. / probs[pivot] * p
-        ret.addStream(Stream(None, t, t+freq, num, s._departEdgeModel, s._arrivalEdgeModel, s._vTypeModel))
 
   def addAdditionalFile(self, name):
     self.additional[name] = []
@@ -120,7 +127,7 @@ flowsRiLSA1 = [
 ]
 
 class Scenario_RiLSA1(Scenario):
-  def __init__(self):
+  def __init__(self, demand=None):
     Scenario.__init__(self)
     # set up network
     defaultEdge = Edge(numLanes=1, maxSpeed=13.89)
@@ -137,13 +144,13 @@ class Scenario_RiLSA1(Scenario):
         for rel in f[1]:
           prob = rel[2]/100.
           iprob = 1. - prob
-          self.demand.addStream(demandGenerator.Stream(None, 0, 3600, rel[1], f[0], rel[0], { prob:"lkw", iprob:"pkw"}))
+          self.demand.addStream(demandGenerator.Stream(f[0]+"__"+rel[0], 0, 3600, rel[1], f[0], rel[0], { prob:"lkw", iprob:"pkw"}))
       self.demand.build(0, 3600, self.netName, self.demandName)
     else:
       self.demand = demand
 
 
-def getScenario(name, demand):
+def getScenario(name, demand=None):
   if name=="RiLSA1":
     return Scenario_RiLSA1(demand)  
   elif name=="BasicCross":
