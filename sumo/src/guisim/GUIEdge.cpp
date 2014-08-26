@@ -73,8 +73,9 @@
 // included modules
 // ===========================================================================
 GUIEdge::GUIEdge(const std::string& id, int numericalID,
-                 const EdgeBasicFunction function, const std::string& streetName, const std::string& edgeType)
-    : MSEdge(id, numericalID, function, streetName, edgeType),
+                 const EdgeBasicFunction function, 
+                 const std::string& streetName, const std::string& edgeType, int priority)
+    : MSEdge(id, numericalID, function, streetName, edgeType, priority),
       GUIGlObject(GLO_EDGE, id) {}
 
 
@@ -237,7 +238,7 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
                 SUMOReal segmentOffset = 0; // offset at start of current segment
                 for (MESegment* segment = MSGlobals::gMesoNet->getSegmentForEdge(*this);
                         segment != 0; segment = segment->getNextSegment()) {
-                    const SUMOReal length = segment->getLength();
+                    const SUMOReal length = segment->getLength() * segment->getLengthGeometryFactor();
                     if (laneIndex < segment->numQueues()) {
                         // make a copy so we don't have to worry about synchronization
                         queue = segment->getQueue(laneIndex);
