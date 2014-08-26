@@ -113,7 +113,7 @@ ROLoader::ROLoader(OptionsCont& oc, const bool emptyDestinationsAllowed, const b
     myOptions(oc),
     myEmptyDestinationsAllowed(emptyDestinationsAllowed),
     myLogSteps(logSteps),
-    myLoaders(oc.exists("unsorted-input") && oc.getBool("unsorted-input") ? 0 : string2time(oc.getString("route-steps")))
+    myLoaders(oc.exists("unsorted-input") && oc.getBool("unsorted-input") ? 0 : DELTA_T)
 {}
 
 
@@ -178,8 +178,12 @@ ROLoader::openRoutes(RONet& net) {
     // check
     if (ok) {
         myLoaders.loadNext(string2time(myOptions.getString("begin")));
-        if (!MsgHandler::getErrorInstance()->wasInformed() && !net.furtherStored()) {
-            throw ProcessError("No route input specified or all routes were invalid.");
+        if (!net.furtherStored()) {
+            if (MsgHandler::getErrorInstance()->wasInformed()) {
+                throw ProcessError();
+            } else {
+                throw ProcessError("No route input specified or all routes were invalid.");
+            }
         }
         // skip routes prior to the begin time
         if (!myOptions.getBool("unsorted-input")) {
@@ -197,7 +201,7 @@ ROLoader::processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime
     // skip routes that begin before the simulation's begin
     // loop till the end
     const SUMOTime firstStep = myLoaders.getFirstLoadTime();
-    SUMOTime time = firstStep;
+    SUMOTime time = MIN2(firstStep, end);
     while (time <= end) {
         writeStats(time, start, absNo, endGiven);
         myLoaders.loadNext(time);

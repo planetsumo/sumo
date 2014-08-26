@@ -77,6 +77,9 @@ private:
     /// the first time step for which vehicles were loaded
     SUMOTime myFirstLoadTime;
 
+    /// the time step up to which vehicles were loaded
+    SUMOTime myCurrentLoadTime;
+
     /// the number of routes to read in forward
     SUMOTime myInAdvanceStepNo;
 
