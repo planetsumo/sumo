@@ -73,6 +73,11 @@ public:
         return myFirstLoadTime;
     }
 
+    /// returns whether loading is completed
+    bool haveAllLoaded() const {
+        return myAllLoaded;
+    }
+
 private:
     /// the first time step for which vehicles were loaded
     SUMOTime myFirstLoadTime;

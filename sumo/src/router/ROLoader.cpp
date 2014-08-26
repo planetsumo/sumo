@@ -201,6 +201,7 @@ ROLoader::processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime
     // skip routes that begin before the simulation's begin
     // loop till the end
     const SUMOTime firstStep = myLoaders.getFirstLoadTime();
+    SUMOTime lastStep = firstStep;
     SUMOTime time = MIN2(firstStep, end);
     while (time <= end) {
         writeStats(time, start, absNo, endGiven);
@@ -208,8 +209,8 @@ ROLoader::processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime
         if (!net.furtherStored() || MsgHandler::getErrorInstance()->wasInformed()) {
             break;
         }
-        net.saveAndRemoveRoutesUntil(myOptions, router, time);
-        if (MsgHandler::getErrorInstance()->wasInformed()) {
+        lastStep = net.saveAndRemoveRoutesUntil(myOptions, router, time);
+        if ((!net.furtherStored() && myLoaders.haveAllLoaded()) || MsgHandler::getErrorInstance()->wasInformed()) {
             break;
         }
         if (time < end && time + increment > end) {
@@ -219,7 +220,7 @@ ROLoader::processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime
         }
     }
     if (myLogSteps) {
-        WRITE_MESSAGE("Routes found between time steps " + time2string(firstStep) + " and " + time2string(time) + ".");
+        WRITE_MESSAGE("Routes found between time steps " + time2string(firstStep) + " and " + time2string(lastStep) + ".");
     }
 }
 
@@ -316,9 +317,9 @@ ROLoader::writeStats(SUMOTime time, SUMOTime start, int absNo, bool endGiven) {
     if (myLogSteps) {
         if (endGiven) {
             const SUMOReal perc = (SUMOReal)(time - start) / (SUMOReal) absNo;
-            std::cout << "Reading time step: " + time2string(time) + "  (" + time2string(time - start) + "/" + time2string(absNo) + " = " + toString(perc * 100) + "% done)       \r";
+            std::cout << "Reading up to time step: " + time2string(time) + "  (" + time2string(time - start) + "/" + time2string(absNo) + " = " + toString(perc * 100) + "% done)       \r";
         } else {
-            std::cout << "Reading time step: " + time2string(time) + "\n";
+            std::cout << "Reading up to time step: " + time2string(time) + "\r";
         }
     }
 }
