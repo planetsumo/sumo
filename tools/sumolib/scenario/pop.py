@@ -1,11 +1,22 @@
 import sumolib.net.generator.cross as netGenerator
 import sumolib.net.generator.demand as demandGenerator
 from sumolib.net.generator.network import *
+import sumolib
+import os
 
+
+SCENARIO_PATH = "D:\\projects\\x_EU_COLOMBO_318622\\svn_smartSVN\\trunk\\software\\TLSEvaluationSystem\\scenarios\\"
+
+
+def fileNeedsRebuild(filePath, app):
+  if not os.path.exists(filePath):
+    return True
+  genAppPath = sumolib.checkBinary(app)
+  tf = os.path.getmtime(filePath)
+  ta = os.path.getmtime(genAppPath)
+  return tf<ta 
 
 def extrapolateDemand(stream, freq, probs, pivot=demandGenerator.PIVOT__PEAK, tBeg=0):
-  print freq
-  print probs
   ret = demandGenerator.Demand()
   if pivot==demandGenerator.PIVOT__PEAK:
     mmax = 0
@@ -22,24 +33,23 @@ def extrapolateDemand(stream, freq, probs, pivot=demandGenerator.PIVOT__PEAK, tB
     pivot = mpos
   t = tBeg
   for i,p in enumerate(probs):
-    num = float(stream._numberModel) / probs[pivot] * p # ok, this works just if _numberModel is a number
-    print "%s %s" % (stream._numberModel, num)
+    num = float(stream._numberModel) * p  / probs[pivot]# ok, this works just if _numberModel is a number
     ret.addStream(demandGenerator.Stream(stream.sid+"_"+str(i), t, t+freq, num, stream._departEdgeModel, stream._arrivalEdgeModel, stream._vTypeModel))
     t = t + freq
   return ret
 
 
 class Scenario:
-  def __init__(self):
+  def __init__(self, name):
+    self.name = name
     self.net = None
     self.netName = None
     self.demand = None
     self.demandName = None
     self.additional = {}
     self.conn = None
-    
-  
-    
+    try: os.makedirs(os.path.join(SCENARIO_PATH, self.name))
+    except: pass
 
   def addAdditionalFile(self, name):
     self.additional[name] = []
@@ -68,36 +78,44 @@ class Scenario:
     fdo.write("</c>\n")
     fdo.close()
       
-    
-      
   def getNet(self):
     if self.net!=None:
       return self.net        
     if self.netName!=None:
-      return sumolib.net.readNet(self.netName)
-    raise "network was not build"   
+      self.net = sumolib.net.readNet(self.netName)
+      return self.net
+    raise "network is unknown"   
+
+  def fullPath(self, fileName):
+    return os.path.join(SCENARIO_PATH, self.name, fileName)
 
 
         
 class Scenario_BasicCross(Scenario):
-  def __init__(self, demand=None):
-    Scenario.__init__(self)
+  def __init__(self, withDefaultDemand=True):
+    Scenario.__init__(self, "BasicCross")
+    self.netName = self.fullPath("net.net.xml")
+    self.demandName = self.fullPath("routes.rou.xml")
     # network
-    defaultEdge = Edge(numLanes=1, maxSpeed=13.89)
-    defaultEdge.addSplit(100, 1)
-    defaultEdge.lanes = [Lane(dirs="rs"), Lane(dirs="l")]
-    net = netGenerator.cross(None, defaultEdge)
-    self.netName = "net.net.xml"
-    net.build(self.netName) # not nice, the network name should be given/returned
+    if fileNeedsRebuild(self.netName, "netconvert"):
+      print "Network in '%s' needs to be rebuild" % self.netName
+      defaultEdge = Edge(numLanes=1, maxSpeed=13.89)
+      defaultEdge.addSplit(100, 1)
+      defaultEdge.lanes = [Lane(dirs="rs"), Lane(dirs="l")]
+      netGen = netGenerator.cross(None, defaultEdge)
+      netGen.build(self.netName) # not nice, the network name should be given/returned
     # demand
-    self.demandName = "routes.rou.xml"
-    if demand==None:
+    if withDefaultDemand:
+      print "Demand in '%s' needs to be rebuild" % self.demandName
       self.demand = demandGenerator.Demand()
       self.demand.addStream(demandGenerator.Stream(None, 0, 3600, 1000, "2/1_to_1/1", "1/1_to_0/1", { .2:"hdv", .8:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
-      self.demand.build(0, 3600, self.netName, self.demandName)
-    else:
-      self.demand = demand
-        
+      if fileNeedsRebuild(self.demandName, "duarouter"):
+        self.demand.build(0, 3600, self.netName, self.demandName)
+
+
+
+
+       
       
 flowsRiLSA1 = [
     [ "1/2_to_1/1", [
@@ -127,34 +145,34 @@ flowsRiLSA1 = [
 ]
 
 class Scenario_RiLSA1(Scenario):
-  def __init__(self, demand=None):
-    Scenario.__init__(self)
-    # set up network
-    defaultEdge = Edge(numLanes=1, maxSpeed=13.89)
-    defaultEdge.addSplit(100, 1)
-    defaultEdge.lanes = [Lane(dirs="rs"), Lane(dirs="l")]
-    net = netGenerator.cross(None, defaultEdge)
-    self.netName = "RiLSA1.net.xml"
-    net.build(self.netName)
+  def __init__(self, withDefaultDemand=True):
+    Scenario.__init__(self, "RiLSA1")
+    self.netName = self.fullPath("net.net.xml")
+    self.demandName = self.fullPath("routes.rou.xml")
+    # network
+    if fileNeedsRebuild(self.netName, "netconvert"):
+      defaultEdge = Edge(numLanes=1, maxSpeed=13.89)
+      defaultEdge.addSplit(100, 1)
+      defaultEdge.lanes = [Lane(dirs="rs"), Lane(dirs="l")]
+      net = netGenerator.cross(None, defaultEdge)
+      net.build(self.netName)
     # build the demand model (streams)
-    self.demandName = "routes.rou.xml"
-    if demand==None:
+    if withDefaultDemand:
       self.demand = demandGenerator.Demand()
       for f in flowsRiLSA1:
         for rel in f[1]:
           prob = rel[2]/100.
           iprob = 1. - prob
           self.demand.addStream(demandGenerator.Stream(f[0]+"__"+rel[0], 0, 3600, rel[1], f[0], rel[0], { prob:"lkw", iprob:"pkw"}))
-      self.demand.build(0, 3600, self.netName, self.demandName)
-    else:
-      self.demand = demand
+      if fileNeedsRebuild(self.demandName, "duarouter"):
+        self.demand.build(0, 3600, self.netName, self.demandName)
 
 
-def getScenario(name, demand=None):
+def getScenario(name, withDefaultDemand=True):
   if name=="RiLSA1":
-    return Scenario_RiLSA1(demand)  
+    return Scenario_RiLSA1(withDefaultDemand)  
   elif name=="BasicCross":
-    return Scenario_BasicCross(demand)  
+    return Scenario_BasicCross(withDefaultDemand)  
   raise "unknown scenario '%s'" % name
 
     

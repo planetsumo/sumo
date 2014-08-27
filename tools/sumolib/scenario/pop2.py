@@ -31,6 +31,17 @@ RWS="""
 24;0.7552;0.9392;1.0983;1.118;1.3643;1.5282;2.0705
 """
 
+def getRWScurves():
+  RWScurves = [[]]*3
+  for l in RWS.split("\n"):
+    l = l.strip().split(";")
+    if len(l)<2:
+      continue
+    RWScurves[0].append(float(l[1]))
+    RWScurves[1].append(float(l[2]))
+    RWScurves[2].append(float(l[3]))
+  return RWScurves
+
 def merge(defaultParams, setParams):
   ret = {}
   for p in defaultParams:
@@ -49,6 +60,8 @@ class ScenarioSet:
     raise "virtual ScenarioSet/getAverageDuration"
   def iterate(self):
     raise "virtual ScenarioSet/iterate"
+  def getRunsMatrix(self):
+    raise "virtual ScenarioSet/getRunsMatrix"
   def getInt(self, name):
     return int(self.params[name])
 
@@ -73,17 +86,28 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
         for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
             if f1==0 and f2==0:
               continue
-            s = getScenario("BasicCross", demandGenerator.Demand())
             print "Computing for %s<->%s" % (f1, f2)
-            #buildDemand(simSteps, pWE, pEW, pNS, pSN)
-            s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "2/1_to_1/1", "1/1_to_0/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
-            s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "0/1_to_1/1", "1/1_to_2/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
-            s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/2_to_1/1", "1/1_to_1/0", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
-            s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/0_to_1/1", "1/1_to_1/2", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
-            s.demandName = "routes.rou.xml"
-            s.demand.build(0, 3600, s.netName, s.demandName)
+            s = getScenario("BasicCross")
+            s.demandName = s.fullPath("routes(%s-%s).rou.xml" % (f1, f2))
+            if fileNeedsRebuild(s.demandName, "duarouter"):
+              s.demand = demandGenerator.Demand()
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "2/1_to_1/1", "1/1_to_0/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "0/1_to_1/1", "1/1_to_2/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/2_to_1/1", "1/1_to_1/0", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/0_to_1/1", "1/1_to_1/2", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.build(0, 3600, s.netName, s.demandName)
             desc = {"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)}
             yield s, desc
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+      ret.append([])
+      ranges[0].append(f1)
+      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+        ret[-1].append({"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)})
+        ranges[1].append(f2)
+    return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
         
@@ -91,7 +115,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
 class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
   def __init__(self, params):
     ScenarioSet.__init__(self, "RiLSA1LoadCurves", merge(
-      {"f1from":"0", "f1to":"2400", "f1step":"400","f2from":"0", "f2to":"2400", "f2step":"400"},
+      {},
       params))
   def getNumRuns(self):
     return 3*3*3*3
@@ -101,31 +125,42 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
   """
   def iterateScenarios(self):
     desc = {"name":"RiLSA1LoadCurves"}
-    RWScurves = [[]]*3
-    for l in RWS.split("\n"):
-      l = l.strip().split(";")
-      if len(l)<2:
-        continue
-      RWScurves[0].append(float(l[1])/100.)
-      RWScurves[1].append(float(l[2])/100.)
-      RWScurves[2].append(float(l[3])/100.)
-      
+    RWScurves = getRWScurves()
     for iWE,cWE in enumerate(RWScurves):
       for iNS,cNS in enumerate(RWScurves):
         for iEW,cEW in enumerate(RWScurves):
           for iSN,cSN in enumerate(RWScurves):
-            s = getScenario("RiLSA1")
             print "Computing for %s %s %s %s" % (iWE, iNS, iEW, iSN)
-            nStreams = []
-            for j in range(0, 3):
-              nStreams.extend(extrapolateDemand(s.demand.streams[j+0*3], 3600, cWE).streams) 
-              nStreams.extend(extrapolateDemand(s.demand.streams[j+1*3], 3600, cNS).streams) 
-              nStreams.extend(extrapolateDemand(s.demand.streams[j+2*3], 3600, cEW).streams) 
-              nStreams.extend(extrapolateDemand(s.demand.streams[j+3*3], 3600, cSN).streams)
-            s.demand.streams = nStreams 
-            s.demand.build(0, 86400, s.netName, s.demandName)
+            s = getScenario("RiLSA1")
+            s.demandName = s.fullPath("routes(%s-%s-%s-%s).rou.xml" % (iWE, iNS, iEW, iSN))
+            if fileNeedsRebuild(s.demandName, "duarouter"):
+              nStreams = []
+              for j in range(0, 3):
+                nStreams.extend(extrapolateDemand(s.demand.streams[j+0*3], 3600, cWE).streams) 
+                nStreams.extend(extrapolateDemand(s.demand.streams[j+1*3], 3600, cNS).streams) 
+                nStreams.extend(extrapolateDemand(s.demand.streams[j+2*3], 3600, cEW).streams) 
+                nStreams.extend(extrapolateDemand(s.demand.streams[j+3*3], 3600, cSN).streams)
+              s.demand.streams = nStreams 
+              s.demand.build(0, 86400, s.netName, s.demandName)
             desc = {"scenario":"RiLSA1LoadCurves", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
             yield s, desc
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    RWScurves = getRWScurves()
+    i = 0
+    for iWE,cWE in enumerate(RWScurves):
+      for iNS,cNS in enumerate(RWScurves):
+        ret.append([])
+        ranges[0].append(i)
+        i = i + 1
+        j = 0
+        for iEW,cEW in enumerate(RWScurves):
+          for iSN,cSN in enumerate(RWScurves):
+            ret[-1].append({"iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN), "scenarion":"RiLSA1LoadCurves"})
+            ranges[1].append(j)
+            j = j + 1
+    return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!        
       
