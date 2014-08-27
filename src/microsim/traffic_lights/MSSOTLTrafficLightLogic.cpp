@@ -206,6 +206,7 @@ MSSOTLTrafficLightLogic::resetCTS(size_t phaseStep) {
 	map<size_t, unsigned int>::iterator phaseIterator = targetPhasesCTS.find(phaseStep);
 	if (phaseIterator != targetPhasesCTS.end()) {
 		phaseIterator->second = 0;
+		lastCheckForTargetPhase[phaseStep] = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
 	}
 }
 
