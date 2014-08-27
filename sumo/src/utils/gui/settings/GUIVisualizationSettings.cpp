@@ -277,6 +277,91 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     personColorer.addScheme(scheme);
     personColorer.addScheme(GUIColorScheme("by angle", RGBColor::YELLOW, "", true));
 
+    junctionColorer.addScheme(GUIColorScheme("uniform", RGBColor::BLACK, "", true));
+    scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
+    scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
+    junctionColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by type", RGBColor::GREEN, "traffic_light", true);
+    scheme.addColor(RGBColor(0, 128, 0), 1, "traffic_light_unregulated");
+    scheme.addColor(RGBColor::YELLOW, 2, "priority");
+    scheme.addColor(RGBColor::RED, 3, "priority_stop");
+    scheme.addColor(RGBColor::BLUE, 4, "right_before_left");
+    scheme.addColor(RGBColor::CYAN, 5, "allway_stop");
+    scheme.addColor(RGBColor::GREY, 6, "district");
+    scheme.addColor(RGBColor::MAGENTA, 7, "unregulated");
+    scheme.addColor(RGBColor::BLACK, 8, "dead_end");
+    junctionColorer.addScheme(scheme);
+
+
+    /// add lane scaling schemes
+    {
+        GUIScaleScheme scheme = GUIScaleScheme("default", 1, "uniform", true);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by selection (lane-/streetwise)", 0.5, "unselected", true);
+        scheme.addColor(5, 1, "selected");
+        laneScaler.addScheme(scheme);
+        // ... traffic states ...
+        scheme = GUIScaleScheme("by allowed speed (lanewise)", 0);
+        scheme.addColor(10, (SUMOReal)(150.0 / 3.6));
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by current occupancy (lanewise, brutto)", 0);
+        scheme.addColor(10, (SUMOReal)0.95);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by current occupancy (lanewise, netto)", 0);
+        scheme.addColor(10, (SUMOReal)0.95);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by first vehicle waiting time (lanewise)", 0);
+        scheme.addColor(10, (SUMOReal)300);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by lane number (streetwise)", 1);
+        scheme.addColor(10, (SUMOReal)5);
+        laneScaler.addScheme(scheme);
+        // ... emissions ...
+        scheme = GUIScaleScheme("by CO2 emissions", 0);
+        scheme.addColor(10, (SUMOReal)(10. / 7.5 / 5.));
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by CO emissions", 0);
+        scheme.addColor(10, (SUMOReal)(0.05 / 7.5 / 2.));
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by PMx emissions", 0);
+        scheme.addColor(10, (SUMOReal)(.005 / 7.5 / 5.));
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by NOx emissions", 0);
+        scheme.addColor(10, (SUMOReal)(.125 / 7.5 / 5.));
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by HC emissions", 0);
+        scheme.addColor(10, (SUMOReal)(.02 / 7.5 / 4.));
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by fuel consumption", 0);
+        scheme.addColor(10, (SUMOReal)(.005 / 7.5 * 100.));
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by noise emissions (Harmonoise)", 0);
+        scheme.addColor(10, (SUMOReal)100);
+        laneScaler.addScheme(scheme);
+        // ... weights (experimental) ...
+        scheme = GUIScaleScheme("by global travel time", 0);
+        scheme.addColor(10, (SUMOReal)100);
+        scheme.setAllowsNegativeValues(true);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by global speed percentage", 0);
+        scheme.addColor(10, (SUMOReal)100);
+        scheme.setAllowsNegativeValues(true);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by given length/geometrical length", 0);
+        scheme.addColor(10, (SUMOReal)10.0);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by loaded weight", 0);
+        scheme.addColor(-1000, (SUMOReal)-1000);
+        scheme.addColor(1000, (SUMOReal)1000);
+        scheme.setAllowsNegativeValues(true);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by priority", 1);
+        scheme.addColor(0.5, (SUMOReal)-20);
+        scheme.addColor(5, (SUMOReal)20);
+        scheme.setAllowsNegativeValues(true);
+        laneScaler.addScheme(scheme);
+    }
+
 
 #ifdef HAVE_INTERNAL
     /// add edge coloring schemes
@@ -305,20 +390,6 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     edgeColorer.addScheme(scheme);
 #endif
 
-    junctionColorer.addScheme(GUIColorScheme("uniform", RGBColor::BLACK, "", true));
-    scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
-    scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
-    junctionColorer.addScheme(scheme);
-    scheme = GUIColorScheme("by type", RGBColor::GREEN, "traffic_light", true);
-    scheme.addColor(RGBColor(0, 128, 0), 1, "traffic_light_unregulated");
-    scheme.addColor(RGBColor::YELLOW, 2, "priority");
-    scheme.addColor(RGBColor::RED, 3, "priority_stop");
-    scheme.addColor(RGBColor::BLUE, 4, "right_before_left");
-    scheme.addColor(RGBColor::CYAN, 5, "allway_stop");
-    scheme.addColor(RGBColor::GREY, 6, "district");
-    scheme.addColor(RGBColor::MAGENTA, 7, "unregulated");
-    scheme.addColor(RGBColor::BLACK, 8, "dead_end");
-    junctionColorer.addScheme(scheme);
 }
 
 
@@ -333,6 +404,17 @@ GUIVisualizationSettings::getLaneEdgeMode() const {
 }
 
 
+size_t
+GUIVisualizationSettings::getLaneEdgeScaleMode() const {
+#ifdef HAVE_INTERNAL
+    if (UseMesoSim) {
+        return edgeScaler.getActive();
+    }
+#endif
+    return laneScaler.getActive();
+}
+
+
 GUIColorScheme&
 GUIVisualizationSettings::getLaneEdgeScheme() {
 #ifdef HAVE_INTERNAL
@@ -344,6 +426,16 @@ GUIVisualizationSettings::getLaneEdgeScheme() {
 }
 
 
+GUIScaleScheme&
+GUIVisualizationSettings::getLaneEdgeScaleScheme() {
+#ifdef HAVE_INTERNAL
+    if (UseMesoSim) {
+        return edgeScaler.getScheme();
+    }
+#endif
+    return laneScaler.getScheme();
+}
+
 void
 GUIVisualizationSettings::save(OutputDevice& dev) const {
     dev << "<viewsettings>\n";
@@ -353,6 +445,7 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
         << "                    showGrid=\"" << showGrid
         << "\" gridXSize=\"" << gridXSize << "\" gridYSize=\"" << gridYSize << "\"/>\n";
     dev << "        <edges laneEdgeMode=\"" << getLaneEdgeMode()
+        << "\" scaleMode=\"" << getLaneEdgeScaleMode()
         << "\" laneShowBorders=\"" << laneShowBorders
         << "\" showLinkDecals=\"" << showLinkDecals
         << "\" showRails=\"" << showRails
@@ -362,8 +455,10 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
         << "               " << cwaEdgeName.print("cwaEdgeName") << "\n"
         << "               " << streetName.print("streetName") << ">\n";
     laneColorer.save(dev);
+    laneScaler.save(dev);
 #ifdef HAVE_INTERNAL
     edgeColorer.save(dev);
+    edgeScaler.save(dev);
 #endif
     dev << "        </edges>\n";
 
@@ -439,8 +534,14 @@ GUIVisualizationSettings::operator==(const GUIVisualizationSettings& v2) {
     if (!(edgeColorer == v2.edgeColorer)) {
         return false;
     }
+    if (!(edgeScaler == v2.edgeScaler)) {
+        return false;
+    }
 #endif
     if (!(laneColorer == v2.laneColorer)) {
+        return false;
+    }
+    if (!(laneScaler == v2.laneScaler)) {
         return false;
     }
     if (laneShowBorders != v2.laneShowBorders) {
