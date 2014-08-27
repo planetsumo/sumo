@@ -66,7 +66,7 @@ SUMORouteLoader::loadUntil(SUMOTime time) {
     }
     // read vehicles until specified time or the period to read vehicles
     //  until is reached
-    while (myHandler->getLastDepart() < time) {
+    while (myHandler->getLastDepart() <= time) {
         if (!myParser->parseNext()) {
             // no data available anymore
             myMoreAvailable = false;
@@ -80,6 +80,12 @@ SUMORouteLoader::loadUntil(SUMOTime time) {
 bool
 SUMORouteLoader::moreAvailable() const {
     return myMoreAvailable;
+}
+
+
+SUMOTime
+SUMORouteLoader::getFirstDepart() const {
+    return myHandler->getFirstDepart();
 }
 
 

@@ -70,6 +70,11 @@ public:
     static bool checkStopPos(SUMOReal& startPos, SUMOReal& endPos, const SUMOReal laneLength,
                              const SUMOReal minLength, const bool friendlyPos);
 
+    /// @brief returns the first departure time that was ever read
+    SUMOTime getFirstDepart() const {
+        return myFirstDepart;
+    }
+
 protected:
     /// @name inherited from GenericSAXHandler
     //@{
@@ -174,6 +179,9 @@ protected:
 
     /// @brief The default value for flow ends
     SUMOTime myEndDefault;
+
+    /// @brief the first read departure time
+    SUMOTime myFirstDepart;
 
 private:
     /// @brief Invalidated copy constructor

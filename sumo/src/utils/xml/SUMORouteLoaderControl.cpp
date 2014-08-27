@@ -74,7 +74,7 @@ SUMORouteLoaderControl::loadNext(SUMOTime step) {
     if (myAllLoaded) {
         return;
     }
-    if (myCurrentLoadTime >= step) {
+    if (myCurrentLoadTime > step) {
         return;
     }
     const SUMOTime loadMaxTime = myLoadAll ? SUMOTime_MAX : MAX2(myCurrentLoadTime + myInAdvanceStepNo, step);
@@ -83,9 +83,11 @@ SUMORouteLoaderControl::loadNext(SUMOTime step) {
     bool furtherAvailable = false;
     for (std::vector<SUMORouteLoader*>::iterator i = myRouteLoaders.begin(); i != myRouteLoaders.end(); ++i) {
         myCurrentLoadTime = MIN2(myCurrentLoadTime, (*i)->loadUntil(loadMaxTime));
+        if ((*i)->getFirstDepart() != -1) {
+            myFirstLoadTime = MIN2(myFirstLoadTime, (*i)->getFirstDepart());
+        }
         furtherAvailable |= (*i)->moreAvailable();
     }
-    myFirstLoadTime = MIN2(myFirstLoadTime, myCurrentLoadTime);
     myAllLoaded = !furtherAvailable;
 }
 

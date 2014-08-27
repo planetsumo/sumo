@@ -65,7 +65,7 @@ public:
     /// add another loader
     void add(SUMORouteLoader* loader);
 
-    /// loads the next routes
+    /// loads the next routes up to and including the given time step
     void loadNext(SUMOTime step);
 
     /// returns the timestamp of the first loaded vehicle or flow
