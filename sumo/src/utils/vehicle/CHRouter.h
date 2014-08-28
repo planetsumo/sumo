@@ -777,7 +777,7 @@ private:
         const long duration = SysUtils::getCurrentMillis() - startMillis;
         WRITE_MESSAGE("Created " + toString(myShortcuts.size()) + " shortcuts.");
         WRITE_MESSAGE("Recomputed priority " + toString(myUpdateCount) + " times.");
-        MsgHandler::getMessageInstance()->endProcessMsg("done (" + toString(duration) + " ms).");
+        MsgHandler::getMessageInstance()->endProcessMsg("done (" + toString(duration) + "ms).");
         PROGRESS_DONE_MESSAGE();
         // declare new validUntil (prevent overflow)
         if (myWeightPeriod < std::numeric_limits<int>::max()) {

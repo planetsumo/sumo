@@ -61,15 +61,18 @@ public:
         }
         
         virtual ~Pool() {
+            clear();
+        }
+
+        void clear() {
             for (std::vector<FXWorkerThread*>::iterator it = myWorkers.begin(); it != myWorkers.end(); ++it) {
                 delete *it;
             }
+            myWorkers.clear();
         }
 
         void addWorker(FXWorkerThread* const w) {
-            if (myWorkers.empty()) {
-                std::cout << "created pool at " << SysUtils::getCurrentMillis() << std::endl;
-            }
+//            if (myWorkers.empty()) std::cout << "created pool at " << SysUtils::getCurrentMillis() << std::endl;
             myWorkers.push_back(w);
         }
         
@@ -97,14 +100,12 @@ public:
             return result;
         }
 
-        void waitAllAndClear() {
+        void waitAll() {
             myMutex.lock();
             while (myNumFinished < myRunningIndex) {
                 myCondition.wait(myMutex);
             }
-            if (myRunningIndex > 0) {
-                std::cout << "finished waiting for " << myRunningIndex << " tasks at " << SysUtils::getCurrentMillis() << std::endl;
-            }
+//            if (myRunningIndex > 0) std::cout << "finished waiting for " << myRunningIndex << " tasks at " << SysUtils::getCurrentMillis() << std::endl;
             for (std::list<Task*>::iterator it = myFinishedTasks.begin(); it != myFinishedTasks.end(); ++it) {
                 delete *it;
             }
@@ -114,8 +115,8 @@ public:
             myMutex.unlock();
         }
         
-        int getPending() const {
-            return myRunningIndex - myNumFinished;
+        bool isFull() const {
+            return myRunningIndex - myNumFinished >= size();
         }
         
         int size() const {
@@ -172,10 +173,10 @@ public:
             myMutex.unlock();
             t->run(this);
             myCounter++;
-            if (myCounter % 1000 == 0) std::cout << (size_t)this << " ran " << myCounter << " tasks " << std::endl;
+//            if (myCounter % 1000 == 0) std::cout << (size_t)this << " ran " << myCounter << " tasks " << std::endl;
             myPool.addFinished(t);
         }
-        std::cout << "ran " << myCounter << " tasks " << std::endl;
+//        std::cout << "ran " << myCounter << " tasks " << std::endl;
         return 0;
     }
     

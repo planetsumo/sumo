@@ -163,6 +163,9 @@ private:
     /// @brief A shortcut for the Option "vehroute-output.last-route"
     static bool myLastRouteOnly;
 
+    /// @brief A shortcut for the Option "vehroute-output.dua"
+    static bool myDUAStyle;
+
     /// @brief A shortcut for the Option "vehroute-output.sorted"
     static bool mySorted;
 

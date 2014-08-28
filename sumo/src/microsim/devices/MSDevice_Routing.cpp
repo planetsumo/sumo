@@ -281,7 +281,7 @@ MSDevice_Routing::adaptEdgeEfforts(SUMOTime currentTime) {
 void
 MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool onInit) {
 #ifdef HAVE_FOX
-    const bool needThread = (myRouter == 0 && myThreadPool.getPending() + 1 > myThreadPool.size());
+    const bool needThread = (myRouter == 0 && myThreadPool.isFull());
 #else
     const bool needThread = true;
 #endif
@@ -314,7 +314,6 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
                     MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, &MSEdge::getMinimumTravelTime);
             }
         } else if (routingAlgorithm == "CH") {
-            const SUMOTime begin = string2time(oc.getString("begin"));
             const SUMOTime weightPeriod = (oc.isSet("weight-files") ?
                                            string2time(oc.getString("weight-period")) :
                                            std::numeric_limits<int>::max());
@@ -358,6 +357,16 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
 
 void
 MSDevice_Routing::cleanup() {
+#ifdef HAVE_FOX
+    if (myThreadPool.size() > 0) {
+        // we cannot wait for the static destructor to do the cleanup
+        // because the output devices are gone by then
+        myThreadPool.clear();
+        // router deletion is done in thread destructor
+        myRouter = 0;
+        return;
+    }
+#endif
     delete myRouter;
     myRouter = 0;
 }
@@ -367,7 +376,7 @@ MSDevice_Routing::cleanup() {
 void
 MSDevice_Routing::waitForAll() {
     if (myThreadPool.size() > 0) {
-        myThreadPool.waitAllAndClear();
+        myThreadPool.waitAll();
     }
 }
 
@@ -377,7 +386,7 @@ MSDevice_Routing::waitForAll() {
 // ---------------------------------------------------------------------------
 void
 MSDevice_Routing::RoutingTask::run(FXWorkerThread* context) {
-    myVehicle.reroute(myTime, *((WorkerThread*)context)->myRouter, myOnInit);
+    myVehicle.reroute(myTime, static_cast<WorkerThread*>(context)->getRouter(), myOnInit);
     if (myOnInit) {
         const MSEdge* source = MSEdge::dictionary(myVehicle.getParameter().fromTaz + "-source");
         const MSEdge* dest = MSEdge::dictionary(myVehicle.getParameter().toTaz + "-sink");

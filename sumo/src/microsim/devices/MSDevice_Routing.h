@@ -147,6 +147,14 @@ private:
         WorkerThread(FXWorkerThread::Pool& pool,
                      SUMOAbstractRouter<MSEdge, SUMOVehicle>* router)
         : FXWorkerThread(pool), myRouter(router) {}
+        SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouter() const {
+            return *myRouter;
+        }
+        virtual ~WorkerThread() {
+            stop();
+            delete myRouter;
+        }
+    private:
         SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
     };
 

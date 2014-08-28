@@ -342,7 +342,7 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
 #ifdef HAVE_FOX
             // add thread if necessary
             const int numThreads = (int)myThreadPool.size();
-            if (numThreads < maxNumThreads && myThreadPool.getPending() + 1 > numThreads) {
+            if (numThreads < maxNumThreads && myThreadPool.isFull()) {
                 new WorkerThread(myThreadPool, numThreads == 0 ? &router : router.clone());
             }
             // add task
@@ -354,7 +354,7 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
             i->second->setRoutingSuccess(computeRoute(router, i->second, removeLoops, myErrorHandler));
         }
 #ifdef HAVE_FOX
-        myThreadPool.waitAllAndClear();
+        myThreadPool.waitAll();
 #endif
     }
     // write all vehicles (and additional structures)

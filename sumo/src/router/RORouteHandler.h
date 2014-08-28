@@ -184,9 +184,6 @@ protected:
     /// @brief The currently parsed route alternatives
     RORouteDef* myCurrentAlternatives;
 
-    /// @brief The currently parsed route costs
-    SUMOReal myCurrentCosts;
-
 private:
     /// @brief Invalidated copy constructor
     RORouteHandler(const RORouteHandler& s);

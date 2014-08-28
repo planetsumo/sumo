@@ -321,6 +321,10 @@ MSRouteHandler::openRoute(const SUMOSAXAttributes& attrs) {
     }
     myActiveRouteProbability = attrs.getOpt<SUMOReal>(SUMO_ATTR_PROB, myActiveRouteID.c_str(), ok, DEFAULT_VEH_PROB);
     myActiveRouteColor = attrs.hasAttribute(SUMO_ATTR_COLOR) ? new RGBColor(attrs.get<RGBColor>(SUMO_ATTR_COLOR, myActiveRouteID.c_str(), ok)) : 0;
+    myCurrentCosts = attrs.getOpt<SUMOReal>(SUMO_ATTR_COST, myActiveRouteID.c_str(), ok, -1);
+    if (ok && myCurrentCosts != -1 && myCurrentCosts < 0) {
+        WRITE_ERROR("Invalid cost for route '" + myActiveRouteID + "'.");
+    }
 }
 
 
@@ -376,6 +380,7 @@ MSRouteHandler::closeRoute(const bool /* mayBeDisconnected */) {
     MSRoute* route = new MSRoute(myActiveRouteID, myActiveRoute,
                                  myVehicleParameter == 0 || myVehicleParameter->repetitionNumber >= 1,
                                  myActiveRouteColor, myActiveRouteStops);
+    route->setCosts(myCurrentCosts);
     myActiveRoute.clear();
     if (!MSRoute::dictionary(myActiveRouteID, route)) {
         delete route;

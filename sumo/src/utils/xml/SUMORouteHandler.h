@@ -159,11 +159,14 @@ protected:
     /// @brief The id of the route the current route references to
     std::string myActiveRouteRefID;
 
-    /// @brief The id of the current route
+    /// @brief The probability of the current route
     SUMOReal myActiveRouteProbability;
 
     /// @brief The currently parsed route's color
     const RGBColor* myActiveRouteColor;
+
+    /// @brief The currently parsed route costs
+    SUMOReal myCurrentCosts;
 
     /// @brief List of the stops on the parsed route
     std::vector<SUMOVehicleParameter::Stop> myActiveRouteStops;
