@@ -215,6 +215,8 @@ public:
 
     virtual SUMOReal getChosenSpeedFactor() const = 0;
 
+    virtual void setChosenSpeedFactor(const SUMOReal factor) = 0;
+
     virtual SUMOTime getWaitingTime() const = 0;
 
     /// @brief Returns this vehicles impatience
