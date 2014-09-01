@@ -80,6 +80,11 @@ struct PedestrianTrip {
         speed(_speed),
         departTime(_departTime)
     {}
+    
+    // exists just for debugging purposes
+    std::string getID() const {
+        return from->getID() + ":" + to->getID() + ":" + toString(departTime);
+    }
 
     const E* from;
     const E* to;
