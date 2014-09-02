@@ -271,7 +271,11 @@ MSDevice_Routing::adaptEdgeEfforts(SUMOTime currentTime) {
     const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
     for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
         const int id = (*i)->getNumericalID();
-        myEdgeEfforts[id] = myEdgeEfforts[id] * myAdaptationWeight + (*i)->getCurrentTravelTime() * newWeightFactor;
+        const SUMOReal currTT = (*i)->getCurrentTravelTime();
+        if (currTT != myEdgeEfforts[id]) {
+            //std::cout << SIMTIME << " updating effort for " << (*i)->getID() << " old " << myEdgeEfforts[id] << " tt " << currTT << std::endl;
+            myEdgeEfforts[id] = myEdgeEfforts[id] * myAdaptationWeight + currTT * newWeightFactor;
+        }    
     }
     myLastAdaptation = currentTime;
     return myAdaptationInterval;
