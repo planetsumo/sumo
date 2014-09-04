@@ -37,6 +37,7 @@
 #include "RORoute.h"
 #include "RORouteDef.h"
 #include "ROVehicle.h"
+#include <utils/vehicle/RouteCostCalculator.h>
 #include <utils/vehicle/SUMOVTypeParameter.h>
 #include <utils/vehicle/SUMOAbstractRouter.h>
 #include <utils/options/OptionsCont.h>
@@ -138,7 +139,7 @@ RONet::openOutput(const std::string& filename, const std::string altFilename, co
 
 
 void
-RONet::closeOutput() {
+RONet::cleanup(SUMOAbstractRouter<ROEdge, ROVehicle>* router) {
     // end writing
     if (myRoutesOutput != 0) {
         myRoutesOutput->close();
@@ -151,6 +152,14 @@ RONet::closeOutput() {
     if (myTypesOutput != 0) {
         myTypesOutput->close();
     }
+    RouteCostCalculator<RORoute, ROEdge, ROVehicle>::cleanup();
+#ifdef HAVE_FOX
+    if (myThreadPool.size() > 0) {
+        myThreadPool.clear();
+        return;
+    }
+#endif
+    delete router;
 }
 
 
@@ -448,7 +457,7 @@ RONet::setRestrictionFound() {
 // ---------------------------------------------------------------------------
 void
 RONet::RoutingTask::run(FXWorkerThread* context) {
-    myVehicle->setRoutingSuccess(RONet::computeRoute(*((WorkerThread*)context)->myRouter, myVehicle, myRemoveLoops, myErrorHandler));
+    myVehicle->setRoutingSuccess(RONet::computeRoute(static_cast<WorkerThread*>(context)->getRouter(), myVehicle, myRemoveLoops, myErrorHandler));
 }
 #endif
 

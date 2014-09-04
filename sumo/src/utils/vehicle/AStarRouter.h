@@ -41,9 +41,12 @@
 #include <limits>
 #include <algorithm>
 #include <iterator>
+#include <map>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StdDefs.h>
 #include <utils/common/ToString.h>
+#include <utils/xml/SUMOSAXHandler.h>
+#include <utils/xml/XMLSubSys.h>
 #include "SUMOAbstractRouter.h"
 
 
@@ -70,10 +73,12 @@ class AStarRouter : public SUMOAbstractRouter<E, V>, public PF {
 
 public:
     typedef SUMOReal(* Operation)(const E* const, const V* const, SUMOReal);
+    typedef std::map<std::pair<const E*, const E*>, SUMOReal> LookupTable;
     /// Constructor
-    AStarRouter(size_t noE, bool unbuildIsWarning, Operation operation):
+    AStarRouter(size_t noE, bool unbuildIsWarning, Operation operation, const LookupTable* const lookup=0):
         SUMOAbstractRouter<E, V>(operation, "AStarRouter"),
-        myErrorMsgHandler(unbuildIsWarning ? MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()) {
+        myErrorMsgHandler(unbuildIsWarning ? MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()),
+        myLookupTable(lookup) {
         for (size_t i = 0; i < noE; i++) {
             myEdgeInfos.push_back(EdgeInfo(i));
         }
@@ -83,7 +88,44 @@ public:
     virtual ~AStarRouter() {}
 
     virtual SUMOAbstractRouter<E, V>* clone() const {
-        return new AStarRouter<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), this->myOperation);
+        return new AStarRouter<E, V, PF>(myEdgeInfos.size(), myErrorMsgHandler == MsgHandler::getWarningInstance(), this->myOperation, myLookupTable);
+    }
+
+    class RouteHandler : public SUMOSAXHandler {
+    public:
+        RouteHandler(LookupTable* const lookup) : myLookup(lookup) {
+        }
+        /** @brief Called on the opening of a tag;
+         *
+         * @param[in] element ID of the currently opened element
+         * @param[in] attrs Attributes within the currently opened element
+         * @exception ProcessError If something fails
+         * @see GenericSAXHandler::myStartElement
+         */
+        void myStartElement(int element, const SUMOSAXAttributes& attrs) {
+            if (element == SUMO_TAG_ROUTE) {
+                std::vector<const E*> edges;
+                bool ok;
+                E::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_EDGES, 0, ok), edges, "");
+                for (std::vector<const E*>::const_iterator from = edges.begin(); from != edges.end(); ++from) {
+                    SUMOReal length = 0.;
+                    for (std::vector<const E*>::const_iterator to = from + 1; to != edges.end(); ++to) {
+                        (*myLookup)[std::make_pair(*from, *to)] = length;
+                        length += (*to)->getLength();
+                    }
+                }
+            }
+        }
+    private:
+        /// @brief the lookup table for travel time heuristics
+        LookupTable* const myLookup;
+    };
+
+    static LookupTable* createLookupTable(const std::string& filename) {
+        LookupTable* const result = new LookupTable();
+        RouteHandler handler(result);
+        XMLSubSys::runParser(handler, filename);
+        return result;
     }
 
     /**
@@ -185,6 +227,15 @@ public:
             }
             minimumInfo->visited = true;
             const SUMOReal traveltime = minimumInfo->traveltime + this->getEffort(minEdge, vehicle, time + minimumInfo->traveltime);
+            // admissible A* heuristic: straight line distance at maximum speed
+            SUMOReal heuristic_remaining = minEdge->getDistanceTo(to);
+            if (myLookupTable != 0) {
+                LookupTable::const_iterator e = myLookupTable->find(std::make_pair(minEdge, to));
+                if (e != myLookupTable->end()) {
+                    heuristic_remaining = e->second;
+                }
+            }
+            heuristic_remaining /= vehicle->getMaxSpeed();
             // check all ways from the node with the minimal length
             unsigned int i = 0;
             const unsigned int length_size = minEdge->getNumSuccessors();
@@ -197,8 +248,6 @@ public:
                 }
                 const SUMOReal oldEffort = followerInfo->traveltime;
                 if (!followerInfo->visited && traveltime < oldEffort) {
-                    // admissible A* heuristic: straight line distance at maximum speed
-                    const SUMOReal heuristic_remaining = minEdge->getDistanceTo(to) / vehicle->getMaxSpeed();
                     followerInfo->traveltime = traveltime;
                     followerInfo->heuristicTime = traveltime + heuristic_remaining;
                     followerInfo->prev = minimumInfo;
@@ -254,6 +303,9 @@ protected:
 
     /// @brief the handler for routing errors
     MsgHandler* const myErrorMsgHandler;
+
+    /// @brief the lookup table for travel time heuristics
+    const LookupTable* const myLookupTable;
 
 };
 

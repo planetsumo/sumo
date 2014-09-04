@@ -39,7 +39,6 @@
 #include <set>
 #include <limits>
 #include <algorithm>
-#include <utils/common/InstancePool.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StdDefs.h>
 #include "SUMOAbstractRouter.h"

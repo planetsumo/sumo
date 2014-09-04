@@ -146,6 +146,10 @@ protected:
     void parseEdges(const std::string& desc, std::vector<const ROEdge*>& into,
                     const std::string& rid);
 
+    /// dummy just to make the compiler happy
+    static void parseEdgesList(const std::string& desc, std::vector<const ROEdge*>& into,
+        const std::string& rid) {}
+
     /// @brief route a walking person and write the corresponding walk element (return whether sucessful)
     bool routePedestrian(const SUMOSAXAttributes& attrs, OutputDevice& plan);
 

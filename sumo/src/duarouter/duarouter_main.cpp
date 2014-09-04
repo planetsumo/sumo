@@ -44,7 +44,6 @@
 #include <router/ROLoader.h>
 #include <router/RONet.h>
 #include <router/ROEdge.h>
-#include <utils/vehicle/RouteCostCalculator.h>
 #include <utils/vehicle/DijkstraRouterTT.h>
 #include <utils/vehicle/DijkstraRouterEffort.h>
 #include <utils/vehicle/AStarRouter.h>
@@ -181,7 +180,6 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
         } else if (measure == "noise") {
             op = &ROEdge::getNoiseEffort;
         } else {
-            net.closeOutput();
             throw ProcessError("Unknown measure (weight attribute '" + measure + "')!");
         }
         if (net.hasRestrictions()) {
@@ -203,13 +201,9 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
                                  string2time(oc.getString("route-steps")), net, *router);
         }
         // end the processing
-        net.closeOutput();
-        delete router;
-        RouteCostCalculator<RORoute, ROEdge, ROVehicle>::cleanup();
+        net.cleanup(router);
     } catch (ProcessError&) {
-        net.closeOutput();
-        delete router;
-        RouteCostCalculator<RORoute, ROEdge, ROVehicle>::cleanup();
+        net.cleanup(router);
         throw;
     }
 }

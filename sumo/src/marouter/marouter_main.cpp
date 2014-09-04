@@ -112,9 +112,6 @@ initNet(RONet& net, ROLoader& loader, OptionsCont& oc) {
  */
 void
 computeRoutes(RONet& net, OptionsCont& oc, ODMatrix& matrix) {
-    // prepare the output
-    net.openOutput(oc.isSet("output-file") ? oc.getString("output-file") : "",
-                   oc.isSet("flow-output") ? oc.getString("flow-output") : "", "");
     // build the router
     SUMOAbstractRouter<ROEdge, ROVehicle>* router;
     const std::string measure = oc.getString("weight-attribute");
@@ -204,7 +201,6 @@ computeRoutes(RONet& net, OptionsCont& oc, ODMatrix& matrix) {
         } else if (measure == "noise") {
             op = &ROEdge::getNoiseEffort;
         } else {
-            net.closeOutput();
             throw ProcessError("Unknown measure (weight attribute '" + measure + "')!");
         }
         if (net.hasRestrictions()) {
@@ -225,6 +221,9 @@ computeRoutes(RONet& net, OptionsCont& oc, ODMatrix& matrix) {
             }
         }
     }
+    // prepare the output
+    net.openOutput(oc.isSet("output-file") ? oc.getString("output-file") : "",
+                   oc.isSet("flow-output") ? oc.getString("flow-output") : "", "");
     // process route definitions
     try {
         if (oc.isSet("timeline")) {
@@ -277,13 +276,9 @@ computeRoutes(RONet& net, OptionsCont& oc, ODMatrix& matrix) {
             throw ProcessError("No output file given.");
         }
         // end the processing
-        net.closeOutput();
-        delete router;
-        RouteCostCalculator<RORoute, ROEdge, ROVehicle>::cleanup();
+        net.cleanup(router);
     } catch (ProcessError&) {
-        net.closeOutput();
-        delete router;
-        RouteCostCalculator<RORoute, ROEdge, ROVehicle>::cleanup();
+        net.cleanup(router);
         throw;
     }
 }

@@ -313,8 +313,8 @@ public:
     void openOutput(const std::string& filename, const std::string altFilename, const std::string typeFilename);
 
 
-    /** @brief closes the file output for computed routes */
-    void closeOutput();
+    /** @brief closes the file output for computed routes and deletes routers and associated threads if necessary */
+    void cleanup(SUMOAbstractRouter<ROEdge, ROVehicle>* router);
 
 
     /// Returns the number of edges the network contains
@@ -426,6 +426,14 @@ private:
         WorkerThread(FXWorkerThread::Pool& pool,
                      SUMOAbstractRouter<ROEdge, ROVehicle>* router)
         : FXWorkerThread(pool), myRouter(router) {}
+        SUMOAbstractRouter<ROEdge, ROVehicle>& getRouter() const {
+            return *myRouter;
+        }
+        virtual ~WorkerThread() {
+            stop();
+            delete myRouter;
+        }
+    private:
         SUMOAbstractRouter<ROEdge, ROVehicle>* myRouter;
     };
 
