@@ -200,7 +200,7 @@ private:
     static std::map<const SUMOTime, int> myDepartureCounts;
 
     /// @todo: describe
-    static std::map<const SUMOTime, std::string> myRouteInfos;
+    static std::map<const SUMOTime, std::map<const std::string, std::string> > myRouteInfos;
 
 
     /**

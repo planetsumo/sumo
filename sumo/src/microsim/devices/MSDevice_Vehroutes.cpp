@@ -55,7 +55,7 @@ bool MSDevice_Vehroutes::mySorted = false;
 bool MSDevice_Vehroutes::myWithTaz = false;
 MSDevice_Vehroutes::StateListener MSDevice_Vehroutes::myStateListener;
 std::map<const SUMOTime, int> MSDevice_Vehroutes::myDepartureCounts;
-std::map<const SUMOTime, std::string> MSDevice_Vehroutes::myRouteInfos;
+std::map<const SUMOTime, std::map<const std::string, std::string> > MSDevice_Vehroutes::myRouteInfos;
 
 
 // ===========================================================================
@@ -264,11 +264,14 @@ MSDevice_Vehroutes::generateOutput() const {
     od.closeTag();
     od.lf();
     if (mySorted) {
-        myRouteInfos[myHolder.getDeparture()] += od.getString();
+        myRouteInfos[myHolder.getDeparture()][myHolder.getID()] = od.getString();
         myDepartureCounts[myHolder.getDeparture()]--;
         std::map<const SUMOTime, int>::iterator it = myDepartureCounts.begin();
         while (it != myDepartureCounts.end() && it->second == 0) {
-            routeOut << myRouteInfos[it->first];
+            std::map<const std::string, std::string>& infos = myRouteInfos[it->first];
+            for (std::map<const std::string, std::string>::const_iterator it2 = infos.begin(); it2 != infos.end(); ++it2) {
+                routeOut << it2->second;
+            }
             myRouteInfos.erase(it->first);
             myDepartureCounts.erase(it);
             it = myDepartureCounts.begin();
