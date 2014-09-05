@@ -107,9 +107,9 @@ public:
                 std::vector<const E*> edges;
                 bool ok;
                 E::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_EDGES, 0, ok), edges, "");
-                for (std::vector<const E*>::const_iterator from = edges.begin(); from != edges.end(); ++from) {
+                for (typename std::vector<const E*>::const_iterator from = edges.begin(); from != edges.end(); ++from) {
                     SUMOReal length = 0.;
-                    for (std::vector<const E*>::const_iterator to = from + 1; to != edges.end(); ++to) {
+                    for (typename std::vector<const E*>::const_iterator to = from + 1; to != edges.end(); ++to) {
                         (*myLookup)[std::make_pair(*from, *to)] = length;
                         length += (*to)->getLength();
                     }
@@ -230,7 +230,7 @@ public:
             // admissible A* heuristic: straight line distance at maximum speed
             SUMOReal heuristic_remaining = minEdge->getDistanceTo(to);
             if (myLookupTable != 0) {
-                LookupTable::const_iterator e = myLookupTable->find(std::make_pair(minEdge, to));
+                typename LookupTable::const_iterator e = myLookupTable->find(std::make_pair(minEdge, to));
                 if (e != myLookupTable->end()) {
                     heuristic_remaining = e->second;
                 }
