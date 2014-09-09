@@ -317,11 +317,11 @@ public:
     void cleanup(SUMOAbstractRouter<ROEdge, ROVehicle>* router);
 
 
-    /// Returns the number of edges the network contains
-    unsigned int getEdgeNo() const;
+    /// Returns the total number of edges the network contains including internal edges
+    size_t getEdgeNo() const;
 
-    /// Returns the number of non-internal edges the network contains
-    unsigned int getEdgeNoWithoutInternal() const;
+    /// Returns the number of internal edges the network contains
+    int getInternalEdgeNumber() const;
 
     const std::map<std::string, ROEdge*>& getEdgeMap() const;
 

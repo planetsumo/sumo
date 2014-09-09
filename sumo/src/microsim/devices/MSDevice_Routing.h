@@ -142,6 +142,10 @@ public:
 
 private:
 #ifdef HAVE_FOX
+    /**
+     * @class WorkerThread
+     * @brief the thread which provides the router instance as context
+     */
     class WorkerThread : public FXWorkerThread {
     public:
         WorkerThread(FXWorkerThread::Pool& pool,
@@ -158,6 +162,10 @@ private:
         SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
     };
 
+    /**
+     * @class RoutingTask
+     * @brief the routing task which mainly calls reroute of the vehicle
+     */
     class RoutingTask : public FXWorkerThread::Task {
     public:
         RoutingTask(SUMOVehicle& v, const SUMOTime time, const bool onInit)

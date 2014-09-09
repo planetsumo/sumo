@@ -126,7 +126,7 @@ SUMOReal
 ROEdge::getEffort(const ROVehicle* const veh, SUMOReal time) const {
     SUMOReal ret = 0;
     if (!getStoredEffort(time, ret)) {
-        return (SUMOReal)(myLength / MIN2(veh->getType()->maxSpeed, mySpeed));
+        return myLength / MIN2(veh->getType()->maxSpeed, mySpeed);
     }
     return ret;
 }
@@ -163,7 +163,7 @@ ROEdge::getTravelTime(const ROVehicle* const veh, SUMOReal time) const {
             }
         }
     }
-    return (SUMOReal)(myLength / MIN2(veh->getType()->maxSpeed, veh->getType()->speedFactor * mySpeed));
+    return myLength / MIN2(veh->getType()->maxSpeed, veh->getType()->speedFactor * mySpeed);
 }
 
 

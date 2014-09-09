@@ -421,15 +421,15 @@ RONet::furtherStored() {
 }
 
 
-unsigned int
+size_t
 RONet::getEdgeNo() const {
-    return (unsigned int) myEdges.size();
+    return myEdges.size();
 }
 
 
-unsigned int
-RONet::getEdgeNoWithoutInternal() const {
-    return (unsigned int)(myEdges.size() - myNumInternalEdges);
+int
+RONet::getInternalEdgeNumber() const {
+    return myNumInternalEdges;
 }
 
 

@@ -92,6 +92,9 @@ ROMAFrame::addImportOptions() {
     oc.doRegister("netload-output", new Option_FileName());
     oc.addDescription("netload-output", "Output", "Writes edge loads and final costs into FILE");
 
+    oc.doRegister("all-pairs-output", new Option_FileName());
+    oc.addDescription("all-pairs-output", "Output", "Writes complete distance matrix into FILE");
+
     oc.doRegister("net-file", 'n', new Option_FileName());
     oc.addSynonyme("net-file", "net");
     oc.addDescription("net-file", "Input", "Use FILE as SUMO-network to route on");

@@ -107,6 +107,35 @@ initNet(RONet& net, ROLoader& loader, OptionsCont& oc) {
     }
 }
 
+SUMOReal
+getTravelTime(const ROEdge* const edge, const ROVehicle* const veh, SUMOReal time) {
+    return edge->getLength() / edge->getSpeed();
+}
+
+
+/**
+ * Computes all pair shortest paths, saving them
+ */
+void
+computeAllPairs(RONet& net, OptionsCont& oc) {
+    std::ofstream outFile(oc.getString("all-pairs-output"), std::ios::binary);
+    // build the router
+    typedef DijkstraRouterTT<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> > Dijkstra;
+    Dijkstra router(net.getEdgeNo(), oc.getBool("ignore-errors"), &getTravelTime);
+    std::vector<const ROEdge*> into;
+    const int numInternalEdges = net.getInternalEdgeNumber();
+    const int numTotalEdges = (int)net.getEdgeNo();
+    for (int i = numInternalEdges; i < numTotalEdges; i++) {
+        const Dijkstra::EdgeInfo& ei = router.getEdgeInfo(i);
+        if (ei.edge->getType() != ROEdge::ET_INTERNAL) {
+            router.compute(ei.edge, 0, 0, 0, into);
+            for (int j = numInternalEdges; j < numTotalEdges; j++) {
+                FileHelpers::writeFloat(outFile, router.getEdgeInfo(j).traveltime);
+            }
+        }
+    }
+}
+    
 /**
  * Computes the routes saving them
  */
@@ -312,6 +341,17 @@ main(int argc, char** argv) {
         ROLoader loader(oc, false, false);
         net = new RONet();
         initNet(*net, loader, oc);
+        if (oc.isSet("all-pairs-output")) {
+            computeAllPairs(*net, oc);
+            if (!oc.isSet("additional-files")) {
+                delete net;
+                SystemFrame::close();
+                if (ret == 0) {
+                    std::cout << "Success." << std::endl;
+                }
+                return ret;
+            }
+        }
         // load districts
         ODDistrictCont districts;
         districts.loadDistricts(oc.getString("additional-files"));

@@ -101,7 +101,7 @@ MSDevice_Routing::insertOptions(OptionsCont& oc) {
     oc.addDescription("device.rerouting.init-with-loaded-weights", "Routing", "Use given weight files for initializing edge weights");
 
     oc.doRegister("device.rerouting.shortest-path-file", new Option_FileName());
-    oc.addDescription("device.rerouting.shortest-path-file", "Routing", "Initialize lookup table for astar from the given routes");
+    oc.addDescription("device.rerouting.shortest-path-file", "Routing", "Initialize lookup table for astar from the given distance matrix");
 
 #ifdef HAVE_FOX
     oc.doRegister("device.rerouting.threads", new Option_Integer(0));
@@ -310,14 +310,14 @@ MSDevice_Routing::reroute(SUMOVehicle& v, const SUMOTime currentTime, const bool
                 typedef AStarRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> > AStar;
                 const AStar::LookupTable* lookup = 0;
                 if (oc.isSet("device.rerouting.shortest-path-file")) {
-                    lookup = AStar::createLookupTable(oc.getString("device.rerouting.shortest-path-file"));
+                    lookup = AStar::createLookupTable(oc.getString("device.rerouting.shortest-path-file"), MSEdge::numericalDictSize());
                 }
                 myRouter = new AStar(MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, lookup);
             } else {
                 typedef AStarRouter<MSEdge, SUMOVehicle, prohibited_noRestrictions<MSEdge, SUMOVehicle> > AStar;
                 const AStar::LookupTable* lookup = 0;
                 if (oc.isSet("device.rerouting.shortest-path-file")) {
-                    lookup = AStar::createLookupTable(oc.getString("device.rerouting.shortest-path-file"));
+                    lookup = AStar::createLookupTable(oc.getString("device.rerouting.shortest-path-file"), MSEdge::numericalDictSize());
                 }
                 myRouter = new AStar(MSEdge::numericalDictSize(), true, &MSDevice_Routing::getEffort, lookup);
             }

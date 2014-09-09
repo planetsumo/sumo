@@ -149,7 +149,7 @@ public:
         The definition of the effort depends on the wished routing scheme */
     virtual void compute(const E* from, const E* to, const V* const vehicle,
                          SUMOTime msTime, std::vector<const E*>& into) {
-        assert(from != 0 && to != 0);
+        assert(from != 0 && (vehicle == 0 || to != 0));
         this->startQuery();
         const SUMOReal time = STEPS2TIME(msTime);
         init();
@@ -215,7 +215,9 @@ public:
 #ifdef DijkstraRouterTT_DEBUG_QUERY_PERF
         std::cout << "visited " + toString(num_visited) + " edges (final path length: " + toString(into.size()) + ")\n";
 #endif
-        myErrorMsgHandler->inform("No connection between '" + from->getID() + "' and '" + to->getID() + "' found.");
+        if (to != 0) {
+            myErrorMsgHandler->inform("No connection between '" + from->getID() + "' and '" + to->getID() + "' found.");
+        }
     }
 
 
@@ -240,6 +242,10 @@ public:
             rbegin = rbegin->prev;
         }
         std::copy(tmp.begin(), tmp.end(), std::back_inserter(edges));
+    }
+
+    const EdgeInfo& getEdgeInfo(size_t index) const {
+        return myEdgeInfos[index];
     }
 
 private:
