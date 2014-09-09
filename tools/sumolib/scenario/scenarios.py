@@ -5,7 +5,7 @@ import sumolib
 import os
 
 
-SCENARIO_PATH = os.path.join(os.path.dirname(__file__), "sandbox")
+SANDBOX_PATH = os.path.join(os.path.dirname(__file__), "sandbox")
 
 def maxIndexValue(l):
     max_val = max(l)
@@ -108,7 +108,7 @@ class Scenario:
     self.demandName = None
     self.additional = {}
     self.conn = None
-    try: os.makedirs(os.path.join(SCENARIO_PATH, self.name))
+    try: os.makedirs(os.path.join(SANDBOX_PATH, self.name))
     except: pass
 
   def addAdditionalFile(self, name):
@@ -147,7 +147,7 @@ class Scenario:
     raise "network is unknown"   
 
   def fullPath(self, fileName):
-    return os.path.join(SCENARIO_PATH, self.name, fileName)
+    return os.path.join(SANDBOX_PATH, self.name, fileName)
 
 
         

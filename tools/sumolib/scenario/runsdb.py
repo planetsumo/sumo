@@ -6,7 +6,7 @@ class RunsDB:
   def __init__(self):
     self.conn = None
     self.cursor = None
-    self.run = 0 # !!! if an old db is opened to be extended, this should be read from the db
+    self.run = -1 # !!! if an old db is opened to be extended, this should be read from the db
 
   def buildDB(self, dbName="results.db", deletePrior=True):
     if deletePrior and os.path.exists(dbName):
@@ -22,6 +22,8 @@ class RunsDB:
     self.cursor = self.conn.cursor()
     
   def addRun(self, scenario, kvDesc):
+    if self.run<0:
+      raise "Database was not initialised"
     self.run = self.run + 1
     cid = self.run - 1    
     for k in kvDesc:

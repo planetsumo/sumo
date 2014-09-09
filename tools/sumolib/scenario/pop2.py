@@ -32,7 +32,7 @@ RWS="""
 """
 
 def getRWScurves():
-  RWScurves = [[]]*3
+  RWScurves = [[], [], []]
   for l in RWS.split("\n"):
     l = l.strip().split(";")
     if len(l)<2:
@@ -87,7 +87,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
             if f1==0 and f2==0:
               continue
             print "Computing for %s<->%s" % (f1, f2)
-            s = getScenario("BasicCross")
+            s = getScenario("BasicCross", False)
             s.demandName = s.fullPath("routes(%s-%s).rou.xml" % (f1, f2))
             if fileNeedsRebuild(s.demandName, "duarouter"):
               s.demand = demandGenerator.Demand()
@@ -110,6 +110,27 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
+  def adaptScenario(self, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
+    fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.fullPath("tls.add.xml"), withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      for prog in tls._programs:
+        tls._programs[prog]._type = tls_algorithm
+        tls._programs[prog]._id = "adapted"
+        fdo.write(tls._programs[prog].toXML(tlsID))
+    fdo.write("</additional>\n")
+    fdo.close()
+    scenario.addAdditionalFile("vtypes")
+    args = ['--tripinfo-output', 'tripinfos.xml', '--device.emissions.probability', '1']
+    return args
+        
+        
+        
+        
         
         
 class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
@@ -126,22 +147,36 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
   def iterateScenarios(self):
     desc = {"name":"RiLSA1LoadCurves"}
     RWScurves = getRWScurves()
+    print RWScurves
     for iWE,cWE in enumerate(RWScurves):
       for iNS,cNS in enumerate(RWScurves):
         for iEW,cEW in enumerate(RWScurves):
           for iSN,cSN in enumerate(RWScurves):
+            iWE = iEW = 0
+            iNS = iSN = 1
+            cWE = RWScurves[iWE]
+            cEW = RWScurves[iEW]
+            cNS = RWScurves[iNS]
+            cSN = RWScurves[iSN]
             print "Computing for %s %s %s %s" % (iWE, iNS, iEW, iSN)
             s = getScenario("RiLSA1")
             s.demandName = s.fullPath("routes(%s-%s-%s-%s).rou.xml" % (iWE, iNS, iEW, iSN))
-            if fileNeedsRebuild(s.demandName, "duarouter"):
+            if True:#fileNeedsRebuild(s.demandName, "duarouter"):
               nStreams = []
-              for j in range(0, 3):
-                nStreams.extend(extrapolateDemand(s.demand.streams[j+0*3], 3600, cWE).streams) 
-                nStreams.extend(extrapolateDemand(s.demand.streams[j+1*3], 3600, cNS).streams) 
-                nStreams.extend(extrapolateDemand(s.demand.streams[j+2*3], 3600, cEW).streams) 
-                nStreams.extend(extrapolateDemand(s.demand.streams[j+3*3], 3600, cSN).streams)
+              for stream in s.demand.streams:
+                if stream._departEdgeModel.startswith("nm"):
+                  nStreams.extend(extrapolateDemand(stream, 3600, cNS, 7).streams)
+                elif stream._departEdgeModel.startswith("em"):
+                  nStreams.extend(extrapolateDemand(stream, 3600, cEW, 7).streams)
+                elif stream._departEdgeModel.startswith("sm"):
+                  nStreams.extend(extrapolateDemand(stream, 3600, cSN, 7).streams)
+                elif stream._departEdgeModel.startswith("wm"):
+                  nStreams.extend(extrapolateDemand(stream, 3600, cWE, 7).streams)
+                else:
+                  print stream._departEdgeModel
+                  raise "Hmmm, unknown stream??"
               s.demand.streams = nStreams 
-              s.demand.build(0, 86400, s.netName, s.demandName)
+              #s.demand.build(0, 86400, s.netName, s.demandName)
             desc = {"scenario":"RiLSA1LoadCurves", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
             yield s, desc
   def getRunsMatrix(self):
@@ -157,12 +192,45 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
         j = 0
         for iEW,cEW in enumerate(RWScurves):
           for iSN,cSN in enumerate(RWScurves):
-            ret[-1].append({"iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN), "scenarion":"RiLSA1LoadCurves"})
-            ranges[1].append(j)
+            ret[-1].append({"iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN), "scenario":"RiLSA1LoadCurves"})
+            ranges[-1].append(j)
             j = j + 1
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!        
+  def adaptScenario(self, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
+    fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.fullPath("tls.add.xml"), withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      (streamsNS, streamsWE) = scenario.getOppositeFlows()
+      (greens, times) = scenario.buildWAUT(streamsNS, streamsWE)
+      for prog in tls._programs:
+        i1 = i2 = 0
+        for i,p in enumerate(tls._programs[prog]._phases):
+          if p[1]==40:
+            i1 = i
+          elif p[1]==12:
+            i2 = i
+        for t in greens:
+          tls._programs[prog]._type = tls_algorithm
+          tls._programs[prog]._id = "adapted" + str(t)
+          tls._programs[prog]._phases[i1][1] = greens[t][1]
+          tls._programs[prog]._phases[i2][1] = greens[t][0]
+          fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
+      fdo.write('\n\t<WAUT startProg="adapted1" refTime="0" id="WAUT_%s">\n' % tlsID)
+      for t in times:
+        fdo.write('\t\t<wautSwitch to="adapted%s" time="%s"/>\n' % (t[1], t[0]*3600))
+      fdo.write("\t</WAUT>\n")
+      fdo.write('\n\t<wautJunction junctionID="%s" wautID="WAUT_%s"/>\n' % (tlsID, tlsID)) 
+    fdo.write("</additional>\n")
+    fdo.close()
+    scenario.addAdditionalFile("vtypes")
+    args = ['--tripinfo-output', 'tripinfos.xml', '--device.emissions.probability', '1']
+    return args
       
 def getScenarioSet(name, params):
   if name=="iterateFlowsNA":
