@@ -118,7 +118,7 @@ getTravelTime(const ROEdge* const edge, const ROVehicle* const veh, SUMOReal tim
  */
 void
 computeAllPairs(RONet& net, OptionsCont& oc) {
-    std::ofstream outFile(oc.getString("all-pairs-output"), std::ios::binary);
+    std::ofstream outFile(oc.getString("all-pairs-output").c_str(), std::ios::binary);
     // build the router
     typedef DijkstraRouterTT<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> > Dijkstra;
     Dijkstra router(net.getEdgeNo(), oc.getBool("ignore-errors"), &getTravelTime);
