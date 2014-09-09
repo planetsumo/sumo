@@ -124,8 +124,13 @@ public:
         return getType() != 0 ? getType()->vehicleClass : SVC_IGNORING;
     }
 
-    /// @brief Create a new vehicle with the vType of this vehicle
-    ROVehicle* createVTypeClone() const;
+    /** @brief Returns an upper bound for the speed factor of this vehicle
+     *
+     * @return the maximum speed factor
+     */
+    inline SUMOReal getChosenSpeedFactor() const {
+        return SUMOReal(2. * getType()->speedDev + 1.) * getType()->speedFactor;
+    }
 
 
     /** @brief Saves the complete vehicle description.

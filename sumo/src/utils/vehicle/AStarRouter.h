@@ -203,8 +203,7 @@ public:
             minimumInfo->visited = true;
             const SUMOReal traveltime = minimumInfo->traveltime + this->getEffort(minEdge, vehicle, time + minimumInfo->traveltime);
             // admissible A* heuristic: straight line distance at maximum speed
-            SUMOReal heuristic_remaining = myLookupTable == 0 ? minEdge->getDistanceTo(to) : (*myLookupTable)[minEdge->getNumericalID()][to->getNumericalID()];
-            heuristic_remaining /= vehicle->getMaxSpeed();
+            const SUMOReal heuristic_remaining = myLookupTable == 0 ? minEdge->getDistanceTo(to) / vehicle->getMaxSpeed() : (*myLookupTable)[minEdge->getNumericalID()][to->getNumericalID()] / vehicle->getChosenSpeedFactor();
             // check all ways from the node with the minimal length
             unsigned int i = 0;
             const unsigned int length_size = minEdge->getNumSuccessors();
