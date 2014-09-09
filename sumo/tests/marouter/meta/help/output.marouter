@@ -1,4 +1,4 @@
-SUMO marouter Version dev-SVN-r16170
+SUMO marouter Version dev-SVN-r17028
  Copyright (C) 2001-2014 DLR and contributors; http://sumo-sim.org
 Import O/D-matrices for macroscopic traffic assignment
 
@@ -30,6 +30,7 @@ Output Options:
   --flow-output FILE                Writes flow definitions into FILE
   --ignore-vehicle-type             Does not save vtype information
   --netload-output FILE             Writes edge loads and final costs into FILE
+  --all-pairs-output FILE           Writes complete distance matrix into FILE
   --exit-times                      Write exit times (weights) for each edge
 
 Processing Options:

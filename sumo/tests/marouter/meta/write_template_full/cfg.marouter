@@ -25,6 +25,7 @@
         <flow-output value="" type="FILE" help="Writes flow definitions into FILE"/>
         <ignore-vehicle-type value="false" synonymes="no-vtype" type="BOOL" help="Does not save vtype information"/>
         <netload-output value="" type="FILE" help="Writes edge loads and final costs into FILE"/>
+        <all-pairs-output value="" type="FILE" help="Writes complete distance matrix into FILE"/>
         <exit-times value="false" type="BOOL" help="Write exit times (weights) for each edge"/>
     </output>
 

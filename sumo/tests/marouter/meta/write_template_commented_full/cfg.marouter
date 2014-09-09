@@ -57,6 +57,9 @@
         <!-- Writes edge loads and final costs into FILE -->
         <netload-output value="" type="FILE"/>
 
+        <!-- Writes complete distance matrix into FILE -->
+        <all-pairs-output value="" type="FILE"/>
+
         <!-- Write exit times (weights) for each edge -->
         <exit-times value="false" type="BOOL"/>
 
