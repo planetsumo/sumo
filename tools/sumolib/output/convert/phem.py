@@ -45,12 +45,12 @@ def fcd2dri(inpFCD, outSTRM, ignored):
   - the engine torque is not given 
   """
   #print >> outSTRM, "v1\n<t>,<v>,<grad>,<n>\n[s],[km/h],[%],[1/min]\n"
-  print("v1\n<t>,<v>,<grad>\n[s],[km/h],[%]", file=outSTRM)
+  print("v1\n<t>;<v>;<grad>\n[s];[km/h];[%]", file=outSTRM)
   for q in inpFCD:
     if q.vehicle:
       for v in q.vehicle:
         percSlope = math.sin(float(v.slope))*100.
-        print("%s,%s,%s" % (sumolib._intTime(q.time), float(v.speed)*3.6, percSlope), file=outSTRM)
+        print("%s;%s;%s" % (sumolib._intTime(q.time), float(v.speed)*3.6, percSlope), file=outSTRM)
 
 
 def net2str(net, outSTRM):
@@ -64,14 +64,14 @@ def net2str(net, outSTRM):
     A map between the edge id and a segment to a numerical id would be necessary 
   """
   if outSTRM!=None:
-    print("Str-Id,Sp,SegAnX,SegEnX,SegAnY,SegEnY", file=outSTRM)
+    print("Str-Id;Sp;SegAnX;SegEnX;SegAnY;SegEnY", file=outSTRM)
   sIDm = sumolib._Running()
   for e in net._edges:
     eid = sIDm.g(e._id)
     if outSTRM!=None:
       c1 = e._from._coord
       c2 = e._to._coord
-      print("%s,%s,%s,%s,%s,%s" % (eid, len(e._lanes), c1[0], c2[0], c1[1], c2[1]), file=outSTRM)
+      print("%s;%s;%s;%s;%s;%s" % (eid, len(e._lanes), c1[0], c2[0], c1[1], c2[1]), file=outSTRM)
   return sIDm 
 
           
@@ -87,7 +87,7 @@ def fcd2fzp(inpFCD, outSTRM, further):
   """
   sIDm = further["phemStreetMap"]
   if outSTRM!=None:
-    print("t,WeltX,WeltY,Veh. No,v,Gradient,veh.Typ-Id,Str-Id", file=outSTRM)
+    print("t;WeltX;WeltY;Veh. No;v;Gradient;veh.Typ-Id;Str-Id", file=outSTRM)
   vIDm = sumolib._Running()
   vtIDm = sumolib._Running()
   vtIDm.g("PKW")
@@ -103,7 +103,7 @@ def fcd2fzp(inpFCD, outSTRM, further):
         sid = sIDm.g(sumolib._laneID2edgeID(v.lane))
         percSlope = math.sin(float(v.slope))*100.
         if outSTRM!=None:  
-          print("%s,%s,%s,%s,%s,%s,%s,%s" % (
+          print("%s;%s;%s;%s;%s;%s;%s;%s" % (
                   sumolib._intTime(q.time), float(v.x), float(v.y), 
                   vid, float(v.speed)*3.6, percSlope, vtid, sid), file=outSTRM)
   return vIDm, vtIDm
@@ -118,5 +118,5 @@ def vehicleTypes2flt(outSTRM, vtIDm):
   - A default map is assigned to all vehicle types with the same probability 
   """
   for q in vtIDm._m:
-    print("%s,%s,%s" % (vtIDm.g(q), "<VEHDIR>\PC\PC_%s.GEN" % q, 1.), file=outSTRM)
+    print("%s;%s;%s" % (vtIDm.g(q), "<VEHDIR>\PC\PC_%s.GEN" % q, 1.), file=outSTRM)
 

@@ -17,8 +17,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 import sumolib          
-import os
-import subprocess
+import os, subprocess, tempfile
 
 
 
@@ -195,45 +194,42 @@ class Net:
 
   def build(self, netName="net.net.xml"):
     connections = []
-    nodesFile = "nodes.nod.xml"
-    fdo = open(nodesFile, "w")
-    print >> fdo, "<nodes>"
+    nodesFile = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    print >> nodesFile, "<nodes>"
     for nid in self._nodes:
       n = self._nodes[nid]
-      print >> fdo, '    <node id="%s" x="%s" y="%s" type="%s"/>' % (n.nid, n.x, n.y, n.nodeType)
-    print >> fdo, "</nodes>"
-    fdo.close()
+      print >> nodesFile, '    <node id="%s" x="%s" y="%s" type="%s"/>' % (n.nid, n.x, n.y, n.nodeType)
+    print >> nodesFile, "</nodes>"
+    nodesFile.close()
     
-    edgesFile = "edges.edg.xml"
-    fdo = open(edgesFile, "w")
-    print >> fdo, "<edges>"
+    edgesFile = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    print >> edgesFile, "<edges>"
     for eid in self._edges:
       e = self._edges[eid]
-      print >> fdo, '    <edge id="%s" from="%s" to="%s" numLanes="%s" speed="%s">' % (e.eid, e.fromNode.nid, e.toNode.nid, e.numLanes, e.maxSpeed)
+      print >> edgesFile, '    <edge id="%s" from="%s" to="%s" numLanes="%s" speed="%s">' % (e.eid, e.fromNode.nid, e.toNode.nid, e.numLanes, e.maxSpeed)
       for s in e.splits:
-        print >> fdo, '        <split pos="%s" lanes="%s"/>' % (-s.distance, str(s.lanes)[1:-1].replace(",", ""))
+        print >> edgesFile, '        <split pos="%s" lanes="%s"/>' % (-s.distance, str(s.lanes)[1:-1].replace(",", ""))
       connections.extend(e.getConnections(self))
-      print >> fdo, '    </edge>'
-    print >> fdo, "</edges>"
-    fdo.close()
+      print >> edgesFile, '    </edge>'
+    print >> edgesFile, "</edges>"
+    edgesFile.close()
     
-    connectionsFile = "connections.con.xml"
-    fdo = open(connectionsFile, "w")
-    print >> fdo, "<connections>"
+    connectionsFile = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    print >> connectionsFile, "<connections>"
     for c in connections:
       eid = c.fromEdge.eid
       if len(c.fromEdge.splits)>1:
         eid = eid + ".-" + str(c.fromEdge.splits[-1].distance)
-      print >> fdo, '    <connection from="%s" to="%s" fromLane="%s" toLane="%s"/>' % (eid, c.toEdge.eid, c.fromLane, c.toLane)
-    print >> fdo, "</connections>"
-    fdo.close()
+      print >> connectionsFile, '    <connection from="%s" to="%s" fromLane="%s" toLane="%s"/>' % (eid, c.toEdge.eid, c.fromLane, c.toLane)
+    print >> connectionsFile, "</connections>"
+    connectionsFile.close()
     
     netconvert = sumolib.checkBinary("netconvert")
     
-    retCode = subprocess.call([netconvert, "-v", "-n", nodesFile, "-e", edgesFile, "-x", connectionsFile, "-o", netName])
-    os.remove(nodesFile)
-    os.remove(edgesFile)
-    os.remove(connectionsFile)
+    retCode = subprocess.call([netconvert, "-v", "-n", nodesFile.name, "-e", edgesFile.name, "-x", connectionsFile.name, "-o", netName])
+    os.remove(nodesFile.name)
+    os.remove(edgesFile.name)
+    os.remove(connectionsFile.name)
     self.netName = netName
     return netName
     

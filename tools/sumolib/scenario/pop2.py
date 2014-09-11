@@ -1,7 +1,8 @@
 import sumolib.net.generator.cross as netGenerator
 import sumolib.net.generator.demand as demandGenerator
 from sumolib.net.generator.network import *
-from pop import * 
+from scenarios import * 
+import random, math, tempfile
 
 
 RWS="""
@@ -64,8 +65,10 @@ class ScenarioSet:
     raise "virtual ScenarioSet/getRunsMatrix"
   def getInt(self, name):
     return int(self.params[name])
+  def getFloat(self, name):
+    return float(self.params[name])
 
-
+#--------------------------------------
 
 class ScenarioSet_IterateFlowsNA(ScenarioSet):
   def __init__(self, params):
@@ -87,8 +90,9 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
             if f1==0 and f2==0:
               continue
             print "Computing for %s<->%s" % (f1, f2)
+            sID = "iterateFlowsNA(%s-%s)" % (f1, f2)
             s = getScenario("BasicCross", False)
-            s.demandName = s.fullPath("routes(%s-%s).rou.xml" % (f1, f2))
+            s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
             if fileNeedsRebuild(s.demandName, "duarouter"):
               s.demand = demandGenerator.Demand()
               s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "2/1_to_1/1", "1/1_to_0/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
@@ -97,7 +101,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
               s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/0_to_1/1", "1/1_to_1/2", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
               s.demand.build(0, 3600, s.netName, s.demandName)
             desc = {"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)}
-            yield s, desc
+            yield s, desc, sID
   def getRunsMatrix(self):
     ret = []
     ranges = [[], []]
@@ -115,7 +119,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
     scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
     fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
     fdo.write("<additional>\n")
-    net = sumolib.net.readNet(scenario.fullPath("tls.add.xml"), withPrograms=True)
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
     for tlsID in net._id2tls:
       tls = net._id2tls[tlsID]
       for prog in tls._programs:
@@ -125,13 +129,10 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
     fdo.write("</additional>\n")
     fdo.close()
     scenario.addAdditionalFile("vtypes")
-    args = ['--tripinfo-output', 'tripinfos.xml', '--device.emissions.probability', '1']
+    args = []
     return args
         
-        
-        
-        
-        
+#--------------------------------------
         
 class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
   def __init__(self, params):
@@ -140,7 +141,6 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
       params))
   def getNumRuns(self):
     return 3*3*3*3
-  
   """
   Yields returning a built scenario and its description as key/value pairs
   """
@@ -152,15 +152,10 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
       for iNS,cNS in enumerate(RWScurves):
         for iEW,cEW in enumerate(RWScurves):
           for iSN,cSN in enumerate(RWScurves):
-            iWE = iEW = 0
-            iNS = iSN = 1
-            cWE = RWScurves[iWE]
-            cEW = RWScurves[iEW]
-            cNS = RWScurves[iNS]
-            cSN = RWScurves[iSN]
             print "Computing for %s %s %s %s" % (iWE, iNS, iEW, iSN)
+            sID = "RiLSA1LoadCurves(%s-%s-%s-%s)" % (iWE, iNS, iEW, iSN)
             s = getScenario("RiLSA1")
-            s.demandName = s.fullPath("routes(%s-%s-%s-%s).rou.xml" % (iWE, iNS, iEW, iSN))
+            s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
             if True:#fileNeedsRebuild(s.demandName, "duarouter"):
               nStreams = []
               for stream in s.demand.streams:
@@ -176,9 +171,9 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
                   print stream._departEdgeModel
                   raise "Hmmm, unknown stream??"
               s.demand.streams = nStreams 
-              #s.demand.build(0, 86400, s.netName, s.demandName)
+              s.demand.build(0, 86400, s.netName, s.demandName)
             desc = {"scenario":"RiLSA1LoadCurves", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
-            yield s, desc
+            yield s, desc, sID
   def getRunsMatrix(self):
     ret = []
     ranges = [[], []]
@@ -203,7 +198,7 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
     scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
     fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
     fdo.write("<additional>\n")
-    net = sumolib.net.readNet(scenario.fullPath("tls.add.xml"), withPrograms=True)
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
     for tlsID in net._id2tls:
       tls = net._id2tls[tlsID]
       (streamsNS, streamsWE) = scenario.getOppositeFlows()
@@ -229,15 +224,242 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
     fdo.write("</additional>\n")
     fdo.close()
     scenario.addAdditionalFile("vtypes")
-    args = ['--tripinfo-output', 'tripinfos.xml', '--device.emissions.probability', '1']
+    args = []
     return args
+        
+#--------------------------------------
+        
+class ScenarioSet_SinSin(ScenarioSet):
+  MEAN = 700.
+  AMPLITUDE = 300.
+
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "SinSin", merge(
+      {"offsetFrom":"0", "offsetTo":"3.14", "offsetStep":".314","freqFrom":"5", "freqTo":"30", "freqStep":"5"},
+      params))
+    self.offsets = []
+    offset = self.getFloat("offsetFrom")
+    while offset<self.getFloat("offsetTo"):
+      self.offsets.append(offset)
+      offset = offset + self.getFloat("offsetStep")
+    self.frequencies = []
+    frequency = self.getFloat("freqFrom")
+    while frequency<self.getFloat("freqTo"):
+      self.frequencies.append(frequency)
+      frequency = frequency + self.getFloat("freqStep")
+
+  def getNumRuns(self):
+    return len(self.offsets)*len(self.frequencies)
+
+  def genDemand(self, scenario, simSteps, offset, frequency):  
+    #fd = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    fd = open(scenario.demandName, "w")
+    #---routes---
+    print >> fd, """<routes>
+			<route id="WE" edges="0/1_to_1/1 0/1_to_1/1.-100 1/1_to_2/1"/>
+			<route id="NS" edges="1/2_to_1/1 1/2_to_1/1.-100 1/1_to_1/0"/>
+			<route id="EW" edges="2/1_to_1/1 2/1_to_1/1.-100 1/1_to_0/1"/>
+			<route id="SN" edges="1/0_to_1/1 1/0_to_1/1.-100 1/1_to_1/2"/>
+    """
+    pv1 = 0
+    pv2 = 0
+    vehNr = 0
+    o1 = 0
+    o2 = offset
+    for i in range(simSteps):
+        v = math.sin(o1) * self.AMPLITUDE + self.MEAN
+        v = v / 3600.
+        pv1 = v + pv1
+        if random.uniform(0,1) < pv1:
+            pv1 = pv1 - 1.
+            print >> fd, '    <vehicle id="%i" type="passenger" route="WE" depart="%i" departSpeed="13.89" />' % (vehNr, i)
+            vehNr += 1
+            print >> fd, '    <vehicle id="%i" type="passenger" route="EW" depart="%i" departSpeed="13.89" />' % (vehNr, i)
+            vehNr += 1
+        v = math.sin(o2) * self.AMPLITUDE + self.MEAN
+        v = v / 3600.
+        pv2 = v + pv2
+        if random.uniform(0,1) < pv2:
+            pv2 = pv2 - 1.
+            print >> fd, '    <vehicle id="%i" type="passenger" route="NS" depart="%i" departSpeed="13.89" />' % (vehNr, i)
+            vehNr += 1
+            print >> fd, '    <vehicle id="%i" type="passenger" route="SN" depart="%i" departSpeed="13.89" />' % (vehNr, i)
+            vehNr += 1
+        o1 = o1 + ((math.pi*2)/(frequency*60))
+        o2 = o2 + ((math.pi*2)/(frequency*60))
+
+    print >> fd, "</routes>"
+    fd.close()  
+    #duarouter = sumolib.checkBinary("duarouter")
+    #retCode = subprocess.call([duarouter, "-v", "-n", scenario.netName,  "-t", fd.name, "-o", scenario.demandName, "--no-warnings"]) # aeh, implizite no-warnings sind nicht schoen
+    #os.remove(fd.name)
+  """
+  Yields returning a built scenario and its description as key/value pairs
+  """
+  def iterateScenarios(self):
+    desc = {"name":"SinSin"}
+    for offset in self.offsets:
+        for freq in self.frequencies:
+            print "Computing for %s<->%s" % (offset, freq)
+            sID = "SinSin(%s-%s)" % (offset, freq)
+            s = getScenario("BasicCross", False)
+            s.demandName = s.fullPath("routes_%s.rou.xml" % (sID))
+            if fileNeedsRebuild(s.demandName, "duarouter"):
+              self.genDemand(s, 3600, offset, freq)
+            desc = {"scenario":"BasicCross", "offset":str(offset), "frequency":str(freq)}
+            yield s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    for offset in self.offsets:
+      ret.append([])
+      ranges[0].append(offset)
+      for freq in self.frequencies:
+        ret[-1].append({"scenario":"BasicCross", "offset":str(offset), "frequency":str(freq)})
+        ranges[1].append(freq)
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!
+  def adaptScenario(self, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
+    fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      for prog in tls._programs:
+        tls._programs[prog]._type = tls_algorithm
+        tls._programs[prog]._id = "adapted"
+        fdo.write(tls._programs[prog].toXML(tlsID))
+    fdo.write("</additional>\n")
+    fdo.close()
+    scenario.addAdditionalFile("vtypes")
+    args = []
+    return args
+        
+#--------------------------------------
+        
+class ScenarioSet_OneSin(ScenarioSet):
+  MAIN_FLOW = 1000.
+
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "OneSin", merge(
+      {"amplFrom":"0", "amplTo":"1000", "amplStep":"200","freqFrom":"5", "freqTo":"30", "freqStep":"5"},
+      params))
+    self.amplitudes = []
+    amplitude = self.getFloat("amplFrom")
+    while amplitude<self.getFloat("amplTo"):
+      self.amplitudes.append(amplitude)
+      amplitude = amplitude + self.getFloat("amplStep")
+    self.frequencies = []
+    frequency = self.getFloat("freqFrom")
+    while frequency<self.getFloat("freqTo"):
+      self.frequencies.append(frequency)
+      frequency = frequency + self.getFloat("freqStep")
+
+  def getNumRuns(self):
+    return len(self.amplitudes)*len(self.amplitudes)
+
+  def genDemand(self, scenario, simSteps, amplitude, frequency):  
+    #fd = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    fd = open(scenario.demandName, "w")
+    #---routes---
+    print >> fd, """<routes>
+			<route id="WE" edges="0/1_to_1/1 0/1_to_1/1.-100 1/1_to_2/1"/>
+			<route id="NS" edges="1/2_to_1/1 1/2_to_1/1.-100 1/1_to_1/0"/>
+			<route id="EW" edges="2/1_to_1/1 2/1_to_1/1.-100 1/1_to_0/1"/>
+			<route id="SN" edges="1/0_to_1/1 1/0_to_1/1.-100 1/1_to_1/2"/>
+    """
+    pv1 = 0
+    pv2 = 0
+    lastVeh = 0
+    vehNr = 0
+    o1 = 0
+    for i in range(simSteps):
+        v = math.sin(o1) * amplitude + 600.
+        v = v / 3600.
+        pv1 = v + pv1
+        if random.uniform(0,1) < pv1:
+            pv1 = pv1 - 1.
+            print >> fd, '    <vehicle id="%i" type="passenger" route="WE" depart="%i" departSpeed="13.89" />' % (vehNr, i)
+            vehNr += 1
+            lastVeh = i
+            print >> fd, '    <vehicle id="%i" type="passenger" route="EW" depart="%i" departSpeed="13.89" />' % (vehNr, i)
+            vehNr += 1
+            lastVeh = i	
+        o1 = o1 + ((math.pi*2)/(frequency*60))
+        pNS = float(self.MAIN_FLOW)/3600
+        pSN = float(self.MAIN_FLOW)/3600
+        if random.uniform(0,1) < pNS:
+            print >> fd, '    <vehicle id="%i" type="passenger" route="NS" depart="%i" departSpeed="13.89" />' % (vehNr, i)
+            vehNr += 1
+            lastVeh = i
+        if random.uniform(0,1) < pSN:
+            print >> fd, '    <vehicle id="%i" type="passenger" route="SN" depart="%i" departSpeed="13.89" />' % (vehNr, i)
+            vehNr += 1
+            lastVeh = i
+
+    print >> fd, "</routes>"
+    fd.close()  
+    
+  """
+  Yields returning a built scenario and its description as key/value pairs
+  """
+  def iterateScenarios(self):
+    desc = {"name":"OneSin"}
+    for amplitude in self.amplitudes:
+        for freq in self.frequencies:
+            print "Computing for %s<->%s" % (amplitude, freq)
+            sID = "OneSin(%s-%s)" % (amplitude, freq)
+            s = getScenario("BasicCross", False)
+            s.demandName = s.fullPath("routes_%s.rou.xml" % (sID))
+            if fileNeedsRebuild(s.demandName, "duarouter"):
+              self.genDemand(s, 3600, amplitude, freq)
+            desc = {"scenario":"OneSin", "amplitude":str(amplitude), "frequency":str(freq)}
+            yield s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    for amplitude in self.amplitudes:
+      ret.append([])
+      ranges[0].append(amplitude)
+      for freq in self.frequencies:
+        ret[-1].append({"scenario":"BasicCross", "amplitude":str(amplitude), "frequency":str(freq)})
+        ranges[1].append(freq)
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!
+  def adaptScenario(self, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
+    fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      for prog in tls._programs:
+        tls._programs[prog]._type = tls_algorithm
+        tls._programs[prog]._id = "adapted"
+        fdo.write(tls._programs[prog].toXML(tlsID))
+    fdo.write("</additional>\n")
+    fdo.close()
+    scenario.addAdditionalFile("vtypes")
+    args = []
+    return args
+
+#--------------------------------------
       
 def getScenarioSet(name, params):
   if name=="iterateFlowsNA":
     return ScenarioSet_IterateFlowsNA(params)  
   if name=="RiLSA1LoadCurves":
     return ScenarioSet_RiLSA1LoadCurves(params)  
+  if name=="SinSin":
+    return ScenarioSet_SinSin(params)  
+  if name=="OneSin":
+    return ScenarioSet_OneSin(params)  
   raise "unknown scenario '%s'" % name
 
 def getAllScenarioSets():
-  return ";".join(["iterateFlowsNA"])    
+  return ";".join(["iterateFlowsNA", "RiLSA1LoadCurves", "SinSin"])    

@@ -16,10 +16,17 @@ class RunsDB:
     self.cursor.execute('CREATE TABLE run (id integer, key text, value text)')
     self.cursor.execute('CREATE TABLE result (runID integer, interval integer, key text, value real)')
     self.conn.commit()
+    self.run = 0
     
   def open(self, dbName="results.db"):
     self.conn = sqlite3.connect(dbName)
     self.cursor = self.conn.cursor()
+    self.cursor.execute("SELECT MAX(id) FROM run")
+    v = self.cursor.fetchall()
+    if len(v)!=0 and v[0][0]!=None:
+      self.run = v[0][0] + 1
+    else:
+      self.run = 0
     
   def addRun(self, scenario, kvDesc):
     if self.run<0:

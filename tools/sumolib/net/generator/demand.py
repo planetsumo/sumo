@@ -21,6 +21,7 @@ import sumolib
 import os
 import subprocess
 import math
+import tempfile
 
 
 PIVOT__PEAK = 10000
@@ -123,14 +124,13 @@ class Demand:
     vehicles = []
     for s in self.streams:
       vehicles.extend(s.toVehicles(b, e))
-    tmpFile = "input_trips.rou.xml"
-    fdo = open(tmpFile, "w")
+    fdo = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    #fdo = open(tmpFile, "w")
     fdo.write("<routes>\n")
     for v in sorted(vehicles, key=lambda veh: veh.depart):
       fdo.write('    <trip id="%s" depart="%s" from="%s" to="%s" type="%s"/>\n' % (v.id, v.depart, v.fromEdge, v.toEdge, v.vType))
     fdo.write("</routes>")
     fdo.close()
-
     duarouter = sumolib.checkBinary("duarouter")
-    retCode = subprocess.call([duarouter, "-v", "-n", netName,  "-t", tmpFile, "-o", routesName, "--no-warnings"]) # aeh, implizite no-warnings sind nicht schoen
-    os.remove(tmpFile)
+    retCode = subprocess.call([duarouter, "-v", "-n", netName,  "-t", fdo.name, "-o", routesName, "--no-warnings"]) # aeh, implizite no-warnings sind nicht schoen
+    os.remove(fdo.name)
