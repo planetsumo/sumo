@@ -425,7 +425,7 @@ class ScenarioSet_OneSin(ScenarioSet):
       ret.append([])
       ranges[0].append(amplitude)
       for freq in self.frequencies:
-        ret[-1].append({"scenario":"BasicCross", "amplitude":str(amplitude), "frequency":str(freq)})
+        ret[-1].append({"scenario":"OneSin", "amplitude":str(amplitude), "frequency":str(freq)})
         ranges[1].append(freq)
     return (ret, ranges)
   def getAverageDuration(self):
