@@ -87,8 +87,8 @@ class TLSProgram:
         self._offset = offset
         self._phases = []
 
-    def addPhase(self, state, duration):
-        self._phases.append( [state, duration, None, None] )
+    def addPhase(self, state, duration, minDur, maxDur):
+        self._phases.append( [state, duration, minDur, maxDur] )
 
     def toXML(self, tlsID):
         ret = '  <tlLogic id="%s" type="%s" programID="%s" offset="%s">\n' % (tlsID, self._type, self._id, self._offset)
@@ -413,7 +413,10 @@ class NetReader(handler.ContentHandler):
         if self._withPhases and name=='tlLogic': # tl-logic is deprecated!!!
             self._currentProgram = self._net.addTLSProgram(attrs['id'], attrs['programID'], int(attrs['offset']), attrs['type'])
         if self._withPhases and name=='phase':
-            self._currentProgram.addPhase(attrs['state'], int(attrs['duration']))
+            minDur = maxDur = None
+            if attrs.has_key("minDur"): minDur = int(attrs["minDur"])
+            if attrs.has_key("maxDur"): maxDur = int(attrs["maxDur"])
+            self._currentProgram.addPhase(attrs['state'], int(attrs['duration']), minDur, maxDur)
         if name == 'roundabout':
             self._net.addRoundabout(attrs['nodes'].split())
         if name == 'param':
