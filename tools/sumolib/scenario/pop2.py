@@ -67,6 +67,54 @@ class ScenarioSet:
     return int(self.params[name])
   def getFloat(self, name):
     return float(self.params[name])
+  def adaptOutputs(self, sID, scenario, options, tls_algorithm):
+    args = []
+    files = {}
+    # those set on the command line  
+    tripinfoFile = scenario.fullPath('tripinfos_%s.xml' % sID)
+    args.extend(['--tripinfo-output', tripinfoFile, '--device.emissions.probability', '1'])
+    files["tripinfo"] = [tripinfoFile]
+    # those generated using an additional file
+    scenario.addAdditionalFile(scenario.fullPath("measures"))
+    fdo = open(scenario.fullPath("measures.add.xml"), "w")
+    fdo.write("<additional>\n")
+    files["trafficLane"] = [scenario.fullPath('traffic_%s.xml' % sID)]
+    fdo.write('  <laneData id="traffic" file="%s" freq="60"/>\n' % files["trafficLane"][0])
+    files["emissionsLane"] = [scenario.fullPath('emissions_%s.xml' % sID)]
+    fdo.write('  <laneData id="traffic" type="emissions" file="%s" freq="60"/>\n' % files["emissionsLane"][0])
+    net = sumolib.net.readNet(scenario.NET_FILE, withPrograms=True, withConnections=True)
+    seenLanes = set()
+    files["tlsstates"] = []
+    files["coupledE2"] = []
+    for tlsID in net._id2tls:
+      atlsID = tlsID.replace("/", "_")
+      tls = net._id2tls[tlsID]
+      fname = scenario.fullPath("tls_states_%s.xml" % (sID))
+      fdo.write('  <timedEvent type="SaveTLSStates" source="%s" dest="%s"/>\n' % (tlsID, fname))
+      files["tlsstates"].append(fname)
+      for conn in tls._connections:
+        laneID = conn[0].getID()
+        if laneID in seenLanes:
+          continue
+        seenLanes.add(laneID)
+        fname = scenario.fullPath("coupledE2_%s.xml" % (sID))
+        fdo.write('  <e2Detector id="%s_%s" lane="%s" pos="-.1" length="200" tl="%s" file="%s" friendlyPos="t"/>\n' % (tlsID, laneID, laneID, tlsID, fname))
+        files["coupledE2"].append(fname)
+      fdo.write('\n')
+    files["e2"] = []
+    for l in seenLanes:
+      fname = scenario.fullPath("e2_%s.xml" % (sID))
+      fdo.write('  <e2Detector id="%s" lane="%s" pos="-.1" length="200" file="%s" freq="1" friendlyPos="t"/>\n' % (l, l, fname))
+      files["e2"].append(fname)
+    fdo.write('\n')
+    fdo.write("</additional>\n")
+    fdo.close()
+    #e2File = scenario.fullPath('e2_%s.xml' % sID)         
+    #coupledE2File = scenario.fullPath('e2coupled_%s.xml' % sID)
+    #trafficFile = scenario.fullPath('traffic_%s.xml' % sID)
+    #emissionsFile = scenario.fullPath('emissions_%s.xml' % sID)
+    #tlsSwitchStatesFile = scenario.fullPath('tlsSwitch_%s.xml' % sID)
+    return args, files
 
 #--------------------------------------
 
@@ -114,7 +162,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
-  def adaptScenario(self, scenario, options, tls_algorithm):
+  def adapt2TLS(self, scenario, options, tls_algorithm):
     # adapt tls to current settings
     scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
     fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
@@ -197,7 +245,7 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!        
-  def adaptScenario(self, scenario, options, tls_algorithm):
+  def adapt2TLS(self, scenario, options, tls_algorithm):
     # adapt tls to current settings
     scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
     fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
@@ -328,7 +376,7 @@ class ScenarioSet_SinSin(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
-  def adaptScenario(self, scenario, options, tls_algorithm):
+  def adapt2TLS(self, scenario, options, tls_algorithm):
     # adapt tls to current settings
     scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
     fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
@@ -442,7 +490,7 @@ class ScenarioSet_OneSin(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
-  def adaptScenario(self, scenario, options, tls_algorithm):
+  def adapt2TLS(self, scenario, options, tls_algorithm):
     # adapt tls to current settings
     scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
     fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")

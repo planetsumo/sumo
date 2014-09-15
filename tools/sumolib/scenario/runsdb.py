@@ -40,6 +40,10 @@ class RunsDB:
   def addResult(self, runID, interval, key, value):
     self.cursor.execute("INSERT INTO result VALUES (?,?,?,?)", (runID, interval, key, value))
     self.conn.commit()
+
+  def addResults(self, results):
+    self.cursor.executemany("INSERT INTO result VALUES (?,?,?,?)", results)
+    self.conn.commit()
     
   
   def toList(self, what):

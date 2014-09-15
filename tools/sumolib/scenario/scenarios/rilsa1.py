@@ -9,7 +9,6 @@ All rights reserved
 
 
 import os
-from .. import * 
 import sumolib.net.generator.demand as demandGenerator
 from sumolib.net.generator.network import *
 
