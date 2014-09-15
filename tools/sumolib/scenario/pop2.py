@@ -162,10 +162,10 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
-  def adapt2TLS(self, scenario, options, tls_algorithm):
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
     # adapt tls to current settings
-    scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
-    fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
     fdo.write("<additional>\n")
     net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
     for tlsID in net._id2tls:
@@ -173,6 +173,83 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
       for prog in tls._programs:
         tls._programs[prog]._type = tls_algorithm
         tls._programs[prog]._id = "adapted"
+        fdo.write(tls._programs[prog].toXML(tlsID))
+    fdo.write("</additional>\n")
+    fdo.close()
+    scenario.addAdditionalFile("vtypes")
+    args = []
+    return args
+  def getXLabel(self):
+    return "horizontal demand [vehicles/h]"
+  def getYLabel(self):
+    return "vertical demand [vehicles/h]"
+        
+#--------------------------------------
+
+class ScenarioSet_IterateFlowsA(ScenarioSet):
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "iterateFlowsA", merge(
+      {"f1from":"0", "f1to":"2400", "f1step":"400","f2from":"0", "f2to":"2400", "f2step":"400"},
+      params))
+  def getNumRuns(self):
+    f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
+    f2num = 1 + (self.getInt("f2to") - self.getInt("f2from")) / self.getInt("f2step")
+    return f1num * f2num
+  
+  """
+  Yields returning a built scenario and its description as key/value pairs
+  """
+  def iterateScenarios(self):
+    desc = {"name":"iterateFlowsA"}
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+        for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+            if f1==0 and f2==0:
+              continue
+            print "Computing for %s<->%s" % (f1, f2)
+            sID = "iterateFlowsA(%s-%s)" % (f1, f2)
+            s = getScenario("BasicCross", False)
+            s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
+            if fileNeedsRebuild(s.demandName, "duarouter"):
+              s.demand = demandGenerator.Demand()
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "2/1_to_1/1", "1/1_to_0/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "0/1_to_1/1", "1/1_to_2/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/2_to_1/1", "1/1_to_1/0", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/0_to_1/1", "1/1_to_1/2", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.build(0, 3600, s.netName, s.demandName)
+              # !!! the following two lines are a hack to pass the numbers instead of recomputing them 
+              s.demand._f1Value = f1
+              s.demand._f2Value = f2
+            desc = {"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)}
+            yield s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+      ret.append([])
+      ranges[0].append(f1)
+      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+        ret[-1].append({"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)})
+        ranges[1].append(f2)
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      for prog in tls._programs:
+        tls._programs[prog]._type = tls_algorithm
+        tls._programs[prog]._id = "adapted"
+        scenario.demand._f1Value = float(max(scenario.demand._f1Value, 1))
+        scenario.demand._f2Value = float(max(scenario.demand._f2Value, 1))
+        t = scenario.demand._f1Value + scenario.demand._f2Value
+        greens = split_by_proportions(80, (scenario.demand._f1Value/t, scenario.demand._f2Value/t), (10, 10))
+        tls._programs[prog]._phases[0][1] = greens[0]
+        tls._programs[prog]._phases[3][1] = greens[1]
         fdo.write(tls._programs[prog].toXML(tlsID))
     fdo.write("</additional>\n")
     fdo.close()
@@ -245,10 +322,10 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!        
-  def adapt2TLS(self, scenario, options, tls_algorithm):
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
     # adapt tls to current settings
-    scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
-    fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
     fdo.write("<additional>\n")
     net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
     for tlsID in net._id2tls:
@@ -291,7 +368,7 @@ class ScenarioSet_SinSin(ScenarioSet):
 
   def __init__(self, params):
     ScenarioSet.__init__(self, "SinSin", merge(
-      {"offsetFrom":"0", "offsetTo":"3.14", "offsetStep":".314","freqFrom":"5", "freqTo":"30", "freqStep":"5"},
+      {"offsetFrom":"0", "offsetTo":"3.14", "offsetStep":".314","freqFrom":"30", "freqTo":"300", "freqStep":"30"},
       params))
     self.offsets = []
     offset = self.getFloat("offsetFrom")
@@ -376,10 +453,10 @@ class ScenarioSet_SinSin(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
-  def adapt2TLS(self, scenario, options, tls_algorithm):
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
     # adapt tls to current settings
-    scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
-    fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
     fdo.write("<additional>\n")
     net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
     for tlsID in net._id2tls:
@@ -490,10 +567,10 @@ class ScenarioSet_OneSin(ScenarioSet):
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
-  def adapt2TLS(self, scenario, options, tls_algorithm):
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
     # adapt tls to current settings
-    scenario.addAdditionalFile(scenario.fullPath("tls_adapted"))
-    fdo = open(scenario.fullPath("tls_adapted.add.xml"), "w")
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
     fdo.write("<additional>\n")
     net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
     for tlsID in net._id2tls:
@@ -517,6 +594,8 @@ class ScenarioSet_OneSin(ScenarioSet):
 def getScenarioSet(name, params):
   if name=="iterateFlowsNA":
     return ScenarioSet_IterateFlowsNA(params)  
+  if name=="iterateFlowsA":
+    return ScenarioSet_IterateFlowsA(params)  
   if name=="RiLSA1LoadCurves":
     return ScenarioSet_RiLSA1LoadCurves(params)  
   if name=="SinSin":
