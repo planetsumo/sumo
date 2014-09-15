@@ -131,6 +131,10 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
     scenario.addAdditionalFile("vtypes")
     args = []
     return args
+  def getXLabel(self):
+    return "horizontal demand [vehicles/h]"
+  def getYLabel(self):
+    return "vertical demand [vehicles/h]"
         
 #--------------------------------------
         
@@ -226,6 +230,10 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
     scenario.addAdditionalFile("vtypes")
     args = []
     return args
+  def getXLabel(self):
+    return "!!!RWS type"
+  def getYLabel(self):
+    return "!!!RWS type"
         
 #--------------------------------------
         
@@ -337,6 +345,10 @@ class ScenarioSet_SinSin(ScenarioSet):
     scenario.addAdditionalFile("vtypes")
     args = []
     return args
+  def getXLabel(self):
+    return "!!!offset"
+  def getYLabel(self):
+    return "frequency [s]"
         
 #--------------------------------------
         
@@ -447,6 +459,10 @@ class ScenarioSet_OneSin(ScenarioSet):
     scenario.addAdditionalFile("vtypes")
     args = []
     return args
+  def getXLabel(self):
+    return "!!!amplitude"
+  def getYLabel(self):
+    return "frequency [s]"
 
 #--------------------------------------
       
