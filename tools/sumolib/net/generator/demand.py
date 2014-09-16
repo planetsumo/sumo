@@ -96,7 +96,7 @@ class Stream:
       return None
     return what.get()
           
-  def toVehicles(self, b, e):
+  def toVehicles(self, b, e, offset=0):
     vehicles = []
     departures = self.getVehicleDepartures(b, e)
     number = len(departures)
@@ -107,7 +107,7 @@ class Stream:
         sid = self.sid   
         if sid==None:
           sid = fromEdge + "_to_" + toEdge + "_" + str(i)
-        vehicles.append(Vehicle(sid+"#"+str(i), int(d), fromEdge, toEdge, vType))  
+        vehicles.append(Vehicle(sid+"#"+str(i+offset), int(d), fromEdge, toEdge, vType))  
     return vehicles
 
 
@@ -122,8 +122,9 @@ class Demand:
   
   def build(self, b, e, netName="net.net.xml", routesName="input_routes.rou.xml"):
     vehicles = []
+    running = 0
     for s in self.streams:
-      vehicles.extend(s.toVehicles(b, e))
+      vehicles.extend(s.toVehicles(b, e, len(vehicles)))
     fdo = tempfile.NamedTemporaryFile(mode="w", delete=False)
     #fdo = open(tmpFile, "w")
     fdo.write("<routes>\n")

@@ -299,11 +299,14 @@ class Scenario:
 
 def getScenario(name, withDefaultDemand=True):
   if name=="RiLSA1":
-    import RiLSA1
-    return RiLSA1.Scenario_RiLSA1(withDefaultDemand)  
+    import rilsa1
+    return rilsa1.Scenario_RiLSA1(withDefaultDemand)  
   elif name=="BasicCross":
-    import BasicCross
-    return BasicCross.Scenario_BasicCross(withDefaultDemand)  
+    import basic_cross
+    return basic_cross.Scenario_BasicCross(withDefaultDemand)  
+  elif name=="BasicCorridor":
+    import basic_corridor
+    return basic_corridor.Scenario_BasicCorridor(withDefaultDemand)  
   raise "unknown scenario '%s'" % name
 
     

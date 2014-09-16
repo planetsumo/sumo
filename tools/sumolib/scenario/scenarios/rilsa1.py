@@ -8,6 +8,7 @@ All rights reserved
 """
 
 
+from . import *
 import os
 import sumolib.net.generator.demand as demandGenerator
 from sumolib.net.generator.network import *
@@ -48,7 +49,7 @@ flowsRiLSA1 = [
 
 class Scenario_RiLSA1(Scenario):
   NAME = "RiLSA1"
-  THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+  THIS_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), NAME)
   TLS_FILE = os.path.join(THIS_DIR, "tls.add.xml")
   NET_FILE = os.path.join(THIS_DIR, "rilsa1.net.xml") 
 

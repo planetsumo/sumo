@@ -75,8 +75,8 @@ class ScenarioSet:
     args.extend(['--tripinfo-output', tripinfoFile, '--device.emissions.probability', '1'])
     files["tripinfo"] = [tripinfoFile]
     # those generated using an additional file
-    scenario.addAdditionalFile(scenario.fullPath("measures"))
-    fdo = open(scenario.fullPath("measures.add.xml"), "w")
+    scenario.addAdditionalFile(scenario.fullPath("measures_%s" % sID))
+    fdo = open(scenario.fullPath("measures_%s.add.xml" % sID), "w")
     fdo.write("<additional>\n")
     files["trafficLane"] = [scenario.fullPath('traffic_%s.xml' % sID)]
     fdo.write('  <laneData id="traffic" file="%s" freq="60"/>\n' % files["trafficLane"][0])
@@ -148,7 +148,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
               s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/2_to_1/1", "1/1_to_1/0", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
               s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "1/0_to_1/1", "1/1_to_1/2", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
               s.demand.build(0, 3600, s.netName, s.demandName)
-            desc = {"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)}
+            desc = {"scenario":"iterateFlowsNA", "f1":str(f1), "f2":str(f2)}
             yield s, desc, sID
   def getRunsMatrix(self):
     ret = []
@@ -157,7 +157,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
       ret.append([])
       ranges[0].append(f1)
       for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
-        ret[-1].append({"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)})
+        ret[-1].append({"scenario":"iterateFlowsNA", "f1":str(f1), "f2":str(f2)})
         ranges[1].append(f2)
     return (ret, ranges)
   def getAverageDuration(self):
@@ -219,7 +219,7 @@ class ScenarioSet_IterateFlowsA(ScenarioSet):
               # !!! the following two lines are a hack to pass the numbers instead of recomputing them 
               s.demand._f1Value = f1
               s.demand._f2Value = f2
-            desc = {"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)}
+            desc = {"scenario":"iterateFlowsA", "f1":str(f1), "f2":str(f2)}
             yield s, desc, sID
   def getRunsMatrix(self):
     ret = []
@@ -228,7 +228,7 @@ class ScenarioSet_IterateFlowsA(ScenarioSet):
       ret.append([])
       ranges[0].append(f1)
       for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
-        ret[-1].append({"scenario":"BasicCross", "f1":str(f1), "f2":str(f2)})
+        ret[-1].append({"scenario":"iterateFlowsA", "f1":str(f1), "f2":str(f2)})
         ranges[1].append(f2)
     return (ret, ranges)
   def getAverageDuration(self):
@@ -439,7 +439,7 @@ class ScenarioSet_SinSin(ScenarioSet):
             s.demandName = s.fullPath("routes_%s.rou.xml" % (sID))
             if fileNeedsRebuild(s.demandName, "duarouter"):
               self.genDemand(s, 3600, offset, freq)
-            desc = {"scenario":"BasicCross", "offset":str(offset), "frequency":str(freq)}
+            desc = {"scenario":"SinSin", "offset":str(offset), "frequency":str(freq)}
             yield s, desc, sID
   def getRunsMatrix(self):
     ret = []
@@ -448,7 +448,7 @@ class ScenarioSet_SinSin(ScenarioSet):
       ret.append([])
       ranges[0].append(offset)
       for freq in self.frequencies:
-        ret[-1].append({"scenario":"BasicCross", "offset":str(offset), "frequency":str(freq)})
+        ret[-1].append({"scenario":"SinSin", "offset":str(offset), "frequency":str(freq)})
         ranges[1].append(freq)
     return (ret, ranges)
   def getAverageDuration(self):
@@ -471,7 +471,7 @@ class ScenarioSet_SinSin(ScenarioSet):
     args = []
     return args
   def getXLabel(self):
-    return "!!!offset"
+    return "offset"
   def getYLabel(self):
     return "frequency [s]"
         
@@ -588,9 +588,181 @@ class ScenarioSet_OneSin(ScenarioSet):
     return "!!!amplitude"
   def getYLabel(self):
     return "frequency [s]"
+        
+#--------------------------------------
+        
+class ScenarioSet_DemandStep(ScenarioSet):
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "DemandStep", merge(
+      {"f1from":"0", "f1to":"2400", "f1step":"400",
+      "f2beginFrom":"0", "f2beginTo":"2400", "f2beginStep":"400",
+      "f2endFrom":"0", "f2endTo":"2400", "f2endStep":"400",
+      "f2durationFrom":"0", "f2durationTo":"3600", "f2durationStep":"600",
+      },
+      params))
+  def getNumRuns(self):
+    f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
+    f2beginNum = 1 + (self.getInt("f2beginTo") - self.getInt("f2beginFrom")) / self.getInt("f2beginStep")
+    f2endNum = 1 + (self.getInt("f2endTo") - self.getInt("f2endFrom")) / self.getInt("f2endStep")
+    f2durationNum = 1 + (self.getInt("f2durationTo") - self.getInt("f2durationFrom")) / self.getInt("f2durationStep")
+    return f1num * f2beginNum * f2endNum * f2durationNum
+  def iterateScenarios(self):
+    desc = {"name":"iterateFlowsNA"}
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+      for f2begin in range(self.getInt("f2beginFrom"), self.getInt("f2beginTo"), self.getInt("f2beginStep")):
+        for f2end in range(self.getInt("f2endFrom"), self.getInt("f2endTo"), self.getInt("f2endStep")):
+          for f2duration in range(self.getInt("f2durationFrom"), self.getInt("f2durationTo"), self.getInt("f2durationStep")):        
+            if f1==0 and f2begin==0 and f2end==0:
+              continue
+            print "Computing for %s<->%s->%s@%s" % (f1, f2begin, f2end, f2duration)
+            sID = "DemandStep(%s-%s-%s-%s)" % (f1, f2begin, f2end, f2duration)
+            s = getScenario("BasicCross", False)
+            s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
+            print s.demandName
+            if True:#fileNeedsRebuild(s.demandName, "duarouter"):
+              hd = f2duration/2
+              s.demand = demandGenerator.Demand()
+              s.demand.addStream(demandGenerator.Stream(None, 0, 7200, f1, "2/1_to_1/1", "1/1_to_0/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 7200, f1, "0/1_to_1/1", "1/1_to_2/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              # begin              
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600-hd, f2begin, "1/2_to_1/1", "1/1_to_1/0", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600-hd, f2begin, "1/0_to_1/1", "1/1_to_1/2", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              # between
+              for t in range(0, f2duration, 300):
+                fat = (f2end-f2begin) / f2duration * (t+150)
+                s.demand.addStream(demandGenerator.Stream(None, 3600-hd+t, 3600-hd+t+300, fat, "1/2_to_1/1", "1/1_to_1/0", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+                s.demand.addStream(demandGenerator.Stream(None, 3600-hd+t, 3600-hd+t+300, fat, "1/0_to_1/1", "1/1_to_1/2", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              # end              
+              s.demand.addStream(demandGenerator.Stream(None, 3600+hd, 7200, f2end, "1/2_to_1/1", "1/1_to_1/0", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 3600+hd, 7200, f2end, "1/0_to_1/1", "1/1_to_1/2", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.build(0, 7200, s.netName, s.demandName)
+              # !!! the following two lines are a hack to pass the numbers instead of recomputing them 
+            s.demand._f1Value = f1
+            s.demand._f2Value = (f2begin+f2end)/2.
+            desc = {"scenario":"DemandStep", "f1":str(f1), "f2begin":str(f2begin), "f2end":str(f2end), "f2duration":str(f2duration)}
+            yield s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    RWScurves = getRWScurves()
+    i = 0
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+      for f2duration in range(self.getInt("f2durationFrom"), self.getInt("f2durationTo"), self.getInt("f2durationStep")):        
+        ret.append([])
+        ranges[0].append(i)
+        i = i + 1
+        j = 0
+        for f2end in range(self.getInt("f2endFrom"), self.getInt("f2endTo"), self.getInt("f2endStep")):
+          for f2duration in range(self.getInt("f2durationFrom"), self.getInt("f2durationTo"), self.getInt("f2durationStep")):        
+            ret[-1].append({"f1":str(f1), "f2begin":str(f2begin), "f2end":str(f2end), "f2duration":str(f2duration), "scenario":"DemandStep"})
+            ranges[-1].append(j)
+            j = j + 1
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      for prog in tls._programs:
+        tls._programs[prog]._type = tls_algorithm
+        tls._programs[prog]._id = "adapted"
+        scenario.demand._f1Value = float(max(scenario.demand._f1Value, 1))
+        scenario.demand._f2Value = float(max(scenario.demand._f2Value, 1))
+        t = scenario.demand._f1Value + scenario.demand._f2Value
+        greens = split_by_proportions(80, (scenario.demand._f1Value/t, scenario.demand._f2Value/t), (10, 10))
+        tls._programs[prog]._phases[0][1] = greens[0]
+        tls._programs[prog]._phases[3][1] = greens[1]
+        fdo.write(tls._programs[prog].toXML(tlsID))
+    fdo.write("</additional>\n")
+    fdo.close()
+    scenario.addAdditionalFile("vtypes")
+    args = []
+    return args
+  def getXLabel(self):
+    return "!!!"
+  def getYLabel(self):
+    return "!!!"
 
 #--------------------------------------
-      
+        
+class ScenarioSet_CorrFlowsA(ScenarioSet):
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "CorrFlowsA", merge(
+      {"f1from":"0", "f1to":"2400", "f1step":"400","f2from":"0", "f2to":"2400", "f2step":"400"},
+      params))
+  def getNumRuns(self):
+    f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
+    f2num = 1 + (self.getInt("f2to") - self.getInt("f2from")) / self.getInt("f2step")
+    return f1num * f2num
+  def iterateScenarios(self):
+    desc = {"name":"CorrFlowsA"}
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+        for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+            if f1==0 and f2==0:
+              continue
+            print "Computing for %s<->%s" % (f1, f2)
+            sID = "CorrFlowsA(%s-%s)" % (f1, f2)
+            s = getScenario("BasicCorridor", False)
+            s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
+            if fileNeedsRebuild(s.demandName, "duarouter"):
+              s.demand = demandGenerator.Demand()
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "6/1_to_5/1", "1/1_to_0/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "0/1_to_1/1", "5/1_to_6/1", { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              for i in range(1, 6):
+                s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "%s/2_to_%s/1" % (i,i), "%s/1_to_%s/0" % (i,i), { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+                s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "%s/0_to_%s/1" % (i,i), "%s/1_to_%s/2" % (i,i), { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.build(0, 3600, s.netName, s.demandName)
+              # !!! the following two lines are a hack to pass the numbers instead of recomputing them 
+              s.demand._f1Value = f1
+              s.demand._f2Value = f2
+            desc = {"scenario":"CorrFlowsA", "f1":str(f1), "f2":str(f2)}
+            yield s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+      ret.append([])
+      ranges[0].append(f1)
+      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+        ret[-1].append({"scenario":"CorrFlowsA", "f1":str(f1), "f2":str(f2)})
+        ranges[1].append(f2)
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      for prog in tls._programs:
+        tls._programs[prog]._type = tls_algorithm
+        tls._programs[prog]._id = "adapted"
+        scenario.demand._f1Value = float(max(scenario.demand._f1Value, 1))
+        scenario.demand._f2Value = float(max(scenario.demand._f2Value, 1))
+        t = scenario.demand._f1Value + scenario.demand._f2Value
+        greens = split_by_proportions(80, (scenario.demand._f1Value/t, scenario.demand._f2Value/t), (10, 10))
+        tls._programs[prog]._phases[0][1] = greens[0]
+        tls._programs[prog]._phases[3][1] = greens[1]
+        fdo.write(tls._programs[prog].toXML(tlsID))
+    fdo.write("</additional>\n")
+    fdo.close()
+    scenario.addAdditionalFile("vtypes")
+    args = []
+    return args
+  def getXLabel(self):
+    return "horizontal demand [vehicles/h]"
+  def getYLabel(self):
+    return "vertical demand [vehicles/h]"
+
+#--------------------------------------      
 def getScenarioSet(name, params):
   if name=="iterateFlowsNA":
     return ScenarioSet_IterateFlowsNA(params)  
@@ -602,7 +774,11 @@ def getScenarioSet(name, params):
     return ScenarioSet_SinSin(params)  
   if name=="OneSin":
     return ScenarioSet_OneSin(params)  
+  if name=="DemandStep":
+    return ScenarioSet_DemandStep(params)  
+  if name=="CorrFlowsA":
+    return ScenarioSet_CorrFlowsA(params)  
   raise "unknown scenario '%s'" % name
 
 def getAllScenarioSets():
-  return ";".join(["iterateFlowsNA", "RiLSA1LoadCurves", "SinSin"])    
+  return ";".join(["iterateFlowsNA", "RiLSA1LoadCurves", "SinSin", "OneSin", "DemandStep"])    
