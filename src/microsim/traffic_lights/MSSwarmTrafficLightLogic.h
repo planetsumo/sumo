@@ -160,6 +160,13 @@ public:
 	 theta_min = val;
 	 }*/
 
+	double getThetaInit() {
+			std::ostringstream key;
+			key << "THETA_INIT";
+			std::ostringstream def;
+			def << "0.5";
+			return s2f(getParameter(key.str(), def.str()));
+		}
 	double getLearningCox() {
 		std::ostringstream key;
 		key << "LEARNING_COX";

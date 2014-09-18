@@ -308,6 +308,19 @@ void MSSwarmTrafficLightLogic::updateSensitivities() {
 	MSSOTLPolicy* currentPolicy = getCurrentPolicy();
 	vector<MSSOTLPolicy*> policies = getPolicies();
 
+	//reset of the sensitivity thresholds in case of 0 pheromone on the input lanes
+	if(getPheromoneForInputLanes()==0){
+		for(unsigned int i = 0 ; i< policies.size();i++){
+			policies[i]->setThetaSensitivity(getThetaInit());
+			DBG(
+				std::ostringstream phero_str;
+				phero_str << "Policy " << policies[i]->getName() << " sensitivity reset to " << policies[i]->getThetaSensitivity() << " due to evaporated input pheromone.";
+				WRITE_MESSAGE(time2string(MSNet::getInstance()->getCurrentTimeStep()) +" MSSwarmTrafficLightLogic::updateSensitivities::"+phero_str.str());
+			)
+		}
+		return;
+	}
+
 	for (unsigned int i = 0; i < policies.size(); i++) {
 		MSSOTLPolicy* policy = policies[i];
 		double newSensitivity;
