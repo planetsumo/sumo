@@ -86,16 +86,25 @@ class TLSProgram:
         self._type = type
         self._offset = offset
         self._phases = []
+        self._params = {}
 
-    def addPhase(self, state, duration, minDur, maxDur):
-        self._phases.append( [state, duration, minDur, maxDur] )
+    def addPhase(self, state, duration, minDur, maxDur, furtherParams=None):
+        self._phases.append( [state, duration, minDur, maxDur, furtherParams] )
+        
+    def addParameter(self, k, v):
+        self._params[k] = v
 
     def toXML(self, tlsID):
         ret = '  <tlLogic id="%s" type="%s" programID="%s" offset="%s">\n' % (tlsID, self._type, self._id, self._offset)
+        for p in self._params:
+          ret = ret + '    <param key="%s" value="%s"/>\n' % (p, self._params[p])
+        if len(self._params)!=0: ret = ret + "\n"
         for p in self._phases:
             ret = ret + '    <phase state="%s" duration="%s"' % (p[0], p[1])
             if p[2]!=None: ret = ret + ' minDur="%s"' % p[2]
             if p[3]!=None: ret = ret + ' maxDur="%s"' % p[3]
+            if p[4]!=None: 
+                for f in p[4]: ret = ret + ' %s="%s"' % (f, p[4][f])
             ret = ret + '/>\n'
         ret = ret + '  </tlLogic>\n'
         return ret
@@ -416,7 +425,13 @@ class NetReader(handler.ContentHandler):
             minDur = maxDur = None
             if attrs.has_key("minDur"): minDur = int(attrs["minDur"])
             if attrs.has_key("maxDur"): maxDur = int(attrs["maxDur"])
-            self._currentProgram.addPhase(attrs['state'], int(attrs['duration']), minDur, maxDur)
+            nv = {}
+            for k in attrs.keys():
+              if k!="duration" and k!="state" and k!="minDur" and k!="maxDur":
+                nv[k] = attrs[k]
+            if len(nv)==0:
+              nv = None
+            self._currentProgram.addPhase(attrs['state'], int(attrs['duration']), minDur, maxDur, nv)
         if name == 'roundabout':
             self._net.addRoundabout(attrs['nodes'].split())
         if name == 'param':

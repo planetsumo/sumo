@@ -297,7 +297,7 @@ class Scenario:
     
      
 
-def getScenario(name, withDefaultDemand=True):
+def getScenario(name, params, withDefaultDemand=True):
   if name=="RiLSA1":
     import rilsa1
     return rilsa1.Scenario_RiLSA1(withDefaultDemand)  
@@ -306,7 +306,10 @@ def getScenario(name, withDefaultDemand=True):
     return basic_cross.Scenario_BasicCross(withDefaultDemand)  
   elif name=="BasicCorridor":
     import basic_corridor
-    return basic_corridor.Scenario_BasicCorridor(withDefaultDemand)  
+    return basic_corridor.Scenario_BasicCorridor(params["xoff"], withDefaultDemand)  
+  elif name=="BasicNet":
+    import basic_net
+    return basic_net.Scenario_BasicNet(params["rot"], withDefaultDemand)  
   raise "unknown scenario '%s'" % name
 
     

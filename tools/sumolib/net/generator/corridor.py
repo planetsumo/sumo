@@ -23,13 +23,13 @@ sys.path.append(os.path.join(os.environ.get("SUMO_HOME", os.path.join(os.path.di
 import network
 import demand
 
-def corridor(numIntersections=10, defaultNode=None, defaultEdge=None, centralReservation=0):
+def corridor(numIntersections=10, defaultNode=None, defaultEdge=None, centralReservation=0, hdistance=500):
   net = network.Net(defaultNode, defaultEdge)
   net.addNode(network.Node("0/1", 0, 500, "priority"))
   for i in range(0, numIntersections):
-    net.addNode(network.Node(str(i+1)+"/0", (i+1)*500, 0, "priority"))
-    net.addNode(network.Node(str(i+1)+"/1", (i+1)*500, 500, "traffic_light"))
-    net.addNode(network.Node(str(i+1)+"/2", (i+1)*500, 1000, "priority"))
+    net.addNode(network.Node(str(i+1)+"/0", (i+1)*hdistance, 0, "priority"))
+    net.addNode(network.Node(str(i+1)+"/1", (i+1)*hdistance, 500, "traffic_light"))
+    net.addNode(network.Node(str(i+1)+"/2", (i+1)*hdistance, 1000, "priority"))
     net.connectNodes(str(i)+"/1", str(i+1)+"/1", True, centralReservation)
     net.connectNodes(str(i+1)+"/0", str(i+1)+"/1", True, centralReservation)
     net.connectNodes(str(i+1)+"/1", str(i+1)+"/2", True, centralReservation)

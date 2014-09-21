@@ -67,6 +67,15 @@ class ScenarioSet:
     return int(self.params[name])
   def getFloat(self, name):
     return float(self.params[name])
+  def addTLSParameterFromFile(self, tlsProg, paramFile):
+    fd = open(paramFile)
+    for l in fd.readlines():
+      l = l.strip()
+      if len(l)==0:
+        continue
+      v = l.split(":")
+      tlsProg.addParameter(v[0], v[1])
+    fd.close()
   def adaptOutputs(self, sID, scenario, options, tls_algorithm):
     args = []
     files = {}
@@ -84,36 +93,25 @@ class ScenarioSet:
     fdo.write('  <laneData id="traffic" type="emissions" file="%s" freq="60"/>\n' % files["emissionsLane"][0])
     net = sumolib.net.readNet(scenario.NET_FILE, withPrograms=True, withConnections=True)
     seenLanes = set()
-    files["tlsstates"] = []
-    files["coupledE2"] = []
+    files["tlsstates"] = [scenario.fullPath("tls_states_%s.xml" % (sID))]
+    files["coupledE2"] = [scenario.fullPath("coupledE2_%s.xml" % (sID))]
+    #files["e2"] = [scenario.fullPath("e2_%s.xml" % (sID))]
     for tlsID in net._id2tls:
       atlsID = tlsID.replace("/", "_")
       tls = net._id2tls[tlsID]
-      fname = scenario.fullPath("tls_states_%s.xml" % (sID))
-      fdo.write('  <timedEvent type="SaveTLSStates" source="%s" dest="%s"/>\n' % (tlsID, fname))
-      files["tlsstates"].append(fname)
+      fdo.write('  <timedEvent type="SaveTLSStates" source="%s" dest="%s"/>\n' % (tlsID, files["tlsstates"][0]))
       for conn in tls._connections:
         laneID = conn[0].getID()
         if laneID in seenLanes:
           continue
         seenLanes.add(laneID)
-        fname = scenario.fullPath("coupledE2_%s.xml" % (sID))
-        fdo.write('  <e2Detector id="%s_%s" lane="%s" pos="-.1" length="200" tl="%s" file="%s" friendlyPos="t"/>\n' % (tlsID, laneID, laneID, tlsID, fname))
-        files["coupledE2"].append(fname)
+        fdo.write('  <e2Detector id="%s_%s" lane="%s" pos="-.1" length="200" tl="%s" file="%s" friendlyPos="t"/>\n' % (tlsID, laneID, laneID, tlsID, files["coupledE2"][0]))
       fdo.write('\n')
-    files["e2"] = []
-    for l in seenLanes:
-      fname = scenario.fullPath("e2_%s.xml" % (sID))
-      fdo.write('  <e2Detector id="%s" lane="%s" pos="-.1" length="200" file="%s" freq="1" friendlyPos="t"/>\n' % (l, l, fname))
-      files["e2"].append(fname)
+    #for l in seenLanes:
+#      fdo.write('  <e2Detector id="%s" lane="%s" pos="-.1" length="200" file="%s" freq="1" friendlyPos="t"/>\n' % (l, l, files["e2"][0]))
     fdo.write('\n')
     fdo.write("</additional>\n")
     fdo.close()
-    #e2File = scenario.fullPath('e2_%s.xml' % sID)         
-    #coupledE2File = scenario.fullPath('e2coupled_%s.xml' % sID)
-    #trafficFile = scenario.fullPath('traffic_%s.xml' % sID)
-    #emissionsFile = scenario.fullPath('emissions_%s.xml' % sID)
-    #tlsSwitchStatesFile = scenario.fullPath('tlsSwitch_%s.xml' % sID)
     return args, files
 
 #--------------------------------------
@@ -139,7 +137,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
               continue
             print "Computing for %s<->%s" % (f1, f2)
             sID = "iterateFlowsNA(%s-%s)" % (f1, f2)
-            s = getScenario("BasicCross", False)
+            s = getScenario("BasicCross", {}, False)
             s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
             if fileNeedsRebuild(s.demandName, "duarouter"):
               s.demand = demandGenerator.Demand()
@@ -164,8 +162,8 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
     return -1 # !!!
   def adapt2TLS(self, sID, scenario, options, tls_algorithm):
     # adapt tls to current settings
-    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
-    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s_%s" % (sID, tls_algorithm)))
+    fdo = open(scenario.fullPath("tls_adapted_%s_%s.add.xml" % (sID, tls_algorithm)), "w")
     fdo.write("<additional>\n")
     net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
     for tlsID in net._id2tls:
@@ -173,6 +171,7 @@ class ScenarioSet_IterateFlowsNA(ScenarioSet):
       for prog in tls._programs:
         tls._programs[prog]._type = tls_algorithm
         tls._programs[prog]._id = "adapted"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
         fdo.write(tls._programs[prog].toXML(tlsID))
     fdo.write("</additional>\n")
     fdo.close()
@@ -207,7 +206,7 @@ class ScenarioSet_IterateFlowsA(ScenarioSet):
               continue
             print "Computing for %s<->%s" % (f1, f2)
             sID = "iterateFlowsA(%s-%s)" % (f1, f2)
-            s = getScenario("BasicCross", False)
+            s = getScenario("BasicCross", {}, False)
             s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
             if fileNeedsRebuild(s.demandName, "duarouter"):
               s.demand = demandGenerator.Demand()
@@ -244,6 +243,7 @@ class ScenarioSet_IterateFlowsA(ScenarioSet):
       for prog in tls._programs:
         tls._programs[prog]._type = tls_algorithm
         tls._programs[prog]._id = "adapted"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
         scenario.demand._f1Value = float(max(scenario.demand._f1Value, 1))
         scenario.demand._f2Value = float(max(scenario.demand._f2Value, 1))
         t = scenario.demand._f1Value + scenario.demand._f2Value
@@ -283,7 +283,7 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
           for iSN,cSN in enumerate(RWScurves):
             print "Computing for %s %s %s %s" % (iWE, iNS, iEW, iSN)
             sID = "RiLSA1LoadCurves(%s-%s-%s-%s)" % (iWE, iNS, iEW, iSN)
-            s = getScenario("RiLSA1")
+            s = getScenario("RiLSA1", {})
             s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
             if True:#fileNeedsRebuild(s.demandName, "duarouter"):
               nStreams = []
@@ -342,6 +342,7 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
         for t in greens:
           tls._programs[prog]._type = tls_algorithm
           tls._programs[prog]._id = "adapted" + str(t)
+          self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
           tls._programs[prog]._phases[i1][1] = greens[t][1]
           tls._programs[prog]._phases[i2][1] = greens[t][0]
           fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
@@ -435,7 +436,7 @@ class ScenarioSet_SinSin(ScenarioSet):
         for freq in self.frequencies:
             print "Computing for %s<->%s" % (offset, freq)
             sID = "SinSin(%s-%s)" % (offset, freq)
-            s = getScenario("BasicCross", False)
+            s = getScenario("BasicCross", {}, False)
             s.demandName = s.fullPath("routes_%s.rou.xml" % (sID))
             if fileNeedsRebuild(s.demandName, "duarouter"):
               self.genDemand(s, 3600, offset, freq)
@@ -464,6 +465,7 @@ class ScenarioSet_SinSin(ScenarioSet):
       for prog in tls._programs:
         tls._programs[prog]._type = tls_algorithm
         tls._programs[prog]._id = "adapted"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
         fdo.write(tls._programs[prog].toXML(tlsID))
     fdo.write("</additional>\n")
     fdo.close()
@@ -549,7 +551,7 @@ class ScenarioSet_OneSin(ScenarioSet):
         for freq in self.frequencies:
             print "Computing for %s<->%s" % (amplitude, freq)
             sID = "OneSin(%s-%s)" % (amplitude, freq)
-            s = getScenario("BasicCross", False)
+            s = getScenario("BasicCross", {}, False)
             s.demandName = s.fullPath("routes_%s.rou.xml" % (sID))
             if fileNeedsRebuild(s.demandName, "duarouter"):
               self.genDemand(s, 3600, amplitude, freq)
@@ -578,6 +580,7 @@ class ScenarioSet_OneSin(ScenarioSet):
       for prog in tls._programs:
         tls._programs[prog]._type = tls_algorithm
         tls._programs[prog]._id = "adapted"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
         fdo.write(tls._programs[prog].toXML(tlsID))
     fdo.write("</additional>\n")
     fdo.close()
@@ -594,10 +597,10 @@ class ScenarioSet_OneSin(ScenarioSet):
 class ScenarioSet_DemandStep(ScenarioSet):
   def __init__(self, params):
     ScenarioSet.__init__(self, "DemandStep", merge(
-      {"f1from":"0", "f1to":"2400", "f1step":"400",
-      "f2beginFrom":"0", "f2beginTo":"2400", "f2beginStep":"400",
-      "f2endFrom":"0", "f2endTo":"2400", "f2endStep":"400",
-      "f2durationFrom":"0", "f2durationTo":"3600", "f2durationStep":"600",
+      {"f1from":"0", "f1to":"2400", "f1step":"600",
+      "f2beginFrom":"0", "f2beginTo":"2400", "f2beginStep":"600",
+      "f2endFrom":"0", "f2endTo":"2400", "f2endStep":"600",
+      "f2durationFrom":"0", "f2durationTo":"3601", "f2durationStep":"900",
       },
       params))
   def getNumRuns(self):
@@ -616,7 +619,7 @@ class ScenarioSet_DemandStep(ScenarioSet):
               continue
             print "Computing for %s<->%s->%s@%s" % (f1, f2begin, f2end, f2duration)
             sID = "DemandStep(%s-%s-%s-%s)" % (f1, f2begin, f2end, f2duration)
-            s = getScenario("BasicCross", False)
+            s = getScenario("BasicCross", {}, False)
             s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
             print s.demandName
             if True:#fileNeedsRebuild(s.demandName, "duarouter"):
@@ -647,7 +650,7 @@ class ScenarioSet_DemandStep(ScenarioSet):
     RWScurves = getRWScurves()
     i = 0
     for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
-      for f2duration in range(self.getInt("f2durationFrom"), self.getInt("f2durationTo"), self.getInt("f2durationStep")):        
+      for f2begin in range(self.getInt("f2beginFrom"), self.getInt("f2beginTo"), self.getInt("f2beginStep")):        
         ret.append([])
         ranges[0].append(i)
         i = i + 1
@@ -671,6 +674,7 @@ class ScenarioSet_DemandStep(ScenarioSet):
       for prog in tls._programs:
         tls._programs[prog]._type = tls_algorithm
         tls._programs[prog]._id = "adapted"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
         scenario.demand._f1Value = float(max(scenario.demand._f1Value, 1))
         scenario.demand._f2Value = float(max(scenario.demand._f2Value, 1))
         t = scenario.demand._f1Value + scenario.demand._f2Value
@@ -690,24 +694,28 @@ class ScenarioSet_DemandStep(ScenarioSet):
 
 #--------------------------------------
         
-class ScenarioSet_CorrFlowsA(ScenarioSet):
+class ScenarioSet_CorrFlowsDistancesA(ScenarioSet):
   def __init__(self, params):
-    ScenarioSet.__init__(self, "CorrFlowsA", merge(
-      {"f1from":"0", "f1to":"2400", "f1step":"400","f2from":"0", "f2to":"2400", "f2step":"400"},
+    ScenarioSet.__init__(self, "CorrFlowsDistancesA", merge(
+      {"f1from":"0", "f1to":"2400", "f1step":"400",
+      "f2from":"0", "f2to":"2400", "f2step":"400",
+      "d1from":"300", "d1to":"1000", "d1step":"100"},
       params))
   def getNumRuns(self):
     f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
     f2num = 1 + (self.getInt("f2to") - self.getInt("f2from")) / self.getInt("f2step")
-    return f1num * f2num
+    d1num = 1 + (self.getInt("d1to") - self.getInt("d1from")) / self.getInt("d1step")
+    return f1num * f2num * d1num
   def iterateScenarios(self):
-    desc = {"name":"CorrFlowsA"}
+    desc = {"name":"CorrFlowsDistancesA"}
     for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
-        for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+        for d1 in range(self.getInt("d1from"), self.getInt("d1to"), self.getInt("d1step")):
             if f1==0 and f2==0:
               continue
-            print "Computing for %s<->%s" % (f1, f2)
-            sID = "CorrFlowsA(%s-%s)" % (f1, f2)
-            s = getScenario("BasicCorridor", False)
+            print "Computing for %s<->%s %s" % (f1, f2, d1)
+            sID = "CorrFlowsDistancesA(%s-%s-%s)" % (f1, f2, d1)
+            s = getScenario("BasicCorridor", {"xoff":d1}, False)
             s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
             if fileNeedsRebuild(s.demandName, "duarouter"):
               s.demand = demandGenerator.Demand()
@@ -720,17 +728,23 @@ class ScenarioSet_CorrFlowsA(ScenarioSet):
               # !!! the following two lines are a hack to pass the numbers instead of recomputing them 
               s.demand._f1Value = f1
               s.demand._f2Value = f2
-            desc = {"scenario":"CorrFlowsA", "f1":str(f1), "f2":str(f2)}
+            desc = {"scenario":"CorrFlowsDistancesA", "f1":str(f1), "f2":str(f2), "d1":str(d1)}
             yield s, desc, sID
   def getRunsMatrix(self):
     ret = []
     ranges = [[], []]
+    RWScurves = getRWScurves()
+    i = 0
     for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
-      ret.append([])
-      ranges[0].append(f1)
-      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
-        ret[-1].append({"scenario":"CorrFlowsA", "f1":str(f1), "f2":str(f2)})
-        ranges[1].append(f2)
+      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):        
+        ret.append([])
+        ranges[0].append(i)
+        i = i + 1
+        j = 0
+        for d1 in range(self.getInt("d1from"), self.getInt("d1to"), self.getInt("d1step")):
+          ret[-1].append({"f1":str(f1), "f2":str(f2), "d1":str(d1), "scenario":"CorrFlowsDistancesA"})
+          ranges[-1].append(j)
+          j = j + 1
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
@@ -745,6 +759,92 @@ class ScenarioSet_CorrFlowsA(ScenarioSet):
       for prog in tls._programs:
         tls._programs[prog]._type = tls_algorithm
         tls._programs[prog]._id = "adapted"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
+        scenario.demand._f1Value = float(max(scenario.demand._f1Value, 1))
+        scenario.demand._f2Value = float(max(scenario.demand._f2Value, 1))
+        t = scenario.demand._f1Value + scenario.demand._f2Value
+        greens = split_by_proportions(80, (scenario.demand._f1Value/t, scenario.demand._f2Value/t), (10, 10))
+        tls._programs[prog]._phases[0][1] = greens[0]
+        tls._programs[prog]._phases[3][1] = greens[1]
+        fdo.write(tls._programs[prog].toXML(tlsID))
+    fdo.write("</additional>\n")
+    fdo.close()
+    scenario.addAdditionalFile("vtypes")
+    args = []
+    return args
+  def getXLabel(self):
+    return "!!!"
+  def getYLabel(self):
+    return "!!!"
+
+#--------------------------------------    
+        
+class ScenarioSet_NetFlowsDistancesA(ScenarioSet):
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "NetFlowsDistancesA", merge(
+      {"f1from":"0", "f1to":"2400", "f1step":"400",
+      "f2from":"0", "f2to":"2400", "f2step":"400",
+      "oFrom":"0", "oTo":"3.14", "oStep":".314"},
+      params))
+  def getNumRuns(self):
+    f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
+    f2num = 1 + (self.getInt("f2to") - self.getInt("f2from")) / self.getInt("f2step")
+    self.offsets = []
+    offset = self.getFloat("oFrom")
+    while offset<self.getFloat("oTo"):
+      self.offsets.append(offset)
+      offset = offset + self.getFloat("oStep")
+    return f1num * f2num * len(self.offsets)
+  def iterateScenarios(self):
+    desc = {"name":"NetFlowsDistancesA"}
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+        for o in self.offsets:
+            if f1==0 and f2==0:
+              continue
+            print "Computing for %s %s<->%s" % (o, f1, f2)
+            sID = "NetFlowsDistancesA(%s-%s-%s)" % (f1, f2, o)
+            s = getScenario("BasicNet", {"rot":o}, False)
+            s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
+            if fileNeedsRebuild(s.demandName, "duarouter"):
+              s.demand = demandGenerator.Demand()
+              for i in range(1, 6):
+                s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "6/%s_to_5/%s" % (i,i), "1/%s_to_0/%s" % (i,i), { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+                s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f1, "0/%s_to_1/%s" % (i,i), "5/%s_to_6/%s" % (i,i), { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              for i in range(1, 6):
+                s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "%s/6_to_%s/5" % (i,i), "%s/1_to_%s/0" % (i,i), { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+                s.demand.addStream(demandGenerator.Stream(None, 0, 3600, f2, "%s/0_to_%s/1" % (i,i), "%s/5_to_%s/6" % (i,i), { 1:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+              s.demand.build(0, 3600, s.netName, s.demandName)
+              # !!! the following two lines are a hack to pass the numbers instead of recomputing them 
+              s.demand._f1Value = f1
+              s.demand._f2Value = f2
+            desc = {"scenario":"NetFlowsDistancesA", "f1":str(f1), "f2":str(f2), "o":str(o)}
+            yield s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
+      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+        ret.append([])
+        ranges[0].append(f1)
+        for o in self._offsets:
+          ret[-1].append({"scenario":"NetFlowsDistancesA", "f1":str(f1), "f2":str(f2), "o":str(o)})
+          ranges[1].append(f2)
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      for prog in tls._programs:
+        tls._programs[prog]._type = tls_algorithm
+        tls._programs[prog]._id = "adapted"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
         scenario.demand._f1Value = float(max(scenario.demand._f1Value, 1))
         scenario.demand._f2Value = float(max(scenario.demand._f2Value, 1))
         t = scenario.demand._f1Value + scenario.demand._f2Value
@@ -762,7 +862,8 @@ class ScenarioSet_CorrFlowsA(ScenarioSet):
   def getYLabel(self):
     return "vertical demand [vehicles/h]"
 
-#--------------------------------------      
+#--------------------------------------
+
 def getScenarioSet(name, params):
   if name=="iterateFlowsNA":
     return ScenarioSet_IterateFlowsNA(params)  
@@ -776,8 +877,12 @@ def getScenarioSet(name, params):
     return ScenarioSet_OneSin(params)  
   if name=="DemandStep":
     return ScenarioSet_DemandStep(params)  
-  if name=="CorrFlowsA":
-    return ScenarioSet_CorrFlowsA(params)  
+  if name=="CorrFlowsDistancesA":
+    return ScenarioSet_CorrFlowsDistancesA(params)  
+  if name=="NetFlowsA":
+    return ScenarioSet_NetFlowsA(params)
+  if name=="NetFlowsDistancesA":
+    return ScenarioSet_NetFlowsDistancesA(params)
   raise "unknown scenario '%s'" % name
 
 def getAllScenarioSets():

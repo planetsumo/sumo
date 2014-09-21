@@ -7,22 +7,24 @@ Copyright (C) 2014 DLR/TS, Germany
 All rights reserved
 """
 
+
 from . import *
-import os
-import sumolib.net.generator.cross as netGenerator
+import os, math
+import sumolib.net.generator.grid as netGenerator
 import sumolib.net.generator.demand as demandGenerator
 from sumolib.net.generator.network import *
 
 
 
-class Scenario_BasicCross(Scenario):
-  NAME = "BasicCross"
+class Scenario_BasicNet(Scenario):
+  NAME = "BasicNet"
   THIS_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), NAME)
   TLS_FILE = os.path.join(THIS_DIR, "tls.add.xml")
-  NET_FILE = os.path.join(THIS_DIR, "net.net.xml") 
+  NET_FILE = os.path.join(THIS_DIR, "network_%s.net.xml") 
 
-  def __init__(self, withDefaultDemand=True):
+  def __init__(self, rot, withDefaultDemand=True):
     Scenario.__init__(self, self.NAME)
+    self.NET_FILE = self.NET_FILE % rot
     self.netName = self.fullPath(self.NET_FILE)
     self.demandName = self.fullPath("routes.rou.xml")
     # network
@@ -31,12 +33,19 @@ class Scenario_BasicCross(Scenario):
       defaultEdge = Edge(numLanes=1, maxSpeed=13.89)
       defaultEdge.addSplit(100, 1)
       defaultEdge.lanes = [Lane(dirs="rs"), Lane(dirs="l")]
-      netGen = netGenerator.cross(None, defaultEdge)
+      netGen = netGenerator.grid(5, 5, None, defaultEdge)
+      m = rot / 3.14
+      for y in range(1, 6):
+        for x in range(1, 6):
+          sr = math.sin(rot*y/2.*x/2.)
+          cr = math.cos(rot*x/2.*y/2.)
+          netGen._nodes["%s/%s"%(x,y)].x = netGen._nodes["%s/%s"%(x,y)].x + sr * m * 250# * abs(3-x)/3.
+          netGen._nodes["%s/%s"%(x,y)].y = netGen._nodes["%s/%s"%(x,y)].y + cr * m * 250# * abs(3-y)/3.
       netGen.build(self.netName) # not nice, the network name should be given/returned
     # demand
     if withDefaultDemand:
       print "Demand in '%s' needs to be rebuild" % self.demandName
       self.demand = demandGenerator.Demand()
-      self.demand.addStream(demandGenerator.Stream(None, 0, 3600, 1000, "2/1_to_1/1", "1/1_to_0/1", { .2:"hdv", .8:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+      self.demand.addStream(demandGenerator.Stream(None, 0, 3600, 1000, "6/1_to_5/1", "1/1_to_0/1", { .2:"hdv", .8:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
       if fileNeedsRebuild(self.demandName, "duarouter"):
         self.demand.build(0, 3600, self.netName, self.demandName)
