@@ -267,7 +267,7 @@ protected:
 
 	void choosePolicy(double phero_in, double phero_out);
 
-	const std::string& getPoliciesParam() {
+	std::string getPoliciesParam() {
 		std::ostringstream key;
 		key << "POLICIES";
 		std::ostringstream def;

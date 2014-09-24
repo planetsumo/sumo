@@ -30,7 +30,7 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 	std::transform(pols.begin(),pols.end(),pols.begin(), ::tolower);
 	DBG(
 			std::ostringstream str;
-			str << pols;
+			str << "policies: " << pols;
 			WRITE_MESSAGE(str.str());
 	)
 
