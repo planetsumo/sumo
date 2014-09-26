@@ -67,18 +67,24 @@ class Stream:
     self._validFrom = validFrom
     self._validUntil = validUntil
 
-  def getVehicleDepartures(self, b, e):
+  def getVehicleDepartures(self, b, e, sampleFactor=None):
     if self._validFrom!=None and self._validUntil!=None and (e<self._validFrom or b>self._validUntil):
       return []
     ret = []
     for i in range(b, e):
       if self._validFrom!=None and self._validUntil!=None and (i<self._validFrom or i>self._validUntil):
         continue
+      depart = i
+      if sampleFactor!=None:
+        off = i%(86400/(3600*sampleFactor))
+        if not off<sampleFactor:
+          continue
+        depart = 86400/3600*sampleFactor + off
       if isinstance(self._numberModel, int) or isinstance(self._numberModel, float): 
         if random.random()<float(self._numberModel)/3600.:
-          ret.append(i)
+          ret.append(depart)
       elif self._numberModel.depart(i):
-        ret.append(i)
+        ret.append(depart)
     return ret
          
 
@@ -96,9 +102,9 @@ class Stream:
       return None
     return what.get()
           
-  def toVehicles(self, b, e, offset=0):
+  def toVehicles(self, b, e, offset=0, sampleFactor=None):
     vehicles = []
-    departures = self.getVehicleDepartures(b, e)
+    departures = self.getVehicleDepartures(b, e, sampleFactor)
     number = len(departures)
     for i,d in enumerate(departures):
         fromEdge = self.getFrom(self._departEdgeModel, i, number)
@@ -119,12 +125,13 @@ class Demand:
 
   def addStream(self, s):
     self.streams.append(s)
-  
-  def build(self, b, e, netName="net.net.xml", routesName="input_routes.rou.xml"):
+
+        
+  def build(self, b, e, netName="net.net.xml", routesName="input_routes.rou.xml", sampleFactor=None):
     vehicles = []
     running = 0
     for s in self.streams:
-      vehicles.extend(s.toVehicles(b, e, len(vehicles)))
+      vehicles.extend(s.toVehicles(b, e, len(vehicles), sampleFactor))
     fdo = tempfile.NamedTemporaryFile(mode="w", delete=False)
     #fdo = open(tmpFile, "w")
     fdo.write("<routes>\n")

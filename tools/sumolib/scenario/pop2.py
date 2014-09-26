@@ -68,6 +68,7 @@ class ScenarioSet:
   def getFloat(self, name):
     return float(self.params[name])
   def addTLSParameterFromFile(self, tlsProg, paramFile):
+    if paramFile==None: return
     fd = open(paramFile)
     for l in fd.readlines():
       l = l.strip()
@@ -276,7 +277,6 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
   def iterateScenarios(self):
     desc = {"name":"RiLSA1LoadCurves"}
     RWScurves = getRWScurves()
-    print RWScurves
     for iWE,cWE in enumerate(RWScurves):
       for iNS,cNS in enumerate(RWScurves):
         for iEW,cEW in enumerate(RWScurves):
@@ -300,7 +300,11 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
                   print stream._departEdgeModel
                   raise "Hmmm, unknown stream??"
               s.demand.streams = nStreams 
-              s.demand.build(0, 86400, s.netName, s.demandName)
+              end = 86400
+              sampleFactor = None
+              if "sample-factor" in self.params:
+                sampleFactor = self.params["sample-factor"]
+              s.demand.build(0, end, s.netName, s.demandName, sampleFactor)
             desc = {"scenario":"RiLSA1LoadCurves", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
             yield s, desc, sID
   def getRunsMatrix(self):
@@ -621,7 +625,6 @@ class ScenarioSet_DemandStep(ScenarioSet):
             sID = "DemandStep(%s-%s-%s-%s)" % (f1, f2begin, f2end, f2duration)
             s = getScenario("BasicCross", {}, False)
             s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
-            print s.demandName
             if True:#fileNeedsRebuild(s.demandName, "duarouter"):
               hd = f2duration/2
               s.demand = demandGenerator.Demand()
