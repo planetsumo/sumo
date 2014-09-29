@@ -385,7 +385,6 @@ GUILane::drawArrows() const {
 void
 GUILane::drawLane2LaneConnections() const {
     for (std::vector<MSLink*>::const_iterator i = myLinks.begin(); i != myLinks.end(); ++i) {
-        LinkState state = (*i)->getState();
         const MSLane* connected = (*i)->getLane();
         if (connected == 0) {
             continue;
@@ -619,12 +618,13 @@ GUIParameterTableWindow*
 GUILane::getParameterWindow(GUIMainWindow& app,
                             GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 8);
+        new GUIParameterTableWindow(app, *this, 10);
     // add items
     ret->mkItem("maxspeed [m/s]", false, getSpeedLimit());
     ret->mkItem("length [m]", false, myLength);
     ret->mkItem("street name", false, myEdge->getStreetName());
     ret->mkItem("stored traveltime [s]", true, new FunctionBinding<GUILane, SUMOReal>(this, &GUILane::getStoredEdgeTravelTime));
+    ret->mkItem("occupancy [%]", true, new FunctionBinding<GUILane, SUMOReal>(this, &GUILane::getBruttoOccupancy, 100.));
     ret->mkItem("edge type", false, myEdge->getEdgeType());
     ret->mkItem("priority", false, myEdge->getPriority());
     ret->mkItem("allowed vehicle class", false, getVehicleClassNames(myPermissions));
