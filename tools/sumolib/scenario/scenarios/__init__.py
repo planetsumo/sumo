@@ -301,6 +301,9 @@ def getScenario(name, params, withDefaultDemand=True):
   if name=="RiLSA1":
     import rilsa1
     return rilsa1.Scenario_RiLSA1(withDefaultDemand)  
+  elif name=="RiLSA1OutTLS":
+    import rilsa1_out_tls
+    return rilsa1_out_tls.Scenario_RiLSA1OutTLS(params, withDefaultDemand)  
   elif name=="BasicCross":
     import basic_cross
     return basic_cross.Scenario_BasicCross(withDefaultDemand)  

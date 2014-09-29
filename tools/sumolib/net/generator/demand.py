@@ -67,7 +67,7 @@ class Stream:
     self._validFrom = validFrom
     self._validUntil = validUntil
 
-  def getVehicleDepartures(self, b, e, sampleFactor=None):
+  def getVehicleDepartures(self, b, e, sampleFactor=None, seenRatio=None):
     if self._validFrom!=None and self._validUntil!=None and (e<self._validFrom or b>self._validUntil):
       return []
     ret = []
@@ -76,10 +76,12 @@ class Stream:
         continue
       depart = i
       if sampleFactor!=None:
-        off = i%(86400/(3600*sampleFactor))
+        off = i%(sampleFactor*24)
+        #print "%s %s %s %s" % (i, sampleFactor, (3600*sampleFactor), off)
         if not off<sampleFactor:
           continue
-        depart = 86400/3600*sampleFactor + off
+        depart = sampleFactor*int(i/(24*sampleFactor)) + off
+        #print "%s %s %s" % (int(i/3600)*sampleFactor, off, depart)
       if isinstance(self._numberModel, int) or isinstance(self._numberModel, float): 
         if random.random()<float(self._numberModel)/3600.:
           ret.append(depart)
@@ -99,12 +101,13 @@ class Stream:
       for k in what:
         s = s + k
         if s>r: return what[k]
+      exit()
       return None
     return what.get()
           
-  def toVehicles(self, b, e, offset=0, sampleFactor=None):
+  def toVehicles(self, b, e, offset=0, sampleFactor=None, seenRatio=None):
     vehicles = []
-    departures = self.getVehicleDepartures(b, e, sampleFactor)
+    departures = self.getVehicleDepartures(b, e, sampleFactor, seenRatio)
     number = len(departures)
     for i,d in enumerate(departures):
         fromEdge = self.getFrom(self._departEdgeModel, i, number)
