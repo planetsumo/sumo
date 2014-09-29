@@ -77,11 +77,9 @@ class Stream:
       depart = i
       if sampleFactor!=None:
         off = i%(sampleFactor*24)
-        #print "%s %s %s %s" % (i, sampleFactor, (3600*sampleFactor), off)
         if not off<sampleFactor:
           continue
         depart = sampleFactor*int(i/(24*sampleFactor)) + off
-        #print "%s %s %s" % (int(i/3600)*sampleFactor, off, depart)
       if isinstance(self._numberModel, int) or isinstance(self._numberModel, float): 
         if random.random()<float(self._numberModel)/3600.:
           ret.append(depart)
@@ -99,9 +97,9 @@ class Stream:
       r = random.random()
       s = 0 
       for k in what:
-        s = s + k
-        if s>r: return what[k]
-      exit()
+        s = s + what[k]
+        if s>r:
+          return k
       return None
     return what.get()
           

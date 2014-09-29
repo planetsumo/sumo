@@ -70,13 +70,12 @@ class Scenario_RiLSA1OutTLS(Scenario):
           prob = rel[2]/100.
           iprob = 1. - prob
           
-          pkwEprob = iprob * self.params["equippment-rate"]
+          pkwEprob = iprob * self.params["equipment-rate"]
           pkwNprob = iprob - pkwEprob
-          lkwEprob = prob * self.params["equippment-rate"]
+          lkwEprob = prob * self.params["equipment-rate"]
           lkwNprob = prob - lkwEprob
-          print "%s %s %s %s %s" % (pkwEprob, pkwNprob, lkwEprob, lkwNprob, (pkwEprob+pkwNprob+lkwEprob+lkwNprob))
           
           self.demand.addStream(demandGenerator.Stream(f[0]+"__"+rel[0], 0, 3600, rel[1], f[0], rel[0], 
-            { pkwEprob:"passenger", pkwNprob:"COLOMBO_undetectable_passenger", lkwEprob:"hdv", lkwNprob:"COLOMBO_undetectable_hdv" }))
+            { "passenger":pkwEprob, "COLOMBO_undetectable_passenger":pkwNprob, "hdv":lkwEprob, "COLOMBO_undetectable_hdv":lkwNprob }))
       if fileNeedsRebuild(self.demandName, "duarouter"):
         self.demand.build(0, 3600, self.netName, self.demandName)

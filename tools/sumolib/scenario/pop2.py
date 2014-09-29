@@ -806,6 +806,7 @@ class ScenarioSet_DemandStep(ScenarioSet):
     f2endNum = 1 + (self.getInt("f2endTo") - self.getInt("f2endFrom")) / self.getInt("f2endStep")
     f2durationNum = 1 + (self.getInt("f2durationTo") - self.getInt("f2durationFrom")) / self.getInt("f2durationStep")
     return f1num * f2beginNum * f2endNum * f2durationNum
+
   def iterateScenarios(self):
     desc = {"name":"iterateFlowsNA"}
     for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
