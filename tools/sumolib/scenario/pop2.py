@@ -443,7 +443,6 @@ class ScenarioSet_RiLSA1LoadCurvesOutTLS(ScenarioSet):
       sID = "RiLSA1LoadCurvesOutTLS(%s)" % (uID)
     s = getScenario("RiLSA1OutTLS", self.params)
     s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
-    print s.demandName
     if True:#fileNeedsRebuild(s.demandName, "duarouter"):
       nStreams = []
       for stream in s.demand.streams:
@@ -543,8 +542,10 @@ class ScenarioSet_RiLSA1LoadCurvesOutTLS(ScenarioSet):
           self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
           tls._programs[prog]._phases[i1][1] = greens[1]
           tls._programs[prog]._phases[i2][1] = greens[0]
-        else:
-          tls._programs[prog]._phases[0][1] = self.params["other-green"]
+        tls._programs[prog]._id = "adapted"
+        fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
+      else:
+        tls._programs[prog]._phases[0][1] = self.params["other-green"]
         tls._programs[prog]._id = "adapted"
         fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
     fdo.write("</additional>\n")
