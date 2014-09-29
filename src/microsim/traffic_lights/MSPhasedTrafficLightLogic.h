@@ -190,6 +190,9 @@ private:
 
     /// @brief frees memory responsibilities
     void deletePhases();
+
+protected:
+
     /// @brief The current step
     unsigned int myStep;
 
