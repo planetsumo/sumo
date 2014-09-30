@@ -38,11 +38,15 @@
 #include <vector>
 #include <list>
 #include <microsim/MSLane.h>
+#include <microsim/MSNet.h>
 #include <microsim/MSMoveReminder.h>
 #include <microsim/output/MSDetectorFileOutput.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/SUMOVehicle.h>
 
+//Debug
+//#define SWARM_DEBUG
+#include <utils/common/SwarmDebug.h>
 
 // ===========================================================================
 // class declarations
