@@ -226,6 +226,11 @@ public:
      */
     void reset();
 
+    /** @brief Returns an estimate of the number of vehicles currently on the detector */
+    unsigned getEstimatedCurrentVehicleNumber(double speedThreshold) const;
+
+    /** @brief Returns an estimate of the lenght of the queue of vehicles currently stopped on the detector */
+    double getEstimateQueueLength() const;
 
     /// @name Methods returning current values
     /// @{

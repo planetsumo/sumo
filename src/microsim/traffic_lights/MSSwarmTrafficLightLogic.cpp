@@ -301,10 +301,6 @@ void MSSwarmTrafficLightLogic::updateSensitivities() {
 					- lastThetaSensitivityUpdate);
 	lastThetaSensitivityUpdate = MSNet::getInstance()->getCurrentTimeStep();
 
-	if(elapsedTime==STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())){
-		return;	//we don't want to reinforce the policy selected at the beginning of the simulation
-	}
-
 	MSSOTLPolicy* currentPolicy = getCurrentPolicy();
 	vector<MSSOTLPolicy*> policies = getPolicies();
 
@@ -319,6 +315,10 @@ void MSSwarmTrafficLightLogic::updateSensitivities() {
 			)
 		}
 		return;
+	}
+
+	if(elapsedTime==STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep())){
+		return;	//we don't want to reinforce the policy selected at the beginning of the simulation
 	}
 
 	for (unsigned int i = 0; i < policies.size(); i++) {

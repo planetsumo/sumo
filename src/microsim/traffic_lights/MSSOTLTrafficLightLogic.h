@@ -36,6 +36,7 @@
 #include "MSSOTLDefinitions.h"
 #include "MSPhasedTrafficLightLogic.h"
 #include "MSSOTLE2Sensors.h"
+#include <utils/common/RandHelper.h>
 
 using namespace std;
 
@@ -145,6 +146,30 @@ protected:
 		def << "10";
 		return s2f(getParameter(key.str(), def.str()));
 	}
+	double getSpeedThreshold()
+	{
+			std::ostringstream key;
+			key << "THRESHOLDSPEED";
+			std::ostringstream def;
+			def << "2";
+			return s2f(getParameter(key.str(), def.str()));
+	}
+
+	double getInputSensorsLength() {
+		std::ostringstream key;
+		key << "INSENSORSLENGTH";
+		std::ostringstream def;
+		def << "100";
+		return s2f(getParameter(key.str(), def.str()));
+	}
+
+	double getOutputSensorsLength() {
+		std::ostringstream key;
+		key << "OUTSENSORSLENGTH";
+		std::ostringstream def;
+		def << "80";
+		return s2f(getParameter(key.str(), def.str()));
+	}
 	/*void setThreshold(unsigned int val) {
 	 threshold = val;
 	 }*/
@@ -191,7 +216,6 @@ protected:
 		return temp;
 	}
 
-	unsigned int threshold;
 
 private:
 	/*
@@ -219,6 +243,7 @@ private:
 	 */
 	size_t lastChain;
 
+	double decayThreshold;
 	/*
 	 * @brief Check for phases compliancy
 	 */
@@ -244,6 +269,44 @@ private:
 	 * If phaseStep is not a target phase nothing happens
 	 */
 	void resetCTS(size_t phaseStep);
+	/*
+	 * TEST
+	 */
+	void updateDecayThreshold();
+
+	/*
+	 * Traffic threshold calculation mode:
+	 * 0-> cars times seconds
+	 * 1-> estimated cars times seconds
+	 * 2-> queue length
+	 */
+	unsigned int getMode() {
+			std::ostringstream key;
+			key << "MODE";
+			std::ostringstream def;
+			def << "0";
+			return s2f(getParameter(key.str(), def.str()));
+		}
+	/*
+	 * Decay threshold that should be used in case of penetration rate != 100%
+	 * 0-> not active
+	 * 1-> active
+	 */
+	bool isDecayThresholdActivated(){
+		std::ostringstream key;
+		key << "DECAY_THRESHOLD";
+		std::ostringstream def;
+		def << "0";
+		return s2f(getParameter(key.str(), def.str()))!=0;
+	}
+
+	double getDecayConstant(){
+		std::ostringstream key;
+		key << "DECAY_CONSTANT";
+		std::ostringstream  def;
+		def << "-0.001";
+		return s2f(getParameter(key.str(),def.str()));
+	}
 
 };
 

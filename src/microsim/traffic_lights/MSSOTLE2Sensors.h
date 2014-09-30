@@ -33,7 +33,9 @@ class MSSOTLE2Sensors :	public MSSOTLSensors
 {
 protected :
 	void buildSensorForLane(MSLane* lane, NLDetectorBuilder &nb);
+	void buildSensorForLane(MSLane* lane, NLDetectorBuilder &nb, double sensorLength);
 	void buildSensorForOutLane(MSLane* lane, NLDetectorBuilder &nb);
+	void buildSensorForOutLane(MSLane* lane, NLDetectorBuilder &nb, double sensorLength);
 
 public:
 	/*
@@ -47,7 +49,11 @@ public:
 	~MSSOTLE2Sensors(void);
 
 	void buildSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
+	void buildSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb, double sensorLength);
 	void buildOutSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
+	void buildOutSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb, double sensorLength);
+	
+	void setSpeedThresholdParam(double newThreshold) {speedThresholdParam = newThreshold;}
 
 	/*
 	 * Returns the number of vehicles currently approaching the
@@ -65,6 +71,9 @@ public:
 	 */
 	unsigned int countVehicles(std::string laneId);
 
+	unsigned int estimateVehicles(std::string laneId);
+
+	double getEstimateQueueLenght (std::string laneId);
 	/*
 	* @param[in] The lane given by Id
 	* @return The maximum speed allowed for the given laneId
@@ -95,6 +104,7 @@ protected:
 	MSLane_MSE2CollectorMap mySensorsMap_OutLanes;
 	MSLaneID_MSE2CollectorMap mySensorsIDMap_OutLanes;
 	MSLaneID_MaxSpeedMap myMaxSpeedMap_OutLanes;
+	double speedThresholdParam;
 };
 
 #endif

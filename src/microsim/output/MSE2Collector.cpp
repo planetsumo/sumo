@@ -89,7 +89,7 @@ MSE2Collector::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
     if (newPos >= myStartPos && oldPos < myStartPos) {
         if (find(myKnownVehicles.begin(), myKnownVehicles.end(), &veh) == myKnownVehicles.end()) {
 			std::string type = veh.getVehicleType().getID(); // get vehicle's type
-			if(type.compare("COLOMBO_undetectable") != 0)
+			if(type.find("COLOMBO_undetectable") != std::string::npos)
             myKnownVehicles.push_back(&veh);
         }
     }
@@ -126,7 +126,7 @@ MSE2Collector::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification) {
     if (veh.getPositionOnLane() >= myStartPos && veh.getPositionOnLane() - veh.getVehicleType().getLength() < myEndPos) {
         // vehicle is on detector
 		std::string type = veh.getVehicleType().getID(); // get vehicle's type
-		if(type.compare("COLOMBO_undetectable") != 0)
+		if(type.find("COLOMBO_undetectable") != std::string::npos)
         myKnownVehicles.push_back(&veh);
         return true;
     }
@@ -410,6 +410,74 @@ MSE2Collector::writeXMLDetectorProlog(OutputDevice& dev) const {
 unsigned
 MSE2Collector::getCurrentVehicleNumber() const {
     return (unsigned) myKnownVehicles.size();
+}
+
+unsigned
+MSE2Collector::getEstimatedCurrentVehicleNumber(double speedThreshold) const {
+
+	SUMOReal distance = 0;
+	double thresholdSpeed = myLane->getSpeedLimit() / speedThreshold;
+
+	int count = 0;
+	for (std::list<SUMOVehicle*>::const_iterator it = myKnownVehicles.begin();
+			it != myKnownVehicles.end(); it++) {
+		MSVehicle* veh = static_cast<MSVehicle*>(*it);
+		double acceleration = veh->getAcceleration();
+		if (distance == 0)
+			distance = veh->getPositionOnLane();
+		if (veh->getPositionOnLane() < distance)
+			distance = veh->getPositionOnLane();
+		double carLenght = veh->getVehicleType().getLengthWithGap();
+		double vel = veh->getSpeed();
+		double realDistance = myLane->getLength() - distance; // the closer vehicle get to the light the greater is the distance
+		if (vel <= thresholdSpeed || acceleration > 0) //TODO speed less than half of the maximum speed for the lane NEED TUNING
+				{
+			count = (realDistance / carLenght) + 1;
+		}
+	}
+
+	return count;
+}
+
+double
+MSE2Collector::getEstimateQueueLength() const{
+
+	if (myKnownVehicles.empty())
+		return -1;
+
+	SUMOReal distance = 0;
+	double realDistance = 0;
+	bool flowing =  true;
+	for (std::list<SUMOVehicle*>::const_iterator it = myKnownVehicles.begin();
+			it != myKnownVehicles.end(); it++) {
+		MSVehicle* veh = static_cast<MSVehicle*>(*it);
+		if (distance == 0)
+			distance = veh->getPositionOnLane();
+		if (veh->getPositionOnLane() < distance)
+			distance = veh->getPositionOnLane();
+		double carLenght = veh->getVehicleType().getLengthWithGap();
+		double vel = veh->getSpeed();
+	//	double distanceTemp = myLane->getLength() - distance;
+		if (vel <= 0.5) {
+			realDistance = distance-carLenght;
+			flowing = false;
+		}
+    	DBG(
+    			std::ostringstream str;
+    			str << time2string(MSNet::getInstance()->getCurrentTimeStep())
+    					<< " MSE2Collector::getEstimateQueueLength::"
+    					<< " lane " << myLane->getID()
+    					<< " vehicle " << veh->getID()
+    					<< " positionOnLane " << veh->getPositionOnLane()
+    					<< " vel " << veh->getSpeed()
+    					<< " realDistance " << realDistance;
+    			WRITE_MESSAGE(str.str());
+    	)
+	}
+	if(flowing)
+		return 0;
+	else
+		return myLane->getLength() - realDistance;
 }
 
 
