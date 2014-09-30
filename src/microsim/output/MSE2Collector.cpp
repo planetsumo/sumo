@@ -89,7 +89,7 @@ MSE2Collector::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
     if (newPos >= myStartPos && oldPos < myStartPos) {
         if (find(myKnownVehicles.begin(), myKnownVehicles.end(), &veh) == myKnownVehicles.end()) {
 			std::string type = veh.getVehicleType().getID(); // get vehicle's type
-			if(type.find("COLOMBO_undetectable") != std::string::npos)
+			if(type.find("COLOMBO_undetectable") == std::string::npos)
             myKnownVehicles.push_back(&veh);
         }
     }
@@ -126,7 +126,7 @@ MSE2Collector::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification) {
     if (veh.getPositionOnLane() >= myStartPos && veh.getPositionOnLane() - veh.getVehicleType().getLength() < myEndPos) {
         // vehicle is on detector
 		std::string type = veh.getVehicleType().getID(); // get vehicle's type
-		if(type.find("COLOMBO_undetectable") != std::string::npos)
+		if(type.find("COLOMBO_undetectable") == std::string::npos)
         myKnownVehicles.push_back(&veh);
         return true;
     }
