@@ -35,13 +35,13 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 	)
 
 	if(pols.find("platoon")!=-1)
-		addPolicy(new MSSOTLPlatoonPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+		addPolicy(new MSSOTLPlatoonPolicy(new MSSOTLPolicy5DFamilyStimulus("PLATOON",parameters),parameters));
 	if(pols.find("phase")!=-1)
-		addPolicy(new MSSOTLPhasePolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+		addPolicy(new MSSOTLPhasePolicy(new MSSOTLPolicy5DFamilyStimulus("PHASE",parameters),parameters));
 	if(pols.find("marching")!=-1)
-		addPolicy(new MSSOTLMarchingPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+		addPolicy(new MSSOTLMarchingPolicy(new MSSOTLPolicy5DFamilyStimulus("MARCHING",parameters),parameters));
 	if(pols.find("congestion")!=-1)
-		addPolicy(new MSSOTLCongestionPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+		addPolicy(new MSSOTLCongestionPolicy(new MSSOTLPolicy5DFamilyStimulus("CONGESTION",parameters),parameters));
 
 	if(getPolicies().empty()){
 		WRITE_ERROR("NO VALID POLICY LIST READ");
@@ -57,16 +57,9 @@ MSSwarmTrafficLightLogic::MSSwarmTrafficLightLogic(MSTLLogicControl &tlcontrol,
 				"getMaxCongestionDuration " + d_str.str());
 		for (unsigned int i = 0; i < policies.size(); i++) {
 			MSSOTLPolicy* policy = policies[i];
-			MSSOTLPolicyStimulus* stim =
-					(MSSOTLPolicyStimulus*) policy->getDesirabilityAlgorithm();
+		MSSOTLPolicyDesirability* stim = policy->getDesirabilityAlgorithm();
 			std::ostringstream _str;
-			_str << policy->getName() << " stimCox " << stim->getStimCox()
-					<< " StimOffsetIn " << stim->getStimOffsetIn()
-					<< " StimOffsetOut " << stim->getStimOffsetOut()
-					<< " StimDivisorIn " << stim->getStimDivisorIn()
-					<< " StimDivisorOut " << stim->getStimDivisorOut()
-					<< " StimCoxExpIn " << stim->getStimCoxExpIn()
-					<< " StimCoxExpOut " << stim->getStimCoxExpOut()
+			_str << policy->getName() << stim->getMessage()
 					<< " getThetaSensitivity " << policy->getThetaSensitivity()
 					<< " .";
 			WRITE_MESSAGE(_str.str());
@@ -85,7 +78,7 @@ MSSwarmTrafficLightLogic::~MSSwarmTrafficLightLogic() {
 void MSSwarmTrafficLightLogic::init(NLDetectorBuilder &nb) throw (ProcessError) {
 	MSSOTLHiLevelTrafficLightLogic::init(nb);
 	//Setting the startup policy
-	choosePolicy(0, 0);
+	choosePolicy(0, 0, 0, 0);
 	//Initializing the random number generator to a time-dependent seed
 	srand((unsigned int) time(NULL));
 	//Initializing pheromone maps according to input lanes
@@ -125,6 +118,8 @@ void MSSwarmTrafficLightLogic::init(NLDetectorBuilder &nb) throw (ProcessError) 
 		}
 	}
 
+	initScaleFactorDispersionIn(pheromoneInputLanes.size());
+	initScaleFactorDispersionOut(pheromoneOutputLanes.size());
 	//Initializing thresholds for theta evaluations
 	lastThetaSensitivityUpdate = MSNet::getInstance()->getCurrentTimeStep();
 
@@ -390,6 +385,118 @@ double MSSwarmTrafficLightLogic::getPheromoneForOutputLanes() {
 	return pheroOut / pheromoneOutputLanes.size();
 }
 
+double MSSwarmTrafficLightLogic::getDispersionForInputLanes(double average_phero_in) {
+	if (pheromoneInputLanes.size() == 0) {
+		return 0;
+	}
+	double sum = 0;
+	for (MSLaneId_PheromoneMap::const_iterator iterator =
+			pheromoneInputLanes.begin(); iterator != pheromoneInputLanes.end();
+			iterator++) {
+		string laneId = iterator->first;
+		double lanePhero = iterator->second;
+		sum += pow(iterator->second - average_phero_in, 2);
+	}
+
+	double result = sqrt(sum/ pheromoneInputLanes.size()) * getScaleFactorDispersionIn();
+	DBG(
+					ostringstream so_str; so_str << " dispersionIn " << result;
+					WRITE_MESSAGE("MSSwarmTrafficLightLogic::getDispersionForInputLanes::"+so_str.str());)
+	return result;
+}
+
+double MSSwarmTrafficLightLogic::getDispersionForOutputLanes(double average_phero_out) {
+	if (pheromoneOutputLanes.size() == 0) {
+		return 0;
+	}
+	double sum = 0;
+	for (MSLaneId_PheromoneMap::const_iterator iterator =
+			pheromoneOutputLanes.begin();
+			iterator != pheromoneOutputLanes.end(); iterator++) {
+		sum += pow(iterator->second - average_phero_out, 2);
+	}
+
+	double result = sqrt(sum/ pheromoneOutputLanes.size()) * getScaleFactorDispersionOut();
+			DBG(
+							ostringstream so_str; so_str << " dispersionOut " << result;
+							WRITE_MESSAGE("MSSwarmTrafficLightLogic::getDispersionForOutputLanes::"+so_str.str());)
+			return result;
+}
+double MSSwarmTrafficLightLogic::getDistanceOfMaxPheroForInputLanes(){
+	if (pheromoneInputLanes.size() == 0) {
+		return 0;
+	}
+	double max_phero_val_current = 0;
+	double max_phero_val_old = 0;
+	double temp_avg_other_lanes = 0;
+	string laneId_max;
+	int counter = 0;
+	for (MSLaneId_PheromoneMap::const_iterator iterator =
+			pheromoneInputLanes.begin(); iterator != pheromoneInputLanes.end();
+			iterator++) {
+		string laneId = iterator->first;
+		double lanePhero = iterator->second;
+		if(counter == 0){
+			max_phero_val_current = lanePhero;
+			counter++;
+			continue;
+		}
+		if(lanePhero > max_phero_val_current){
+			max_phero_val_old = max_phero_val_current;
+			max_phero_val_current = lanePhero;
+			temp_avg_other_lanes = (temp_avg_other_lanes * (counter - 1) + max_phero_val_old)/ counter;
+		}
+		else{
+			temp_avg_other_lanes = (temp_avg_other_lanes * (counter - 1) + lanePhero)/ counter;
+		}
+
+		counter++;
+	}
+
+	double result = max_phero_val_current - temp_avg_other_lanes;
+	DBG(
+					ostringstream so_str; so_str << " currentMaxPhero " << max_phero_val_current<< " lane "<<laneId_max << " avgOtherLanes " << temp_avg_other_lanes << " distance " << result;
+					WRITE_MESSAGE("MSSwarmTrafficLightLogic::getDistanceOfMaxPheroForInputLanes::"+so_str.str());)
+	return result;
+}
+
+double MSSwarmTrafficLightLogic::getDistanceOfMaxPheroForOutputLanes(){
+	if (pheromoneOutputLanes.size() == 0) {
+		return 0;
+	}
+	double max_phero_val_current = 0;
+	double max_phero_val_old = 0;
+	double temp_avg_other_lanes = 0;
+	string laneId_max;
+	int counter = 0;
+	for (MSLaneId_PheromoneMap::const_iterator iterator =
+			pheromoneOutputLanes.begin(); iterator != pheromoneOutputLanes.end();
+			iterator++) {
+		string laneId = iterator->first;
+		double lanePhero = iterator->second;
+		if(counter == 0){
+			max_phero_val_current = lanePhero;
+			counter++;
+			continue;
+		}
+		if(lanePhero > max_phero_val_current){
+			max_phero_val_old = max_phero_val_current;
+			max_phero_val_current = lanePhero;
+			temp_avg_other_lanes = (temp_avg_other_lanes * (counter - 1) + max_phero_val_old)/ counter;
+		}
+		else{
+			temp_avg_other_lanes = (temp_avg_other_lanes * (counter - 1) + lanePhero)/ counter;
+		}
+
+		counter++;
+	}
+
+	double result = max_phero_val_current - temp_avg_other_lanes;
+	DBG(
+					ostringstream so_str; so_str << " currentMaxPhero " << max_phero_val_current<< " lane "<<laneId_max << " avgOtherLanes " << temp_avg_other_lanes << " distance " << result;
+					WRITE_MESSAGE("MSSwarmTrafficLightLogic::getDistanceOfMaxPheroForOutputLanes::"+so_str.str());)
+	return result;
+}
 void MSSwarmTrafficLightLogic::decidePolicy() {
 //	MSSOTLPolicy* currentPolicy = getCurrentPolicy();
 	// Decide if it is the case to check for another plan
@@ -401,8 +508,12 @@ void MSSwarmTrafficLightLogic::decidePolicy() {
 
 		double pheroIn = getPheromoneForInputLanes();
 		double pheroOut = getPheromoneForOutputLanes();
+		//double dispersionIn = getDispersionForInputLanes(pheroIn);
+		//double dispersionOut = getDispersionForOutputLanes(pheroOut);
+		double distancePheroIn = getDistanceOfMaxPheroForInputLanes();
+		double distancePheroOut = getDistanceOfMaxPheroForOutputLanes();
 		MSSOTLPolicy* oldPolicy = getCurrentPolicy();
-		choosePolicy(pheroIn, pheroOut);
+		choosePolicy(pheroIn, pheroOut,distancePheroIn, distancePheroOut);
 		MSSOTLPolicy* newPolicy = getCurrentPolicy();
 
 		if (newPolicy != oldPolicy) {
@@ -423,13 +534,14 @@ void MSSwarmTrafficLightLogic::decidePolicy() {
 	}
 }
 
-void MSSwarmTrafficLightLogic::choosePolicy(double phero_in, double phero_out) {
+
+
+void MSSwarmTrafficLightLogic::choosePolicy(double phero_in, double phero_out, double dispersion_in, double dispersion_out) {
 	vector<double> thetaStimuli;
 	double thetaSum = 0.0;
 	// Compute stimulus for each policy
 	for (unsigned int i = 0; i < getPolicies().size(); i++) {
-		double stimulus = getPolicies()[i]->computeDesirability(phero_in,
-				phero_out);
+		double stimulus = getPolicies()[i]->computeDesirability(phero_in,phero_out,dispersion_in, dispersion_out);
 		double thetaStimulus = pow(stimulus, 2)
 				/ (pow(stimulus, 2)
 						+ pow(getPolicies()[i]->getThetaSensitivity(), 2));
@@ -463,6 +575,10 @@ void MSSwarmTrafficLightLogic::choosePolicy(double phero_in, double phero_out) {
 			break;
 		}
 	}
+}
+
+void MSSwarmTrafficLightLogic::choosePolicy(double phero_in, double phero_out){
+	choosePolicy(phero_in, phero_out,0, 0);
 }
 
 bool MSSwarmTrafficLightLogic::canRelease() {

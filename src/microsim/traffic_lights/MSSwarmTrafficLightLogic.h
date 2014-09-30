@@ -35,7 +35,7 @@
 #include "MSSOTLPlatoonPolicy.h"
 #include "MSSOTLMarchingPolicy.h"
 #include "MSSOTLCongestionPolicy.h"
-#include "MSSOTLPolicyStimulus.h"
+#include "MSSOTLPolicy5DFamilyStimulus.h"
 
 class MSSwarmTrafficLightLogic: public MSSOTLHiLevelTrafficLightLogic {
 public:
@@ -187,7 +187,13 @@ public:
 	/*void setForgettingCox(double val) {
 	 forgetting_cox = val;
 	 }*/
+	double getScaleFactorDispersionIn(){
+		return scaleFactorDispersionIn;
+	}
 
+	double getScaleFactorDispersionOut(){
+		return scaleFactorDispersionOut;
+	}
 protected:
 
 	/**
@@ -245,6 +251,25 @@ protected:
 	 */
 	double getPheromoneForOutputLanes();
 
+	/*
+	 * @return The dispersion level regarding congestion on input lanes
+	 */
+	double getDispersionForInputLanes(double average_phero_in);
+
+	/*
+	 * @return The dispersion level regarding congestion on output lanes
+	 */
+	double getDispersionForOutputLanes(double average_phero_out);
+
+	/*
+	 * @return The difference between the current max phero value and the average phero of the other lanes
+	 */
+	double getDistanceOfMaxPheroForInputLanes();
+
+	/*
+	 * @return The difference between the current max phero value and the average phero of the other lanes
+	 */
+	double getDistanceOfMaxPheroForOutputLanes();
 	/**
 	 * @brief Update pheromone levels
 	 * Pheromone on input lanes is costantly updated
@@ -265,6 +290,7 @@ protected:
 	 */
 	void decidePolicy();
 
+	void choosePolicy(double phero_in, double phero_out, double dispersion_in, double dispersion_out);
 	void choosePolicy(double phero_in, double phero_out);
 
 	std::string getPoliciesParam() {
@@ -273,6 +299,61 @@ protected:
 		std::ostringstream def;
 		def << "Platoon;Phase;Marching;Congestion";
 		return getParameter(key.str(), def.str());
+	}
+
+	void initScaleFactorDispersionIn(int lanes_in){
+		std::vector<double> phero_values;
+
+		for(int i=0; i<lanes_in/2; i++){
+			phero_values.push_back(getPheroMaxVal());
+		}
+		for(int i=lanes_in/2; i<lanes_in; i++){
+					phero_values.push_back(0.0);
+		}
+
+		double sum_avg_tmp = 0;
+
+		for(int i=0; i<phero_values.size(); i++){
+					sum_avg_tmp += phero_values[i];
+		}
+
+		double mean = sum_avg_tmp / phero_values.size();
+
+		double sum_dev_tmp = 0;
+		for(int i=0; i<phero_values.size(); i++){
+					sum_dev_tmp += pow(phero_values[i] - mean, 2);
+		}
+
+		double deviation = sqrt(sum_dev_tmp/ phero_values.size());
+
+		scaleFactorDispersionIn = getPheroMaxVal() / deviation;
+	}
+
+	void initScaleFactorDispersionOut(int lanes_out){
+		std::vector<double> phero_values;
+
+				for(int i=0; i<lanes_out/2; i++){
+					phero_values.push_back(getPheroMaxVal());
+				}
+				for(int i=lanes_out/2; i<lanes_out; i++){
+							phero_values.push_back(0.0);
+				}
+
+				double sum_avg_tmp = 0;
+				for(int i=0; i<phero_values.size(); i++){
+							sum_avg_tmp += phero_values[i];
+				}
+				double mean = sum_avg_tmp / phero_values.size();
+
+				double sum_dev_tmp = 0;
+
+				for(int i=0; i<phero_values.size(); i++){
+							sum_dev_tmp += pow(phero_values[i] - mean, 2);
+				}
+
+				double deviation = sqrt(sum_dev_tmp/ phero_values.size());
+
+				scaleFactorDispersionOut = getPheroMaxVal() / deviation;
 	}
 	bool logData;
 	ofstream swarmLogFile;
@@ -283,6 +364,11 @@ protected:
 	bool mustChange;
 	unsigned int congestion_steps;
 
+	/**
+	 * \factors to scale pheromoneDispersion in range [0, 10]
+	 */
+	double scaleFactorDispersionIn;
+	double scaleFactorDispersionOut;
 };
 
 #endif

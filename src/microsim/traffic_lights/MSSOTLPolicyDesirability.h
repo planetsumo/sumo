@@ -61,7 +61,7 @@ protected:
 
 public:
 
-	MSSOTLPolicyDesirability(
+	MSSOTLPolicyDesirability(string keyPrefix,
 			const std::map<std::string, std::string>& parameters);
 	virtual ~MSSOTLPolicyDesirability();
 
@@ -70,6 +70,13 @@ public:
 	 */
 	virtual double computeDesirability(double vehInMeasure,
 			double vehOutMeasure) = 0;
+	/**
+	 * \brief Calculates the desirability of the policy
+	 */
+	virtual double computeDesirability(double vehInMeasure, double vehOutMeasure,
+			double vehInDispersionMeasure,
+			double vehOutDispersionMeasure) = 0;
+	virtual string getMessage() = 0;
 	void setKeyPrefix(string val) {
 		myKeyPrefix = val;
 	}

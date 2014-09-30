@@ -53,14 +53,21 @@ MSSOTLPolicy::~MSSOTLPolicy(void) {
 	int r = 0;
 }
 
-double MSSOTLPolicy::computeDesirability(double vehInMeasure,
-		double vehOutMeasure) {
+double MSSOTLPolicy::computeDesirability(double vehInMeasure, double vehOutMeasure,double vehInDispersionMeasure,	double vehOutDispersionMeasure) {
 
 	DBG(
 			std::ostringstream str; str << "\nMSSOTLPolicy::computeStimulus\n" << getName(); WRITE_MESSAGE(str.str());)
 
-	return myDesirabilityAlgorithm->computeDesirability(vehInMeasure,
-			vehOutMeasure);
+	return myDesirabilityAlgorithm->computeDesirability(vehInMeasure, vehOutMeasure, vehInDispersionMeasure, vehOutDispersionMeasure);
+
+}
+
+double MSSOTLPolicy::computeDesirability(double vehInMeasure,double vehOutMeasure) {
+
+	DBG(
+			std::ostringstream str; str << "\nMSSOTLPolicy::computeStimulus\n" << getName(); WRITE_MESSAGE(str.str());)
+
+	return myDesirabilityAlgorithm->computeDesirability(vehInMeasure,vehOutMeasure, 0,0);
 
 }
 

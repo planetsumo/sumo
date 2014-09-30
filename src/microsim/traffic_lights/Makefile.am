@@ -10,7 +10,9 @@ MSSimpleTrafficLightLogic.cpp MSSimpleTrafficLightLogic.h \
 MSSOTLDefinitions.h \
 MSSOTLE2Sensors.cpp MSSOTLE2Sensors.h \
 MSSOTLPolicyDesirability.cpp MSSOTLPolicyDesirability.h \
-MSSOTLPolicyStimulus.cpp MSSOTLPolicyStimulus.h \
+MSSOTLPolicy5DFamilyStimulus.cpp MSSOTLPolicy5DFamilyStimulus.h \
+MSSOTLPolicy5DStimulus.cpp MSSOTLPolicy5DStimulus.h \
+MSSOTLPolicy3DStimulus.cpp MSSOTLPolicy3DStimulus.h \
 MSSOTLPolicy.cpp MSSOTLPolicy.h \
 MSSOTLMarchingPolicy.cpp MSSOTLMarchingPolicy.h \
 MSSOTLCongestionPolicy.cpp MSSOTLCongestionPolicy.h \

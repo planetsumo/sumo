@@ -115,8 +115,9 @@ public:
 	/**
 	 * \brief Computes the desirability of this policy, necessary when used in combination with an high level policy.
 	 */
-	double computeDesirability(double vehInMeasure, double vehOutMeasure);
+	double computeDesirability(double vehInMeasure, double vehOutMeasure,double vehInDispersionMeasure,	double vehOutDispersionMeasure);
 
+	double computeDesirability(double vehInMeasure, double vehOutMeasure);
 };
 
 #endif

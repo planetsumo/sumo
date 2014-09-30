@@ -35,7 +35,7 @@
 #include "MSSOTLPlatoonPolicy.h"
 #include "MSSOTLMarchingPolicy.h"
 #include "MSSOTLCongestionPolicy.h"
-#include "MSSOTLPolicyStimulus.h"
+#include "MSSOTLPolicy3DStimulus.h"
 
 class MSDeterministicHiLevelTrafficLightLogic: public MSSOTLHiLevelTrafficLightLogic {
 public:

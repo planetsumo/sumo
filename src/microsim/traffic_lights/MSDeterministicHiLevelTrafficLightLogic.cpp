@@ -26,10 +26,10 @@ MSDeterministicHiLevelTrafficLightLogic::MSDeterministicHiLevelTrafficLightLogic
 		MSSOTLHiLevelTrafficLightLogic(tlcontrol, id, subid, phases, step,
 				delay, parameters) {
 
-	addPolicy(new MSSOTLPlatoonPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
-	addPolicy(new MSSOTLPhasePolicy(new MSSOTLPolicyStimulus(parameters),parameters));
-	addPolicy(new MSSOTLMarchingPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
-	addPolicy(new MSSOTLCongestionPolicy(new MSSOTLPolicyStimulus(parameters),parameters));
+	addPolicy(new MSSOTLPlatoonPolicy(new MSSOTLPolicy3DStimulus("PLATOON",parameters),parameters));
+	addPolicy(new MSSOTLPhasePolicy(new MSSOTLPolicy3DStimulus("PHASE",parameters),parameters));
+	addPolicy(new MSSOTLMarchingPolicy(new MSSOTLPolicy3DStimulus("MARCHING",parameters),parameters));
+	addPolicy(new MSSOTLCongestionPolicy(new MSSOTLPolicy3DStimulus("CONGESTION",parameters),parameters));
 
 }
 

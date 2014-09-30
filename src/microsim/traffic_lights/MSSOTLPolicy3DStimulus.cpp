@@ -1,5 +1,5 @@
 /****************************************************************************/
-/// @file    MSSOTLPolicyDesirability.cpp
+/// @file    MSSOTLPolicyStimulus.cpp
 /// @author  Riccardo Belletti
 /// @date    Mar 2014
 /// @version $Id: MSSOTLPolicyDesirability.cpp 0  $
@@ -17,13 +17,13 @@
 //
 /****************************************************************************/
 
-#include "MSSOTLPolicyDesirability.h"
+#include "MSSOTLPolicy3DStimulus.h"
 
-MSSOTLPolicyDesirability::MSSOTLPolicyDesirability(
-		string keyPrefix,
+MSSOTLPolicy3DStimulus::MSSOTLPolicy3DStimulus(string keyPrefix,
 		const std::map<std::string, std::string>& parameters) :
-		Parameterised(parameters), myKeyPrefix(keyPrefix) {
+		MSSOTLPolicy5DStimulus(keyPrefix, parameters) {
+
+		setStimCoxExpDispersionInDefVal(0);
+		setStimCoxExpDispersionOutDefVal(0);
 }
 
-MSSOTLPolicyDesirability::~MSSOTLPolicyDesirability() {
-}
