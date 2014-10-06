@@ -68,6 +68,6 @@ class Scenario_RiLSA1(Scenario):
         for rel in f[1]:
           prob = rel[2]/100.
           iprob = 1. - prob
-          self.demand.addStream(demandGenerator.Stream(f[0]+"__"+rel[0], 0, 3600, rel[1], f[0], rel[0], { prob:"hdv", iprob:"passenger"}))
+          self.demand.addStream(demandGenerator.Stream(f[0]+"__"+rel[0], 0, 3600, rel[1], f[0], rel[0], { "hdv":prob, "passenger":iprob}))
       if fileNeedsRebuild(self.demandName, "duarouter"):
         self.demand.build(0, 3600, self.netName, self.demandName)

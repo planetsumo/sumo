@@ -111,6 +111,7 @@ class Scenario:
     self.demandName = None
     self.additional = {}
     self.conn = None
+    self.addAdditionalFile("vtypes")
     try: os.makedirs(os.path.join(SANDBOX_PATH, self.name))
     except: pass
 
@@ -126,7 +127,11 @@ class Scenario:
       cfg[a] = addOptions[a]
     cfg["net-file"] = self.netName
     cfg["route-files"] = self.demandName
+    if "vtypes" in self.additional: 
+        cfg["additional-files"] = "vtypes.add.xml"
     for a in self.additional:
+      if a =="vtypes":
+        continue
       fileName = a+".add.xml" 
       if len(self.additional[a])>0:
         sumolib.files.additional.write(fileName, self.additional[a])
@@ -307,12 +312,18 @@ def getScenario(name, params, withDefaultDemand=True):
   elif name=="BasicCross":
     import basic_cross
     return basic_cross.Scenario_BasicCross(withDefaultDemand)  
+  elif name=="BasicCrossL":
+    import basic_crossl
+    return basic_crossl.Scenario_BasicCrossL(withDefaultDemand)  
   elif name=="BasicCorridor":
     import basic_corridor
     return basic_corridor.Scenario_BasicCorridor(params["xoff"], withDefaultDemand)  
   elif name=="BasicNet":
     import basic_net
     return basic_net.Scenario_BasicNet(params["rot"], withDefaultDemand)  
+  elif name=="RealWorld":
+    import real_world
+    return real_world.Scenario_RealWorld(params["which"], withDefaultDemand)  
   raise "unknown scenario '%s'" % name
 
     

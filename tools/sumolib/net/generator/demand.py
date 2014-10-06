@@ -137,7 +137,10 @@ class Demand:
     #fdo = open(tmpFile, "w")
     fdo.write("<routes>\n")
     for v in sorted(vehicles, key=lambda veh: veh.depart):
-      fdo.write('    <trip id="%s" depart="%s" from="%s" to="%s" type="%s"/>\n' % (v.id, v.depart, v.fromEdge, v.toEdge, v.vType))
+        if v.vType=="pedestrian":
+            fdo.write('    <person id="%s" depart="%s"><walk from="%s" to="%s"/></person>\n' % (v.id, v.depart, v.fromEdge, v.toEdge))
+        else:
+            fdo.write('    <trip id="%s" depart="%s" from="%s" to="%s" type="%s"/>\n' % (v.id, v.depart, v.fromEdge, v.toEdge, v.vType))
     fdo.write("</routes>")
     fdo.close()
     duarouter = sumolib.checkBinary("duarouter")

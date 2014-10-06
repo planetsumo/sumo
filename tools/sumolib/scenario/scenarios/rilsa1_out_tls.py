@@ -58,6 +58,8 @@ class Scenario_RiLSA1OutTLS(Scenario):
     self.params = params
     self.netName = self.fullPath(self.NET_FILE)
     self.demandName = self.fullPath("routes.rou.xml")
+    if "equipment-rate" not in self.params:
+        self.params["equipment-rate"] = 1
     # network
     if fileNeedsRebuild(self.netName, "netconvert"):
       netconvert = sumolib.checkBinary("netconvert")

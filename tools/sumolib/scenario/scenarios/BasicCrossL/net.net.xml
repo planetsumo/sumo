@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 10/02/14 09:42:10 by SUMO netconvert Version dev-SVN-rUNKNOWN
+<!-- generated on 10/04/14 21:23:24 by SUMO netconvert Version dev-SVN-r15694
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <node-files value="c:\users\dkrajzew\appdata\local\temp\tmpg4pxht"/>
-        <edge-files value="c:\users\dkrajzew\appdata\local\temp\tmpnwj4zo"/>
-        <connection-files value="c:\users\dkrajzew\appdata\local\temp\tmpqiveso"/>
+        <node-files value="c:\users\admini~1\appdata\local\temp\tmp1oye8x"/>
+        <edge-files value="c:\users\admini~1\appdata\local\temp\tmp3qvamh"/>
+        <connection-files value="c:\users\admini~1\appdata\local\temp\tmpyw0qlv"/>
     </input>
 
     <output>
-        <output-file value="D:\projects\x_EU_COLOMBO_318622\svn_smartSVN\trunk\software\sumo\tools\sumolib\scenario\scenarios\BasicCross\net.net.xml"/>
+        <output-file value="W:\projects\x_EU_COLOMBO_318622\svn\trunk\software\sumo\tools\sumolib\scenario\scenarios\BasicCrossL\net.net.xml"/>
     </output>
 
     <report>
