@@ -315,7 +315,7 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
         sampleFactor = self.params["sample-factor"]
       if "seen-ratio" in self.params:
         seenRatio = self.params["seen-ratio"]
-      s.demand.build(0, end, s.netName, s.demandName, sampleFactor, seenRatio)
+      s.demand.build(0, end, s.netName, s.demandName, sampleFactor)
       desc = {"scenario":"RiLSA1LoadCurves", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
       return s, desc, sID
   def getRunsMatrix(self):
