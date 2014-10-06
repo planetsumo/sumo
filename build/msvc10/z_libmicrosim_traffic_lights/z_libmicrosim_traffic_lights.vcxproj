@@ -155,9 +155,11 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonPolicy.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy3DStimulus.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DFamilyStimulus.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DStimulus.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyBasedTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyDesirability.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyStimulus.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLSensors.cpp" />
@@ -185,9 +187,11 @@
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonPolicy.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPlatoonTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy3DStimulus.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DFamilyStimulus.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DStimulus.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyBasedTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyDesirability.h" />
-    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyStimulus.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLSensors.h" />

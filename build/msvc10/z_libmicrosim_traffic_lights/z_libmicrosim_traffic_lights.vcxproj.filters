@@ -86,10 +86,16 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyDesirability.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyStimulus.cpp">
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.cpp">
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy3DStimulus.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DFamilyStimulus.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DStimulus.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -172,10 +178,16 @@
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyDesirability.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicyStimulus.h">
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLRequestPolicy.h">
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy3DStimulus.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DFamilyStimulus.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DStimulus.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>
