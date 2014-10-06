@@ -90,7 +90,6 @@ class RunsDB:
   def fetchResults(self, runs=None, measure=None):
     if runs==None:
       runs = self.getRunIDs()
-    print runs
     ret = {}
     for r in runs:
       ret[r] = {}
@@ -98,9 +97,7 @@ class RunsDB:
         i = self.cursor.execute("SELECT * FROM result WHERE runID=?", (r,))
       else: 
         i = self.cursor.execute("SELECT * FROM result WHERE runID=? AND key=?", (r,measure))
-      print i
       for row in i:
-        print row
         if row[1] not in ret[r]:
           ret[r][row[1]] = {}
         if row[2] in ret[r][row[1]]:
