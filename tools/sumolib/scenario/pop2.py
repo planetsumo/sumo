@@ -591,7 +591,7 @@ class ScenarioSet_BasicOutflow(ScenarioSet):
 class ScenarioSet_RiLSA1Outflow(ScenarioSet_RiLSA1LoadCurvesSampled):
   def __init__(self, params):
     ScenarioSet.__init__(self, "RiLSA1Outflow", merge(
-      {"g1from":"5", "g1to":"41", "g1step":"5","g2from":"5", "g2to":"41", "g2step":"5"},
+      {"g1from":"10", "g1to":"101", "g1step":"10","g2from":"10", "g2to":"101", "g2step":"10"},
       params))
   def getNumRuns(self):
     f1num = 1 + (self.getInt("g1to") - self.getInt("g1from")) / self.getInt("g1step")
@@ -683,7 +683,7 @@ class ScenarioSet_RiLSA1Outflow(ScenarioSet_RiLSA1LoadCurvesSampled):
         if tlsID[0]=='e' or tlsID[0]=='w':
           tls._programs[prog]._phases[0][1] = scenario.params["g1"]
         else:
-          tls._programs[prog]._phases[0][2] = scenario.params["g2"]
+          tls._programs[prog]._phases[1][1] = scenario.params["g2"]
         fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
     fdo.write("</additional>\n")
     fdo.close()
@@ -699,7 +699,7 @@ class ScenarioSet_RiLSA1Outflow(ScenarioSet_RiLSA1LoadCurvesSampled):
 class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
   def __init__(self, params):
     ScenarioSet.__init__(self, "RiLSA1PedFlow", merge(
-      {"f1from":"0", "f1to":"2400", "f1step":"400","f2from":"0", "f2to":"2400", "f2step":"400"},
+      {"f1from":"0", "f1to":"1001", "f1step":"200","f2from":"0", "f2to":"1001", "f2step":"200"},
       params))
   def getNumRuns(self):
     f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
@@ -803,7 +803,7 @@ class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
 class ScenarioSet_RiLSA1PTIteration(ScenarioSet_RiLSA1LoadCurvesSampled):
   def __init__(self, params):
     ScenarioSet.__init__(self, "RiLSA1PTIteration", merge(
-      {"p1from":"100", "p1to":"901", "p1step":"100","p2from":"100", "p2to":"901", "p2step":"100"},
+      {"p1from":"100", "p1to":"1201", "p1step":"100","p2from":"100", "p2to":"1201", "p2step":"100"},
       params))
   def getNumRuns(self):
     p1num = 1 + (self.getInt("p1to") - self.getInt("p1from")) / self.getInt("p1step")
@@ -852,17 +852,17 @@ class ScenarioSet_RiLSA1PTIteration(ScenarioSet_RiLSA1LoadCurvesSampled):
       if "seen-ratio" in self.params:
         seenRatio = self.params["seen-ratio"]
       s.demand.build(0, end, s.netName, s.demandName, sampleFactor)#, seenRatio)
-      desc = {"scenario":"bRiLSA1PTIterationus", "p1":str(p1), "p2":str(p2)}
+      desc = {"scenario":"RiLSA1PTIteration", "p1":str(p1), "p2":str(p2)}
       return s, desc, sID
   def getRunsMatrix(self):
     ret = []
     ranges = [[], []]
-    for f1 in range(self.getInt("p1from"), self.getInt("p1to"), self.getInt("p1step")):
+    for p1 in range(self.getInt("p1from"), self.getInt("p1to"), self.getInt("p1step")):
         ret.append([])
-        ranges[0].append(f1)
-        for f2 in range(self.getInt("p2from"), self.getInt("p2to"), self.getInt("p2step")):
+        ranges[0].append(p1)
+        for p2 in range(self.getInt("p2from"), self.getInt("p2to"), self.getInt("p2step")):
             ret[-1].append({"p1":str(p1), "p2":str(p2), "scenario":"RiLSA1PTIteration"})
-            ranges[-1].append(f2)
+            ranges[-1].append(p2)
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!        
@@ -907,7 +907,6 @@ class ScenarioSet_RiLSA1PTIteration(ScenarioSet_RiLSA1LoadCurvesSampled):
 class ScenarioSet_SinSin1Demand(ScenarioSet):
   MEAN = 700.
   AMPLITUDE = 300.
-
   def __init__(self, params):
     ScenarioSet.__init__(self, "SinSin1Demand", merge(
       {"offsetFrom":"0", "offsetTo":"6.28", "offsetStep":".628","freqFrom":"0", "freqTo":"21", "freqStep":"2"},
