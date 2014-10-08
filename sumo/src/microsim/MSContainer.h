@@ -553,7 +553,7 @@ public:
         ///the speed of the container
         SUMOReal mySpeed;
 
-        /// @brief The current internal edge this person is on or 0
+        /// @brief The current internal edge this container is on or 0
         MSEdge* myCurrentInternalEdge;
 
     private:

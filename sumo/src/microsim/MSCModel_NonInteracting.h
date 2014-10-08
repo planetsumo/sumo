@@ -65,11 +65,8 @@ public:
 
     static MSCModel_NonInteracting* getModel();
 
-    /// @brief register the given person as a pedestrian
+    /// @brief register the given container as a transfered contaienr
     CState* add(MSContainer* container, MSContainer::MSContainerStage_Transfer* stage, SUMOTime now);
-
-    ///// @brief whether a pedestrian is blocking the crossing of lane at offset distToCrossing
-    //bool blockedAtDist(const MSLane* lane, SUMOReal distToCrossing, std::vector<const MSPerson*>* collectBlockers);
 
 private:
     static MSCModel_NonInteracting* myModel;

@@ -120,7 +120,7 @@ protected:
     /// Ends the processing of a person
     void closePerson();
 
-    /// Ends the processing of a person
+    /// Ends the processing of a container
     void closeContainer();
 
     /// Ends the processing of a flow
