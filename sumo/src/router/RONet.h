@@ -313,14 +313,14 @@ public:
      *
      * @param[in] options The options used during this process
      * @param[in] router The router to use for routes computation
-     * @param[in] options The time until which route definitions shall be processed
+     * @param[in] time The time until which route definitions shall be processed
      * @return The last seen departure time>=time
      */
     SUMOTime saveAndRemoveRoutesUntil(OptionsCont& options,
                                       SUMOAbstractRouter<ROEdge, ROVehicle>& router, SUMOTime time);
 
 
-    /// Returns the information whether further vehicles are stored
+    /// Returns the information whether further vehicles, persons or containers are stored
     virtual bool furtherStored();
     //@}
 

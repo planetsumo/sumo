@@ -334,7 +334,7 @@ MSVehicleControl::getWaitingVehicle(const MSEdge* const edge, const std::set<std
 void
 MSVehicleControl::abortWaiting() {
     for (VehicleDictType::iterator i = myVehicleDict.begin(); i != myVehicleDict.end(); ++i) {
-        WRITE_WARNING("Vehicle " + i->first + " aborted waiting for a person that will never come.");
+        WRITE_WARNING("Vehicle " + i->first + " aborted waiting for a person or a container that will never come.");
     }
 }
 

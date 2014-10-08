@@ -52,6 +52,8 @@ enum SUMOVehicleShape {
     SVS_UNKNOWN,
     /// @brief render as a pedestrian
     SVS_PEDESTRIAN,
+    /// @brief render as a container
+    SVS_CONTAINER,
     /// @brief render as a bicycle
     SVS_BICYCLE,
     /// @brief render as a moped
@@ -188,7 +190,9 @@ enum SUMOVehicleClass {
 	/// @brief is a freighter
 	SVC_FREIGHTER = 1 << 25,
 	/// @brief is passenger ship
-	SVC_PASSENGER_SHIP = 1 << 26
+	SVC_PASSENGER_SHIP = 1 << 26,
+	/// @brief is a container
+	SVC_CONTAINER = 1 << 27
                   //@}
 };
 
