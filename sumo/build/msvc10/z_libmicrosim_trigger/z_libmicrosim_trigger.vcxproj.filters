@@ -29,9 +29,6 @@
     <ClCompile Include="..\..\..\src\microsim\trigger\MSCalibrator.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\trigger\MSContainerTerminal.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\trigger\MSContainerStop.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -53,9 +50,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\trigger\MSCalibrator.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\trigger\MSContainerTerminal.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\trigger\MSContainerStop.h">
