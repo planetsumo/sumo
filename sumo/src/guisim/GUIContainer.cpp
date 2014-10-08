@@ -189,22 +189,6 @@ GUIContainer::drawGL(const GUIVisualizationSettings& s) const {
     }
     glPopMatrix();
 
-#ifdef GUIContainer_DEBUG_DRAW_WALKING_AREA_SHAPE
-    MSContainerStage_Walking* stage = dynamic_cast<MSContainerStage_Walking*>(getCurrentStage());
-    if (stage != 0) {
-        MSPModel_Striping::PState* stripingState = dynamic_cast<MSPModel_Striping::PState*>(stage->getPedestrianState());
-        if (stripingState != 0) {
-            MSPModel_Striping::WalkingAreaPath* waPath = stripingState->myWalkingAreaPath;
-            if (waPath != 0) {
-                glPushMatrix();
-                glTranslated(0, 0, getType());
-                GLHelper::drawBoxLines(waPath->shape, 0.05);
-                glPopMatrix();
-            }
-        }
-    }
-#endif
-
     drawName(p1, s.scale, s.containerName);
     glPopName();
 }
@@ -330,7 +314,7 @@ GUIContainer::getColorValue(size_t activeScheme) const {
         case 6:
             return getWaitingSeconds();
         case 7:
-            return gSelected.isSelected(GLO_PERSON, getGlID());
+            return gSelected.isSelected(GLO_CONTAINER, getGlID());
     }
     return 0;
 }
@@ -417,7 +401,8 @@ void
 GUIContainer::drawAction_drawAsImage(const GUIVisualizationSettings& s) const {
     const std::string& file = getVehicleType().getImgFile();
     if (file != "") {
-        if (getVehicleType().getGuiShape() == SVS_PEDESTRIAN) {
+        //is rotating really necessary for containers?
+        if (getVehicleType().getGuiShape() == SVS_CONTAINER) {
             glRotated(getAngle(), 0, 0, 1);
         }
         int textureID = GUITexturesHelper::getTextureID(file);

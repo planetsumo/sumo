@@ -1327,7 +1327,7 @@ GUIDialog_ViewSettings::rebuildColorMatrices(bool doCreate) {
     if (doCreate) {
         m->create();
     }
-    myPersonColorSettingFrame->getParent()->recalc();
+    myVehicleColorSettingFrame->getParent()->recalc();
     m = rebuildColorMatrix(myPersonColorSettingFrame, myPersonColors, myPersonThresholds, myPersonButtons, myPersonColorInterpolation, mySettings->personColorer.getScheme());
     if (doCreate) {
         m->create();
