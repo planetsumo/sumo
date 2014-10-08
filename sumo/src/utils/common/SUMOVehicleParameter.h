@@ -75,6 +75,8 @@ const int STOP_START_SET = 2;
 const int STOP_TRIGGER_SET = 2 << 1;
 const int STOP_PARKING_SET = 2 << 2;
 const int STOP_EXPECTED_SET = 2 << 3;
+const int STOP_CONTAINER_TRIGGER_SET = 2 << 4;
+const int STOP_EXPECTED_CONTAINERS_SET = 2 << 5;
 
 
 // ===========================================================================
@@ -89,6 +91,8 @@ enum DepartDefinition {
     DEPART_GIVEN,
     /// @brief The departure is person triggered
     DEPART_TRIGGERED,
+    /// @brief The departure is container triggered
+    DEPART_CONTAINER_TRIGGERED,
     /// @brief The vehicle is discarded if emission fails (not fully implemented yet)
     DEPART_NOW,
     /// @brief Tag for the last element in the enum for safe int casting
@@ -474,10 +478,14 @@ public:
         SUMOTime until;
         /// @brief whether an arriving person lets the vehicle continue
         bool triggered;
+        /// @brief whether an arriving container lets the vehicle continue
+        bool containerTriggered;
         /// @brief whether the vehicle is removed from the net while stopping
         bool parking;
         /// @brief IDs of persons the vehicle has to wait for until departing
         std::set<std::string> awaitedPersons;
+        /// @brief IDs of containers the vehicle has to wait for until departing
+        std::set<std::string> awaitedContainers;
         /// @brief at which position in the stops list
         int index;
         /// @brief Information for the output which parameter were set

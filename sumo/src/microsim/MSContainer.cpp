@@ -121,7 +121,7 @@ MSContainer::MSContainerStage_Driving::proceed(MSNet* net, MSContainer* containe
     myWaitingPos = at;
     myWaitingSince = now;
     myVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines, myWaitingPos);
-	if (myVehicle != 0 && myVehicle->getParameter().departProcedure == DEPART_TRIGGERED) {
+	if (myVehicle != 0 && myVehicle->getParameter().departProcedure == DEPART_CONTAINER_TRIGGERED) {
         previousEdge->removeContainer(container);
         myVehicle->addContainer(container);
         net->getInsertionControl().add(myVehicle);
