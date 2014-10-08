@@ -222,7 +222,7 @@ MSContainerControl::abortWaiting() {
         for (ContainerVector::const_iterator j = pv.begin(); j != pv.end(); ++j) {
             MSContainer* p = (*j);
             edge->removeContainer(p);
-            WRITE_WARNING("Container " + p->getID() + " aborted waiting for a ride that will never come.");
+            WRITE_WARNING("Container " + p->getID() + " aborted waiting for a transport that will never come.");
             erase(p);
         }
     }
