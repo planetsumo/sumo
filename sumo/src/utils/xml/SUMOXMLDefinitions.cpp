@@ -253,6 +253,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "laneChangeModel", SUMO_ATTR_LANE_CHANGE_MODEL },
     { "minGap",         SUMO_ATTR_MINGAP },
     { "boardingDuration", SUMO_ATTR_BOARDING_DURATION },
+    { "loadingDuration", SUMO_ATTR_LOADING_DURATION },
 
     { "sigma",          SUMO_ATTR_SIGMA },
     { "tau",            SUMO_ATTR_TAU },
@@ -278,6 +279,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "toTaz",          SUMO_ATTR_TO_TAZ },
     { "reroute",        SUMO_ATTR_REROUTE },
     { "personCapacity", SUMO_ATTR_PERSON_CAPACITY },
+    { "containerCapacity", SUMO_ATTR_CONTAINER_CAPACITY },
     { "personNumber",   SUMO_ATTR_PERSON_NUMBER },
     { "containerNumber",SUMO_ATTR_CONTAINER_NUMBER },
 
@@ -359,8 +361,10 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "startPos",       SUMO_ATTR_STARTPOS },
     { "endPos",         SUMO_ATTR_ENDPOS },
     { "triggered",      SUMO_ATTR_TRIGGERED },
+    { "containerTriggered", SUMO_ATTR_CONTAINER_TRIGGERED },
     { "parking",        SUMO_ATTR_PARKING },
     { "expected",       SUMO_ATTR_EXPECTED },
+    { "expectedContainers",       SUMO_ATTR_EXPECTED_CONTAINERS },
     { "index",          SUMO_ATTR_INDEX },
 
     { "entering",       SUMO_ATTR_ENTERING },

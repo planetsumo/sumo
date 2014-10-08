@@ -52,7 +52,6 @@ class MSRoute;
 class MSVehicleType;
 class BinaryInputDevice;
 class MSEdge;
-class MSBusStop;
 
 
 // ===========================================================================
@@ -354,7 +353,7 @@ public:
     /// @brief Removes a vehicle from the list of waiting vehicles to a given edge
     void removeWaiting(const MSEdge* const edge, SUMOVehicle* vehicle);
 
-    /* @brief returns a vehicle of the given lines that is waiting for a for a person at this edge at the given positions
+    /* @brief returns a vehicle of the given lines that is waiting for a for a person or a container at this edge at the given positions
      * @param[in] edge The edge at which the vehicle is positioned.
      * @param[in] lines The set of lines from which at least one must correspond to the line of the vehicle
      * @param[in] position The vehicle shall be positioned in the interval [position - t, position + t], where t is some tolerance
@@ -371,6 +370,12 @@ public:
      */
     void unregisterOneWaitingForPerson() {
         myWaitingForPerson--;
+    }
+   
+    /** @brief increases the count of vehicles waiting for a container to allow recogniztion of container related deadlocks
+     */
+    void registerOneWaitingForContainer() {
+        myWaitingForContainer++;
     }
 
     /** @brief decreases the count of vehicles waiting for a container to allow recogniztion of container related deadlocks
@@ -417,7 +422,7 @@ public:
     /// @}
 
 
-    /** @brief removes any vehicles that are still waiting
+    /** @brief informes about all waiting vehicles (deletion in destructor)
      */
     void abortWaiting();
 

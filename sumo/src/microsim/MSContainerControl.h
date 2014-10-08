@@ -34,7 +34,7 @@
 #include <vector>
 #include <map>
 #include "MSContainer.h"
-//#include "MSVehicle.h"
+#include "MSVehicle.h"
 
 
 // ===========================================================================
@@ -82,15 +82,15 @@ public:
 
     /// adds a container to the list of containers waiting for a vehicle on the specified edge
     void addWaiting(const MSEdge* edge, MSContainer* container);
-//
-//    /** @brief board any applicable containers
-//     * Boards any people who wait on that edge for the given vehicle and removes them from myWaiting
-//     * @param[in] the edge on which the boarding should take place
-//     * @param[in] the vehicle which is taking on passengers
-//     * @return Whether any containers have been boarded
-//     */
-//    bool boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop);
-//
+
+    /** @brief load any applicable containers
+     * Loads any container that is waiting on that edge for the given vehicle and removes them from myWaiting
+     * @param[in] the edge on which the loading should take place
+     * @param[in] the vehicle which is taking on containers
+     * @return Whether any containers have been loaded
+     */
+    bool loadAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop);
+
 //    /// checks whether any container waits to finish her plan
 //    bool hasContainers() const;
 

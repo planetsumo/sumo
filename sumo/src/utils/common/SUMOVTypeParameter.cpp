@@ -53,8 +53,8 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
       defaultProbability(DEFAULT_VEH_PROB),
       speedFactor(1.0), speedDev(0.0),
       emissionClass(PollutantsInterface::getClassByName("unknown", vclass)), color(RGBColor::DEFAULT_COLOR),
-      vehicleClass(vclass), impatience(0.0), personCapacity(5), boardingDuration(0),
-      width(1.8), height(1.5), shape(SVS_UNKNOWN),
+      vehicleClass(vclass), impatience(0.0), personCapacity(5), containerCapacity(0), boardingDuration(0),
+      loadingDuration(0), width(1.8), height(1.5), shape(SVS_UNKNOWN),
       cfModel(SUMO_TAG_CF_KRAUSS), lcModel(LCM_LC2013),
       setParameter(0), saved(false), onlyReferenced(false) {
     switch (vclass) {
@@ -65,6 +65,14 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 0.478;
             height = 1.719;
             shape = SVS_PEDESTRIAN;
+            break;
+        case SVC_CONTAINER:
+            length = 6.058; //length of a 20' ISO container
+            minGap = 0.0;
+            maxSpeed = DEFAULT_CONTAINER_TRANSFER_SPEED;
+            width = 2.438;  //width of a 20' ISO container
+            height = 2.591; //height of a 20' ISO container
+            shape = SVS_CONTAINER;
             break;
         case SVC_BICYCLE:
             length = 1.6;
@@ -97,6 +105,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             height = 2.4;
             shape = SVS_TRUCK;
 			personCapacity = 3;
+			containerCapacity = 1;
             break;
         case SVC_TRAILER:
             length = 16.5;
@@ -105,6 +114,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             height = 4.;
             shape = SVS_TRUCK_SEMITRAILER;
 			personCapacity = 3;
+			containerCapacity = 2;
             break;
         case SVC_BUS:
             length = 12.;
@@ -189,6 +199,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             maxSpeed = 15.0;
 			//TODO: a shape for ships has to be created
             shape = SVS_SHIP;
+			containerCapacity = 20;
             break;
 		case SVC_PASSENGER_SHIP:
             length = 30.0;
@@ -266,8 +277,14 @@ SUMOVTypeParameter::write(OutputDevice& dev) const {
     if (wasSet(VTYPEPARS_PERSON_CAPACITY)) {
         dev.writeAttr(SUMO_ATTR_PERSON_CAPACITY, personCapacity);
     }
+    if (wasSet(VTYPEPARS_CONTAINER_CAPACITY)) {
+        dev.writeAttr(SUMO_ATTR_CONTAINER_CAPACITY, containerCapacity);
+    }
     if (wasSet(VTYPEPARS_BOARDING_DURATION)) {
         dev.writeAttr(SUMO_ATTR_BOARDING_DURATION, boardingDuration);
+    }
+    if (wasSet(VTYPEPARS_LOADING_DURATION)) {
+        dev.writeAttr(SUMO_ATTR_LOADING_DURATION, loadingDuration);
     }
 
     if (cfParameter.size() != 0) {

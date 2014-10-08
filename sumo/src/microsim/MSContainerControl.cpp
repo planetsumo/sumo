@@ -151,42 +151,42 @@ MSContainerControl::addWaiting(const MSEdge* const edge, MSContainer* container)
 //MSContainerControl::isWaiting4Vehicle(const MSEdge* const edge, MSContainer* /* p */) const {
 //    return myWaiting4Vehicle.find(edge) != myWaiting4Vehicle.end();
 //}
-//
-//
-//bool
-//	MSContainerControl::boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop) {
-//    bool ret = false;
-//    if (myWaiting4Vehicle.find(edge) != myWaiting4Vehicle.end()) {
-//        ContainerVector& waitContainers = myWaiting4Vehicle[edge];
-//        for (ContainerVector::iterator i = waitContainers.begin(); i != waitContainers.end();) {
-//            const std::string& line = vehicle->getParameter().line == "" ? vehicle->getParameter().id : vehicle->getParameter().line;
-//			SUMOTime currentTime =  MSNet::getInstance()->getCurrentTimeStep();
-//			if ((*i)->isWaitingFor(line) && vehicle->getVehicleType().getContainerCapacity() > vehicle->getContainerNumber() && stop->timeToBoardNextContainer <= currentTime) {
-//                edge->removeContainer(*i);
-//                vehicle->addContainer(*i);
-//				//if the time a container needs to enter the vehicle extends the duration of the stop of the vehicle extend
-//				//the duration by setting it to the boarding duration of the container
-//				const SUMOTime boardingDuration = vehicle->getVehicleType().getBoardingDuration();
-//				if (boardingDuration >= stop->duration) {					
-//					stop->duration = boardingDuration;
-//				}
-//				//update the time point at which the next container can board the vehicle
-//				stop->timeToBoardNextContainer = currentTime + boardingDuration;
-//
-//                static_cast<MSContainer::MSContainerStage_Driving*>((*i)->getCurrentStage())->setVehicle(vehicle);
-//                i = waitContainers.erase(i);
-//                ret = true;
-//            } else {
-//                ++i;
-//            }
-//        }
-//        if (waitContainers.size() == 0) {
-//            myWaiting4Vehicle.erase(myWaiting4Vehicle.find(edge));
-//        }
-//    }
-//    return ret;
-//}
-//
+
+
+bool
+	MSContainerControl::loadAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop) {
+    bool ret = false;
+    if (myWaiting4Vehicle.find(edge) != myWaiting4Vehicle.end()) {
+        ContainerVector& waitContainers = myWaiting4Vehicle[edge];
+        for (ContainerVector::iterator i = waitContainers.begin(); i != waitContainers.end();) {
+            const std::string& line = vehicle->getParameter().line == "" ? vehicle->getParameter().id : vehicle->getParameter().line;
+			SUMOTime currentTime =  MSNet::getInstance()->getCurrentTimeStep();
+			if ((*i)->isWaitingFor(line) && vehicle->getVehicleType().getContainerCapacity() > vehicle->getContainerNumber() && stop->timeToLoadNextContainer <= currentTime) {
+                edge->removeContainer(*i);
+                vehicle->addContainer(*i);
+				//if the time a container needs to get loaded on the vehicle extends the duration of the stop of the vehicle extend
+				//the duration by setting it to the loading duration of the container
+				const SUMOTime loadingDuration = vehicle->getVehicleType().getLoadingDuration();
+				if (loadingDuration >= stop->duration) {					
+					stop->duration = loadingDuration;
+				}
+				//update the time point at which the next container can be loaded on the vehicle
+				stop->timeToLoadNextContainer = currentTime + loadingDuration;
+
+                static_cast<MSContainer::MSContainerStage_Driving*>((*i)->getCurrentStage())->setVehicle(vehicle);
+                i = waitContainers.erase(i);
+                ret = true;
+            } else {
+                ++i;
+            }
+        }
+        if (waitContainers.size() == 0) {
+            myWaiting4Vehicle.erase(myWaiting4Vehicle.find(edge));
+        }
+    }
+    return ret;
+}
+
 //bool
 //MSContainerControl::hasContainers() const {
 //    return !myContainers.empty();

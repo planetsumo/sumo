@@ -67,7 +67,8 @@ class OutputDevice;
 class Position;
 class MSDevice_Person;
 class MSDevice_Container;
-class MSContainer;class MSJunction;
+class MSContainer;
+class MSJunction;
 
 // ===========================================================================
 // class definitions
@@ -575,6 +576,8 @@ public:
         SUMOTime until;
         /// @brief whether an arriving person lets the vehicle continue
         bool triggered;
+        /// @brief whether an arriving container lets the vehicle continue
+        bool containerTriggered;
         /// @brief whether the vehicle is removed from the net while stopping
         bool parking;
         /// @brief Information whether the stop has been reached
@@ -585,6 +588,8 @@ public:
         std::set<std::string> awaitedContainers;
 		/// @brief The time at which the vehicle is able to board another person
 		SUMOTime timeToBoardNextPerson;
+		/// @brief The time at which the vehicle is able to load another container
+		SUMOTime timeToLoadNextContainer;
 
     };
 
@@ -642,6 +647,7 @@ public:
      * @todo Describe more detailed
      * @see Stop
      * @see MSBusStop
+     * @see MSContainerStop
      */
     SUMOReal processNextStop(SUMOReal currentVelocity);
 
@@ -850,8 +856,9 @@ public:
      * @param duration	after waiting for the time period duration, the vehicle will
      * @param parking   a flag indicating whether the traci stop is used for parking or not
      * @param triggered a flag indicating whether the traci stop is triggered or not
+     * @param containerTriggered a flag indicating whether the traci stop is triggered by a container or not
      */
-    bool addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal radius, SUMOTime duration, bool parking, bool triggered);
+    bool addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal radius, SUMOTime duration, bool parking, bool triggered, bool containerTriggered);
 
     /**
     * returns the next imminent stop in the stop queue
@@ -1156,6 +1163,9 @@ protected:
 
     /// @brief Whether this vehicle is registered as waiting for a person (for deadlock-recognition)
     bool myAmRegisteredAsWaitingForPerson;
+
+    /// @brief Whether this vehicle is registered as waiting for a container (for deadlock-recognition)
+    bool myAmRegisteredAsWaitingForContainer;
 
     bool myHaveToWaitOnNextLink;
 
