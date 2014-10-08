@@ -116,7 +116,6 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
             of.closeTag();
         }
     }
-    of.closeTag();
     // write containers
     for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
         const std::vector<MSContainer*>& containers = (*e)->getSortedContainers(timestep);
