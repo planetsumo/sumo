@@ -145,7 +145,7 @@ protected:
     bool parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttributes& attrs, std::string errorSuffix, MsgHandler* const errorOutput);
 
 protected:
-    /// @brief Parameter of the current vehicle, trip, person, or flow
+    /// @brief Parameter of the current vehicle, trip, person, container or flow
     SUMOVehicleParameter* myVehicleParameter;
 
     /// @brief The insertion time of the vehicle read last
