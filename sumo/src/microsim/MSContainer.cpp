@@ -217,12 +217,12 @@ MSContainer::MSContainerStage_Driving::getDepartContainerStop() const {
 
 void
 MSContainer::MSContainerStage_Driving::tripInfoOutput(OutputDevice& os) const {
-    os.openTag("ride").writeAttr("depart", time2string(myDeparted)).writeAttr("arrival", time2string(myArrived)).closeTag();
+    os.openTag("transport").writeAttr("depart", time2string(myDeparted)).writeAttr("arrival", time2string(myArrived)).closeTag();
 }
 
 void
 MSContainer::MSContainerStage_Driving::routeOutput(OutputDevice& os) const {
-    os.openTag("ride").writeAttr(SUMO_ATTR_FROM, getFromEdge()->getID()).writeAttr(SUMO_ATTR_TO, getDestination().getID());
+    os.openTag("transport").writeAttr(SUMO_ATTR_FROM, getFromEdge()->getID()).writeAttr(SUMO_ATTR_TO, getDestination().getID());
     os.writeAttr(SUMO_ATTR_LINES, myLines).closeTag();
 }
 
@@ -355,9 +355,9 @@ MSContainer::MSContainerStage_Transfer::MSContainerStage_Transfer(const std::vec
     mySpeed(speed),
     myContainerState(0) {
     myDepartPos = SUMOVehicleParameter::interpretEdgePos(
-                      myDepartPos, myRoute.front()->getLength(), SUMO_ATTR_DEPARTPOS, "container walking from " + myRoute.front()->getID());
+                      myDepartPos, myRoute.front()->getLength(), SUMO_ATTR_DEPARTPOS, "container getting transfered from " + myRoute.front()->getID());
     myArrivalPos = SUMOVehicleParameter::interpretEdgePos(
-                       myArrivalPos, myRoute.back()->getLength(), SUMO_ATTR_ARRIVALPOS, "container walking to " + myRoute.back()->getID());
+                       myArrivalPos, myRoute.back()->getLength(), SUMO_ATTR_ARRIVALPOS, "container getting transfered to " + myRoute.back()->getID());
 }
 
 MSContainer::MSContainerStage_Transfer::~MSContainerStage_Transfer() {
