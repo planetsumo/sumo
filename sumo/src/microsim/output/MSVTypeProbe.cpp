@@ -86,8 +86,7 @@ MSVTypeProbe::execute(SUMOTime currentTime) {
                 myOutputDevice << "\" lat=\"" << pos.y() << "\" lon=\"" << pos.x();
                 myOutputDevice.setPrecision();
             }
-            myOutputDevice << "\" speed=\"" << veh->getSpeed() 
-                           << "\" personNumber=\"" << veh->getPersonNumber() << "\"";
+            myOutputDevice << "\" speed=\"" << veh->getSpeed() << "\"";
             myOutputDevice.closeTag();
         }
 
