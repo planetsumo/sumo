@@ -73,7 +73,7 @@ main(int argc, char** argv) {
     OptionsCont& oc = OptionsCont::getOptions();
     //  give some application descriptions
     oc.setApplicationDescription("Computes emissions by driving a time line.");
-    oc.setApplicationName("emissionsDrivingCycle", "SUMO emissionsDrivingCycle Version " + (std::string)VERSION_STRING);
+    oc.setApplicationName("emissionsDrivingCycle", "SUMO emissionsDrivingCycle Version " + getBuildName(VERSION_STRING));
     //  add options
 
     SystemFrame::addConfigurationOptions(oc);
@@ -143,15 +143,20 @@ main(int argc, char** argv) {
         if (!oc.isSet("output-file") && (oc.isSet("timeline-file") || !oc.isSet("emission-output"))) {
             throw ProcessError("The output file must be given.");
         }
-        std::ofstream o(oc.getString("output-file").c_str());
+        std::ostream* out = 0;
+        if (oc.isSet("output-file")) {
+            out = new std::ofstream(oc.getString("output-file").c_str());
+        }
         OutputDevice::createDeviceByOption("emission-output", "emission-export", "emission_file.xsd");
         OutputDevice* xmlOut = 0;
         if (oc.isSet("emission-output")) {
             xmlOut = &OutputDevice::getDeviceByOption("emission-output");
+        } else if (out == 0) {
+            out = &std::cout;
         }
 
         const SUMOEmissionClass defaultClass = PollutantsInterface::getClassByName(oc.getString("emission-class"));
-        TrajectoriesHandler handler(oc.getBool("compute-a"), defaultClass, oc.getFloat("slope"), xmlOut);
+        TrajectoriesHandler handler(oc.getBool("compute-a"), defaultClass, oc.getFloat("slope"), out, xmlOut);
 
         if (oc.isSet("timeline-file")) {
             bool skipFirst = oc.getBool("skip-first");
@@ -180,7 +185,7 @@ main(int argc, char** argv) {
                     l += v;
                     const SUMOReal a = !computeA && st.hasNext() ? TplConvert::_2SUMOReal<char>(st.next().c_str()) : TrajectoriesHandler::INVALID_VALUE;
                     const SUMOReal s = haveSlope ? TplConvert::_2SUMOReal<char>(st.next().c_str()) : TrajectoriesHandler::INVALID_VALUE;
-                    handler.writeEmissions(o, "", defaultClass, t, v, a, s);
+                    handler.writeEmissions(*out, "", defaultClass, t, v, a, s);
                 } catch (EmptyData&) {
                     throw ProcessError("Missing an entry in line '" + line + "'.");
                 } catch (NumberFormatException&) {
@@ -190,11 +195,13 @@ main(int argc, char** argv) {
             if (!quiet) {
                 std::cout << "sums"  << std::endl
                           << "length:" << l << std::endl;
-                handler.writeSums(std::cout, "");
             }
         }
         if (oc.isSet("netstate-file")) {
             XMLSubSys::runParser(handler, oc.getString("netstate-file"));
+        }
+        if (!quiet) {
+            handler.writeSums(std::cout, "");
         }
     } catch (InvalidArgument& e) {
         MsgHandler::getErrorInstance()->inform(e.what());

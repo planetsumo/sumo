@@ -104,9 +104,9 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     const bool checkLaneFoesAll = oc.getBool("check-lane-foes.all");
     const bool checkLaneFoesRoundabout = !checkLaneFoesAll && oc.getBool("check-lane-foes.roundabout");
     if (checkLaneFoesRoundabout) {
-        const std::vector<EdgeVector>& roundabouts = nb.getRoundabouts();
-        for (std::vector<EdgeVector>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
-            for (EdgeVector::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
+        const std::set<EdgeSet>& roundabouts = ec.getRoundabouts();
+        for (std::set<EdgeSet>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
+            for (EdgeSet::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
                 roundaboutNodes.insert((*j)->getToNode());
             }
         }
@@ -195,25 +195,7 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     }
 
     // write roundabout information
-    const std::vector<EdgeVector>& roundabouts = nb.getRoundabouts();
-    //  make output deterministic
-    std::vector<std::vector<std::string> > edgeIDs;
-    for (std::vector<EdgeVector>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
-        std::vector<std::string> tEdgeIDs;
-        for (EdgeVector::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
-            tEdgeIDs.push_back((*j)->getID());
-        }
-        std::sort(tEdgeIDs.begin(), tEdgeIDs.end());
-        edgeIDs.push_back(tEdgeIDs);
-    }
-    std::sort(edgeIDs.begin(), edgeIDs.end());
-    //  write
-    for (std::vector<std::vector<std::string> >::const_iterator i = edgeIDs.begin(); i != edgeIDs.end(); ++i) {
-        writeRoundabout(device, *i, ec);
-    }
-    if (roundabouts.size() != 0) {
-        device.lf();
-    }
+    writeRoundabouts(device, ec.getRoundabouts(), ec);
 
     // write the districts
     for (std::map<std::string, NBDistrict*>::const_iterator i = dc.begin(); i != dc.end(); i++) {
@@ -608,17 +590,55 @@ NWWriter_SUMO::writeInternalConnection(OutputDevice& into,
 
 
 void
+NWWriter_SUMO::writeRoundabouts(OutputDevice& into, const std::set<EdgeSet>& roundabouts,
+                                const NBEdgeCont& ec) {
+    //  make output deterministic
+    std::vector<std::vector<std::string> > edgeIDs;
+    for (std::set<EdgeSet>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
+        std::vector<std::string> tEdgeIDs;
+        for (EdgeSet::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
+            tEdgeIDs.push_back((*j)->getID());
+        }
+        std::sort(tEdgeIDs.begin(), tEdgeIDs.end());
+        edgeIDs.push_back(tEdgeIDs);
+    }
+    std::sort(edgeIDs.begin(), edgeIDs.end());
+    //  write
+    for (std::vector<std::vector<std::string> >::const_iterator i = edgeIDs.begin(); i != edgeIDs.end(); ++i) {
+        writeRoundabout(into, *i, ec);
+    }
+    if (roundabouts.size() != 0) {
+        into.lf();
+    }
+}
+
+
+void
 NWWriter_SUMO::writeRoundabout(OutputDevice& into, const std::vector<std::string>& edgeIDs,
                                const NBEdgeCont& ec) {
+    std::vector<std::string> validEdgeIDs;
+    std::vector<std::string> invalidEdgeIDs;
     std::vector<std::string> nodeIDs;
     for (std::vector<std::string>::const_iterator i = edgeIDs.begin(); i != edgeIDs.end(); ++i) {
-        nodeIDs.push_back(ec.retrieve(*i)->getToNode()->getID());
+        const NBEdge* edge = ec.retrieve(*i);
+        if (edge != 0) {
+            nodeIDs.push_back(edge->getToNode()->getID());
+            validEdgeIDs.push_back(edge->getID());
+        } else {
+            invalidEdgeIDs.push_back(*i);
+        }
     }
     std::sort(nodeIDs.begin(), nodeIDs.end());
-    into.openTag(SUMO_TAG_ROUNDABOUT);
-    into.writeAttr(SUMO_ATTR_NODES, joinToString(nodeIDs, " "));
-    into.writeAttr(SUMO_ATTR_EDGES, joinToString(edgeIDs, " "));
-    into.closeTag();
+    if (validEdgeIDs.size() > 0) {
+        into.openTag(SUMO_TAG_ROUNDABOUT);
+        into.writeAttr(SUMO_ATTR_NODES, joinToString(nodeIDs, " "));
+        into.writeAttr(SUMO_ATTR_EDGES, joinToString(validEdgeIDs, " "));
+        into.closeTag();
+        if (invalidEdgeIDs.size() > 0) {
+            WRITE_WARNING("Writing incomplete roundabout. Edges: '" 
+                    + joinToString(invalidEdgeIDs, " ") + "' no longer exist'");
+        }
+    } 
 }
 
 

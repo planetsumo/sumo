@@ -65,6 +65,12 @@
 
 
 // ===========================================================================
+// static members
+// ===========================================================================
+MTRand MSRouteHandler::myParsingRNG;
+
+
+// ===========================================================================
 // method definitions
 // ===========================================================================
 MSRouteHandler::MSRouteHandler(const std::string& file,
@@ -142,7 +148,7 @@ MSRouteHandler::myStartElement(int element,
                 throw ProcessError("Non-positive walking duration for  '" + myVehicleParameter->id + "'.");
             }
             SUMOReal speed = DEFAULT_PEDESTRIAN_SPEED;
-            const MSVehicleType* vtype = MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid);
+            const MSVehicleType* vtype = MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid, &myParsingRNG);
             // need to check for explicitly set speed since we might have // DEFAULT_VEHTYPE
             if (vtype != 0 && vtype->wasSet(VTYPEPARS_MAXSPEED_SET)) {
                 speed = vtype->getMaxSpeed();
@@ -333,10 +339,10 @@ MSRouteHandler::myStartElement(int element,
                 const MSEdge* fromTaz = MSEdge::dictionary(myVehicleParameter->fromTaz + "-source");
                 if (fromTaz == 0) {
                     WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' not known for '" + myVehicleParameter->id + "'!");
-                } else if (fromTaz->getNoFollowing() == 0) {
+                } else if (fromTaz->getNumSuccessors() == 0) {
                     WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' has no outgoing edges for '" + myVehicleParameter->id + "'!");
                 } else {
-                    myActiveRoute.push_back(fromTaz->getFollower(0));
+                    myActiveRoute.push_back(fromTaz->getSuccessor(0));
                 }
             }
             closeRoute(true);
@@ -365,7 +371,7 @@ MSRouteHandler::openVehicleTypeDistribution(const SUMOSAXAttributes& attrs) {
             StringTokenizer st(vTypes);
             while (st.hasNext()) {
                 std::string vtypeID = st.next();
-                MSVehicleType* type = MSNet::getInstance()->getVehicleControl().getVType(vtypeID);
+                MSVehicleType* type = MSNet::getInstance()->getVehicleControl().getVType(vtypeID, &myParsingRNG);
                 if (type == 0) {
                     throw ProcessError("Unknown vtype '" + vtypeID + "' in distribution '" + myCurrentVTypeDistributionID + "'.");
                 }
@@ -426,11 +432,15 @@ MSRouteHandler::openRoute(const SUMOSAXAttributes& attrs) {
         MSEdge::parseEdgesList(attrs.get<std::string>(SUMO_ATTR_EDGES, myActiveRouteID.c_str(), ok), myActiveRoute, rid);
     }
     myActiveRouteRefID = attrs.getOpt<std::string>(SUMO_ATTR_REFID, myActiveRouteID.c_str(), ok, "");
-    if (myActiveRouteRefID != "" && MSRoute::dictionary(myActiveRouteRefID) == 0) {
+    if (myActiveRouteRefID != "" && MSRoute::dictionary(myActiveRouteRefID, &myParsingRNG) == 0) {
         WRITE_ERROR("Invalid reference to route '" + myActiveRouteRefID + "' in route " + rid + ".");
     }
     myActiveRouteProbability = attrs.getOpt<SUMOReal>(SUMO_ATTR_PROB, myActiveRouteID.c_str(), ok, DEFAULT_VEH_PROB);
     myActiveRouteColor = attrs.hasAttribute(SUMO_ATTR_COLOR) ? new RGBColor(attrs.get<RGBColor>(SUMO_ATTR_COLOR, myActiveRouteID.c_str(), ok)) : 0;
+    myCurrentCosts = attrs.getOpt<SUMOReal>(SUMO_ATTR_COST, myActiveRouteID.c_str(), ok, -1);
+    if (ok && myCurrentCosts != -1 && myCurrentCosts < 0) {
+        WRITE_ERROR("Invalid cost for route '" + myActiveRouteID + "'.");
+    }
 }
 
 
@@ -467,7 +477,7 @@ MSRouteHandler::closeRoute(const bool /* mayBeDisconnected */) {
         delete myActiveRouteColor;
         myActiveRouteColor = 0;
         if (myActiveRouteRefID != "" && myCurrentRouteDistribution != 0) {
-            const MSRoute* route = MSRoute::dictionary(myActiveRouteRefID);
+            const MSRoute* route = MSRoute::dictionary(myActiveRouteRefID, &myParsingRNG);
             if (route != 0) {
                 if (myCurrentRouteDistribution->add(myActiveRouteProbability, route)) {
                     route->addReference();
@@ -486,6 +496,7 @@ MSRouteHandler::closeRoute(const bool /* mayBeDisconnected */) {
     MSRoute* route = new MSRoute(myActiveRouteID, myActiveRoute,
                                  myVehicleParameter == 0 || myVehicleParameter->repetitionNumber >= 1,
                                  myActiveRouteColor, myActiveRouteStops);
+    route->setCosts(myCurrentCosts);
     myActiveRoute.clear();
     if (!MSRoute::dictionary(myActiveRouteID, route)) {
         delete route;
@@ -542,7 +553,7 @@ MSRouteHandler::openRouteDistribution(const SUMOSAXAttributes& attrs) {
         size_t probIndex = 0;
         while (st.hasNext()) {
             std::string routeID = st.next();
-            const MSRoute* route = MSRoute::dictionary(routeID);
+            const MSRoute* route = MSRoute::dictionary(routeID, &myParsingRNG);
             if (route == 0) {
                 throw ProcessError("Unknown route '" + routeID + "' in distribution '" + myCurrentRouteDistributionID + "'.");
             }
@@ -563,7 +574,7 @@ MSRouteHandler::openRouteDistribution(const SUMOSAXAttributes& attrs) {
 void
 MSRouteHandler::closeRouteDistribution() {
     if (myCurrentRouteDistribution != 0) {
-        const bool haveSameID = MSRoute::dictionary(myCurrentRouteDistributionID) != 0;
+        const bool haveSameID = MSRoute::dictionary(myCurrentRouteDistributionID, &myParsingRNG) != 0;
         if (MSGlobals::gStateLoaded && haveSameID) {
             delete myCurrentRouteDistribution;
             return;
@@ -585,7 +596,7 @@ MSRouteHandler::closeRouteDistribution() {
 void
 MSRouteHandler::closeVehicle() {
     // get nested route
-    const MSRoute* route = MSRoute::dictionary("!" + myVehicleParameter->id);
+    const MSRoute* route = MSRoute::dictionary("!" + myVehicleParameter->id, &myParsingRNG);
     MSVehicleControl& vehControl = MSNet::getInstance()->getVehicleControl();
     if (myVehicleParameter->departProcedure == DEPART_GIVEN) {
         // let's check whether this vehicle had to depart before the simulation starts
@@ -600,17 +611,17 @@ MSRouteHandler::closeVehicle() {
     // get the vehicle's type
     MSVehicleType* vtype = 0;
     if (myVehicleParameter->vtypeid != "") {
-        vtype = vehControl.getVType(myVehicleParameter->vtypeid);
+        vtype = vehControl.getVType(myVehicleParameter->vtypeid, &myParsingRNG);
         if (vtype == 0) {
             throw ProcessError("The vehicle type '" + myVehicleParameter->vtypeid + "' for vehicle '" + myVehicleParameter->id + "' is not known.");
         }
     } else {
         // there should be one (at least the default one)
-        vtype = vehControl.getVType();
+        vtype = vehControl.getVType(DEFAULT_VTYPE_ID, &myParsingRNG);
     }
     if (route == 0) {
         // if there is no nested route, try via the (hopefully) given route-id
-        route = MSRoute::dictionary(myVehicleParameter->routeid);
+        route = MSRoute::dictionary(myVehicleParameter->routeid, &myParsingRNG);
     }
     if (route == 0) {
         // nothing found? -> error
@@ -683,7 +694,7 @@ MSRouteHandler::closePerson() {
     if (myActivePlan->size() == 0) {
         throw ProcessError("Person '" + myVehicleParameter->id + "' has no plan.");
     }
-    MSVehicleType* type = MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid);
+    MSVehicleType* type = MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid, &myParsingRNG);
     if (type == 0) {
         throw ProcessError("The type '" + myVehicleParameter->vtypeid + "' for person '" + myVehicleParameter->id + "' is not known.");
     }
@@ -748,12 +759,12 @@ MSRouteHandler::closeFlow() {
             }
         }
     }
-    if (MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid) == 0) {
+    if (MSNet::getInstance()->getVehicleControl().getVType(myVehicleParameter->vtypeid, &myParsingRNG) == 0) {
         throw ProcessError("The vehicle type '" + myVehicleParameter->vtypeid + "' for flow '" + myVehicleParameter->id + "' is not known.");
     }
-    if (MSRoute::dictionary("!" + myVehicleParameter->id) == 0) {
+    if (MSRoute::dictionary("!" + myVehicleParameter->id, &myParsingRNG) == 0) {
         // if not, try via the (hopefully) given route-id
-        if (MSRoute::dictionary(myVehicleParameter->routeid) == 0) {
+        if (MSRoute::dictionary(myVehicleParameter->routeid, &myParsingRNG) == 0) {
             if (myVehicleParameter->routeid != "") {
                 throw ProcessError("The route '" + myVehicleParameter->routeid + "' for flow '" + myVehicleParameter->id + "' is not known.");
             } else {
@@ -762,10 +773,10 @@ MSRouteHandler::closeFlow() {
                     const MSEdge* fromTaz = MSEdge::dictionary(myVehicleParameter->fromTaz + "-source");
                     if (fromTaz == 0) {
                         WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' not known for '" + myVehicleParameter->id + "'!");
-                    } else if (fromTaz->getNoFollowing() == 0) {
+                    } else if (fromTaz->getNumSuccessors() == 0) {
                         WRITE_ERROR("Source district '" + myVehicleParameter->fromTaz + "' has no outgoing edges for '" + myVehicleParameter->id + "'!");
                     } else {
-                        myActiveRoute.push_back(fromTaz->getFollower(0));
+                        myActiveRoute.push_back(fromTaz->getSuccessor(0));
                     }
                     closeRoute(true);
                     myVehicleParameter->routeid = "!" + myVehicleParameter->id;

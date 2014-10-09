@@ -147,6 +147,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "breakpoints-file", SUMO_TAG_BREAKPOINTS_FILE },
     { "location",         SUMO_TAG_LOCATION },
     { "colorScheme",      SUMO_TAG_COLORSCHEME },
+    { "scalingScheme",    SUMO_TAG_SCALINGSCHEME },
     { "entry",            SUMO_TAG_ENTRY },
 
     { "carFollowing-IDM",         SUMO_TAG_CF_IDM },
@@ -168,6 +169,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "transport",        SUMO_TAG_TRANSPORT },
     { "transfer",         SUMO_TAG_TRANSFER },
 
+    { "trajectories",     SUMO_TAG_TRAJECTORIES },
     { "timestep",         SUMO_TAG_TIMESTEP },
     { "timeSlice",        SUMO_TAG_TIMESLICE },
     { "actorConfig",      SUMO_TAG_ACTORCONFIG },
@@ -498,6 +500,7 @@ StringBijection<LinkState>::Entry SUMOXMLDefinitions::linkStateValues[] = {
     { "G", LINKSTATE_TL_GREEN_MAJOR },
     { "g", LINKSTATE_TL_GREEN_MINOR },
     { "r", LINKSTATE_TL_RED },
+    { "u", LINKSTATE_TL_REDYELLOW },
     { "Y", LINKSTATE_TL_YELLOW_MAJOR },
     { "y", LINKSTATE_TL_YELLOW_MINOR },
     { "o", LINKSTATE_TL_OFF_BLINKING },

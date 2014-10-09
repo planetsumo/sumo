@@ -284,6 +284,12 @@ GUISUMOAbstractView::getObjectAtPosition(Position pos) {
             if (type == GLO_POI || type == GLO_POLYGON) {
                 layer = dynamic_cast<Shape*>(o)->getLayer();
             }
+#ifdef HAVE_INTERNAL
+            if (type == GLO_LANE && GUIVisualizationSettings::UseMesoSim) {
+                // do not select lanes in meso mode
+                continue;
+            }
+#endif
             // check whether the current object is above a previous one
             if (layer > maxLayer) {
                 idMax = id;
@@ -338,16 +344,24 @@ GUISUMOAbstractView::getObjectsInBoundary(const Boundary& bound) {
     applyGLTransform(false);
 
     // paint in select mode
+    myVisualizationSettings->drawForSelecting = true;
     int hits2 = doPaintGL(GL_SELECT, bound);
+    myVisualizationSettings->drawForSelecting = false;
     // Get the results
     nb_hits = glRenderMode(GL_RENDER);
     if (nb_hits == -1) {
         myApp->setStatusBarText("Selection in boundary failed. Try to select fewer than " + toString(hits2) + " items");
     }
     std::vector<GUIGlID> result;
+    GLuint numNames;
+    GLuint* ptr = hits;
     for (int i = 0; i < nb_hits; ++i) {
-        assert(i * 4 + 3 < NB_HITS_MAX);
-        result.push_back(hits[i * 4 + 3]);
+        numNames = *ptr;
+        ptr += 3;
+        for (int j = 0; j < (int)numNames; j++) {
+            result.push_back(*ptr);
+            ptr++;
+        }
     }
     // switch viewport back to normal
     myChanger->setViewport(oldViewPort);

@@ -235,6 +235,11 @@ NWWriter_XML::writeEdgesAndConnections(const OptionsCont& oc, NBNodeCont& nc, NB
             cdevice << "\n";
         }
     }
+    // write roundabout information to the edges-files
+    if (ec.getRoundabouts().size() > 0) {
+        edevice.lf();
+        NWWriter_SUMO::writeRoundabouts(edevice, ec.getRoundabouts(), ec);
+    }
 
     // write loaded prohibitions to the connections-file
     for (std::map<std::string, NBNode*>::const_iterator i = nc.begin(); i != nc.end(); ++i) {

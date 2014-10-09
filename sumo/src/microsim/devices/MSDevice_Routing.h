@@ -37,9 +37,13 @@
 #include <map>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/WrappingCommand.h>
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include <microsim/MSVehicle.h>
 #include "MSDevice.h"
+
+#ifdef HAVE_FOX
+#include <utils/foxtools/FXWorkerThread.h>
+#endif
 
 
 // ===========================================================================
@@ -99,6 +103,21 @@ public:
     /// @brief deletes the router instance
     static void cleanup();
 
+    /// @brief returns whether any routing actions take place
+    static bool isEnabled() {
+        return !myWithTaz && !myEdgeEfforts.empty();
+    }
+
+#ifdef HAVE_FOX
+    static void waitForAll();
+    static void lock() {
+        myThreadPool.lock();
+    }
+    static void unlock() {
+        myThreadPool.unlock();
+    }
+#endif
+
 
 
 public:
@@ -132,7 +151,64 @@ public:
     /// @}
 
 
+    /// @brief initiate the rerouting, create router / thread pool on first use
+    void reroute(const SUMOTime currentTime, const bool onInit=false);
+
+
+    /** @brief Labels the current time step as "unroutable".
+     *
+     * Sets mySkipRouting to the current time in order to skip rerouting.
+     * This is useful for pre insertion routing when we know in advance
+     * we cannot insert.
+     *
+     * @param[in] currentTime The current simulation time
+     */
+    void skipRouting(const SUMOTime currentTime) {
+        mySkipRouting = currentTime;
+    }
+
+
 private:
+#ifdef HAVE_FOX
+    /**
+     * @class WorkerThread
+     * @brief the thread which provides the router instance as context
+     */
+    class WorkerThread : public FXWorkerThread {
+    public:
+        WorkerThread(FXWorkerThread::Pool& pool,
+                     SUMOAbstractRouter<MSEdge, SUMOVehicle>* router)
+        : FXWorkerThread(pool), myRouter(router) {}
+        SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouter() const {
+            return *myRouter;
+        }
+        virtual ~WorkerThread() {
+            stop();
+            delete myRouter;
+        }
+    private:
+        SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
+    };
+
+    /**
+     * @class RoutingTask
+     * @brief the routing task which mainly calls reroute of the vehicle
+     */
+    class RoutingTask : public FXWorkerThread::Task {
+    public:
+        RoutingTask(SUMOVehicle& v, const SUMOTime time, const bool onInit)
+        : myVehicle(v), myTime(time), myOnInit(onInit) {}
+        void run(FXWorkerThread* context);
+    private:
+        SUMOVehicle& myVehicle;
+        const SUMOTime myTime;
+        const bool myOnInit;
+    private:
+        /// @brief Invalidated assignment operator.
+        RoutingTask& operator=(const RoutingTask&);
+    };
+#endif
+
     /** @brief Constructor
      *
      * @param[in] holder The vehicle that holds this device
@@ -143,19 +219,18 @@ private:
     MSDevice_Routing(SUMOVehicle& holder, const std::string& id, SUMOTime period, SUMOTime preInsertionPeriod);
 
 
-    /** @brief Performs rerouting at insertion into the network
+    /** @brief Performs rerouting before insertion into the network
      *
-     * A new route is computed by calling the vehicle's "reroute" method, supplying
-     *  "getEffort" as the edge effort retrieval method.
+     * A new route is computed by calling the reroute method. If the routing
+     *  involves taz the internal route cache is asked beforehand.
      *
      * @param[in] currentTime The current simulation time
-     * @return The offset to the next call (the rerouting period "myPeriod")
+     * @return The offset to the next call (the rerouting period "myPreInsertionPeriod")
      * @see MSVehicle::reroute
      * @see MSEventHandler
      * @see WrappingCommand
      */
-    SUMOTime preInsertionReroute(SUMOTime currentTime);
-
+    SUMOTime preInsertionReroute(const SUMOTime currentTime);
 
     /** @brief Performs rerouting after a period
      *
@@ -210,18 +285,18 @@ private:
     /// @}
 
 
-
-    /// @brief get the router, initialize on first use
-    static SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouter();
-
-
-
 private:
     /// @brief The period with which a vehicle shall be rerouted
     SUMOTime myPeriod;
 
     /// @brief The period with which a vehicle shall be rerouted before insertion
     SUMOTime myPreInsertionPeriod;
+
+    /// @brief The last time a routing took place
+    SUMOTime myLastRouting;
+
+    /// @brief The time for which routing may be skipped because we cannot be inserted
+    SUMOTime mySkipRouting;
 
     /// @brief The (optional) command responsible for rerouting
     WrappingCommand< MSDevice_Routing >* myRerouteCommand;
@@ -235,8 +310,11 @@ private:
     /// @brief Information which weight prior edge efforts have
     static SUMOReal myAdaptationWeight;
 
-    /// @brief Information which weight prior edge efforts have
+    /// @brief At which time interval the edge weights get updated
     static SUMOTime myAdaptationInterval;
+
+    /// @brief Information when the last edge weight adaptation occured
+    static SUMOTime myLastAdaptation;
 
     /// @brief whether taz shall be used at initial rerouting
     static bool myWithTaz;
@@ -247,6 +325,9 @@ private:
     /// @brief The router to use
     static SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
 
+#ifdef HAVE_FOX
+    static FXWorkerThread::Pool myThreadPool;
+#endif
 
 private:
     /// @brief Invalidated copy constructor.

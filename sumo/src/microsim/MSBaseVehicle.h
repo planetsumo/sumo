@@ -35,17 +35,11 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <utils/common/StdDefs.h>
 #include "MSRoute.h"
 #include "MSMoveReminder.h"
-
-
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class SUMOVehicleParameter;
-class MSVehicleType;
+#include "MSVehicleType.h"
 
 
 // ===========================================================================
@@ -96,6 +90,13 @@ public:
         return *myType;
     }
 
+
+    /** @brief Returns the vehicle's access class
+     * @return The vehicle's access class
+     */
+    inline SUMOVehicleClass getVClass() const {
+        return myType->getParameter().vehicleClass;
+    }
 
     /** @brief Returns the maximum speed
      * @return The vehicle's maximum speed
@@ -172,7 +173,7 @@ public:
     /** @brief Returns the slope of the road at vehicle's position
      *
      * This default implementation returns always 0.
-     * @return The acceleration
+     * @return The slope
      */
     virtual SUMOReal getSlope() const;
 
@@ -275,7 +276,7 @@ public:
     /** @brief Returns the precomputed factor by which the driver wants to be faster than the speed limit
      * @return Speed limit factor
      */
-    inline void setChosenSpeedFactor(SUMOReal factor) {
+    inline void setChosenSpeedFactor(const SUMOReal factor) {
         myChosenSpeedFactor = factor;
     }
 

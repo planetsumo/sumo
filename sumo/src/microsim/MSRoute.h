@@ -41,7 +41,7 @@
 #include <utils/common/Named.h>
 #include <utils/common/RandomDistributor.h>
 #include <utils/common/RGBColor.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include <utils/common/Parameterised.h>
 
 
@@ -132,12 +132,29 @@ public:
      * @param[in] toPos	   position on the last edge, at which the coumputed distance endsance
      * @param[in] fromEdge edge at wich computation begins
      * @param[in] toEdge   edge at which distance computation shall stop
+     * @param[in] includeInternal Whether the lengths of internal edges shall be counted
      * @return             distance between the position fromPos on fromEdge and toPos on toEdge
      */
-    SUMOReal getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* fromEdge, const MSEdge* toEdge) const;
+    SUMOReal getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* fromEdge, const MSEdge* toEdge, bool includeInternal=true) const;
 
     /// Returns the color
     const RGBColor& getColor() const;
+
+    /** @brief Returns the costs of the route
+     *
+     * @return The route's costs (normally the time needed to pass it)
+     */
+    SUMOReal getCosts() const {
+        return myCosts;
+    }
+
+    /** @brief Sets the costs of the route
+     *
+     * @param[in] costs The new route costs
+     */
+    void setCosts(SUMOReal costs) {
+        myCosts = costs;
+    }
 
     /// Returns the stops
     const std::vector<SUMOVehicleParameter::Stop>& getStops() const;
@@ -174,7 +191,7 @@ public:
      * @param[in] id    the id of the route or the distribution
      * @return          the route (sample)
      */
-    static const MSRoute* dictionary(const std::string& id);
+    static const MSRoute* dictionary(const std::string& id, MTRand* rng=0);
 
     /** @brief Returns the named route distribution.
      *
@@ -205,6 +222,9 @@ private:
 
     /// The color
     const RGBColor* const myColor;
+
+    /// @brief The assigned or calculated costs
+    SUMOReal myCosts;
 
     /// @brief List of the stops on the parsed route
     std::vector<SUMOVehicleParameter::Stop> myStops;

@@ -173,6 +173,9 @@ private:
     /// @brief The current color scheme
     GUIColorScheme* myCurrentScheme;
 
+    /// @brief The current scaling scheme
+    GUIScaleScheme* myCurrentScaleScheme;
+
     /// @brief The parsed breakpoints
     std::vector<SUMOTime> myBreakpoints;
 
@@ -182,10 +185,15 @@ private:
 
 private:
 
-    /// @brief parse combined settings of bool, size and color
+    /// @brief parse attributes for textSettings
     GUIVisualizationTextSettings parseTextSettings(
         const std::string& prefix, const SUMOSAXAttributes& attrs,
         GUIVisualizationTextSettings defaults);
+
+    /// @brief parse attributes for sizeSettings
+    GUIVisualizationSizeSettings parseSizeSettings(
+        const std::string& prefix, const SUMOSAXAttributes& attrs,
+        GUIVisualizationSizeSettings defaults);
 
 };
 

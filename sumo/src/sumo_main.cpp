@@ -39,6 +39,7 @@
 #include <ctime>
 #include <string>
 #include <iostream>
+#include <microsim/MSGlobals.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSRoute.h>
 #include <microsim/MSVehicleControl.h>
@@ -126,7 +127,7 @@ main(int argc, char** argv) {
     OptionsCont& oc = OptionsCont::getOptions();
     // give some application descriptions
     oc.setApplicationDescription("A microscopic road traffic simulation.");
-    oc.setApplicationName("sumo", "SUMO sumo Version " + (std::string)VERSION_STRING);
+    oc.setApplicationName("sumo", "SUMO Version " + getBuildName(VERSION_STRING));
     int ret = 0;
     MSNet* net = 0;
     try {
@@ -144,7 +145,7 @@ main(int argc, char** argv) {
             throw ProcessError();
         }
         RandHelper::initRandGlobal();
-        RandHelper::initRandGlobal(&MSVehicleControl::myVehicleParamsRNG);
+        RandHelper::initRandGlobal(MSRouteHandler::getParsingRNG());
         // load the net
         net = load(oc);
         if (net != 0) {

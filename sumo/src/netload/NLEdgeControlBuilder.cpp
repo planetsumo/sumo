@@ -35,6 +35,7 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
+#include <microsim/MSGlobals.h>
 #include <microsim/MSLane.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSEdgeControl.h>
@@ -73,8 +74,9 @@ void
 NLEdgeControlBuilder::beginEdgeParsing(
     const std::string& id, const MSEdge::EdgeBasicFunction function,
     const std::string& streetName,
-    const std::string& edgeType) {
-    myActiveEdge = buildEdge(id, function, streetName, edgeType);
+    const std::string& edgeType,
+    int priority) {
+    myActiveEdge = buildEdge(id, function, streetName, edgeType, priority);
     if (MSEdge::dictionary(id) != 0) {
         throw InvalidArgument("Another edge with the id '" + id + "' exists.");
     }
@@ -119,9 +121,9 @@ NLEdgeControlBuilder::build() {
         for (EdgeCont::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
             MSEdge* edge = *i1;
             if (edge->isInternal()) {
-                assert(edge->getNoFollowing() == 1);
+                assert(edge->getNumSuccessors() == 1);
                 assert(edge->getIncomingEdges().size() == 1);
-                if (edge->getFollower(0)->isRoundabout() || edge->getIncomingEdges()[0]->isRoundabout()) {
+                if (edge->getSuccessor(0)->isRoundabout() || edge->getIncomingEdges()[0]->isRoundabout()) {
                     edge->markAsRoundabout();
                 }
             }
@@ -136,8 +138,9 @@ NLEdgeControlBuilder::build() {
 
 
 MSEdge*
-NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, const std::string& streetName, const std::string& edgeType) {
-    return new MSEdge(id, myCurrentNumericalEdgeID++, function, streetName, edgeType);
+NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, 
+        const std::string& streetName, const std::string& edgeType, const int priority) {
+    return new MSEdge(id, myCurrentNumericalEdgeID++, function, streetName, edgeType, priority);
 }
 
 

@@ -73,6 +73,7 @@
 #include <microsim/MSVehicleTransfer.h>
 #include <microsim/devices/MSDevice_Routing.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
+#include <microsim/devices/MSDevice_Tripinfo.h>
 #include "traffic_lights/MSTrafficLightLogic.h"
 #include <utils/shapes/Polygon.h>
 #include <utils/shapes/ShapeContainer.h>
@@ -89,7 +90,7 @@
 #include <utils/common/SysUtils.h>
 #include <utils/common/WrappingCommand.h>
 #include <utils/options/OptionsCont.h>
-#include <utils/common/PedestrianRouter.h>
+#include <utils/vehicle/PedestrianRouter.h>
 #include "MSGlobals.h"
 #include "MSPModel.h"
 #include <utils/geom/GeoConvHelper.h>
@@ -170,6 +171,7 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
              MSEventControl* endOfTimestepEvents, MSEventControl* insertionEvents,
              ShapeContainer* shapeCont):
     myVehiclesMoved(0),
+    myHaveRestrictions(false),
     myRouterTTInitialized(false),
     myRouterTTDijkstra(0),
     myRouterTTAStar(0),
@@ -238,8 +240,11 @@ MSNet::closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
 MSNet::~MSNet() {
     // delete events first maybe they do some cleanup
     delete myBeginOfTimestepEvents;
+    myBeginOfTimestepEvents = 0;
     delete myEndOfTimestepEvents;
+    myEndOfTimestepEvents = 0;
     delete myInsertionEvents;
+    myInsertionEvents = 0;
     // delete controls
     delete myJunctions;
     delete myDetectorControl;
@@ -369,6 +374,9 @@ MSNet::closeSimulation(SUMOTime start) {
     if (OptionsCont::getOptions().getBool("vehroute-output.write-unfinished")) {
         MSDevice_Vehroutes::generateOutputForUnfinished();
     }
+    if (OptionsCont::getOptions().getBool("tripinfo-output.write-unfinished")) {
+        MSDevice_Tripinfo::generateOutputForUnfinished();
+    }
 #ifndef NO_TRACI
     TraCIServer::close();
 #endif
@@ -395,6 +403,9 @@ MSNet::simulationStep() {
         MSStateHandler::saveState(myStateDumpFiles[dist], myStep);
     }
     myBeginOfTimestepEvents->execute(myStep);
+#ifdef HAVE_FOX
+    MSDevice_Routing::waitForAll();
+#endif
     if (MSGlobals::gCheck4Accidents) {
         myEdges->detectCollisions(myStep, STAGE_EVENTS);
     }
@@ -420,7 +431,7 @@ MSNet::simulationStep() {
             myEdges->detectCollisions(myStep, STAGE_MOVEMENTS);
         }
 
-        // Vehicles change Lanes (maybe)
+        // vehicles may change lanes
         myEdges->changeLanes(myStep);
 
         if (MSGlobals::gCheck4Accidents) {
@@ -432,16 +443,17 @@ MSNet::simulationStep() {
     loadRoutes();
 
     // persons
-    if (myPersonControl != 0) {
+    if (myPersonControl != 0 && myPersonControl->hasPersons()) {
         myPersonControl->checkWaitingPersons(this, myStep);
     }
-    // containers
+    // insert vehicles
+    myInserter->determineCandidates(myStep);    // containers
     if (myContainerControl != 0) {
         myContainerControl->checkWaitingContainers(this, myStep);
-    }
-    // insert Vehicles
-    myInserter->checkFlows(myStep);
-    myInsertionEvents->execute(myStep);
+    }    myInsertionEvents->execute(myStep);
+#ifdef HAVE_FOX
+    MSDevice_Routing::waitForAll();
+#endif
     myInserter->emitVehicles(myStep);
     if (MSGlobals::gCheck4Accidents) {
         myEdges->detectCollisions(myStep, STAGE_INSERTIONS);
@@ -776,13 +788,13 @@ MSNet::getRouterTT(const std::vector<MSEdge*>& prohibited) const {
         myRouterTTInitialized = true;
         const std::string routingAlgorithm = OptionsCont::getOptions().getString("routing-algorithm");
         if (routingAlgorithm == "dijkstra") {
-            myRouterTTDijkstra = new DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+            myRouterTTDijkstra = new DijkstraRouterTT<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
                 MSEdge::numericalDictSize(), true, &MSNet::getTravelTime);
         } else {
             if (routingAlgorithm != "astar") {
                 WRITE_WARNING("TraCI and Triggers cannot use routing algorithm '" + routingAlgorithm + "'. using 'astar' instead.");
             }
-            myRouterTTAStar = new AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+            myRouterTTAStar = new AStarRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
                 MSEdge::numericalDictSize(), true, &MSNet::getTravelTime);
         }
     }
@@ -800,7 +812,7 @@ MSNet::getRouterTT(const std::vector<MSEdge*>& prohibited) const {
 SUMOAbstractRouter<MSEdge, SUMOVehicle>&
 MSNet::getRouterEffort(const std::vector<MSEdge*>& prohibited) const {
     if (myRouterEffort == 0) {
-        myRouterEffort = new DijkstraRouterEffort_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
+        myRouterEffort = new DijkstraRouterEffort<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
             MSEdge::numericalDictSize(), true, &MSNet::getEffort, &MSNet::getTravelTime);
     }
     myRouterEffort->prohibit(prohibited);

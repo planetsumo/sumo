@@ -44,11 +44,11 @@
 #include <microsim/MSEdgeWeightsStorage.h>
 #include <microsim/MSAbstractLaneChangeModel.h>
 #include <utils/geom/PositionVector.h>
-#include <utils/common/DijkstraRouterTT.h>
-#include <utils/common/DijkstraRouterEffort.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
+#include <utils/vehicle/DijkstraRouterEffort.h>
 #include <utils/emissions/PollutantsInterface.h>
 #include <utils/emissions/HelpersHarmonoise.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include "TraCIConstants.h"
 #include "TraCIServerAPI_Simulation.h"
 #include "TraCIServerAPI_Vehicle.h"
@@ -349,7 +349,9 @@ TraCIServerAPI_Vehicle::processGet(TraCIServer& server, tcpip::Storage& inputSto
                     ++cnt;
                     std::vector<std::string> bestContIDs;
                     for (std::vector<MSLane*>::const_iterator j = lq.bestContinuations.begin(); j != lq.bestContinuations.end(); ++j) {
-                        bestContIDs.push_back((*j)->getID());
+                        if ((*j) != 0) {
+                            bestContIDs.push_back((*j)->getID());
+                        }
                     }
                     tempContent.writeUnsignedByte(TYPE_STRINGLIST);
                     tempContent.writeStringList(bestContIDs);
@@ -973,7 +975,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
 
             SUMOVehicleParameter* params = new SUMOVehicleParameter(vehicleParams);
             try {
-                SUMOVehicle* vehicle = MSNet::getInstance()->getVehicleControl().buildVehicle(params, route, vehicleType);
+                SUMOVehicle* vehicle = MSNet::getInstance()->getVehicleControl().buildVehicle(params, route, vehicleType, false);
                 MSNet::getInstance()->getVehicleControl().addVehicle(vehicleParams.id, vehicle);
                 MSNet::getInstance()->getInsertionControl().add(vehicle);
             } catch (ProcessError& e) {
@@ -1080,7 +1082,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
 
             SUMOVehicleParameter* params = new SUMOVehicleParameter(vehicleParams);
             try {
-                SUMOVehicle* vehicle = MSNet::getInstance()->getVehicleControl().buildVehicle(params, route, vehicleType);
+                SUMOVehicle* vehicle = MSNet::getInstance()->getVehicleControl().buildVehicle(params, route, vehicleType, false);
                 MSNet::getInstance()->getVehicleControl().addVehicle(vehicleParams.id, vehicle);
                 MSNet::getInstance()->getInsertionControl().add(vehicle);
             } catch (ProcessError& e) {

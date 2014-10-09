@@ -96,7 +96,7 @@ const SUMOReal MSPModel_Striping::LATERAL_SPEED_FACTOR(0.4);
 MSPModel_Striping::MSPModel_Striping(const OptionsCont& oc, MSNet* net) :
     myNumActivePedestrians(0) {
     myCommand = new MovePedestrians(this);
-    net->getBeginOfTimestepEvents().addEvent(myCommand, net->getCurrentTimeStep() + DELTA_T, MSEventControl::ADAPT_AFTER_EXECUTION);
+    net->getBeginOfTimestepEvents()->addEvent(myCommand, net->getCurrentTimeStep() + DELTA_T, MSEventControl::ADAPT_AFTER_EXECUTION);
     initWalkingAreaPaths(net);
     // configurable parameters
     stripeWidth = oc.getFloat("pedestrian.striping.stripe-width");
@@ -202,8 +202,8 @@ MSPModel_Striping::initWalkingAreaPaths(const MSNet*) {
             for (int j = 0; j < (int)incoming.size(); ++j) {
                 lanes.push_back(getSidewalk(incoming[j]));
             }
-            for (int j = 0; j < (int)edge->getNoFollowing(); ++j) {
-                lanes.push_back(getSidewalk(edge->getFollower(j)));
+            for (int j = 0; j < (int)edge->getNumSuccessors(); ++j) {
+                lanes.push_back(getSidewalk(edge->getSuccessor(j)));
             }
             // build all combinations
             for (int j = 0; j < (int)lanes.size(); ++j) {

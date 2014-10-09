@@ -91,8 +91,8 @@ public:
      */
     bool loadAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop);
 
-//    /// checks whether any container waits to finish her plan
-//    bool hasContainers() const;
+    /// checks whether any container waits to finish her plan
+    bool hasContainers() const;
 
     /// checks whether any container is still engaged in walking / stopping
     bool hasNonWaiting() const;

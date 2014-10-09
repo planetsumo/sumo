@@ -118,8 +118,8 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
         return;
     }
     if (!myIsInner && s.drawJunctionShape) {
-        glPushName(getGlID());
         glPushMatrix();
+        glPushName(getGlID());
         const SUMOReal colorValue = getColorValue(s);
         GLHelper::setColor(s.junctionColorer.getScheme().getColor(colorValue));
         glTranslated(0, 0, getType());
@@ -128,6 +128,7 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
         } else {
             GLHelper::drawFilledPolyTesselated(myJunction.getShape(), true);
         }
+        glPopName();
         glPopMatrix();
     }
     if (myIsInner) {
@@ -135,13 +136,11 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
     } else {
         drawName(myJunction.getPosition(), s.scale, s.junctionName);
     }
-    glPopName();
 }
 
 
 SUMOReal
 GUIJunctionWrapper::getColorValue(const GUIVisualizationSettings& s) const {
-    const SUMOReal colorValue = static_cast<SUMOReal>(s.junctionColorer.getActive() == 1 && gSelected.isSelected(getType(), getGlID()));
     switch (s.junctionColorer.getActive()) {
         case 0:
             return 0;
@@ -166,8 +165,10 @@ GUIJunctionWrapper::getColorValue(const GUIVisualizationSettings& s) const {
                 case NODETYPE_NOJUNCTION:
                     return 7;
                 case NODETYPE_DEAD_END:
+                case NODETYPE_DEAD_END_DEPRECATED:
                     return 8;
                 case NODETYPE_UNKNOWN:
+                case NODETYPE_INTERNAL:
                     assert(false);
                     return 8;
             }

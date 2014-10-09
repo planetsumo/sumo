@@ -36,7 +36,7 @@
 #include <utils/iodevices/BinaryInputDevice.h>
 #include <utils/common/FileHelpers.h>
 #include <utils/common/RandHelper.h>
-#include <utils/common/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 #include "MSNet.h"
 #include "cfmodels/MSCFModel_IDM.h"
 #include "cfmodels/MSCFModel_Kerner.h"
@@ -76,7 +76,7 @@ MSVehicleType::~MSVehicleType() {
 
 
 SUMOReal
-MSVehicleType::computeChosenSpeedDeviation(MTRand& rng, const SUMOReal minDevFactor) const {
+MSVehicleType::computeChosenSpeedDeviation(MTRand* rng, const SUMOReal minDevFactor) const {
     // for speedDev = 0.1, most 95% of the vehicles will drive between 80% and 120% of speedLimit * speedFactor
     const SUMOReal devA = MIN2(SUMOReal(2.), RandHelper::randNorm(0, 1., rng));
     // avoid voluntary speeds below 20% of the requested speedFactor

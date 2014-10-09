@@ -321,16 +321,18 @@ NLHandler::beginEdgeParsing(const SUMOSAXAttributes& attrs) {
             break;
     }
     // get the street name
-    std::string streetName = attrs.getOpt<std::string>(SUMO_ATTR_NAME, id.c_str(), ok, "");
-    // get the edge type
-    std::string edgeType = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, "");
+    const std::string streetName = attrs.getOpt<std::string>(SUMO_ATTR_NAME, id.c_str(), ok, "");
+    // get the edge type (only for visualization)
+    const std::string edgeType = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, "");
+    // get the edge priority (only for visualization)
+    const int priority = attrs.getOpt<int>(SUMO_ATTR_PRIORITY, id.c_str(), ok, -1); // default taken from netbuild/NBFrame option 'default.priority'
     if (!ok) {
         myCurrentIsBroken = true;
         return;
     }
     //
     try {
-        myEdgeControlBuilder.beginEdgeParsing(id, funcEnum, streetName, edgeType);
+        myEdgeControlBuilder.beginEdgeParsing(id, funcEnum, streetName, edgeType, priority);
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
         myCurrentIsBroken = true;
@@ -385,6 +387,9 @@ NLHandler::addLane(const SUMOSAXAttributes& attrs) {
         return;
     }
     SVCPermissions permissions = parseVehicleClasses(allow, disallow);
+    if (permissions != SVCAll) {
+        myNet.setRestrictionFound();
+    }
     myCurrentIsBroken |= !ok;
     if (!myCurrentIsBroken) {
         try {
@@ -721,7 +726,9 @@ NLHandler::addPhase(const SUMOSAXAttributes& attrs) {
     // try to get the phase duration
     SUMOTime duration = attrs.getSUMOTimeReporting(SUMO_ATTR_DURATION, myJunctionControlBuilder.getActiveKey().c_str(), ok);
     if (duration == 0) {
-        WRITE_ERROR("Duration of tls-logic '" + myJunctionControlBuilder.getActiveKey() + "/" + myJunctionControlBuilder.getActiveSubKey() + "' is zero.");
+        WRITE_ERROR("Duration of phase " + toString(myJunctionControlBuilder.getNumberOfLoadedPhases())
+                + " for tlLogic '" + myJunctionControlBuilder.getActiveKey() 
+                + "' program '" + myJunctionControlBuilder.getActiveSubKey() + "' is zero.");
         return;
     }
     // if the traffic light is an actuated traffic light, try to get
@@ -1117,13 +1124,13 @@ NLHandler::addDistrict(const SUMOSAXAttributes& attrs) {
         return;
     }
     try {
-        MSEdge* sink = myEdgeControlBuilder.buildEdge(myCurrentDistrictID + "-sink", MSEdge::EDGEFUNCTION_DISTRICT);
+        MSEdge* sink = myEdgeControlBuilder.buildEdge(myCurrentDistrictID + "-sink", MSEdge::EDGEFUNCTION_DISTRICT, "", "", -1);
         if (!MSEdge::dictionary(myCurrentDistrictID + "-sink", sink)) {
             delete sink;
             throw InvalidArgument("Another edge with the id '" + myCurrentDistrictID + "-sink' exists.");
         }
         sink->initialize(new std::vector<MSLane*>());
-        MSEdge* source = myEdgeControlBuilder.buildEdge(myCurrentDistrictID + "-source", MSEdge::EDGEFUNCTION_DISTRICT);
+        MSEdge* source = myEdgeControlBuilder.buildEdge(myCurrentDistrictID + "-source", MSEdge::EDGEFUNCTION_DISTRICT, "", "", -1);
         if (!MSEdge::dictionary(myCurrentDistrictID + "-source", source)) {
             delete source;
             throw InvalidArgument("Another edge with the id '" + myCurrentDistrictID + "-source' exists.");
@@ -1137,8 +1144,8 @@ NLHandler::addDistrict(const SUMOSAXAttributes& attrs) {
                 if (edge == 0) {
                     throw InvalidArgument("The edge '" + *i + "' within district '" + myCurrentDistrictID + "' is not known.");
                 }
-                source->addFollower(edge);
-                edge->addFollower(sink);
+                source->addSuccessor(edge);
+                edge->addSuccessor(sink);
             }
         }
         if (attrs.hasAttribute(SUMO_ATTR_SHAPE)) {
@@ -1168,9 +1175,9 @@ NLHandler::addDistrictEdge(const SUMOSAXAttributes& attrs, bool isSource) {
     if (succ != 0) {
         // connect edge
         if (isSource) {
-            MSEdge::dictionary(myCurrentDistrictID + "-source")->addFollower(succ);
+            MSEdge::dictionary(myCurrentDistrictID + "-source")->addSuccessor(succ);
         } else {
-            succ->addFollower(MSEdge::dictionary(myCurrentDistrictID + "-sink"));
+            succ->addSuccessor(MSEdge::dictionary(myCurrentDistrictID + "-sink"));
         }
     } else {
         WRITE_ERROR("At district '" + myCurrentDistrictID + "': succeeding edge '" + id + "' does not exist.");

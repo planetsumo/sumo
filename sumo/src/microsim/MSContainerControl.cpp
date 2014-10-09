@@ -187,11 +187,11 @@ bool
     return ret;
 }
 
-//bool
-//MSContainerControl::hasContainers() const {
-//    return !myContainers.empty();
-//}
-//
+bool
+MSContainerControl::hasContainers() const {
+    return !myContainers.empty();
+}
+
 
 bool
 MSContainerControl::hasNonWaiting() const {

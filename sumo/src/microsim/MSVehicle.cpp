@@ -46,7 +46,7 @@
 #include <utils/options/OptionsCont.h>
 #include <utils/common/ToString.h>
 #include <utils/common/FileHelpers.h>
-#include <utils/common/DijkstraRouterTT.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
 #include <utils/common/RandHelper.h>
 #include <utils/emissions/PollutantsInterface.h>
 #include <utils/emissions/HelpersHarmonoise.h>
@@ -426,19 +426,9 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
                                "' on lane '" + i->lane + "' is too close or not downstream the current route.");
         }
     }
-    updateBestLanes(true, (*myCurrEdge)->getLanes()[0]); // must be called before getBestLanes in getDepartLane
     const MSLane* const depLane = (*myCurrEdge)->getDepartLane(*this);
     if (depLane == 0) {
         throw ProcessError("Invalid departlane definition for vehicle '" + pars->id + "'.");
-    }
-    if (pars->departSpeedProcedure == DEPART_SPEED_GIVEN && pars->departSpeed > depLane->getVehicleMaxSpeed(this)) {
-        if (type->getSpeedDeviation() > 0 && pars->departSpeed <= type->getSpeedFactor() * depLane->getSpeedLimit() * (2 * type->getSpeedDeviation() + 1.)) {
-            WRITE_WARNING("Choosing new speed factor for vehicle '" + pars->id + "' to match departure speed.");
-            myChosenSpeedFactor = type->computeChosenSpeedDeviation(MSVehicleControl::myVehicleParamsRNG, pars->departSpeed / (type->getSpeedFactor() * depLane->getSpeedLimit()));
-        } else {
-            throw ProcessError("Departure speed for vehicle '" + pars->id +
-                               "' is too high for the departure lane '" + depLane->getID() + "'.");
-        }
     }
     if (pars->departSpeedProcedure == DEPART_SPEED_GIVEN && pars->departSpeed > type->getMaxSpeed()) {
         throw ProcessError("Departure speed for vehicle '" + pars->id +
@@ -491,9 +481,7 @@ MSVehicle::replaceRoute(const MSRoute* newRoute, bool onInit, int offset) {
     myRoute = newRoute;
     myLastBestLanesEdge = 0;
     myLastBestLanesInternalLane = 0;
-    if (!onInit) {
-        updateBestLanes(true);
-    }
+    updateBestLanes(true, onInit ? (*myCurrEdge)->getLanes().front() : 0);
     // update arrival definition
     calculateArrivalPos();
     // save information that the vehicle was rerouted
@@ -664,19 +652,22 @@ SUMOReal
 MSVehicle::getAngle() const {
     Position p1;
     Position p2;
+    if (isParking()) {
+        return -myLane->getShape().rotationDegreeAtOffset(myLane->interpolateLanePosToGeometryPos(getPositionOnLane()));
+    }
     if (getLaneChangeModel().isChangingLanes()) {
         // cannot use getPosition() because it already includes the offset to the side and thus messes up the angle
         p1 = myLane->geometryPositionAtOffset(myState.myPos);
     } else {
         p1 = getPosition();
     }
-    if (getPositionOnLane() * myLane->getLengthGeometryFactor() > myType->getLength()) {
-        // vehicle is fully on the new lane (visually)
-        p2 = myLane->getShape().positionAtOffset(getPositionOnLane() * myLane->getLengthGeometryFactor() - myType->getLength());
+    if (myState.myPos >= myType->getLength()) {
+        // vehicle is fully on the new lane
+        p2 = myLane->geometryPositionAtOffset(myState.myPos - myType->getLength());
     } else {
         p2 = myFurtherLanes.size() > 0
              ? myFurtherLanes.back()->geometryPositionAtOffset(myFurtherLanes.back()->getPartialOccupatorEnd())
-             : myLane->geometryPositionAtOffset(myState.myPos - myType->getLength());
+             : myLane->getShape().front();
     }
     SUMOReal result = (p1 != p2 ?
                        atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / M_PI :
@@ -1021,6 +1012,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
             break;
         }
         const bool yellowOrRed = (*link)->getState() == LINKSTATE_TL_RED ||
+                                 (*link)->getState() == LINKSTATE_TL_REDYELLOW ||
                                  (*link)->getState() == LINKSTATE_TL_YELLOW_MAJOR ||
                                  (*link)->getState() == LINKSTATE_TL_YELLOW_MINOR;
         // We distinguish 3 cases when determining the point at which a vehicle stops:
@@ -1099,7 +1091,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
             const SUMOReal accel = (vLinkPass >= v) ? cfModel.getMaxAccel() : -cfModel.getMaxDecel();
             const SUMOReal accelTime = (vLinkPass - v) / accel;
             const SUMOReal accelWay = accelTime * (vLinkPass + v) * 0.5;
-            arrivalTime = t + TIME2STEPS(accelTime + MAX2(SUMOReal(0), seen - accelWay) / MAX2(vLinkPass, NUMERICAL_EPS));
+            arrivalTime = t + TIME2STEPS(accelTime + MAX2(SUMOReal(0), seen - accelWay) / MAX2(vLinkPass, SUMO_const_haltingSpeed));
         }
         // compute speed, time if vehicle starts braking now
         // if stopping is possible, arrivalTime can be arbitrarily large. A small value keeps fractional times (impatience) meaningful
@@ -1162,25 +1154,34 @@ MSVehicle::adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
                          const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass,
                          SUMOReal distToCrossing) const {
     if (leaderInfo.first != 0) {
-        const MSCFModel& cfModel = getCarFollowModel();
-        SUMOReal vsafeLeader = 0;
-        if (leaderInfo.second >= 0) {
-            vsafeLeader = cfModel.followSpeed(this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCarFollowModel().getMaxDecel());
-        } else {
-            // the leading, in-lapping vehicle is occupying the complete next lane
-            // stop before entering this lane
-            vsafeLeader = cfModel.stopSpeed(this, getSpeed(), seen - lane->getLength() - POSITION_EPS);
-        }
-        if (distToCrossing >= 0) {
-            // drive up to the crossing point with the current link leader
-            vsafeLeader = MAX2(vsafeLeader, cfModel.stopSpeed(this, getSpeed(), distToCrossing));
-        }
+        const SUMOReal vsafeLeader = getSafeFollowSpeed(leaderInfo, seen, lane, distToCrossing);
         if (lastLink != 0) {
             lastLink->adaptLeaveSpeed(vsafeLeader);
         }
         v = MIN2(v, vsafeLeader);
         vLinkPass = MIN2(vLinkPass, vsafeLeader);
     }
+}
+
+
+SUMOReal 
+MSVehicle::getSafeFollowSpeed(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
+        const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const {
+    assert(leaderInfo.first != 0);
+    const MSCFModel& cfModel = getCarFollowModel();
+    SUMOReal vsafeLeader = 0;
+    if (leaderInfo.second >= 0) {
+        vsafeLeader = cfModel.followSpeed(this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCarFollowModel().getMaxDecel());
+    } else {
+        // the leading, in-lapping vehicle is occupying the complete next lane
+        // stop before entering this lane
+        vsafeLeader = cfModel.stopSpeed(this, getSpeed(), seen - lane->getLength() - POSITION_EPS);
+    }
+    if (distToCrossing >= 0) {
+        // drive up to the crossing point with the current link leader
+        vsafeLeader = MAX2(vsafeLeader, cfModel.stopSpeed(this, getSpeed(), distToCrossing));
+    }
+    return vsafeLeader;
 }
 
 
@@ -1691,6 +1692,7 @@ void
 MSVehicle::enterLaneAtLaneChange(MSLane* enteredLane) {
     myAmOnNet = true;
     myLane = enteredLane;
+    myCachedPosition = Position::INVALID;
     // need to update myCurrentLaneInBestLanes
     updateBestLanes();
     // switch to and activate the new lane's reminders
@@ -2386,7 +2388,11 @@ MSVehicle::addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal /*radius*/, SUMOTim
     newStop.containerTriggered = containerTriggered;
     newStop.parking = parking;
     newStop.index = STOP_INDEX_FIT;
-    return addStop(newStop);
+    const bool result = addStop(newStop);
+    if (myLane != 0) {
+        updateBestLanes(true);
+    }
+    return result;
 }
 
 

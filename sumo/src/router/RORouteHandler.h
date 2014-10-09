@@ -36,7 +36,7 @@
 #include <vector>
 #include <utils/common/RandomDistributor.h>
 #include <utils/common/SUMOTime.h>
-#include <utils/common/PedestrianRouter.h>
+#include <utils/vehicle/PedestrianRouter.h>
 #include <utils/xml/SUMORouteHandler.h>
 
 
@@ -195,9 +195,6 @@ protected:
 
     /// @brief The currently parsed route alternatives
     RORouteDef* myCurrentAlternatives;
-
-    /// @brief The currently parsed route costs
-    SUMOReal myCurrentCosts;
 
 private:
     /// @brief Invalidated copy constructor

@@ -133,14 +133,14 @@ MSRoute::dictionary(const std::string& id, RandomDistributor<const MSRoute*>* co
 
 
 const MSRoute*
-MSRoute::dictionary(const std::string& id) {
+MSRoute::dictionary(const std::string& id, MTRand* rng) {
     RouteDict::iterator it = myDict.find(id);
     if (it == myDict.end()) {
         RouteDistDict::iterator it2 = myDistDict.find(id);
         if (it2 == myDistDict.end() || it2->second.first->getOverallProb() == 0) {
             return 0;
         }
-        return it2->second.first->get();
+        return it2->second.first->get(rng);
     }
     return it->second;
 }
@@ -262,7 +262,8 @@ MSRoute::getLength() const {
 
 
 SUMOReal
-MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* fromEdge, const MSEdge* toEdge) const {
+MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, 
+        const MSEdge* fromEdge, const MSEdge* toEdge, bool includeInternal) const {
     bool isFirstIteration = true;
     SUMOReal distance = -fromPos;
     MSEdgeVector::const_iterator it = std::find(myEdges.begin(), myEdges.end(), fromEdge);
@@ -288,19 +289,23 @@ MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* from
             const std::vector<MSLane*>& lanes = (*it)->getLanes();
             distance += lanes[0]->getLength();
 #ifdef HAVE_INTERNAL_LANES
-            // add length of internal lanes to the result
-            for (std::vector<MSLane*>::const_iterator laneIt = lanes.begin(); laneIt != lanes.end(); ++laneIt) {
-                const MSLinkCont& links = (*laneIt)->getLinkCont();
-                for (MSLinkCont::const_iterator linkIt = links.begin(); linkIt != links.end(); ++linkIt) {
-                    if ((*linkIt) == 0 || (*linkIt)->getLane() == 0) {
-                        continue;
-                    }
-                    std::string succLaneId = (*(it + 1))->getLanes()[0]->getID();
-                    if ((*linkIt)->getLane()->getID().compare(succLaneId) == 0) {
-                        distance += (*linkIt)->getLength();
+            if (includeInternal) {
+                // add length of internal lanes to the result
+                for (std::vector<MSLane*>::const_iterator laneIt = lanes.begin(); laneIt != lanes.end(); ++laneIt) {
+                    const MSLinkCont& links = (*laneIt)->getLinkCont();
+                    for (MSLinkCont::const_iterator linkIt = links.begin(); linkIt != links.end(); ++linkIt) {
+                        if ((*linkIt) == 0 || (*linkIt)->getLane() == 0) {
+                            continue;
+                        }
+                        std::string succLaneId = (*(it + 1))->getLanes()[0]->getID();
+                        if ((*linkIt)->getLane()->getID().compare(succLaneId) == 0) {
+                            distance += (*linkIt)->getLength();
+                        }
                     }
                 }
             }
+#else
+            UNUSED_PARAMETER(includeInternal);
 #endif
         }
         isFirstIteration = false;

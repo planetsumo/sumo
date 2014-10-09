@@ -53,12 +53,12 @@
 #include <microsim/trigger/MSContainerStop.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/NamedObjectCont.h>
-#include <utils/common/SUMOAbstractRouter.h>
-#include <utils/common/DijkstraRouterTT.h>
-#include <utils/common/DijkstraRouterEffort.h>
-#include <utils/common/AStarRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
+#include <utils/vehicle/DijkstraRouterEffort.h>
+#include <utils/vehicle/AStarRouter.h>
 #include <utils/common/NamedRTree.h>
-#include <utils/common/PedestrianRouter.h>
+#include <utils/vehicle/PedestrianRouter.h>
 
 
 // ===========================================================================
@@ -160,6 +160,20 @@ public:
     void closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
                        SUMORouteLoaderControl* routeLoaders, MSTLLogicControl* tlc,
                        std::vector<SUMOTime> stateDumpTimes, std::vector<std::string> stateDumpFiles);
+
+
+    /** @brief Returns whether the network has vehicle class restrictions
+     * @return whether restrictions are present
+     */
+    bool hasRestrictions() const {
+        return myHaveRestrictions;
+    }
+
+
+    /// @brief Labels the network to contain vehicle class restrictions
+    void setRestrictionFound() {
+        myHaveRestrictions = true;
+    }
 
 
     /** @brief Clears all dictionaries
@@ -345,32 +359,32 @@ public:
 
 
     /** @brief Returns the event control for events executed at the begin of a time step
-     * @return The control reponsible for events that are executed at the begin of a time step
+     * @return The control responsible for events that are executed at the begin of a time step
      * @see MSEventControl
      * @see myBeginOfTimestepEvents
      */
-    MSEventControl& getBeginOfTimestepEvents() {
-        return *myBeginOfTimestepEvents;
+    MSEventControl* getBeginOfTimestepEvents() {
+        return myBeginOfTimestepEvents;
     }
 
 
     /** @brief Returns the event control for events executed at the end of a time step
-     * @return The control reponsible for events that are executed at the end of a time step
+     * @return The control responsible for events that are executed at the end of a time step
      * @see MSEventControl
      * @see myEndOfTimestepEvents
      */
-    MSEventControl& getEndOfTimestepEvents() {
-        return *myEndOfTimestepEvents;
+    MSEventControl* getEndOfTimestepEvents() {
+        return myEndOfTimestepEvents;
     }
 
 
     /** @brief Returns the event control for insertion events
-     * @return The control reponsible for insertion events
+     * @return The control responsible for insertion events
      * @see MSEventControl
      * @see myInsertionEvents
      */
-    MSEventControl& getInsertionEvents() {
-        return *myInsertionEvents;
+    MSEventControl* getInsertionEvents() {
+        return myInsertionEvents;
     }
 
 
@@ -642,6 +656,9 @@ protected:
 
 
 
+    /// @brief Whether the network contains edges which not all vehicles may pass
+    bool myHaveRestrictions;
+
     /// @brief Storage for maximum vehicle number
     int myTooManyVehicles;
 
@@ -660,9 +677,9 @@ protected:
      * @note we provide one member for every switchable router type
      * because the class structure makes it inconvenient to use a superclass*/
     mutable bool myRouterTTInitialized;
-    mutable DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTDijkstra;
-    mutable AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
-    mutable DijkstraRouterEffort_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterEffort;
+    mutable DijkstraRouterTT<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTDijkstra;
+    mutable AStarRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
+    mutable DijkstraRouterEffort<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterEffort;
     mutable MSPedestrianRouterDijkstra* myPedestrianRouter;
 
 
