@@ -1,0 +1,8 @@
+# container with a transfer from one edge to the next one
+transfer
+
+# When all vehicles have left the simulation, any remainig container waiting for a transport should abort their plan.
+abort_impossible_transfer
+
+# container with a single transport
+transport
