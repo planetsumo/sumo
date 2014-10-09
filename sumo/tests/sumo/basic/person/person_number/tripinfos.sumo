@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 06/19/14 13:41:01 by SUMO sumo Version dev-SVN-r16606
+<!-- generated on 10/09/14 15:51:44 by SUMO Version dev-SVN-r17172
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -33,7 +33,7 @@
 -->
 
 <tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/tripinfo_file.xsd">
-    <tripinfo id="bus.0" depart="0.00" departLane="1/4to1/3_0" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="118.00" arrivalLane="1/4to1/3_0" arrivalPos="90.50" arrivalSpeed="13.90" duration="118.00" routeLength="455.50" waitSteps="72" rerouteNo="0" devices="tripinfo_bus.0 person_bus.0" vType="DEFAULT_VEHTYPE" vaporized=""/>
+    <tripinfo id="bus.0" depart="0.00" departLane="1/4to1/3_0" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="118.00" arrivalLane="1/4to1/3_0" arrivalPos="90.50" arrivalSpeed="13.90" duration="118.00" routeLength="455.50" waitSteps="72" timeLoss="83.32" rerouteNo="0" devices="tripinfo_bus.0 person_bus.0" vType="DEFAULT_VEHTYPE" vaporized=""/>
     <personinfo id="person0" depart="0.00">
         <stop arrival="0.00"/>
         <walk arrival="47.00"/>
