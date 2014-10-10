@@ -518,7 +518,7 @@ class ScenarioSet_RiLSA1LoadCurvesSampled(ScenarioSet):
 class ScenarioSet_BasicOutflow(ScenarioSet):
   def __init__(self, params):
     ScenarioSet.__init__(self, "BasicOutflow", merge(
-      {"g1from":"5", "g1to":"40", "g1step":"5","g2from":"0", "g2to":"40", "g2step":"5"},
+      {"g1from":"4", "g1to":"64", "g1step":"5","g2from":"4", "g2to":"64", "g2step":"5"},
       params))
   def getNumRuns(self):
     g1num = 1 + (self.getInt("g1to") - self.getInt("g1from")) / self.getInt("g1step")
@@ -591,7 +591,7 @@ class ScenarioSet_BasicOutflow(ScenarioSet):
 class ScenarioSet_RiLSA1Outflow(ScenarioSet_RiLSA1LoadCurvesSampled):
   def __init__(self, params):
     ScenarioSet.__init__(self, "RiLSA1Outflow", merge(
-      {"g1from":"10", "g1to":"101", "g1step":"10","g2from":"10", "g2to":"101", "g2step":"10"},
+      {"g1from":"8", "g1to":"81", "g1step":"8","g2from":"8", "g2to":"81", "g2step":"8"},
       params))
   def getNumRuns(self):
     f1num = 1 + (self.getInt("g1to") - self.getInt("g1from")) / self.getInt("g1step")
@@ -681,9 +681,11 @@ class ScenarioSet_RiLSA1Outflow(ScenarioSet_RiLSA1LoadCurvesSampled):
         fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
       else:
         if tlsID[0]=='e' or tlsID[0]=='w':
-          tls._programs[prog]._phases[0][1] = scenario.params["g1"]
+          tls._programs[prog]._phases[0][1] = int(scenario.params["g1"])
+          tls._programs[prog]._phases[2][1] = 92 - 4 - int(scenario.params["g1"])
         else:
-          tls._programs[prog]._phases[1][1] = scenario.params["g2"]
+          tls._programs[prog]._phases[1][1] = int(scenario.params["g2"])
+          tls._programs[prog]._phases[0][1] = 92 - 4 - int(scenario.params["g2"])
         fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
     fdo.write("</additional>\n")
     fdo.close()
@@ -803,7 +805,7 @@ class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
 class ScenarioSet_RiLSA1PTIteration(ScenarioSet_RiLSA1LoadCurvesSampled):
   def __init__(self, params):
     ScenarioSet.__init__(self, "RiLSA1PTIteration", merge(
-      {"p1from":"100", "p1to":"1201", "p1step":"100","p2from":"100", "p2to":"1201", "p2step":"100"},
+      {"p1from":"120", "p1to":"1201", "p1step":"120","p2from":"120", "p2to":"1201", "p2step":"120"},
       params))
   def getNumRuns(self):
     p1num = 1 + (self.getInt("p1to") - self.getInt("p1from")) / self.getInt("p1step")

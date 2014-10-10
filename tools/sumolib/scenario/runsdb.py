@@ -87,7 +87,7 @@ class RunsDB:
   Returns a map:
     runID->interval->measure->value
   """
-  def fetchResults(self, runs=None, measure=None):
+  def fetchResults(self, runs=None, measure=None, denominator=None):
     if runs==None:
       runs = self.getRunIDs()
     ret = {}
@@ -95,8 +95,11 @@ class RunsDB:
       ret[r] = {}
       if measure==None:
         i = self.cursor.execute("SELECT * FROM result WHERE runID=?", (r,))
-      else: 
-        i = self.cursor.execute("SELECT * FROM result WHERE runID=? AND key=?", (r,measure))
+      else:
+        if denominator==None: 
+          i = self.cursor.execute("SELECT * FROM result WHERE runID=? AND key=?", (r,measure))
+        else:
+          i = self.cursor.execute("SELECT * FROM result WHERE runID=? AND key=? AND interval=?", (r,measure,denominator))
       for row in i:
         if row[1] not in ret[r]:
           ret[r][row[1]] = {}
