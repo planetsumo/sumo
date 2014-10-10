@@ -1868,7 +1868,7 @@ class ScenarioSet_RiLSA1LoadCurvesOutTLS(ScenarioSet):
         if tlsID[0]=='e' or tlsID[0]=='w':
           tls._programs[prog]._phases[0][1] = self.params["other-green"]
         else:
-          tls._programs[prog]._phases[0][2] = self.params["other-green"]
+          tls._programs[prog]._phases[1][1] = self.params["other-green"]
         tls._programs[prog]._id = "adapted"
         fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
     fdo.write("</additional>\n")
