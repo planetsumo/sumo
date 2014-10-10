@@ -195,7 +195,7 @@ MSContainerControl::hasContainers() const {
 
 bool
 MSContainerControl::hasNonWaiting() const {
-    return !myWaiting4Departure.empty() || !myWaitingUntil.empty();
+    return !myWaiting4Departure.empty() || !myWaitingUntil.empty() || !myTransfer.empty();
 }
 
 
