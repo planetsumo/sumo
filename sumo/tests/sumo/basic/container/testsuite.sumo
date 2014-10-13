@@ -1,8 +1,26 @@
+# car triggered by containers
+triggered
+
+# container that gets transportet by a truck that belongs to a certain line
+line
+
+# a truck has a small loading duration such that the stop duration will not be extended by the loading of the container
+loading_duration_no_extension
+
+# a truck has a large loading duration such that the stop duration will be extended by the loading of the containers
+loading_duration_extension
+
+# a truck will stop at two containerstop that are located at the same edge and a container is waiting at the second container stop. the container has to get loaded onto the truck when the truck stops at the second container stop and not before.
+two_containerstops_at_one_edge
+
+# test whether a chain of walks rides and stops works
+trip_chain
+
 # container with a transfer from one edge to the next one
 transfer
 
 # When all vehicles have left the simulation, any remainig container waiting for a transport should abort their plan.
-abort_impossible_transfer
+abort_impossible_transport
 
 # container with a single transport
 transport
