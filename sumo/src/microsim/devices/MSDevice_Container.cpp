@@ -79,14 +79,11 @@ MSDevice_Container::notifyMove(SUMOVehicle& veh, SUMOReal /*oldPos*/, SUMOReal /
             for (std::vector<MSContainer*>::iterator i = myContainers.begin(); i != myContainers.end();) {
                 MSContainer* container = *i;
                 const MSContainerStop* currentDestinationStop = container->getDestinationContainerStop();
-               // if (&currentDestination == veh.getEdge()) {
-                if (currentDestinationStop == static_cast<MSVehicle&>(veh).getNextStop().containerstop) {
+                if (&(container->getDestination()) == veh.getEdge()){
                     if (!container->proceed(MSNet::getInstance(), MSNet::getInstance()->getCurrentTimeStep())) {
                         MSNet::getInstance()->getContainerControl().erase(container);
                     }
                     i = myContainers.erase(i);
-                    MSContainerStop* departStop = container->getDepartContainerStop();
-                    departStop->addContainer(container);
                 } else {
                     ++i;
                 }
