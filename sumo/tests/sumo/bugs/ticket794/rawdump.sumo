@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 05/02/13 14:17:11 by SUMO sumo Version 0.17.0
+<!-- generated on 10/13/14 14:44:56 by SUMO Version dev-SVN-r17179
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -15,6 +15,7 @@
     </output>
 
     <report>
+        <xml-validation value="never"/>
         <no-step-log value="true"/>
     </report>
 
@@ -25,28 +26,28 @@
     <timestep time="0.00">
         <edge id="beg">
             <lane id="beg_0">
-                <vehicle id="glitch" pos="0.00" speed="30.00"/>
+                <vehicle id="glitch" pos="0.00" speed="30.00" personNumber="0" containerNumber="0"/>
             </lane>
         </edge>
     </timestep>
     <timestep time="1.00">
         <edge id="beg">
             <lane id="beg_0">
-                <vehicle id="glitch" pos="28.84" speed="28.84"/>
+                <vehicle id="glitch" pos="28.84" speed="28.84" personNumber="0" containerNumber="0"/>
             </lane>
         </edge>
     </timestep>
     <timestep time="2.00">
         <edge id="beg">
             <lane id="beg_0">
-                <vehicle id="glitch" pos="57.92" speed="29.07"/>
+                <vehicle id="glitch" pos="57.92" speed="29.07" personNumber="0" containerNumber="0"/>
             </lane>
         </edge>
     </timestep>
     <timestep time="3.00">
         <edge id="beg">
             <lane id="beg_0">
-                <vehicle id="glitch" pos="87.86" speed="29.94"/>
+                <vehicle id="glitch" pos="87.86" speed="29.94" personNumber="0" containerNumber="0"/>
             </lane>
         </edge>
     </timestep>

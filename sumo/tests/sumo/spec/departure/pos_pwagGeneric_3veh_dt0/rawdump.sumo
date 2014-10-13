@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Tue Dec  3 15:38:20 2013 by SUMO sumo Version dev-SVN-r15233
+<!-- generated on 10/13/14 14:42:55 by SUMO Version dev-SVN-r17179
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -20,6 +20,7 @@
     </time>
 
     <report>
+        <xml-validation value="never"/>
         <no-duration-log value="true"/>
         <no-step-log value="true"/>
     </report>
@@ -31,9 +32,9 @@
     <timestep time="0.00">
         <edge id="beg">
             <lane id="beg_0">
-                <vehicle id="3" pos="429.43" speed="27.80"/>
-                <vehicle id="2" pos="464.72" speed="27.80"/>
-                <vehicle id="1" pos="500.00" speed="27.80"/>
+                <vehicle id="3" pos="429.43" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="464.72" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="500.00" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_1"/>
             <lane id="beg_2"/>
@@ -42,15 +43,15 @@
     <timestep time="1.00">
         <edge id="beg">
             <lane id="beg_0">
-                <vehicle id="3" pos="457.23" speed="27.80"/>
-                <vehicle id="2" pos="492.51" speed="27.80"/>
+                <vehicle id="3" pos="457.23" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="492.51" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_1"/>
             <lane id="beg_2"/>
         </edge>
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="1" pos="27.70" speed="27.80"/>
+                <vehicle id="1" pos="27.70" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>
@@ -59,15 +60,15 @@
     <timestep time="2.00">
         <edge id="beg">
             <lane id="beg_0">
-                <vehicle id="3" pos="485.03" speed="27.80"/>
+                <vehicle id="3" pos="485.03" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_1"/>
             <lane id="beg_2"/>
         </edge>
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="2" pos="20.21" speed="27.80"/>
-                <vehicle id="1" pos="55.50" speed="27.80"/>
+                <vehicle id="2" pos="20.21" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="55.50" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>
@@ -76,9 +77,9 @@
     <timestep time="3.00">
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="3" pos="12.72" speed="27.80"/>
-                <vehicle id="2" pos="48.01" speed="27.80"/>
-                <vehicle id="1" pos="83.30" speed="27.80"/>
+                <vehicle id="3" pos="12.72" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="48.01" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="83.30" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>
@@ -87,9 +88,9 @@
     <timestep time="4.00">
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="3" pos="40.52" speed="27.80"/>
-                <vehicle id="2" pos="75.81" speed="27.80"/>
-                <vehicle id="1" pos="111.10" speed="27.80"/>
+                <vehicle id="3" pos="40.52" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="75.81" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="111.10" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>
@@ -98,9 +99,9 @@
     <timestep time="5.00">
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="3" pos="68.32" speed="27.80"/>
-                <vehicle id="2" pos="103.61" speed="27.80"/>
-                <vehicle id="1" pos="138.90" speed="27.80"/>
+                <vehicle id="3" pos="68.32" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="103.61" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="138.90" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>
@@ -109,9 +110,9 @@
     <timestep time="6.00">
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="3" pos="96.11" speed="27.80"/>
-                <vehicle id="2" pos="131.41" speed="27.80"/>
-                <vehicle id="1" pos="166.70" speed="27.80"/>
+                <vehicle id="3" pos="96.11" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="131.41" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="166.70" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>
@@ -120,9 +121,9 @@
     <timestep time="7.00">
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="3" pos="123.91" speed="27.80"/>
-                <vehicle id="2" pos="159.21" speed="27.80"/>
-                <vehicle id="1" pos="194.50" speed="27.80"/>
+                <vehicle id="3" pos="123.91" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="159.21" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="194.50" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>
@@ -131,9 +132,9 @@
     <timestep time="8.00">
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="3" pos="151.71" speed="27.80"/>
-                <vehicle id="2" pos="187.00" speed="27.80"/>
-                <vehicle id="1" pos="222.30" speed="27.80"/>
+                <vehicle id="3" pos="151.71" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="187.00" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="222.30" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>
@@ -142,9 +143,9 @@
     <timestep time="9.00">
         <edge id="end">
             <lane id="end_0">
-                <vehicle id="3" pos="179.51" speed="27.80"/>
-                <vehicle id="2" pos="214.80" speed="27.80"/>
-                <vehicle id="1" pos="250.10" speed="27.80"/>
+                <vehicle id="3" pos="179.51" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="214.80" speed="27.80" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="250.10" speed="27.80" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="end_1"/>
             <lane id="end_2"/>

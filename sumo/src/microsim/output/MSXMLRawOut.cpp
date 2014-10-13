@@ -163,7 +163,9 @@ void
 MSXMLRawOut::writeVehicle(OutputDevice& of, const MSBaseVehicle& veh) {
     if (veh.isOnRoad()) {
         of.openTag("vehicle") << " id=\"" << veh.getID() << "\" pos=\""
-                              << veh.getPositionOnLane() << "\" speed=\"" << veh.getSpeed() << "\"";
+                              << veh.getPositionOnLane() << "\" speed=\"" << veh.getSpeed() 
+                              << "\" personNumber=\"" << static_cast<const MSVehicle&>(veh).getPersonNumber()
+                              << "\" containerNumber=\"" << static_cast<const MSVehicle&>(veh).getContainerNumber() << "\"";
         of.closeTag();
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 09/08/14 16:23:55 by SUMO Version dev-SVN-rUNKNOWN
+<!-- generated on 10/13/14 14:42:54 by SUMO Version dev-SVN-r17179
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -33,7 +33,7 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="1" pos="5.10" speed="0.00"/>
+                <vehicle id="1" pos="5.10" speed="0.00" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -42,7 +42,7 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="1" pos="6.54" speed="1.44"/>
+                <vehicle id="1" pos="6.54" speed="1.44" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -51,7 +51,7 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="1" pos="9.66" speed="3.12"/>
+                <vehicle id="1" pos="9.66" speed="3.12" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -60,8 +60,8 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="2" pos="5.10" speed="0.00"/>
-                <vehicle id="1" pos="15.31" speed="5.66"/>
+                <vehicle id="2" pos="5.10" speed="0.00" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="15.31" speed="5.66" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -70,8 +70,8 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="2" pos="6.93" speed="1.83"/>
-                <vehicle id="1" pos="22.93" speed="7.62"/>
+                <vehicle id="2" pos="6.93" speed="1.83" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="22.93" speed="7.62" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -80,8 +80,8 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="2" pos="10.40" speed="3.47"/>
-                <vehicle id="1" pos="33.09" speed="10.16"/>
+                <vehicle id="2" pos="10.40" speed="3.47" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="33.09" speed="10.16" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -90,9 +90,9 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="3" pos="5.10" speed="0.00"/>
-                <vehicle id="2" pos="15.76" speed="5.36"/>
-                <vehicle id="1" pos="45.53" speed="12.44"/>
+                <vehicle id="3" pos="5.10" speed="0.00" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="15.76" speed="5.36" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="45.53" speed="12.44" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -101,9 +101,9 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="3" pos="6.83" speed="1.73"/>
-                <vehicle id="2" pos="23.71" speed="7.95"/>
-                <vehicle id="1" pos="59.60" speed="14.07"/>
+                <vehicle id="3" pos="6.83" speed="1.73" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="23.71" speed="7.95" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="59.60" speed="14.07" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -112,9 +112,9 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="3" pos="10.41" speed="3.59"/>
-                <vehicle id="2" pos="33.67" speed="9.96"/>
-                <vehicle id="1" pos="75.67" speed="16.06"/>
+                <vehicle id="3" pos="10.41" speed="3.59" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="33.67" speed="9.96" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="75.67" speed="16.06" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
@@ -123,9 +123,9 @@
         <edge id="beg">
             <lane id="beg_0"/>
             <lane id="beg_1">
-                <vehicle id="3" pos="15.46" speed="5.05"/>
-                <vehicle id="2" pos="46.15" speed="12.48"/>
-                <vehicle id="1" pos="93.99" speed="18.32"/>
+                <vehicle id="3" pos="15.46" speed="5.05" personNumber="0" containerNumber="0"/>
+                <vehicle id="2" pos="46.15" speed="12.48" personNumber="0" containerNumber="0"/>
+                <vehicle id="1" pos="93.99" speed="18.32" personNumber="0" containerNumber="0"/>
             </lane>
             <lane id="beg_2"/>
         </edge>
