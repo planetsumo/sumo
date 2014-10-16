@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 10/10/14 10:50:50 by SUMO Version dev-SVN-rUNKNOWN
+<!-- generated on 10/16/14 09:47:21 by SUMO Version dev-SVN-r17179
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
@@ -91,7 +91,7 @@
     </timestep>
     <timestep time="20.00">
         <vehicle id="truck" x="49.52" y="498.35" angle="90.00" type="DEFAULT_VEHTYPE" speed="0.00" pos="50.00" lane="beg_0" slope="0.00"/>
-        <container id="c1" x="50.00" y="498.35" angle="90.00" speed="0.00" pos="50.00" edge="beg" slope="0.00"/>
+        <container id="c1" x="39.62" y="498.35" angle="180.00" speed="0.00" pos="40.00" edge="beg" slope="0.00"/>
         <container id="c3" x="99.05" y="498.35" angle="180.00" speed="0.00" pos="100.00" edge="beg" slope="0.00"/>
         <container id="c2" x="237.72" y="498.35" angle="180.00" speed="0.00" pos="240.00" edge="beg" slope="0.00"/>
     </timestep>
