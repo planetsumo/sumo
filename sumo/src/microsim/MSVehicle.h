@@ -144,7 +144,7 @@ public:
      * @exception ProcessError If a value is wrong
      */
     MSVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
-              const MSVehicleType* type, SUMOReal speedFactor);
+              const MSVehicleType* type, const SUMOReal speedFactor);
 
     /// @brief Destructor.
     virtual ~MSVehicle();
