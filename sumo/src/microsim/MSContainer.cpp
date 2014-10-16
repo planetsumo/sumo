@@ -120,8 +120,9 @@ MSContainer::MSContainerStage_Driving::proceed(MSNet* net, MSContainer* containe
     myWaitingEdge = previousEdge;
     myWaitingPos = at;
     myWaitingSince = now;
-    myVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines, myWaitingPos);
-	if (myVehicle != 0 && myVehicle->getParameter().departProcedure == DEPART_CONTAINER_TRIGGERED) {
+    SUMOVehicle* availableVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines, myWaitingPos);
+	if (availableVehicle != 0 && availableVehicle->getParameter().departProcedure == DEPART_CONTAINER_TRIGGERED) {
+        myVehicle = availableVehicle;
         previousEdge->removeContainer(container);
         myVehicle->addContainer(container);
         net->getInsertionControl().add(myVehicle);
