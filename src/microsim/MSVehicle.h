@@ -430,6 +430,11 @@ public:
     void enterLaneAtInsertion(MSLane* enteredLane, SUMOReal pos, SUMOReal speed,
                               MSMoveReminder::Notification notification);
 
+    /** @brief set tentative lane and position during insertion to ensure that
+     * all cfmodels work (some of them require veh->getLane() to return a valid lane)
+     * Once the vehicle is sucessfully inserted the lane is set again (see enterLaneAtInsertion)
+     */
+    void setTentativeLaneAndPosition(MSLane* lane, const SUMOReal pos);
 
     /** @brief Update when the vehicle enters a new lane in the laneChange step.
      *
@@ -1047,6 +1052,9 @@ public:
     /// @brief allow TraCI to influence a lane change decision
     int influenceChangeDecision(int state);
 
+    /// @brief compute safe speed for following the given leader
+    SUMOReal getSafeFollowSpeed(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
+                         const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const;
 
 #endif
 
@@ -1234,7 +1242,7 @@ protected:
 
 #ifdef HAVE_INTERNAL_LANES
     /// @brief ids of vehicles being followed across a link (for resolving priority)
-    mutable std::set<std::string> myLinkLeaders;
+    mutable std::map<const MSJunction*, std::set<std::string> > myLinkLeaders;
 #endif
 
 private:

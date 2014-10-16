@@ -889,9 +889,6 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         }
     }
     lfLinks.clear();
-#ifdef HAVE_INTERNAL_LANES
-    myLinkLeaders.clear();
-#endif
     //
     const MSCFModel& cfModel = getCarFollowModel();
     const SUMOReal vehicleLength = getVehicleType().getLength();
@@ -1028,9 +1025,9 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
                 // leader is a pedestrian. Passing 'this' as a dummy.
                 //std::cout << SIMTIME << " veh=" << getID() << " is blocked on link to " << (*link)->getViaLaneOrLane()->getID() << " by pedestrian. dist=" << it->distToCrossing << "\n";
                 adaptToLeader(std::make_pair(this, -1), seen, lastLink, lane, v, vLinkPass, it->distToCrossing);
-            } else if (leader->myLinkLeaders.count(getID()) == 0) {
+            } else if (leader->myLinkLeaders[(*link)->getJunction()].count(getID()) == 0) {
                 // leader isn't already following us, now we follow it
-                myLinkLeaders.insert(leader->getID());
+                myLinkLeaders[(*link)->getJunction()].insert(leader->getID());
                 adaptToLeader(it->vehAndGap, seen, lastLink, lane, v, vLinkPass, it->distToCrossing);
                 if (lastLink != 0) {
                     // we are not yet on the junction with this linkLeader.
@@ -1060,7 +1057,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
             const SUMOReal accel = (vLinkPass >= v) ? cfModel.getMaxAccel() : -cfModel.getMaxDecel();
             const SUMOReal accelTime = (vLinkPass - v) / accel;
             const SUMOReal accelWay = accelTime * (vLinkPass + v) * 0.5;
-            arrivalTime = t + TIME2STEPS(accelTime + MAX2(SUMOReal(0), seen - accelWay) / MAX2(vLinkPass, NUMERICAL_EPS));
+            arrivalTime = t + TIME2STEPS(accelTime + MAX2(SUMOReal(0), seen - accelWay) / MAX2(vLinkPass, SUMO_const_haltingSpeed));
         }
         // compute speed, time if vehicle starts braking now
         // if stopping is possible, arrivalTime can be arbitrarily large. A small value keeps fractional times (impatience) meaningful
@@ -1123,25 +1120,34 @@ MSVehicle::adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
                          const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass,
                          SUMOReal distToCrossing) const {
     if (leaderInfo.first != 0) {
-        const MSCFModel& cfModel = getCarFollowModel();
-        SUMOReal vsafeLeader = 0;
-        if (leaderInfo.second >= 0) {
-            vsafeLeader = cfModel.followSpeed(this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCarFollowModel().getMaxDecel());
-        } else {
-            // the leading, in-lapping vehicle is occupying the complete next lane
-            // stop before entering this lane
-            vsafeLeader = cfModel.stopSpeed(this, getSpeed(), seen - lane->getLength() - POSITION_EPS);
-        }
-        if (distToCrossing >= 0) {
-            // drive up to the crossing point with the current link leader
-            vsafeLeader = MAX2(vsafeLeader, cfModel.stopSpeed(this, getSpeed(), distToCrossing));
-        }
+        const SUMOReal vsafeLeader = getSafeFollowSpeed(leaderInfo, seen, lane, distToCrossing);
         if (lastLink != 0) {
             lastLink->adaptLeaveSpeed(vsafeLeader);
         }
         v = MIN2(v, vsafeLeader);
         vLinkPass = MIN2(vLinkPass, vsafeLeader);
     }
+}
+
+
+SUMOReal 
+MSVehicle::getSafeFollowSpeed(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
+        const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const {
+    assert(leaderInfo.first != 0);
+    const MSCFModel& cfModel = getCarFollowModel();
+    SUMOReal vsafeLeader = 0;
+    if (leaderInfo.second >= 0) {
+        vsafeLeader = cfModel.followSpeed(this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCarFollowModel().getMaxDecel());
+    } else {
+        // the leading, in-lapping vehicle is occupying the complete next lane
+        // stop before entering this lane
+        vsafeLeader = cfModel.stopSpeed(this, getSpeed(), seen - lane->getLength() - POSITION_EPS);
+    }
+    if (distToCrossing >= 0) {
+        // drive up to the crossing point with the current link leader
+        vsafeLeader = MAX2(vsafeLeader, cfModel.stopSpeed(this, getSpeed(), distToCrossing));
+    }
+    return vsafeLeader;
 }
 
 
@@ -1344,6 +1350,12 @@ MSVehicle::executeMove() {
                             getLaneChangeModel().endLaneChangeManeuver();
                         }
                     }
+#ifdef HAVE_INTERNAL_LANES 
+                    // erase leaders when past the junction
+                    if (link->getViaLane() == 0) {
+                        myLinkLeaders[link->getJunction()].clear();
+                    }
+#endif 
                     moved = true;
                     if (approachedLane->getEdge().isVaporizing()) {
                         leaveLane(MSMoveReminder::NOTIFICATION_VAPORIZED);
@@ -1903,7 +1915,7 @@ MSVehicle::updateBestLanes(bool forceRebuild, const MSLane* startLane) {
             q.lane = cl;
             q.bestContinuations.push_back(cl);
             q.bestLaneOffset = 0;
-            q.length = cl->getLength();
+            q.length = cl->allowsVehicleClass(myType->getVehicleClass()) ? cl->getLength() : 0;
             q.allowsContinuation = allowed == 0 || find(allowed->begin(), allowed->end(), cl) != allowed->end();
             currentLanes.push_back(q);
         }
@@ -2092,7 +2104,7 @@ MSVehicle::getBestLaneOffset() const {
 void
 MSVehicle::adaptBestLanesOccupation(int laneIndex, SUMOReal density) {
     std::vector<MSVehicle::LaneQ>& preb = myBestLanes.front();
-    assert(laneIndex < preb.size());
+    assert(laneIndex < (int)preb.size());
     preb[laneIndex].occupation = density + preb[laneIndex].nextOccupation;
 }
 
@@ -2281,6 +2293,14 @@ MSVehicle::getLaneIndex() const {
 }
 
 
+void 
+MSVehicle::setTentativeLaneAndPosition(MSLane* lane, const SUMOReal pos) {
+    assert(lane != 0);
+    myLane = lane;
+    myState.myPos = pos;
+}
+
+
 #ifndef NO_TRACI
 bool
 MSVehicle::addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal /*radius*/, SUMOTime duration, bool parking, bool triggered) {
@@ -2306,7 +2326,11 @@ MSVehicle::addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal /*radius*/, SUMOTim
     newStop.triggered = triggered;
     newStop.parking = parking;
     newStop.index = STOP_INDEX_FIT;
-    return addStop(newStop);
+    const bool result = addStop(newStop);
+    if (myLane != 0) {
+        updateBestLanes(true);
+    }
+    return result;
 }
 
 
