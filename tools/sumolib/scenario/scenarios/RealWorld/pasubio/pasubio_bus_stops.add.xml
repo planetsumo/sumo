@@ -2,7 +2,7 @@
     <busStop id="busStop#1" lane="2[1][1][1]b_0" startPos="35" endPos="55" lines="--"/>
     <busStop id="busStop#2" lane="1[0]_0" startPos="250" endPos="270" lines="--"/>
     <busStop id="busStop#3" lane="14_0" startPos="78.128" endPos="98.128" lines="--"/>
-    <busStop id="busStop#4" lane="26_0" startPos="170.149" endPos="190.149" lines="--"/>
+    <busStop id="busStop#4" lane="26.-170_0" startPos="80.00" endPos="100.00" lines="--"/>
     <busStop id="busStop#5" lane="27_0" startPos="40.733" endPos="60.733" lines="--"/>
     <busStop id="busStop#6" lane="17[0]_0" startPos="110.157" endPos="130.157" lines="--"/>
     <busStop id="busStop#7" lane="16[1]_0" startPos="122.242" endPos="142.242" lines="--"/>

@@ -1437,18 +1437,18 @@ class ScenarioSet_CorrFlowsDistancesA(ScenarioSet):
 class ScenarioSet_NetFlowsDistancesA(ScenarioSet):
   def __init__(self, params):
     ScenarioSet.__init__(self, "NetFlowsDistancesA", merge(
-      {"f1from":"0", "f1to":"2400", "f1step":"400",
-      "f2from":"0", "f2to":"2400", "f2step":"400",
-      "oFrom":"0", "oTo":"3.14", "oStep":".314"},
+      {"f1from":"0", "f1to":"2401", "f1step":"800",
+      "f2from":"0", "f2to":"2401", "f2step":"800",
+      "oFrom":"0", "oTo":"3.14", "oStep":".315"},
       params))
-  def getNumRuns(self):
-    f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
-    f2num = 1 + (self.getInt("f2to") - self.getInt("f2from")) / self.getInt("f2step")
     self.offsets = []
     offset = self.getFloat("oFrom")
     while offset<self.getFloat("oTo"):
       self.offsets.append(offset)
       offset = offset + self.getFloat("oStep")
+  def getNumRuns(self):
+    f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
+    f2num = 1 + (self.getInt("f2to") - self.getInt("f2from")) / self.getInt("f2step")
     return f1num * f2num * len(self.offsets)
   def iterateScenarios(self):
     desc = {"name":"NetFlowsDistancesA"}
@@ -1482,7 +1482,7 @@ class ScenarioSet_NetFlowsDistancesA(ScenarioSet):
       for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
         ret.append([])
         ranges[0].append(f1)
-        for o in self._offsets:
+        for o in self.offsets:
           ret[-1].append({"scenario":"NetFlowsDistancesA", "f1":str(f1), "f2":str(f2), "o":str(o)})
           ranges[1].append(f2)
     return (ret, ranges)

@@ -59,7 +59,7 @@
         <stop busStop="busStop#21" duration="20"/>
         <stop busStop="busStop#26" duration="20"/>
     </vehicle>
-    <vehicle id="6_60" depart="60" departPos="0" departLane="best" arrivalPos="-1" type="bus" color="0,1,0"><route edges="12 50[0] 50[1] 50[1]a 47 37 26  18 20+19b 2[1][1][1]b"/>
+    <vehicle id="6_60" depart="60" departPos="0" departLane="best" arrivalPos="-1" type="bus" color="0,1,0"><route edges="12 50[0] 50[1] 50[1]a 47 37 26 26.-170 18 20+19b 2[1][1][1]b"/>
         <stop busStop="busStop#13" duration="20"/>
         <stop busStop="busStop#11" duration="20"/>
         <stop busStop="busStop#9" duration="20"/>
@@ -227,7 +227,7 @@
         <stop busStop="busStop#16" duration="20"/>
         <stop busStop="busStop#26" duration="20"/>
     </vehicle>
-    <vehicle id="6_960" depart="960" departPos="0" departLane="best" arrivalPos="-1" type="bus" color="0,1,0"><route edges="12 50[0] 50[1] 50[1]a 47 37 26  18 20+19b 2[1][1][1]b"/>
+    <vehicle id="6_960" depart="960" departPos="0" departLane="best" arrivalPos="-1" type="bus" color="0,1,0"><route edges="12 50[0] 50[1] 50[1]a 47 37 26 26.-170 18 20+19b 2[1][1][1]b"/>
         <stop busStop="busStop#13" duration="20"/>
         <stop busStop="busStop#11" duration="20"/>
         <stop busStop="busStop#9" duration="20"/>
@@ -395,7 +395,7 @@
         <stop busStop="busStop#21" duration="20"/>
         <stop busStop="busStop#26" duration="20"/>
     </vehicle>
-    <vehicle id="6_1860" depart="1860" departPos="0" departLane="best" arrivalPos="-1" type="bus" color="0,1,0"><route edges="12 50[0] 50[1] 50[1]a 47 37 26  18 20+19b 2[1][1][1]b"/>
+    <vehicle id="6_1860" depart="1860" departPos="0" departLane="best" arrivalPos="-1" type="bus" color="0,1,0"><route edges="12 50[0] 50[1] 50[1]a 47 37 26 26.-170 18 20+19b 2[1][1][1]b"/>
         <stop busStop="busStop#13" duration="20"/>
         <stop busStop="busStop#11" duration="20"/>
         <stop busStop="busStop#9" duration="20"/>
@@ -563,7 +563,7 @@
         <stop busStop="busStop#21" duration="20"/>
         <stop busStop="busStop#26" duration="20"/>
     </vehicle>
-    <vehicle id="6_2760" depart="2760" departPos="0" departLane="best" arrivalPos="-1" type="bus" color="0,1,0"><route edges="12 50[0] 50[1] 50[1]a 47 37 26  18 20+19b 2[1][1][1]b"/>
+    <vehicle id="6_2760" depart="2760" departPos="0" departLane="best" arrivalPos="-1" type="bus" color="0,1,0"><route edges="12 50[0] 50[1] 50[1]a 47 37 26 26.-170 18 20+19b 2[1][1][1]b"/>
         <stop busStop="busStop#13" duration="20"/>
         <stop busStop="busStop#11" duration="20"/>
         <stop busStop="busStop#9" duration="20"/>

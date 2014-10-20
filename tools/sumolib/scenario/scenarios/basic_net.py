@@ -31,7 +31,7 @@ class Scenario_BasicNet(Scenario):
     if fileNeedsRebuild(self.netName, "netconvert"):
       print "Network in '%s' needs to be rebuild" % self.netName
       defaultEdge = Edge(numLanes=1, maxSpeed=13.89)
-      defaultEdge.addSplit(100, 1)
+      defaultEdge.addSplit(50, 1)
       defaultEdge.lanes = [Lane(dirs="rs"), Lane(dirs="l")]
       netGen = netGenerator.grid(5, 5, None, defaultEdge)
       m = rot / 3.14

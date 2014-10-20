@@ -15,5 +15,5 @@
         <vType vClass="ignoring" id="ignoring4"  color=".9,.9,.9" accel="2.4" decel="4.5" sigma="0.5" length="5" minGap="1.5" maxSpeed="30" probability=".1" guiShape="passenger/van" emissionClass="P_7_7"/>
         <vType vClass="ignoring" id="ignoring5"  color=".8,.8,.0" accel="2.3" decel="4.5" sigma="0.5" length="5" minGap="1.5" maxSpeed="30" probability=".05" guiShape="delivery" emissionClass="P_7_7"/>
     </vTypeDistribution>
-	<vType id="bus" accel="2.6" decel="4.5" sigma="0.5" length="12" minGap="3" maxSpeed="70" emissionClass="HDV_6_2" guiShape="bus/city" vClass="bus"/>
+	<vType id="bus" accel="2.6" decel="4.5" sigma="0.5" length="12" minGap="3" maxSpeed="70" emissionClass="HDV_6_2" vClass="bus"/>
 </routes>
