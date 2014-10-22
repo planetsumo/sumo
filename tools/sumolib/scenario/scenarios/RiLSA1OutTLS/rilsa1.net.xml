@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 09/29/14 15:38:38 by SUMO netconvert Version dev-SVN-rUNKNOWN
+<!-- generated on 10/10/14 09:44:09 by SUMO netconvert Version dev-SVN-rUNKNOWN
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <node-files value="D:\projects\x_EU_COLOMBO_318622\svn_smartSVN\trunk\software\sumo\tools\sumolib\scenario\scenarios\RiLSA1OutTLS\input_nodes.nod.xml"/>
-        <edge-files value="D:\projects\x_EU_COLOMBO_318622\svn_smartSVN\trunk\software\sumo\tools\sumolib\scenario\scenarios\RiLSA1OutTLS\input_edges.edg.xml"/>
-        <connection-files value="D:\projects\x_EU_COLOMBO_318622\svn_smartSVN\trunk\software\sumo\tools\sumolib\scenario\scenarios\RiLSA1OutTLS\input_connections.con.xml"/>
+        <node-files value="J:\tls_evaluation\sumo\tools\sumolib\scenario\scenarios\RiLSA1OutTLS\input_nodes.nod.xml"/>
+        <edge-files value="J:\tls_evaluation\sumo\tools\sumolib\scenario\scenarios\RiLSA1OutTLS\input_edges.edg.xml"/>
+        <connection-files value="J:\tls_evaluation\sumo\tools\sumolib\scenario\scenarios\RiLSA1OutTLS\input_connections.con.xml"/>
     </input>
 
     <output>
-        <output-file value="D:\projects\x_EU_COLOMBO_318622\svn_smartSVN\trunk\software\sumo\tools\sumolib\scenario\scenarios\RiLSA1OutTLS\rilsa1.net.xml"/>
+        <output-file value="J:\tls_evaluation\sumo\tools\sumolib\scenario\scenarios\RiLSA1OutTLS\rilsa1.net.xml"/>
     </output>
 
     <processing>

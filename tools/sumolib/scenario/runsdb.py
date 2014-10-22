@@ -121,6 +121,10 @@ class RunsDB:
     self.cursor.execute("SELECT DISTINCT value FROM run WHERE key=?;", (attr,))
     return self.toList(self.cursor.fetchall())
 
+  def getNamedAttributeFromRun(self, rid, key):
+    self.cursor.execute("SELECT DISTINCT value FROM run WHERE id=? and key=?;", (rid,key))
+    return self.toList(self.cursor.fetchall())
+
   def close(self):
     self.conn.close()
     
