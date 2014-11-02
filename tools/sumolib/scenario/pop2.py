@@ -114,6 +114,19 @@ class ScenarioSet:
     fdo.write("</additional>\n")
     fdo.close()
     return args, files
+  def getAdditionalDivider(self):
+    return []
+  def halfX(self):
+    return True
+  def orientationX(self):
+    return 0
+  def ticksSize(self):
+    return 16 
+  def figsize(self):
+    return None
+  def adjust(self, fig):
+    return 
+
 
 #--------------------------------------
 
@@ -315,7 +328,7 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
         sampleFactor = self.params["sample-factor"]
       if "seen-ratio" in self.params:
         seenRatio = self.params["seen-ratio"]
-      s.demand.build(0, end, s.netName, s.demandName, sampleFactor)
+      s.demand.build(0, end, s.netName, s.demandName, sampleFactor, seenRatio)
       desc = {"scenario":"RiLSA1LoadCurves", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
       return s, desc, sID
   def getRunsMatrix(self):
@@ -326,13 +339,13 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
     for iWE,cWE in enumerate(RWScurves):
       for iNS,cNS in enumerate(RWScurves):
         ret.append([])
-        ranges[0].append(i)
+        ranges[0].append("%s/%s" % (iWE, iNS))
         i = i + 1
         j = 0
         for iEW,cEW in enumerate(RWScurves):
           for iSN,cSN in enumerate(RWScurves):
             ret[-1].append({"iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN), "scenario":"RiLSA1LoadCurves"})
-            ranges[-1].append(j)
+            ranges[-1].append("%s/%s" % (iEW, iSN))
             j = j + 1
     return (ret, ranges)
   def getAverageDuration(self):
@@ -401,9 +414,18 @@ class ScenarioSet_RiLSA1LoadCurves(ScenarioSet):
     args = []
     return args
   def getXLabel(self):
-    return "!!!RWS type"
+    return "RWS type (west-east)/RWS type (north-south)"
   def getYLabel(self):
-    return "!!!RWS type"
+    return "RWS type (east-west)/RWS type (south-north)"
+  def halfX(self):
+    return False
+  def getAdditionalDivider(self):
+    return [
+        [2.5,-0.5,2.5,8.5],
+        [5.5,-0.5,5.5,8.5],
+        [-0.5,2.5,8.5,2.5],
+        [-0.5,5.5,8.5,5.5]
+    ]
         
 #--------------------------------------
         
@@ -466,13 +488,13 @@ class ScenarioSet_RiLSA1LoadCurvesSampled(ScenarioSet):
     for iWE,cWE in enumerate(RWScurves):
       for iNS,cNS in enumerate(RWScurves):
         ret.append([])
-        ranges[0].append(i)
+        ranges[0].append("%s/%s" % (iWE, iNS))
         i = i + 1
         j = 0
         for iEW,cEW in enumerate(RWScurves):
           for iSN,cSN in enumerate(RWScurves):
             ret[-1].append({"iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN), "scenario":"RiLSA1LoadCurvesSampled"})
-            ranges[-1].append(j)
+            ranges[-1].append("%s/%s" % (iEW, iSN))
             j = j + 1
     return (ret, ranges)
   def getAverageDuration(self):
@@ -508,9 +530,18 @@ class ScenarioSet_RiLSA1LoadCurvesSampled(ScenarioSet):
     args = []
     return args
   def getXLabel(self):
-    return "!!!RWS type"
+    return "RWS type (west-east)/RWS type (north-south)"
   def getYLabel(self):
-    return "!!!RWS type"
+    return "RWS type (east-west)/RWS type (south-north)"
+  def halfX(self):
+    return False
+  def getAdditionalDivider(self):
+    return [
+        [2.5,-0.5,2.5,8.5],
+        [5.5,-0.5,5.5,8.5],
+        [-0.5,2.5,8.5,2.5],
+        [-0.5,5.5,8.5,5.5]
+    ]
         
         
 #--------------------------------------
@@ -585,6 +616,12 @@ class ScenarioSet_BasicOutflow(ScenarioSet):
     return "horizontal demand [vehicles/h]"
   def getYLabel(self):
     return "vertical demand [vehicles/h]"
+  def getAdditionalDivider(self):
+    return []
+  def orientationX(self):
+    return 90
+  def halfX(self):
+    return False
 
 #--------------------------------------
         
@@ -695,6 +732,10 @@ class ScenarioSet_RiLSA1Outflow(ScenarioSet_RiLSA1LoadCurvesSampled):
     return "horizontal green time [s]"
   def getYLabel(self):
     return "vertical green time [s]"
+  def getAdditionalDivider(self):
+    return []
+  def halfX(self):
+    return False
 
 #--------------------------------------
         
@@ -844,10 +885,14 @@ class ScenarioSet_RiLSA1PTIteration(ScenarioSet_RiLSA1LoadCurvesSampled):
           print stream._departEdgeModel
           raise "Hmmm, unknown stream??"
       s.demand.streams = nStreams
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, 3600/p1, "emp", "mw", { "bus":1}))
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, 3600/p1, "wmp", "me", { "bus":1}))
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, 3600/p2, "nmp", "ms", { "bus":1}))
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, 3600/p2, "smp", "mw", { "bus":1}))
+      
+      vehicles =  []
+      for i in range(p1/2, 3600, p1):
+        vehicles.append(demandGenerator.Vehicle("bus+p1#"+str(i), int(i), "emp", "mw", "bus"))
+        vehicles.append(demandGenerator.Vehicle("bus-p1#"+str(i), int(i), "wmp", "me", "bus"))
+      for i in range(p1/2, 3600, p1):
+        vehicles.append(demandGenerator.Vehicle("bus+p2#"+str(i), int(i), "nmp", "ms", "bus"))
+        vehicles.append(demandGenerator.Vehicle("bus-p2#"+str(i), int(i), "smp", "mw", "bus"))
       end = 86400
       sampleFactor = 1
       seenRatio = None
@@ -903,14 +948,24 @@ class ScenarioSet_RiLSA1PTIteration(ScenarioSet_RiLSA1LoadCurvesSampled):
     return "pt period [s]"
   def getYLabel(self):
     return "pt period [s]"
+  def getAdditionalDivider(self):
+    return []
+  def orientationX(self):
+    return 90
+  def halfX(self):
+    return False
+#  def figsize(self):
+#    return 8,6
+  def adjust(self, fig):
+    fig.subplots_adjust(bottom=0.2) 
 
 #--------------------------------------        
 
-class ScenarioSet_SinSin1Demand(ScenarioSet):
+class ScenarioSet_SinSinDemand(ScenarioSet):
   MEAN = 700.
   AMPLITUDE = 300.
   def __init__(self, params):
-    ScenarioSet.__init__(self, "SinSin1Demand", merge(
+    ScenarioSet.__init__(self, "SinSinDemand", merge(
       {"offsetFrom":"0", "offsetTo":"6.28", "offsetStep":".628","freqFrom":"0", "freqTo":"21", "freqStep":"2"},
       params))
     self.offsets = []
@@ -974,16 +1029,16 @@ class ScenarioSet_SinSin1Demand(ScenarioSet):
   Yields returning a built scenario and its description as key/value pairs
   """
   def iterateScenarios(self):
-    desc = {"name":"SinSin1Demand"}
+    desc = {"name":"SinSinDemand"}
     for offset in self.offsets:
         for freq in self.frequencies:
             print "Computing for %s<->%s" % (offset, freq)
-            sID = "SinSin1Demand(%s-%s)" % (offset, freq)
+            sID = "SinSinDemand(%s-%s)" % (offset, freq)
             s = getScenario("BasicCross", {}, False)
             s.demandName = s.fullPath("routes_%s.rou.xml" % (sID))
             if fileNeedsRebuild(s.demandName, "duarouter"):
               self.genDemand(s, 3600, offset, freq)
-            desc = {"scenario":"SinSin1Demand", "offset":str(offset), "frequency":str(freq)}
+            desc = {"scenario":"SinSinDemand", "offset":str(offset), "frequency":str(freq)}
             yield s, desc, sID
   def getRunsMatrix(self):
     ret = []
@@ -992,7 +1047,7 @@ class ScenarioSet_SinSin1Demand(ScenarioSet):
       ret.append([])
       ranges[0].append(offset)
       for freq in self.frequencies:
-        ret[-1].append({"scenario":"SinSin1Demand", "offset":str(offset), "frequency":str(freq)})
+        ret[-1].append({"scenario":"SinSinDemand", "offset":str(offset), "frequency":str(freq)})
         ranges[1].append(freq)
     return (ret, ranges)
   def getAverageDuration(self):
@@ -1020,123 +1075,7 @@ class ScenarioSet_SinSin1Demand(ScenarioSet):
     return "frequency [s]"
 
 #--------------------------------------
-        
-class ScenarioSet_SinSin2Demand(ScenarioSet):
-  MEAN = 700.
-  AMPLITUDE = 300.
-
-  def __init__(self, params):
-    ScenarioSet.__init__(self, "SinSin2Demand", merge(
-      {"offsetFrom":"0", "offsetTo":"6.28", "offsetStep":".628","freqFrom":"0", "freqTo":".05", "freqStep":".005"},
-      params))
-    self.offsets = []
-    offset = self.getFloat("offsetFrom")
-    while offset<self.getFloat("offsetTo"):
-      self.offsets.append(offset)
-      offset = offset + self.getFloat("offsetStep")
-    self.frequencies = []
-    frequency = self.getFloat("freqFrom")
-    while frequency<self.getFloat("freqTo"):
-      self.frequencies.append(frequency)
-      frequency = frequency + self.getFloat("freqStep")
-
-  def getNumRuns(self):
-    return len(self.offsets)*len(self.frequencies)
-
-  def genDemand(self, scenario, simSteps, offset, frequency):  
-    #fd = tempfile.NamedTemporaryFile(mode="w", delete=False)
-    fd = open(scenario.demandName, "w")
-    #---routes---
-    print >> fd, """<routes>
-			<route id="WE" edges="0/1_to_1/1 0/1_to_1/1.-100 1/1_to_2/1"/>
-			<route id="NS" edges="1/2_to_1/1 1/2_to_1/1.-100 1/1_to_1/0"/>
-			<route id="EW" edges="2/1_to_1/1 2/1_to_1/1.-100 1/1_to_0/1"/>
-			<route id="SN" edges="1/0_to_1/1 1/0_to_1/1.-100 1/1_to_1/2"/>
-    """
-    pv1 = 0
-    pv2 = 0
-    vehNr = 0
-    o1 = 0
-    o2 = offset
-    for i in range(simSteps):
-        v = math.sin(o1) * self.AMPLITUDE + self.MEAN
-        v = v / 3600.
-        pv1 = v + pv1
-        if random.uniform(0,1) < pv1:
-            pv1 = pv1 - 1.
-            print >> fd, '    <vehicle id="%i" type="passenger" route="WE" depart="%i" departSpeed="13.89" />' % (vehNr, i)
-            vehNr += 1
-            print >> fd, '    <vehicle id="%i" type="passenger" route="EW" depart="%i" departSpeed="13.89" />' % (vehNr, i)
-            vehNr += 1
-        v = math.sin(o2) * self.AMPLITUDE + self.MEAN
-        v = v / 3600.
-        pv2 = v + pv2
-        if random.uniform(0,1) < pv2:
-            pv2 = pv2 - 1.
-            print >> fd, '    <vehicle id="%i" type="passenger" route="NS" depart="%i" departSpeed="13.89" />' % (vehNr, i)
-            vehNr += 1
-            print >> fd, '    <vehicle id="%i" type="passenger" route="SN" depart="%i" departSpeed="13.89" />' % (vehNr, i)
-            vehNr += 1
-        if frequency!=0:
-            o1 = o1 + ((math.pi*2)/(180*frequency))
-            o2 = o2 + ((math.pi*2)/(180*frequency))
-
-    print >> fd, "</routes>"
-    fd.close()  
-    #duarouter = sumolib.checkBinary("duarouter")
-    #retCode = subprocess.call([duarouter, "-v", "-n", scenario.netName,  "-t", fd.name, "-o", scenario.demandName, "--no-warnings"]) # aeh, implizite no-warnings sind nicht schoen
-    #os.remove(fd.name)
-  """
-  Yields returning a built scenario and its description as key/value pairs
-  """
-  def iterateScenarios(self):
-    desc = {"name":"SinSin2Demand"}
-    for offset in self.offsets:
-        for freq in self.frequencies:
-            print "Computing for %s<->%s" % (offset, freq)
-            sID = "SinSin2Demand(%s-%s)" % (offset, freq)
-            s = getScenario("BasicCross", {}, False)
-            s.demandName = s.fullPath("routes_%s.rou.xml" % (sID))
-            if fileNeedsRebuild(s.demandName, "duarouter"):
-              self.genDemand(s, 3600, offset, freq)
-            desc = {"scenario":"SinSin2Demand", "offset":str(offset), "frequency":str(freq)}
-            yield s, desc, sID
-  def getRunsMatrix(self):
-    ret = []
-    ranges = [[], []]
-    for offset in self.offsets:
-      ret.append([])
-      ranges[0].append(offset)
-      for freq in self.frequencies:
-        ret[-1].append({"scenario":"SinSin2Demand", "offset":str(offset), "frequency":str(freq)})
-        ranges[1].append(freq)
-    return (ret, ranges)
-  def getAverageDuration(self):
-    return -1 # !!!
-  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
-    # adapt tls to current settings
-    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
-    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
-    fdo.write("<additional>\n")
-    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
-    for tlsID in net._id2tls:
-      tls = net._id2tls[tlsID]
-      for prog in tls._programs:
-        tls._programs[prog]._type = tls_algorithm
-        tls._programs[prog]._id = "adapted"
-        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
-        fdo.write(tls._programs[prog].toXML(tlsID))
-    fdo.write("</additional>\n")
-    fdo.close()
-    args = []
-    return args
-  def getXLabel(self):
-    return "offset"
-  def getYLabel(self):
-    return "frequency [s]"
-        
-#--------------------------------------
-        
+   
 class ScenarioSet_OneSinDemand(ScenarioSet):
   MAIN_FLOW = 1000.
 
@@ -1309,13 +1248,13 @@ class ScenarioSet_DemandStep(ScenarioSet):
     for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
       for f2begin in range(self.getInt("f2beginFrom"), self.getInt("f2beginTo"), self.getInt("f2beginStep")):        
         ret.append([])
-        ranges[0].append(i)
+        ranges[0].append("%s/%s" % (f1, f2begin))
         i = i + 1
         j = 0
         for f2end in range(self.getInt("f2endFrom"), self.getInt("f2endTo"), self.getInt("f2endStep")):
           for f2duration in range(self.getInt("f2durationFrom"), self.getInt("f2durationTo"), self.getInt("f2durationStep")):        
             ret[-1].append({"f1":str(f1), "f2begin":str(f2begin), "f2end":str(f2end), "f2duration":str(f2duration), "scenario":"DemandStep"})
-            ranges[-1].append(j)
+            ranges[-1].append("%s/%s" % (f2end, f2duration))
             j = j + 1
     return (ret, ranges)
   def getAverageDuration(self):
@@ -1344,9 +1283,38 @@ class ScenarioSet_DemandStep(ScenarioSet):
     args = []
     return args
   def getXLabel(self):
-    return "!!!"
+    return "initial flow#1 [veh/h] / initial flow#2 [veh/h]"
   def getYLabel(self):
-    return "!!!"
+    return "final flow#2 [veh/h] /\nchange duration [s]"
+  def getAdditionalDivider(self):
+    f1num = (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
+    f2beginNum = (self.getInt("f2beginTo") - self.getInt("f2beginFrom")) / self.getInt("f2beginStep")
+    f2endNum = (self.getInt("f2endTo") - self.getInt("f2endFrom")) / self.getInt("f2endStep")
+    f2durationNum = 1+(self.getInt("f2durationTo") - self.getInt("f2durationFrom")) / self.getInt("f2durationStep")
+    ret = []
+    xMax = f1num * f2beginNum - .5
+    yMax = f2durationNum * f2endNum - .5
+    for f2begin in range(1, f2beginNum):
+      x = f2begin * f1num - .5
+      ret.append([x,-0.5,x,yMax])
+      #for f2begin in range(self.getInt("f2beginFrom"), self.getInt("f2beginTo"), self.getInt("f2beginStep")):        
+    for f2end in range(1, f2endNum):
+      #for f2duration in range(self.getInt("f2durationFrom"), self.getInt("f2durationTo"), self.getInt("f2durationStep")):        
+      y = f2durationNum * f2end - .5
+      ret.append([-0.5,y,xMax,y])
+    return ret
+  def halfX(self):
+    return False
+  def orientationX(self):
+    return 90
+  def ticksSize(self):
+    return 12 
+  def figsize(self):
+    return 8,8
+  def adjust(self, fig):
+    fig.subplots_adjust(bottom=0.2, left=0.2) 
+     
+
 
 #--------------------------------------
         
@@ -1391,15 +1359,15 @@ class ScenarioSet_CorrFlowsDistancesA(ScenarioSet):
     ranges = [[], []]
     RWScurves = getRWScurves()
     i = 0
-    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
-      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):        
+    for d1 in range(self.getInt("d1from"), self.getInt("d1to"), self.getInt("d1step")):
+      for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
         ret.append([])
-        ranges[0].append(i)
+        ranges[0].append("%s/%s" % (d1, f1))
         i = i + 1
         j = 0
-        for d1 in range(self.getInt("d1from"), self.getInt("d1to"), self.getInt("d1step")):
+        for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):        
           ret[-1].append({"f1":str(f1), "f2":str(f2), "d1":str(d1), "scenario":"CorrFlowsDistancesA"})
-          ranges[-1].append(j)
+          ranges[-1].append(f2)
           j = j + 1
     return (ret, ranges)
   def getAverageDuration(self):
@@ -1428,9 +1396,26 @@ class ScenarioSet_CorrFlowsDistancesA(ScenarioSet):
     args = []
     return args
   def getXLabel(self):
-    return "!!!"
+    return "distance [m] / flow#1 [veh/h]"
   def getYLabel(self):
-    return "!!!"
+    return "flow#2 [veh/h]"
+  def figsize(self):
+    return 10,4
+  def orientationX(self):
+    return 90
+  def ticksSize(self):
+    return 12
+  def halfX(self):
+    return False
+  def getAdditionalDivider(self):
+    ret = []
+    for i in range(1, 7):
+      ret.append([i*6-.5,-0.5,i*6-.5,5.5])
+    return ret
+  def halfX(self):
+    return False
+  def adjust(self, fig):
+    fig.subplots_adjust(bottom=0.2) 
 
 #--------------------------------------    
         
@@ -1478,13 +1463,13 @@ class ScenarioSet_NetFlowsDistancesA(ScenarioSet):
   def getRunsMatrix(self):
     ret = []
     ranges = [[], []]
-    for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
-      for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
+    for o in self.offsets:
+      for f1 in range(self.getInt("f1from"), self.getInt("f1to"), self.getInt("f1step")):
         ret.append([])
-        ranges[0].append(f1)
-        for o in self.offsets:
+        ranges[0].append("%s/%s" % (o, f1))
+        for f2 in range(self.getInt("f2from"), self.getInt("f2to"), self.getInt("f2step")):
           ret[-1].append({"scenario":"NetFlowsDistancesA", "f1":str(f1), "f2":str(f2), "o":str(o)})
-          ranges[1].append(f2)
+          ranges[1].append("%s" % f2)
     return (ret, ranges)
   def getAverageDuration(self):
     return -1 # !!!
@@ -1512,9 +1497,22 @@ class ScenarioSet_NetFlowsDistancesA(ScenarioSet):
     args = []
     return args
   def getXLabel(self):
-    return "horizontal demand [vehicles/h]"
+    return "offset [m] / flow#1 [vehicles/h]"
   def getYLabel(self):
-    return "vertical demand [vehicles/h]"
+    return "flow#2 [vehicles/h]"
+  def figsize(self):
+    return 10,4
+  def orientationX(self):
+    return 90
+  def ticksSize(self):
+    return 12
+  def halfX(self):
+    return False
+  def getAdditionalDivider(self):
+    ret = []
+    for i in range(1, 10):
+      ret.append([i*4-.5,-0.5,i*4-.5,3.5])
+    return ret
 
 #--------------------------------------
 
@@ -1718,19 +1716,15 @@ class ScenarioSet_RealWorld(ScenarioSet):
     args = []
     return args
   def getXLabel(self):
-    return "demand scale [%]"
+    return ""
   def getYLabel(self):
-    return "-"
+    return "demand scale [%]"
+  def figsize(self):
+    return 3,5
+#  def adjust(self, fig):
+#    fig.subplots_adjust(bottom=0.2) 
     
 #--------------------------------------
-
-
-
-
-
-
-
-
         
 class ScenarioSet_RiLSA1LoadCurvesOutTLS(ScenarioSet):
   def __init__(self, params):
@@ -1883,6 +1877,149 @@ class ScenarioSet_RiLSA1LoadCurvesOutTLS(ScenarioSet):
 #--------------------------------------
 
 
+        
+class ScenarioSet_BasicRiLSANet(ScenarioSet):
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "BasicRiLSANet", merge(
+      {},
+      params))
+    if "other-green" not in self.params:
+      self.params["other-green"] = 31
+  def getNumRuns(self):
+    return 3*3*3*3
+  """
+  Yields returning a built scenario and its description as key/value pairs
+  """
+  def iterateScenarios(self):
+    desc = {"name":"BasicRiLSANet"}
+    RWScurves = getRWScurves()
+    for iWE,cWE in enumerate(RWScurves):
+      for iNS,cNS in enumerate(RWScurves):
+        for iEW,cEW in enumerate(RWScurves):
+          for iSN,cSN in enumerate(RWScurves):
+            yield self.getSingle(RWScurves, iWE, iNS, iEW, iSN)#s, desc, sID
+  def getSingle(self, RWScurves, iWE, iNS, iEW, iSN, uID=None):
+    cWE = RWScurves[iWE]        
+    cNS = RWScurves[iNS]        
+    cEW = RWScurves[iEW]        
+    cSN = RWScurves[iSN]        
+    print "Computing for %s %s %s %s" % (iWE, iNS, iEW, iSN)
+    if uID==None:
+      sID = "BasicRiLSANet(%s-%s-%s-%s)" % (iWE, iNS, iEW, iSN)
+    else:
+      sID = "BasicRiLSANet(%s)" % (uID)
+    s = getScenario("BasicRiLSANet", self.params)
+    s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
+    if True:#fileNeedsRebuild(s.demandName, "duarouter"):
+      nStreams = []
+      for stream in s.demand.streams:
+        if stream._departEdgeModel.find("/4_to")>=0:
+          nStreams.extend(extrapolateDemand(stream, 3600, cNS, 7).streams)
+        elif stream._departEdgeModel.startswith("4/"):
+          nStreams.extend(extrapolateDemand(stream, 3600, cEW, 7).streams)
+        elif stream._departEdgeModel.find("/0_to")>=0:
+          nStreams.extend(extrapolateDemand(stream, 3600, cSN, 7).streams)
+        elif stream._departEdgeModel.startswith("0/"):
+          nStreams.extend(extrapolateDemand(stream, 3600, cWE, 7).streams)
+        else:
+          print stream._departEdgeModel
+          raise "Hmmm, unknown stream??"
+      s.demand.streams = nStreams 
+      end = 86400
+      s.demand.build(0, end, s.netName, s.demandName, None)
+      desc = {"scenario":"BasicRiLSANet", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
+      return s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    RWScurves = getRWScurves()
+    i = 0
+    for iWE,cWE in enumerate(RWScurves):
+      for iNS,cNS in enumerate(RWScurves):
+        ret.append([])
+        ranges[0].append(i)
+        i = i + 1
+        j = 0
+        for iEW,cEW in enumerate(RWScurves):
+          for iSN,cSN in enumerate(RWScurves):
+            ret[-1].append({"iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN), "scenario":"RiLSA1LoadCurves"})
+            ranges[-1].append(j)
+            j = j + 1
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!        
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      (streamsNS, streamsWE) = scenario.getOppositeFlows()
+      (greens, times) = scenario.buildWAUT(streamsNS, streamsWE)
+      for prog in tls._programs:
+        i1 = i2 = 0
+        for i,p in enumerate(tls._programs[prog]._phases):
+          if p[1]==40:
+            i1 = i
+          elif p[1]==12:
+            i2 = i
+        for t in greens:
+          tls._programs[prog]._type = tls_algorithm
+          tls._programs[prog]._id = "adapted" + str(t)
+          self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
+          tls._programs[prog]._phases[i1][1] = greens[t][1]
+          tls._programs[prog]._phases[i2][1] = greens[t][0]
+          fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
+      fdo.write('\n\t<WAUT startProg="adapted1" refTime="0" id="WAUT_%s">\n' % tlsID)
+      for t in times:
+        fdo.write('\t\t<wautSwitch to="adapted%s" time="%s"/>\n' % (t[1], t[0]*3600))
+      fdo.write("\t</WAUT>\n")
+      fdo.write('\n\t<wautJunction junctionID="%s" wautID="WAUT_%s"/>\n' % (tlsID, tlsID)) 
+    fdo.write("</additional>\n")
+    fdo.close()
+    args = []
+    return args
+  def adapt2TLS2(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.fullPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.fullPath("tls_adapted_%s.add.xml" % sID), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.TLS_FILE, withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      """
+      (streamsNS, streamsWE) = scenario.getOppositeFlows2()
+      ns = streamsNS[0] / (streamsNS[0]+streamsWE[0])
+      we = streamsWE[0] / (streamsNS[0]+streamsWE[0])
+      greens = split_by_proportions(72, (ns, we), (10, 10))
+      """
+      for prog in tls._programs:
+        """
+        i1 = i2 = 0
+        for i,p in enumerate(tls._programs[prog]._phases):
+          if p[1]==40:
+            i1 = i
+          elif p[1]==12:
+            i2 = i
+        tls._programs[prog]._phases[i1][1] = greens[1]
+        tls._programs[prog]._phases[i2][1] = greens[0]
+        """
+        tls._programs[prog]._id = "adapted"
+        tls._programs[prog]._type = tls_algorithm
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
+        fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
+    fdo.write("</additional>\n")
+    fdo.close()
+    args = []
+    return args
+  def getXLabel(self):
+    return "!!!RWS type"
+  def getYLabel(self):
+    return "!!!RWS type"
+        
+#--------------------------------------
 
 
 
@@ -1913,10 +2050,8 @@ def getScenarioSet(name, params):
   if name=="RiLSA1PTIteration":
     return ScenarioSet_RiLSA1PTIteration(params)  
                                                 
-  if name=="SinSin1Demand":
-    return ScenarioSet_SinSin1Demand(params)  
-  if name=="SinSin2Demand":
-    return ScenarioSet_SinSin2Demand(params)  
+  if name=="SinSinDemand":
+    return ScenarioSet_SinSinDemand(params)  
   if name=="OneSinDemand":
     return ScenarioSet_OneSinDemand(params)  
   if name=="DemandStep":
@@ -1931,6 +2066,8 @@ def getScenarioSet(name, params):
     return ScenarioSet_NetFlowsDistancesA(params)
   if name=="RealWorld":
     return ScenarioSet_RealWorld(params)
+  if name=="BasicRiLSANet":
+    return ScenarioSet_BasicRiLSANet(params)
   raise "unknown scenario '%s'" % name
 
 def getAllScenarioSets():

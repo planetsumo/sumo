@@ -166,6 +166,15 @@ class Scenario:
       else:  
         fNS[int(s._validFrom/3600)] = fNS[int(s._validFrom/3600)] + s._numberModel 
     return (fNS, fWE)
+  def getOppositeFlows2(self, ew, sn):
+    fNS = [0]*24
+    fWE = [0]*24
+    for s in self.demand.streams:
+      if s._departEdgeModel in ew:
+        fWE[int(s._validFrom/3600)] = fWE[int(s._validFrom/3600)] + s._numberModel
+      else:  
+        fNS[int(s._validFrom/3600)] = fNS[int(s._validFrom/3600)] + s._numberModel 
+    return (fNS, fWE)
   def buildWAUT(self, streamsNS, streamsWE):
     #
     rel = []
@@ -324,6 +333,10 @@ def getScenario(name, params, withDefaultDemand=True):
   elif name=="RealWorld":
     import real_world
     return real_world.Scenario_RealWorld(params["which"], withDefaultDemand)  
-  raise "unknown scenario '%s'" % name
+  elif name=="BasicRiLSANet":
+    import basic_rilsanet
+    return basic_rilsanet.Scenario_BasicRiLSANet(withDefaultDemand)  
+  print "unknown scenario '%s'" % name
+  raise
 
     

@@ -50,15 +50,16 @@ class WaveComposition:
 
 
 class Vehicle:
-  def __init__(self, id, depart, fromEdge, toEdge, vType):
+  def __init__(self, id, depart, fromEdge, toEdge, vType, via=None):
     self.id = id
     self.depart = depart
     self.fromEdge = fromEdge
     self.toEdge = toEdge
     self.vType = vType
+    self._via = via
 
 class Stream:
-  def __init__(self, sid, validFrom, validUntil, numberModel, departEdgeModel, arrivalEdgeModel, vTypeModel):
+  def __init__(self, sid, validFrom, validUntil, numberModel, departEdgeModel, arrivalEdgeModel, vTypeModel, via=None):
     self.sid = sid
     self._numberModel = numberModel
     self._departEdgeModel = departEdgeModel
@@ -66,6 +67,7 @@ class Stream:
     self._vTypeModel = vTypeModel
     self._validFrom = validFrom
     self._validUntil = validUntil
+    self._via = via
 
   def getVehicleDepartures(self, b, e, sampleFactor=None, seenRatio=None):
     if self._validFrom!=None and self._validUntil!=None and (e<self._validFrom or b>self._validUntil):
@@ -114,7 +116,7 @@ class Stream:
         sid = self.sid   
         if sid==None:
           sid = fromEdge + "_to_" + toEdge + "_" + str(i)
-        vehicles.append(Vehicle(sid+"#"+str(i+offset), int(d), fromEdge, toEdge, vType))  
+        vehicles.append(Vehicle(sid+"#"+str(i+offset), int(d), fromEdge, toEdge, vType, self._via))  
     return vehicles
 
 
@@ -137,10 +139,13 @@ class Demand:
     #fdo = open(tmpFile, "w")
     fdo.write("<routes>\n")
     for v in sorted(vehicles, key=lambda veh: veh.depart):
+        via = ""
+        if v._via!=None:
+            via = ' via="%s"' % v._via
         if v.vType=="pedestrian":
             fdo.write('    <person id="%s" depart="%s"><walk from="%s" to="%s"/></person>\n' % (v.id, v.depart, v.fromEdge, v.toEdge))
         else:
-            fdo.write('    <trip id="%s" depart="%s" from="%s" to="%s" type="%s"/>\n' % (v.id, v.depart, v.fromEdge, v.toEdge, v.vType))
+            fdo.write('    <trip id="%s" depart="%s" from="%s" to="%s" type="%s" %s/>\n' % (v.id, v.depart, v.fromEdge, v.toEdge, v.vType, via))
     fdo.write("</routes>")
     fdo.close()
     duarouter = sumolib.checkBinary("duarouter")

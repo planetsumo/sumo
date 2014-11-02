@@ -17,7 +17,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 import sumolib          
-import os, subprocess, tempfile
+import os, subprocess, tempfile, shutil
 
 
 
@@ -27,15 +27,21 @@ class Node:
     self.x = x
     self.y = y
     self.nodeType = nodeType
+    self.crossings = []
   def getNetworkCoordinates(self):
     t = self.nid.split("/")
     return [int(t[0]), int(t[1])]
+  def addCrossing(self, fromEdge, toEdge):
+    self.crossings.append([fromEdge, toEdge])
 
 class Lane:
-  def __init__(self, dirs=None):
+  def __init__(self, dirs=None, allowed=None, disallowed=None):
     self.dirs = dirs
+    self.allowed = allowed
+    self.disallowed = disallowed
     if self.dirs==None: 
       self.dirs = []
+    
 
 class Split:
   def __init__(self, distance, lanes):
@@ -56,6 +62,7 @@ class Edge:
         self.lanes.append(Lane())
     self.splits = splits
     if self.splits==None: self.splits = []
+    if numLanes==None: numLanes = len(self.lanes)
   def addSplit(self, distance, lanesToRight=None, lanesToLeft=None):
     if len(self.splits)==0:
       if lanesToRight==None: lanesToRight = 0
@@ -188,6 +195,7 @@ class Net:
   def dir2connection(self, direction, edge, lane, seen):
     toEdge = self.getMatchingOutgoing(edge, direction)
     if toEdge!=None:    
+      if toEdge.lanes[seen].allowed!=edge.lanes[lane].allowed: seen = seen + 1
       return Connection(edge, lane, toEdge, seen)
     return None
 
@@ -205,12 +213,49 @@ class Net:
     edgesFile = tempfile.NamedTemporaryFile(mode="w", delete=False)
     print >> edgesFile, "<edges>"
     for eid in self._edges:
-      e = self._edges[eid]
-      print >> edgesFile, '    <edge id="%s" from="%s" to="%s" numLanes="%s" speed="%s">' % (e.eid, e.fromNode.nid, e.toNode.nid, e.numLanes, e.maxSpeed)
-      for s in e.splits:
-        print >> edgesFile, '        <split pos="%s" lanes="%s"/>' % (-s.distance, str(s.lanes)[1:-1].replace(",", ""))
-      connections.extend(e.getConnections(self))
-      print >> edgesFile, '    </edge>'
+        e = self._edges[eid]
+        print >> edgesFile, '    <edge id="%s" from="%s" to="%s" numLanes="%s" speed="%s">' % (e.eid, e.fromNode.nid, e.toNode.nid, e.numLanes, e.maxSpeed)
+        for s in e.splits:
+            print >> edgesFile, '        <split pos="%s" lanes="%s"/>' % (-s.distance, str(s.lanes)[1:-1].replace(",", ""))
+
+        """
+        for i,l in enumerate(e.lanes):
+            if l.allowed==None and l.disallowed==None:
+                continue
+            ls =  '        <lane index="%s" ' % (i)
+            if l.allowed!=None:
+                ls = ls + 'allow="%s"' % l.allowed
+            if l.disallowed!=None:
+                ls = ls + 'disallow="%s"' % l.disallowed
+            print >> edgesFile, ls+'/>'
+        """
+
+        connections.extend(e.getConnections(self))
+        print >> edgesFile, '    </edge>'
+
+        hadConstraints = False
+        for i,l in enumerate(e.lanes):
+            if l.allowed==None and l.disallowed==None:
+                continue
+            hadConstraints = True
+        if hadConstraints:
+            for s in e.splits:
+                eid = e.eid
+                if s.distance!=0: eid = eid + ".%s" % -s.distance
+                print >> edgesFile, '    <edge id="%s">' % (eid)
+                for i,l in enumerate(e.lanes):
+                    #if i not in s.lanes:
+                    #    continue
+                    if l.allowed==None and l.disallowed==None:
+                        continue
+                    ls =  '        <lane index="%s" ' % (i)
+                    if l.allowed!=None:
+                        ls = ls + 'allow="%s"' % l.allowed
+                    if l.disallowed!=None:
+                        ls = ls + 'disallow="%s"' % l.disallowed
+                    print >> edgesFile, ls+'/>'
+                print >> edgesFile, '    </edge>'
+      
     print >> edgesFile, "</edges>"
     edgesFile.close()
     
@@ -221,6 +266,11 @@ class Net:
       if len(c.fromEdge.splits)>1:
         eid = eid + ".-" + str(c.fromEdge.splits[-1].distance)
       print >> connectionsFile, '    <connection from="%s" to="%s" fromLane="%s" toLane="%s"/>' % (eid, c.toEdge.eid, c.fromLane, c.toLane)
+    for n in self._nodes:
+      if len(self._nodes[n].crossings)==0:
+        continue
+      for c in self._nodes[n].crossings:
+        print >> connectionsFile, '    <crossing node="%s" edges="%s"/>' % (n, " ".join(c))
     print >> connectionsFile, "</connections>"
     connectionsFile.close()
     

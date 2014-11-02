@@ -14,7 +14,7 @@ class RunsDB:
     self.conn = sqlite3.connect(dbName)
     self.cursor = self.conn.cursor()
     self.cursor.execute('CREATE TABLE run (id integer, key text, value text)')
-    self.cursor.execute('CREATE TABLE result (runID integer, interval integer, key text, value real)')
+    self.cursor.execute('CREATE TABLE result (runID integer, denominator integer, key text, value real)')
     self.conn.commit()
     self.run = 0
     
@@ -37,8 +37,8 @@ class RunsDB:
       self.cursor.execute("INSERT INTO run VALUES (?,?,?)", (cid, k, kvDesc[k]))
     return cid
 
-  def addResult(self, runID, interval, key, value):
-    self.cursor.execute("INSERT INTO result VALUES (?,?,?,?)", (runID, interval, key, value))
+  def addResult(self, runID, denominator, key, value):
+    self.cursor.execute("INSERT INTO result VALUES (?,?,?,?)", (runID, denominator, key, value))
     self.conn.commit()
 
   def addResults(self, results):
@@ -85,7 +85,7 @@ class RunsDB:
 
   """
   Returns a map:
-    runID->interval->measure->value
+    runID->denominator->measure->value
   """
   def fetchResults(self, runs=None, measure=None, denominator=None):
     if runs==None:
@@ -99,7 +99,7 @@ class RunsDB:
         if denominator==None: 
           i = self.cursor.execute("SELECT * FROM result WHERE runID=? AND key=?", (r,measure))
         else:
-          i = self.cursor.execute("SELECT * FROM result WHERE runID=? AND key=? AND interval=?", (r,measure,denominator))
+          i = self.cursor.execute("SELECT * FROM result WHERE runID=? AND key=? AND denominator=?", (r,measure,denominator))
       for row in i:
         if row[1] not in ret[r]:
           ret[r][row[1]] = {}
@@ -113,8 +113,8 @@ class RunsDB:
     self.cursor.execute("SELECT DISTINCT key FROM result")
     return self.toList(self.cursor.fetchall())
 
-  def getIntervals(self):
-    self.cursor.execute("SELECT DISTINCT interval FROM result")
+  def getDenominators(self):
+    self.cursor.execute("SELECT DISTINCT denominator FROM result")
     return self.toList(self.cursor.fetchall())
 
   def getNamedRunAttribute(self, attr):
