@@ -335,7 +335,7 @@ def getScenario(name, params, withDefaultDemand=True):
     return real_world.Scenario_RealWorld(params["which"], withDefaultDemand)  
   elif name=="BasicRiLSANet":
     import basic_rilsanet
-    return basic_rilsanet.Scenario_BasicRiLSANet(withDefaultDemand)  
+    return basic_rilsanet.Scenario_BasicRiLSANet(params, withDefaultDemand)  
   print "unknown scenario '%s'" % name
   raise
 

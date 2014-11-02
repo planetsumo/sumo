@@ -95,8 +95,8 @@ class ScenarioSet:
     net = sumolib.net.readNet(scenario.NET_FILE, withPrograms=True, withConnections=True)
     seenLanes = set()
     files["tlsstates"] = [scenario.fullPath("tls_states_%s.xml" % (sID))]
-    files["coupledE2"] = [scenario.fullPath("coupledE2_%s.xml" % (sID))]
-    #files["e2"] = [scenario.fullPath("e2_%s.xml" % (sID))]
+    if options.couplede2: files["coupledE2"] = [scenario.fullPath("coupledE2_%s.xml" % (sID))]
+    if options.e2: files["e2"] = [scenario.fullPath("e2_%s.xml" % (sID))]
     for tlsID in net._id2tls:
       atlsID = tlsID.replace("/", "_")
       tls = net._id2tls[tlsID]
@@ -106,10 +106,11 @@ class ScenarioSet:
         if laneID in seenLanes:
           continue
         seenLanes.add(laneID)
-        fdo.write('  <e2Detector id="%s_%s" lane="%s" pos="-.1" length="200" tl="%s" file="%s" friendlyPos="t"/>\n' % (tlsID, laneID, laneID, tlsID, files["coupledE2"][0]))
+        if options.couplede2: fdo.write('  <e2Detector id="%s_%s" lane="%s" pos="-.1" length="200" tl="%s" file="%s" friendlyPos="t"/>\n' % (tlsID, laneID, laneID, tlsID, files["coupledE2"][0]))
       fdo.write('\n')
-    #for l in seenLanes:
-#      fdo.write('  <e2Detector id="%s" lane="%s" pos="-.1" length="200" file="%s" freq="1" friendlyPos="t"/>\n' % (l, l, files["e2"][0]))
+    if options.e2: 
+      for l in seenLanes:
+        fdo.write('  <e2Detector id="%s" lane="%s" pos="-.1" length="200" file="%s" freq="%s" friendlyPos="t"/>\n' % (l, l, files["e2"][0], options.aggregation))
     fdo.write('\n')
     fdo.write("</additional>\n")
     fdo.close()

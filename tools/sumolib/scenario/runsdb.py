@@ -15,6 +15,7 @@ class RunsDB:
     self.cursor = self.conn.cursor()
     self.cursor.execute('CREATE TABLE run (id integer, key text, value text)')
     self.cursor.execute('CREATE TABLE result (runID integer, denominator integer, key text, value real)')
+    self.cursor.execute('CREATE TABLE timed_result (runID integer, denominator integer, aib real, aie real, key text, value real)')
     self.conn.commit()
     self.run = 0
     
@@ -41,10 +42,17 @@ class RunsDB:
     self.cursor.execute("INSERT INTO result VALUES (?,?,?,?)", (runID, denominator, key, value))
     self.conn.commit()
 
+  def addTimedResult(self, runID, denominator, aib, aie, key, value):
+    self.cursor.execute("INSERT INTO timed_result VALUES (?,?,?,?,?,?)", (runID, denominator, aib, aie, key, value))
+    self.conn.commit()
+
   def addResults(self, results):
     self.cursor.executemany("INSERT INTO result VALUES (?,?,?,?)", results)
     self.conn.commit()
     
+  def addTimedResults(self, results):
+    self.cursor.executemany("INSERT INTO timed_result VALUES (?,?,?,?,?,?)", results)
+    self.conn.commit()
   
   def toList(self, what):
     ret = []
