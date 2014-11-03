@@ -6,7 +6,7 @@
 @version $Id: __init__.py 16583 2014-06-12 07:27:26Z dkrajzew $
 
 
-SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.

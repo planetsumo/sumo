@@ -7,7 +7,7 @@ A module for building road networks.
 @date    2013-10-10
 @version $Id: network.py 14731 2013-09-20 18:56:22Z behrisch $
 
-SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2013 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.

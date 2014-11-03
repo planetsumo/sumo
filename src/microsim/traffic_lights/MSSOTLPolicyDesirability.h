@@ -6,7 +6,7 @@
 ///
 // The class a low-level policy desirability
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 // Copyright 2001-2013 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //

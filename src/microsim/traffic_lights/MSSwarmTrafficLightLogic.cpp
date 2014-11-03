@@ -6,7 +6,7 @@
 ///
 // The class for Swarm-based logics
 /****************************************************************************/
-// SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+// SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 // Copyright 2001-2009 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
