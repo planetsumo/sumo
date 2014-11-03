@@ -143,7 +143,7 @@ class Demand:
         if v._via!=None:
             via = ' via="%s"' % v._via
         if v.vType=="pedestrian":
-            fdo.write('    <person id="%s" depart="%s"><walk from="%s" to="%s"/></person>\n' % (v.id, v.depart, v.fromEdge, v.toEdge))
+            fdo.write('    <person id="%s" depart="%s" type="pedestrian"><walk from="%s" to="%s"/></person>\n' % (v.id, v.depart, v.fromEdge, v.toEdge))
         else:
             fdo.write('    <trip id="%s" depart="%s" from="%s" to="%s" type="%s" %s/>\n' % (v.id, v.depart, v.fromEdge, v.toEdge, v.vType, via))
     fdo.write("</routes>")

@@ -785,7 +785,7 @@ class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
       s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f1, "emp", "mw", { "pedestrian":1}))
       s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f1, "wmp", "me", { "pedestrian":1}))
       s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f2, "nmp", "ms", { "pedestrian":1}))
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f2, "smp", "mw", { "pedestrian":1}))
+      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f2, "smp", "mn", { "pedestrian":1}))
       end = 86400
       sampleFactor = 1
       seenRatio = None
