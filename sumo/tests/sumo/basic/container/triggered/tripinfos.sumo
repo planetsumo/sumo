@@ -3,7 +3,7 @@
 <!-- generated on 10/13/14 09:31:10 by SUMO Version dev-SVN-rUNKNOWN
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
         <net-file value="three_split.net.xml"/>
@@ -23,7 +23,7 @@
 </configuration>
 -->
 
-<tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/tripinfo_file.xsd">
+<tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tripinfo_file.xsd">
     <containerinfo id="c1" depart="50.00">
         <stop arrival="50.00"/>
         <transport depart="51.00" arrival="232.00"/>
