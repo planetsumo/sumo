@@ -22,8 +22,8 @@ errors:attribute '(.*)' is already specified for element '(.*)'{REPLACE The attr
 errors:std::_Ios_Fmtflags
 
 [bug_system_location]
-trac:http://sumo-sim.org/trac.wsgi/
+trac:http://sumo.dlr.de/trac.wsgi/
 
 [file_to_url]
-/home/delphi:http://sumo-sim.org/daily
+/home/delphi:http://sumo.dlr.de/daily
 [end]
