@@ -616,8 +616,7 @@ public:
 
     /// Returns the destination after the current destination.
     const MSEdge& getNextDestination() const {
-        MSContainerPlan::iterator nextIterator = std::next(myStep, 1);
-        return (*nextIterator)->getDestination();
+        return (*(myStep + 1))->getDestination();
     }
 
     /// @brief Returns the current edge
