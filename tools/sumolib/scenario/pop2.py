@@ -743,7 +743,7 @@ class ScenarioSet_RiLSA1Outflow(ScenarioSet_RiLSA1LoadCurvesSampled):
 class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
   def __init__(self, params):
     ScenarioSet.__init__(self, "RiLSA1PedFlow", merge(
-      {"f1from":"0", "f1to":"501", "f1step":"100","f2from":"0", "f2to":"501", "f2step":"100"},
+      {"f1from":"0", "f1to":"401", "f1step":"50","f2from":"0", "f2to":"401", "f2step":"50"},
       params))
   def getNumRuns(self):
     f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
