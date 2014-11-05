@@ -3,7 +3,7 @@
 <!-- generated on Wed Sep  4 16:47:39 2013 by SUMO sumo Version dev-SVN-r14576
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
         <net-file value="net.net.xml"/>
@@ -23,7 +23,7 @@
 </configuration>
 -->
 
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/routes_file.xsd">
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
     <vehicle id="1" depart="1.00" arrival="348.00">
         <route edges="beg middle end" exitTimes="329.00 332.00 348.00"/>
     </vehicle>
