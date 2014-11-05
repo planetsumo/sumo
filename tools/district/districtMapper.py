@@ -10,7 +10,7 @@ Maps the geomtetry of the districts of two networks by calculating
 translation and scale parameters from junctions which have been 
 identified by the user as reference points.
 
-SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.

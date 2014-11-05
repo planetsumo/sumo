@@ -7,7 +7,7 @@ A script for converting SUMO's fcd-output into files readable by PHEM and commun
 @date    2013-01-15
 @version $Id$
 
-SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2013 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.

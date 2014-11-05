@@ -170,15 +170,15 @@ imageFiles = []
 for i in images:
     print "Fetching image %s" % i
     if i.find(":")>=0:
-        f = urllib.urlopen("http://sumo-sim.org%s" % i)
+        f = urllib.urlopen("http://sumo.dlr.de%s" % i)
         c = f.read()
         b = c.find("<div class=\"fullImageLink\" id=\"file\">")
         b = c.find("href=", b)+6
         e = c.find("\"", b+1)
-        f = urllib.urlopen("http://sumo-sim.org/%s" % c[b:e])
+        f = urllib.urlopen("http://sumo.dlr.de/%s" % c[b:e])
         i = i[i.find(":")+1:]
     else:
-        f = urllib.urlopen("http://sumo-sim.org/%s" % i)
+        f = urllib.urlopen("http://sumo.dlr.de/%s" % i)
         i = i[i.rfind("/")+1:]
     if i.find("px-")>=0:
         i = i[:i.find('-')+1]
@@ -255,7 +255,7 @@ for p in pages:
     if name.endswith(".css"):
         print "Skipping css-file %s" % name
         continue
-    fromStr = 'generated on %s from <a href="http://sumo-sim.org/wiki/%s">the wiki page for %s</a>' % (datetime.datetime.now(), name, name)
+    fromStr = 'generated on %s from <a href="http://sumo.dlr.de/wiki/%s">the wiki page for %s</a>' % (datetime.datetime.now(), name, name)
     name = name + ".html"
     t = os.path.join(options.output, name)
     fd = open(os.path.join(options.mirror, name))
