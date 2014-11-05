@@ -8,7 +8,7 @@
 
 Control the CityMobil parking lot with a multi agent system.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2008-2012 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
