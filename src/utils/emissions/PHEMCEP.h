@@ -90,11 +90,11 @@ public:
 		 double axleRatio, double engineIdlingSpeed, double engineRatedSpeed, double effectiveWheelDiameter,
 		 double idlingFC,
 		 const std::string &vehicleFuelType,
-		 const std::vector< std::vector<double>> &matrixFC,
+		 const std::vector< std::vector<double> > &matrixFC,
 		 const std::vector<std::string> &headerLinePollutants,
-		 const std::vector< std::vector<double>> &matrixPollutants,
-		 const std::vector< std::vector<double>> &matrixSpeedRotational,
-		 const std::vector< std::vector<double>> &normedDragTable,
+		 const std::vector< std::vector<double> > &matrixPollutants,
+		 const std::vector< std::vector<double> > &matrixSpeedRotational,
+		 const std::vector< std::vector<double> > &normedDragTable,
 		 const std::vector<double> &idlingValuesPollutants);
 
     /// @brief Destructor
@@ -324,7 +324,7 @@ private:
 	std::vector<double> _nNormTable;
 	std::vector<double> _dragNormTable;
     StringBijection< std::vector<double> > _cepCurvePollutants;
-	StringBijection<std::vector<double>> _normalizedCepCurvePollutants;
+	StringBijection<std::vector<double> > _normalizedCepCurvePollutants;
 	StringBijection<double> _idlingValuesPollutants;
 
 };

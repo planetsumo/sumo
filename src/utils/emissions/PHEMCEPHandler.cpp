@@ -370,7 +370,7 @@ PHEMCEPHandler::ReadVehicleFile(const std::string& path, const std::string& emis
 
 
 bool PHEMCEPHandler::ReadEmissionData(bool readFC, const std::string& path, const std::string& emissionClass,
-    std::vector<std::string> &header, std::vector<std::vector<double>> &matrix, std::vector<double> &idlingValues)
+    std::vector<std::string> &header, std::vector<std::vector<double> > &matrix, std::vector<double> &idlingValues)
 {
 
     std::string pollutantExtension = "";

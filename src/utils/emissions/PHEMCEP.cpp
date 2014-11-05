@@ -54,11 +54,11 @@ PHEMCEP::PHEMCEP(bool heavyVehicle, SUMOEmissionClass emissionClass, const std::
 		 double axleRatio, double engineIdlingSpeed, double engineRatedSpeed, double effectiveWheelDiameter,
 		 double idlingFC,
 		 const std::string &vehicleFuelType,
-         const std::vector< std::vector<double>> &matrixFC,
+         const std::vector< std::vector<double> > &matrixFC,
 		 const std::vector<std::string> &headerLinePollutants,
-		 const std::vector< std::vector<double>> &matrixPollutants,
-		 const std::vector< std::vector<double>> &matrixSpeedRotational,
-		 const std::vector< std::vector<double>> &normedDragTable,
+		 const std::vector< std::vector<double> > &matrixPollutants,
+		 const std::vector< std::vector<double> > &matrixSpeedRotational,
+		 const std::vector< std::vector<double> > &normedDragTable,
 		 const std::vector<double> &idlingValuesPollutants) {
     _emissionClass = emissionClass;
     _resistanceF0 = f0;
@@ -89,7 +89,7 @@ PHEMCEP::PHEMCEP(bool heavyVehicle, SUMOEmissionClass emissionClass, const std::
 
     std::vector<std::string> pollutantIdentifier;
     std::vector< std::vector<double> > pollutantMeasures;
-	std::vector<std::vector<double>> normalizedPollutantMeasures;
+	std::vector<std::vector<double> > normalizedPollutantMeasures;
 
     // init pollutant identifiers
     for (int i = 0; i < (int)headerLinePollutants.size(); i++) {
@@ -210,7 +210,7 @@ PHEMCEP::GetEmission(const std::string& pollutant, double power, double speed, b
 	std::vector<double> emissionCurve;
 	std::vector<double> powerPattern; 
 
-	if (!normalized && abs(speed) <= ZERO_SPEED_ACCURACY)
+	if (!normalized && fabs(speed) <= ZERO_SPEED_ACCURACY)
     {
         if (pollutant == "FC")
             return _idlingFC;

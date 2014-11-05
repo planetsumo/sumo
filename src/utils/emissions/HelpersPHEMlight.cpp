@@ -239,23 +239,23 @@ HelpersPHEMlight::compute(const SUMOEmissionClass c, const PollutantsInterface::
     const double power = currCep->CalcPower(v, a, slope);
     switch (e) {
         case PollutantsInterface::CO:
-            return currCep->GetEmission("CO", power) / SECONDS_PER_HOUR * 1000.;
+            return currCep->GetEmission("CO", power, v) / SECONDS_PER_HOUR * 1000.;
         case PollutantsInterface::CO2:
-            return currCep->GetEmission("FC", power) * 3.15 / SECONDS_PER_HOUR * 1000.;
+            return currCep->GetEmission("FC", power, v) * 3.15 / SECONDS_PER_HOUR * 1000.;
         case PollutantsInterface::HC:
-            return currCep->GetEmission("HC", power) / SECONDS_PER_HOUR * 1000.;
+            return currCep->GetEmission("HC", power, v) / SECONDS_PER_HOUR * 1000.;
         case PollutantsInterface::NO_X:
-            return currCep->GetEmission("NOx", power) / SECONDS_PER_HOUR * 1000.;
+            return currCep->GetEmission("NOx", power, v) / SECONDS_PER_HOUR * 1000.;
         case PollutantsInterface::PM_X:
-            return currCep->GetEmission("PM", power) / SECONDS_PER_HOUR * 1000.;
+            return currCep->GetEmission("PM", power, v) / SECONDS_PER_HOUR * 1000.;
         case PollutantsInterface::FUEL: {
             std::string fuelType = currCep->GetVehicleFuelType();
             if (fuelType == "D") { // divide by average diesel density of 836 g/l
-                return currCep->GetEmission("FC", power) / 836. / SECONDS_PER_HOUR * 1000.;
+                return currCep->GetEmission("FC", power, v) / 836. / SECONDS_PER_HOUR * 1000.;
             } else if (fuelType == "G") { // divide by average gasoline density of 742 g/l
-                return currCep->GetEmission("FC", power) / 742. / SECONDS_PER_HOUR * 1000.;
+                return currCep->GetEmission("FC", power, v) / 742. / SECONDS_PER_HOUR * 1000.;
             } else {
-                return currCep->GetEmission("FC", power) / SECONDS_PER_HOUR * 1000.; // surely false, but at least not additionally modified
+                return currCep->GetEmission("FC", power, v) / SECONDS_PER_HOUR * 1000.; // surely false, but at least not additionally modified
             }
         }
     }
