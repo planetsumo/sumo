@@ -42,7 +42,7 @@ def writeRerouterDefinition(fdo, edge, t, rerouter):
 
 def writeRerouter(edge, t, rerouter, embedded):
     fdo = open("rerouter.xml", "w")
-    fdo.write('<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/additional_file.xsd">\n\n')
+    fdo.write('<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">\n\n')
     if embedded:
         fdo.write('<rerouter id="rerouter" edges="%s" pos="20">\n' % (edge))
         writeRerouterDefinition(fdo, edge, t, rerouter)
@@ -60,7 +60,7 @@ def writeRerouter(edge, t, rerouter, embedded):
     
 def writeRoutes(routes, multiRef):
     fdo = open("input_routes.rou.xml", "w")
-    fdo.write('<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/routes_file.xsd">\n\n')
+    fdo.write('<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">\n\n')
     fdo.write('    <vType id="DEFAULT_VEHTYPE" accel="2.6" decel="4.5" sigma="0" length="3" minGap="2" maxSpeed="70"/>\n')
     for r in routes:
         fdo.write('    ' + r + '\n')

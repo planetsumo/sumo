@@ -9,7 +9,7 @@
 
 Tutorial for traffic light control via the TraCI interface.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2009-2012 DLR/TS, Germany
 All rights reserved
 """
