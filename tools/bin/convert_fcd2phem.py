@@ -2,11 +2,11 @@
 @file    convert_fcd2phem.py
 @author  Daniel Krajzewicz
 @date    2013-01-15
-@version $Id:$
+@version $Id$
 
 A script for converting SUMO's fcd-output into files readable by PHEM.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """

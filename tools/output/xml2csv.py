@@ -8,7 +8,7 @@
 
 Convert hierarchical xml files to csv. This only makes sense if the hirarchy has low depth.
 
-SUMO, Simulation of Urban MObility; see http://sumo-sim.org/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
