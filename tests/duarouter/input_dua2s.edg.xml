@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<edges version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/edges_file.xsd">
+<edges version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/edges_file.xsd">
     <edge id="beg" from="absBeg" to="beg" priority="-1" numLanes="2" speed="27.80"/>
     <edge id="beg2left" from="beg" to="begleft" priority="-1" numLanes="1" speed="27.80">
         <lane index="0" allow="passenger"/>

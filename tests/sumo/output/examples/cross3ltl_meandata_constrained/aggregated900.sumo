@@ -3,7 +3,7 @@
 <!-- generated on Mon Mar  3 10:29:05 2014 by SUMO sumo Version dev-SVN-r15793
 <?xml version="1.0" encoding="UTF-8"?>
 
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/sumoConfiguration.xsd">
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
         <net-file value="net.net.xml"/>
@@ -25,7 +25,7 @@
 </configuration>
 -->
 
-<meandata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo-sim.org/xsd/meandata_file.xsd">
+<meandata xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/meandata_file.xsd">
     <interval begin="0.00" end="900.00" id="dump_900">
         <edge id="1fi" sampledSeconds="4993.92" traveltime="24.69" density="22.33" occupancy="11.16" waitingTime="0.00" speed="10.06" departed="78" arrived="18" entered="127" left="177" laneChangedFrom="0" laneChangedTo="0"/>
         <edge id="1o" sampledSeconds="6337.73" traveltime="47.06" density="14.41" occupancy="7.21" waitingTime="0.00" speed="10.38" departed="0" arrived="0" entered="137" left="127" laneChangedFrom="0" laneChangedTo="0"/>
