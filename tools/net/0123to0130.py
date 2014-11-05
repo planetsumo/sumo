@@ -9,7 +9,7 @@
 
 Changes xml network files from version 0.12.3 to version 0.13.0.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
@@ -178,7 +178,7 @@ class NetConverter(handler.ContentHandler):
                 self.checkWrite(' toLane="%s"' % toIdx)
         # write attributes
         if name == "net":
-            self.checkWrite(' version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/net_file.xsd"')
+            self.checkWrite(' version="0.13" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd"')
         else:
             if name in a:
                 for key in a[name]:

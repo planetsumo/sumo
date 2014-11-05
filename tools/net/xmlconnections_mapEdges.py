@@ -12,7 +12,7 @@ The result is written to <CONNECTIONS>.mod.xml
 
 Call: xmlconnections_mapEdges.py <CONNECTIONS>
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """

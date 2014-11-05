@@ -10,7 +10,7 @@
 This script converts edge type definitions (STRECKENTYP) into their
  SUMO-representation.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """

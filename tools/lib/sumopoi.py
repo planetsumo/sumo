@@ -8,7 +8,7 @@
 
 Deprecated version of sumolib/poi.py.
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """

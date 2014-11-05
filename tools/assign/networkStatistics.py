@@ -17,7 +17,7 @@ The analyzed parameters include:
 - travel speed
 - stop time
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """

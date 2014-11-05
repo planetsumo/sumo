@@ -10,7 +10,7 @@ This script reads a network as first parameter and a file with the positions
 of detectors as second parameter. As result the script writes a new file
 with detectors which are actually used in the given network. 
 
-SUMO, Simulation of Urban MObility; see http://sumo.sourceforge.net/
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
 All rights reserved
 """
@@ -25,7 +25,7 @@ def writeDetectors(usedDet):
     """ Writes the detectors which are used in the network in a xml file. """
 
     fd = open("detectors.xml", "w")
-    fd.write('<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/additional_file.xsd">\n')
+    fd.write('<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">\n')
     for det in usedDet:
         fd.write("   <e1Detector id= \"" + det.getAttribute('id') + "\" lane=\"" + det.getAttribute('lane') + "\" pos=\"" + det.getAttribute('pos'))
         fd.write("\" freq=\"" + det.getAttribute('freq') + "\" file=\"" + det.getAttribute('file'))
