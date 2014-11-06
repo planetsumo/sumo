@@ -206,7 +206,7 @@ PHEMCEPHandler::ReadVehicleFile(const std::string& path, const std::string& emis
 									 std::vector< std::vector<double> > &normedDragTable)
 
 {
-    std::ifstream fileVehicle(std::string(path + emissionClass + ".PHEMlight.veh").c_str());
+    std::ifstream fileVehicle(std::string(path + emissionClass + ".PHEMLight.veh").c_str());
 
     if (!fileVehicle.good()) {
         return false;
