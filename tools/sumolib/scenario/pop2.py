@@ -743,7 +743,7 @@ class ScenarioSet_RiLSA1Outflow(ScenarioSet_RiLSA1LoadCurvesSampled):
 class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
   def __init__(self, params):
     ScenarioSet.__init__(self, "RiLSA1PedFlow", merge(
-      {"f1from":"0", "f1to":"401", "f1step":"50","f2from":"0", "f2to":"401", "f2step":"50"},
+      {"f1from":"0", "f1to":"501", "f1step":"50","f2from":"0", "f2to":"501", "f2step":"50"},
       params))
   def getNumRuns(self):
     f1num = 1 + (self.getInt("f1to") - self.getInt("f1from")) / self.getInt("f1step")
@@ -782,10 +782,10 @@ class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
           print stream._departEdgeModel
           raise "Hmmm, unknown stream??"
       s.demand.streams = nStreams
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f1, "emp", "mw", { "pedestrian":1}))
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f1, "wmp", "me", { "pedestrian":1}))
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f2, "nmp", "ms", { "pedestrian":1}))
-      s.demand.addStream(demandGenerator.Stream(None, 0, 86400, f2, "smp", "mn", { "pedestrian":1}))
+      s.demand.addStream(demandGenerator.Stream("p_emp_to_mw", 0, 86400, f1, "emp", "mw", { "pedestrian":1}))
+      s.demand.addStream(demandGenerator.Stream("p_wmp_to_me", 0, 86400, f1, "wmp", "me", { "pedestrian":1}))
+      s.demand.addStream(demandGenerator.Stream("p_nmp_to_ms", 0, 86400, f2, "nmp", "ms", { "pedestrian":1}))
+      s.demand.addStream(demandGenerator.Stream("p_smp_to_mn", 0, 86400, f2, "smp", "mn", { "pedestrian":1}))
       end = 86400
       sampleFactor = 1
       seenRatio = None
@@ -817,8 +817,10 @@ class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
       tls = net._id2tls[tlsID]
       if tlsID=="0":
         (streamsNS, streamsWE) = scenario.getOppositeFlows()
-        ns = streamsNS[0] / (streamsNS[0]+streamsWE[0])
-        we = streamsWE[0] / (streamsNS[0]+streamsWE[0])
+        streamsNS[0] = 34
+        streamsWE[0] = 38
+        ns = 340. / (720.)
+        we = 380. / (720.)
         greens = split_by_proportions(72, (ns, we), (10, 10))
         for prog in tls._programs:
           i1 = i2 = 0
@@ -838,9 +840,11 @@ class ScenarioSet_RiLSA1PedFlow(ScenarioSet_RiLSA1LoadCurvesSampled):
     args = []
     return args
   def getXLabel(self):
-    return "horizontal green time [s]"
+    return "horizontal pedestrian flow [pedestrians/hour]"
   def getYLabel(self):
-    return "vertical green time [s]"
+    return "vertical pedestrian flow [pedestrians/hour]"
+  def getAdditionalDivider(self):
+    return []
 
 #--------------------------------------
         

@@ -163,7 +163,7 @@ class Scenario:
     for s in self.demand.streams:
       if s._departEdgeModel.startswith("em") or s._departEdgeModel.startswith("wm"):
         fWE[int(s._validFrom/3600)] = fWE[int(s._validFrom/3600)] + s._numberModel
-      else:  
+      elif s._departEdgeModel.startswith("sm") or s._departEdgeModel.startswith("nm"):  
         fNS[int(s._validFrom/3600)] = fNS[int(s._validFrom/3600)] + s._numberModel 
     return (fNS, fWE)
   def getOppositeFlows2(self, ew, sn):
