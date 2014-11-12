@@ -80,7 +80,7 @@ struct GUIVisualizationTextSettings {
 
 
 struct GUIVisualizationSizeSettings {
-    GUIVisualizationSizeSettings(float _minSize, float _exaggeration=1.0, bool _constantSize=false) :
+    GUIVisualizationSizeSettings(float _minSize, float _exaggeration = 1.0, bool _constantSize = false) :
         minSize(_minSize), exaggeration(_exaggeration), constantSize(_constantSize) {}
 
     /// @brief The minimum size to draw this object
@@ -146,12 +146,16 @@ public:
 #ifdef HAVE_INTERNAL
     /// @brief The mesoscopic edge colorer
     GUIColorer edgeColorer;
+    /// @brief The mesoscopic edge scaler
+    GUIScaler edgeScaler;
 
     /// @brief this should be set at the same time as MSGlobals::gUseMesoSim
     static bool UseMesoSim;
 #endif
     /// @brief The lane colorer
     GUIColorer laneColorer;
+    /// @brief The lane scaler
+    GUIScaler laneScaler;
     /// @brief Information whether lane borders shall be drawn
     bool laneShowBorders;
     /// @brief Information whether link textures (arrows) shall be drawn
@@ -180,6 +184,8 @@ public:
     bool drawLaneChangePreference;
     /// @brief Information whether the minimum gap shall be drawn
     bool drawMinGap;
+    /// @brief Information whether the communication range shall be drawn
+    bool showBTRange;
     // Setting bundles for controling the size of the drawn vehicles
     GUIVisualizationSizeSettings vehicleSize;
     // Setting bundles for optional drawing vehicle names
@@ -274,12 +280,22 @@ public:
      */
     size_t getLaneEdgeMode() const;
 
+    /** @brief Returns the number of the active lane (edge) scaling schme
+     * @return number of the active scheme
+     */
+    size_t getLaneEdgeScaleMode() const;
+
     /** @brief Returns the current lane (edge) coloring schme
      * @return current scheme
      */
     GUIColorScheme& getLaneEdgeScheme();
 
-    /** @brief Assignment operator */
+    /** @brief Returns the current lane (edge) scaling schme
+     * @return current scheme
+     */
+    GUIScaleScheme& getLaneEdgeScaleScheme();
+
+    /** @brief Comparison operator */
     bool operator==(const GUIVisualizationSettings& vs2);
 };
 

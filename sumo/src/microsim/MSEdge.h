@@ -41,10 +41,11 @@
 #include <utils/common/Named.h>
 #include <utils/common/Parameterised.h>
 #include <utils/common/SUMOTime.h>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/ValueTimeLine.h>
 #include <utils/common/UtilExceptions.h>
+#include "MSNet.h"
 #include "MSVehicleType.h"
 
 
@@ -117,7 +118,8 @@ public:
      * @param[in] function A basic type of the edge
      * @param[in] streetName The street name for that edge
      */
-    MSEdge(const std::string& id, int numericalID, const EdgeBasicFunction function, const std::string& streetName = "", const std::string& edgeType = "");
+    MSEdge(const std::string& id, int numericalID, const EdgeBasicFunction function,
+           const std::string& streetName, const std::string& edgeType, int priority);
 
 
     /// @brief Destructor.
@@ -129,7 +131,12 @@ public:
      * @param[in] allowed Information which edges may be reached from which lanes
      * @param[in] lanes List of this edge's lanes
      */
-    void initialize(std::vector<MSLane*>* lanes);
+    void initialize(const std::vector<MSLane*>* lanes);
+
+
+    /** @brief Recalculates the cached values
+     */
+    void recalcCache();
 
 
     /// @todo Has to be called after all edges were built and all connections were set...; Still, is not very nice
@@ -234,7 +241,7 @@ public:
     /** @brief Returns the numerical id of the edge
      * @return This edge's numerical id
      */
-    int getNumericalID() const {
+    inline int getNumericalID() const {
         return myNumericalID;
     }
 
@@ -250,6 +257,12 @@ public:
     const std::string& getEdgeType() const {
         return myEdgeType;
     }
+
+    /** @brief Returns the priority of the edge
+     */
+    int getPriority() const {
+        return myPriority;
+    }
     /// @}
 
 
@@ -260,7 +273,7 @@ public:
     /** @brief Returns the list of edges which may be reached from this edge
      * @return Edges reachable from this edge
      */
-    void addFollower(MSEdge* edge) {
+    void addSuccessor(MSEdge* edge) {
         mySuccessors.push_back(edge);
     }
 
@@ -269,14 +282,14 @@ public:
      * @return Edges from which this edge may be reached
      */
     const std::vector<MSEdge*>& getIncomingEdges() const {
-        return myPredeccesors;
+        return myPredecessors;
     }
 
 
     /** @brief Returns the number of edges that may be reached from this edge
      * @return The number of following edges
      */
-    unsigned int getNoFollowing() const {
+    unsigned int getNumSuccessors() const {
         return (unsigned int) mySuccessors.size();
     }
 
@@ -285,8 +298,26 @@ public:
      * @param[in] n The index within following edges of the edge to return
      * @return The n-th of the following edges
      */
-    const MSEdge* getFollower(unsigned int n) const {
+    const MSEdge* getSuccessor(unsigned int n) const {
         return mySuccessors[n];
+    }
+
+
+    /** @brief Returns the number of edges this edge is connected to
+     *
+     * @return The number of edges following this edge
+     */
+    unsigned int getNumPredecessors() const {
+        return (unsigned int) myPredecessors.size();
+    }
+
+
+    /** @brief Returns the edge at the given position from the list of reachable edges
+     * @param[in] pos The position of the list within the list of approached
+     * @return The following edge, stored at position pos
+     */
+    MSEdge* getPredecessor(unsigned int pos) const {
+        return myPredecessors[pos];
     }
 
 
@@ -351,7 +382,7 @@ public:
      * @param[in] minSpeed The minimumSpeed to assume if traffic on this edge is stopped
      * @return The current effort (travel time) to pass the edge
      */
-    SUMOReal getCurrentTravelTime(const SUMOReal minSpeed = 0.00001) const;
+    SUMOReal getCurrentTravelTime(const SUMOReal minSpeed = NUMERICAL_EPS) const;
 
 
     /// @brief returns the minimum travel time for the given vehicle
@@ -364,6 +395,18 @@ public:
     }
 
 
+    /** @brief Returns the travel time for the given edge
+     *
+     * @param[in] edge The edge for which the travel time shall be retrieved
+     * @param[in] veh The vehicle for which the travel time on this edge shall be retrieved
+     * @param[in] time The time for which the travel time shall be returned [s]
+     * @return The traveltime needed by the given vehicle to pass the edge at the given time
+     */
+    static inline SUMOReal getTravelTimeStatic(const MSEdge* const edge, const SUMOVehicle* const veh, SUMOReal time) {
+        return MSNet::getInstance()->getTravelTime(edge, veh, time);
+    }
+
+
     /// @name Methods releated to vehicle insertion
     /// @{
 
@@ -373,14 +416,17 @@ public:
      *  In dependance to this, the proper lane is chosen.
      *
      * Insertion itself is done by calling the chose lane's "insertVehicle"
-     *  method.
+     *  method but only if the checkOnly argument is false. The check needs
+     *  to be certain only in the negative case (if false is returned, there
+     *  is no way this vehicle would be inserted).
      *
      * @param[in] v The vehicle to insert
      * @param[in] time The current simulation time
+     * @param[in] checkOnly whether we perform only the check without actually inserting
      * @return Whether the vehicle could be inserted
      * @see MSLane::insertVehicle
      */
-    bool insertVehicle(SUMOVehicle& v, SUMOTime time) const;
+    bool insertVehicle(SUMOVehicle& v, SUMOTime time, const bool checkOnly = false) const;
 
 
     /** @brief Finds the emptiest lane allowing the vehicle class
@@ -410,7 +456,7 @@ public:
      * @param[in] veh The vehicle to get the depart lane for
      * @return a possible/chosen depart lane, 0 if no lane can be used
      */
-    MSLane* getDepartLane(const MSVehicle& veh) const;
+    MSLane* getDepartLane(MSVehicle& veh) const;
 
 
     /** @brief Returns the last time a vehicle could not be inserted
@@ -448,6 +494,10 @@ public:
         return (myCombinedPermissions & svc) != svc;
     }
 
+    inline SVCPermissions getPermissions() const {
+        return myCombinedPermissions;
+    }
+
     void rebuildAllowedLanes();
 
 
@@ -461,7 +511,9 @@ public:
     /** @brief return the length of the edge
      * @return The edge's length
      */
-    SUMOReal getLength() const;
+    inline SUMOReal getLength() const {
+        return myLength;
+    }
 
 
     /** @brief Returns the speed limit of the edge
@@ -499,8 +551,9 @@ public:
         myAmRoundabout = true;
     }
 
-    /// @brief whether lane changing may be performed on this edge
-    bool laneChangeAllowed() const;
+    void markDelayed() const {
+        myAmDelayed = true;
+    }
 
     /** @brief Inserts edge into the static dictionary
         Returns true if the key id isn't already in the dictionary. Otherwise
@@ -601,10 +654,10 @@ protected:
 
 protected:
     /// @brief This edge's numerical id
-    int myNumericalID;
+    const int myNumericalID;
 
     /// @brief Container for the edge's lane; should be sorted: (right-hand-traffic) the more left the lane, the higher the container-index
-    std::vector<MSLane*>* myLanes;
+    const std::vector<MSLane*>* myLanes;
 
     /// @brief This member will do the lane-change
     MSLaneChanger* myLaneChanger;
@@ -622,7 +675,7 @@ protected:
     std::vector<MSEdge*> mySuccessors;
 
     /// @brief The preceeding edges
-    std::vector<MSEdge*> myPredeccesors;
+    std::vector<MSEdge*> myPredecessors;
 
     /// @brief the junctions for this edge
     MSJunction* myFromJunction;
@@ -652,6 +705,18 @@ protected:
 
     /// @brief the type of the edge (optionally used during network creation)
     std::string myEdgeType;
+
+    /// @brief the priority of the edge (used during network creation)
+    const int myPriority;
+
+    /// @brief the length of the edge (cached value for speedup)
+    SUMOReal myLength;
+
+    /// @brief the traveltime on the empty edge (cached value for speedup)
+    SUMOReal myEmptyTraveltime;
+
+    /// @brief whether this edge had a vehicle with less than max speed on it
+    mutable bool myAmDelayed;
 
     /// @brief whether this edge belongs to a roundabout
     bool myAmRoundabout;

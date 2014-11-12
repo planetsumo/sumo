@@ -230,7 +230,6 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\router\ROCostCalculator.cpp" />
     <ClCompile Include="..\..\..\src\router\ROEdge.cpp" />
     <ClCompile Include="..\..\..\src\router\ROFrame.cpp" />
     <ClCompile Include="..\..\..\src\router\ROHelper.cpp" />
@@ -245,9 +244,7 @@
     <ClCompile Include="..\..\..\src\router\ROVehicleCont.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\router\ReferencedItem.h" />
     <ClInclude Include="..\..\..\src\router\ROAbstractEdgeBuilder.h" />
-    <ClInclude Include="..\..\..\src\router\ROCostCalculator.h" />
     <ClInclude Include="..\..\..\src\router\ROEdge.h" />
     <ClInclude Include="..\..\..\src\router\ROFrame.h" />
     <ClInclude Include="..\..\..\src\router\ROHelper.h" />
@@ -257,6 +254,7 @@
     <ClInclude Include="..\..\..\src\router\RONetHandler.h" />
     <ClInclude Include="..\..\..\src\router\RONode.h" />
     <ClInclude Include="..\..\..\src\router\RORoute.h" />
+    <ClInclude Include="..\..\..\src\router\RORouteAggregator.h" />
     <ClInclude Include="..\..\..\src\router\RORouteDef.h" />
     <ClInclude Include="..\..\..\src\router\RORouteHandler.h" />
     <ClInclude Include="..\..\..\src\router\ROVehicle.h" />

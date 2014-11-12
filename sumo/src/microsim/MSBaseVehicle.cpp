@@ -36,6 +36,7 @@
 #include <utils/common/MsgHandler.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/iodevices/OutputDevice.h>
+#include "MSGlobals.h"
 #include "MSVehicleType.h"
 #include "MSEdge.h"
 #include "MSLane.h"
@@ -43,6 +44,7 @@
 #include "MSBaseVehicle.h"
 #include "MSNet.h"
 #include "devices/MSDevice.h"
+#include "devices/MSDevice_Routing.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -59,7 +61,8 @@ std::set<std::string> MSBaseVehicle::myShallTraceMoveReminders;
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, const MSVehicleType* type, const SUMOReal speedFactor) :
+MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+                             const MSVehicleType* type, const SUMOReal speedFactor) :
     myParameter(pars),
     myRoute(route),
     myType(type),
@@ -173,13 +176,28 @@ MSBaseVehicle::replaceRouteEdges(MSEdgeVector& edges, bool onInit) {
     }
     const RGBColor& c = myRoute->getColor();
     MSRoute* newRoute = new MSRoute(id, edges, false, &c == &RGBColor::DEFAULT_COLOR ? 0 : new RGBColor(c), myRoute->getStops());
+#ifdef HAVE_FOX
+    MSDevice_Routing::lock();
+#endif
     if (!MSRoute::dictionary(id, newRoute)) {
+#ifdef HAVE_FOX
+        MSDevice_Routing::unlock();
+#endif
         delete newRoute;
         return false;
     }
+#ifdef HAVE_FOX
+    MSDevice_Routing::unlock();
+#endif
     if (!replaceRoute(newRoute, onInit, (int)edges.size() - oldSize)) {
         newRoute->addReference();
+#ifdef HAVE_FOX
+        MSDevice_Routing::lock();
+#endif
         newRoute->release();
+#ifdef HAVE_FOX
+        MSDevice_Routing::unlock();
+#endif
         return false;
     }
     return true;
@@ -342,6 +360,29 @@ MSBaseVehicle::saveState(OutputDevice& out) {
     out.writeAttr(SUMO_ATTR_TYPE, myType->getID());
     // here starts the vehicle internal part (see loading)
     // @note: remember to close the vehicle tag when calling this in a subclass!
+}
+
+
+void
+MSBaseVehicle::addStops(const bool ignoreStopErrors) {
+    for (std::vector<SUMOVehicleParameter::Stop>::const_iterator i = myParameter->stops.begin(); i != myParameter->stops.end(); ++i) {
+        std::string errorMsg;
+        if (!addStop(*i, errorMsg) && !ignoreStopErrors) {
+            throw ProcessError(errorMsg);
+        }
+        if (errorMsg != "") {
+            WRITE_WARNING(errorMsg);
+        }
+    }
+    for (std::vector<SUMOVehicleParameter::Stop>::const_iterator i = myRoute->getStops().begin(); i != myRoute->getStops().end(); ++i) {
+        std::string errorMsg;
+        if (!addStop(*i, errorMsg) && !ignoreStopErrors) {
+            throw ProcessError(errorMsg);
+        }
+        if (errorMsg != "") {
+            WRITE_WARNING(errorMsg);
+        }
+    }
 }
 
 

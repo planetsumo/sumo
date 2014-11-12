@@ -211,6 +211,10 @@ public:
      */
     SUMOReal getStoredEdgeTravelTime() const;
 
+    /** @brief Returns the loaded weight (effort) for the edge of this lane
+     */
+    SUMOReal getLoadedEdgeWeight() const;
+
 #ifdef HAVE_OSG
     void setGeometry(osg::Geometry* geom) {
         myGeom = geom;
@@ -252,6 +256,9 @@ private:
 private:
     /// @brief gets the color value according to the current scheme index
     SUMOReal getColorValue(size_t activeScheme) const;
+
+    /// @brief gets the scaling value according to the current scheme index
+    SUMOReal getScaleValue(size_t activeScheme) const;
 
     /// @brief sets the color according to the current scheme index and some lane function
     bool setFunctionalColor(size_t activeScheme) const;

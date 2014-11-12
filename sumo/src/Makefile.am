@@ -3,7 +3,6 @@ XERCES_LIBS = -l$(LIB_XERCES)
 if INTERNAL
 MESO_LIBS = ./mesosim/libmesosim.a
 MESOGUI_LIBS = ./mesogui/libmesogui.a ./osgview/libosgview.a
-INTERNAL_LIBS = ./internal/libinternal.a
 endif
 
 if WITH_GUI
@@ -45,12 +44,13 @@ sumo_LDADD   = ./netload/libnetload.a \
 ./microsim/traffic_lights/libmicrosimtls.a \
 $(MESO_LIBS) \
 ./utils/geom/libgeom.a \
+./utils/vehicle/libvehicle.a \
 ./utils/shapes/libshapes.a \
 ./utils/emissions/libemissions.a \
 $(TRACI_LIBS) \
 $(COMMON_LIBS) \
 $(PYTHON_LIBS) \
-$(XERCES_LDFLAGS) $(PROJ_LDFLAGS)
+$(FOX_LDFLAGS) $(XERCES_LDFLAGS) $(PROJ_LDFLAGS)
 
 
 netconvert_SOURCES = netconvert_main.cpp
@@ -65,7 +65,6 @@ netconvert_LDADD   = ./netimport/libnetimport.a \
 ./utils/geom/libgeom.a \
 ./foreign/eulerspiral/libeulerspiral.a \
 $(COMMON_LIBS) \
-$(INTERNAL_LIBS) \
 $(XERCES_LDFLAGS) $(GDAL_LDFLAGS) $(PROJ_LDFLAGS)
 
 
@@ -90,11 +89,11 @@ $(sumo_LDADD) \
 ./gui/GUIManipulator.o \
 ./gui/GUITLLogicPhasesTrackerWindow.o \
 $(OSG_LIBS) \
-$(FOX_LDFLAGS) $(sumo_LDFLAGS) $(GDAL_LDFLAGS) $(X_LDFLAGS)
+$(sumo_LDFLAGS) $(GDAL_LDFLAGS) $(X_LDFLAGS)
 endif
 
 
-SUBDIRS = foreign utils microsim router od2trips $(INTERNAL_DIRS) \
+SUBDIRS = foreign utils microsim router od2trips marouter $(INTERNAL_DIRS) \
 netbuild netwrite netgen netimport netload \
 polyconvert dfrouter duarouter jtrrouter activitygen tools \
 $(TRACI_DIRS) $(GUI_DIRS)

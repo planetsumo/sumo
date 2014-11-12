@@ -1,4 +1,4 @@
-SUMO od2trips Version dev-SVN-rUNKNOWN
+SUMO od2trips Version dev-SVN-r17243
  Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
 Importer of O/D-matrices for the road traffic simulation SUMO.
 
@@ -78,4 +78,4 @@ Examples:
     run with configuration file
 
 Report bugs at <http://sumo.dlr.de/trac/>.
-Get in contact via <sumo-user@lists.sourceforge.net>.
+Get in contact via <sumo@dlr.de>.

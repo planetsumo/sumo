@@ -41,6 +41,7 @@
 
 #include <guisim/GUINet.h>
 #include <guisim/GUILane.h>
+#include <microsim/MSGlobals.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSVehicle.h>
 
@@ -1111,7 +1112,7 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
                 setTitle("SUMO Traffic Light Game");
             } else {
                 // set simulation name on the caption
-                std::string caption = "SUMO " + std::string(VERSION_STRING);
+                std::string caption = "SUMO " + getBuildName(VERSION_STRING);
                 setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
             }
             // set simulation step begin information
@@ -1265,7 +1266,7 @@ GUIApplicationWindow::closeAllWindows() {
     // delete the simulation
     myRunThread->deleteSim();
     // reset the caption
-    setTitle(MFXUtils::getTitleText(("SUMO " + std::string(VERSION_STRING)).c_str()));
+    setTitle(MFXUtils::getTitleText(("SUMO " + getBuildName(VERSION_STRING)).c_str()));
     // delete other children
     while (myTrackerWindows.size() != 0) {
         delete myTrackerWindows[0];

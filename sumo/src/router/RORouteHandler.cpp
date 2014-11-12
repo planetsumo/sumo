@@ -96,7 +96,7 @@ RORouteHandler::parseFromViaTo(std::string element,
         const ROEdge* fromTaz = myNet.getEdge(myVehicleParameter->fromTaz + "-source");
         if (fromTaz == 0) {
             myErrorOutput->inform("Source taz '" + myVehicleParameter->fromTaz + "' not known for " + element + " '" + myVehicleParameter->id + "'!");
-        } else if (fromTaz->getNoFollowing() == 0) {
+        } else if (fromTaz->getNumSuccessors() == 0) {
             myErrorOutput->inform("Source taz '" + myVehicleParameter->fromTaz + "' has no outgoing edges for " + element + " '" + myVehicleParameter->id + "'!");
         } else {
             myActiveRoute.push_back(fromTaz);
@@ -311,7 +311,7 @@ RORouteHandler::closeRoute(const bool mayBeDisconnected) {
             myActiveRouteStops.clear();
             return;
         } else {
-            myCurrentAlternatives = new RORouteDef(myActiveRouteID, 0, mayBeDisconnected || myTryRepair);
+            myCurrentAlternatives = new RORouteDef(myActiveRouteID, 0, mayBeDisconnected || myTryRepair, mayBeDisconnected);
             myCurrentAlternatives->addLoadedAlternative(route);
             myNet.addRouteDef(myCurrentAlternatives);
             myCurrentAlternatives = 0;
@@ -349,7 +349,7 @@ RORouteHandler::openRouteDistribution(const SUMOSAXAttributes& attrs) {
         return;
     }
     // build the alternative cont
-    myCurrentAlternatives = new RORouteDef(id, index, myTryRepair);
+    myCurrentAlternatives = new RORouteDef(id, index, myTryRepair, false);
     if (attrs.hasAttribute(SUMO_ATTR_ROUTES)) {
         ok = true;
         StringTokenizer st(attrs.get<std::string>(SUMO_ATTR_ROUTES, id.c_str(), ok));

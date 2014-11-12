@@ -43,10 +43,9 @@
 #include <cstdlib>
 #include <algorithm>
 #include <map>
-#include <utils/options/OptionsCont.h>
 #include <utils/common/ToString.h>
 #include <utils/common/FileHelpers.h>
-#include <utils/common/DijkstraRouterTT.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
 #include <utils/common/RandHelper.h>
 #include <utils/emissions/PollutantsInterface.h>
 #include <utils/emissions/HelpersHarmonoise.h>
@@ -387,10 +386,8 @@ MSVehicle::~MSVehicle() {
 }
 
 
-MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
-                     const MSRoute* route,
-                     const MSVehicleType* type,
-                     SUMOReal speedFactor) :
+MSVehicle::MSVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+                     const MSVehicleType* type, const SUMOReal speedFactor) :
     MSBaseVehicle(pars, route, type, speedFactor),
     myWaitingTime(0),
     myState(0, 0), //
@@ -409,30 +406,13 @@ MSVehicle::MSVehicle(SUMOVehicleParameter* pars,
     , myInfluencer(0)
 #endif
 {
-    for (std::vector<SUMOVehicleParameter::Stop>::iterator i = pars->stops.begin(); i != pars->stops.end(); ++i) {
-        if (!addStop(*i)) {
-            throw ProcessError("Stop for vehicle '" + pars->id +
-                               "' on lane '" + i->lane + "' is too close or not downstream the current route.");
+    if (pars->departLaneProcedure == DEPART_LANE_GIVEN) {
+        if ((*myCurrEdge)->getDepartLane(*this) == 0) {
+            throw ProcessError("Invalid departlane definition for vehicle '" + pars->id + "'.");
         }
-    }
-    for (std::vector<SUMOVehicleParameter::Stop>::const_iterator i = route->getStops().begin(); i != route->getStops().end(); ++i) {
-        if (!addStop(*i)) {
-            throw ProcessError("Stop for vehicle '" + pars->id +
-                               "' on lane '" + i->lane + "' is too close or not downstream the current route.");
-        }
-    }
-    updateBestLanes(true, (*myCurrEdge)->getLanes()[0]); // must be called before getBestLanes in getDepartLane
-    const MSLane* const depLane = (*myCurrEdge)->getDepartLane(*this);
-    if (depLane == 0) {
-        throw ProcessError("Invalid departlane definition for vehicle '" + pars->id + "'.");
-    }
-    if (pars->departSpeedProcedure == DEPART_SPEED_GIVEN && pars->departSpeed > depLane->getVehicleMaxSpeed(this)) {
-        if (type->getSpeedDeviation() > 0 && pars->departSpeed <= type->getSpeedFactor() * depLane->getSpeedLimit() * (2 * type->getSpeedDeviation() + 1.)) {
-            WRITE_WARNING("Choosing new speed factor for vehicle '" + pars->id + "' to match departure speed.");
-            myChosenSpeedFactor = type->computeChosenSpeedDeviation(MSVehicleControl::myVehicleParamsRNG, pars->departSpeed / (type->getSpeedFactor() * depLane->getSpeedLimit()));
-        } else {
-            throw ProcessError("Departure speed for vehicle '" + pars->id +
-                               "' is too high for the departure lane '" + depLane->getID() + "'.");
+    } else {
+        if ((*myCurrEdge)->allowedLanes(type->getVehicleClass()) == 0) {
+            throw ProcessError("Vehicle '" + pars->id + "' is not allowed to depart on any lane of its first edge.");
         }
     }
     if (pars->departSpeedProcedure == DEPART_SPEED_GIVEN && pars->departSpeed > type->getMaxSpeed()) {
@@ -486,9 +466,7 @@ MSVehicle::replaceRoute(const MSRoute* newRoute, bool onInit, int offset) {
     myRoute = newRoute;
     myLastBestLanesEdge = 0;
     myLastBestLanesInternalLane = 0;
-    if (!onInit) {
-        updateBestLanes(true);
-    }
+    updateBestLanes(true, onInit ? (*myCurrEdge)->getLanes().front() : 0);
     // update arrival definition
     calculateArrivalPos();
     // save information that the vehicle was rerouted
@@ -505,9 +483,10 @@ MSVehicle::replaceRoute(const MSRoute* newRoute, bool onInit, int offset) {
     }
     // add new stops
     for (std::vector<SUMOVehicleParameter::Stop>::const_iterator i = newRoute->getStops().begin(); i != newRoute->getStops().end(); ++i) {
-        if (!addStop(*i)) {
-            WRITE_WARNING("Stop for vehicle '" + getID() +
-                          "' on lane '" + i->lane + "' is too close or not downstream the new route.");
+        std::string error;
+        addStop(*i, error);
+        if (error != "") {
+            WRITE_WARNING(error);
         }
     }
     return true;
@@ -643,7 +622,7 @@ const MSEdge*
 MSVehicle::getRerouteOrigin() const {
     // too close to the next junction, so avoid an emergency brake here
     if (myLane != 0 && (myCurrEdge + 1) != myRoute->end() &&
-        myState.myPos > myLane->getLength() - getCarFollowModel().brakeGap(myState.mySpeed, getCarFollowModel().getMaxDecel(), 0.)) {
+            myState.myPos > myLane->getLength() - getCarFollowModel().brakeGap(myState.mySpeed, getCarFollowModel().getMaxDecel(), 0.)) {
         return *(myCurrEdge + 1);
     }
 #ifdef HAVE_INTERNAL_LANES
@@ -668,13 +647,13 @@ MSVehicle::getAngle() const {
     } else {
         p1 = getPosition();
     }
-    if (getPositionOnLane() * myLane->getLengthGeometryFactor() > myType->getLength()) {
-        // vehicle is fully on the new lane (visually)
-        p2 = myLane->getShape().positionAtOffset(getPositionOnLane() * myLane->getLengthGeometryFactor() - myType->getLength());
+    if (myState.myPos >= myType->getLength()) {
+        // vehicle is fully on the new lane
+        p2 = myLane->geometryPositionAtOffset(myState.myPos - myType->getLength());
     } else {
         p2 = myFurtherLanes.size() > 0
              ? myFurtherLanes.back()->geometryPositionAtOffset(myFurtherLanes.back()->getPartialOccupatorEnd())
-             : myLane->geometryPositionAtOffset(myState.myPos - myType->getLength());
+             : myLane->getShape().front();
     }
     SUMOReal result = (p1 != p2 ?
                        atan2(p1.x() - p2.x(), p2.y() - p1.y()) * 180. / M_PI :
@@ -689,9 +668,13 @@ MSVehicle::getAngle() const {
 
 // ------------
 bool
-MSVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffset) {
+MSVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, std::string& errorMsg, SUMOTime untilOffset) {
     Stop stop;
     stop.lane = MSLane::dictionary(stopPar.lane);
+    if (!stop.lane->allowsVehicleClass(myType->getVehicleClass())) {
+        errorMsg = "Vehicle '" + myParameter->id + "' is not allowed to stop on lane '" + stopPar.lane + "'.";
+        return false;
+    }
     stop.busstop = MSNet::getInstance()->getBusStop(stopPar.busstop);
     stop.startPos = stopPar.startPos;
     stop.endPos = stopPar.endPos;
@@ -705,7 +688,16 @@ MSVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffs
     stop.parking = stopPar.parking;
     stop.reached = false;
     if (stop.startPos < 0 || stop.endPos > stop.lane->getLength()) {
+        if (stop.busstop != 0) {
+            errorMsg = "Bus stop '" + stop.busstop->getID() + "'";
+        } else {
+            errorMsg = "Stop";
+        }
+        errorMsg += " for vehicle '" + myParameter->id + "' on lane '" + stopPar.lane + "' has an invalid position.";
         return false;
+    }
+    if (stop.busstop != 0 && myType->getLength() / 2. > stop.endPos - stop.startPos) {
+        errorMsg = "Bus stop '" + stop.busstop->getID() + "' on lane '" + stopPar.lane + "' is too short for vehicle '" + myParameter->id + "'.";
     }
     stop.edge = find(myCurrEdge, myRoute->end(), &stop.lane->getEdge());
     MSRouteIterator prevStopEdge = myCurrEdge;
@@ -743,11 +735,18 @@ MSVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffs
     }
     if (stop.edge == myRoute->end() || prevStopEdge > stop.edge ||
             (prevStopEdge == stop.edge && prevStopPos > stop.endPos)) {
+        if (stop.busstop != 0) {
+            errorMsg = "Bus stop '" + stop.busstop->getID() + "'";
+        } else {
+            errorMsg = "Stop";
+        }
+        errorMsg += " for vehicle '" + myParameter->id + "' on lane '" + stopPar.lane + "' is not downstream the current route.";
         return false;
     }
     // David.C:
     //if (!stop.parking && (myCurrEdge == stop.edge && myState.myPos > stop.endPos - getCarFollowModel().brakeGap(myState.mySpeed))) {
     if (myCurrEdge == stop.edge && myState.myPos > stop.endPos - getCarFollowModel().brakeGap(myState.mySpeed)) {
+        errorMsg = "Stop for vehicle '" + myParameter->id + "' on lane '" + stopPar.lane + "' is too close to break.";
         return false;
     }
     if (!hasDeparted() && myCurrEdge == stop.edge) {
@@ -762,7 +761,25 @@ MSVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffs
             pos = MIN2(static_cast<SUMOReal>(getVehicleType().getLength() + POSITION_EPS), (*myCurrEdge)->getLength());
         }
         if (pos > stop.endPos) {
+            if (stop.busstop != 0) {
+                errorMsg = "Bus stop '" + stop.busstop->getID() + "'";
+            } else {
+                errorMsg = "Stop";
+            }
+            errorMsg += " for vehicle '" + myParameter->id + "' on lane '" + stopPar.lane + "' is behind departPos.";
             return false;
+        }
+    }
+    if (iter != myStops.begin()) {
+        std::list<Stop>::iterator iter2 = iter;
+        iter2--;
+        if (stop.until >= 0 && iter2->until > stop.until) {
+            if (stop.busstop != 0) {
+                errorMsg = "Bus stop '" + stop.busstop->getID() + "'";
+            } else {
+                errorMsg = "Stop";
+            }
+            errorMsg += " for vehicle '" + myParameter->id + "' on lane '" + stopPar.lane + "' ends earlier than previous stop.";
         }
     }
     myStops.insert(iter, stop);
@@ -835,7 +852,8 @@ MSVehicle::processNextStop(SUMOReal currentVelocity) {
             if (stop.busstop != 0) {
                 // on bus stops, we have to wait for free place if they are in use...
                 endPos = stop.busstop->getLastFreePos(*this);
-                if (endPos - 5. < stop.busstop->getBeginLanePosition()) { // !!! explicit offset
+                // at least half the bus has to fit on non-empty bus stops
+                if (endPos != stop.busstop->getEndLanePosition() && endPos - myType->getLength() / 2. < stop.busstop->getBeginLanePosition()) {
                     busStopsMustHaveSpace = false;
                 }
             }
@@ -978,6 +996,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
             break;
         }
         const bool yellowOrRed = (*link)->getState() == LINKSTATE_TL_RED ||
+                                 (*link)->getState() == LINKSTATE_TL_REDYELLOW ||
                                  (*link)->getState() == LINKSTATE_TL_YELLOW_MAJOR ||
                                  (*link)->getState() == LINKSTATE_TL_YELLOW_MINOR;
         // We distinguish 3 cases when determining the point at which a vehicle stops:
@@ -1129,9 +1148,9 @@ MSVehicle::adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
 }
 
 
-SUMOReal 
+SUMOReal
 MSVehicle::getSafeFollowSpeed(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
-        const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const {
+                              const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const {
     assert(leaderInfo.first != 0);
     const MSCFModel& cfModel = getCarFollowModel();
     SUMOReal vsafeLeader = 0;
@@ -1349,12 +1368,12 @@ MSVehicle::executeMove() {
                             getLaneChangeModel().endLaneChangeManeuver();
                         }
                     }
-#ifdef HAVE_INTERNAL_LANES 
+#ifdef HAVE_INTERNAL_LANES
                     // erase leaders when past the junction
                     if (link->getViaLane() == 0) {
                         myLinkLeaders[link->getJunction()].clear();
                     }
-#endif 
+#endif
                     moved = true;
                     if (approachedLane->getEdge().isVaporizing()) {
                         leaveLane(MSMoveReminder::NOTIFICATION_VAPORIZED);
@@ -1657,6 +1676,7 @@ void
 MSVehicle::enterLaneAtLaneChange(MSLane* enteredLane) {
     myAmOnNet = true;
     myLane = enteredLane;
+    myCachedPosition = Position::INVALID;
     // need to update myCurrentLaneInBestLanes
     updateBestLanes();
     // switch to and activate the new lane's reminders
@@ -1803,7 +1823,6 @@ MSVehicle::updateBestLanes(bool forceRebuild, const MSLane* startLane) {
         myLastBestLanesEdge = 0;
     }
 #endif
-
     if (startLane == 0) {
         startLane = myLane;
     }
@@ -1892,7 +1911,7 @@ MSVehicle::updateBestLanes(bool forceRebuild, const MSLane* startLane) {
     if (nextStopEdge != 0) {
         // make sure that the "wrong" lanes get a penalty. (penalty needs to be
         // large enough to overcome a magic threshold in MSLCM_DK2004.cpp:383)
-        nextStopPos = MIN2((SUMOReal)nextStopPos, (SUMOReal)(nextStopEdge->getLength() - 2 * POSITION_EPS));
+        nextStopPos = MAX2(POSITION_EPS, MIN2((SUMOReal)nextStopPos, (SUMOReal)(nextStopEdge->getLength() - 2 * POSITION_EPS)));
     }
 
     // go forward along the next lanes;
@@ -2292,7 +2311,7 @@ MSVehicle::getLaneIndex() const {
 }
 
 
-void 
+void
 MSVehicle::setTentativeLaneAndPosition(MSLane* lane, const SUMOReal pos) {
     assert(lane != 0);
     myLane = lane;
@@ -2302,7 +2321,8 @@ MSVehicle::setTentativeLaneAndPosition(MSLane* lane, const SUMOReal pos) {
 
 #ifndef NO_TRACI
 bool
-MSVehicle::addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal /*radius*/, SUMOTime duration, bool parking, bool triggered) {
+MSVehicle::addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal /*radius*/, SUMOTime duration,
+                        bool parking, bool triggered, std::string& errorMsg) {
     //if the stop exists update the duration
     for (std::list<Stop>::iterator iter = myStops.begin(); iter != myStops.end(); iter++) {
         if (iter->lane == lane && fabs(iter->endPos - pos) < POSITION_EPS) {
@@ -2325,7 +2345,11 @@ MSVehicle::addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal /*radius*/, SUMOTim
     newStop.triggered = triggered;
     newStop.parking = parking;
     newStop.index = STOP_INDEX_FIT;
-    return addStop(newStop);
+    const bool result = addStop(newStop, errorMsg);
+    if (myLane != 0) {
+        updateBestLanes(true);
+    }
+    return result;
 }
 
 

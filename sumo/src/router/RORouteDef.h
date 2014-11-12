@@ -35,8 +35,7 @@
 #include <string>
 #include <iostream>
 #include <utils/common/Named.h>
-#include "ReferencedItem.h"
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include "RORoute.h"
 
 
@@ -61,7 +60,7 @@ class OutputDevice;
  *  route through the network or even a route with alternatives depends on
  *  the derived class.
  */
-class RORouteDef : public ReferencedItem, public Named {
+class RORouteDef : public Named {
 public:
     /** @brief Constructor
      *
@@ -69,7 +68,7 @@ public:
      * @param[in] color The color of the route
      */
     RORouteDef(const std::string& id, const unsigned int lastUsed,
-               const bool tryRepair);
+               const bool tryRepair, const bool mayBeDisconnected);
 
 
     /// @brief Destructor
@@ -158,10 +157,14 @@ protected:
     /// @brief The alternatives
     std::vector<RORoute*> myAlternatives;
 
+    /// @brief Routes which are deleted someplace else
+    std::set<RORoute*> myRouteRefs;
+
     /// @brief Information whether a new route was generated
     mutable bool myNewRoute;
 
     const bool myTryRepair;
+    const bool myMayBeDisconnected;
 
     static bool myUsingJTRR;
 

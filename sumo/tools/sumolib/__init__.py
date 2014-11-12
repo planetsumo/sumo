@@ -18,7 +18,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-import os, subprocess
+import os, sys, subprocess
 from xml.sax import parseString, handler
 from optparse import OptionParser, OptionGroup, Option
 
@@ -148,6 +148,21 @@ class _Running:
     Removed the element."""
     del self._m[id]
 
+
+class TeeFile:
+    """A helper class which allows simultaneous writes to several files"""
+    def __init__(self, *files):
+        self.files = files
+    def write(self, txt):
+        """Writes the text to all files"""
+        for fp in self.files:
+            fp.write(txt)
+    def flush(self):
+        """flushes all file contents to disc"""
+        for fp in self.files:
+            fp.flush()
+            if type(fp) is int or hasattr(fp, "fileno"):
+                os.fsync(fp)
 
 
 def _intTime(tStr):

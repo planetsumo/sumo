@@ -89,9 +89,10 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         GUIVisualizationSettings* settings,
         std::vector<GUISUMOAbstractView::Decal>* decals,
         MFXMutex* decalsLock) :
-    FXDialogBox(parent, "View Settings", DECOR_TITLE | DECOR_BORDER, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    FXDialogBox(parent, "View Settings", DECOR_TITLE | DECOR_BORDER | DECOR_RESIZE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
     myParent(parent), mySettings(settings),
-    myDecals(decals), myDecalsLock(decalsLock), myDecalsTable(0) {
+    myDecals(decals), myDecalsLock(decalsLock),
+    myDecalsTable(0) {
     myBackup = (*mySettings);
 
     FXVerticalFrame* contentFrame =
@@ -132,8 +133,9 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
     {
         // tab for the background
         new FXTabItem(tabbook, "Background", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame1 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
 
         FXMatrix* m11 =
             new FXMatrix(frame1, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
@@ -185,26 +187,42 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
     {
         // tab for the streets
         new FXTabItem(tabbook, "Streets", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
-
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame2 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+        //  ... color settings
+        FXVerticalFrame* frame22 =
+            new FXVerticalFrame(frame2, LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
         FXMatrix* m21 =
-            new FXMatrix(frame2, 3, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+            new FXMatrix(frame22, 3, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
                          0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
         new FXLabel(m21, "Color", 0, LAYOUT_CENTER_Y);
         myLaneEdgeColorMode = new FXComboBox(m21, 30, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
-        myLaneEdgeColorMode->setNumVisible(20);
+        myLaneEdgeColorMode->setNumVisible(21);
         myLaneColorInterpolation = new FXCheckButton(m21, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
-        FXScrollWindow* genScroll = new FXScrollWindow(frame2, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
-        myLaneColorSettingFrame =
-            new FXVerticalFrame(genScroll, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
-//we should insert a FXScrollWindow around the frame2
+        myLaneColorSettingFrame = new FXVerticalFrame(frame22, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
+
+        new FXHorizontalSeparator(frame2, SEPARATOR_GROOVE | LAYOUT_FILL_X);
+        //  ... scale settings
+        FXVerticalFrame* frame23 =
+            new FXVerticalFrame(frame2, LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+        FXMatrix* m23 =
+            new FXMatrix(frame23, 3, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
+        new FXLabel(m23, "Scale width", 0, LAYOUT_CENTER_Y);
+        myLaneEdgeScaleMode = new FXComboBox(m23, 30, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
+        myLaneEdgeScaleMode->setNumVisible(21);
+        myLaneScaleInterpolation = new FXCheckButton(m23, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
+        myLaneScaleSettingFrame = new FXVerticalFrame(frame23, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
+
 #ifdef HAVE_INTERNAL
         if (GUIVisualizationSettings::UseMesoSim) {
             mySettings->edgeColorer.fill(*myLaneEdgeColorMode);
+            mySettings->edgeScaler.fill(*myLaneEdgeScaleMode);
         } else {
 #endif
             mySettings->laneColorer.fill(*myLaneEdgeColorMode);
+            mySettings->laneScaler.fill(*myLaneEdgeScaleMode);
 #ifdef HAVE_INTERNAL
         }
 #endif
@@ -241,8 +259,9 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
     {
         // vehicles
         new FXTabItem(tabbook, "Vehicles", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame3 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
 
         FXMatrix* m31 =
             new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
@@ -267,9 +286,8 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         myVehicleColorMode->setNumVisible(24);
         myVehicleColorInterpolation = new FXCheckButton(m32, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
 
-        FXScrollWindow* genScroll = new FXScrollWindow(frame3, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
         myVehicleColorSettingFrame =
-            new FXVerticalFrame(genScroll, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
+            new FXVerticalFrame(frame3, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
 
         new FXHorizontalSeparator(frame3, SEPARATOR_GROOVE | LAYOUT_FILL_X);
 
@@ -281,6 +299,9 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         new FXLabel(m33, " ", 0, LAYOUT_CENTER_Y);
         myShowMinGap = new FXCheckButton(m33, "Show minimum gap", this, MID_SIMPLE_VIEW_COLORCHANGE);
         myShowMinGap->setCheck(mySettings->drawMinGap);
+        new FXLabel(m33, " ", 0, LAYOUT_CENTER_Y);
+        myShowBTRange = new FXCheckButton(m33, "Show Bluetooth range", this, MID_SIMPLE_VIEW_COLORCHANGE);
+        myShowBTRange->setCheck(mySettings->showBTRange);
         new FXLabel(m33, " ", 0, LAYOUT_CENTER_Y);
         /*
         myShowLaneChangePreference = new FXCheckButton(m33, "Show lane change preference", this, MID_SIMPLE_VIEW_COLORCHANGE);
@@ -306,8 +327,9 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
     {
         // persons
         new FXTabItem(tabbook, "Persons", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame3 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
 
         FXMatrix* m101 =
             new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
@@ -332,9 +354,8 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         myPersonColorMode->setNumVisible(9);
         myPersonColorInterpolation = new FXCheckButton(m102, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
 
-        FXScrollWindow* genScroll = new FXScrollWindow(frame3, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
         myPersonColorSettingFrame =
-            new FXVerticalFrame(genScroll, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
+            new FXVerticalFrame(frame3, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
 
         new FXHorizontalSeparator(frame3, SEPARATOR_GROOVE | LAYOUT_FILL_X);
 
@@ -353,8 +374,9 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
     {
         // nodes
         new FXTabItem(tabbook, "Junctions", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame4 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
         FXMatrix* m41 =
             new FXMatrix(frame4, 3, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
                          0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
@@ -364,9 +386,8 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         myJunctionColorMode->setNumVisible(3);
         myJunctionColorInterpolation = new FXCheckButton(m41, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
 
-        FXScrollWindow* genScroll = new FXScrollWindow(frame4, LAYOUT_FILL_X | LAYOUT_SIDE_TOP | FRAME_RAISED | FRAME_THICK | LAYOUT_FIX_HEIGHT, 0, 0, 0, 80);
         myJunctionColorSettingFrame =
-            new FXVerticalFrame(genScroll, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
+            new FXVerticalFrame(frame4, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
 
         new FXHorizontalSeparator(frame4, SEPARATOR_GROOVE | LAYOUT_FILL_X);
         FXMatrix* m42 =
@@ -386,9 +407,11 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         myDrawJunctionShape = new FXCheckButton(m42, "Draw junction shape", this, MID_SIMPLE_VIEW_COLORCHANGE);
         myDrawJunctionShape->setCheck(mySettings->drawJunctionShape);
     } {
+        // detectors / triggers
         new FXTabItem(tabbook, "Detectors/Trigger", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame5 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
 
         FXMatrix* m51 =
             new FXMatrix(frame5, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
@@ -409,9 +432,11 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
                             0, 0, 100, 0,   0, 0, 0, 0);
                             */
     } {
+        // POIs
         new FXTabItem(tabbook, "POIs", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame6 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
 
         FXMatrix* m61 =
             new FXMatrix(frame6, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
@@ -425,9 +450,11 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         myPOISizePanel = new SizePanel(m62, this, mySettings->poiSize);
 
     } {
+        // Polygons
         new FXTabItem(tabbook, "Polygons", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame9 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
 
         FXMatrix* m91 =
             new FXMatrix(frame9, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
@@ -438,9 +465,11 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         myPolySizePanel = new SizePanel(m91, this, mySettings->polySize);
 
     }{
+        // Legend
         new FXTabItem(tabbook, "Legend", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame7 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
 
         FXMatrix* m72 =
             new FXMatrix(frame7, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
@@ -449,9 +478,11 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         myShowSizeLegend->setCheck(mySettings->showSizeLegend);
         new FXLabel(m72, "");
     } {
+        // openGL
         new FXTabItem(tabbook, "openGL", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
         FXVerticalFrame* frame8 =
-            new FXVerticalFrame(tabbook, FRAME_THICK | FRAME_RAISED, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
 
         FXMatrix* m82 =
             new FXMatrix(frame8, 1, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
@@ -468,6 +499,11 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
 
     rebuildColorMatrices(false);
     setIcon(GUIIconSubSys::getIcon(ICON_EMPTY));
+
+    setX(getApp()->reg().readIntEntry("VIEWSETTINGS", "x", 150));
+    setY(getApp()->reg().readIntEntry("VIEWSETTINGS", "y", 150));
+    setWidth(getApp()->reg().readIntEntry("VIEWSETTINGS", "width", 700));
+    setHeight(getApp()->reg().readIntEntry("VIEWSETTINGS", "height", 500));
 }
 
 
@@ -503,6 +539,7 @@ GUIDialog_ViewSettings::setCurrent(GUIVisualizationSettings* settings) {
 
 long
 GUIDialog_ViewSettings::onCmdOk(FXObject*, FXSelector, void*) {
+    saveWindowSize();
     hide();
     return 1;
 }
@@ -510,6 +547,7 @@ GUIDialog_ViewSettings::onCmdOk(FXObject*, FXSelector, void*) {
 
 long
 GUIDialog_ViewSettings::onCmdCancel(FXObject*, FXSelector, void*) {
+    saveWindowSize();
     hide();
     (*mySettings) = myBackup;
     return 1;
@@ -536,6 +574,7 @@ GUIDialog_ViewSettings::onCmdNameChange(FXObject*, FXSelector, void* data) {
     myBackgroundColor->setRGBA(MFXUtils::getFXColor(mySettings->backgroundColor));
 
     myLaneEdgeColorMode->setCurrentItem((FXint) mySettings->getLaneEdgeMode());
+    myLaneEdgeScaleMode->setCurrentItem((FXint) mySettings->getLaneEdgeScaleMode());
     myShowLaneBorders->setCheck(mySettings->laneShowBorders);
     myShowLaneDecals->setCheck(mySettings->showLinkDecals);
     myShowRails->setCheck(mySettings->showRails);
@@ -550,6 +589,7 @@ GUIDialog_ViewSettings::onCmdNameChange(FXObject*, FXSelector, void* data) {
     myVehicleShapeDetail->setCurrentItem(mySettings->vehicleQuality);
     myShowBlinker->setCheck(mySettings->showBlinker);
     myShowMinGap->setCheck(mySettings->drawMinGap);
+    myShowBTRange->setCheck(mySettings->showBTRange);
     /*
     myShowLaneChangePreference->setCheck(mySettings->drawLaneChangePreference);
     */
@@ -642,10 +682,64 @@ GUIDialog_ViewSettings::updateColorRanges(FXObject* sender, std::vector<FXColorW
 }
 
 
+bool
+GUIDialog_ViewSettings::updateScaleRanges(FXObject* sender, std::vector<FXRealSpinDial*>::const_iterator scaleIt,
+        std::vector<FXRealSpinDial*>::const_iterator scaleEnd,
+        std::vector<FXRealSpinDial*>::const_iterator threshIt,
+        std::vector<FXRealSpinDial*>::const_iterator threshEnd,
+        std::vector<FXButton*>::const_iterator buttonIt,
+        GUIScaleScheme& scheme) {
+    size_t pos = 0;
+    while (scaleIt != scaleEnd) {
+        if (scheme.isFixed()) {
+            if (sender == *scaleIt) {
+                scheme.setColor(pos, (*scaleIt)->getValue());
+            }
+        } else {
+            if (sender == *threshIt) {
+                const SUMOReal val = (*threshIt)->getValue();
+                double lo, hi;
+                if (pos != 0) {
+                    threshIt--;
+                    (*threshIt)->getRange(lo, hi);
+                    (*threshIt)->setRange(lo, val);
+                    threshIt++;
+                }
+                threshIt++;
+                if (threshIt != threshEnd) {
+                    (*threshIt)->getRange(lo, hi);
+                    (*threshIt)->setRange(val, hi);
+                }
+                scheme.setThreshold(pos, val);
+                return false;
+            }
+            if (sender == *scaleIt) {
+                scheme.setColor(pos, (*scaleIt)->getValue());
+                return false;
+            }
+            if (sender == *buttonIt) {
+                if (pos == 0) {
+                    scheme.addColor((*scaleIt)->getValue(), (*threshIt)->getValue());
+                } else {
+                    scheme.removeColor(pos);
+                }
+                return true;
+            }
+            ++threshIt;
+            ++buttonIt;
+        }
+        ++scaleIt;
+        pos++;
+    }
+    return false;
+}
+
+
 long
 GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*val*/) {
     GUIVisualizationSettings tmpSettings = *mySettings;
     size_t prevLaneMode = mySettings->getLaneEdgeMode();
+    size_t prevLaneScaleMode = mySettings->getLaneEdgeScaleMode();
     size_t prevVehicleMode = mySettings->vehicleColorer.getActive();
     size_t prevPersonMode = mySettings->personColorer.getActive();
     size_t prevJunctionMode = mySettings->junctionColorer.getActive();
@@ -660,9 +754,11 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
 #ifdef HAVE_INTERNAL
     if (GUIVisualizationSettings::UseMesoSim) {
         tmpSettings.edgeColorer.setActive(myLaneEdgeColorMode->getCurrentItem());
+        tmpSettings.edgeScaler.setActive(myLaneEdgeScaleMode->getCurrentItem());
     } else {
 #endif
         tmpSettings.laneColorer.setActive(myLaneEdgeColorMode->getCurrentItem());
+        tmpSettings.laneScaler.setActive(myLaneEdgeScaleMode->getCurrentItem());
 #ifdef HAVE_INTERNAL
     }
 #endif
@@ -680,6 +776,7 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
     tmpSettings.vehicleQuality = myVehicleShapeDetail->getCurrentItem();
     tmpSettings.showBlinker = (myShowBlinker->getCheck() != FALSE);
     tmpSettings.drawMinGap = (myShowMinGap->getCheck() != FALSE);
+    tmpSettings.showBTRange = (myShowBTRange->getCheck() != FALSE);
     /*
     tmpSettings.drawLaneChangePreference = (myShowLaneChangePreference->getCheck() != FALSE);
     */
@@ -712,7 +809,7 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
     tmpSettings.dither = (myDither->getCheck() != FALSE);
     tmpSettings.showSizeLegend = (myShowSizeLegend->getCheck() != FALSE);
 
-    // lanes
+    // lanes (colors)
     if (tmpSettings.getLaneEdgeMode() == prevLaneMode) {
         if (updateColorRanges(sender, myLaneColors.begin(), myLaneColors.end(),
                               myLaneThresholds.begin(), myLaneThresholds.end(), myLaneButtons.begin(),
@@ -721,6 +818,20 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
         }
         if (sender == myLaneColorInterpolation) {
             tmpSettings.getLaneEdgeScheme().setInterpolated(myLaneColorInterpolation->getCheck() != FALSE);
+            doRebuildColorMatrices = true;
+        }
+    } else {
+        doRebuildColorMatrices = true;
+    }
+    // lanes (scaling)
+    if (tmpSettings.getLaneEdgeScaleMode() == prevLaneScaleMode) {
+        if (updateScaleRanges(sender, myLaneScales.begin(), myLaneScales.end(),
+                              myLaneScaleThresholds.begin(), myLaneScaleThresholds.end(), myLaneScaleButtons.begin(),
+                              tmpSettings.getLaneEdgeScaleScheme())) {
+            doRebuildColorMatrices = true;
+        }
+        if (sender == myLaneScaleInterpolation) {
+            tmpSettings.getLaneEdgeScaleScheme().setInterpolated(myLaneScaleInterpolation->getCheck() != FALSE);
             doRebuildColorMatrices = true;
         }
     } else {
@@ -814,6 +925,7 @@ GUIDialog_ViewSettings::loadSettings(const std::string& file) {
         mySchemeName->setCurrentItem(index);
         mySettings = &gSchemeStorage.get(settingsName);
     }
+    rebuildColorMatrices(true);
 }
 
 
@@ -1119,6 +1231,64 @@ GUIDialog_ViewSettings::rebuildColorMatrix(FXVerticalFrame* frame,
 }
 
 
+FXMatrix*
+GUIDialog_ViewSettings::rebuildScaleMatrix(FXVerticalFrame* frame,
+        std::vector<FXRealSpinDial*>& scales,
+        std::vector<FXRealSpinDial*>& thresholds,
+        std::vector<FXButton*>& buttons,
+        FXCheckButton* interpolation,
+        GUIScaleScheme& scheme) {
+    MFXUtils::deleteChildren(frame);
+    FXMatrix* m = new FXMatrix(frame, 3,
+                               LAYOUT_FILL_X | MATRIX_BY_COLUMNS,
+                               0, 0, 0, 0, 10, 10, 0, 0, 5, 3);
+    scales.clear();
+    thresholds.clear();
+    buttons.clear();
+    const bool fixed = scheme.isFixed();
+    std::vector<SUMOReal>::const_iterator scaleIt = scheme.getColors().begin();
+    std::vector<SUMOReal>::const_iterator threshIt = scheme.getThresholds().begin();
+    std::vector<std::string>::const_iterator nameIt = scheme.getNames().begin();
+    FX::FXString buttonText = "Add";
+    while (scaleIt != scheme.getColors().end()) {
+        FXRealSpinDial* scaleDialer = new FXRealSpinDial(m, 10, this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | SPINDIAL_NOMAX);
+        scaleDialer->setValue(*scaleIt);
+        scales.push_back(scaleDialer);
+        if (fixed) {
+            new FXLabel(m, nameIt->c_str());
+            new FXLabel(m, "");
+        } else {
+            const int dialerOptions = scheme.allowsNegativeValues() ? SPINDIAL_NOMIN : 0;
+            FXRealSpinDial* threshDialer = new FXRealSpinDial(m, 10, this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | SPINDIAL_NOMAX | dialerOptions);
+            threshDialer->setValue(*threshIt);
+            thresholds.push_back(threshDialer);
+            buttons.push_back(new FXButton(m, buttonText, NULL, this, MID_SIMPLE_VIEW_COLORCHANGE, BUTTON_DEFAULT | FRAME_RAISED | FRAME_THICK | LAYOUT_TOP | LAYOUT_LEFT | LAYOUT_CENTER_X, 0, 0, 0, 0, 20, 20, 4, 4));
+            buttonText = "Remove";
+        }
+        scaleIt++;
+        threshIt++;
+        nameIt++;
+    }
+    interpolation->setCheck(scheme.isInterpolated());
+    if (fixed) {
+        interpolation->disable();
+    } else {
+        if (scales.size() > 1) {
+            interpolation->enable();
+            if (interpolation->getCheck() != FALSE) {
+                thresholds.front()->enable();
+            } else {
+                thresholds.front()->disable();
+            }
+        } else {
+            interpolation->disable();
+            thresholds.front()->disable();
+        }
+    }
+    return m;
+}
+
+
 void
 GUIDialog_ViewSettings::rebuildColorMatrices(bool doCreate) {
     // decals
@@ -1143,21 +1313,31 @@ GUIDialog_ViewSettings::rebuildColorMatrices(bool doCreate) {
         m->create();
     }
     myLaneColorSettingFrame->getParent()->recalc();
+
+    m = rebuildScaleMatrix(myLaneScaleSettingFrame, myLaneScales, myLaneScaleThresholds, myLaneScaleButtons, myLaneScaleInterpolation, mySettings->getLaneEdgeScaleScheme());
+    if (doCreate) {
+        m->create();
+    }
+    myLaneScaleSettingFrame->getParent()->recalc();
+
     m = rebuildColorMatrix(myVehicleColorSettingFrame, myVehicleColors, myVehicleThresholds, myVehicleButtons, myVehicleColorInterpolation, mySettings->vehicleColorer.getScheme());
     if (doCreate) {
         m->create();
     }
     myPersonColorSettingFrame->getParent()->recalc();
+
     m = rebuildColorMatrix(myPersonColorSettingFrame, myPersonColors, myPersonThresholds, myPersonButtons, myPersonColorInterpolation, mySettings->personColorer.getScheme());
     if (doCreate) {
         m->create();
     }
     myPersonColorSettingFrame->getParent()->recalc();
+
     m = rebuildColorMatrix(myJunctionColorSettingFrame, myJunctionColors, myJunctionThresholds, myJunctionButtons, myJunctionColorInterpolation, mySettings->junctionColorer.getScheme());
     if (doCreate) {
         m->create();
     }
     myJunctionColorSettingFrame->getParent()->recalc();
+
     layout();
     update();
 }
@@ -1284,8 +1464,7 @@ GUIDialog_ViewSettings::NamePanel::NamePanel(
     FXMatrix* parent,
     GUIDialog_ViewSettings* target,
     const std::string& title,
-    const GUIVisualizationTextSettings& settings) 
-{
+    const GUIVisualizationTextSettings& settings) {
     myCheck = new FXCheckButton(parent, title.c_str(), target, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
     myCheck->setCheck(settings.show);
     new FXLabel(parent, "");
@@ -1324,8 +1503,7 @@ GUIDialog_ViewSettings::NamePanel::update(const GUIVisualizationTextSettings& se
 GUIDialog_ViewSettings::SizePanel::SizePanel(
     FXMatrix* parent,
     GUIDialog_ViewSettings* target,
-    const GUIVisualizationSizeSettings& settings) 
-{
+    const GUIVisualizationSizeSettings& settings) {
     myCheck = new FXCheckButton(parent, "Draw with constant size when zoomed out", target, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
     myCheck->setCheck(settings.constantSize);
     new FXLabel(parent, "");
@@ -1333,13 +1511,13 @@ GUIDialog_ViewSettings::SizePanel::SizePanel(
                                 0, 0, 0, 0, 10, 10, 0, 0, 5, 5);
     new FXLabel(m1, "Minimum Size", 0, LAYOUT_CENTER_Y);
     myMinSizeDial = new FXRealSpinDial(m1, 10, target, MID_SIMPLE_VIEW_COLORCHANGE,
-                                    LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
+                                       LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
     myMinSizeDial->setValue(settings.minSize);
     FXMatrix* m2 = new FXMatrix(parent, 2, LAYOUT_FILL_X | LAYOUT_BOTTOM | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
                                 0, 0, 0, 0, 10, 10, 0, 0, 5, 5);
     new FXLabel(m2, "Exaggerate by", 0, LAYOUT_CENTER_Y);
     myExaggerateDial = new FXRealSpinDial(m2, 10, target, MID_SIMPLE_VIEW_COLORCHANGE,
-                LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
+                                          LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
     myExaggerateDial->setRange(0, 10000);
     myExaggerateDial->setValue(settings.exaggeration);
 }
@@ -1348,7 +1526,7 @@ GUIDialog_ViewSettings::SizePanel::SizePanel(
 GUIVisualizationSizeSettings
 GUIDialog_ViewSettings::SizePanel::getSettings() {
     return GUIVisualizationSizeSettings(
-            myMinSizeDial->getValue(), myExaggerateDial->getValue(), myCheck->getCheck() != FALSE);
+               myMinSizeDial->getValue(), myExaggerateDial->getValue(), myCheck->getCheck() != FALSE);
 }
 
 
@@ -1359,6 +1537,14 @@ GUIDialog_ViewSettings::SizePanel::update(const GUIVisualizationSizeSettings& se
     myExaggerateDial->setValue(settings.exaggeration);
 }
 
+
+void
+GUIDialog_ViewSettings::saveWindowSize() {
+    getApp()->reg().writeIntEntry("VIEWSETTINGS", "x", getX());
+    getApp()->reg().writeIntEntry("VIEWSETTINGS", "y", getY());
+    getApp()->reg().writeIntEntry("VIEWSETTINGS", "width", getWidth());
+    getApp()->reg().writeIntEntry("VIEWSETTINGS", "height", getHeight());
+}
 
 /****************************************************************************/
 

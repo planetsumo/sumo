@@ -63,11 +63,10 @@ calibrator_log:calibrator.log.xml
 links:linkstate.xml
 
 [run_dependent_text]
-output:\r{REPLACE \n}
-output:\([0-9]*ms\){REPLACE (TIME)}
 output:^Performance:{->}^Vehicles:
+output:Building Contraction Hierarchy{[->]}Simulation ended
 output:ms answering queries
-log:\([0-9]*ms\){REPLACE (TIME)}
+output:answered [0-9]* queries{REPLACE answered (NUMBER) queries}
 calibrator_log:<!--{[->]}-->
 detector:<!--{[->]}-->
 summary:<!--{[->]}-->

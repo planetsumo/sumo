@@ -163,8 +163,14 @@ private:
     /// @brief A shortcut for the Option "vehroute-output.last-route"
     static bool myLastRouteOnly;
 
+    /// @brief A shortcut for the Option "vehroute-output.dua"
+    static bool myDUAStyle;
+
     /// @brief A shortcut for the Option "vehroute-output.sorted"
     static bool mySorted;
+
+    /// @brief A shortcut for the Option "vehroute-output.intended-depart"
+    static bool myIntendedDepart;
 
     /// @brief A shortcut for the Option "device.routing.with-taz"
     static bool myWithTaz;
@@ -197,7 +203,7 @@ private:
     static std::map<const SUMOTime, int> myDepartureCounts;
 
     /// @todo: describe
-    static std::map<const SUMOTime, std::string> myRouteInfos;
+    static std::map<const SUMOTime, std::map<const std::string, std::string> > myRouteInfos;
 
 
     /**

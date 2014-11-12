@@ -45,7 +45,7 @@
 // ===========================================================================
 ROJTRRouter::ROJTRRouter(bool unbuildIsWarningOnly, bool acceptAllDestinations,
                          int maxEdges, bool ignoreClasses, bool allowLoops) :
-    SUMOAbstractRouter<ROEdge, ROVehicle>("JTRRouter"),
+    SUMOAbstractRouter<ROEdge, ROVehicle>(0, "JTRRouter"),
     myUnbuildIsWarningOnly(unbuildIsWarningOnly),
     myAcceptAllDestination(acceptAllDestinations), myMaxEdges(maxEdges),
     myIgnoreClasses(ignoreClasses), myAllowLoops(allowLoops)
@@ -64,8 +64,8 @@ ROJTRRouter::compute(const ROEdge* from, const ROEdge* to,
     std::set<const ROEdge*> avoidEdges;
     // route until a sinks has been found
     while (current != 0 && current != to &&
-           current->getType() != ROEdge::ET_SINK &&
-           (int)into.size() < myMaxEdges) {
+            current->getType() != ROEdge::ET_SINK &&
+            (int)into.size() < myMaxEdges) {
         into.push_back(current);
         if (!myAllowLoops) {
             avoidEdges.insert(current);

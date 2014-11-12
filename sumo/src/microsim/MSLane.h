@@ -42,7 +42,7 @@
 #include <utils/common/Named.h>
 #include <utils/common/Parameterised.h>
 #include <utils/common/SUMOVehicleClass.h>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <utils/common/NamedRTree.h>
 #include <utils/geom/PositionVector.h>
 #include "MSLinkCont.h"
@@ -192,9 +192,9 @@ public:
      * @return Whether the vehicle could be inserted
      * @see MSVehicle::enterLaneAtInsertion
      */
-    virtual bool isInsertionSuccess(MSVehicle* vehicle, SUMOReal speed, SUMOReal pos,
-                                    bool recheckNextLanes,
-                                    MSMoveReminder::Notification notification = MSMoveReminder::NOTIFICATION_DEPARTED);
+    bool isInsertionSuccess(MSVehicle* vehicle, SUMOReal speed, SUMOReal pos,
+                            bool recheckNextLanes,
+                            MSMoveReminder::Notification notification);
 
     bool checkFailure(MSVehicle* aVehicle, SUMOReal& speed, SUMOReal& dist, const SUMOReal nspeed, const bool patchSpeed, const std::string errorMsg) const;
     bool pWagGenericInsertion(MSVehicle& veh, SUMOReal speed, SUMOReal maxPos, SUMOReal minPos);
@@ -439,14 +439,15 @@ public:
         return myVehicles.empty();
     }
 
-    void setMaxSpeed(SUMOReal val) {
-        myMaxSpeed = val;
-    }
+    /** @brief Sets a new maximum speed for the lane (used by TraCI and MSCalibrator)
+     * @param[in] val the new speed in m/s
+     */
+    void setMaxSpeed(SUMOReal val);
 
-    void setLength(SUMOReal val) {
-        myLength = val;
-    }
-
+    /** @brief Sets a new length for the lane (used by TraCI only)
+     * @param[in] val the new length in m
+     */
+    void setLength(SUMOReal val);
 
     /** @brief Returns the lane's edge
      * @return This lane's edge
@@ -534,10 +535,8 @@ public:
     bool isLinkEnd(MSLinkCont::iterator& i);
 
     /// returns the last vehicle
-    virtual MSVehicle* getLastVehicle() const;
-    virtual const MSVehicle* getFirstVehicle() const;
-
-
+    MSVehicle* getLastVehicle() const;
+    MSVehicle* getFirstVehicle() const;
 
 
     /* @brief remove the vehicle from this lane
@@ -589,8 +588,9 @@ public:
 
 
 
-    std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(SUMOReal dist,
-            SUMOReal leaderSpeed, SUMOReal backOffset, SUMOReal predMaxDecel) const;
+    /// @brief return the follower with the largest missing rear gap among all predecessor lanes (within dist)
+    std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(
+        SUMOReal dist, SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
 
 
     /// @brief return by how much further the leader must be inserted to avoid rear end collisions
@@ -628,7 +628,7 @@ public:
      *
      * Goes along the vehicle's estimated used lanes (bestLaneConts). For each link,
      *  it is determined whether the ego vehicle will pass it. If so, the subsequent lane
-     *  is investigated. Check all lanes up to the stopping distance of ego. 
+     *  is investigated. Check all lanes up to the stopping distance of ego.
      *  Return the leader vehicle (and the gap) which puts the biggest speed constraint on ego.
      *
      * If no leading vehicle was found, <0, -1> is returned.
@@ -786,6 +786,10 @@ protected:
                                     MSMoveReminder::Notification notification = MSMoveReminder::NOTIFICATION_DEPARTED);
 
 
+    /// @brief issue warning and add the vehicle to MSVehicleTransfer
+    void handleCollision(SUMOTime timestep, const std::string& stage, MSVehicle* collider, MSVehicle* victim, const SUMOReal gap);
+
+
 protected:
     /// Unique numerical ID (set on reading by netload)
     size_t myNumericalID;
@@ -803,10 +807,10 @@ protected:
     SUMOReal myLength;
 
     /// Lane width [m]
-    SUMOReal myWidth;
+    const SUMOReal myWidth;
 
     /// The lane's edge, for routing only.
-    MSEdge* myEdge;
+    MSEdge* const myEdge;
 
     /// Lane-wide speedlimit [m/s]
     SUMOReal myMaxSpeed;

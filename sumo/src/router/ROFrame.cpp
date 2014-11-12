@@ -115,6 +115,9 @@ ROFrame::fillOptions(OptionsCont& oc, bool forDuarouter) {
     oc.addSynonyme("unsorted-input", "unsorted");
     oc.addDescription("unsorted-input", "Processing", "Assume input is unsorted");
 
+    oc.doRegister("route-steps", 's', new Option_String("200", "TIME"));
+    oc.addDescription("route-steps", "Processing", "Load routes for the next number of seconds ahead");
+
     oc.doRegister("randomize-flows", new Option_Bool(false));
     oc.addDescription("randomize-flows", "Processing", "generate random departure times for flow input");
 
@@ -136,19 +139,16 @@ ROFrame::fillOptions(OptionsCont& oc, bool forDuarouter) {
 
     if (forDuarouter) {
         oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
-        oc.addDescription("routing-algorithm", "Processing",
-#ifndef HAVE_INTERNAL // catchall for internal stuff
-                          "Select among routing algorithms ['dijkstra', 'astar']"
-#else
-                          "Select among routing algorithms ['dijkstra', 'astar', 'bulkstar', 'CH', 'CHWrapper']"
-#endif
-                         );
+        oc.addDescription("routing-algorithm", "Processing", "Select among routing algorithms ['dijkstra', 'astar', 'bulkstar', 'CH', 'CHWrapper']");
 
-#ifdef HAVE_INTERNAL // catchall for internal stuff
         oc.doRegister("weight-period", new Option_String("3600", "TIME"));
         oc.addDescription("weight-period", "Processing", "Aggregation period for the given weight files; triggers rebuilding of Contraction Hierarchy");
-#endif
     }
+
+#ifdef HAVE_FOX
+    oc.doRegister("routing-threads", new Option_Integer(0));
+    oc.addDescription("routing-threads", "Processing", "The number of parallel execution threads used for routing");
+#endif
 
     // register defaults options
     oc.doRegister("departlane", new Option_String());
