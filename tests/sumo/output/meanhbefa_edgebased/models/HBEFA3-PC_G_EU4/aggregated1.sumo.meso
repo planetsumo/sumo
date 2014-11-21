@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Fri Nov 21 16:25:11 2014 by SUMO Version dev-SVN-r17359I
+<!-- generated on Fri Nov 21 14:23:05 2014 by SUMO Version dev-SVN-r17357ID
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
@@ -46,9 +46,9 @@
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
         <edge id="1/0to2/0" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
-        <edge id="1/1to0/1" sampledSeconds="4000.00" CO_abs="0" CO2_abs="6720282.679111" HC_abs="1176.788000" PMx_abs="391.781944" NOx_abs="10662.752000" fuel_abs="2679.274853"
-            CO_normed="0" CO2_normed="52547.822860" HC_normed="9.201644" PMx_normed="3.063456" NOx_normed="83.375124" fuel_normed="20.950021"
-            traveltime="40.00" CO_perVeh="0" CO2_perVeh="67202.826791" HC_perVeh="11.767880" PMx_perVeh="3.917819" NOx_perVeh="106.627520" fuel_perVeh="26.792749"/>
+        <edge id="1/1to0/1" sampledSeconds="4000.00" CO_abs="77000.000000" CO2_abs="8448888.888889" HC_abs="532.222222" PMx_abs="49.888889" NOx_abs="2781.111111" fuel_abs="3631.925726"
+            CO_normed="602.085143" CO2_normed="66064.291920" HC_normed="4.161599" PMx_normed="0.390096" NOx_normed="21.746308" fuel_normed="28.399072"
+            traveltime="40.00" CO_perVeh="770.000000" CO2_perVeh="84488.888889" HC_perVeh="5.322222" PMx_perVeh="0.498889" NOx_perVeh="27.811111" fuel_perVeh="36.319257"/>
         <edge id="1/1to1/0" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
         <edge id="1/1to1/2" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
@@ -67,9 +67,9 @@
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
         <edge id="2/0to3/0" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
-        <edge id="2/1to1/1" sampledSeconds="4000.00" CO_abs="0" CO2_abs="6720282.679111" HC_abs="1176.788000" PMx_abs="391.781944" NOx_abs="10662.752000" fuel_abs="2679.274853"
-            CO_normed="0" CO2_normed="52547.822860" HC_normed="9.201644" PMx_normed="3.063456" NOx_normed="83.375124" fuel_normed="20.950021"
-            traveltime="40.00" CO_perVeh="0" CO2_perVeh="67202.826791" HC_perVeh="11.767880" PMx_perVeh="3.917819" NOx_perVeh="106.627520" fuel_perVeh="26.792749"/>
+        <edge id="2/1to1/1" sampledSeconds="4000.00" CO_abs="77000.000000" CO2_abs="8448888.888889" HC_abs="532.222222" PMx_abs="49.888889" NOx_abs="2781.111111" fuel_abs="3631.925726"
+            CO_normed="602.085143" CO2_normed="66064.291920" HC_normed="4.161599" PMx_normed="0.390096" NOx_normed="21.746308" fuel_normed="28.399072"
+            traveltime="40.00" CO_perVeh="770.000000" CO2_perVeh="84488.888889" HC_perVeh="5.322222" PMx_perVeh="0.498889" NOx_perVeh="27.811111" fuel_perVeh="36.319257"/>
         <edge id="2/1to2/0" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
         <edge id="2/1to2/2" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
@@ -88,9 +88,9 @@
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
         <edge id="3/0to4/0" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
-        <edge id="3/1to2/1" sampledSeconds="4000.00" CO_abs="0" CO2_abs="6720282.679111" HC_abs="1176.788000" PMx_abs="391.781944" NOx_abs="10662.752000" fuel_abs="2679.274853"
-            CO_normed="0" CO2_normed="52547.822860" HC_normed="9.201644" PMx_normed="3.063456" NOx_normed="83.375124" fuel_normed="20.950021"
-            traveltime="40.00" CO_perVeh="0" CO2_perVeh="67202.826791" HC_perVeh="11.767880" PMx_perVeh="3.917819" NOx_perVeh="106.627520" fuel_perVeh="26.792749"/>
+        <edge id="3/1to2/1" sampledSeconds="4000.00" CO_abs="77000.000000" CO2_abs="8448888.888889" HC_abs="532.222222" PMx_abs="49.888889" NOx_abs="2781.111111" fuel_abs="3631.925726"
+            CO_normed="602.085143" CO2_normed="66064.291920" HC_normed="4.161599" PMx_normed="0.390096" NOx_normed="21.746308" fuel_normed="28.399072"
+            traveltime="40.00" CO_perVeh="770.000000" CO2_perVeh="84488.888889" HC_perVeh="5.322222" PMx_perVeh="0.498889" NOx_perVeh="27.811111" fuel_perVeh="36.319257"/>
         <edge id="3/1to3/0" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
         <edge id="3/1to3/2" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
@@ -107,9 +107,9 @@
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
         <edge id="4/0to4/1" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
-        <edge id="4/1to3/1" sampledSeconds="4000.00" CO_abs="0" CO2_abs="6720282.679111" HC_abs="1176.788000" PMx_abs="391.781944" NOx_abs="10662.752000" fuel_abs="2679.274853"
-            CO_normed="0" CO2_normed="52547.822860" HC_normed="9.201644" PMx_normed="3.063456" NOx_normed="83.375124" fuel_normed="20.950021"
-            traveltime="40.00" CO_perVeh="0" CO2_perVeh="67202.826791" HC_perVeh="11.767880" PMx_perVeh="3.917819" NOx_perVeh="106.627520" fuel_perVeh="26.792749"/>
+        <edge id="4/1to3/1" sampledSeconds="4000.00" CO_abs="77000.000000" CO2_abs="8448888.888889" HC_abs="532.222222" PMx_abs="49.888889" NOx_abs="2781.111111" fuel_abs="3631.925726"
+            CO_normed="602.085143" CO2_normed="66064.291920" HC_normed="4.161599" PMx_normed="0.390096" NOx_normed="21.746308" fuel_normed="28.399072"
+            traveltime="40.00" CO_perVeh="770.000000" CO2_perVeh="84488.888889" HC_perVeh="5.322222" PMx_perVeh="0.498889" NOx_perVeh="27.811111" fuel_perVeh="36.319257"/>
         <edge id="4/1to4/0" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
             CO_normed="0" CO2_normed="0" HC_normed="0" PMx_normed="0" NOx_normed="0" fuel_normed="0"/>
         <edge id="4/1to4/2" sampledSeconds="0.00" CO_abs="0" CO2_abs="0" HC_abs="0" PMx_abs="0" NOx_abs="0" fuel_abs="0"
