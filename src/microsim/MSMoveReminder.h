@@ -183,7 +183,8 @@ public:
 
 #ifdef HAVE_INTERNAL
     void updateDetector(SUMOVehicle& veh, SUMOReal entryPos, SUMOReal leavePos,
-                        SUMOTime entryTime, SUMOTime currentTime, SUMOTime leaveTime);
+                        SUMOTime entryTime, SUMOTime currentTime, SUMOTime leaveTime,
+                        bool cleanUp);
 #endif
 
     /// @}
@@ -223,6 +224,7 @@ protected:
     std::string myDescription;
 
 #ifdef HAVE_INTERNAL
+private:
     std::map<SUMOVehicle*, std::pair<SUMOTime, SUMOReal> > myLastVehicleUpdateValues;
 #endif
 
