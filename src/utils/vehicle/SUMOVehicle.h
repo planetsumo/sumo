@@ -1,4 +1,4 @@
-/****************************************************************************/
+﻿/****************************************************************************/
 /// @file    SUMOVehicle.h
 /// @author  Michael Behrisch
 /// @author  Daniel Krajzewicz
@@ -85,6 +85,16 @@ public:
      * @return The vehicle's speed
      */
     virtual SUMOReal getSpeed() const = 0;
+
+    /** @brief Returns the vehicle's current Angle
+    * @return The vehicle's Angle
+    */
+    virtual SUMOReal getAngle() const = 0;
+
+    /** @brief Returns the lane the vehicle is on
+    * @return The vehicle's current lane
+    */
+    virtual MSLane* getLane() const = 0;
 
     /** @brief Returns the vehicle's type
      * @return The vehicle's type

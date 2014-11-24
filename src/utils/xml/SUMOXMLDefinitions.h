@@ -90,6 +90,8 @@ enum SumoXMLTag {
     SUMO_TAG_REROUTER,
     /// @brief A bus stop
     SUMO_TAG_BUS_STOP,
+    /// @brief A Charging Station
+    SUMO_TAG_CHRG_STN,
     /** a vtypeprobe detector */
     SUMO_TAG_VTYPEPROBE,
     /** a routeprobe detector */
@@ -312,6 +314,13 @@ enum SumoXMLAttr {
     SUMO_ATTR_SPEEDDEV,
     SUMO_ATTR_LANE_CHANGE_MODEL,
     SUMO_ATTR_MINGAP,
+
+    /* Charging Station */
+    SUMO_ATTR_CHRGPOWER,    // charge in W of the Charging Stations
+    SUMO_ATTR_EFFICIENCY,    // Eficiency of the charge inCharging Stations
+    SUMO_ATTR_CHRGINTRANSIT,// Allow/disallow charge in transit in Charging Stations
+    SUMO_ATTR_CHRGDELAY,    // Delay in the charge of charging stations
+
     /* Car following model attributes */
     SUMO_ATTR_SIGMA,    // used by: Krauss
     SUMO_ATTR_TAU,      // Krauss

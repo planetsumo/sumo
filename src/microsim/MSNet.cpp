@@ -76,6 +76,9 @@
 #include <utils/iodevices/OutputDevice_File.h>
 #include "output/MSFCDExport.h"
 #include "output/MSEmissionExport.h"
+
+#include "output/MSBatteryExport.h"
+
 #include "output/MSFullExport.h"
 #include "output/MSQueueExport.h"
 #include "output/MSVTKExport.h"
@@ -555,6 +558,11 @@ MSNet::writeOutput() {
         MSEmissionExport::write(OutputDevice::getDeviceByOption("emission-output"), myStep);
     }
 
+    // battery dumps
+    if (OptionsCont::getOptions().isSet("battery-output")) {
+        MSBatteryExport::write(OutputDevice::getDeviceByOption("battery-output"), myStep);
+    }
+
     // check full dumps
     if (OptionsCont::getOptions().isSet("full-output")) {
         MSFullExport::write(OutputDevice::getDeviceByOption("full-output"), myStep);
@@ -715,13 +723,42 @@ MSNet::addBusStop(MSBusStop* busStop) {
     return myBusStopDict.add(busStop->getID(), busStop);
 }
 
+bool
+MSNet::addChrgStn(MSChrgStn* chrgStn) 
+{
+    return myChrgStnDict.add(chrgStn->getID(), chrgStn);
+}
 
 MSBusStop*
 MSNet::getBusStop(const std::string& id) const {
     return myBusStopDict.get(id);
 }
 
+MSChrgStn* 
+MSNet::getChrgStn(const std::string& id) const
+{
+    return myChrgStnDict.get(id);
+}
 
+std::string
+MSNet::getChrgStnID(const MSLane* lane, const SUMOReal pos) const 
+{
+    const std::map<std::string, MSChrgStn*>& vals = myChrgStnDict.getMyMap();
+
+    for (std::map<std::string, MSChrgStn*>::const_iterator it = vals.begin(); it != vals.end(); ++it) 
+    {
+        MSChrgStn* chrgStn = it->second;
+
+        if (&chrgStn->getLane() == lane && chrgStn->getBeginLanePosition() <= pos && chrgStn->getEndLanePosition() >= pos) 
+        {
+            return chrgStn->getID();
+        }
+    }
+
+    return "";
+}
+
+/** **/
 std::string
 MSNet::getBusStopID(const MSLane* lane, const SUMOReal pos) const {
     const std::map<std::string, MSBusStop*>& vals = myBusStopDict.getMyMap();

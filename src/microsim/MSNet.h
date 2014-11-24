@@ -50,6 +50,7 @@
 #include <utils/geom/Position.h>
 #include <utils/common/SUMOTime.h>
 #include <microsim/trigger/MSBusStop.h>
+#include <microsim/trigger/MSChrgStn.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/NamedObjectCont.h>
 #include <utils/vehicle/SUMOAbstractRouter.h>
@@ -412,6 +413,7 @@ public:
      */
     bool addBusStop(MSBusStop* busStop);
 
+    bool addChrgStn(MSChrgStn* chrgStn);
 
     /** @brief Returns the named bus stop
      * @param[in] id The id of the bus stop to return.
@@ -419,6 +421,11 @@ public:
      */
     MSBusStop* getBusStop(const std::string& id) const;
 
+    /** @brief Returns the named charging station
+     * @param[in] id The id of the charging station to return.
+     * @return The named charging station, or 0 if no such stop exists
+     */
+    MSChrgStn* getChrgStn(const std::string& id) const;
 
     /** @brief Returns the bus stop close to the given position
      * @param[in] lane the lane of the bus stop to return.
@@ -428,6 +435,13 @@ public:
     std::string getBusStopID(const MSLane* lane, const SUMOReal pos) const;
     /// @}
 
+    /** @brief Returns the charging station close to the given position
+     * @param[in] lane the lane of the charging station to return.
+     * @param[in] pos the position of the bus stop to return.
+     * @return The charging station id on the location, or "" if no such stop exists
+     */
+    std::string getChrgStnID(const MSLane* lane, const SUMOReal pos) const;
+    /// @}
 
 
     /// @name Notification about vehicle state changes
@@ -619,6 +633,9 @@ protected:
 
     /// @brief Dictionary of bus stops
     NamedObjectCont<MSBusStop*> myBusStopDict;
+
+    /// @brief Dictionary of charging Stations
+    NamedObjectCont<MSChrgStn*> myChrgStnDict;
 
     /// @brief Container for vehicle state listener
     std::vector<VehicleStateListener*> myVehicleStateListeners;

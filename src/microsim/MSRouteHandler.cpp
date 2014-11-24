@@ -674,16 +674,27 @@ MSRouteHandler::addStop(const SUMOSAXAttributes& attrs) {
     }
     // try to parse the assigned bus stop
     if (stop.busstop != "") {
-        // ok, we have obviously a bus stop
+        // ok, we have a bus stop
         MSBusStop* bs = MSNet::getInstance()->getBusStop(stop.busstop);
+        
         if (bs != 0) {
             const MSLane& l = bs->getLane();
             stop.lane = l.getID();
             stop.endPos = bs->getEndLanePosition();
             stop.startPos = bs->getBeginLanePosition();
         } else {
-            WRITE_ERROR("The bus stop '" + stop.busstop + "' is not known" + errorSuffix);
-            return;
+            // ok, we have a Charging station
+            bs = MSNet::getInstance()->getChrgStn(stop.busstop);
+
+            if (bs != 0) {
+                const MSLane& l = bs->getLane();
+                stop.lane = l.getID();
+                stop.endPos = bs->getEndLanePosition();
+                stop.startPos = bs->getBeginLanePosition();
+            } else {
+                WRITE_ERROR("The bus stop or charging station '" + stop.busstop + "' is not known" + errorSuffix);
+                return;
+            }
         }
     } else {
         // no, the lane and the position should be given

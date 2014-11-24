@@ -40,9 +40,9 @@ $(GUI_TESTS) \
 ../../src/traci-server/libtraciserver.a \
 ../../src/microsim/libmicrosim.a \
 ../../src/traci-server/TraCIServer.o \
+../../src/microsim/devices/libmicrosimdevs.a \
 ../../src/microsim/trigger/libmicrosimtrigger.a \
 ../../src/microsim/cfmodels/libmicrosimcfmodels.a \
-../../src/microsim/devices/libmicrosimdevs.a \
 ../../src/microsim/output/libmicrosimoutput.a \
 ../../src/microsim/MSMoveReminder.o \
 ../../src/microsim/MSRouteHandler.o \
