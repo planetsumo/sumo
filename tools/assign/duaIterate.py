@@ -22,12 +22,13 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 from __future__ import print_function
-import os, sys, subprocess, types, shutil
+import os, sys, subprocess, types, shutil, glob
 from datetime import datetime
 from optparse import OptionParser
 from costMemory import CostMemory
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+import sumolib
 from sumolib.options import get_long_option_names
 
 
@@ -49,8 +50,7 @@ def addGenericOptions(optParser):
                          type="int", default=900, help="Set main weights aggregation period [default: %default]")
     optParser.add_option("-m", "--mesosim", action="store_true",
                          default=False, help="Whether mesosim shall be used")
-    optParser.add_option("-p", "--path",
-                         default=os.environ.get("SUMO_BINDIR", ""), help="Path to binaries [default: %default]")
+    optParser.add_option("-p", "--path", help="Path to binaries")
     optParser.add_option("-y", "--absrand", action="store_true",
                          default= False, help="use current time to generate random number")
     optParser.add_option("-I", "--nointernal-link", action="store_true", dest="internallink",
@@ -75,6 +75,8 @@ def addGenericOptions(optParser):
     optParser.add_option("--cost-modifier", dest="costmodifier", type="choice",
                          choices=('grohnde', 'isar', 'None'), 
                          default='None', help="Whether to modify link travel costs of the given routes")
+    optParser.add_option("-7", "--zip", action="store_true",
+                         default=False, help="zip old iterations using 7zip")
 
 def initOptions():
     optParser = OptionParser()
@@ -112,6 +114,10 @@ def initOptions():
                          type="int", default=0, help="First DUA step [default: %default]")
     optParser.add_option("-l", "--last-step", dest="lastStep",
                          type="int", default=50, help="Last DUA step [default: %default]")
+    optParser.add_option("--convergence-iterations", dest="convIt",
+                         type="int", default=10, help="Number of iterations to use for convergence calculation [default: %default]")
+    optParser.add_option("--max-convergence-deviation", dest="convDev",
+                         type="float", help="Maximum relative standard deviation in travel times [default: %default]")
     optParser.add_option("-D", "--districts", help="use districts as sources and targets", metavar="FILE")
     optParser.add_option("-x", "--vehroute-file",  dest="routefile", type="choice",
                          choices=('None', 'routesonly', 'detailed'), 
@@ -141,7 +147,7 @@ def initOptions():
     optParser.add_option("-N", "--calculate-oldprob", action="store_true", dest="caloldprob",
                          default=False, help="calculate the old route probabilities with the free-flow travel times when using the external gawron calculation")   
     optParser.add_option("--weight-memory", action="store_true", default=False, dest="weightmemory",
-                         help="smoothe edge weights across iterations")    
+                         help="smooth edge weights across iterations")    
     optParser.add_option("--pessimism", default=1, type="float", help="give traffic jams a higher weight")
     optParser.add_option("--clean-alt", action="store_true", dest="clean_alt",
                          default=False, help="Whether old rou.alt.xml files shall be removed")
@@ -255,6 +261,7 @@ def writeSUMOConf(sumoBinary, step, options, additional_args, route_files):
     comma = (',' if options.additional != "" else '')
     sumoCmd = [sumoBinary,
         '--save-configuration', "iteration_%03i.sumocfg" % step,
+        '--log', "iteration_%03i.sumo.log" % step,
         '--net-file', options.net,
         '--route-files', route_files,
         '--additional-files', "%s%s%s" % (detectorfile, comma, options.additional),
@@ -401,11 +408,11 @@ def main(args=None):
         optParser.error("Option --net-file is mandatory")
     if (not options.trips and not options.routes and not options.flows) or (options.trips and options.routes):
         optParser.error("Either --trips, --flows, or --routes have to be given!")
-    duaBinary = os.environ.get("DUAROUTER_BINARY", os.path.join(options.path, "duarouter"))
+    duaBinary = sumolib.checkBinary("duarouter", options.path)
     if options.mesosim:
-        sumoBinary = os.environ.get("SUMO_BINARY", os.path.join(options.path, "meso"))
+        sumoBinary = sumolib.checkBinary("meso", options.path)
     else:
-        sumoBinary = os.environ.get("SUMO_BINARY", os.path.join(options.path, "sumo"))
+        sumoBinary = sumolib.checkBinary("sumo", options.path)
     if options.addweights and options.weightmemory:
         optParser.error("Options --addweights and --weight-memory are mutually exclusive.")
 
@@ -421,7 +428,17 @@ def main(args=None):
 
     sumo_args = assign_remaining_args(sumoBinary, 'sumo', remaining_args)
     
-    log = open("dua-log.txt", "w+")
+    sys.stdout = sumolib.TeeFile(sys.stdout, open("stdout.log", "w+"))
+    log = open("dua.log", "w+")
+    if options.zip:
+        if options.clean_alt:
+            sys.exit("Error: Please use either --zip or --clean-alt but not both.")
+        try:
+            subprocess.call("7z", stdout=open(os.devnull, 'wb'))
+        except:
+            sys.exit("Error: Could not locate 7z, please make sure its on the search path.")
+        zipProcesses = {}
+        zipLog = open("7zip.log", "w+")
     starttime = datetime.now()
     if options.trips:
         input_demands = options.trips.split(",")
@@ -459,6 +476,7 @@ def main(args=None):
             print(">>> Loading %s" % dumpfile)
             costmemory.load_costs(dumpfile, step, get_scale(options, step))
 
+    avgTT = sumolib.miscutils.Statistics()
     for step in range(options.firstStep, options.lastStep):
         btimeA = datetime.now()
         print("> Executing step %s" % step)
@@ -536,11 +554,48 @@ def main(args=None):
             currentDir = os.getcwd()
             costModifier(get_weightfilename(options, step, "dump"), step, "dump", options.aggregation, currentDir, options.costmodifier, 'dua-iterate')
 
+        if options.zip and step - options.firstStep > 1:
+            # this is a little hackish since we zip and remove all files by glob, which may have undesired side effects
+            # also note that the 7z file does not have an "_" before the iteration number in order to be not picked up by the remove
+            for s in zipProcesses.keys():
+                if zipProcesses[s].poll() is not None:
+                    for f in glob.glob("*_%03i*" % s):
+                        try:
+                            os.remove(f)
+                        except:
+                            print("Could not remove %s" % f, file=zipLog)
+                    del zipProcesses[s]
+            zipStep = step - 2
+            zipProcesses[zipStep] = subprocess.Popen(["7z", "a", "iteration%03i.7z" % zipStep] + glob.glob("*_%03i*" % zipStep), stdout=zipLog, stderr=zipLog)
+
+        converged = False
+        if options.convDev:
+            sum = 0.
+            count = 0
+            for t in sumolib.output.parse_fast("tripinfo_%03i.xml" % step, 'tripinfo', ['duration']):
+                sum += float(t.duration)
+                count += 1
+            avgTT.add(sum / count)
+            relStdDev = avgTT.relStdDev(options.convIt)
+            print("< relative travel time deviation in the last %s steps: %.05f" % (min(avgTT.count(), options.convIt), relStdDev))
+            if avgTT.count() >= options.convIt and relStdDev < options.convDev:
+                converged = True
     
         print("< Step %s ended (duration: %s)" % (step, datetime.now() - btimeA))
         print("------------------\n")
 
         log.flush()
+        if converged:
+            break
+    if options.zip:
+        for s in zipProcesses.keys():
+            zipProcesses[s].wait()
+            for f in glob.glob("*_%03i*" % s):
+                try:
+                    os.remove(f)
+                except:
+                    print("Could not remove %s" % f, file=zipLog)
+        zipLog.close()
     print("dua-iterate ended (duration: %s)" % (datetime.now() - starttime))
     
     log.close()

@@ -16,7 +16,7 @@ if test $# -ge 6; then
 fi
 
 rm -f $STATUSLOG
-echo -n "$FILEPREFIX, " > $STATUSLOG
+echo -n "$FILEPREFIX " > $STATUSLOG
 date >> $STATUSLOG
 echo "--" >> $STATUSLOG
 cd $PREFIX/sumo
@@ -29,10 +29,10 @@ if test -d "$NIGHTDIR"; then
   tools/build/checkSvnProps.py
 fi
 make -f Makefile.cvs >> $MAKELOG 2>&1 || (echo "autoreconf failed" | tee -a $STATUSLOG; tail -10 $MAKELOG)
-./configure --prefix=$PREFIX/sumo \
- --with-gtest=$PREFIX/gtest $CONFIGURE_OPT >> $MAKELOG 2>&1 || (echo "configure failed" | tee -a $STATUSLOG; tail -10 $MAKELOG)
+./configure --prefix=$PREFIX/sumo $CONFIGURE_OPT >> $MAKELOG 2>&1 || (echo "configure failed" | tee -a $STATUSLOG; tail -10 $MAKELOG)
 if make >> $MAKELOG 2>&1; then
   $PREFIX/sumo/unittest/src/sumo-unittest >> $MAKELOG 2>&1 || (echo "unit tests failed" | tee -a $STATUSLOG; tail -10 $MAKELOG)
+  $PREFIX/sumo/unittest/testSuiteTools.py >> $MAKELOG 2>&1 || (echo "python unit tests failed" | tee -a $STATUSLOG; tail -10 $MAKELOG)
   if make install >> $MAKELOG 2>&1; then
     if test -d "$NIGHTDIR"; then
       make distcheck >> $MAKELOG 2>&1 || (echo "make distcheck failed" | tee -a $STATUSLOG; tail -10 $MAKELOG)
@@ -64,7 +64,7 @@ if test -e $SUMO_BINDIR/sumo -a $SUMO_BINDIR/sumo -nt $PREFIX/sumo/configure; th
   export TEXTTEST_TMP=$PREFIX/texttesttmp
 #  find $SUMO_BATCH_RESULT -mtime +20 -type f | xargs -r rm
   rm -rf $TEXTTEST_TMP/*
-  if test $FILEPREFIX == meso; then
+  if test $FILEPREFIX == meso -o $FILEPREFIX == clangInternal; then
     tests/runInternalTests.py "b $FILEPREFIX" &> $TESTLOG
   else
     tests/runTests.sh -b $FILEPREFIX -name `date +%d%b%y`r$SVNREV &> $TESTLOG
