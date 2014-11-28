@@ -76,7 +76,7 @@ MSLCM_DK2008::MSLCM_DK2008(MSVehicle& v)
       myLeadingBlockerLength(0), myLeftSpace(0) {}
 
 MSLCM_DK2008::~MSLCM_DK2008() {
-    changed();
+    changed(0);
 }
 
 int
@@ -241,7 +241,7 @@ MSLCM_DK2008::wantsChangeToRight(MSAbstractLaneChangeModel::MSLCMessager& msgPas
     //  in this case, we do not want to get to the dead-end of an on-ramp
     //
     // THIS RULE APPLIES ONLY TO CHANGING TO THE RIGHT LANE
-    if (bestLaneOffset == 0 && preb[currIdx - 1].bestLaneOffset != 0 && myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle) > 80. / 3.6) {
+    if (bestLaneOffset == 0 && preb[currIdx - 1].bestLaneOffset != 0 && myVehicle.getLane()->getSpeedLimit() > 80. / 3.6) {
         return ret | LCA_STAY | LCA_STRATEGIC;
     }
     // --------
@@ -548,7 +548,7 @@ MSLCM_DK2008::patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMORe
     // just to make sure to be notified about lane chaning end
     if (myVehicle.getLane()->getEdge().getLanes().size() == 1 || myVehicle.getLane()->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
         // remove chaning information if on a road with a single lane
-        changed();
+        changed(0);
         return wanted;
     }
 
@@ -624,14 +624,14 @@ MSLCM_DK2008::inform(void* info, MSVehicle* /*sender*/) {
 
 
 void
-MSLCM_DK2008::changed() {
+MSLCM_DK2008::changed(int dir) {
     myOwnState = 0;
-    myLastLaneChangeOffset = 0;
     myChangeProbability = 0;
     myLeadingBlockerLength = 0;
     myLeftSpace = 0;
     myVSafes.clear();
     myDontBrake = false;
+    initLastLaneChangeOffset(dir);
 }
 
 

@@ -46,6 +46,9 @@
 /* Define for dynamic Fox linkage */
 #define FOXDLL 1
 
+/* Define if FOX toolkit is present. */
+#define HAVE_FOX 1
+
 /* defines the precision of floats */
 #define SUMOReal double
 
@@ -69,7 +72,7 @@
 
 /* Version number of package */
 #ifndef HAVE_VERSION_H
-#define VERSION_STRING "0.21.0"
+#define VERSION_STRING "0.22.0"
 #endif
 
 /* Define if junction internal lanes should be used. */

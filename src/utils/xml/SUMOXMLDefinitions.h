@@ -186,6 +186,7 @@ enum SumoXMLTag {
     SUMO_TAG_BREAKPOINTS_FILE,
     SUMO_TAG_LOCATION,
     SUMO_TAG_COLORSCHEME,
+    SUMO_TAG_SCALINGSCHEME,
     SUMO_TAG_ENTRY,
 
     SUMO_TAG_CF_KRAUSS,
@@ -204,6 +205,7 @@ enum SumoXMLTag {
     SUMO_TAG_RIDE,
     SUMO_TAG_WALK,
 
+    SUMO_TAG_TRAJECTORIES,
     SUMO_TAG_TIMESTEP,
     SUMO_TAG_TIMESLICE,
     SUMO_TAG_ACTORCONFIG,
@@ -629,6 +631,8 @@ enum LinkState {
     LINKSTATE_TL_GREEN_MINOR = 'g',
     /// @brief The link has red light (must brake)
     LINKSTATE_TL_RED = 'r',
+    /// @brief The link has red light (must brake) but indicates upcoming green
+    LINKSTATE_TL_REDYELLOW = 'u',
     /// @brief The link has yellow light, may pass
     LINKSTATE_TL_YELLOW_MAJOR = 'Y',
     /// @brief The link has yellow light, has to brake anyway

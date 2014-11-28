@@ -111,6 +111,11 @@ MSMeanData::MeanDataValues::notifyMove(SUMOVehicle& veh, SUMOReal oldPos, SUMORe
 
 bool
 MSMeanData::MeanDataValues::notifyLeave(SUMOVehicle& /*veh*/, SUMOReal /*lastPos*/, MSMoveReminder::Notification reason) {
+#ifdef HAVE_INTERNAL
+    if (MSGlobals::gUseMesoSim) {
+        return false; // reminder is re-added on every segment (@recheck for performance)
+    }
+#endif
     return reason == MSMoveReminder::NOTIFICATION_JUNCTION;
 }
 
@@ -283,6 +288,7 @@ MSMeanData::init() {
                 } else {
                     data = createValues(0, lanes[0]->getLength(), false);
                 }
+                data->setDescription("meandata_" + (*e)->getID());
                 myMeasures.back().push_back(data);
                 MESegment* s = MSGlobals::gMesoNet->getSegmentForEdge(**e);
                 while (s != 0) {
@@ -367,7 +373,7 @@ MSMeanData::writeEdge(OutputDevice& dev,
             s->prepareDetectorForWriting(*data);
             s = s->getNextSegment();
         }
-        if (writePrefix(dev, *data, SUMO_TAG_EDGE, edge->getID())) {
+        if (writePrefix(dev, *data, SUMO_TAG_EDGE, getEdgeID(edge))) {
             data->write(dev, stopTime - startTime,
                         (SUMOReal)edge->getLanes().size(),
                         myPrintDefaults ? edge->getLength() / edge->getSpeedLimit() : -1.);

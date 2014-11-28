@@ -41,6 +41,7 @@
 
 #include <guisim/GUINet.h>
 #include <guisim/GUILane.h>
+#include <microsim/MSGlobals.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSVehicle.h>
 
@@ -249,7 +250,7 @@ GUIApplicationWindow::dependentBuild(bool game) {
     // set the status bar
     myStatusbar->getStatusLine()->setText("Ready.");
     // set the caption
-    setTitle(MFXUtils::getTitleText(("SUMO " + std::string(VERSION_STRING)).c_str()));
+    setTitle(MFXUtils::getTitleText(("SUMO " + getBuildName(VERSION_STRING)).c_str()));
 
     // start the simulation-thread (it will loop until the application ends deciding by itself whether to perform a step or not)
     myRunThread->start();
@@ -321,7 +322,7 @@ GUIApplicationWindow::~GUIApplicationWindow() {
 
     while (!myEvents.empty()) {
         // get the next event
-        GUIEvent* e = static_cast<GUIEvent*>(myEvents.top());
+        GUIEvent* e = myEvents.top();
         myEvents.pop();
         delete e;
     }
@@ -703,7 +704,7 @@ GUIApplicationWindow::onCmdOpenConfiguration(FXObject*, FXSelector, void*) {
     if (opendialog.execute()) {
         gCurrentFolder = opendialog.getDirectory();
         std::string file = opendialog.getFilename().text();
-        load(file, false);
+        loadConfigOrNet(file, false);
         myRecentConfigs.appendFile(file.c_str());
     }
     return 1;
@@ -723,7 +724,7 @@ GUIApplicationWindow::onCmdOpenNetwork(FXObject*, FXSelector, void*) {
     if (opendialog.execute()) {
         gCurrentFolder = opendialog.getDirectory();
         std::string file = opendialog.getFilename().text();
-        load(file, true);
+        loadConfigOrNet(file, true);
         myRecentNets.appendFile(file.c_str());
     }
     return 1;
@@ -732,7 +733,7 @@ GUIApplicationWindow::onCmdOpenNetwork(FXObject*, FXSelector, void*) {
 
 long
 GUIApplicationWindow::onCmdReload(FXObject*, FXSelector, void*) {
-    load("", false, true);
+    loadConfigOrNet("", false, true);
     return 1;
 }
 
@@ -744,7 +745,7 @@ GUIApplicationWindow::onCmdOpenRecent(FXObject* sender, FXSelector, void* data) 
         return 1;
     }
     std::string file((const char*)data);
-    load(file, sender == &myRecentNets);
+    loadConfigOrNet(file, sender == &myRecentNets);
     return 1;
 }
 
@@ -1015,7 +1016,7 @@ void
 GUIApplicationWindow::eventOccured() {
     while (!myEvents.empty()) {
         // get the next event
-        GUIEvent* e = static_cast<GUIEvent*>(myEvents.top());
+        GUIEvent* e = myEvents.top();
         myEvents.pop();
         // process
         switch (e->getOwnType()) {
@@ -1111,7 +1112,7 @@ GUIApplicationWindow::handleEvent_SimulationLoaded(GUIEvent* e) {
                 setTitle("SUMO Traffic Light Game");
             } else {
                 // set simulation name on the caption
-                std::string caption = "SUMO " + std::string(VERSION_STRING);
+                std::string caption = "SUMO " + getBuildName(VERSION_STRING);
                 setTitle(MFXUtils::getTitleText(caption.c_str(), ec->myFile.c_str()));
             }
             // set simulation step begin information
@@ -1141,7 +1142,7 @@ GUIApplicationWindow::handleEvent_SimulationStep(GUIEvent*) {
 void
 GUIApplicationWindow::handleEvent_Message(GUIEvent* e) {
     GUIEvent_Message* ec = static_cast<GUIEvent_Message*>(e);
-    myMessageWindow->appendText(ec->getOwnType(), ec->getMsg());
+    myMessageWindow->appendMsg(ec->getOwnType(), ec->getMsg());
 }
 
 
@@ -1166,6 +1167,7 @@ GUIApplicationWindow::checkGamingEvents() {
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
     MSVehicleControl::constVehIt it = vc.loadedVehBegin();
     MSVehicleControl::constVehIt end = vc.loadedVehEnd();
+#ifdef HAVE_INTERNAL
     if (myJamSounds.getOverallProb() > 0) {
         // play honking sound if some vehicle is waiting too long
         for (; it != end; ++it) {
@@ -1181,6 +1183,7 @@ GUIApplicationWindow::checkGamingEvents() {
             }
         }
     }
+#endif
     // updated peformance indicators
 
     for (it = vc.loadedVehBegin(); it != end; ++it) {
@@ -1199,7 +1202,7 @@ GUIApplicationWindow::checkGamingEvents() {
 
 
 void
-GUIApplicationWindow::load(const std::string& file, bool isNet, bool isReload) {
+GUIApplicationWindow::loadConfigOrNet(const std::string& file, bool isNet, bool isReload) {
     getApp()->beginWaitCursor();
     myAmLoading = true;
     closeAllWindows();
@@ -1208,7 +1211,7 @@ GUIApplicationWindow::load(const std::string& file, bool isNet, bool isReload) {
         setStatusBarText("Reloading.");
     } else {
         gSchemeStorage.saveViewport(0, 0, -1); // recenter view
-        myLoadThread->load(file, isNet);
+        myLoadThread->loadConfigOrNet(file, isNet);
         setStatusBarText("Loading '" + file + "'.");
     }
     update();
@@ -1263,7 +1266,7 @@ GUIApplicationWindow::closeAllWindows() {
     // delete the simulation
     myRunThread->deleteSim();
     // reset the caption
-    setTitle(MFXUtils::getTitleText(("SUMO " + std::string(VERSION_STRING)).c_str()));
+    setTitle(MFXUtils::getTitleText(("SUMO " + getBuildName(VERSION_STRING)).c_str()));
     // delete other children
     while (myTrackerWindows.size() != 0) {
         delete myTrackerWindows[0];
@@ -1300,7 +1303,7 @@ GUIApplicationWindow::getCurrentSimTime() const {
 
 void
 GUIApplicationWindow::loadOnStartup() {
-    load("", false);
+    loadConfigOrNet("", false);
 }
 
 

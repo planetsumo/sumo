@@ -183,7 +183,8 @@ public:
 
 #ifdef HAVE_INTERNAL
     void updateDetector(SUMOVehicle& veh, SUMOReal entryPos, SUMOReal leavePos,
-                        SUMOTime entryTime, SUMOTime currentTime, SUMOTime leaveTime);
+                        SUMOTime entryTime, SUMOTime currentTime, SUMOTime leaveTime,
+                        bool cleanUp);
 #endif
 
     /// @}
@@ -215,14 +216,20 @@ public:
         return myDescription;
     }
 
+#ifdef HAVE_INTERNAL
+protected:
+    void removeFromVehicleUpdateValues(SUMOVehicle& veh);
+#endif
 
 protected:
+
     /// @brief Lane on which the reminder works
     MSLane* const myLane;
     /// @brief a description of this moveReminder
     std::string myDescription;
 
 #ifdef HAVE_INTERNAL
+private:
     std::map<SUMOVehicle*, std::pair<SUMOTime, SUMOReal> > myLastVehicleUpdateValues;
 #endif
 

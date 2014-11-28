@@ -32,6 +32,7 @@
 #include <config.h>
 #endif
 
+#include <math.h>
 #include <string>
 #include <utils/common/StdDefs.h>
 #include <utils/common/FileHelpers.h>
@@ -85,17 +86,20 @@ public:
     /** @brief Computes the vehicle's safe speed without a leader
      *
      * Returns the velocity of the vehicle in dependence to the length of the free street and the target
-     *  velocity at the end of the free range.
+     *  velocity at the end of the free range. If onInsertion is true, the vehicle may still brake
+     *  before the next movement.
      * @param[in] veh The vehicle (EGO)
      * @param[in] speed The vehicle's speed
      * @param[in] seen The look ahead distance
      * @param[in] maxSpeed The maximum allowed speed
+     * @param[in] onInsertion whether speed at insertion is asked for
      * @return EGO's safe speed
      */
-    virtual SUMOReal freeSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal seen, SUMOReal maxSpeed) const;
+    virtual SUMOReal freeSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal seen,
+                               SUMOReal maxSpeed, const bool onInsertion = false) const;
 
 
-    /** @brief Computes the vehicle's safe speed (no dawdling)
+    /** @brief Computes the vehicle's follow speed (no dawdling)
      *
      * Returns the velocity of the vehicle in dependence to the vehicle's and its leader's values and the distance between them.
      * @param[in] veh The vehicle (EGO)
@@ -105,6 +109,21 @@ public:
      * @return EGO's safe speed
      */
     virtual SUMOReal followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap2pred, SUMOReal predSpeed, SUMOReal predMaxDecel) const = 0;
+
+
+    /** @brief Computes the vehicle's safe speed (no dawdling)
+     * This method is used during the insertion stage. Whereas the method
+     * followSpeed returns the desired speed which may be lower than the safe
+     * speed, this method only considers safety constraints
+     *
+     * Returns the velocity of the vehicle in dependence to the vehicle's and its leader's values and the distance between them.
+     * @param[in] veh The vehicle (EGO)
+     * @param[in] speed The vehicle's speed
+     * @param[in] gap2pred The (netto) distance to the LEADER
+     * @param[in] predSpeed The speed of LEADER
+     * @return EGO's safe speed
+     */
+    virtual SUMOReal insertionFollowSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap2pred, SUMOReal predSpeed, SUMOReal predMaxDecel) const;
 
 
     /** @brief Computes the vehicle's safe speed for approaching a non-moving obstacle (no dawdling)
@@ -224,6 +243,25 @@ public:
     }
 
 
+    inline static SUMOReal freeSpeed(const SUMOReal decel, const SUMOReal seen, const SUMOReal maxSpeed, const bool onInsertion) {
+        // adapt speed to succeeding lane, no reaction time is involved
+        // when breaking for y steps the following distance g is covered
+        // (drive with v in the final step)
+        // g = (y^2 + y) * 0.5 * b + y * v
+        // y = ((((sqrt((b + 2.0*v)*(b + 2.0*v) + 8.0*b*g)) - b)*0.5 - v)/b)
+        const SUMOReal v = SPEED2DIST(maxSpeed);
+        if (seen < v) {
+            return maxSpeed;
+        }
+        const SUMOReal b = ACCEL2DIST(decel);
+        const SUMOReal y = MAX2(0.0, ((sqrt((b + 2.0 * v) * (b + 2.0 * v) + 8.0 * b * seen) - b) * 0.5 - v) / b);
+        const SUMOReal yFull = floor(y);
+        const SUMOReal exactGap = (yFull * yFull + yFull) * 0.5 * b + yFull * v + (y > yFull ? v : 0.0);
+        const SUMOReal fullSpeedGain = (yFull + (onInsertion ? 1. : 0.)) * ACCEL2SPEED(decel);
+        return DIST2SPEED(MAX2((SUMOReal)0.0, seen - exactGap) / (yFull + 1)) + fullSpeedGain + maxSpeed;
+    }
+
+
     /** @brief Returns the minimum gap to reserve if the leader is braking at maximum
       * @param[in] speed EGO's speed
       * @param[in] leaderSpeed LEADER's speed
@@ -283,6 +321,21 @@ public:
     }
     /// @}
 
+protected:
+    /** @brief Returns the maximum safe velocity for following the given leader
+     * @param[in] gap2pred The (netto) distance to the LEADER
+     * @param[in] predSpeed The LEADER's speed
+     * @param[in] predMaxDecel The LEADER's maximum deceleration
+     * @return the safe velocity
+     */
+    SUMOReal maximumSafeFollowSpeed(SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel) const;
+
+
+    /** @brief Returns the maximum velocity for stopping within gap
+     * This depends stronlgy on the position update model
+     * @param[in] gap The (netto) distance to the LEADER
+     */
+    SUMOReal maximumSafeStopSpeed(SUMOReal gap) const;
 
 protected:
     /// @brief The type to which this model definition belongs to

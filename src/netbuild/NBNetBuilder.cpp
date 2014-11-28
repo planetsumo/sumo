@@ -52,10 +52,7 @@
 #include <utils/geom/GeoConvHelper.h>
 #include "NBAlgorithms.h"
 #include "NBAlgorithms_Ramps.h"
-
-#ifdef HAVE_INTERNAL
-#include <internal/HeightMapper.h>
-#endif
+#include "NBHeightMapper.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -66,8 +63,7 @@
 // method definitions
 // ===========================================================================
 NBNetBuilder::NBNetBuilder() :
-    myEdgeCont(myTypeCont),
-    myHaveSeenRoundabouts(false)
+    myEdgeCont(myTypeCont)
 {}
 
 
@@ -146,18 +142,17 @@ NBNetBuilder::compute(OptionsCont& oc,
         myNodeCont.computeNodeShapes(oc.getBool("lefthand"));
         myEdgeCont.computeEdgeShapes();
         // preliminary roundabout computations to avoid destroying roundabouts
-        if (oc.getBool("roundabouts.guess") || (oc.isDefault("roundabouts.guess") && myHaveSeenRoundabouts)) {
-            assert(myRoundabouts.size() == 0);
-            myEdgeCont.guessRoundabouts(myRoundabouts);
-            for (std::vector<EdgeVector>::const_iterator it_round = myRoundabouts.begin();
-                    it_round != myRoundabouts.end(); ++it_round) {
-                std::vector<std::string> nodeIDs;
-                for (EdgeVector::const_iterator it_edge = it_round->begin(); it_edge != it_round->end(); ++it_edge) {
-                    nodeIDs.push_back((*it_edge)->getToNode()->getID());
-                }
-                myNodeCont.addJoinExclusion(nodeIDs);
+        if (oc.getBool("roundabouts.guess")) {
+            myEdgeCont.guessRoundabouts();
+        }
+        const std::set<EdgeSet>& roundabouts = myEdgeCont.getRoundabouts();
+        for (std::set<EdgeSet>::const_iterator it_round = roundabouts.begin();
+                it_round != roundabouts.end(); ++it_round) {
+            std::vector<std::string> nodeIDs;
+            for (EdgeSet::const_iterator it_edge = it_round->begin(); it_edge != it_round->end(); ++it_edge) {
+                nodeIDs.push_back((*it_edge)->getToNode()->getID());
             }
-            myRoundabouts.clear();
+            myNodeCont.addJoinExclusion(nodeIDs);
         }
         numJoined += myNodeCont.joinJunctions(oc.getFloat("junctions.join-dist"), myDistrictCont, myEdgeCont, myTLLCont);
         // reset geometry to avoid influencing subsequent steps (ramps.guess)
@@ -307,11 +302,12 @@ NBNetBuilder::compute(OptionsCont& oc,
     myEdgeCont.computeEdge2Edges(oc.getBool("no-left-connections"));
     PROGRESS_DONE_MESSAGE();
     //
-    if (oc.getBool("roundabouts.guess") || (oc.isDefault("roundabouts.guess") && myHaveSeenRoundabouts)) {
+    if (oc.getBool("roundabouts.guess")) {
         PROGRESS_BEGIN_MESSAGE("Guessing and setting roundabouts");
-        myEdgeCont.guessRoundabouts(myRoundabouts);
+        myEdgeCont.guessRoundabouts();
         PROGRESS_DONE_MESSAGE();
     }
+    myEdgeCont.markRoundabouts();
     //
     PROGRESS_BEGIN_MESSAGE("Computing approaching lanes");
     myEdgeCont.computeLanes2Edges(buildCrossingsAndWalkingAreas);
@@ -440,9 +436,8 @@ bool
 NBNetBuilder::transformCoordinates(Position& from, bool includeInBoundary, GeoConvHelper* from_srs) {
     Position orig(from);
     bool ok = GeoConvHelper::getProcessing().x2cartesian(from, includeInBoundary);
-#ifdef HAVE_INTERNAL
     if (ok) {
-        const HeightMapper& hm = HeightMapper::get();
+        const NBHeightMapper& hm = NBHeightMapper::get();
         if (hm.ready()) {
             if (from_srs != 0 && from_srs->usingGeoProjection()) {
                 from_srs->cartesian2geo(orig);
@@ -451,9 +446,6 @@ NBNetBuilder::transformCoordinates(Position& from, bool includeInBoundary, GeoCo
             from = Position(from.x(), from.y(), z);
         }
     }
-#else
-    UNUSED_PARAMETER(from_srs);
-#endif
     return ok;
 }
 
@@ -492,4 +484,5 @@ NBNetBuilder::transformCoordinates(PositionVector& from, bool includeInBoundary,
     }
     return ok;
 }
+
 /****************************************************************************/

@@ -163,7 +163,7 @@ SUMOReal
 MSActuatedTrafficLightLogic::gapControl() {
     //intergreen times should not be lenghtend
     assert(myPhases.size() > myStep);
-    SUMOReal result = std::numeric_limits<SUMOReal>::max(); 
+    SUMOReal result = std::numeric_limits<SUMOReal>::max();
     if (!getCurrentPhaseDef().isGreenPhase()) {
         return result; // end current phase
     }
@@ -191,7 +191,7 @@ MSActuatedTrafficLightLogic::gapControl() {
             }
         }
     }
-    return result; 
+    return result;
 }
 
 

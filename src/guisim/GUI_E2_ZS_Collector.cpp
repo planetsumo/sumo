@@ -151,16 +151,16 @@ GUI_E2_ZS_Collector::MyWrapper::drawGL(const GUIVisualizationSettings& s) const 
     glPushMatrix();
     glTranslated(0, 0, getType());
     SUMOReal dwidth = 1;
+    const SUMOReal exaggeration = s.addSize.getExaggeration(s);
     if (myDetector.getUsageType() == DU_TL_CONTROL) {
         dwidth = (SUMOReal) 0.3;
         glColor3d(0, (SUMOReal) .6, (SUMOReal) .8);
     } else {
         glColor3d(0, (SUMOReal) .8, (SUMOReal) .8);
     }
-    SUMOReal width = 2; // !!!
-    if (width * s.addExaggeration > 1.0) {
-        glScaled(s.addExaggeration, s.addExaggeration, 1);
-        GLHelper::drawBoxLines(myFullGeometry, myShapeRotations, myShapeLengths, dwidth);
+    SUMOReal width = (SUMOReal) 2.0 * s.scale;
+    if (width * exaggeration > 1.0) {
+        GLHelper::drawBoxLines(myFullGeometry, myShapeRotations, myShapeLengths, dwidth * exaggeration);
     } else {
         int e = (int) myFullGeometry.size() - 1;
         for (int i = 0; i < e; ++i) {

@@ -6,7 +6,7 @@
 /// @author  Michael Behrisch
 /// @author  Marek Heinrich
 /// @date    Thu, 13.06.2013
-/// @version $Id: PHEMCEP.cpp 16170 2014-04-11 10:04:38Z behrisch $
+/// @version $Id$
 ///
 // Helper class for PHEM Light, holds a specific CEP for a PHEM emission class
 /****************************************************************************/
@@ -311,7 +311,7 @@ double PHEMCEP::GetDecelCoast(double speed, double acc, double gradient, double 
 
     double iTot = iGear * _axleRatio;
 
-	double n = (30 * speed * iTot) / ((_effictiveWheelDiameter / 2) * PI);
+	double n = (30 * speed * iTot) / ((_effictiveWheelDiameter / 2) * P_PI);
     double nNorm = (n - _engineIdlingSpeed) / (_engineRatedSpeed - _engineIdlingSpeed);
 
     FindLowerUpperInPattern(lowerIndex, upperIndex, _nNormTable, nNorm);

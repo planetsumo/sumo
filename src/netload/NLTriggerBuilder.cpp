@@ -106,9 +106,9 @@ NLTriggerBuilder::buildVaporizer(const SUMOSAXAttributes& attrs) {
     }
     if (end >= string2time(OptionsCont::getOptions().getString("begin"))) {
         Command* cb = new WrappingCommand< MSEdge >(e, &MSEdge::incVaporization);
-        MSNet::getInstance()->getBeginOfTimestepEvents().addEvent(cb, begin, MSEventControl::ADAPT_AFTER_EXECUTION);
+        MSNet::getInstance()->getBeginOfTimestepEvents()->addEvent(cb, begin, MSEventControl::ADAPT_AFTER_EXECUTION);
         Command* ce = new WrappingCommand< MSEdge >(e, &MSEdge::decVaporization);
-        MSNet::getInstance()->getBeginOfTimestepEvents().addEvent(ce, end, MSEventControl::ADAPT_AFTER_EXECUTION);
+        MSNet::getInstance()->getBeginOfTimestepEvents()->addEvent(ce, end, MSEventControl::ADAPT_AFTER_EXECUTION);
     }
 }
 
@@ -283,7 +283,7 @@ NLTriggerBuilder::buildCalibrator(MSNet& /*net*/, const std::string& id,
                                   MSEdge* edge, SUMOReal pos,
                                   const std::string& file,
                                   const std::string& outfile,
-                                  const SUMOTime freq, MSRouteProbe* probe) {
+                                  const SUMOTime freq, const MSRouteProbe* probe) {
     return new MSCalibrator(id, edge, pos, file, outfile, freq, edge->getLength(), probe);
 }
 

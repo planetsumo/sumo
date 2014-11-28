@@ -38,7 +38,6 @@
 #include <iomanip>
 #include <fstream>
 #include <ctime>
-#include <stdlib.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/options/Option.h>
 #include <utils/common/MsgHandler.h>
@@ -112,9 +111,11 @@ MSFrame::fillOptions() {
     oc.doRegister("netstate-dump", new Option_FileName());
     oc.addSynonyme("netstate-dump", "ndump");
     oc.addSynonyme("netstate-dump", "netstate");
+    oc.addSynonyme("netstate-dump", "netstate-output");
     oc.addDescription("netstate-dump", "Output", "Save complete network states into FILE");
     oc.doRegister("netstate-dump.empty-edges", new Option_Bool(false));
     oc.addSynonyme("netstate-dump.empty-edges", "netstate.empty-edges");
+    oc.addSynonyme("netstate-dump.empty-edges", "netstate-output.empty-edges");
     oc.addSynonyme("netstate-dump.empty-edges", "dump-empty-edges", true);
     oc.addDescription("netstate-dump.empty-edges", "Output", "Write also empty edges completely when dumping");
 
@@ -147,6 +148,9 @@ MSFrame::fillOptions() {
     oc.addSynonyme("tripinfo-output", "tripinfo");
     oc.addDescription("tripinfo-output", "Output", "Save single vehicle trip info into FILE");
 
+    oc.doRegister("tripinfo-output.write-unfinished", new Option_Bool(false));
+    oc.addDescription("tripinfo-output.write-unfinished", "Output", "Write tripinfo output for vehicles which have not arrived at simulation end");
+
     oc.doRegister("vehroute-output", new Option_FileName());
     oc.addSynonyme("vehroute-output", "vehroutes");
     oc.addDescription("vehroute-output", "Output", "Save single vehicle route info into FILE");
@@ -162,6 +166,14 @@ MSFrame::fillOptions() {
     oc.doRegister("vehroute-output.sorted", new Option_Bool(false));
     oc.addSynonyme("vehroute-output.sorted", "vehroutes.sorted");
     oc.addDescription("vehroute-output.sorted", "Output", "Sorts the output by departure time");
+
+    oc.doRegister("vehroute-output.dua", new Option_Bool(false));
+    oc.addSynonyme("vehroute-output.dua", "vehroutes.dua");
+    oc.addDescription("vehroute-output.dua", "Output", "Write the output in the duarouter alternatives style");
+
+    oc.doRegister("vehroute-output.intended-depart", new Option_Bool(false));
+    oc.addSynonyme("vehroute-output.intended-depart", "vehroutes.intended-depart");
+    oc.addDescription("vehroute-output.intended-depart", "Output", "Write the output with the intended instead of the real departure time");
 
     oc.doRegister("vehroute-output.write-unfinished", new Option_Bool(false));
     oc.addDescription("vehroute-output.write-unfinished", "Output", "Write vehroute output for vehicles which have not arrived at simulation end");
@@ -228,7 +240,7 @@ MSFrame::fillOptions() {
     oc.doRegister("time-to-teleport", new Option_String("300", "TIME"));
     oc.addDescription("time-to-teleport", "Processing", "Specify how long a vehicle may wait until being teleported, defaults to 300, non-positive values disable teleporting");
     oc.doRegister("time-to-teleport.highways", new Option_String("0", "TIME"));
-    oc.addDescription("time-to-teleport.highways", "Processing", "The teleport time on highways");
+    oc.addDescription("time-to-teleport.highways", "Processing", "The waiting time after which vehicles on a fast road (speed > 69m/s) are teleported if they are on a non-continuing lane");
 
     oc.doRegister("max-depart-delay", new Option_String("-1", "TIME"));
     oc.addDescription("max-depart-delay", "Processing", "How long vehicles wait for departure before being skipped, defaults to -1 which means vehicles are never skipped");
@@ -253,7 +265,7 @@ MSFrame::fillOptions() {
 
     oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
     oc.addDescription("routing-algorithm", "Processing",
-                      "Select among routing algorithms ['dijkstra', 'astar']");
+                      "Select among routing algorithms ['dijkstra', 'astar', 'CH', 'CHWrapper']");
     // pedestrian model
     oc.doRegister("pedestrian.model", new Option_String("striping"));
     oc.addDescription("pedestrian.model", "Processing", "Select among pedestrian models ['nonInteracting', 'striping']");
@@ -266,8 +278,7 @@ MSFrame::fillOptions() {
 
     // devices
     oc.addOptionSubTopic("Emissions");
-    std::string plp = getenv("PHEMLIGHT_PATH") == 0 ? "./PHEMlight/" : std::string(getenv("PHEMLIGHT_PATH"));
-    oc.doRegister("phemlight-path", new Option_FileName(plp));
+    oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
 
     oc.addOptionSubTopic("Communication");
@@ -308,12 +319,14 @@ MSFrame::fillOptions() {
     oc.addDescription("meso-taujj", "Mesoscopic", "Factor for calculating the jam-jam headway time");
     oc.doRegister("meso-jam-threshold", new Option_Float(-1));
     oc.addDescription("meso-jam-threshold", "Mesoscopic", "Minimum percentage of occupied space to consider a segment jammed. A negative argument causes thresholds to be computed based on edge speed and tauff (default)");
-    oc.doRegister("meso-multi-queue", new Option_Bool(false));
+    oc.doRegister("meso-multi-queue", new Option_Bool(true));
     oc.addDescription("meso-multi-queue", "Mesoscopic", "Enable multiple queues at edge ends");
     oc.doRegister("meso-junction-control", new Option_Bool(false));
     oc.addDescription("meso-junction-control", "Mesoscopic", "Enable mesoscopic traffic light and priority junction handling");
     oc.doRegister("meso-junction-control.limited", new Option_Bool(false));
     oc.addDescription("meso-junction-control.limited", "Mesoscopic", "Enable mesoscopic traffic light and priority junction handling for saturated links. This prevents faulty traffic lights from hindering flow in low-traffic situations");
+    oc.doRegister("meso-overtaking", new Option_Bool(false));
+    oc.addDescription("meso-overtaking", "Mesoscopic", "Enable mesoscopic overtaking");
     oc.doRegister("meso-recheck", new Option_String("0", "TIME"));
     oc.addDescription("meso-recheck", "Mesoscopic", "Time interval for rechecking insertion into the next segment after failure");
 #endif
@@ -456,6 +469,7 @@ MSFrame::setMSGlobals(OptionsCont& oc) {
 #ifdef HAVE_INTERNAL
     MSGlobals::gUseMesoSim = oc.getBool("mesosim");
     MSGlobals::gMesoLimitedJunctionControl = oc.getBool("meso-junction-control.limited");
+    MSGlobals::gMesoOvertaking = oc.getBool("meso-overtaking");
     if (MSGlobals::gUseMesoSim) {
         MSGlobals::gUsingInternalLanes = false;
     }

@@ -139,6 +139,13 @@ public:
     void clearPendingVehicles(std::string& route);
 
 
+    /** @brief Checks for all vehicles whether they can be emitted
+     *
+     * @param[in] time The current simulation time
+     */
+    void determineCandidates(SUMOTime time);
+
+
 private:
     /** @brief Tries to emit the vehicle
      *
@@ -170,17 +177,7 @@ private:
      * @param[in] time The current simulation time
      * @todo recheck
      */
-    void checkPrevious(SUMOTime time);
-
-
-    /** @brief Checks for all vehicles coming from flows whether they can be emitted
-     *
-     * @param[in] time The current simulation time
-     * @param[in] refusedEmits Container to insert vehicles that could not be emitted into
-     * @return The number of emitted vehicles
-     */
-    unsigned int checkFlows(SUMOTime time,
-                            MSVehicleContainer::VehicleVector& refusedEmits);
+    void checkCandidates(SUMOTime time, const bool preCheck);
 
 
 private:
@@ -191,7 +188,10 @@ private:
     MSVehicleContainer myAllVeh;
 
     /// @brief Buffers for vehicles that could not be inserted
-    MSVehicleContainer::VehicleVector myRefusedEmits1, myRefusedEmits2;
+    MSVehicleContainer::VehicleVector myPendingEmits;
+
+    /// @brief Buffer for vehicles that may be inserted in the current step
+    std::set<SUMOVehicle*> myEmitCandidates;
 
     /// @brief Set of vehicles which shall not be inserted anymore
     std::set<SUMOVehicle*> myAbortedEmits;

@@ -35,7 +35,7 @@
 #include <utils/common/ToString.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/MsgHandler.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include <utils/common/FileHelpers.h>
 #include <utils/emissions/PollutantsInterface.h>
 #include <utils/options/OptionsCont.h>
@@ -123,7 +123,7 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
     }
     if (attrs.hasAttribute(SUMO_ATTR_PROB)) {
         ret->repetitionProbability = attrs.get<SUMOReal>(SUMO_ATTR_PROB, id.c_str(), ok);
-        if (ok && (ret->repetitionProbability < 0 || ret->repetitionProbability > 1)) {
+        if (ok && (ret->repetitionProbability <= 0 || ret->repetitionProbability > 1)) {
             delete ret;
             throw ProcessError("Invalid repetition probability in the definition of flow '" + id + "'.");
         }
@@ -164,8 +164,9 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
         }
     } else {
         // interpret repetitionNumber
-        if (ok && ret->repetitionProbability >= 0) {
+        if (ok && ret->repetitionProbability > 0) {
             ret->repetitionNumber = INT_MAX;
+            ret->repetitionEnd = end;
         } else {
             if (ok && ret->repetitionOffset <= 0) {
                 delete ret;
@@ -174,7 +175,7 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
             if (end == SUMOTime_MAX) {
                 ret->repetitionNumber = INT_MAX;
             } else {
-                ret->repetitionNumber = static_cast<int>(static_cast<SUMOReal>(end - ret->depart) / ret->repetitionOffset + 0.5);
+                ret->repetitionNumber = MAX2(1, (int)(((SUMOReal)(end - ret->depart)) / ret->repetitionOffset + 0.5));
             }
         }
     }
@@ -188,7 +189,7 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
 
 SUMOVehicleParameter*
 SUMOVehicleParserHelper::parseVehicleAttributes(const SUMOSAXAttributes& attrs,
-        bool optionalID, bool skipDepart) {
+        const bool optionalID, const bool skipDepart, const bool isPerson) {
     bool ok = true;
     std::string id, errorMsg;
     if (optionalID) {
@@ -198,6 +199,9 @@ SUMOVehicleParserHelper::parseVehicleAttributes(const SUMOSAXAttributes& attrs,
     }
     SUMOVehicleParameter* ret = new SUMOVehicleParameter();
     ret->id = id;
+    if (isPerson) {
+        ret->vtypeid = DEFAULT_PEDTYPE_ID;
+    }
     try {
         parseCommonAttributes(attrs, ret, "vehicle");
         if (!skipDepart) {
@@ -325,6 +329,9 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
         vClass = parseVehicleClass(attrs, id);
     }
     SUMOVTypeParameter* vtype = new SUMOVTypeParameter(id, vClass);
+    if (attrs.hasAttribute(SUMO_ATTR_VCLASS)) {
+        vtype->setParameter |= VTYPEPARS_VEHICLECLASS_SET;
+    }
     if (attrs.hasAttribute(SUMO_ATTR_LENGTH)) {
         vtype->length = attrs.get<SUMOReal>(SUMO_ATTR_LENGTH, vtype->id.c_str(), ok);
         vtype->setParameter |= VTYPEPARS_LENGTH_SET;
@@ -356,9 +363,6 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
             vtype->impatience = attrs.get<SUMOReal>(SUMO_ATTR_IMPATIENCE, vtype->id.c_str(), ok);
         }
         vtype->setParameter |= VTYPEPARS_IMPATIENCE_SET;
-    }
-    if (attrs.hasAttribute(SUMO_ATTR_VCLASS)) {
-        vtype->setParameter |= VTYPEPARS_VEHICLECLASS_SET;
     }
     if (attrs.hasAttribute(SUMO_ATTR_WIDTH)) {
         vtype->width = attrs.get<SUMOReal>(SUMO_ATTR_WIDTH, vtype->id.c_str(), ok);

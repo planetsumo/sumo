@@ -398,7 +398,8 @@ bool
 NBEdgeCont::splitAt(NBDistrictCont& dc, NBEdge* edge, NBNode* node,
                     const std::string& firstEdgeName,
                     const std::string& secondEdgeName,
-                    unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge) {
+                    unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge,
+                    const SUMOReal speed) {
     SUMOReal pos;
     pos = edge->getGeometry().nearest_offset_to_point2D(node->getPosition());
     if (pos <= 0) {
@@ -410,7 +411,7 @@ NBEdgeCont::splitAt(NBDistrictCont& dc, NBEdge* edge, NBNode* node,
         return false;
     }
     return splitAt(dc, edge, pos, node, firstEdgeName, secondEdgeName,
-                   noLanesFirstEdge, noLanesSecondEdge);
+                   noLanesFirstEdge, noLanesSecondEdge, speed);
 }
 
 
@@ -419,7 +420,8 @@ NBEdgeCont::splitAt(NBDistrictCont& dc,
                     NBEdge* edge, SUMOReal pos, NBNode* node,
                     const std::string& firstEdgeName,
                     const std::string& secondEdgeName,
-                    unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge) {
+                    unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge,
+                    const SUMOReal speed) {
     // build the new edges' geometries
     std::pair<PositionVector, PositionVector> geoms =
         edge->getGeometry().splitAt(pos);
@@ -436,6 +438,9 @@ NBEdgeCont::splitAt(NBDistrictCont& dc,
     NBEdge* one = new NBEdge(firstEdgeName, edge->myFrom, node, edge, geoms.first, noLanesFirstEdge);
     NBEdge* two = new NBEdge(secondEdgeName, node, edge->myTo, edge, geoms.second, noLanesSecondEdge);
     two->copyConnectionsFrom(edge);
+    if (speed != -1.) {
+        two->setSpeed(-1, speed);
+    }
     // replace information about this edge within the nodes
     edge->myFrom->replaceOutgoing(edge, one, 0);
     edge->myTo->replaceIncoming(edge, two, 0);
@@ -789,13 +794,19 @@ NBEdgeCont::getGeneratedFrom(const std::string& id) const {
 
 
 void
-NBEdgeCont::guessRoundabouts(std::vector<EdgeVector>& marked) {
-    // step 1: keep only those edges which have no turnarounds
+NBEdgeCont::guessRoundabouts() {
+    myGuessedRoundabouts.clear();
+    std::set<NBEdge*> loadedRoundaboutEdges;
+    for (std::set<EdgeSet>::const_iterator it = myRoundabouts.begin(); it != myRoundabouts.end(); ++it) {
+        loadedRoundaboutEdges.insert(it->begin(), it->end());
+    }
+    // step 1: keep only those edges which have no turnarounds and which are not
+    // part of a loaded roundabout
     std::set<NBEdge*> candidates;
     for (EdgeCont::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
         NBEdge* e = (*i).second;
         NBNode* const to = e->getToNode();
-        if (e->getTurnDestination() == 0 && to->getConnectionTo(e->getFromNode()) == 0) {
+        if (e->getTurnDestination() == 0 && to->getConnectionTo(e->getFromNode()) == 0 && loadedRoundaboutEdges.count(e) == 0) {
             candidates.insert(e);
         }
     }
@@ -866,32 +877,57 @@ NBEdgeCont::guessRoundabouts(std::vector<EdgeVector>& marked) {
                 e = left;
             }
         } while (doLoop);
-        // mark collected edges in the case a loop (roundabout) was found
         if (doLoop) {
-            std::set<NBEdge*> loopEdgesSet(loopEdges.begin(), loopEdges.end());
-            for (std::set<NBEdge*>::const_iterator j = loopEdgesSet.begin(); j != loopEdgesSet.end(); ++j) {
-                // disable turnarounds on incoming edges
-                NBNode* node = (*j)->getToNode();
-                const EdgeVector& incoming = node->getIncomingEdges();
-                for (EdgeVector::const_iterator k = incoming.begin(); k != incoming.end(); ++k) {
-                    NBEdge* inEdge = *k;
-                    if (loopEdgesSet.count(inEdge) > 0) {
-                        continue;
-                    }
-                    if ((inEdge)->getStep() >= NBEdge::LANES2LANES_USER) {
-                        continue;
-                    }
-                    inEdge->removeFromConnections(inEdge->getTurnDestination(), -1);
-                }
-                // let the connections to succeeding roundabout edge have a higher priority
-                (*j)->setJunctionPriority(node, 1000);
-                node->setRoundabout();
-            }
-            marked.push_back(loopEdges);
+            // collected edges are marked in markRoundabouts
+            myGuessedRoundabouts.insert(EdgeSet(loopEdges.begin(), loopEdges.end()));
         }
     }
 }
 
+
+const std::set<EdgeSet>
+NBEdgeCont::getRoundabouts() const {
+    std::set<EdgeSet> result = myRoundabouts;
+    result.insert(myGuessedRoundabouts.begin(), myGuessedRoundabouts.end());
+    return result;
+}
+
+
+void
+NBEdgeCont::addRoundabout(const EdgeSet& roundabout) {
+    if (find(myRoundabouts.begin(), myRoundabouts.end(), roundabout) != myRoundabouts.end()) {
+        WRITE_WARNING("Ignoring duplicate roundabout: " + toString(roundabout));
+    } else {
+        myRoundabouts.insert(roundabout);
+    }
+}
+
+
+void
+NBEdgeCont::markRoundabouts() {
+    const std::set<EdgeSet> roundabouts = getRoundabouts();
+    for (std::set<EdgeSet>::const_iterator it = roundabouts.begin(); it != roundabouts.end(); ++it) {
+        const EdgeSet roundaboutSet = *it;
+        for (std::set<NBEdge*>::const_iterator j = roundaboutSet.begin(); j != roundaboutSet.end(); ++j) {
+            // disable turnarounds on incoming edges
+            NBNode* node = (*j)->getToNode();
+            const EdgeVector& incoming = node->getIncomingEdges();
+            for (EdgeVector::const_iterator k = incoming.begin(); k != incoming.end(); ++k) {
+                NBEdge* inEdge = *k;
+                if (roundaboutSet.count(inEdge) > 0) {
+                    continue;
+                }
+                if ((inEdge)->getStep() >= NBEdge::LANES2LANES_USER) {
+                    continue;
+                }
+                inEdge->removeFromConnections(inEdge->getTurnDestination(), -1);
+            }
+            // let the connections to succeeding roundabout edge have a higher priority
+            (*j)->setJunctionPriority(node, 1000);
+            node->setRoundabout();
+        }
+    }
+}
 
 void
 NBEdgeCont::generateStreetSigns() {

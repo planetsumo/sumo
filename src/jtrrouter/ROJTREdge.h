@@ -81,26 +81,27 @@ public:
      * @param[in] s The following edge
      * @see ROEdge::addFollower
      */
-    void addFollower(ROEdge* s, std::string dir = "");
+    void addSuccessor(ROEdge* s, std::string dir = "");
 
 
     /** @brief adds the information about the percentage of using a certain follower
      *
      * @param[in] follower The following edge
-     * @param[in] begTime Time begin for which this probability is valid
-     * @param[in] endTime Time end for which this probability is valid
+     * @param[in] begTime Time begin (in seconds) for which this probability is valid
+     * @param[in] endTime Time end (in seconds) for which this probability is valid
      * @param[in] probability The probability to use the given follower
      */
     void addFollowerProbability(ROJTREdge* follower,
-                                SUMOTime begTime, SUMOTime endTime, SUMOReal probability);
+                                SUMOReal begTime, SUMOReal endTime, SUMOReal probability);
 
 
     /** @brief Returns the next edge to use
      * @param[in] veh The vehicle to choose the next edge for
-     * @param[in] time The time at which the next edge shall be entered
+     * @param[in] time The time at which the next edge shall be entered (in seconds)
+     * @param[in] avoid The set of edges to avoid
      * @return The chosen edge
      */
-    ROJTREdge* chooseNext(const ROVehicle* const veh, SUMOTime time) const;
+    ROJTREdge* chooseNext(const ROVehicle* const veh, SUMOReal time, const std::set<const ROEdge*>& avoid) const;
 
 
     /** @brief Sets the turning definition defaults

@@ -90,22 +90,6 @@ NBNodeCont::insert(const std::string& id, const Position& position,
 }
 
 
-Position
-NBNodeCont::insert(const std::string& id) {
-    std::pair<SUMOReal, SUMOReal> ret(-1.0, -1.0);
-    NodeCont::iterator i = myNodes.find(id);
-    if (i != myNodes.end()) {
-        return (*i).second->getPosition();
-    } else {
-        NBNode* node = new NBNode(id, Position(-1.0, -1.0));
-        myNodes[id] = node;
-        const float pos[2] = {(float) - 1, (float) - 1};
-        myRTree.Insert(pos, pos, node);
-    }
-    return Position(-1, -1);
-}
-
-
 bool
 NBNodeCont::insert(NBNode* node) {
     std::string id = node->getID();
@@ -558,8 +542,8 @@ NBNodeCont::joinJunctions(SUMOReal maxDist, NBDistrictCont& dc, NBEdgeCont& ec, 
         if (cluster.size() > 1) {
             // check for clusters which are to complex and probably won't work very well
             // we count the incoming edges of the final junction
-            std::set<NBEdge*> finalIncoming;
-            std::set<NBEdge*> finalOutgoing;
+            std::map<std::string, SUMOReal> finalIncomingAngles;
+            std::map<std::string, SUMOReal> finalOutgoingAngles;
             std::vector<std::string> nodeIDs;
             for (std::set<NBNode*>::const_iterator j = cluster.begin(); j != cluster.end(); ++j) {
                 nodeIDs.push_back((*j)->getID());
@@ -567,48 +551,42 @@ NBNodeCont::joinJunctions(SUMOReal maxDist, NBDistrictCont& dc, NBEdgeCont& ec, 
                     NBEdge* edge = *it_edge;
                     if (cluster.count(edge->getFromNode()) == 0) {
                         // incoming edge, does not originate in the cluster
-                        finalIncoming.insert(edge);
+                        finalIncomingAngles[edge->getID()] = edge->getAngleAtNode(edge->getToNode());
                     }
                 }
                 for (EdgeVector::const_iterator it_edge = (*j)->getOutgoingEdges().begin(); it_edge != (*j)->getOutgoingEdges().end(); ++it_edge) {
                     NBEdge* edge = *it_edge;
                     if (cluster.count(edge->getToNode()) == 0) {
                         // outgoing edge, does not end in the cluster
-                        finalOutgoing.insert(edge);
+                        finalOutgoingAngles[edge->getID()] = edge->getAngleAtNode(edge->getFromNode());
                     }
                 }
 
             }
-            if (finalIncoming.size() > 4) {
+            if (finalIncomingAngles.size() > 4) {
                 std::sort(nodeIDs.begin(), nodeIDs.end());
-                WRITE_WARNING("Not joining junctions " + joinToStringSorting(nodeIDs, ',') + " because the cluster is too complex (" + toString(finalIncoming.size()) + " incoming edges)");
+                WRITE_WARNING("Not joining junctions " + joinToStringSorting(nodeIDs, ',') + " because the cluster is too complex (" + toString(finalIncomingAngles.size()) + " incoming edges)");
             } else {
                 // check for incoming parallel edges
                 const SUMOReal PARALLEL_INCOMING_THRESHOLD = 10.0;
                 bool foundParallel = false;
-                for (std::set<NBEdge*>::const_iterator j = finalIncoming.begin(); j != finalIncoming.end() && !foundParallel; ++j) {
-                    for (std::set<NBEdge*>::const_iterator k = finalIncoming.begin(); k != finalIncoming.end() && !foundParallel; ++k) {
-                        if ((*j) != (*k) && fabs((*j)->getAngleAtNode((*j)->getToNode()) - (*k)->getAngleAtNode((*k)->getToNode())) < PARALLEL_INCOMING_THRESHOLD) {
-                            std::vector<std::string> parallelEdgeIDs;
-                            parallelEdgeIDs.push_back((*j)->getID());
-                            parallelEdgeIDs.push_back((*k)->getID());
-                            std::sort(parallelEdgeIDs.begin(), parallelEdgeIDs.end());
+                for (std::map<std::string, SUMOReal>::const_iterator j = finalIncomingAngles.begin(); j != finalIncomingAngles.end() && !foundParallel; ++j) {
+                    std::map<std::string, SUMOReal>::const_iterator k = j;
+                    for (++k; k != finalIncomingAngles.end() && !foundParallel; ++k) {
+                        if (fabs(j->second - k->second) < PARALLEL_INCOMING_THRESHOLD) {
                             WRITE_WARNING("Not joining junctions " + joinToStringSorting(nodeIDs, ',') + " because the cluster is too complex (parallel incoming "
-                                          + joinToString(parallelEdgeIDs, ',') + ")");
+                                          + j->first + "," + k->first + ")");
                             foundParallel = true;
                         }
                     }
                 }
                 // check for outgoing parallel edges
-                for (std::set<NBEdge*>::const_iterator j = finalOutgoing.begin(); j != finalOutgoing.end() && !foundParallel; ++j) {
-                    for (std::set<NBEdge*>::const_iterator k = finalOutgoing.begin(); k != finalOutgoing.end() && !foundParallel; ++k) {
-                        if ((*j) != (*k) && fabs((*j)->getAngleAtNode((*j)->getFromNode()) - (*k)->getAngleAtNode((*k)->getFromNode())) < PARALLEL_INCOMING_THRESHOLD) {
-                            std::vector<std::string> parallelEdgeIDs;
-                            parallelEdgeIDs.push_back((*j)->getID());
-                            parallelEdgeIDs.push_back((*k)->getID());
-                            std::sort(parallelEdgeIDs.begin(), parallelEdgeIDs.end());
+                for (std::map<std::string, SUMOReal>::const_iterator j = finalOutgoingAngles.begin(); j != finalOutgoingAngles.end() && !foundParallel; ++j) {
+                    std::map<std::string, SUMOReal>::const_iterator k = j;
+                    for (++k; k != finalOutgoingAngles.end() && !foundParallel; ++k) {
+                        if (fabs(j->second - k->second) < PARALLEL_INCOMING_THRESHOLD) {
                             WRITE_WARNING("Not joining junctions " + joinToStringSorting(nodeIDs, ',') + " because the cluster is too complex (parallel outgoing "
-                                          + joinToStringSorting(parallelEdgeIDs, ',') + ")");
+                                          + j->first + "," + k->first + ")");
                             foundParallel = true;
                         }
                     }

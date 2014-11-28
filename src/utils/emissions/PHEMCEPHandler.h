@@ -5,9 +5,9 @@
 /// @author  Michael Behrisch
 /// @author  Marek Heinrich
 /// @date    Thu, 13.06.2013
-/// @version $$
+/// @version $Id$
 ///
-// Helper singelton class for PHEM Light, holds CEP data for emission computation
+// Helper singleton class for PHEM Light, holds CEP data for emission computation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 // Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors

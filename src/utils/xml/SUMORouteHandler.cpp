@@ -58,7 +58,8 @@ SUMORouteHandler::SUMORouteHandler(const std::string& file) :
     myActiveRouteColor(0),
     myCurrentVType(0),
     myBeginDefault(string2time(OptionsCont::getOptions().getString("begin"))),
-    myEndDefault(string2time(OptionsCont::getOptions().getString("end"))) {
+    myEndDefault(string2time(OptionsCont::getOptions().getString("end"))),
+    myFirstDepart(-1) {
 }
 
 
@@ -88,6 +89,9 @@ void
 SUMORouteHandler::registerLastDepart() {
     if (myVehicleParameter->departProcedure == DEPART_GIVEN) {
         myLastDepart = myVehicleParameter->depart;
+        if (myFirstDepart == -1) {
+            myFirstDepart = myLastDepart;
+        }
     }
     // else: we don't know when this vehicle will depart. keep the previous known depart time
 }
@@ -103,7 +107,7 @@ SUMORouteHandler::myStartElement(int element,
             break;
         case SUMO_TAG_PERSON:
             delete myVehicleParameter;
-            myVehicleParameter = SUMOVehicleParserHelper::parseVehicleAttributes(attrs);
+            myVehicleParameter = SUMOVehicleParserHelper::parseVehicleAttributes(attrs, false, false, true);
             break;
         case SUMO_TAG_FLOW:
             delete myVehicleParameter;

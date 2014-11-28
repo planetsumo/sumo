@@ -250,6 +250,12 @@ public:
     }
 
 
+    //@brief Returns the time of the last state change
+    inline SUMOTime getLastStateChange() const {
+        return myLastStateChange;
+    }
+
+
     /** @brief Returns the direction the vehicle passing this link take
      *
      * @return The direction of this link
@@ -260,6 +266,7 @@ public:
     /** @brief Sets the current tl-state
      *
      * @param[in] state The current state of the link
+     * @param[in] t The time of the state change
      */
     void setTLState(LinkState state, SUMOTime t);
 
@@ -283,8 +290,15 @@ public:
     /** @brief Returns whether this link is a major link
      * @return Whether the link has a large priority
      */
-    bool havePriority() const {
+    inline bool havePriority() const {
         return myState >= 'A' && myState <= 'Z';
+    }
+
+    /** @brief Returns whether this link is blocked by a red (or redyellow) traffic light
+     * @return Whether the link has a red light
+     */
+    inline bool haveRed() const {
+        return myState == LINKSTATE_TL_RED || myState == LINKSTATE_TL_REDYELLOW;
     }
 
 
@@ -369,6 +383,9 @@ private:
 
     /// @brief The state of the link
     LinkState myState;
+
+    /// @brief The time of the last state change
+    SUMOTime myLastStateChange;
 
     /// @brief An abstract (hopefully human readable) definition of the link's direction
     LinkDirection myDirection;

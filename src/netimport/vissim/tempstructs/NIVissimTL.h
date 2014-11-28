@@ -40,16 +40,20 @@
 #include <utils/common/SUMOTime.h>
 
 
-class NBTrafficLightLogicCont;
-
-
-
 // ===========================================================================
 // class declarations
 // ===========================================================================
+class NBTrafficLightLogicCont;
 class NBLoadedTLDef;
 class NBEdgeCont;
 
+
+// ===========================================================================
+// class definitions
+// ===========================================================================
+/**
+ * @class NIVissimTL
+ */
 class NIVissimTL {
 public:
     NIVissimTL(int id, const std::string& type, const std::string& name,
@@ -82,7 +86,7 @@ public:
      */
     class NIVissimTLSignal {
     public:
-        NIVissimTLSignal(int lsaid, int id, const std::string& name,
+        NIVissimTLSignal(int id, const std::string& name,
                          const std::vector<int>& groupids, int edgeid, int laneno,
                          SUMOReal position, const std::vector<int>& assignedVehicleTypes);
         ~NIVissimTLSignal();
@@ -97,7 +101,6 @@ public:
         static SSignalDictType getSignalsFor(int tlid);
 
     protected:
-        int myLSA;
         int myID;
         std::string myName;
         std::vector<int> myGroupIDs;
@@ -110,7 +113,7 @@ public:
 
     class NIVissimTLSignalGroup {
     public:
-        NIVissimTLSignalGroup(int lsaid, int id, const std::string& name,
+        NIVissimTLSignalGroup(int id, const std::string& name,
                               bool isGreenBegin, const std::vector<SUMOReal>& times,
                               SUMOTime tredyellow, SUMOTime tyellow);
         ~NIVissimTLSignalGroup();
@@ -122,7 +125,6 @@ public:
         static SGroupDictType getGroupsFor(int tlid);
 
     private:
-        int myLSA;
         int myID;
         std::string myName;
         std::vector<SUMOReal> myTimes;

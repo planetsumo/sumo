@@ -118,9 +118,9 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
         return;
     }
     if (!myIsInner && s.drawJunctionShape) {
-        glPushName(getGlID());
         glPushMatrix();
-        const SUMOReal colorValue = static_cast<SUMOReal>(s.junctionColorer.getActive() == 1 && gSelected.isSelected(getType(), getGlID()));
+        glPushName(getGlID());
+        const SUMOReal colorValue = getColorValue(s);
         GLHelper::setColor(s.junctionColorer.getScheme().getColor(colorValue));
         glTranslated(0, 0, getType());
         if (s.scale * myMaxSize < 40.) {
@@ -128,6 +128,7 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
         } else {
             GLHelper::drawFilledPolyTesselated(myJunction.getShape(), true);
         }
+        glPopName();
         glPopMatrix();
     }
     if (myIsInner) {
@@ -135,14 +136,53 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
     } else {
         drawName(myJunction.getPosition(), s.scale, s.junctionName);
     }
-    glPopName();
+}
+
+
+SUMOReal
+GUIJunctionWrapper::getColorValue(const GUIVisualizationSettings& s) const {
+    switch (s.junctionColorer.getActive()) {
+        case 0:
+            return 0;
+        case 1:
+            return gSelected.isSelected(getType(), getGlID()) ? 1 : 0;
+        case 2:
+            switch (myJunction.getType()) {
+                case NODETYPE_TRAFFIC_LIGHT:
+                    return 0;
+                case NODETYPE_TRAFFIC_LIGHT_NOJUNCTION:
+                    return 1;
+                case NODETYPE_PRIORITY:
+                    return 2;
+                case NODETYPE_PRIORITY_STOP:
+                    return 3;
+                case NODETYPE_RIGHT_BEFORE_LEFT:
+                    return 4;
+                case NODETYPE_ALLWAY_STOP:
+                    return 5;
+                case NODETYPE_DISTRICT:
+                    return 6;
+                case NODETYPE_NOJUNCTION:
+                    return 7;
+                case NODETYPE_DEAD_END:
+                case NODETYPE_DEAD_END_DEPRECATED:
+                    return 8;
+                case NODETYPE_UNKNOWN:
+                case NODETYPE_INTERNAL:
+                    assert(false);
+                    return 8;
+            }
+        default:
+            assert(false);
+            return 0;
+    }
 }
 
 
 #ifdef HAVE_OSG
 void
 GUIJunctionWrapper::updateColor(const GUIVisualizationSettings& s) {
-    const SUMOReal colorValue = static_cast<SUMOReal>(s.junctionColorer.getActive() == 1 && gSelected.isSelected(getType(), getGlID()));
+    const SUMOReal colorValue = getColorValue(s);
     const RGBColor& col = s.junctionColorer.getScheme().getColor(colorValue);
     osg::Vec4ubArray* colors = dynamic_cast<osg::Vec4ubArray*>(myGeom->getColorArray());
     (*colors)[0].set(col.red(), col.green(), col.blue(), col.alpha());

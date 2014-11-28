@@ -34,10 +34,11 @@
 #include "MSVehicle.h"
 #include "MSLane.h"
 #include "MSNet.h"
+#include "MSRouteHandler.h"
 #include <microsim/devices/MSDevice.h>
 #include <utils/common/FileHelpers.h>
 #include <utils/common/RGBColor.h>
-#include <utils/common/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 #include <utils/iodevices/BinaryInputDevice.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/options/OptionsCont.h>
@@ -45,12 +46,6 @@
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-
-
-// ===========================================================================
-// static members
-// ===========================================================================
-MTRand MSVehicleControl::myVehicleParamsRNG;
 
 
 // ===========================================================================
@@ -73,6 +68,9 @@ MSVehicleControl::MSVehicleControl() :
     myScale(-1) {
     SUMOVTypeParameter defType(DEFAULT_VTYPE_ID, SVC_IGNORING);
     myVTypeDict[DEFAULT_VTYPE_ID] = MSVehicleType::build(defType);
+    SUMOVTypeParameter defPedType(DEFAULT_PEDTYPE_ID, SVC_PEDESTRIAN);
+    defPedType.setParameter |= VTYPEPARS_VEHICLECLASS_SET;
+    myVTypeDict[DEFAULT_PEDTYPE_ID] = MSVehicleType::build(defPedType);
     OptionsCont& oc = OptionsCont::getOptions();
     if (oc.isSet("scale")) {
         myScale = oc.getFloat("scale");
@@ -99,17 +97,27 @@ MSVehicleControl::~MSVehicleControl() {
     myVTypeDict.clear();
 }
 
+SUMOTime
+MSVehicleControl::computeRandomDepartOffset() const {
+    if (myMaxRandomDepartOffset > 0) {
+        // round to the closest usable simulation step
+        return DELTA_T * int((MSRouteHandler::getParsingRNG()->rand((int)myMaxRandomDepartOffset) + 0.5 * DELTA_T) / DELTA_T);
+    } else {
+        return 0;
+    }
+}
 
 SUMOVehicle*
 MSVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
                                const MSRoute* route,
-                               const MSVehicleType* type) {
+                               const MSVehicleType* type,
+                               const bool ignoreStopErrors, const bool fromRouteFile) {
     myLoadedVehNo++;
-    if (myMaxRandomDepartOffset > 0) {
-        // round to the closest usable simulation step
-        defs->depart += DELTA_T * int((myVehicleParamsRNG.rand((int)myMaxRandomDepartOffset) + 0.5 * DELTA_T) / DELTA_T);
+    if (fromRouteFile) {
+        defs->depart += computeRandomDepartOffset();
     }
-    MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG));
+    MSVehicle* built = new MSVehicle(defs, route, type, type->computeChosenSpeedDeviation(fromRouteFile ? MSRouteHandler::getParsingRNG() : 0));
+    built->addStops(ignoreStopErrors);
     MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
     return built;
 }
@@ -125,6 +133,7 @@ MSVehicleControl::scheduleVehicleRemoval(SUMOVehicle* veh) {
         (*i)->generateOutput();
     }
     if (OptionsCont::getOptions().isSet("tripinfo-output")) {
+        // close tag after tripinfo (possibly including emissions from another device) have been written
         OutputDevice::getDeviceByOption("tripinfo-output").closeTag();
     }
     deleteVehicle(veh);
@@ -211,6 +220,14 @@ MSVehicleControl::checkVType(const std::string& id) {
         } else {
             return false;
         }
+    } else if (id == DEFAULT_PEDTYPE_ID) {
+        if (myDefaultPedTypeMayBeDeleted) {
+            delete myVTypeDict[id];
+            myVTypeDict.erase(myVTypeDict.find(id));
+            myDefaultPedTypeMayBeDeleted = false;
+        } else {
+            return false;
+        }
     } else {
         if (myVTypeDict.find(id) != myVTypeDict.end() || myVTypeDistDict.find(id) != myVTypeDistDict.end()) {
             return false;
@@ -246,17 +263,19 @@ MSVehicleControl::hasVTypeDistribution(const std::string& id) const {
 
 
 MSVehicleType*
-MSVehicleControl::getVType(const std::string& id) {
+MSVehicleControl::getVType(const std::string& id, MTRand* rng) {
     VTypeDictType::iterator it = myVTypeDict.find(id);
     if (it == myVTypeDict.end()) {
         VTypeDistDictType::iterator it2 = myVTypeDistDict.find(id);
         if (it2 == myVTypeDistDict.end()) {
             return 0;
         }
-        return it2->second->get(&myVehicleParamsRNG);
+        return it2->second->get(rng);
     }
     if (id == DEFAULT_VTYPE_ID) {
         myDefaultVTypeMayBeDeleted = false;
+    } else if (id == DEFAULT_PEDTYPE_ID) {
+        myDefaultPedTypeMayBeDeleted = false;
     }
     return it->second;
 }

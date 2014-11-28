@@ -63,7 +63,7 @@
 // member method definitions
 // ===========================================================================
 GUIRunThread::GUIRunThread(FXApp* app, MFXInterThreadEventClient* parent,
-                           FXRealSpinDial& simDelay, MFXEventQue& eq,
+                           FXRealSpinDial& simDelay, MFXEventQue<GUIEvent*>& eq,
                            FXEX::FXThreadEvent& ev)
     : FXSingleEventThread(app, parent),
       myNet(0), myHalting(true), myQuit(false), mySimulationInProgress(false), myOk(true),
@@ -160,7 +160,7 @@ GUIRunThread::run() {
             }
         } else {
             // sleep if the simulation is not running
-            sleep(500);
+            sleep(50);
         }
     }
     // delete a maybe existing simulation at the end

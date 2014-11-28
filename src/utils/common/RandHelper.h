@@ -89,8 +89,18 @@ public:
     }
 
     /// @brief Access to a random number from a normal distribution
-    static inline SUMOReal randNorm(SUMOReal mean, SUMOReal variance, MTRand& rng = myRandomNumberGenerator) {
-        return (SUMOReal) rng.randNorm(mean, variance);
+    static inline SUMOReal randNorm(SUMOReal mean, SUMOReal variance, MTRand* rng = 0) {
+        if (rng == 0) {
+            rng = &myRandomNumberGenerator;
+        }
+        // Polar method to avoid cosine
+        double u, q;
+        do {
+            u = rng->randExc(2.0) - 1;
+            const double v = rng->randExc(2.0) - 1;
+            q  = u * u + v * v;
+        } while (q == 0.0 || q >= 1.0);
+        return (SUMOReal) (mean + variance * u * sqrt(-2 * log(q) / q));
     }
 
     /// @brief Returns a random element from the given vector

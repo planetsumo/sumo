@@ -98,8 +98,13 @@ loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
 
 int
 main(int argc, char* argv[]) {
-    int ret = 0;
     OptionsCont& oc = OptionsCont::getOptions();
+    // give some application descriptions
+    oc.setApplicationDescription(
+        "Generates routes of persons throughout a day for the microscopic road traffic simulation SUMO.");
+    oc.setApplicationName("activitygen", "SUMO activitygen Version " + getBuildName(VERSION_STRING));
+    oc.addCopyrightNotice("Copyright (C) 2010-2012 Technische Universitaet Muenchen");
+    int ret = 0;
     RONet* net = 0;
     try {
         // Initialise subsystems and process options
@@ -118,7 +123,7 @@ main(int argc, char* argv[]) {
         net = new RONet();
         RODUAEdgeBuilder builder(oc.getBool("weights.expand"), oc.getBool("weights.interpolate"));
         loadNet(*net, builder);
-        WRITE_MESSAGE("Loaded " + toString(net->getEdgeNoWithoutInternal()) + " edges.");
+        WRITE_MESSAGE("Loaded " + toString(net->getEdgeNo()) + " edges.");
         if (oc.getBool("debug")) {
             WRITE_MESSAGE("\n\t ---- begin AcitivtyGen ----\n");
         }

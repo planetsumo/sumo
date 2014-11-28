@@ -75,7 +75,7 @@ PedestrianState*
 MSPModel_NonInteracting::add(MSPerson* person, MSPerson::MSPersonStage_Walking* stage, SUMOTime now) {
     PState* state = new PState();
     const SUMOTime firstEdgeDuration = state->computeWalkingTime(0, *stage, now);
-    myNet->getBeginOfTimestepEvents().addEvent(new MoveToNextEdge(person, *stage),
+    myNet->getBeginOfTimestepEvents()->addEvent(new MoveToNextEdge(person, *stage),
             now + firstEdgeDuration, MSEventControl::ADAPT_AFTER_EXECUTION);
 
     //if DEBUGCOND(person->getID()) std::cout << SIMTIME << " " << person->getID() << " inserted on " << stage->getEdge()->getID() << "\n";
@@ -153,7 +153,7 @@ MSPModel_NonInteracting::PState::getPosition(const MSPerson::MSPersonStage_Walki
 SUMOReal
 MSPModel_NonInteracting::PState::getAngle(const MSPerson::MSPersonStage_Walking& stage, SUMOTime now) const {
     //std::cout << SIMTIME << " rawAngle=" << stage.getEdgeAngle(stage.getEdge(), getEdgePos(stage, now)) << " angle=" << stage.getEdgeAngle(stage.getEdge(), getEdgePos(stage, now)) + (myCurrentEndPos < myCurrentBeginPos ? 180 : 0) << "\n";
-    SUMOReal angle = -stage.getEdgeAngle(stage.getEdge(), getEdgePos(stage, now)) + (myCurrentEndPos < myCurrentBeginPos ? 180 : 0);
+    SUMOReal angle = stage.getEdgeAngle(stage.getEdge(), getEdgePos(stage, now)) + (myCurrentEndPos < myCurrentBeginPos ? 180 : 0);
     if (angle > 180) {
         angle -= 360;
     }

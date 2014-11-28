@@ -38,6 +38,7 @@
 #endif
 
 #include "AGFrame.h"
+#include <utils/common/StdDefs.h>
 #include <router/ROFrame.h>
 #include <duarouter/RODUAFrame.h>
 #include <utils/common/SystemFrame.h>
@@ -50,11 +51,6 @@
 // ===========================================================================
 void AGFrame::fillOptions() {
     OptionsCont& oc = OptionsCont::getOptions();
-    // give some application descriptions
-    oc.setApplicationDescription(
-        "Generates routes of persons throughout a day for the microscopic road traffic simulation SUMO.");
-    oc.setApplicationName("activitygen", "SUMO activitygen Version " + (std::string)VERSION_STRING);
-    oc.addCopyrightNotice("Copyright (C) 2010-2012 Technische Universitaet Muenchen");
     // Options handling
     oc.addCallExample("--net-file <INPUT>.net.xml --stat-file <INPUT>.stat.xml --output <OUTPUT>.rou.xml --rand",
                       "generate a route file from a stats file on a given net using arbitrary random seed");

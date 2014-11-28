@@ -75,8 +75,6 @@
 #define HELP_OVERTAKE  (SUMOReal)(10.0 / 3.6)
 #define MIN_FALLBEHIND  (SUMOReal)(14.0 / 3.6)
 
-#define KEEP_RIGHT_HEADWAY (SUMOReal)2.0
-
 #define URGENCY (SUMOReal)2.0
 
 #define ROUNDABOUT_DIST_BONUS (SUMOReal)80.0
@@ -101,7 +99,7 @@ MSLCM_LC2013::MSLCM_LC2013(MSVehicle& v) :
 {}
 
 MSLCM_LC2013::~MSLCM_LC2013() {
-    changed();
+    changed(0);
 }
 
 
@@ -191,7 +189,7 @@ MSLCM_LC2013::_patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOR
     }
     if (myVehicle.getLane()->getEdge().getLanes().size() == 1) {
         // remove chaning information if on a road with a single lane
-        changed();
+        changed(0);
     }
     return wanted;
 }
@@ -234,7 +232,7 @@ MSLCM_LC2013::informLeader(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
 
         if (dv < 0
                 // overtaking on the right on an uncongested highway is forbidden (noOvertakeLCLeft)
-                || (dir == LCA_MLEFT && !myVehicle.congested())
+                || (dir == LCA_MLEFT && !myVehicle.congested() && !myAllowOvertakingRight)
                 // not enough space to overtake?
                 || myLeftSpace < overtakeDist
                 // not enough time to overtake?
@@ -356,7 +354,8 @@ MSLCM_LC2013::informFollower(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
 
 void
 MSLCM_LC2013::prepareStep() {
-    myOwnState = 0;
+    // keep information about strategic change direction
+    myOwnState = (myOwnState & LCA_STRATEGIC) ? (myOwnState & LCA_WANTS_LANECHANGE) : 0;
     myLeadingBlockerLength = 0;
     myLeftSpace = 0;
     myVSafes.clear();
@@ -368,9 +367,8 @@ MSLCM_LC2013::prepareStep() {
 
 
 void
-MSLCM_LC2013::changed() {
+MSLCM_LC2013::changed(int dir) {
     myOwnState = 0;
-    myLastLaneChangeOffset = 0;
     mySpeedGainProbability = 0;
     myKeepRightProbability = 0;
     if (myVehicle.getBestLaneOffset() == 0) {
@@ -382,6 +380,7 @@ MSLCM_LC2013::changed() {
     myLookAheadSpeed = LOOK_AHEAD_MIN_SPEED;
     myVSafes.clear();
     myDontBrake = false;
+    initLastLaneChangeOffset(dir);
 }
 
 
@@ -507,9 +506,10 @@ MSLCM_LC2013::_wantsChange(
             // rather move left ourselves (unless congested)
             MSVehicle* nv = neighLead.first;
             if (nv->getSpeed() < myVehicle.getSpeed()) {
-                myVSafes.push_back(myCarFollowModel.followSpeed(
-                                       &myVehicle, myVehicle.getSpeed(), neighLead.second, nv->getSpeed(), nv->getCarFollowModel().getMaxDecel()));
-                if (nv->getSpeed() + 5 / 3.6 < myVehicle.getSpeed()) {
+                const SUMOReal vSafe = myCarFollowModel.followSpeed(
+                                           &myVehicle, myVehicle.getSpeed(), neighLead.second, nv->getSpeed(), nv->getCarFollowModel().getMaxDecel());
+                myVSafes.push_back(vSafe);
+                if (vSafe < myVehicle.getSpeed()) {
                     mySpeedGainProbability += CHANGE_PROB_THRESHOLD_LEFT / 3;
                 }
             }
@@ -585,7 +585,7 @@ MSLCM_LC2013::_wantsChange(
     // let's also regard the case where the vehicle is driving on a highway...
     //  in this case, we do not want to get to the dead-end of an on-ramp
     if (right) {
-        if (bestLaneOffset == 0 && myVehicle.getLane()->getVehicleMaxSpeed(&myVehicle) > 80. / 3.6 && myLookAheadSpeed > SUMO_const_haltingSpeed) {
+        if (bestLaneOffset == 0 && myVehicle.getLane()->getSpeedLimit() > 80. / 3.6 && myLookAheadSpeed > SUMO_const_haltingSpeed) {
             req = ret | LCA_STAY | LCA_STRATEGIC;
             if (!cancelRequest(req)) {
                 return ret | req;

@@ -215,7 +215,7 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting length requires a double.", outputStorage);
             }
-            if (value == 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+            if (value <= 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
                 return server.writeErrorStatusCmd(cmd, "Invalid length.", outputStorage);
             }
             v.setLength(value);
@@ -226,7 +226,7 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting maximum speed requires a double.", outputStorage);
             }
-            if (value == 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+            if (value <= 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
                 return server.writeErrorStatusCmd(cmd, "Invalid maximum speed.", outputStorage);
             }
             v.setMaxSpeed(value);
@@ -237,13 +237,20 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             if (!server.readTypeCheckingString(inputStorage, vclass)) {
                 return server.writeErrorStatusCmd(cmd, "Setting vehicle class requires a string.", outputStorage);
             }
-            v.setVClass(getVehicleClassID(vclass));
+            try {
+                v.setVClass(getVehicleClassID(vclass));
+            } catch (InvalidArgument e) {
+                return server.writeErrorStatusCmd(cmd, "Unknown vehicle class '" + vclass + "'.", outputStorage);
+            }
         }
         break;
         case VAR_SPEED_FACTOR: {
             double value = 0;
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting speed factor requires a double.", outputStorage);
+            }
+            if (value <= 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+                return server.writeErrorStatusCmd(cmd, "Invalid speed factor.", outputStorage);
             }
             v.setSpeedFactor(value);
         }
@@ -252,6 +259,9 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             double value = 0;
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting speed deviation requires a double.", outputStorage);
+            }
+            if (value < 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+                return server.writeErrorStatusCmd(cmd, "Invalid speed deviation.", outputStorage);
             }
             v.setSpeedDeviation(value);
         }
@@ -273,6 +283,9 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             if (!server.readTypeCheckingDouble(inputStorage,  value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting width requires a double.", outputStorage);
             }
+            if (value <= 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+                return server.writeErrorStatusCmd(cmd, "Invalid width.", outputStorage);
+            }
             v.setWidth(value);
         }
         break;
@@ -280,6 +293,9 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             double value = 0;
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting minimum gap requires a double.", outputStorage);
+            }
+            if (value < 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+                return server.writeErrorStatusCmd(cmd, "Invalid minimum gap.", outputStorage);
             }
             v.setMinGap(value);
         }
@@ -289,13 +305,20 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             if (!server.readTypeCheckingString(inputStorage, sclass)) {
                 return server.writeErrorStatusCmd(cmd, "Setting vehicle shape requires a string.", outputStorage);
             }
-            v.setShape(getVehicleShapeID(sclass));
+            try {
+                v.setShape(getVehicleShapeID(sclass));
+            } catch (InvalidArgument e) {
+                return server.writeErrorStatusCmd(cmd, "Unknown vehicle shape " + sclass + "'.", outputStorage);
+            }
         }
         break;
         case VAR_ACCEL: {
             double value = 0;
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting acceleration requires a double.", outputStorage);
+            }
+            if (value < 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+                return server.writeErrorStatusCmd(cmd, "Invalid acceleration.", outputStorage);
             }
             v.getCarFollowModel().setMaxAccel(value);
         }
@@ -305,6 +328,9 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting deceleration requires a double.", outputStorage);
             }
+            if (value < 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+                return server.writeErrorStatusCmd(cmd, "Invalid deceleration.", outputStorage);
+            }
             v.getCarFollowModel().setMaxDecel(value);
         }
         break;
@@ -313,6 +339,9 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting driver imperfection requires a double.", outputStorage);
             }
+            if (value < 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+                return server.writeErrorStatusCmd(cmd, "Invalid driver imperfection.", outputStorage);
+            }
             v.getCarFollowModel().setImperfection(value);
         }
         break;
@@ -320,6 +349,9 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
             double value = 0;
             if (!server.readTypeCheckingDouble(inputStorage, value)) {
                 return server.writeErrorStatusCmd(cmd, "Setting headway time requires a double.", outputStorage);
+            }
+            if (value < 0.0 || fabs(value) == std::numeric_limits<double>::infinity()) {
+                return server.writeErrorStatusCmd(cmd, "Invalid headway time.", outputStorage);
             }
             v.getCarFollowModel().setHeadwayTime(value);
         }

@@ -94,14 +94,14 @@ NIVissimSingleTypeParser_Verbindungsdefinition::parse(std::istream& from) {
     zuschlag1 = zuschlag2 = 0;
     SUMOReal seglength = 0;
     tag = myRead(from);
-    NIVissimConnection::Direction direction = NIVissimConnection::NIVC_DIR_ALL;
+//    NIVissimConnection::Direction direction = NIVissimConnection::NIVC_DIR_ALL;
     while (tag != "fahrzeugklassen" && tag != "sperrung" && tag != "auswertung" && tag != "DATAEND") {
         if (tag == "rechts") {
-            direction = NIVissimConnection::NIVC_DIR_RIGHT;
+//            direction = NIVissimConnection::NIVC_DIR_RIGHT;
         } else if (tag == "links") {
-            direction = NIVissimConnection::NIVC_DIR_LEFT;
+//            direction = NIVissimConnection::NIVC_DIR_LEFT;
         } else if (tag == "alle") {
-            direction = NIVissimConnection::NIVC_DIR_ALL;
+//            direction = NIVissimConnection::NIVC_DIR_ALL;
         } else if (tag == "dxnothalt") {
             from >> dxnothalt; // type-checking is missing!
         } else if (tag == "dxeinordnen") {
@@ -145,7 +145,7 @@ NIVissimSingleTypeParser_Verbindungsdefinition::parse(std::istream& from) {
                 // get the lane number
 //                from >> tag;
                 int laneNo;
-                from >> laneNo; // type-checking is missing!
+                from >> laneNo; // unused and type-checking is missing!
                 // get the list of assigned car classes
                 std::vector<int> assignedVehicles;
                 tag = myRead(from);
@@ -158,13 +158,12 @@ NIVissimSingleTypeParser_Verbindungsdefinition::parse(std::istream& from) {
                     tag = readEndSecure(from);
                 }
                 // build and add the definition
-                NIVissimClosedLaneDef* cld = new NIVissimClosedLaneDef(laneNo, assignedVehicles);
+                NIVissimClosedLaneDef* cld = new NIVissimClosedLaneDef(assignedVehicles);
                 clv.push_back(cld);
             }
         } while (tag != "DATAEND");
     }
     NIVissimConnection* c = new NIVissimConnection(id, name, from_def, to_def, geom,
-            direction, dxnothalt, dxeinordnen, zuschlag1, zuschlag2, seglength,
             assignedVehicles, clv);
 
     if (!NIVissimConnection::dictionary(id, c)) {

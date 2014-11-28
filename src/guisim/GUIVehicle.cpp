@@ -35,7 +35,7 @@
 #include <string>
 #include <foreign/polyfonts/polyfonts.h>
 #include <utils/common/StringUtils.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include <utils/emissions/PollutantsInterface.h>
 #include <utils/gui/globjects/GLIncludes.h>
 #include <utils/gui/windows/GUISUMOAbstractView.h>
@@ -54,6 +54,7 @@
 #include <microsim/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <microsim/devices/MSDevice_Person.h>
+#include <microsim/devices/MSDevice_BTreceiver.h>
 #include <gui/GUIApplicationWindow.h>
 #include <gui/GUIGlobals.h>
 #include "GUIVehicle.h"
@@ -243,8 +244,7 @@ GUIVehicle::GUIVehiclePopupMenu::onCmdShowFoes(FXObject*, FXSelector, void*) {
  * GUIVehicle - methods
  * ----------------------------------------------------------------------- */
 GUIVehicle::GUIVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
-                       const MSVehicleType* type,
-                       SUMOReal speedFactor) :
+                       const MSVehicleType* type, const SUMOReal speedFactor) :
     MSVehicle(pars, route, type, speedFactor),
     GUIGlObject(GLO_VEHICLE, pars->id) {
     // as it is possible to show all vehicle routes, we have to store them... (bug [ 2519761 ])
@@ -315,7 +315,7 @@ GUIParameterTableWindow*
 GUIVehicle::getParameterWindow(GUIMainWindow& app,
                                GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 34);
+        new GUIParameterTableWindow(app, *this, 35);
     // add items
     ret->mkItem("lane [id]", false, myLane->getID());
     ret->mkItem("position [m]", true,
@@ -360,6 +360,14 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getFuelConsumption));
     ret->mkItem("noise (Harmonoise) [dB]", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getHarmonoise_NoiseEmissions));
+    std::ostringstream str;
+    for (std::vector<MSDevice*>::const_iterator i = myDevices.begin(); i != myDevices.end(); ++i) {
+        if (i != myDevices.begin()) {
+            str << ' ';
+        }
+        str << (*i)->getID().substr(0, (*i)->getID().find(getID()));
+    }
+    ret->mkItem("devices", false, str.str());
     ret->mkItem("parameters [key:val]", false, toString(getParameter().getMap()));
     ret->mkItem("", false, "");
     ret->mkItem("Type Information:", false, "");
@@ -825,10 +833,11 @@ GUIVehicle::drawAction_drawVehicleAsImage(const GUIVisualizationSettings& s, SUM
     if (file != "") {
         int textureID = GUITexturesHelper::getTextureID(file);
         if (textureID > 0) {
+            const SUMOReal exaggeration = s.vehicleSize.getExaggeration(s);
             if (length < 0) {
-                length = getVehicleType().getLength() * s.vehicleExaggeration;
+                length = getVehicleType().getLength() * exaggeration;
             }
-            const SUMOReal halfWidth = getVehicleType().getWidth() / 2.0 * s.vehicleExaggeration;
+            const SUMOReal halfWidth = getVehicleType().getWidth() / 2.0 * exaggeration;
             GUITexturesHelper::drawTexturedBox(textureID, -halfWidth, 0, halfWidth, length);
             return true;
         }
@@ -926,7 +935,7 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     // set lane color
     setColor(s);
     // scale
-    SUMOReal upscale = s.vehicleExaggeration;
+    const SUMOReal upscale = s.vehicleSize.getExaggeration(s);
     glScaled(upscale, upscale, 1);
     /*
         MSLCM_DK2004 &m2 = static_cast<MSLCM_DK2004&>(veh->getLaneChangeModel());
@@ -962,7 +971,7 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
             break;
     }
     if (s.drawMinGap) {
-        SUMOReal minGap = -getVehicleType().getMinGap();
+        const SUMOReal minGap = -getVehicleType().getMinGap();
         glColor3d(0., 1., 0.);
         glBegin(GL_LINES);
         glVertex2d(0., 0);
@@ -970,6 +979,11 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
         glVertex2d(-.5, minGap);
         glVertex2d(.5, minGap);
         glEnd();
+    }
+    MSDevice_BTreceiver* dev = static_cast<MSDevice_BTreceiver*>(getDevice(typeid(MSDevice_BTreceiver)));
+    if (dev != 0 && s.showBTRange) {
+        glColor3d(1., 0., 0.);
+        GLHelper::drawOutlineCircle(dev->getRange(), dev->getRange() - .2, 32);
     }
     // draw the blinker and brakelights if wished
     if (s.showBlinker) {
@@ -1091,7 +1105,7 @@ GUIVehicle::drawGLAdditional(GUISUMOAbstractView* const parent, const GUIVisuali
                 }
                 const SUMOTime leaveTime = (*i).myLink->getLeaveTime(
                                                (*i).myArrivalTime, (*i).myArrivalSpeed, (*i).getLeaveSpeed(), getVehicleType().getLengthWithGap());
-                drawLinkItem(p, (*i).myArrivalTime, leaveTime, s.addExaggeration);
+                drawLinkItem(p, (*i).myArrivalTime, leaveTime, s.vehicleSize.getExaggeration(s));
                 // the time slot that ego vehicle uses when checking opened may
                 // differ from the one it requests in setApproaching
                 MSLink::ApproachingVehicleInformation avi = (*i).myLink->getApproaching(this);
@@ -1118,53 +1132,53 @@ GUIVehicle::drawLinkItem(const Position& pos, SUMOTime arrivalTime, SUMOTime lea
 void
 GUIVehicle::setColor(const GUIVisualizationSettings& s) const {
     const GUIColorer& c = s.vehicleColorer;
-    if (!setFunctionalColor(c.getActive())) {
+    if (!setFunctionalColor(c.getActive(), this)) {
         GLHelper::setColor(c.getScheme().getColor(getColorValue(c.getActive())));
     }
 }
 
 
 bool
-GUIVehicle::setFunctionalColor(size_t activeScheme) const {
+GUIVehicle::setFunctionalColor(size_t activeScheme, const MSBaseVehicle* veh) {
     switch (activeScheme) {
         case 0: {
-            if (getParameter().wasSet(VEHPARS_COLOR_SET)) {
-                GLHelper::setColor(getParameter().color);
+            if (veh->getParameter().wasSet(VEHPARS_COLOR_SET)) {
+                GLHelper::setColor(veh->getParameter().color);
                 return true;
             }
-            if (getVehicleType().wasSet(VTYPEPARS_COLOR_SET)) {
-                GLHelper::setColor(getVehicleType().getColor());
+            if (veh->getVehicleType().wasSet(VTYPEPARS_COLOR_SET)) {
+                GLHelper::setColor(veh->getVehicleType().getColor());
                 return true;
             }
-            if (&getRoute().getColor() != &RGBColor::DEFAULT_COLOR) {
-                GLHelper::setColor(getRoute().getColor());
+            if (&(veh->getRoute().getColor()) != &RGBColor::DEFAULT_COLOR) {
+                GLHelper::setColor(veh->getRoute().getColor());
                 return true;
             }
             return false;
         }
         case 2: {
-            if (getParameter().wasSet(VEHPARS_COLOR_SET)) {
-                GLHelper::setColor(getParameter().color);
+            if (veh->getParameter().wasSet(VEHPARS_COLOR_SET)) {
+                GLHelper::setColor(veh->getParameter().color);
                 return true;
             }
             return false;
         }
         case 3: {
-            if (getVehicleType().wasSet(VTYPEPARS_COLOR_SET)) {
-                GLHelper::setColor(getVehicleType().getColor());
+            if (veh->getVehicleType().wasSet(VTYPEPARS_COLOR_SET)) {
+                GLHelper::setColor(veh->getVehicleType().getColor());
                 return true;
             }
             return false;
         }
         case 4: {
-            if (&getRoute().getColor() != &RGBColor::DEFAULT_COLOR) {
-                GLHelper::setColor(getRoute().getColor());
+            if (&(veh->getRoute().getColor()) != &RGBColor::DEFAULT_COLOR) {
+                GLHelper::setColor(veh->getRoute().getColor());
                 return true;
             }
             return false;
         }
         case 5: {
-            Position p = getRoute().getEdges()[0]->getLanes()[0]->getShape()[0];
+            Position p = veh->getRoute().getEdges()[0]->getLanes()[0]->getShape()[0];
             const Boundary& b = ((GUINet*) MSNet::getInstance())->getBoundary();
             Position center = b.getCenter();
             SUMOReal hue = 180. + atan2(center.x() - p.x(), center.y() - p.y()) * 180. / PI;
@@ -1173,7 +1187,7 @@ GUIVehicle::setFunctionalColor(size_t activeScheme) const {
             return true;
         }
         case 6: {
-            Position p = getRoute().getEdges().back()->getLanes()[0]->getShape()[-1];
+            Position p = veh->getRoute().getEdges().back()->getLanes()[0]->getShape()[-1];
             const Boundary& b = ((GUINet*) MSNet::getInstance())->getBoundary();
             Position center = b.getCenter();
             SUMOReal hue = 180. + atan2(center.x() - p.x(), center.y() - p.y()) * 180. / PI;
@@ -1182,8 +1196,8 @@ GUIVehicle::setFunctionalColor(size_t activeScheme) const {
             return true;
         }
         case 7: {
-            Position pb = getRoute().getEdges()[0]->getLanes()[0]->getShape()[0];
-            Position pe = getRoute().getEdges().back()->getLanes()[0]->getShape()[-1];
+            Position pb = veh->getRoute().getEdges()[0]->getLanes()[0]->getShape()[0];
+            Position pe = veh->getRoute().getEdges().back()->getLanes()[0]->getShape()[-1];
             const Boundary& b = ((GUINet*) MSNet::getInstance())->getBoundary();
             SUMOReal hue = 180. + atan2(pb.x() - pe.x(), pb.y() - pe.y()) * 180. / PI;
             Position minp(b.xmin(), b.ymin());
@@ -1286,12 +1300,13 @@ GUIVehicle::drawRoute(const GUIVisualizationSettings& s, int routeNo, SUMOReal d
         colors[3] = 0;
     }
     glColor3dv(colors);
+    const SUMOReal exaggeration = s.vehicleSize.getExaggeration(s);
     if (routeNo == 0) {
-        drawRouteHelper(*myRoute, s.vehicleExaggeration);
+        drawRouteHelper(*myRoute, exaggeration);
         return;
     }
     --routeNo; // only prior routes are stored
-    drawRouteHelper(*myRoutes->getRoute(routeNo), s.vehicleExaggeration);
+    drawRouteHelper(*myRoutes->getRoute(routeNo), exaggeration);
 }
 
 
@@ -1365,13 +1380,19 @@ void
 GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, SUMOReal carriageGap, int firstPassengerCarriage, bool asImage) const {
     RGBColor current = GLHelper::getColor();
     RGBColor darker = current.changedBrightness(-51);
-    const SUMOReal length = getVehicleType().getLength() * s.vehicleExaggeration;
-    const SUMOReal halfWidth = getVehicleType().getWidth() / 2.0 * s.vehicleExaggeration;
+    const SUMOReal exaggeration = s.vehicleSize.getExaggeration(s);
+    defaultLength *= exaggeration;
+    if (exaggeration == 0) {
+        return;
+    }
+    carriageGap *= exaggeration;
+    const SUMOReal length = getVehicleType().getLength() * exaggeration;
+    const SUMOReal halfWidth = getVehicleType().getWidth() / 2.0 * exaggeration;
     glPopMatrix(); // undo scaling and 90 degree rotation
     glPopMatrix(); // undo initial translation and rotation
     GLHelper::setColor(darker);
-    const SUMOReal xCornerCut = 0.3;
-    const SUMOReal yCornerCut = 0.4;
+    const SUMOReal xCornerCut = 0.3 * exaggeration;
+    const SUMOReal yCornerCut = 0.4 * exaggeration;
     // round to closest integer
     const int numCarriages = floor(length / (defaultLength + carriageGap) + 0.5);
     assert(numCarriages > 0);
@@ -1398,7 +1419,7 @@ GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMO
         while (carriageOffset < 0) {
             MSLane* prev = getPreviousLane(lane, furtherIndex);
             if (prev != lane) {
-                carriageOffset += lane->getLength();
+                carriageOffset += prev->getLength();
             } else {
                 // no lane available for drawing.
                 carriageOffset = 0;
@@ -1406,11 +1427,21 @@ GUIVehicle::drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMO
             lane = prev;
         }
         while (carriageBackOffset < 0) {
-            backLane = getPreviousLane(backLane, backFurtherIndex);
-            carriageBackOffset += backLane->getLength();
+            MSLane* prev = getPreviousLane(backLane, backFurtherIndex);
+            if (prev != backLane) {
+                carriageBackOffset += prev->getLength();
+            } else {
+                // no lane available for drawing.
+                carriageBackOffset = 0;
+            }
+            backLane = prev;
         }
         front = lane->getShape().positionAtOffset2D(carriageOffset);
         back = backLane->getShape().positionAtOffset2D(carriageBackOffset);
+        if (front == back) {
+            // no place for drawing available
+            continue;
+        }
         angle = atan2((front.x() - back.x()), (back.y() - front.y())) * (SUMOReal) 180.0 / (SUMOReal) PI;
         if (i >= firstPassengerCarriage) {
             computeSeats(front, back, requiredSeats);

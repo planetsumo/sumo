@@ -65,6 +65,7 @@ class MSEdgeWeightsStorage;
 class OutputDevice;
 class Position;
 class MSDevice_Person;
+class MSJunction;
 
 
 // ===========================================================================
@@ -141,7 +142,7 @@ public:
      * @exception ProcessError If a value is wrong
      */
     MSVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
-              const MSVehicleType* type, SUMOReal speedFactor);
+              const MSVehicleType* type, const SUMOReal speedFactor);
 
     /// @brief Destructor.
     virtual ~MSVehicle();
@@ -340,17 +341,11 @@ public:
 
     /** @brief Returns the starting point for reroutes (usually the current edge)
      *
-     * This differs from *myCurrEdge only if the vehicle is on an internal edge
+     * This differs from *myCurrEdge only if the vehicle is on an internal edge or
+     *  very close to the junction
      * @return The rerouting start point
      */
-    const MSEdge* getRerouteOrigin() const {
-#ifdef HAVE_INTERNAL_LANES
-        if (myLane != 0) {
-            return myLane->getInternalFollower();
-        }
-#endif
-        return *myCurrEdge;
-    }
+    const MSEdge* getRerouteOrigin() const;
 
 
     /** @brief Returns the SUMOTime waited (speed was lesser than 0.1m/s)
@@ -592,7 +587,7 @@ public:
      * @param[in] stop The stop to add
      * @return Whether the stop could be added
      */
-    bool addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffset = 0);
+    bool addStop(const SUMOVehicleParameter::Stop& stopPar, std::string& errorMsg, SUMOTime untilOffset = 0);
 
 
     /** @brief Returns whether the vehicle has to stop somewhere
@@ -698,8 +693,8 @@ public:
      */
     SUMOReal getFuelConsumption() const;
 
-	
-	/** @brief Returns noise emissions of the current state
+
+    /** @brief Returns noise emissions of the current state
      * @return The noise produced
      */
     SUMOReal getHarmonoise_NoiseEmissions() const;
@@ -835,7 +830,8 @@ public:
      * @param parking   a flag indicating whether the traci stop is used for parking or not
      * @param triggered a flag indicating whether the traci stop is triggered or not
      */
-    bool addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal radius, SUMOTime duration, bool parking, bool triggered);
+    bool addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal radius, SUMOTime duration,
+                      bool parking, bool triggered, std::string& errorMsg);
 
     /**
     * returns the next imminent stop in the stop queue
@@ -1054,7 +1050,7 @@ public:
 
     /// @brief compute safe speed for following the given leader
     SUMOReal getSafeFollowSpeed(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
-                         const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const;
+                                const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const;
 
 #endif
 

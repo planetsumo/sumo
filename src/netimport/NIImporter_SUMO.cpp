@@ -50,6 +50,7 @@
 #include <netbuild/NBAlgorithms_Ramps.h>
 #include <netbuild/NBNetBuilder.h>
 #include "NILoader.h"
+#include "NIXMLEdgesHandler.h"
 #include "NIImporter_SUMO.h"
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -251,6 +252,21 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
             node->addCrossing(edges, crossing.width, crossing.priority);
         }
     }
+    // add roundabouts
+    for (std::vector<std::vector<std::string> >::const_iterator it = myRoundabouts.begin(); it != myRoundabouts.end(); ++it) {
+        EdgeSet roundabout;
+        for (std::vector<std::string>::const_iterator it_r = it->begin(); it_r != it->end(); ++it_r) {
+            NBEdge* edge = myNetBuilder.getEdgeCont().retrieve(*it_r);
+            if (edge == 0) {
+                if (!myNetBuilder.getEdgeCont().wasIgnored(*it_r)) {
+                    WRITE_ERROR("Unknown edge '" + (*it_r) + "' in roundabout");
+                }
+            } else {
+                roundabout.insert(edge);
+            }
+        }
+        myNetBuilder.getEdgeCont().addRoundabout(roundabout);
+    }
 }
 
 
@@ -301,7 +317,7 @@ NIImporter_SUMO::myStartElement(int element,
             addProhibition(attrs);
             break;
         case SUMO_TAG_ROUNDABOUT:
-            myNetBuilder.haveSeenRoundabouts();
+            addRoundabout(attrs);
             break;
         default:
             break;
@@ -718,4 +734,16 @@ NIImporter_SUMO::parseProhibitionConnection(const std::string& attr, std::string
         ok = false;
     }
 }
+
+
+void
+NIImporter_SUMO::addRoundabout(const SUMOSAXAttributes& attrs) {
+    if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
+        myRoundabouts.push_back(attrs.getStringVector(SUMO_ATTR_EDGES));
+    } else {
+        WRITE_ERROR("Empty edges in roundabout.");
+    }
+}
+
+
 /****************************************************************************/

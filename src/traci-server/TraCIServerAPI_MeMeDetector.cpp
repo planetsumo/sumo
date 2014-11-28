@@ -33,7 +33,6 @@
 
 #include "TraCIConstants.h"
 #include <microsim/output/MSDetectorControl.h>
-#include <microsim/output/MSE3Collector.h>
 #include "TraCIServerAPI_MeMeDetector.h"
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -82,7 +81,7 @@ TraCIServerAPI_MeMeDetector::processGet(TraCIServer& server, tcpip::Storage& inp
                 break;
             case LAST_STEP_VEHICLE_NUMBER:
                 tempMsg.writeUnsignedByte(TYPE_INTEGER);
-                tempMsg.writeInt((int) e3->getVehiclesWithin());
+                tempMsg.writeInt(e3->getVehiclesWithin());
                 break;
             case LAST_STEP_MEAN_SPEED:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
@@ -96,7 +95,7 @@ TraCIServerAPI_MeMeDetector::processGet(TraCIServer& server, tcpip::Storage& inp
             break;
             case LAST_STEP_VEHICLE_HALTING_NUMBER:
                 tempMsg.writeUnsignedByte(TYPE_INTEGER);
-                tempMsg.writeInt((int) e3->getCurrentHaltingNumber());
+                tempMsg.writeInt(e3->getCurrentHaltingNumber());
                 break;
             default:
                 break;

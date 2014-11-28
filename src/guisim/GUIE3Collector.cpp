@@ -89,11 +89,11 @@ GUIE3Collector::MyWrapper::getParameterWindow(GUIMainWindow& app,
     // add items
     // values
     ret->mkItem("vehicles within [#]", true,
-                new FunctionBinding<MSE3Collector, SUMOReal>(&myDetector, &MSE3Collector::getVehiclesWithin));
+                new FunctionBinding<MSE3Collector, int>(&myDetector, &MSE3Collector::getVehiclesWithin));
     ret->mkItem("mean speed [m/s]", true,
                 new FunctionBinding<MSE3Collector, SUMOReal>(&myDetector, &MSE3Collector::getCurrentMeanSpeed));
     ret->mkItem("haltings [#]", true,
-                new FunctionBinding<MSE3Collector, SUMOReal>(&myDetector, &MSE3Collector::getCurrentHaltingNumber));
+                new FunctionBinding<MSE3Collector, int>(&myDetector, &MSE3Collector::getCurrentHaltingNumber));
     // close building
     ret->closeBuilding();
     return ret;
@@ -108,12 +108,13 @@ GUIE3Collector::MyWrapper::drawGL(const GUIVisualizationSettings& s) const {
     typedef std::vector<SingleCrossingDefinition> CrossingDefinitions;
     CrossingDefinitions::const_iterator i;
     glColor3d(0, .8, 0);
+    const SUMOReal exaggeration = s.addSize.getExaggeration(s);
     for (i = myEntryDefinitions.begin(); i != myEntryDefinitions.end(); ++i) {
-        drawSingleCrossing((*i).myFGPosition, (*i).myFGRotation, s.addExaggeration);
+        drawSingleCrossing((*i).myFGPosition, (*i).myFGRotation, exaggeration);
     }
     glColor3d(.8, 0, 0);
     for (i = myExitDefinitions.begin(); i != myExitDefinitions.end(); ++i) {
-        drawSingleCrossing((*i).myFGPosition, (*i).myFGRotation, s.addExaggeration);
+        drawSingleCrossing((*i).myFGPosition, (*i).myFGRotation, exaggeration);
     }
     glPopMatrix();
     drawName(getCenteringBoundary().getCenter(), s.scale, s.addName);

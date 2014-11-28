@@ -63,6 +63,7 @@ MSLink::MSLink(MSLane* succLane, LinkDirection dir, LinkState state, SUMOReal le
     myLane(succLane),
     myIndex(-1),
     myState(state),
+    myLastStateChange(-1),
     myDirection(dir),
     myLength(length),
     myHasFoes(false),
@@ -73,6 +74,7 @@ MSLink::MSLink(MSLane* succLane, MSLane* via, LinkDirection dir, LinkState state
     myLane(succLane),
     myIndex(-1),
     myState(state),
+    myLastStateChange(-1),
     myDirection(dir),
     myLength(length),
     myHasFoes(false),
@@ -218,7 +220,7 @@ bool
 MSLink::opened(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed, SUMOReal vehicleLength,
                SUMOReal impatience, SUMOReal decel, SUMOTime waitingTime,
                std::vector<const SUMOVehicle*>* collectFoes) const {
-    if (myState == LINKSTATE_TL_RED) {
+    if (haveRed()) {
         return false;
     }
     if (myAmCont && MSGlobals::gUsingInternalLanes) {
@@ -231,7 +233,7 @@ MSLink::opened(SUMOTime arrivalTime, SUMOReal arrivalSpeed, SUMOReal leaveSpeed,
     for (std::vector<MSLink*>::const_iterator i = myFoeLinks.begin(); i != myFoeLinks.end(); ++i) {
 #ifdef HAVE_INTERNAL
         if (MSGlobals::gUseMesoSim) {
-            if ((*i)->getState() == LINKSTATE_TL_RED) {
+            if ((*i)->haveRed()) {
                 continue;
             }
         }
@@ -342,7 +344,10 @@ MSLink::getDirection() const {
 
 
 void
-MSLink::setTLState(LinkState state, SUMOTime /*t*/) {
+MSLink::setTLState(LinkState state, SUMOTime t) {
+    if (myState != state) {
+        myLastStateChange = t;
+    }
     myState = state;
 }
 
