@@ -1,11 +1,20 @@
-# checks using the default lane (0)
+# checks using the default lane (rightmost allowed - 0)
 lane_default
+
+# checks using the default lane (rightmost allowed, only accessible for busses, all should use 0)
+lane_default_3veh_bus
+
+# checks using the default lane (rightmost allowed, only accessible for busses, all must not use 0)
+lane_default_3veh_passenger
 
 # checks using a free lane (1 vehicle)
 lane_free
 
 # checks using a free lane (3 vehicles)
 lane_free_3veh
+
+# candidate lanes are occupied by vehicles of different lengths, the lane with the least occupancy should be taken
+lane_free_occupancy
 
 # checks using the best lane (3 vehicles)
 lane_best_3veh
@@ -87,6 +96,9 @@ speed_max__lanelimit
 
 # checks using the maximum speed (bounded by veh's vmax)
 speed_max__vehlimit
+
+# checks using the maximum speed (bounded by leader vehicles)
+speed_max__leader
 
 # checks using the random speed (bounded by lane's vmax)
 speed_random__lanelimit

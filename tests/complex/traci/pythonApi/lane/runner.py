@@ -24,7 +24,7 @@ import traci, sumolib
 
 sumoBinary = sumolib.checkBinary('sumo')
 
-PORT = random.randint(8000, 50000)
+PORT = sumolib.miscutils.getFreeSocketPort()
 sumoProcess = subprocess.Popen("%s -c sumo.sumocfg --remote-port %s" % (sumoBinary, PORT), shell=True, stdout=sys.stdout)
 traci.init(PORT)
 for step in range(3):
@@ -41,6 +41,7 @@ print "allowed", traci.lane.getAllowed(laneID)
 print "disallowed", traci.lane.getDisallowed(laneID)
 print "linkNum", traci.lane.getLinkNumber(laneID)
 print "links", traci.lane.getLinks(laneID)
+print "linksExtended", traci.lane.getLinks(laneID, extended=True)
 print "shape", traci.lane.getShape(laneID)
 print "edge", traci.lane.getEdgeID(laneID)
 print "CO2", traci.lane.getCO2Emission(laneID)

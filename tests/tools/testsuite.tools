@@ -31,12 +31,9 @@ turndefs
 # Tests for detector tools
 detector
 
-# Tests for emissions tools
-emissions
-
 # tests for district tools (especially visum and net mapping)
 district
 
 # tests for visualisation tools
 visualisation
->>>>>>> .r15690
+build

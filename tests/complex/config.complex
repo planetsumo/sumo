@@ -30,21 +30,21 @@ state:state.xml
 tripinfo:tripinfo.xml
 net:net.net.xml
 vss:vss.xml
+rawdump:rawdump.xml
 results:results.csv
 tls_state:tls_state.xml
 
 [run_dependent_text]
-output:\r{REPLACE \n}
 output:<!--{[->]}-->
-output:\([0-9]*ms\){REPLACE (TIME)}
-output:[0-9]* ms{REPLACE TIME}
 output:^Performance:{->}^Vehicles:
 output:visible boundary
 output:uncheck:
+output:@@[^@]*@@
 net:<!--{[->]}-->
 trips:<!--{[->]}-->
 vehroutes:<!--{[->]}-->
 tripinfo:<!--{[->]}-->
+rawdump:<!--{[->]}-->
 state:<!--{[->]}-->
 state:snapshot version="[^"]*"{REPLACE snapshot}
 errors:Die Adresse wird bereits verwendet{REPLACE Address already in use}
@@ -60,6 +60,7 @@ output:0.0001
 net:0.0101
 vss:0.0001
 results:0.00101
+tripinfo:0.0101
 
 [batch_extra_version]
 meso:meso

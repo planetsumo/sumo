@@ -23,11 +23,25 @@ if 'SUMO_HOME' in os.environ:
 sys.path.append(toolDir)
 import sumolib
 
-def connect(inPort, outPort):
-    i = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    i.connect(("localhost", inPort))
-    o = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    o.connect(("localhost", outPort))
+def connect(inPort, outPort, numTries=10):
+    for wait in range(1, numTries+1):
+        try:
+            i = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            i.connect(("localhost", inPort))
+            break
+        except socket.error:
+            if wait == numTries:
+                raise
+            time.sleep(wait)
+    for wait in range(1, numTries+1):
+        try:
+            o = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            o.connect(("localhost", outPort))
+            break
+        except socket.error:
+            if wait == numTries:
+                raise
+            time.sleep(wait)
     while 1:
         data = i.recv(1024)
         if not data: break
@@ -35,9 +49,9 @@ def connect(inPort, outPort):
     o.close()
     i.close()
 
-SUMO_PORT = 8089
-IN_PORT = 8090
-OUT_PORT = 8091
+SUMO_PORT = sumolib.miscutils.getFreeSocketPort()
+IN_PORT = sumolib.miscutils.getFreeSocketPort()
+OUT_PORT = sumolib.miscutils.getFreeSocketPort()
 sumoBinary = sumolib.checkBinary('sumo')
 xmlProtoPy = os.path.join(toolDir, 'xml', 'xml2protobuf.py')
 protoXmlPy = os.path.join(toolDir, 'xml', 'protobuf2xml.py')
@@ -50,12 +64,17 @@ subprocess.call([sumoBinary, "-c", "sumo.sumocfg", "--amitran-output", "direct.x
 xPro = subprocess.Popen(['python', xmlProtoPy, '-x', schema, '-o', str(IN_PORT), str(SUMO_PORT)])
 pPro = subprocess.Popen(['python', protoXmlPy, '-x', schema, str(OUT_PORT)])
 time.sleep(1) # wait for all servers to start
-sumoPro = subprocess.Popen([sumoBinary, "sumo.sumocfg"])
-time.sleep(1) # wait for all servers to start
-connect(IN_PORT, OUT_PORT)
-sumoPro.wait()
-pPro.wait()
-xPro.wait()
+sumoPro = subprocess.Popen([sumoBinary, "-c", "sumo.sumocfg", "--amitran-output", "localhost:%s" % SUMO_PORT])
+try:
+    connect(IN_PORT, OUT_PORT)
+    sumoPro.wait()
+    pPro.wait()
+    xPro.wait()
+except:
+    sumoPro.kill()
+    pPro.kill()
+    xPro.kill()
+    raise
 
 for line in difflib.unified_diff(open('direct.xml').readlines(), open('%s.xml' % OUT_PORT).readlines(), n=0):
     sys.stdout.write(line)
