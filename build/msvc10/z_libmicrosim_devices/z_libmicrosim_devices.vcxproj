@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice.h" />
+    <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Battery.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_BTreceiver.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_BTsender.h" />
     <ClInclude Include="..\..\..\src\microsim\devices\MSDevice_Example.h" />
@@ -55,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Battery.cpp" />
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_BTreceiver.cpp" />
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_BTsender.cpp" />
     <ClCompile Include="..\..\..\src\microsim\devices\MSDevice_Example.cpp" />
