@@ -13,6 +13,11 @@ AC_LANG([C++])
 
 dnl the debug check has to be made before the program checks
 dnl because it modifies CXXFLAGS
+if test $CXX = clang++; then
+    CXXFLAGS="-msse2 $CXXFLAGS"
+else
+    CXXFLAGS="-msse2 -mfpmath=sse $CXXFLAGS"
+fi
 AC_ARG_ENABLE([debug], [AS_HELP_STRING([--enable-debug],[enable sumo debugging code [default=no].])])
 if test x$enable_debug = xyes; then
     AC_DEFINE(_DEBUG, 1, [Define to 1 in order to enable sumo debugging code.])
@@ -455,6 +460,7 @@ src/microsim/logging/Makefile
 src/microsim/output/Makefile
 src/microsim/traffic_lights/Makefile
 src/microsim/trigger/Makefile
+src/marouter/Makefile
 src/netbuild/Makefile
 src/netgen/Makefile
 src/netimport/Makefile
@@ -491,6 +497,7 @@ src/utils/iodevices/Makefile
 src/utils/options/Makefile
 src/utils/shapes/Makefile
 src/utils/traci/Makefile
+src/utils/vehicle/Makefile
 src/utils/xml/Makefile
 unittest/Makefile
 unittest/src/Makefile
@@ -498,6 +505,7 @@ unittest/src/microsim/Makefile
 unittest/src/netbuild/Makefile
 unittest/src/utils/Makefile
 unittest/src/utils/common/Makefile
+unittest/src/utils/foxtools/Makefile
 unittest/src/utils/geom/Makefile
 unittest/src/utils/iodevices/Makefile
 bin/Makefile
