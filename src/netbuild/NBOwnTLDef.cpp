@@ -282,7 +282,7 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
                     isForbidden = true;
                 }
             }
-            if (!isForbidden) {
+            if (!isForbidden && !hasCrossing(fromEdges[i1], toEdges[i1], crossings)) {
                 state[i1] = 'G';
             }
         }
@@ -301,6 +301,7 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
                 }
             }
         }
+        const std::string vehicleState = state; // backup state before pedestrian modifications
         state = addPedestrianPhases(logic, greenTime, state, crossings, fromEdges, toEdges);
         // pedestrians have 'r' from here on
         for (unsigned int i1 = pos; i1 < pos + crossings.size(); ++i1) {
@@ -313,7 +314,7 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
                 if (state[i1] != 'G' && state[i1] != 'g') {
                     continue;
                 }
-                if ((state[i1] >= 'a' && state[i1] <= 'z') && haveForbiddenLeftMover) {
+                if ((vehicleState[i1] >= 'a' && vehicleState[i1] <= 'z') && haveForbiddenLeftMover) {
                     continue;
                 }
                 state[i1] = 'y';
@@ -360,6 +361,26 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
         delete logic;
         return 0;
     }
+}
+
+
+bool 
+NBOwnTLDef::hasCrossing(const NBEdge* from, const NBEdge* to, const std::vector<NBNode::Crossing>& crossings) {
+    assert(from != 0);
+    assert(to != 0);
+    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+        const NBNode::Crossing& cross = *it;
+        // only check connections at this crossings node
+        if (from->getToNode() == cross.node) {
+            for (EdgeVector::const_iterator it_e = cross.edges.begin(); it_e != cross.edges.end(); ++it_e) {
+                const NBEdge* edge = *it_e;
+                if (edge == from || edge == to) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 
