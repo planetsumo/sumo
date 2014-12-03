@@ -1,15 +1,14 @@
-Loading net-file from 'net.net.xml'...  done (4ms).
+Loading net-file from 'net.net.xml'...  done (1ms).
 Loading done.
 Simulation started with time: 0.00
-Simulation ended at time: 706.00
+Simulation ended at time: 670.00
 Reason: All vehicles have left the simulation.
 Performance: 
- Duration: 427 ms
- Real time factor: 1653.4
- UPS: 59889.929742
+ Duration: 69 ms
+ Real time factor: 9710.14
+ UPS: 319971.014493
 Vehicles: 
- Emitted: 504
+ Inserted: 504
  Running: 0
  Waiting: 0
-Teleports: 5
 

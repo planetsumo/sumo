@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 05/02/13 15:11:39 by SUMO sumo Version 0.17.0
+<!-- generated on Wed Nov  5 08:58:53 2014 by SUMO Version dev-SVN-r17252ID
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
@@ -23,6 +23,7 @@
     </processing>
 
     <report>
+        <xml-validation value="never"/>
         <no-duration-log value="true"/>
         <no-step-log value="true"/>
     </report>
@@ -35,23 +36,23 @@
 -->
 
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
-    <vehicle id="horizontal01" depart="100.00" arrival="267.00">
+    <vehicle id="horizontal01" depart="100.00" arrival="294.00">
         <route edges="2fi 2si 1o 1fi 1si 2o 2fi"/>
     </vehicle>
 
-    <vehicle id="horizontal03" depart="100.00" arrival="269.00">
+    <vehicle id="horizontal03" depart="100.00" arrival="295.00">
         <route edges="2fi 2si 1o 1fi 1si 2o 2fi"/>
     </vehicle>
 
-    <vehicle id="horizontal05" depart="100.00" arrival="270.00">
+    <vehicle id="horizontal05" depart="100.00" arrival="297.00">
         <route edges="2fi 2si 1o 1fi 1si 2o 2fi"/>
     </vehicle>
 
-    <vehicle id="horizontal07" depart="100.00" arrival="272.00">
+    <vehicle id="horizontal07" depart="100.00" arrival="298.00">
         <route edges="2fi 2si 1o 1fi 1si 2o 2fi"/>
     </vehicle>
 
-    <vehicle id="horizontal09" depart="100.00" arrival="273.00">
+    <vehicle id="horizontal09" depart="100.00" arrival="300.00">
         <route edges="2fi 2si 1o 1fi 1si 2o 2fi"/>
     </vehicle>
 

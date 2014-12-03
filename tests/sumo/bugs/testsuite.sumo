@@ -66,6 +66,9 @@ ticket609
 ticket611
 ticket651
 
+# testing route length in tripinfos and vehroute output with rerouting
+ticket676
+
 # test junction deadlock
 ticket699
 ticket720
@@ -126,7 +129,6 @@ ticket929
 ticket941
 ticket963
 ticket967
-ticket1026
 
 # vehicles stop to help other vehicles to change langes even though they are 500 meters apart
 ticket1044
@@ -135,3 +137,22 @@ ticket1044
 
 ticket1050
 ticket1054
+ticket1065
+ticket1082
+ticket1084
+ticket1088
+ticket1091
+ticket1096
+
+# this time with green minor link
+ticket1096b
+ticket1096c
+ticket1097
+ticket1114
+ticket1217
+ticket1223
+ticket1273
+
+# at revision 16874 this test showcases ticket #1400 (vehicles intersect physically but no collision warning is issued).
+ticket1107
+ticket1402

@@ -46,10 +46,10 @@
 
     <output>
         <!-- Save complete network states into FILE -->
-        <netstate-dump value="" synonymes="ndump netstate" type="FILE"/>
+        <netstate-dump value="" synonymes="ndump netstate netstate-output" type="FILE"/>
 
         <!-- Write also empty edges completely when dumping -->
-        <netstate-dump.empty-edges value="false" synonymes="dump-empty-edges netstate.empty-edges" type="BOOL"/>
+        <netstate-dump.empty-edges value="false" synonymes="dump-empty-edges netstate-output.empty-edges netstate.empty-edges" type="BOOL"/>
 
         <!-- Save the emission values of each vehicle -->
         <emission-output value="" type="FILE"/>
@@ -72,11 +72,17 @@
         <!-- Save complete vehicle positions inclusive speed values in the VTK Format (usage: /path/out will produce /path/out_$TIMESTEP$.vtp files) -->
         <vtk-output value="" type="FILE"/>
 
+        <!-- Save the vehicle trajectories in the Amitran format -->
+        <amitran-output value="" type="FILE"/>
+
         <!-- Save aggregated vehicle departure info into FILE -->
         <summary-output value="" synonymes="emissions emissions-output summary" type="FILE"/>
 
         <!-- Save single vehicle trip info into FILE -->
         <tripinfo-output value="" synonymes="tripinfo" type="FILE"/>
+
+        <!-- Write tripinfo output for vehicles which have not arrived at simulation end -->
+        <tripinfo-output.write-unfinished value="false" type="BOOL"/>
 
         <!-- Save single vehicle route info into FILE -->
         <vehroute-output value="" synonymes="vehroutes" type="FILE"/>
@@ -89,6 +95,12 @@
 
         <!-- Sorts the output by departure time -->
         <vehroute-output.sorted value="false" synonymes="vehroutes.sorted" type="BOOL"/>
+
+        <!-- Write the output in the duarouter alternatives style -->
+        <vehroute-output.dua value="false" synonymes="vehroutes.dua" type="BOOL"/>
+
+        <!-- Write the output with the intended instead of the real departure time -->
+        <vehroute-output.intended-depart value="false" synonymes="vehroutes.intended-depart" type="BOOL"/>
 
         <!-- Write vehroute output for vehicles which have not arrived at simulation end -->
         <vehroute-output.write-unfinished value="false" type="BOOL"/>
@@ -141,19 +153,13 @@
         <!-- Quit simulation if this number of vehicles is exceeded -->
         <max-num-vehicles value="-1" synonymes="too-many-vehicles" type="INT"/>
 
-        <!-- Perform the simulation as a step in incremental DUA -->
-        <incremental-dua-step value="" type="INT"/>
-
-        <!-- Base value for incremental DUA -->
-        <incremental-dua-base value="10" type="INT"/>
-
         <!-- Scale demand by the given factor (0..1) -->
         <scale value="" type="FLOAT"/>
 
         <!-- Specify how long a vehicle may wait until being teleported, defaults to 300, non-positive values disable teleporting -->
         <time-to-teleport value="300" type="TIME"/>
 
-        <!-- The teleport time on highways -->
+        <!-- The waiting time after which vehicles on a fast road (speed &gt; 69m/s) are teleported if they are on a non-continuing lane -->
         <time-to-teleport.highways value="0" type="TIME"/>
 
         <!-- How long vehicles wait for departure before being skipped, defaults to -1 which means vehicles are never skipped -->
@@ -165,17 +171,29 @@
         <!-- Whether each vehicle is checked separately for insertion on an edge -->
         <eager-insert value="false" type="BOOL"/>
 
+        <!-- Each vehicle receives a random offset to its depart value drawn uniformly from [0, TIME] -->
+        <random-depart-offset value="0" type="TIME"/>
+
         <!-- Whether blocking vehicles trying to change lanes may be swapped -->
         <lanechange.allow-swap value="false" type="BOOL"/>
 
         <!-- Duration of a lane change maneuver (default 0) -->
         <lanechange.duration value="0" type="TIME"/>
 
-        <!-- Select among routing algorithms [&apos;dijkstra&apos;, &apos;astar&apos;] -->
+        <!-- Whether overtaking on the right on motorways is permitted -->
+        <lanechange.overtake-right value="false" type="BOOL"/>
+
+        <!-- Select among routing algorithms [&apos;dijkstra&apos;, &apos;astar&apos;, &apos;CH&apos;, &apos;CHWrapper&apos;] -->
         <routing-algorithm value="dijkstra" type="STR"/>
 
-        <!-- Restrict the maximum size of route distributions -->
-        <routeDist.maxsize value="" type="INT"/>
+        <!-- Select among pedestrian models [&apos;nonInteracting&apos;, &apos;striping&apos;] -->
+        <pedestrian.model value="striping" type="STR"/>
+
+        <!-- Width of parallel stripes for segmenting a sidewalk (meters) for use with model &apos;striping&apos; -->
+        <pedestrian.striping.stripe-width value="0.65" type="FLOAT"/>
+
+        <!-- factor for random slow-downs [0,1] for use with model &apos;striping&apos; -->
+        <pedestrian.striping.dawdling value="0.2" type="FLOAT"/>
 
     </processing>
 
@@ -184,7 +202,7 @@
         <verbose value="false" synonymes="v" type="BOOL"/>
 
         <!-- Prints option values before processing -->
-        <print-options value="false" synonymes="p" type="BOOL"/>
+        <print-options value="false" type="BOOL"/>
 
         <!-- Prints this screen -->
         <help value="false" synonymes="?" type="BOOL"/>
@@ -192,8 +210,11 @@
         <!-- Prints the current version -->
         <version value="false" synonymes="V" type="BOOL"/>
 
-        <!-- Enable schema validation of XML inputs -->
-        <xml-validation value="false" synonymes="X" type="BOOL"/>
+        <!-- Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation value="auto" synonymes="X" type="STR"/>
+
+        <!-- Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation.net value="never" type="STR"/>
 
         <!-- Disables output of warnings -->
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL"/>
@@ -216,14 +237,17 @@
     </report>
 
     <emissions>
-        <!-- The probability for a vehicle to have a &apos;hbefa&apos; device -->
-        <device.hbefa.probability value="0" type="FLOAT"/>
+        <!-- Determines where to load PHEMlight definitions from. -->
+        <phemlight-path value="./PHEMlight/" type="FILE"/>
 
-        <!-- Assign a &apos;hbefa&apos; device to named vehicles -->
-        <device.hbefa.explicit value="" synonymes="device.hbefa.knownveh" type="STR"/>
+        <!-- The probability for a vehicle to have a &apos;emissions&apos; device -->
+        <device.emissions.probability value="0" type="FLOAT"/>
 
-        <!-- The &apos;hbefa&apos; devices are set deterministic using a fraction of 1000 -->
-        <device.hbefa.deterministic value="false" type="BOOL"/>
+        <!-- Assign a &apos;emissions&apos; device to named vehicles -->
+        <device.emissions.explicit value="" synonymes="device.emissions.knownveh" type="STR"/>
+
+        <!-- The &apos;emissions&apos; devices are set deterministic using a fraction of 1000 -->
+        <device.emissions.deterministic value="false" type="BOOL"/>
 
     </emissions>
 
@@ -242,6 +266,9 @@
 
         <!-- Whether all recognition point shall be written -->
         <device.btreceiver.all-recognitions value="false" type="BOOL"/>
+
+        <!-- The offtime used for calculating detection probability (in seconds) -->
+        <device.btreceiver.offtime value="0.64" type="FLOAT"/>
 
         <!-- The probability for a vehicle to have a &apos;btsender&apos; device -->
         <device.btsender.probability value="0" type="FLOAT"/>
@@ -268,7 +295,7 @@
         <device.rerouting.period value="0" synonymes="device.routing.period" type="TIME"/>
 
         <!-- The rerouting period before depart -->
-        <device.rerouting.pre-period value="0" synonymes="device.routing.pre-period" type="TIME"/>
+        <device.rerouting.pre-period value="1" synonymes="device.routing.pre-period" type="TIME"/>
 
         <!-- The weight of prior edge weights -->
         <device.rerouting.adaptation-weight value="0.5" synonymes="device.routing.adaptation-weight" type="FLOAT"/>
@@ -281,6 +308,12 @@
 
         <!-- Use given weight files for initializing edge weights -->
         <device.rerouting.init-with-loaded-weights value="false" type="BOOL"/>
+
+        <!-- Initialize lookup table for astar from the given distance matrix -->
+        <device.rerouting.shortest-path-file value="" type="FILE"/>
+
+        <!-- The number of parallel execution threads used for rerouting -->
+        <device.rerouting.threads value="0" type="INT"/>
 
     </routing>
 
