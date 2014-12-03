@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
 @file    extractTest.py
+@author  Daniel Krajzewicz
+@author  Jakob Erdmann
 @author  Michael Behrisch
 @date    2009-07-08
 @version $Id$
@@ -10,7 +12,7 @@ It may copy more files than needed because it copies everything
 that is mentioned in the config under copy_test_path.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2009-2012 DLR/TS, Germany
+Copyright (C) 2009-2014 DLR/TS, Germany
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -42,6 +44,9 @@ def get_options(args=None):
     optParser.add_option("-s", "--skip-configuration",
             dest="skip_configuration", default=False, action="store_true",
             help="skips creation of an application config from the options.app file")
+    optParser.add_option("-x", "--skip-validation",
+            dest="skip_validation", default=False, action="store_true",
+            help="remove all options related to XML validation")
     options, args = optParser.parse_args(args=args)
     if not options.file and len(args) == 0:
         optParser.print_help()
@@ -70,19 +75,21 @@ def generateTargetName(baseDir, source):
 
 
 def main(options):
-    targets = {}
+    targets = []
     if options.file:
         dirname = os.path.dirname(options.file)
         for line in open(options.file):
             line = line.strip()
             if line and line[0] != '#':
-                key, value = line.split(SOURCE_DEST_SEP)
-                targets[join(dirname, key)] = join(dirname, value)
+                l = line.split(SOURCE_DEST_SEP) + [""]
+                l[0] = join(dirname, l[0])
+                l[1] = join(dirname, l[1])
+                targets.append(l[:3])
     for val in options.args:
-        source_and_maybe_target = val.split(SOURCE_DEST_SEP) + [""]
-        targets[source_and_maybe_target[0]] = source_and_maybe_target[1]
+        source_and_maybe_target = val.split(SOURCE_DEST_SEP) + ["", ""]
+        targets.append(source_and_maybe_target[:3])
 
-    for source, target in targets.iteritems():
+    for source, target, app in targets:
         outputFiles = glob.glob(join(source, "output.[0-9a-z]*"))
         #print source, target, outputFiles
         # XXX we should collect the options.app.variant files in all parent
@@ -91,6 +98,8 @@ def main(options):
         if len(appName) != 1:
             if options.application in appName:
                 appName = set([options.application])
+            elif app in appName:
+                appName = set([app])
             else:
                 print >> sys.stderr, "Skipping %s because the application was not unique (found %s)." % (source, appName)
                 continue
@@ -108,10 +117,20 @@ def main(options):
                     potentials[f].append(path)
                 if f == "options."+app:
                     optionsFiles.append(path)
-            if curDir == os.path.dirname(curDir) or os.path.exists(join(curDir, "config."+app)):
+            config = join(curDir, "config."+app)
+            if curDir == os.path.dirname(curDir):
                 break
+            if os.path.exists(config):
+            # there may be configs in subdirs but we only parse the main one which should contain all files we need to copy
+                validConfig = False
+                for line in open(config):
+                    entry = line.strip().split(':')
+                    if entry and "copy_test_path" in entry[0]:
+                        validConfig = True
+                        break
+                if validConfig:
+                    break
             curDir = os.path.dirname(curDir)
-        config = join(curDir, "config."+app)
         if not os.path.exists(config):
             print >> sys.stderr, "Config '%s' not found for %s." % (config, source)
             continue
@@ -121,18 +140,24 @@ def main(options):
         if not os.path.exists(testPath):
             os.makedirs(testPath)
         net = None
+        skip = False
         appOptions = []
         for f in optionsFiles:
-            appOptions += open(f).read().split()
-        for o in appOptions:
-            if "=" in o:
-                o = o.split("=")[-1]
-            if o[-8:] == ".net.xml":
-                net = o
+            for o in open(f).read().split():
+                if skip:
+                    skip = False
+                    continue
+                if o == "--xml-validation" and options.skip_validation:
+                    skip = True
+                    continue
+                appOptions.append(o)
+                if "=" in o:
+                    o = o.split("=")[-1]
+                if o[-8:] == ".net.xml":
+                    net = o
         nameBase = "test"
         if options.names:
             nameBase = os.path.basename(target)
-        appOptions += ['--save-configuration', '%s.%scfg' % (nameBase, app[:4])]
         exclude = []
         # gather copy_test_path exclusions
         for line in open(config):
@@ -152,17 +177,26 @@ def main(options):
                             copy_merge(toCopy, join(testPath, os.path.basename(toCopy)), merge, exclude)
                     else:
                         shutil.copy2(toCopy, testPath)
+        if options.skip_configuration:
+            continue
         oldWorkDir = os.getcwd()
         os.chdir(testPath)
-        if (not options.skip_configuration 
-                and app in ["dfrouter", "duarouter", "jtrrouter", "marouter", "netconvert", 
-                    "netgen", "netgenerate", "od2trips", "polyconvert", "sumo", "activitygen"]):
+        if app in ["dfrouter", "duarouter", "jtrrouter", "marouter", "netconvert", 
+                   "netgen", "netgenerate", "od2trips", "polyconvert", "sumo", "activitygen"]:
+            appOptions += ['--save-configuration', '%s.%scfg' % (nameBase, app[:4])]
             if "meso" in testPath and app == "sumo":
                 app = "meso"
             if app == "netgen":
                 # binary is now called differently but app still has the old name
                 app = "netgenerate"
             subprocess.call([checkBinary(app)] + appOptions)
+        elif app == "tools":
+            if os.name == "posix" or options.file:
+                tool = join("$SUMO_HOME", appOptions[-1])
+                open(nameBase + ".sh", "w").write(tool + " " + " ".join(appOptions[:-1]))
+            if os.name != "posix" or options.file:
+                tool = join("%SUMO_HOME%", appOptions[-1])
+                open(nameBase + ".bat", "w").write(tool + " " + " ".join(appOptions[:-1]))
         os.chdir(oldWorkDir)
 
 if __name__ == "__main__":

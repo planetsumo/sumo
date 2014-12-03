@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 """
 @file    tracirunner.py
-@author  Michael Behrisch
-@author  Daniel Krajzewicz
 @author  Friedemann Wesner
+@author  Michael Behrisch
+@author  Jakob Erdmann
+@date    2008-05-12
 @version $Id$
 
 Wrapper script for running TraCI tests with TextTest.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2012 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -17,19 +18,16 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
+
 import os,subprocess,sys,time
+THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(os.path.join(THIS_DIR, '..', "tools"))
+import sumolib
 
-args = sys.argv[1:]
-if 'endsumo' in args:
-    args.remove('endsumo') # legacy
-try:
-    num_server_args = args.index('TraCITestClient.exe')
-except:
-    sys.exit("argument 'TraCITestClient.exe' missing")
-
-server_args = args[:num_server_args]
-client_args = args[num_server_args:]
+PORT = str(sumolib.miscutils.getFreeSocketPort())
+server_args = sys.argv[1:] + ["--remote-port", PORT]
 binaryDir, server = os.path.split(server_args[0])
+#server_args[0] = "sumoD"
 
 client = "TraCITestClient"
 if "64" in server:
@@ -38,12 +36,13 @@ if server[-1] == "D":
     client += "D"
 if os.name != 'posix':
     client += ".exe"
+client_args = [os.path.join(binaryDir, client), "-def", "testclient.prog", "-o", "testclient_out.txt", "-p", PORT]
 
-client_args[0] = os.path.join(binaryDir, client)
-
-#start sumo as server    
+#start sumo as server
 serverprocess = subprocess.Popen(server_args, stdout=sys.stdout, stderr=sys.stderr)
-for retry in range(10):
+success = False
+for retry in range(7):
+    time.sleep(retry*retry)
     clientProcess = subprocess.Popen(client_args, stdout=sys.stdout, stderr=sys.stderr)
     if serverprocess.poll() != None and clientProcess.poll() == None:
         time.sleep(10)
@@ -52,8 +51,11 @@ for retry in range(10):
             clientProcess.kill()
             break
     if clientProcess.wait() == 0:
+        success = True
         break
-    time.sleep(1)
 
-#wait for the server to finish
-serverprocess.wait()
+if success:
+    serverprocess.wait()
+else:
+    print >> sys.stderr, "Server hangs and does not answer connection requests"
+    serverprocess.kill()

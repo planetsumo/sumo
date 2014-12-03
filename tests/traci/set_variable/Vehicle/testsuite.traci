@@ -32,7 +32,7 @@ EdgeEffortInfo
 Signalling
 
 # for setting vehicle speed
-SetSpeed
+SetSpeed_SpeedMode
 
 # for moving the vehicle to a different place
 MoveTo
@@ -42,6 +42,9 @@ ADD
 
 # for removing vehicles
 REMOVE
+
+# for removing parking vehicles
+remove_parking
 
 # rerouting tests
 rerouting
@@ -54,7 +57,10 @@ VehicleTypeRelated
 
 # checking SlowDown and SetSpeed
 SlowDownAndSetSpeed
-
-# check whether a vehicle may be forced to run at red light
-runs_at_red_forced
 resume_from_stop
+
+# resuming from a triggered stop
+resume_from_stop_triggered
+
+# resuming from a parking stop
+resume_from_stop_parking

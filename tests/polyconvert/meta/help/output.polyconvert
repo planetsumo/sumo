@@ -1,5 +1,5 @@
-SUMO polyconvert Version dev-SVN-r14863
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.dlr.de
+SUMO polyconvert Version dev-SVN-r17243
+ Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
 Importer of polygons and POIs for the road traffic simulation SUMO.
 
 Usage: polyconvert [OPTION]*
@@ -33,6 +33,7 @@ Input Options:
   --shapefile.guess-projection     Guesses the shapefile's projection
   --shapefile.id-column STR        Defines in which column the id can be found
   --shapefile.use-running-id       A running number will be used as id
+  --shapefile.add-param            Extract all additonal columns as params
   --type-file FILE                 Reads types from FILE
 
 Output Options:
@@ -76,10 +77,13 @@ Building Defaults Options:
 
 Report Options:
   -v, --verbose                    Switches to verbose output
-  -p, --print-options              Prints option values before processing
+  --print-options                  Prints option values before processing
   -?, --help                       Prints this screen
   -V, --version                    Prints the current version
-  -X, --xml-validation             Enable schema validation of XML inputs
+  -X, --xml-validation STR         Set schema validation scheme of XML inputs
+                                     ("never", "auto" or "always")
+  --xml-validation.net STR         Set schema validation scheme of SUMO network
+                                     inputs ("never", "auto" or "always")
   -W, --no-warnings                Disables output of warnings
   -l, --log FILE                   Writes all messages to FILE (implies
                                      verbose)
@@ -93,4 +97,4 @@ Examples:
     run with configuration options set in file
 
 Report bugs at <http://sumo.dlr.de/trac/>.
-Get in contact via <sumo-user@lists.sourceforge.net>.
+Get in contact via <sumo@dlr.de>.

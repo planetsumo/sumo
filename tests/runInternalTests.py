@@ -1,7 +1,29 @@
 #!/usr/bin/env python
-import optparse, os, subprocess, sys
+"""
+@file    runInternalTests.py
+@author  Michael Behrisch
+@date    2012-03-29
+@version $Id$
 
-def runInternal(suffix, args, out=sys.stdout):
+
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+"""
+
+import optparse, os, subprocess, sys
+try:
+    import texttestlib
+    haveTextTestLib = True
+except ImportError:
+    haveTextTestLib = False
+
+def runInternal(suffix, args, out=sys.stdout, gui=False):
     if os.name != "posix":
         suffix += ".exe"
     env = os.environ
@@ -18,14 +40,20 @@ def runInternal(suffix, args, out=sys.stdout):
     env["POLYCONVERT_BINARY"] = os.path.join(root, "..", "bin", "polyconvertInt" + suffix)
     env["GUISIM_BINARY"] = os.path.join(root, "..", "bin", "meso-gui" + suffix)
     env["MAROUTER_BINARY"] = os.path.join(root, "..", "bin", "marouter" + suffix)
-    ttBin = "/usr/bin/texttest"
-    if os.name != "posix" or not os.path.exists(ttBin):
-        ttBin = "texttest.py"
-    subprocess.call("%s %s -a sumo.internal,sumo.meso,complex.meso,duarouter.astar,duarouter.chrouter,netconvert.internal,marouter" % (ttBin, args),
-                    stdout=out, stderr=out, shell=True)
+    ttBin = 'texttest.py'
+    if os.name == "posix":
+        if subprocess.call(['which', 'texttest']) == 0:
+            ttBin = 'texttest'
+    elif haveTextTestLib:
+        ttBin += "w"
+    apps = "sumo.internal,sumo.meso,complex.meso,duarouter.astar,duarouter.chrouter"
+    if gui:
+        apps = "sumo.gui"
+    subprocess.call("%s %s -a %s" % (ttBin, args, apps), stdout=out, stderr=out, shell=True)
 
 if __name__ == "__main__":
     optParser = optparse.OptionParser()
     optParser.add_option("-s", "--suffix", default="", help="suffix to the fileprefix")
+    optParser.add_option("-g", "--gui", default=False, action="store_true", help="run gui tests")
     (options, args) = optParser.parse_args()
-    runInternal(options.suffix, " ".join(["-" + a for a in args]))
+    runInternal(options.suffix, " ".join(["-" + a for a in args]), gui=options.gui)

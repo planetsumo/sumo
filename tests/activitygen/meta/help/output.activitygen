@@ -1,6 +1,6 @@
-SUMO activitygen Version 0.17.0
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.dlr.de
- Copyright (C) 2010-2011 Technische Universitaet Muenchen
+SUMO activitygen Version dev-SVN-r17243
+ Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
+ Copyright (C) 2010-2012 Technische Universitaet Muenchen
 Generates routes of persons throughout a day for the microscopic road traffic
   simulation SUMO.
 
@@ -35,10 +35,13 @@ Time Options:
 
 Report Options:
   -v, --verbose                    Switches to verbose output
-  -p, --print-options              Prints option values before processing
+  --print-options                  Prints option values before processing
   -?, --help                       Prints this screen
   -V, --version                    Prints the current version
-  -X, --xml-validation             Enable schema validation of XML inputs
+  -X, --xml-validation STR         Set schema validation scheme of XML inputs
+                                     ("never", "auto" or "always")
+  --xml-validation.net STR         Set schema validation scheme of SUMO network
+                                     inputs ("never", "auto" or "always")
   -W, --no-warnings                Disables output of warnings
   -l, --log FILE                   Writes all messages to FILE (implies
                                      verbose)
@@ -61,4 +64,4 @@ Examples:
     generate a route file from a stats file on a given net for numerous days (with fixed random seed)
 
 Report bugs at <http://sumo.dlr.de/trac/>.
-Get in contact via <sumo-user@lists.sourceforge.net>.
+Get in contact via <sumo@dlr.de>.

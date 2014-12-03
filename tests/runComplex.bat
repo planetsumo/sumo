@@ -1,2 +1,2 @@
-call testEnv.bat
-texttest.py -a complex  -gx
+call testEnv.bat %1
+%TEXTTESTPY% -a complex,complex.perf
