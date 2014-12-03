@@ -8,7 +8,7 @@
 // APIs for getting/setting induction loop values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -53,7 +53,7 @@ public:
      * @param[in] inputStorage The storage to read the command from
      * @param[out] outputStorage The storage to write the result to
      */
-    static bool processGet(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+    static bool processGet(TraCIServer& server, tcpip::Storage& inputStorage,
                            tcpip::Storage& outputStorage);
 
 

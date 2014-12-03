@@ -9,7 +9,7 @@
 // Exporter writing networks using XML (native input) format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -89,8 +89,7 @@ private:
 
     /** @brief Writes the edges and connections files
      * @param[in] oc The options to use
-     * @param[in] nc The node-container from which to read data
-     * @param[in] ec The edge-container from which to read data
+     * @param[in] nb The network build from which to read data
      */
     static void writeEdgesAndConnections(const OptionsCont& oc, NBNodeCont& nc, NBEdgeCont& ec);
 

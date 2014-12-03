@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Laura Bieker
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Fri, 29.04.2005
 /// @version $Id$
 ///
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -32,8 +33,12 @@
 #include <config.h>
 #endif
 
+#include <utils/xml/SUMOXMLDefinitions.h>
+
 /* avoiding compiler warning unreferenced parameter */
 #define UNUSED_PARAMETER(x)  ((void)(x))
+
+class RGBColor;
 
 /* -------------------------------------------------------------------------
  * some constant defaults used by SUMO
@@ -48,6 +53,12 @@ const SUMOReal SUMO_const_halfLaneAndOffset = (SUMOReal)(3.2 / 2. + .1);
 /// @brief the speed threshold at which vehicles are considered as halting
 const SUMOReal SUMO_const_haltingSpeed = (SUMOReal) 0.1;
 
+/* @brief map from LinkState to color constants (see above)
+ */
+const RGBColor& getLinkColor(const LinkState& ls);
+
+/// @brief attach some build flags to the version string
+const std::string getBuildName(const std::string& version);
 
 /* -------------------------------------------------------------------------
  * templates for mathematical functions missing in some c++-implementations
@@ -100,6 +111,9 @@ ISNAN(T a) {
     return d != d;
 }
 
+/// @brief global utility flags for debugging
+extern bool gDebugFlag1;
+extern bool gDebugFlag2;
 
 #endif
 

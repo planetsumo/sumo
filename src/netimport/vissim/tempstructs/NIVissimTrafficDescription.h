@@ -7,7 +7,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -43,7 +43,7 @@
  */
 class NIVissimTrafficDescription {
 public:
-    NIVissimTrafficDescription(int id, const std::string& name,
+    NIVissimTrafficDescription(const std::string& name,
                                const NIVissimVehicleClassVector& vehicleTypes);
     ~NIVissimTrafficDescription();
     static bool dictionary(int id, const std::string& name,
@@ -54,7 +54,6 @@ public:
     static SUMOReal meanSpeed(int id);
     SUMOReal meanSpeed() const;
 private:
-    int myID;
     std::string myName;
     NIVissimVehicleClassVector myVehicleTypes;
 private:

@@ -11,7 +11,7 @@
 // A class that stores and controls tls and switching of their programs
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -130,7 +130,7 @@ public:
         /* @brief sets the state to the given string get for the special program "online"
          * this program is instantiated only once */
         void setStateInstantiatingOnline(MSTLLogicControl& tlc,
-                const std::string& state);
+                                         const std::string& state);
 
 
         void executeOnSwitchActions() const;

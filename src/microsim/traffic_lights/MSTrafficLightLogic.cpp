@@ -9,7 +9,7 @@
 // The parent class for traffic light logics
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -107,13 +107,37 @@ MSTrafficLightLogic::MSTrafficLightLogic(MSTLLogicControl& tlcontrol, const std:
     myCurrentDurationIncrement(-1),
     myDefaultCycleTime(0) {
     mySwitchCommand = new SwitchCommand(tlcontrol, this, delay);
-    MSNet::getInstance()->getBeginOfTimestepEvents().addEvent(
+    MSNet::getInstance()->getBeginOfTimestepEvents()->addEvent(
         mySwitchCommand, delay, MSEventControl::NO_CHANGE);
 }
 
 
 void
 MSTrafficLightLogic::init(NLDetectorBuilder&) {
+    const Phases& phases = getPhases();
+    if (phases.size() > 1) {
+        // warn about transistions from green to red without intermediate yellow
+        for (int i = 0; i < (int)phases.size(); ++i) {
+            const int iNext = (i + 1) % phases.size();
+            const std::string& state1 = phases[i]->getState();
+            const std::string& state2 = phases[iNext]->getState();
+            assert(state1.size() == state2.size());
+            for (int j = 0; j < (int)MIN2(state1.size(), state2.size()); ++j) {
+                if ((LinkState)state2[j] == LINKSTATE_TL_RED
+                        && ((LinkState)state1[j] == LINKSTATE_TL_GREEN_MAJOR
+                            || (LinkState)state1[j] == LINKSTATE_TL_GREEN_MINOR)) {
+                    for (LaneVector::const_iterator it = myLanes[j].begin(); it != myLanes[j].end(); ++it) {
+                        if ((*it)->getPermissions() != SVC_PEDESTRIAN) {
+                            WRITE_WARNING("Missing yellow phase in tlLogic '" + getID()
+                                          + "', program '" + getProgramID() + "' for tl-index " + toString(j)
+                                          + " when switching to phase " + toString(iNext));
+                            return; // one warning per program is enough
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 

@@ -8,7 +8,7 @@
 // APIs for getting/setting vehicle values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -54,7 +54,7 @@ public:
      * @param[in] inputStorage The storage to read the command from
      * @param[out] outputStorage The storage to write the result to
      */
-    static bool processGet(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+    static bool processGet(TraCIServer& server, tcpip::Storage& inputStorage,
                            tcpip::Storage& outputStorage);
 
 
@@ -64,7 +64,7 @@ public:
      * @param[in] inputStorage The storage to read the command from
      * @param[out] outputStorage The storage to write the result to
      */
-    static bool processSet(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+    static bool processSet(TraCIServer& server, tcpip::Storage& inputStorage,
                            tcpip::Storage& outputStorage);
 
 
@@ -77,14 +77,14 @@ public:
 
 
 private:
-    static bool commandDistanceRequest(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+    static bool commandDistanceRequest(TraCIServer& server, tcpip::Storage& inputStorage,
                                        tcpip::Storage& outputStorage, const MSVehicle* v);
 
     static MSVehicleType& getSingularType(SUMOVehicle* const veh);
 
 
     static const std::map<std::string, std::vector<MSLane*> >& getOrBuildVTDMap();
-    static bool vtdMap(const Position& pos, const std::string& origID, const SUMOReal angle, MSVehicle& v, traci::TraCIServer& server, bool report,
+    static bool vtdMap(const Position& pos, const std::string& origID, const SUMOReal angle, MSVehicle& v, TraCIServer& server, bool report,
                                        SUMOReal& bestDistance, MSLane** lane, SUMOReal& lanePos, int& routeOffset, MSEdgeVector& edges);
 
     static std::map<std::string, std::vector<MSLane*> > gVTDMap;

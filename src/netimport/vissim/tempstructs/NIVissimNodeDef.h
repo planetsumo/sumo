@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    NIVissimNodeDef.h
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -44,7 +45,7 @@ public:
     int buildNodeCluster();
 //    virtual void computeBounding() = 0;
 //    bool partialWithin(const AbstractPoly &p, SUMOReal off=0.0) const;
-    virtual void searchAndSetConnections() = 0;
+//    virtual void searchAndSetConnections() = 0;
     virtual SUMOReal getEdgePosition(int edgeid) const = 0;
 
 public:
@@ -52,7 +53,7 @@ public:
     static NIVissimNodeDef* dictionary(int id);
 //    static std::vector<int> getWithin(const AbstractPoly &p, SUMOReal off=0.0);
 //    static void buildNodeClusters();
-    static void dict_assignConnectionsToNodes();
+//    static void dict_assignConnectionsToNodes();
     static size_t dictSize();
     static void clearDict();
     static int getMaxID();

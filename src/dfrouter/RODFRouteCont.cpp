@@ -9,7 +9,7 @@
 // A container for routes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -133,27 +133,6 @@ RODFRouteCont::removeIllegal(const std::vector<std::vector<ROEdge*> >& illegals)
             ++i;
         }
     }
-}
-
-
-void
-RODFRouteCont::addAllEndFollower() {
-    std::vector<RODFRouteDesc> newRoutes;
-    for (std::vector<RODFRouteDesc>::iterator i = myRoutes.begin(); i != myRoutes.end(); ++i) {
-        RODFRouteDesc& desc = *i;
-        ROEdge* last = *(desc.edges2Pass.end() - 1);
-        if (last->getNoFollowing() == 0) {
-            newRoutes.push_back(desc);
-            continue;
-        }
-        for (unsigned int j = 0; j < last->getNoFollowing(); ++j) {
-            RODFRouteDesc ndesc(desc);
-            ndesc.edges2Pass.push_back(last->getFollower(j));
-            setID(ndesc);
-            newRoutes.push_back(ndesc);
-        }
-    }
-    myRoutes = newRoutes;
 }
 
 

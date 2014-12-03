@@ -8,7 +8,7 @@
 // Helper for parsing command line arguments and reading configuration files
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -92,8 +92,8 @@ OptionsIO::loadConfiguration() {
         return;
     }
     std::string path = oc.getString("configuration-file");
-    if (!FileHelpers::exists(path)) {
-        throw ProcessError("Could not find configuration '" + oc.getString("configuration-file") + "'.");
+    if (!FileHelpers::isReadable(path)) {
+        throw ProcessError("Could not access configuration '" + oc.getString("configuration-file") + "'.");
     }
     PROGRESS_BEGIN_MESSAGE("Loading configuration");
     // build parser

@@ -9,7 +9,7 @@
 // Sets and checks options for netimport
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -130,10 +130,11 @@ NIFrame::fillOptions() {
     oc.addSynonyme("itsumo-files", "itsumo");
     oc.addDescription("itsumo-files", "Input", "Read ITSUMO-net from FILE");
 
-#ifdef HAVE_INTERNAL // catchall for internal stuff
     oc.doRegister("heightmap.shapefiles", new Option_FileName());
     oc.addDescription("heightmap.shapefiles", "Input", "Read heightmap from ArcGIS shapefile");
-#endif // have HAVE_INTERNAL
+
+    oc.doRegister("heightmap.geotiff", new Option_FileName());
+    oc.addDescription("heightmap.geotiff", "Input", "Read heightmap from GeoTIFF");
 
     // register basic processing options
     oc.doRegister("ignore-errors", new Option_Bool(false));
@@ -253,6 +254,8 @@ NIFrame::fillOptions() {
     oc.doRegister("osm.railway.oneway-default", new Option_Bool(true));
     oc.addDescription("osm.railway.oneway-default", "Processing", "Imports railway edges as one-way by default");
 
+    oc.doRegister("osm.elevation", new Option_Bool(false));
+    oc.addDescription("osm.elevation", "Processing", "Imports elevation data");
 
     // register opendrive options
     oc.doRegister("opendrive.import-all-lanes", new Option_Bool(false));
@@ -287,6 +290,11 @@ NIFrame::checkOptions() {
     }
     if (oc.isSet("dlr-navteq-prefix") && oc.isDefault("proj.scale")) {
         oc.set("proj.scale", toString(NIImporter_DlrNavteq::GEO_SCALE));
+    }
+#else
+    if ((oc.isSet("osm-files") || oc.isSet("dlr-navteq-prefix") || oc.isSet("shapefile-prefix")) && !oc.getBool("simple-projection")) {
+        WRITE_ERROR("Cannot import network data without PROJ-Library. Please install packages proj before building sumo");
+        ok = false;
     }
 #endif
     if (oc.isSet("sumo-net-file")) {

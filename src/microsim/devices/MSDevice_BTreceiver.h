@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    MSDevice_BTreceiver.h
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    14.08.2013
 /// @version $Id$
 ///
 // A BT receiver
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -74,6 +75,14 @@ public:
     static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
 
 
+    /** @brief Returns the configured range
+     * @return the device range
+     */
+    static SUMOReal getRange() {
+        return myRange;
+    }
+
+
 
 public:
     /// @brief Destructor.
@@ -132,16 +141,22 @@ public:
     class MeetingPoint {
     public:
         /** @brief Constructor
-         * @param[in] t_ The time of the meeting
-         * @param[in] observerPos_ The position the observer had at the time
-         * @param[in] observerSpeed_ The speed the observer had at the time
-         * @param[in] seenPos_ The position the seen vehicle had at the time
-         * @param[in] seenSpeed_ The speed the vehicle had at the time
+         * @param[in] _t The time of the meeting
+         * @param[in] _observerPos The position the observer had at the time
+         * @param[in] _observerSpeed The speed the observer had at the time
+         * @param[in] _observerLaneID The lane the observer was at
+         * @param[in] _observerLanePos The position at the lane of the observer
+         * @param[in] _seenPos The position the seen vehicle had at the time
+         * @param[in] _seenSpeed The speed the vehicle had at the time
+         * @param[in] _seenLaneID The lane the vehicle was at
+         * @param[in] _seenLanePos The position at the lane of the vehicle
          */
-        MeetingPoint(SUMOReal t_, const Position& observerPos_, SUMOReal observerSpeed_,
-                     const Position& seenPos_, SUMOReal seenSpeed_)
-            : t(t_), observerPos(observerPos_), observerSpeed(observerSpeed_),
-              seenPos(seenPos_), seenSpeed(seenSpeed_) {}
+        MeetingPoint(SUMOReal _t, const Position& _observerPos, SUMOReal _observerSpeed,
+                     const std::string& _observerLaneID, SUMOReal _observerLanePos,
+                     const Position& _seenPos, SUMOReal _seenSpeed,
+                     const std::string& _seenLaneID, SUMOReal _seenLanePos)
+            : t(_t), observerPos(_observerPos), observerSpeed(_observerSpeed), observerLaneID(_observerLaneID), observerLanePos(_observerLanePos),
+              seenPos(_seenPos), seenSpeed(_seenSpeed), seenLaneID(_seenLaneID), seenLanePos(_seenLanePos) {}
 
         /// @brief Destructor
         ~MeetingPoint() {}
@@ -153,10 +168,18 @@ public:
         Position observerPos;
         /// @brief The speed the observer had at the time
         SUMOReal observerSpeed;
+        /// @brief The lane the observer was at
+        std::string observerLaneID;
+        /// @brief The position at the lane of the observer
+        SUMOReal observerLanePos;
         /// @brief The position the seen vehicle had at the time
         Position seenPos;
         /// @brief The speed the vehicle had at the time
         SUMOReal seenSpeed;
+        /// @brief The lane the vehicle was at
+        std::string seenLaneID;
+        /// @brief The position at the lane of the vehicle
+        SUMOReal seenLanePos;
 
     };
 
@@ -171,11 +194,11 @@ public:
          * @param[in] meetingBegin_ Description of the meeting's begin
          */
         SeenDevice(const MeetingPoint& meetingBegin_)
-            : meetingBegin(meetingBegin_), meetingEnd(meetingBegin_), lastView(meetingBegin_.t) {}
+            : meetingBegin(meetingBegin_), meetingEnd(meetingBegin_), lastView(meetingBegin_.t), nextView(-1.) {}
 
         /// @brief Destructor
         ~SeenDevice() {
-            for(std::vector<MeetingPoint*>::iterator i=recognitionPoints.begin(); i!=recognitionPoints.end(); ++i) {
+            for (std::vector<MeetingPoint*>::iterator i = recognitionPoints.begin(); i != recognitionPoints.end(); ++i) {
                 delete *i;
             }
             recognitionPoints.clear();
@@ -189,6 +212,8 @@ public:
         MeetingPoint meetingEnd;
         /// @brief Last recognition point
         SUMOReal lastView;
+        /// @brief Next possible recognition point
+        SUMOReal nextView;
         /// @brief List of recognition points
         std::vector<MeetingPoint*> recognitionPoints;
 
@@ -200,7 +225,7 @@ public:
      * @param[in] c The currently seen container to clear
      * @param[in] s The seen container to clear
      */
-    static void cleanUp(std::map<std::string, SeenDevice*> &c, std::map<std::string, std::vector<SeenDevice*> > &s);
+    static void cleanUp(std::map<std::string, SeenDevice*>& c, std::map<std::string, std::vector<SeenDevice*> >& s);
 
 
 
@@ -210,92 +235,37 @@ protected:
      * @param[in] holder The vehicle that holds this device
      * @param[in] id The ID of the device
      */
-    MSDevice_BTreceiver(SUMOVehicle& holder, const std::string& id, SUMOReal range);
+    MSDevice_BTreceiver(SUMOVehicle& holder, const std::string& id);
 
 
 
 private:
-    /// @brief The range of the device
-    SUMOReal myRange;
-
     /// @brief Whether the bt-system was already initialised
     static bool myWasInitialised;
 
+    /// @brief The range of the device
+    static SUMOReal myRange;
+
+    /// @brief The offtime of the device
+    static SUMOReal myOffTime;
 
 
     /** @class VehicleInformation
      * @brief Stores the information of a vehicle
      */
-    class VehicleState {
-    public:
-        /** @brief Constructor
-         * @param[in] _time The current time
-         * @param[in] _speed The speed of the vehicle
-         * @param[in] _angle The angle of the vehicle
-         * @param[in] _position The position of the vehicle
-         * @param[in] _laneID The id of the lane the vehicle is located at
-         * @param[in] _lanePos The position of the vehicle along the lane
-         */
-        VehicleState(SUMOReal _time, SUMOReal _speed, SUMOReal _angle, const Position &_position, const std::string &_laneID, SUMOReal _lanePos) 
-            : time(_time), speed(_speed), angle(_angle), position(_position), laneID(_laneID), lanePos(_lanePos) {}
-
-        /// @brief Destructor
-        ~VehicleState() {}
-
-        /// @brief The current time
-        SUMOReal time;
-        /// @brief The speed of the vehicle
-        SUMOReal speed;
-        /// @brief The angle of the vehicle
-        SUMOReal angle;
-        /// @brief The position of the vehicle
-        Position position;
-        /// @brief The lane the vehicle was at
-        std::string laneID;
-        /// @brief The position at the lane of the vehicle
-        SUMOReal lanePos;
-
-    };
-
-
-
-    /** @class VehicleInformation
-     * @brief Stores the information of a vehicle
-     */
-    class VehicleInformation : public Named {
+    class VehicleInformation : public MSDevice_BTsender::VehicleInformation {
     public:
         /** @brief Constructor
          * @param[in] id The id of the vehicle
          * @param[in] range Recognition range of the vehicle
          */
-        VehicleInformation(const std::string &id, const SUMOReal _range) : Named(id), range(_range), amOnNet(true), haveArrived(false) {}
+        VehicleInformation(const std::string& id, const SUMOReal _range) : MSDevice_BTsender::VehicleInformation(id), range(_range) {}
 
         /// @brief Destructor
         ~VehicleInformation() {}
-        
-        
-        /** @brief Returns the boundary of passed positions
-         * @return The positions boundary
-         */
-        Boundary getBoxBoundary() const {
-            Boundary ret;
-            for(std::vector<VehicleState>::const_iterator i=updates.begin(); i!=updates.end(); ++i) {
-                ret.add((*i).position);
-            }
-            return ret;
-        }
 
         /// @brief Recognition range of the vehicle
         const SUMOReal range;
-
-        /// @brief List of position updates during last step
-        std::vector<VehicleState> updates;
-
-        /// @brief Whether the vehicle is within the simulated network
-        bool amOnNet;
-
-        /// @brief Whether the vehicle was removed from the simulation
-        bool haveArrived;
 
         /// @brief The map of devices seen by the vehicle at removal time
         std::map<std::string, SeenDevice*> currentlySeen;
@@ -335,25 +305,26 @@ private:
         /** @brief Rechecks the visibility for a given receiver/sender pair
          * @param[in] receiver Definition of the receiver vehicle
          * @param[in] sender Definition of the sender vehicle
-         * @param[in] receiverPos The initial receiver position
-         * @param[in] receiverD The direction vector of the receiver
          */
-        void updateVisibility(VehicleInformation &receiver, MSDevice_BTsender::VehicleInformation &sender,
-            const Position &receiverPos, const Position &receiverD);
+        void updateVisibility(VehicleInformation& receiver, MSDevice_BTsender::VehicleInformation& sender);
 
 
         /** @brief Informs the receiver about a sender entering it's radius
          * @param[in] atOffset The time offset to the current time step
          * @param[in] thisPos The receiver's position at the time
          * @param[in] thisSpeed The receiver's speed at the time
+         * @param[in] thisLaneID The lane the observer was at
+         * @param[in] thisLanePos The position at the lane of the observer
          * @param[in] otherID The ID of the entering sender
          * @param[in] otherPos The position of the entering sender
          * @param[in] otherSpeed The speed of the entering sender
+         * @param[in] otherLaneID The lane the sender was at
+         * @param[in] otherLanePos The position at the lane of the sender
          * @param[in] currentlySeen The container storing episodes
          */
-        void enterRange(SUMOReal atOffset, const Position &thisPos, SUMOReal thisSpeed, 
-            const std::string &otherID, const Position &otherPos, SUMOReal otherSpeed,
-            std::map<std::string, SeenDevice*> &currentlySeen);
+        void enterRange(SUMOReal atOffset, const Position& thisPos, SUMOReal thisSpeed, const std::string& thisLaneID, SUMOReal thisLanePos,
+                        const std::string& otherID, const Position& otherPos, SUMOReal otherSpeed, const std::string& otherLaneID, SUMOReal otherLanePos,
+                        std::map<std::string, SeenDevice*>& currentlySeen);
 
 
         /** @brief Removes the sender from the currently seen devices to past episodes
@@ -361,56 +332,56 @@ private:
          * @param[in] seen The lists of episodes to add this one to
          * @param[in] thisPos The receiver's position at the time
          * @param[in] thisSpeed The receiver's speed at the time
+         * @param[in] thisLaneID The lane the observer was at
+         * @param[in] thisLanePos The position at the lane of the observer
          * @param[in] otherID The ID of the entering sender
          * @param[in] otherPos The position of the entering sender
          * @param[in] otherSpeed The speed of the entering sender
+         * @param[in] otherLaneID The lane the sender was at
+         * @param[in] otherLanePos The position at the lane of the sender
          * @param[in] tOffset The time offset to the current time step
          * @param[in] remove Whether the sender shall be removed from this device's myCurrentlySeen
          */
-        void leaveRange(std::map<std::string, SeenDevice*> &currentlySeen, std::map<std::string, std::vector<SeenDevice*> > &seen,
-            const Position &thisPos, SUMOReal thisSpeed, 
-            const std::string &otherID, const Position &otherPos, SUMOReal otherSpeed, 
-            SUMOReal tOffset);
+        void leaveRange(std::map<std::string, SeenDevice*>& currentlySeen, std::map<std::string, std::vector<SeenDevice*> >& seen,
+                        const Position& thisPos, SUMOReal thisSpeed, const std::string& thisLaneID, SUMOReal thisLanePos,
+                        const std::string& otherID, const Position& otherPos, SUMOReal otherSpeed, const std::string& otherLaneID, SUMOReal otherLanePos,
+                        SUMOReal tOffset);
 
 
 
 
-    /** @brief Determines whether the other vehicle got visible until the given time
-     * @param[in] otherID The ID of the other vehicle
-     * @param[in] tEnd The end of contact
-     * @param[changed] currentlySeen Contact information, updated if the sender was recognized
-     * @return The recognition time
-     */
-    //SUMOReal recognizedAt(const std::string &otherID, SUMOReal tEnd, std::map<std::string, SeenDevice*> &currentlySeen);
+        /** @brief Adds a point of recognition
+         * @param[in] tEnd The time of the recognition
+         * @param[in] thisPos The receiver's position at the time
+         * @param[in] thisSpeed The receiver's speed at the time
+         * @param[in] thisLaneID The lane the observer was at
+         * @param[in] thisLanePos The position at the lane of the observer
+         * @param[in] otherPos The position of the entering sender
+         * @param[in] otherSpeed The speed of the entering sender
+         * @param[in] otherLaneID The lane the sender was at
+         * @param[in] otherLanePos The position at the lane of the sender
+         * @param[in] otherDevice The device of the entering sender
+         */
+        void addRecognitionPoint(const SUMOReal tEnd, const Position& thisPos, const SUMOReal thisSpeed, const std::string& thisLaneID, const SUMOReal thisLanePos,
+                                 const Position& otherPos, const SUMOReal otherSpeed, const std::string& otherLaneID, const SUMOReal otherLanePos,
+                                 SeenDevice* otherDevice) const;
 
 
-    /** @brief Adds a point of recognition
-     * @param[in] thisPos The receiver's position at the time
-     * @param[in] thisSpeed The receiver's speed at the time
-     * @param[in] otherID The ID of the entering sender
-     * @param[in] otherPos The position of the entering sender
-     * @param[in] otherSpeed The speed of the entering sender
-     * @param[in] tOffset The time offset to the current time step
-     * @param[filled] currentlySeen The contact information storage for saving the contact point
-     */
-    void addRecognitionPoint(SUMOReal tEnd, const Position &thisPos, SUMOReal thisSpeed, 
-        const std::string &otherID, const Position &otherPos, SUMOReal otherSpeed, 
-        std::map<std::string, SeenDevice*> &currentlySeen);
-
-
-    /** @brief Writes the output
-     * @param[in] id The id of the receiver
-     * @param[in] seen The information about seen senders
-     * @param[in] allRecognitions Whether all recognitions shall be written
-     */
-    void writeOutput(const std::string &id, const std::map<std::string, std::vector<SeenDevice*> > &seen, 
-        bool allRecognitions);
+        /** @brief Writes the output
+         * @param[in] id The id of the receiver
+         * @param[in] seen The information about seen senders
+         * @param[in] allRecognitions Whether all recognitions shall be written
+         */
+        void writeOutput(const std::string& id, const std::map<std::string, std::vector<SeenDevice*> >& seen,
+                         bool allRecognitions);
 
 
 
-    
+
     };
 
+
+    static SUMOReal inquiryDelaySlots(const int backoffLimit);
 
     /// @brief A random number generator used to determine whether the opposite was recognized
     static MTRand sRecognitionRNG;

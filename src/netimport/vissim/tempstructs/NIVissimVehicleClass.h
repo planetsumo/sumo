@@ -7,7 +7,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -39,12 +39,10 @@
  */
 class NIVissimVehicleClass {
 public:
-    NIVissimVehicleClass(int type, SUMOReal percentage, int vwish);
+    NIVissimVehicleClass(int vwish);
     ~NIVissimVehicleClass();
     int getSpeed() const;
 private:
-    int myType;
-    SUMOReal myPercentage;
     int myVWish;
 };
 

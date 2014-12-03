@@ -9,7 +9,7 @@
 // The Intelligent Driver Model (IDM) car-following model
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -124,7 +124,7 @@ public:
      * @see MSCFModel::getModelName
      */
     int getModelID() const {
-        return myExpFactor > 0. ? SUMO_TAG_CF_IDMM : SUMO_TAG_CF_IDM;
+        return myAdaptationFactor == 1. ? SUMO_TAG_CF_IDM : SUMO_TAG_CF_IDMM;
     }
     /// @}
 
@@ -138,7 +138,7 @@ public:
 
 
     VehicleVariables* createVehicleVariables() const {
-        if (myExpFactor > 0.) {
+        if (myAdaptationFactor != 1.) {
             return new VehicleVariables();
         }
         return 0;
@@ -155,7 +155,8 @@ private:
 
 
 private:
-    SUMOReal _v(const MSVehicle* const veh, SUMOReal gap2pred, SUMOReal mySpeed, SUMOReal predSpeed, SUMOReal desSpeed) const;
+    SUMOReal _v(const MSVehicle* const veh, const SUMOReal gap2pred, const SUMOReal mySpeed,
+                const SUMOReal predSpeed, const SUMOReal desSpeed, const bool respectMinGap = true) const;
 
     SUMOReal desiredSpeed(const MSVehicle* const veh) const {
         return MIN2(myType->getMaxSpeed(), veh->getLane()->getVehicleMaxSpeed(veh));
@@ -171,9 +172,6 @@ private:
 
     /// @brief The IDMM adaptation time tau
     const SUMOReal myAdaptationTime;
-
-    /// @brief A computational shortcut for IDMM
-    const SUMOReal myExpFactor;
 
     /// @brief The number of iterations in speed calculations
     const int myIterations;

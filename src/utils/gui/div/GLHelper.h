@@ -9,7 +9,7 @@
 // Some methods which help to draw certain geometrical objects in openGL
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,11 +51,22 @@
 class GLHelper {
 public:
     /** @brief Draws a filled polygon described by the list of points
+     * @note this only works well for convex polygons
      *
      * @param[in] v The polygon to draw
      * @param[in] close Whether the first point shall be appended
      */
     static void drawFilledPoly(const PositionVector& v, bool close);
+
+
+    /** @brief Draws a filled polygon described by the list of points
+     * @note this works for convex and concave polygons but is slower than
+     * drawFilledPoly
+     *
+     * @param[in] v The polygon to draw
+     * @param[in] close Whether the first point shall be appended
+     */
+    static void drawFilledPolyTesselated(const PositionVector& v, bool close);
 
 
     /** @brief Draws a thick line
@@ -93,11 +104,12 @@ public:
      * @param[in] rots The directions the lines shall be drawn to (in radiants)
      * @param[in] lengths The lengths of the lines
      * @param[in] width The width of the lines
+     * @param[in] cornerDetail Detail level for filling the corners between angled segments
      * @see drawBoxLine
      */
     static void drawBoxLines(const PositionVector& geom,
                              const std::vector<SUMOReal>& rots, const std::vector<SUMOReal>& lengths,
-                             SUMOReal width);
+                             SUMOReal width, int cornerDetail = 0);
 
 
     /** @brief Draws thick lines using the mean of the points given in the point lists as begin positions

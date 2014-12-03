@@ -9,7 +9,7 @@
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -37,6 +37,7 @@
 #include <utils/common/ToString.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StringUtils.h>
+#include <utils/geom/GeomConvHelper.h>
 #include <netbuild/NBEdge.h>
 #include <netbuild/NBEdgeCont.h>
 #include <netbuild/NBNode.h>
@@ -103,9 +104,9 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     const bool checkLaneFoesAll = oc.getBool("check-lane-foes.all");
     const bool checkLaneFoesRoundabout = !checkLaneFoesAll && oc.getBool("check-lane-foes.roundabout");
     if (checkLaneFoesRoundabout) {
-        const std::vector<EdgeVector>& roundabouts = nb.getRoundabouts();
-        for (std::vector<EdgeVector>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
-            for (EdgeVector::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
+        const std::set<EdgeSet>& roundabouts = ec.getRoundabouts();
+        for (std::set<EdgeSet>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
+            for (EdgeSet::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
                 roundaboutNodes.insert((*j)->getToNode());
             }
         }
@@ -151,31 +152,50 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             device.lf();
         }
     }
+    for (std::map<std::string, NBNode*>::const_iterator i = nc.begin(); i != nc.end(); ++i) {
+        NBNode* node = (*i).second;
+        // write connections from pedestrian crossings
+        const std::vector<NBNode::Crossing>& crossings = node->getCrossings();
+        for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+            NWWriter_SUMO::writeInternalConnection(device, (*it).id, (*it).nextWalkingArea, 0, 0, "");
+        }
+        // write connections from pedestrian walking areas
+        const std::vector<NBNode::WalkingArea>& WalkingAreas = node->getWalkingAreas();
+        for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
+            if ((*it).nextCrossing != "") {
+                const NBNode::Crossing& nextCrossing = node->getCrossing((*it).nextCrossing);
+                // connection to next crossing (may be tls-controlled)
+                device.openTag(SUMO_TAG_CONNECTION);
+                device.writeAttr(SUMO_ATTR_FROM, (*it).id);
+                device.writeAttr(SUMO_ATTR_TO, (*it).nextCrossing);
+                device.writeAttr(SUMO_ATTR_FROM_LANE, 0);
+                device.writeAttr(SUMO_ATTR_TO_LANE, 0);
+                if ((*it).tlID != "") {
+                    device.writeAttr(SUMO_ATTR_TLID, (*it).tlID);
+                    assert(nextCrossing.tlLinkNo >= 0);
+                    device.writeAttr(SUMO_ATTR_TLLINKINDEX, nextCrossing.tlLinkNo);
+                }
+                device.writeAttr(SUMO_ATTR_DIR, LINKDIR_STRAIGHT);
+                device.writeAttr(SUMO_ATTR_STATE, nextCrossing.priority ? LINKSTATE_MAJOR : LINKSTATE_MINOR);
+                device.closeTag();
+            }
+            // optional connections from/to sidewalk
+            for (std::vector<std::string>::const_iterator it_sw = (*it).nextSidewalks.begin(); it_sw != (*it).nextSidewalks.end(); ++it_sw) {
+                NWWriter_SUMO::writeInternalConnection(device, (*it).id, (*it_sw), 0, 0, "");
+            }
+            for (std::vector<std::string>::const_iterator it_sw = (*it).prevSidewalks.begin(); it_sw != (*it).prevSidewalks.end(); ++it_sw) {
+                NWWriter_SUMO::writeInternalConnection(device, (*it_sw), (*it).id, 0, 0, "");
+            }
+        }
+    }
+
     // write loaded prohibitions
     for (std::map<std::string, NBNode*>::const_iterator i = nc.begin(); i != nc.end(); ++i) {
         writeProhibitions(device, i->second->getProhibitions());
     }
 
     // write roundabout information
-    const std::vector<EdgeVector>& roundabouts = nb.getRoundabouts();
-    //  make output deterministic
-    std::vector<std::vector<std::string> > edgeIDs;
-    for (std::vector<EdgeVector>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
-        std::vector<std::string> tEdgeIDs;
-        for (EdgeVector::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
-            tEdgeIDs.push_back((*j)->getID());
-        }
-        std::sort(tEdgeIDs.begin(), tEdgeIDs.end());
-        edgeIDs.push_back(tEdgeIDs);
-    }
-    std::sort(edgeIDs.begin(), edgeIDs.end());
-    //  write
-    for (std::vector<std::vector<std::string> >::const_iterator i = edgeIDs.begin(); i != edgeIDs.end(); ++i) {
-        writeRoundabout(device, *i, ec);
-    }
-    if (roundabouts.size() != 0) {
-        device.lf();
-    }
+    writeRoundabouts(device, ec.getRoundabouts(), ec);
 
     // write the districts
     for (std::map<std::string, NBDistrict*>::const_iterator i = dc.begin(); i != dc.end(); i++) {
@@ -198,7 +218,14 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
             bool haveVia = false;
             NBEdge* toEdge = 0;
             std::string internalEdgeID = "";
-            // first pass: write non-via edges
+            // first pass: compute average lengths of non-via edges
+            std::map<NBEdge*, SUMOReal> lengthSum;
+            std::map<NBEdge*, int> numLanes;
+            for (std::vector<NBEdge::Connection>::const_iterator k = elv.begin(); k != elv.end(); ++k) {
+                lengthSum[(*k).toEdge] += MAX2((*k).shape.length(), POSITION_EPS);
+                numLanes[(*k).toEdge] += 1;
+            }
+            // second pass: write non-via edges
             for (std::vector<NBEdge::Connection>::const_iterator k = elv.begin(); k != elv.end(); ++k) {
                 if ((*k).toEdge == 0) {
                     assert(false); // should never happen. tell me when it does
@@ -219,16 +246,19 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                 // to avoid changing to an internal lane which has a successor
                 // with the wrong permissions we need to inherit them from the successor
                 const NBEdge::Lane& successor = (*k).toEdge->getLanes()[(*k).toLane];
-                writeLane(into, internalEdgeID, (*k).getInternalLaneID(), (*k).vmax, 
-                        successor.permissions, successor.preferred, 
-                        NBEdge::UNSPECIFIED_OFFSET, NBEdge::UNSPECIFIED_WIDTH, (*k).shape, (*k).origID,
-                        MAX2((*k).shape.length(), (SUMOReal)POSITION_EPS), // microsim needs positive length
-                        (*k).internalLaneIndex, origNames);
+                const SUMOReal length = lengthSum[toEdge] / numLanes[toEdge];
+                // @note the actual length should be used once sumo supports lanes of
+                // varying length within the same edge
+                //const SUMOReal length = MAX2((*k).shape.length(), POSITION_EPS);
+                writeLane(into, internalEdgeID, (*k).getInternalLaneID(), (*k).vmax,
+                          successor.permissions, successor.preferred,
+                          NBEdge::UNSPECIFIED_OFFSET, successor.width, (*k).shape, (*k).origID,
+                          length, (*k).internalLaneIndex, origNames);
                 haveVia = haveVia || (*k).haveVia;
             }
             ret = true;
             into.closeTag(); // close the last edge
-            // second pass: write via edges
+            // third pass: write via edges
             if (haveVia) {
                 for (std::vector<NBEdge::Connection>::const_iterator k = elv.begin(); k != elv.end(); ++k) {
                     if (!(*k).haveVia) {
@@ -238,17 +268,40 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                         assert(false); // should never happen. tell me when it does
                         continue;
                     }
+                    const NBEdge::Lane& successor = (*k).toEdge->getLanes()[(*k).toLane];
                     into.openTag(SUMO_TAG_EDGE);
                     into.writeAttr(SUMO_ATTR_ID, (*k).viaID);
                     into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_INTERNAL);
-                    writeLane(into, (*k).viaID, (*k).viaID + "_0", (*k).viaVmax, SVCFreeForAll, SVCFreeForAll, 
-                            NBEdge::UNSPECIFIED_OFFSET, NBEdge::UNSPECIFIED_WIDTH, (*k).viaShape, (*k).origID,
-                            MAX2((*k).viaShape.length(), (SUMOReal)POSITION_EPS), // microsim needs positive length
-                            0, origNames);
-                    into.closeTag(); // close the last edge
+                    writeLane(into, (*k).viaID, (*k).viaID + "_0", (*k).viaVmax, SVCAll, SVCAll,
+                              NBEdge::UNSPECIFIED_OFFSET, successor.width, (*k).viaShape, (*k).origID,
+                              MAX2((*k).viaShape.length(), POSITION_EPS), // microsim needs positive length
+                              0, origNames);
+                    into.closeTag();
                 }
             }
         }
+    }
+    // write pedestrian crossings
+    const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
+    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+        into.openTag(SUMO_TAG_EDGE);
+        into.writeAttr(SUMO_ATTR_ID, (*it).id);
+        into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_CROSSING);
+        into.writeAttr(SUMO_ATTR_CROSSING_EDGES, (*it).edges);
+        writeLane(into, (*it).id, (*it).id + "_0", 1, SVC_PEDESTRIAN, 0,
+                  NBEdge::UNSPECIFIED_OFFSET, (*it).width, (*it).shape, "", (*it).shape.length(), 0, false);
+        into.closeTag();
+    }
+    // write pedestrian walking areas
+    const std::vector<NBNode::WalkingArea>& WalkingAreas = n.getWalkingAreas();
+    for (std::vector<NBNode::WalkingArea>::const_iterator it = WalkingAreas.begin(); it != WalkingAreas.end(); it++) {
+        const NBNode::WalkingArea& wa = *it;
+        into.openTag(SUMO_TAG_EDGE);
+        into.writeAttr(SUMO_ATTR_ID, wa.id);
+        into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_WALKINGAREA);
+        writeLane(into, wa.id, wa.id + "_0", 1, SVC_PEDESTRIAN, 0,
+                  NBEdge::UNSPECIFIED_OFFSET, wa.width, wa.shape, "", wa.length, 0, false);
+        into.closeTag();
     }
     return ret;
 }
@@ -292,13 +345,13 @@ NWWriter_SUMO::writeEdge(OutputDevice& into, const NBEdge& e, bool noNames, bool
         length = geom.length();
     }
     if (length <= 0) {
-        length = (SUMOReal)POSITION_EPS;
+        length = POSITION_EPS;
     }
     for (unsigned int i = 0; i < (unsigned int) lanes.size(); i++) {
         const NBEdge::Lane& l = lanes[i];
-        writeLane(into, e.getID(), e.getLaneID(i), l.speed, 
-                l.permissions, l.preferred, l.offset, l.width, l.shape, l.origID,
-                length, i, origNames);
+        writeLane(into, e.getID(), e.getLaneID(i), l.speed,
+                  l.permissions, l.preferred, l.endOffset, l.width, l.shape, l.origID,
+                  length, i, origNames);
     }
     // close the edge
     into.closeTag();
@@ -306,11 +359,10 @@ NWWriter_SUMO::writeEdge(OutputDevice& into, const NBEdge& e, bool noNames, bool
 
 
 void
-NWWriter_SUMO::writeLane(OutputDevice& into, const std::string& eID, const std::string& lID, 
-        SUMOReal speed, SVCPermissions permissions, SVCPermissions preferred, 
-        SUMOReal offset, SUMOReal width, const PositionVector& shape,
-        const std::string& origID, SUMOReal length, unsigned int index, bool origNames) 
-{
+NWWriter_SUMO::writeLane(OutputDevice& into, const std::string& eID, const std::string& lID,
+                         SUMOReal speed, SVCPermissions permissions, SVCPermissions preferred,
+                         SUMOReal endOffset, SUMOReal width, const PositionVector& shape,
+                         const std::string& origID, SUMOReal length, unsigned int index, bool origNames) {
     // output the lane's attributes
     into.openTag(SUMO_TAG_LANE).writeAttr(SUMO_ATTR_ID, lID);
     // the first lane of an edge will be the depart lane
@@ -324,19 +376,19 @@ NWWriter_SUMO::writeLane(OutputDevice& into, const std::string& eID, const std::
     } else if (speed < 0) {
         throw ProcessError("Negative velocity (" + toString(speed) + " on edge '" + eID + "' lane#" + toString(index) + ".");
     }
-    if (offset > 0) {
-        length = length - offset;
+    if (endOffset > 0) {
+        length = length - endOffset;
     }
     into.writeAttr(SUMO_ATTR_SPEED, speed);
     into.writeAttr(SUMO_ATTR_LENGTH, length);
-    if (offset != NBEdge::UNSPECIFIED_OFFSET) {
-        into.writeAttr(SUMO_ATTR_ENDOFFSET, offset);
+    if (endOffset != NBEdge::UNSPECIFIED_OFFSET) {
+        into.writeAttr(SUMO_ATTR_ENDOFFSET, endOffset);
     }
     if (width != NBEdge::UNSPECIFIED_WIDTH) {
         into.writeAttr(SUMO_ATTR_WIDTH, width);
     }
-    into.writeAttr(SUMO_ATTR_SHAPE, offset > 0 ?
-            shape.getSubpart(0, shape.length() - offset) : shape);
+    into.writeAttr(SUMO_ATTR_SHAPE, endOffset > 0 ?
+                   shape.getSubpart(0, shape.length() - endOffset) : shape);
     if (origNames && origID != "") {
         into.openTag(SUMO_TAG_PARAM);
         into.writeAttr(SUMO_ATTR_KEY, "origId");
@@ -367,6 +419,10 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool che
             }
         }
     }
+    const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
+    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+        incLanes += ' ' + (*it).prevWalkingArea + "_0";
+    }
     into.writeAttr(SUMO_ATTR_INCLANES, incLanes);
     // write the internal lanes
     std::string intLanes;
@@ -389,6 +445,9 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool che
                 l++;
             }
         }
+    }
+    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+        intLanes += ' ' + (*it).id + "_0";
     }
     into.writeAttr(SUMO_ATTR_INTLANES, intLanes);
     // close writing
@@ -417,6 +476,10 @@ NWWriter_SUMO::writeInternalNodes(OutputDevice& into, const NBNode& n) {
             }
         }
     }
+    const std::vector<NBNode::Crossing>& crossings = n.getCrossings();
+    for (std::vector<NBNode::Crossing>::const_iterator it_c = crossings.begin(); it_c != crossings.end(); ++it_c) {
+        internalLaneIDs.push_back((*it_c).id + "_0");
+    }
     // write the internal nodes
     for (std::vector<NBEdge*>::const_iterator i = incoming.begin(); i != incoming.end(); i++) {
         const std::vector<NBEdge::Connection>& elv = (*i)->getConnections();
@@ -436,7 +499,7 @@ NWWriter_SUMO::writeInternalNodes(OutputDevice& into, const NBNode& n) {
             const std::vector<unsigned int>& foes = (*k).foeInternalLinks;
             std::vector<std::string> foeIDs;
             for (std::vector<unsigned int>::const_iterator it = foes.begin(); it != foes.end(); ++it) {
-                    foeIDs.push_back(internalLaneIDs[*it]);
+                foeIDs.push_back(internalLaneIDs[*it]);
             }
             into.writeAttr(SUMO_ATTR_INTLANES, joinToString(foeIDs, " "));
             into.closeTag();
@@ -456,7 +519,7 @@ NWWriter_SUMO::writeConnection(OutputDevice& into, const NBEdge& from, const NBE
     into.writeAttr(SUMO_ATTR_TO, c.toEdge->getID());
     into.writeAttr(SUMO_ATTR_FROM_LANE, c.fromLane);
     into.writeAttr(SUMO_ATTR_TO_LANE, c.toLane);
-    if (c.mayDefinitelyPass) {
+    if (c.mayDefinitelyPass && style != TLL) {
         into.writeAttr(SUMO_ATTR_PASS, c.mayDefinitelyPass);
     }
     if (style != PLAIN) {
@@ -510,7 +573,7 @@ NWWriter_SUMO::writeInternalConnections(OutputDevice& into, const NBNode& n) {
 
 void
 NWWriter_SUMO::writeInternalConnection(OutputDevice& into,
-                                       const std::string& from, const std::string& to, 
+                                       const std::string& from, const std::string& to,
                                        int fromLane, int toLane, const std::string& via) {
     into.openTag(SUMO_TAG_CONNECTION);
     into.writeAttr(SUMO_ATTR_FROM, from);
@@ -521,23 +584,61 @@ NWWriter_SUMO::writeInternalConnection(OutputDevice& into,
         into.writeAttr(SUMO_ATTR_VIA, via);
     }
     into.writeAttr(SUMO_ATTR_DIR, "s");
-    into.writeAttr(SUMO_ATTR_STATE, "M");
+    into.writeAttr(SUMO_ATTR_STATE, (via != "" ? "m" : "M"));
     into.closeTag();
+}
+
+
+void
+NWWriter_SUMO::writeRoundabouts(OutputDevice& into, const std::set<EdgeSet>& roundabouts,
+                                const NBEdgeCont& ec) {
+    //  make output deterministic
+    std::vector<std::vector<std::string> > edgeIDs;
+    for (std::set<EdgeSet>::const_iterator i = roundabouts.begin(); i != roundabouts.end(); ++i) {
+        std::vector<std::string> tEdgeIDs;
+        for (EdgeSet::const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
+            tEdgeIDs.push_back((*j)->getID());
+        }
+        std::sort(tEdgeIDs.begin(), tEdgeIDs.end());
+        edgeIDs.push_back(tEdgeIDs);
+    }
+    std::sort(edgeIDs.begin(), edgeIDs.end());
+    //  write
+    for (std::vector<std::vector<std::string> >::const_iterator i = edgeIDs.begin(); i != edgeIDs.end(); ++i) {
+        writeRoundabout(into, *i, ec);
+    }
+    if (roundabouts.size() != 0) {
+        into.lf();
+    }
 }
 
 
 void
 NWWriter_SUMO::writeRoundabout(OutputDevice& into, const std::vector<std::string>& edgeIDs,
                                const NBEdgeCont& ec) {
+    std::vector<std::string> validEdgeIDs;
+    std::vector<std::string> invalidEdgeIDs;
     std::vector<std::string> nodeIDs;
     for (std::vector<std::string>::const_iterator i = edgeIDs.begin(); i != edgeIDs.end(); ++i) {
-        nodeIDs.push_back(ec.retrieve(*i)->getToNode()->getID());
+        const NBEdge* edge = ec.retrieve(*i);
+        if (edge != 0) {
+            nodeIDs.push_back(edge->getToNode()->getID());
+            validEdgeIDs.push_back(edge->getID());
+        } else {
+            invalidEdgeIDs.push_back(*i);
+        }
     }
     std::sort(nodeIDs.begin(), nodeIDs.end());
-    into.openTag(SUMO_TAG_ROUNDABOUT);
-    into.writeAttr(SUMO_ATTR_NODES, joinToString(nodeIDs, " "));
-    into.writeAttr(SUMO_ATTR_EDGES, joinToString(edgeIDs, " "));
-    into.closeTag();
+    if (validEdgeIDs.size() > 0) {
+        into.openTag(SUMO_TAG_ROUNDABOUT);
+        into.writeAttr(SUMO_ATTR_NODES, joinToString(nodeIDs, " "));
+        into.writeAttr(SUMO_ATTR_EDGES, joinToString(validEdgeIDs, " "));
+        into.closeTag();
+        if (invalidEdgeIDs.size() > 0) {
+            WRITE_WARNING("Writing incomplete roundabout. Edges: '"
+                          + joinToString(invalidEdgeIDs, " ") + "' no longer exist'");
+        }
+    }
 }
 
 
@@ -615,8 +716,8 @@ NWWriter_SUMO::writeTrafficLights(OutputDevice& into, const NBTrafficLightLogicC
         into.writeAttr(SUMO_ATTR_PROGRAMID, (*it)->getProgramID());
         into.writeAttr(SUMO_ATTR_OFFSET, writeSUMOTime((*it)->getOffset()));
         // write params
-        const std::map<std::string, std::string> &params = (*it)->getMap();
-        for(std::map<std::string, std::string>::const_iterator i=params.begin(); i!=params.end(); ++i) {
+        const std::map<std::string, std::string>& params = (*it)->getMap();
+        for (std::map<std::string, std::string>::const_iterator i = params.begin(); i != params.end(); ++i) {
             into.openTag(SUMO_TAG_PARAM);
             into.writeAttr(SUMO_ATTR_KEY, (*i).first);
             into.writeAttr(SUMO_ATTR_VALUE, (*i).second);
@@ -659,18 +760,22 @@ NWWriter_SUMO::writeLocation(OutputDevice& into) {
 
 void
 NWWriter_SUMO::writePermissions(OutputDevice& into, SVCPermissions permissions) {
-    if (permissions == SVCFreeForAll) {
+    if (permissions == SVCAll) {
         return;
     } else if (permissions == 0) {
-        // special case: since all-empty encodes FreeForAll we must list all disallowed
-        into.writeAttr(SUMO_ATTR_DISALLOW, getAllowedVehicleClassNames(SVCFreeForAll));
+        into.writeAttr(SUMO_ATTR_DISALLOW, "all");
         return;
     } else {
-        std::pair<std::string, bool> encoding = getPermissionEncoding(permissions);
-        if (encoding.second) {
-            into.writeAttr(SUMO_ATTR_ALLOW, encoding.first);
+        size_t num_allowed = 0;
+        for (int mask = 1; mask <= SUMOVehicleClass_MAX; mask = mask << 1) {
+            if ((mask & permissions) == mask) {
+                ++num_allowed;
+            }
+        }
+        if (num_allowed <= (SumoVehicleClassStrings.size() - num_allowed) && num_allowed > 0) {
+            into.writeAttr(SUMO_ATTR_ALLOW, getVehicleClassNames(permissions));
         } else {
-            into.writeAttr(SUMO_ATTR_DISALLOW, encoding.first);
+            into.writeAttr(SUMO_ATTR_DISALLOW, getVehicleClassNames(~permissions));
         }
     }
 }
@@ -678,10 +783,10 @@ NWWriter_SUMO::writePermissions(OutputDevice& into, SVCPermissions permissions) 
 
 void
 NWWriter_SUMO::writePreferences(OutputDevice& into, SVCPermissions preferred) {
-    if (preferred == SVCFreeForAll || preferred == 0) {
+    if (preferred == SVCAll || preferred == 0) {
         return;
     } else {
-        into.writeAttr(SUMO_ATTR_PREFER, getAllowedVehicleClassNames(preferred));
+        into.writeAttr(SUMO_ATTR_PREFER, getVehicleClassNames(preferred));
     }
 }
 /****************************************************************************/

@@ -9,7 +9,7 @@
 // Changes flow and speed on a set of lanes (gui version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -283,8 +283,9 @@ GUICalibrator::GUICalibrator(const std::string& id,
                              MSEdge* edge, SUMOReal pos,
                              const std::string& aXMLFilename,
                              const std::string& outputFilename,
-                             const SUMOTime freq) :
-    MSCalibrator(id, edge, pos, aXMLFilename, outputFilename, freq, edge->getLength()),
+                             const SUMOTime freq,
+                             const MSRouteProbe* probe) :
+    MSCalibrator(id, edge, pos, aXMLFilename, outputFilename, freq, edge->getLength(), probe),
     GUIGlObject_AbstractAdd("calibrator", GLO_TRIGGER, id),
     myShowAsKMH(true) {
     const std::vector<MSLane*>& destLanes = edge->getLanes();
@@ -361,6 +362,7 @@ GUICalibrator::drawGL(const GUIVisualizationSettings& s) const {
             flow = toString((int)myCurrentStateInterval->q) + "v/h";
         }
     }
+    const SUMOReal exaggeration = s.addSize.getExaggeration(s);
     for (size_t i = 0; i < myFGPositions.size(); ++i) {
         const Position& pos = myFGPositions[i];
         SUMOReal rot = myFGRotations[i];
@@ -368,7 +370,7 @@ GUICalibrator::drawGL(const GUIVisualizationSettings& s) const {
         glTranslated(pos.x(), pos.y(), getType());
         glRotated(rot, 0, 0, 1);
         glTranslated(0, 0, getType());
-        glScaled(s.addExaggeration, s.addExaggeration, 1);
+        glScaled(exaggeration, exaggeration, 1);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         glBegin(GL_TRIANGLES);
@@ -383,7 +385,7 @@ GUICalibrator::drawGL(const GUIVisualizationSettings& s) const {
         glEnd();
 
         // draw text
-        if (s.scale * s.addExaggeration >= 1.) {
+        if (s.scale * exaggeration >= 1.) {
             glTranslated(0, 0, .1);
             glColor3d(0, 0, 0);
             pfSetPosition(0, 0);

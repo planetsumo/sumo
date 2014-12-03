@@ -9,7 +9,7 @@
 // The GUI-version of a polygon
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -37,6 +37,7 @@
 #include <utils/shapes/Polygon.h>
 #include <utils/gui/globjects/GUIGlObject_AbstractAdd.h>
 #include <utils/gui/globjects/GLIncludes.h>
+#include <utils/gui/settings/GUIVisualizationSettings.h>
 using namespace SUMO;
 
 // ===========================================================================

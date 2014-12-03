@@ -4,13 +4,14 @@
 /// @author  Eric Nicolay
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
+/// @author  Melanie Knocke
 /// @date    Thu, 16.03.2006
 /// @version $Id$
 ///
 // Sets and checks options for df-routing
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2006-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -105,8 +106,8 @@ RODFFrame::fillOptions() {
 
     oc.doRegister("emitters-output", new Option_FileName());
     oc.addDescription("emitters-output", "Output", "Saves emitter definitions for source detectors to FILE");
- 
-	oc.doRegister("vtype", new Option_Bool(false));
+
+    oc.doRegister("vtype", new Option_Bool(false));
     oc.addDescription("vtype", "Output", "Add vehicle types to the emitters file (PKW, LKW)");
 
     oc.doRegister("emitters-poi-output", new Option_FileName()); // !!! describe
@@ -128,8 +129,8 @@ RODFFrame::fillOptions() {
 
     // register processing options
     // to guess empty flows
-    oc.doRegister("guess-empty-flows", new Option_Bool(false)); // !!! describe
-    oc.addDescription("guess-empty-flows", "Processing", "");
+    oc.doRegister("guess-empty-flows", new Option_Bool(false));
+    oc.addDescription("guess-empty-flows", "Processing", "Derive missing flow values from upstream or downstream (not working!)");
 
     // for guessing source/sink detectors
     oc.doRegister("highway-mode", 'h', new Option_Bool(false)); // !!! describe
@@ -146,9 +147,6 @@ RODFFrame::fillOptions() {
     // for route computation
     oc.doRegister("revalidate-routes", new Option_Bool(false));
     oc.addDescription("revalidate-routes", "Processing", "Recomputes routes even if given");
-
-    oc.doRegister("all-end-follower", new Option_Bool(false));
-    oc.addDescription("all-end-follower", "Processing", "Continues routes till the first street after a sink");
 
     oc.doRegister("keep-unfinished-routes", new Option_Bool(false));
     oc.addSynonyme("keep-unfinished-routes", "keep-unfound-ends", true);
@@ -202,6 +200,9 @@ RODFFrame::fillOptions() {
 
     oc.doRegister("strict-sources", new Option_Bool(false)); // !!!undescribed
     oc.addDescription("strict-sources", "Processing", "");
+
+    oc.doRegister("respect-concurrent-inflows", new Option_Bool(false));
+    oc.addDescription("respect-concurrent-inflows", "Processing", "Try to determine further inflows to an inbetween detector when computing split probabilities");
 
     /* disabled, see ticket #521
     oc.doRegister("join-lanes", new Option_Bool(false));

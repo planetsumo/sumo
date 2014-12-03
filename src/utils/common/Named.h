@@ -8,7 +8,7 @@
 // Base class for objects which have an id.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -77,6 +77,13 @@ public:
         }
     };
 
+    /// @brief Function-object for stable sorting of objects acting like Named without being derived (SUMOVehicle)
+    template <class NamedLike>
+    struct NamedLikeComparatorIdLess {
+        bool operator()(const NamedLike* const a, const NamedLike* const b) const {
+            return a->getID() < b->getID();
+        }
+    };
 
 
     /** @class StoringVisitor

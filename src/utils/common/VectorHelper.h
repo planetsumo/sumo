@@ -9,7 +9,7 @@
 // A simple vector of SUMOReals
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -55,7 +55,7 @@ public:
     }
 
     static void normaliseSum(std::vector<T>& v, T msum = 1.0) {
-        if (msum == 0) {
+        if (msum == 0 || v.size() == 0) {
             // is an error; do nothing
             return;
         }

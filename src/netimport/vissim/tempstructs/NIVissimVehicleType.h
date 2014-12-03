@@ -7,7 +7,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -43,24 +43,19 @@
  */
 class NIVissimVehicleType {
 public:
-    NIVissimVehicleType(int id, const std::string& name,
-                        const std::string& category, SUMOReal length, const RGBColor& color,
-                        SUMOReal amax, SUMOReal dmax);
+    NIVissimVehicleType(const std::string& name,
+                        const std::string& category, const RGBColor& color);
     ~NIVissimVehicleType();
     static bool dictionary(int id, const std::string& name,
-                           const std::string& category, SUMOReal length, const RGBColor& color,
-                           SUMOReal amax, SUMOReal dmax);
+                           const std::string& category, const RGBColor& color);
     static bool dictionary(int id, NIVissimVehicleType* o);
     static NIVissimVehicleType* dictionary(int id);
     static void clearDict();
 
 private:
-    int myID;
     std::string myName;
     std::string myCategory;
-    SUMOReal myLength;
     RGBColor myColor;
-    SUMOReal myAMax, myDMax;
 private:
     typedef std::map<int, NIVissimVehicleType*> DictType;
     static DictType myDict;

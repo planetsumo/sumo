@@ -4,13 +4,14 @@
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
 /// @author  Laura Bieker
+/// @author  Yun-Pang Floetteroed
 /// @date    Thu, 12 September 2002
 /// @version $Id$
 ///
 // Main for OD2TRIPS
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -59,7 +60,7 @@
 #include <utils/common/SUMOTime.h>
 #include <utils/common/StringTokenizer.h>
 #include <utils/common/FileHelpers.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include <utils/importio/LineReader.h>
 #include <utils/iodevices/OutputDevice.h>
 
@@ -95,6 +96,11 @@ fillOptions() {
     oc.addSynonyme("od-matrix-files", "od-files");
     oc.addSynonyme("od-matrix-files", "od");
     oc.addDescription("od-matrix-files", "Input", "Loads O/D-files from FILE(s)");
+
+    oc.doRegister("od-amitran-files", new Option_FileName());
+    oc.addSynonyme("od-amitran-files", "amitran-files");
+    oc.addSynonyme("od-amitran-files", "amitran");
+    oc.addDescription("od-amitran-files", "Input", "Loads O/D-matrix in Amitran format from FILE(s)");
 
 
     // register the file output options
@@ -176,7 +182,7 @@ checkOptions() {
         WRITE_ERROR("No net input file (-n) specified.");
         ok = false;
     }
-    if (!oc.isSet("od-matrix-files")) {
+    if (!oc.isSet("od-matrix-files") && !oc.isSet("od-amitran-files")) {
         WRITE_ERROR("No input specified.");
         ok = false;
     }
@@ -225,7 +231,7 @@ main(int argc, char** argv) {
     OptionsCont& oc = OptionsCont::getOptions();
     // give some application descriptions
     oc.setApplicationDescription("Importer of O/D-matrices for the road traffic simulation SUMO.");
-    oc.setApplicationName("od2trips", "SUMO od2trips Version " + (std::string)VERSION_STRING);
+    oc.setApplicationName("od2trips", "SUMO od2trips Version " + getBuildName(VERSION_STRING));
     int ret = 0;
     try {
         // initialise subsystems
@@ -236,7 +242,7 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getBool("xml-validation"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
         MsgHandler::initOutputOptions();
         if (!checkOptions()) {
             throw ProcessError();
@@ -269,14 +275,14 @@ main(int argc, char** argv) {
         }
         // write
         bool haveOutput = false;
-        if (OutputDevice::createDeviceByOption("output-file", "routes")) {
+        if (OutputDevice::createDeviceByOption("output-file", "routes", "routes_file.xsd")) {
             matrix.write(string2time(oc.getString("begin")), string2time(oc.getString("end")),
                          OutputDevice::getDeviceByOption("output-file"),
                          oc.getBool("spread.uniform"), oc.getBool("ignore-vehicle-type"),
                          oc.getString("prefix"), !oc.getBool("no-step-log"));
             haveOutput = true;
         }
-        if (OutputDevice::createDeviceByOption("flow-output", "routes")) {
+        if (OutputDevice::createDeviceByOption("flow-output", "routes", "routes_file.xsd")) {
             matrix.writeFlows(string2time(oc.getString("begin")), string2time(oc.getString("end")),
                               OutputDevice::getDeviceByOption("flow-output"),
                               oc.getBool("ignore-vehicle-type"), oc.getString("prefix"));

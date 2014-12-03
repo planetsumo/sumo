@@ -14,7 +14,7 @@
 /// TraCI server used to control sumo by a remote TraCI client
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -68,15 +68,13 @@
 // ===========================================================================
 // class definitions
 // ===========================================================================
-namespace traci {
-
 /** @class TraCIServer
  * @brief TraCI server used to control sumo by a remote TraCI client
  */
 class TraCIServer : public MSNet::VehicleStateListener {
 public:
     /// @brief Definition of a method to be called for serving an associated commandID
-    typedef bool(*CmdExecutor)(traci::TraCIServer& server, tcpip::Storage& inputStorage, tcpip::Storage& outputStorage);
+    typedef bool(*CmdExecutor)(TraCIServer& server, tcpip::Storage& inputStorage, tcpip::Storage& outputStorage);
 
 
     SUMOTime getTargetTime() {
@@ -115,6 +113,8 @@ public:
 		SUMOTime t);
 
     void postProcessVTD();
+
+    bool vtdDebug() const;
 
 
 
@@ -298,22 +298,10 @@ private:
     /** @brief Handles subscriptions to send after a simstep2 command
      */
     void postProcessSimulationStep2();
-
-
-    /** @brief Adds a vehicle
-     * @deprecated Vehicles shall be inserted using the vehicle-API
-    */
-    bool commandAddVehicle();
     /// @}
 
 
-
-
-
     int dispatchCommand();
-
-
-
 
 
 
@@ -340,14 +328,14 @@ private:
     /// @todo: What is this for?
     bool myDoingSimStep;
 
-    /// @brief Whether the usage of deprecated methods was already reported
-    bool myHaveWarnedDeprecation;
-
     /// @brief Whether the server runs in embedded mode
     const bool myAmEmbedded;
 
     /// @brief Map of commandIds -> their executors; applicable if the executor applies to the method footprint
     std::map<int, CmdExecutor> myExecutors;
+
+    /// @brief Map of variable ids to the size of the parameter in bytes
+    std::map<int, int> myParameterSizes;
 
     std::map<std::string, MSVehicle*> myVTDControlledVehicles;
 
@@ -367,9 +355,10 @@ private:
          * @param[in] contextDomainArg The domain ID of the context
          * @param[in] rangeArg The range of the context
          */
-        Subscription(int commandIdArg, const std::string& idArg, const std::vector<int>& variablesArg,
+        Subscription(int commandIdArg, const std::string& idArg,
+                     const std::vector<int>& variablesArg, const std::vector<std::vector<unsigned char> >& paramsArg,
                      SUMOTime beginTimeArg, SUMOTime endTimeArg, bool contextVarsArg, int contextDomainArg, SUMOReal rangeArg)
-            : commandId(commandIdArg), id(idArg), variables(variablesArg), beginTime(beginTimeArg), endTime(endTimeArg),
+            : commandId(commandIdArg), id(idArg), variables(variablesArg), parameters(paramsArg), beginTime(beginTimeArg), endTime(endTimeArg),
               contextVars(contextVarsArg), contextDomain(contextDomainArg), range(rangeArg) {}
 
         /// @brief commandIdArg The command id of the subscription
@@ -378,6 +367,8 @@ private:
         std::string id;
         /// @brief The subscribed variables
         std::vector<int> variables;
+        /// @brief The parameters for the subscribed variables
+        std::vector<std::vector<unsigned char> > parameters;
         /// @brief The begin time of the subscription
         SUMOTime beginTime;
         /// @brief The end time of the subscription
@@ -400,10 +391,12 @@ private:
     /// @brief A storage of objects
     std::map<int, NamedRTree*> myObjects;
 
+    /// @brief A storage of lanes
+    LANE_RTREE_QUAL* myLaneTree;
+
 
 private:
-    bool addObjectVariableSubscription(int commandId);
-    bool addObjectContextSubscription(int commandId);
+    bool addObjectVariableSubscription(const int commandId, const bool hasContext);
     void initialiseSubscription(const Subscription& s);
     void removeSubscription(int commandId, const std::string& identity, int domain);
     bool processSingleSubscription(const TraCIServer::Subscription& s, tcpip::Storage& writeInto,
@@ -418,8 +411,6 @@ private:
     TraCIServer& operator=(const TraCIServer& s);
 
 };
-
-}
 
 
 #endif

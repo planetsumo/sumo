@@ -9,7 +9,7 @@
 // Builder of microsim-junctions and tls
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -264,6 +264,11 @@ public:
 
     /// @brief try to retrieve junction by id
     MSJunction* retrieve(const std::string id);
+
+    /// @brief return the number of phases loaded so far (for error reporting)
+    size_t getNumberOfLoadedPhases() const {
+        return myActivePhases.size();
+    }
 
 
 protected:

@@ -2,13 +2,14 @@
 /// @file    MSDevice_Tripinfo.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Fri, 30.01.2009
 /// @version $Id$
 ///
 // A device which collects info on the vehicle trip
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -64,7 +65,8 @@ public:
      */
     static void buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& into);
 
-
+    /// @brief generate output for vehicles which are still in the network
+    static void generateOutputForUnfinished();
 
 public:
     /// @brief Destructor.
@@ -158,7 +160,12 @@ private:
     /// @brief The speed when arriving
     SUMOReal myArrivalSpeed;
 
+    /// @brief The time loss when compared to the desired and allowed speed
+    SUMOTime myTimeLoss;
 
+    /// @brief devices which may still need to produce output
+    typedef std::set<const MSDevice_Tripinfo*, Named::NamedLikeComparatorIdLess<MSDevice_Tripinfo> > DeviceSet;
+    static DeviceSet myPendingOutput;
 
 private:
     /// @brief Invalidated copy constructor.

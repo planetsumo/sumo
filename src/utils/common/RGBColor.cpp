@@ -10,7 +10,7 @@
 // A RGB-color definition
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -32,6 +32,7 @@
 #endif
 
 #include <cmath>
+#include <cassert>
 #include <string>
 #include <sstream>
 #include <utils/common/StringTokenizer.h>
@@ -142,12 +143,25 @@ RGBColor::operator!=(const RGBColor& c) const {
 
 
 RGBColor
-RGBColor::changedBrightness(const char change) {
-    const unsigned char red = static_cast<unsigned char>(MIN2(MAX2(myRed + change, 0), 255));
-    const unsigned char blue = static_cast<unsigned char>(MIN2(MAX2(myBlue + change, 0), 255));
-    const unsigned char green = static_cast<unsigned char>(MIN2(MAX2(myGreen + change, 0), 255));
-    return RGBColor(red, green, blue, myAlpha);
-
+RGBColor::changedBrightness(int change, int toChange) const {
+    const unsigned char red = (unsigned char)(MIN2(MAX2(myRed + change, 0), 255));
+    const unsigned char blue = (unsigned char)(MIN2(MAX2(myBlue + change, 0), 255));
+    const unsigned char green = (unsigned char)(MIN2(MAX2(myGreen + change, 0), 255));
+    int changed = ((int)red - (int)myRed) + ((int)blue - (int)myBlue) + ((int)green - (int)myGreen);
+    const RGBColor result(red, green, blue, myAlpha);
+    if (changed == toChange * change) {
+        return result;
+    } else if (changed == 0) {
+        return result;
+    } else {
+        const int maxedColors = (red != myRed + change ? 1 : 0) + (blue != myBlue + change ? 1 : 0) + (green != myGreen + change ? 1 : 0);
+        if (maxedColors == 3) {
+            return result;
+        } else {
+            const int toChangeNext = 3 - maxedColors;
+            return result.changedBrightness((int)((toChange * change - changed) / toChangeNext), toChangeNext);
+        }
+    }
 }
 
 RGBColor
@@ -261,10 +275,10 @@ RGBColor::interpolate(const RGBColor& minColor, const RGBColor& maxColor, SUMORe
     if (weight > 1) {
         weight = 1;
     }
-    const unsigned char r = minColor.myRed + static_cast<char>((maxColor.myRed - minColor.myRed) * weight);
-    const unsigned char g = minColor.myGreen + static_cast<char>((maxColor.myGreen - minColor.myGreen) * weight);
-    const unsigned char b = minColor.myBlue + static_cast<char>((maxColor.myBlue - minColor.myBlue) * weight);
-    const unsigned char a = minColor.myAlpha + static_cast<char>((maxColor.myAlpha - minColor.myAlpha) * weight);
+    const unsigned char r = (unsigned char)((int)minColor.myRed   + (((int)maxColor.myRed   - (int)minColor.myRed)   * weight));
+    const unsigned char g = (unsigned char)((int)minColor.myGreen + (((int)maxColor.myGreen - (int)minColor.myGreen) * weight));
+    const unsigned char b = (unsigned char)((int)minColor.myBlue  + (((int)maxColor.myBlue  - (int)minColor.myBlue)  * weight));
+    const unsigned char a = (unsigned char)((int)minColor.myAlpha + (((int)maxColor.myAlpha - (int)minColor.myAlpha) * weight));
     return RGBColor(r, g, b, a);
 }
 

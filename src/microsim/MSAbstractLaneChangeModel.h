@@ -11,7 +11,7 @@
 // Interface for lane-change models
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -57,7 +57,7 @@ enum LaneChangeAction {
 
     /// @brief The action is needed to follow the route (navigational lc)
     LCA_STRATEGIC = 1 << 3,
-    /// @brief The action is done to help someone else 
+    /// @brief The action is done to help someone else
     LCA_COOPERATIVE = 1 << 4,
     /// @brief The action is due to the wish to be faster (tactical lc)
     LCA_SPEEDGAIN = 1 << 5,
@@ -95,7 +95,7 @@ enum LaneChangeAction {
     LCA_BLOCKED_BY_FOLLOWER = LCA_BLOCKED_BY_LEFT_FOLLOWER | LCA_BLOCKED_BY_RIGHT_FOLLOWER,
     LCA_BLOCKED = LCA_BLOCKED_LEFT | LCA_BLOCKED_RIGHT
 
-    /// @}
+                  /// @}
 
 };
 
@@ -175,6 +175,9 @@ public:
 
     };
 
+    /// @brief init global model parameters
+    void static initGlobalOptions(const OptionsCont& oc);
+
     /** @brief Factory method for instantiating new lane changing models
      * @param[in] lcm The type of model to build
      * @param[in] vehicle The vehicle for which this model shall be built
@@ -199,8 +202,8 @@ public:
 
     virtual void prepareStep() { }
 
-    /** @brief Called to examine whether the vehicle wants to change 
-     * using the given laneOffset. 
+    /** @brief Called to examine whether the vehicle wants to change
+     * using the given laneOffset.
      * This method gets the information about the surrounding vehicles
      * and whether another lane may be more preferable */
     virtual int wantsChange(
@@ -230,10 +233,14 @@ public:
     virtual SUMOReal patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOReal max,
                                 const MSCFModel& cfModel) = 0;
 
-    virtual void changed() = 0;
+    virtual void changed(int dir) = 0;
 
     void unchanged() {
-        myLastLaneChangeOffset += DELTA_T;
+        if (myLastLaneChangeOffset > 0) {
+            myLastLaneChangeOffset += DELTA_T;
+        } else if (myLastLaneChangeOffset < 0) {
+            myLastLaneChangeOffset -= DELTA_T;
+        }
     }
 
     /** @brief Returns the lane the vehicles shadow is on during continuouss lane change
@@ -300,10 +307,18 @@ public:
     /// @brief remove the shadow copy of a lane change maneuver
     void removeLaneChangeShadow();
 
+    /// @brief reserve space at the end of the lane to avoid dead locks
+    virtual void saveBlockerLength(SUMOReal length) {
+        UNUSED_PARAMETER(length);
+    };
+
 protected:
     virtual bool congested(const MSVehicle* const neighLeader);
 
     virtual bool predInteraction(const MSVehicle* const leader);
+
+    /// @brief whether the influencer cancels the given request
+    bool cancelRequest(int state);
 
 
 protected:
@@ -312,9 +327,6 @@ protected:
 
     /// @brief The current state of the vehicle
     int myOwnState;
-
-    /// @brief information how long ago the vehicle has performed a lane-change
-    SUMOTime myLastLaneChangeOffset;
 
     /// @brief progress of the lane change maneuver 0:started, 1:complete
     SUMOReal myLaneChangeCompletion;
@@ -336,6 +348,21 @@ protected:
 
     /// @brief The vehicle's car following model
     const MSCFModel& myCarFollowModel;
+
+    /* @brief to be called by derived classes in their changed() method.
+     * If dir=0 is given, the current value remains unchanged */
+    void initLastLaneChangeOffset(int dir);
+
+    /// @brief whether overtaking on the right is permitted
+    static bool myAllowOvertakingRight;
+
+private:
+    /* @brief information how long ago the vehicle has performed a lane-change,
+     * sign indicates direction of the last change
+     */
+    SUMOTime myLastLaneChangeOffset;
+
+
 
 private:
     /// @brief Invalidated assignment operator

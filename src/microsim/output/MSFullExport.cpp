@@ -1,13 +1,16 @@
 /****************************************************************************/
 /// @file    MSFullExport.cpp
+/// @author  Daniel Krajzewicz
 /// @author  Mario Krumnow
+/// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    2012-04-26
 /// @version $Id$
 ///
 // Dumping a hugh List of Parameters available in the Simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -28,21 +31,14 @@
 #include <config.h>
 #endif
 
-#include <string>
-#include <microsim/MSEdgeControl.h>
-#include <microsim/MSEdge.h>
-#include <microsim/MSLane.h>
-#include <microsim/MSGlobals.h>
 #include <utils/iodevices/OutputDevice.h>
-#include "MSFullExport.h"
+#include <utils/emissions/PollutantsInterface.h>
+#include <microsim/MSEdge.h>
+#include <microsim/MSEdgeControl.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/traffic_lights/MSTLLogicControl.h>
-
-#ifdef HAVE_MESOSIM
-#include <mesosim/MELoop.h>
-#include <mesosim/MESegment.h>
-#endif
+#include "MSFullExport.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -77,12 +73,13 @@ MSFullExport::writeVehicles(OutputDevice& of) {
             std::string fclass = veh->getVehicleType().getID();
             fclass = fclass.substr(0, fclass.find_first_of("@"));
             Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
-            of.openTag("vehicle").writeAttr("id", veh->getID()).writeAttr("eclass", toString(veh->getVehicleType().getEmissionClass()));
-            of.writeAttr("CO2", veh->getHBEFA_CO2Emissions()).writeAttr("CO", veh->getHBEFA_COEmissions()).writeAttr("HC", veh->getHBEFA_HCEmissions());
-            of.writeAttr("NOx", veh->getHBEFA_NOxEmissions()).writeAttr("PMx", veh->getHBEFA_PMxEmissions()).writeAttr("noise", veh->getHarmonoise_NoiseEmissions());
+            of.openTag("vehicle").writeAttr("id", veh->getID()).writeAttr("eclass", PollutantsInterface::getName(veh->getVehicleType().getEmissionClass()));
+            of.writeAttr("CO2", veh->getCO2Emissions()).writeAttr("CO", veh->getCOEmissions()).writeAttr("HC", veh->getHCEmissions());
+            of.writeAttr("NOx", veh->getNOxEmissions()).writeAttr("PMx", veh->getPMxEmissions()).writeAttr("noise", veh->getHarmonoise_NoiseEmissions());
             of.writeAttr("route", veh->getRoute().getID()).writeAttr("type", fclass).writeAttr("waiting", veh->getWaitingSeconds());
             of.writeAttr("lane", veh->getLane()->getID()).writeAttr("pos_lane", veh->getPositionOnLane()).writeAttr("speed", veh->getSpeed());
             of.writeAttr("angle", veh->getAngle()).writeAttr("x", pos.x()).writeAttr("y", pos.y());
+            // !!! fuel is missing here
             of.closeTag();
         }
     }
@@ -110,9 +107,9 @@ MSFullExport::writeEdge(OutputDevice& of) {
 void
 MSFullExport::writeLane(OutputDevice& of, const MSLane& lane) {
 
-    of.openTag("lane").writeAttr("id", lane.getID()).writeAttr("CO", lane.getHBEFA_COEmissions()).writeAttr("CO2", lane.getHBEFA_CO2Emissions());
-    of.writeAttr("NOx", lane.getHBEFA_NOxEmissions()).writeAttr("PMx", lane.getHBEFA_PMxEmissions()).writeAttr("HC", lane.getHBEFA_HCEmissions());
-    of.writeAttr("noise", lane.getHarmonoise_NoiseEmissions()).writeAttr("fuel", lane.getHBEFA_FuelConsumption()).writeAttr("maxspeed", lane.getSpeedLimit());
+    of.openTag("lane").writeAttr("id", lane.getID()).writeAttr("CO", lane.getCOEmissions()).writeAttr("CO2", lane.getCO2Emissions());
+    of.writeAttr("NOx", lane.getNOxEmissions()).writeAttr("PMx", lane.getPMxEmissions()).writeAttr("HC", lane.getHCEmissions());
+    of.writeAttr("noise", lane.getHarmonoise_NoiseEmissions()).writeAttr("fuel", lane.getFuelConsumption()).writeAttr("maxspeed", lane.getSpeedLimit());
     of.writeAttr("meanspeed", lane.getMeanSpeed() * 3.6).writeAttr("occupancy", lane.getNettoOccupancy()).writeAttr("vehicle_count", lane.getVehicleNumber());
     of.closeTag();
 }
@@ -125,7 +122,7 @@ MSFullExport::writeTLS(OutputDevice& of, SUMOTime /* timestep */) {
     std::vector<std::string> ids = vc.getAllTLIds();
     for (std::vector<std::string>::const_iterator id_it = ids.begin(); id_it != ids.end(); ++id_it) {
         MSTLLogicControl::TLSLogicVariants& vars = MSNet::getInstance()->getTLSControl().get(*id_it);
-        const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLanes();
+        const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLaneVectors();
 
         std::vector<std::string> laneIDs;
         for (MSTrafficLightLogic::LaneVectorVector::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {

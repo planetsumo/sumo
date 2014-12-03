@@ -9,7 +9,7 @@
 // Writes route distributions at a certain edge
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -71,11 +71,11 @@ public:
      *
      * @param[in] id The id of the route probe
      * @param[in] edge The edge where the distribution shall be estimated
-     * @param[in] begin The start of the first reporting interval
+     * @param[in] distID The id of the distribution to add values to
+     * @param[in] lastID The id of the last completed distribution to use for getRoute
      */
-    MSRouteProbe(const std::string& id,
-                 const MSEdge* edge,
-                 SUMOTime begin);
+    MSRouteProbe(const std::string& id, const MSEdge* edge,
+                 const std::string& distID, const std::string& lastID);
 
 
     /// @brief Destructor
@@ -130,9 +130,14 @@ public:
     void writeXMLDetectorProlog(OutputDevice& dev) const;
     /// @}
 
+    const MSRoute* getRoute() const;
+
 private:
+    /// @brief The previous distribution of routes (probability->route)
+    std::pair<std::string, RandomDistributor<const MSRoute*>*> myLastRouteDistribution;
+
     /// @brief The current distribution of routes (probability->route)
-    RandomDistributor<const MSRoute*>* myCurrentRouteDistribution;
+    std::pair<std::string, RandomDistributor<const MSRoute*>*> myCurrentRouteDistribution;
 
 
 private:

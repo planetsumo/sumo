@@ -9,7 +9,7 @@
 // A MSPerson extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -35,13 +35,15 @@
 #include <string>
 #include <foreign/polyfonts/polyfonts.h>
 #include <microsim/MSPerson.h>
+#include <microsim/MSPModel_Striping.h>
 #include <microsim/logging/CastingFunctionBinding.h>
 #include <microsim/logging/FunctionBinding.h>
 #include <microsim/MSVehicleControl.h>
 #include <microsim/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <utils/common/StringUtils.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
+#include <utils/common/AbstractMutex.h>
 #include <utils/gui/images/GUITexturesHelper.h>
 #include <utils/gui/windows/GUISUMOAbstractView.h>
 #include <utils/gui/windows/GUIAppEnum.h>
@@ -60,6 +62,7 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
+//#define GUIPerson_DEBUG_DRAW_WALKING_AREA_SHAPE
 
 // ===========================================================================
 // FOX callback mapping
@@ -106,8 +109,7 @@ GUIPerson::GUIPersonPopupMenu::~GUIPersonPopupMenu() {}
  * ----------------------------------------------------------------------- */
 GUIPerson::GUIPerson(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSPerson::MSPersonPlan* plan) :
     MSPerson(pars, vtype, plan),
-    GUIGlObject(GLO_PERSON, pars->id),
-    myAmVisualizedAsStopped(false)
+    GUIGlObject(GLO_PERSON, pars->id)
 { }
 
 
@@ -134,12 +136,17 @@ GUIParameterTableWindow*
 GUIPerson::getParameterWindow(GUIMainWindow& app,
                               GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 3);
+        new GUIParameterTableWindow(app, *this, 8);
     // add items
     //ret->mkItem("type [NAME]", false, myType->getID());
-    ret->mkItem("stage", false, getCurrentStageTypeName());
-    ret->mkItem("from", false, getFromEdge()->getID());
-    ret->mkItem("to", false, getDestination().getID());
+    ret->mkItem("stage", false, getCurrentStageDescription());
+    ret->mkItem("start edge [id]", false, getFromEdge()->getID());
+    ret->mkItem("dest edge [id]", false, getDestination().getID());
+    ret->mkItem("edge [id]", false, getEdge()->getID());
+    ret->mkItem("position [m]", true, new FunctionBinding<GUIPerson, SUMOReal>(this, &GUIPerson::getEdgePos));
+    ret->mkItem("speed [m/s]", true, new FunctionBinding<GUIPerson, SUMOReal>(this, &GUIPerson::getSpeed));
+    ret->mkItem("angle [degree]", true, new FunctionBinding<GUIPerson, SUMOReal>(this, &GUIPerson::getAngle));
+    ret->mkItem("waiting time [s]", true, new FunctionBinding<GUIPerson, SUMOReal>(this, &GUIPerson::getWaitingSeconds));
     // close building
     ret->closeBuilding();
     return ret;
@@ -149,7 +156,7 @@ GUIPerson::getParameterWindow(GUIMainWindow& app,
 Boundary
 GUIPerson::getCenteringBoundary() const {
     Boundary b;
-    b.add(getPosition(MSNet::getInstance()->getCurrentTimeStep()));
+    b.add(getPosition());
     b.grow(20);
     return b;
 }
@@ -159,14 +166,14 @@ void
 GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
     glPushName(getGlID());
     glPushMatrix();
-    const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
-    Position p1 = getPosition(now);
+    Position p1 = getPosition();
     glTranslated(p1.x(), p1.y(), getType());
+    glRotated(90, 0, 0, 1);
     // XXX use person specific gui settings
     // set person color
     setColor(s);
     // scale
-    SUMOReal upscale = s.personExaggeration;
+    const SUMOReal upscale = s.personSize.getExaggeration(s);
     glScaled(upscale, upscale, 1);
     switch (s.personQuality) {
         case 0:
@@ -182,6 +189,23 @@ GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
             break;
     }
     glPopMatrix();
+
+#ifdef GUIPerson_DEBUG_DRAW_WALKING_AREA_SHAPE
+    MSPersonStage_Walking* stage = dynamic_cast<MSPersonStage_Walking*>(getCurrentStage());
+    if (stage != 0) {
+        MSPModel_Striping::PState* stripingState = dynamic_cast<MSPModel_Striping::PState*>(stage->getPedestrianState());
+        if (stripingState != 0) {
+            MSPModel_Striping::WalkingAreaPath* waPath = stripingState->myWalkingAreaPath;
+            if (waPath != 0) {
+                glPushMatrix();
+                glTranslated(0, 0, getType());
+                GLHelper::drawBoxLines(waPath->shape, 0.05);
+                glPopMatrix();
+            }
+        }
+    }
+#endif
+
     drawName(p1, s.scale, s.personName);
     glPopName();
 }
@@ -282,6 +306,11 @@ GUIPerson::setFunctionalColor(size_t activeScheme) const {
             }
             return false;
         }
+        case 8: {
+            SUMOReal hue = getAngle() + 180; // [0-360]
+            GLHelper::setColor(RGBColor::fromHSV(hue, 1., 1.));
+            return true;
+        }
         default:
             return false;
     }
@@ -292,34 +321,69 @@ SUMOReal
 GUIPerson::getColorValue(size_t activeScheme) const {
     switch (activeScheme) {
         case 4:
+            return getSpeed();
+        case 5:
             if (isWaiting4Vehicle()) {
                 return 3;
             } else {
                 return (SUMOReal)getCurrentStageType();
             }
-        case 5:
-            return STEPS2TIME(timeWaiting4Vehicle(MSNet::getInstance()->getCurrentTimeStep()));
+        case 6:
+            return getWaitingSeconds();
+        case 7:
+            return gSelected.isSelected(GLO_PERSON, getGlID());
     }
     return 0;
 }
 
 
+SUMOReal
+GUIPerson::getEdgePos() const {
+    AbstractMutex::ScopedLocker locker(myLock);
+    return MSPerson::getEdgePos();
+}
+
+
 Position
-GUIPerson::getPosition(SUMOTime now) const {
+GUIPerson::getPosition() const {
+    AbstractMutex::ScopedLocker locker(myLock);
     if (getCurrentStageType() == DRIVING && !isWaiting4Vehicle()) {
         return myPositionInVehicle;
     }
-    return MSPerson::getPosition(now);
+    return MSPerson::getPosition();
+}
+
+
+SUMOReal
+GUIPerson::getAngle() const {
+    AbstractMutex::ScopedLocker locker(myLock);
+    return MSPerson::getAngle();
+}
+
+
+SUMOReal
+GUIPerson::getWaitingSeconds() const {
+    AbstractMutex::ScopedLocker locker(myLock);
+    return MSPerson::getWaitingSeconds();
+}
+
+
+SUMOReal
+GUIPerson::getSpeed() const {
+    AbstractMutex::ScopedLocker locker(myLock);
+    return MSPerson::getSpeed();
 }
 
 
 void
 GUIPerson::drawAction_drawAsTriangle(const GUIVisualizationSettings& /* s */) const {
-    // draw triangle pointing down
+    // draw triangle pointing forward
+    glRotated(getAngle(), 0, 0, 1);
+    glScaled(getVehicleType().getLength(), getVehicleType().getWidth(), 1);
     glBegin(GL_TRIANGLES);
     glVertex2d(0., 0.);
-    glVertex2d(-.5, 1.);
-    glVertex2d(.5, 1.);
+    glVertex2d(1, -0.5);
+    glVertex2d(1, 0.5);
     glEnd();
 }
 
@@ -327,32 +391,41 @@ GUIPerson::drawAction_drawAsTriangle(const GUIVisualizationSettings& /* s */) co
 void
 GUIPerson::drawAction_drawAsPoly(const GUIVisualizationSettings& /* s */) const {
     // draw pedestrian shape
-    const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
-    glRotated(getAngle(now), 0, 0, 1);
+    glRotated(getAngle(), 0, 0, 1);
+    glScaled(getVehicleType().getLength(), getVehicleType().getWidth(), 1);
     RGBColor lighter = GLHelper::getColor().changedBrightness(51);
     glTranslated(0, 0, .045);
-    GLHelper::drawFilledCircle(0.3);
+    // head
+    glScaled(1, 0.5, 1.);
+    GLHelper::drawFilledCircle(0.5);
+    // nose
+    glBegin(GL_TRIANGLES);
+    glVertex2d(0.0, -0.2);
+    glVertex2d(0.0, 0.2);
+    glVertex2d(-0.6, 0.0);
+    glEnd();
     glTranslated(0, 0, -.045);
-    glScaled(.7, 2, 1);
+    // body
+    glScaled(0.9, 2.0, 1);
     glTranslated(0, 0, .04);
     GLHelper::setColor(lighter);
-    GLHelper::drawFilledCircle(0.3);
+    GLHelper::drawFilledCircle(0.5);
     glTranslated(0, 0, -.04);
 }
 
 
 void
 GUIPerson::drawAction_drawAsImage(const GUIVisualizationSettings& s) const {
-    if (getVehicleType().getGuiShape() == SVS_PEDESTRIAN) {
-        const SUMOTime now = MSNet::getInstance()->getCurrentTimeStep();
-        glRotated(getAngle(now), 0, 0, 1);
-    }
     const std::string& file = getVehicleType().getImgFile();
     if (file != "") {
+        if (getVehicleType().getGuiShape() == SVS_PEDESTRIAN) {
+            glRotated(getAngle(), 0, 0, 1);
+        }
         int textureID = GUITexturesHelper::getTextureID(file);
         if (textureID > 0) {
-            const SUMOReal halfLength = getVehicleType().getLength() / 2.0 * s.vehicleExaggeration;
-            const SUMOReal halfWidth = getVehicleType().getWidth() / 2.0 * s.vehicleExaggeration;
+            const SUMOReal exaggeration = s.personSize.getExaggeration(s);
+            const SUMOReal halfLength = getVehicleType().getLength() / 2.0 * exaggeration;
+            const SUMOReal halfWidth = getVehicleType().getWidth() / 2.0 * exaggeration;
             GUITexturesHelper::drawTexturedBox(textureID, -halfWidth, -halfLength, halfWidth, halfLength);
         }
     } else {

@@ -9,7 +9,7 @@
 // Importer for networks stored in MATSim format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -106,7 +106,7 @@ NIImporter_MATSim::loadNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     NodesHandler nodesHandler(nb.getNodeCont());
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
         // nodes
-        if (!FileHelpers::exists(*file)) {
+        if (!FileHelpers::isReadable(*file)) {
             WRITE_ERROR("Could not open matsim-file '" + *file + "'.");
             return;
         }

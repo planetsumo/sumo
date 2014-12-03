@@ -3,13 +3,14 @@
 /// @author  Christian Roessel
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Wed, 12 Dez 2001
 /// @version $Id$
 ///
 // junction.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -34,7 +35,6 @@
 #include "MSLane.h"
 #include "MSEdge.h"
 #include "MSJunctionLogic.h"
-#include "MSBitSetLogic.h"
 #include "MSGlobals.h"
 #include <algorithm>
 #include <cassert>
@@ -50,6 +50,7 @@
 // method definitions
 // ===========================================================================
 MSRightOfWayJunction::MSRightOfWayJunction(const std::string& id,
+        SumoXMLNodeType type,
         const Position& position,
         const PositionVector& shape,
         std::vector<MSLane*> incoming,
@@ -57,7 +58,7 @@ MSRightOfWayJunction::MSRightOfWayJunction(const std::string& id,
         std::vector<MSLane*> internal,
 #endif
         MSJunctionLogic* logic)
-    : MSLogicJunction(id, position, shape, incoming
+    : MSLogicJunction(id, type, position, shape, incoming
 #ifdef HAVE_INTERNAL_LANES
                       , internal),
 #else
@@ -83,21 +84,26 @@ MSRightOfWayJunction::postloadInit() {
         const MSLinkCont& links = (*i)->getLinkCont();
         // ... set information for every link
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
-            if (myLogic->getLogicSize() <= requestPos) {
-                throw ProcessError("Found invalid logic position of a link (network error)");
+            if ((*j)->getLane()->getEdge().isWalkingArea() ||
+                    ((*i)->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
+                continue;
             }
             sortedLinks.push_back(std::make_pair(*i, *j));
             ++maxNo;
         }
     }
 
-    bool isCrossing = myLogic->isCrossing();
+    const bool hasFoes = myLogic->hasFoes();
     for (i = myIncomingLanes.begin(); i != myIncomingLanes.end(); ++i) {
         const MSLinkCont& links = (*i)->getLinkCont();
         // ... set information for every link
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
+            if ((*j)->getLane()->getEdge().isWalkingArea() ||
+                    ((*i)->getEdge().isWalkingArea() && !(*j)->getLane()->getEdge().isCrossing())) {
+                continue;
+            }
             if (myLogic->getLogicSize() <= requestPos) {
-                throw ProcessError("Found invalid logic position of a link (network error)");
+                throw ProcessError("Found invalid logic position of a link for junction '" + getID() + "' (" + toString(requestPos) + ", max " + toString(myLogic->getLogicSize()) + ") -> (network error)");
             }
             const MSLogicJunction::LinkFoes& foeLinks = myLogic->getFoesFor(requestPos); // SUMO_ATTR_RESPONSE
             const std::bitset<64>& internalFoes = myLogic->getInternalFoesFor(requestPos); // SUMO_ATTR_FOES
@@ -161,15 +167,15 @@ MSRightOfWayJunction::postloadInit() {
                 }
             }
 #endif
-            (*j)->setRequestInformation(requestPos, requestPos, isCrossing, cont, myLinkFoeLinks[*j], myLinkFoeInternalLanes[*j]);
+            (*j)->setRequestInformation((int)requestPos, hasFoes, cont, myLinkFoeLinks[*j], myLinkFoeInternalLanes[*j]);
 #ifdef HAVE_INTERNAL_LANES
             // the exit link for a link before an internal junction is handled in MSInternalJunction
             // so we need to skip if cont=true
             if (MSGlobals::gUsingInternalLanes && (*j)->getViaLane() != 0 && !cont) {
                 assert((*j)->getViaLane()->getLinkCont().size() == 1);
                 MSLink* exitLink = (*j)->getViaLane()->getLinkCont()[0];
-                exitLink->setRequestInformation(requestPos, requestPos, false, false, std::vector<MSLink*>(),
-                                                myLinkFoeInternalLanes[*j]);
+                exitLink->setRequestInformation((int)requestPos, false, false, std::vector<MSLink*>(),
+                                                myLinkFoeInternalLanes[*j], (*j)->getViaLane());
             }
 #endif
             for (std::vector<MSLink*>::const_iterator k = foes.begin(); k != foes.end(); ++k) {

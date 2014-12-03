@@ -9,7 +9,7 @@
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -102,6 +102,14 @@ public:
     /// @brief writes allowed disallowed attributes if needed;
     static void writePreferences(OutputDevice& into, SVCPermissions preferred);
 
+    /** @brief Writes roundabouts
+     * @param[in] into The device to write the edge into
+     * @param[in] roundaboutes The roundabouts to write
+     * @param[in] ec The edge control to retrieve named edges from
+     */
+    static void writeRoundabouts(OutputDevice& into, const std::set<EdgeSet>& roundabouts,
+                                 const NBEdgeCont& ec);
+
 protected:
     /// @name Methods for writing network parts
     /// @{
@@ -133,10 +141,10 @@ protected:
      * @param[in] index The index of the lane within the edge
      * @param[in] origNames Whether original names shall be written as parameter
      */
-    static void writeLane(OutputDevice& into, const std::string& eID, const std::string& lID, 
-            SUMOReal speed, SVCPermissions permissions, SVCPermissions preferred,
-            SUMOReal offset, SUMOReal width, const PositionVector& shape,
-            const std::string& origID, SUMOReal length, unsigned int index, bool origNames);
+    static void writeLane(OutputDevice& into, const std::string& eID, const std::string& lID,
+                          SUMOReal speed, SVCPermissions permissions, SVCPermissions preferred,
+                          SUMOReal endOffset, SUMOReal width, const PositionVector& shape,
+                          const std::string& origID, SUMOReal length, unsigned int index, bool origNames);
 
 
     /** @brief Writes a junction (<junction ...)
@@ -161,21 +169,11 @@ protected:
     static bool writeInternalConnections(OutputDevice& into, const NBNode& n);
 
 
-    /** @brief Writes a roundabout
-     * @param[in] into The device to write the edge into
-     * @param[in] r The roundabout to write
-     * @param[in] ec The edge control to retrieve named edges from
-     */
-    static void writeRoundabout(OutputDevice& into, const std::vector<std::string>& r,
-                                const NBEdgeCont& ec);
-
-
     /** @brief Writes a district
      * @param[in] into The device to write the edge into
      * @param[in] d The district
      */
     static void writeDistrict(OutputDevice& into, const NBDistrict& d);
-
 
 private:
     /** @brief Writes a single internal connection
@@ -185,7 +183,7 @@ private:
      * @param[in] via The (optional) via edge
      */
     static void writeInternalConnection(OutputDevice& into,
-                                        const std::string& from, const std::string& to, 
+                                        const std::string& from, const std::string& to,
                                         int fromLane, int toLane, const std::string& via);
 
     /// @brief writes a SUMOTime as int if possible, otherwise as a float
@@ -194,6 +192,16 @@ private:
 
     /// @brief the attribute value for a prohibition
     static std::string prohibitionConnection(const NBConnection& c);
+
+    /** @brief Writes a roundabout
+     * @param[in] into The device to write the edge into
+     * @param[in] r The roundabout to write
+     * @param[in] ec The edge control to retrieve named edges from
+     */
+    static void writeRoundabout(OutputDevice& into, const std::vector<std::string>& r,
+                                const NBEdgeCont& ec);
+
+
 };
 
 

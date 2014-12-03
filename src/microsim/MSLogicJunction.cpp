@@ -3,13 +3,14 @@
 /// @author  Christian Roessel
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Wed, 12 Dez 2001
 /// @version $Id$
 ///
 // with one ore more logics.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,6 +46,7 @@
  * methods from MSLogicJunction
  * ----------------------------------------------------------------------- */
 MSLogicJunction::MSLogicJunction(const std::string& id,
+                                 SumoXMLNodeType type,
                                  const Position& position,
                                  const PositionVector& shape,
                                  std::vector<MSLane*> incoming
@@ -52,7 +54,7 @@ MSLogicJunction::MSLogicJunction(const std::string& id,
                                  , std::vector<MSLane*> internal
 #endif
                                 ):
-    MSJunction(id, position, shape),
+    MSJunction(id, type, position, shape),
     myIncomingLanes(incoming)
 #ifdef HAVE_INTERNAL_LANES
     , myInternalLanes(internal)

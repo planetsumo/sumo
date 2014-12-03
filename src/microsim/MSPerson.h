@@ -10,7 +10,7 @@
 // The class for modelling person-movements
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -39,6 +39,7 @@
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Command.h>
 #include <utils/geom/Position.h>
+#include <utils/geom/PositionVector.h>
 
 
 // ===========================================================================
@@ -46,11 +47,14 @@
 // ===========================================================================
 class MSNet;
 class MSEdge;
+class MSLane;
 class OutputDevice;
 class SUMOVehicleParameter;
 class MSBusStop;
 class SUMOVehicle;
 class MSVehicleType;
+class MSPModel;
+class PedestrianState;
 
 typedef std::vector<const MSEdge*> MSEdgeVector;
 
@@ -88,7 +92,7 @@ public:
         const MSEdge& getDestination() const;
 
         /// Returns the current edge
-        virtual const MSEdge* getEdge(SUMOTime now) const = 0;
+        virtual const MSEdge* getEdge() const = 0;
         virtual const MSEdge* getFromEdge() const = 0;
         virtual SUMOReal getEdgePos(SUMOTime now) const = 0;
 
@@ -102,7 +106,7 @@ public:
         }
 
         /// @brief return string representation of the current stage
-        virtual std::string getStageTypeName() const = 0;
+        virtual std::string getStageDescription() const = 0;
 
         /// proceeds to the next step
         virtual void proceed(MSNet* net, MSPerson* person, SUMOTime now, MSEdge* previousEdge, const SUMOReal at) = 0;
@@ -121,13 +125,17 @@ public:
             return false;
         }
 
-        /// @brief the time this person spent waiting for a vehicle
-        virtual SUMOTime timeWaiting4Vehicle(SUMOTime /*now*/) const {
-            return false;
-        }
+        /// @brief the time this person spent waiting
+        virtual SUMOTime getWaitingTime(SUMOTime now) const = 0;
+
+        /// @brief the time this person spent waiting
+        virtual SUMOReal getSpeed() const = 0;
 
         /// @brief get position on edge e at length at with orthogonal offset
         Position getEdgePosition(const MSEdge* e, SUMOReal at, SUMOReal offset) const;
+
+        /// @brief get position on lane at length at with orthogonal offset
+        Position getLanePosition(const MSLane* lane, SUMOReal at, SUMOReal offset) const;
 
         SUMOReal getEdgeAngle(const MSEdge* e, SUMOReal at) const;
 
@@ -184,6 +192,9 @@ public:
      * Only the duration is needed
      */
     class MSPersonStage_Walking : public MSPersonStage {
+        friend class MSPModel;
+        friend class GUIPerson; // debugging
+
     public:
         /// constructor
         MSPersonStage_Walking(const std::vector<const MSEdge*>& route, MSBusStop* toBS, SUMOTime walkingTime, SUMOReal speed, SUMOReal departPos, SUMOReal arrivalPos);
@@ -195,7 +206,7 @@ public:
         virtual void proceed(MSNet* net, MSPerson* person, SUMOTime now, MSEdge* previousEdge, const SUMOReal at);
 
         /// Returns the current edge
-        const MSEdge* getEdge(SUMOTime now) const;
+        const MSEdge* getEdge() const;
         const MSEdge* getFromEdge() const;
         SUMOReal getEdgePos(SUMOTime now) const;
 
@@ -204,7 +215,11 @@ public:
 
         SUMOReal getAngle(SUMOTime now) const;
 
-        std::string getStageTypeName() const {
+        SUMOTime getWaitingTime(SUMOTime now) const;
+
+        SUMOReal getSpeed() const;
+
+        std::string getStageDescription() const {
             return "walking";
         }
 
@@ -232,28 +247,43 @@ public:
          */
         virtual void endEventOutput(const MSPerson& p, SUMOTime t, OutputDevice& os) const;
 
-        SUMOTime moveToNextEdge(MSPerson* person, SUMOTime currentTime);
+        /// @brief move forward and return whether the person arrived
+        bool moveToNextEdge(MSPerson* person, SUMOTime currentTime, MSEdge* nextInternal = 0);
 
 
-        class MoveToNextEdge : public Command {
-        public:
-            MoveToNextEdge(MSPerson* person, MSPersonStage_Walking& walk) : myParent(walk), myPerson(person) {}
-            ~MoveToNextEdge() {}
-            SUMOTime execute(SUMOTime currentTime) {
-                return myParent.moveToNextEdge(myPerson, currentTime);
-            }
-        private:
-            MSPersonStage_Walking& myParent;
-            MSPerson* myPerson;
-        private:
-            /// @brief Invalidated assignment operator.
-            MoveToNextEdge& operator=(const MoveToNextEdge&);
+        /// @brief accessors to be used by MSPModel
+        //@{
+        inline SUMOReal getMaxSpeed() const {
+            return mySpeed;
+        }
+        inline SUMOReal getDepartPos() const {
+            return myDepartPos;
+        }
+        inline SUMOReal getArrivalPos() const {
+            return myArrivalPos;
+        }
 
-        };
+        inline const MSEdge* getRouteEdge() const {
+            return *myRouteStep;
+        }
+        inline const MSEdge* getNextRouteEdge() const {
+            return myRouteStep == myRoute.end() - 1 ? 0 : *(myRouteStep + 1);
+        }
+        inline const std::vector<const MSEdge*>& getRoute() const {
+            return myRoute;
+        }
+
+        PedestrianState* getPedestrianState() const {
+            return myPedestrianState;
+        }
+        //@}
 
 
     private:
-        void computeWalkingTime(const MSEdge* const e, SUMOReal fromPos, SUMOReal toPos, MSBusStop* bs);
+
+        /* @brief compute average speed if the total walking duration is given
+         * @note Must be callled when the previous stage changes myDepartPos from the default*/
+        SUMOReal computeAverageSpeed() const;
 
 
     private:
@@ -266,18 +296,19 @@ public:
 
         std::vector<const MSEdge*>::iterator myRouteStep;
 
+        /// @brief The current internal edge this person is on or 0
+        MSEdge* myCurrentInternalEdge;
+
         /// @brief A vector of computed times an edge is reached
         //std::vector<SUMOTime> myArrivalTimes;
 
         SUMOReal myDepartPos;
         SUMOReal myArrivalPos;
         MSBusStop* myDestinationBusStop;
-        SUMOTime myLastEntryTime;
         SUMOReal mySpeed;
 
-        SUMOReal myCurrentBeginPos, myCurrentLength, myCurrentDuration;
-        //bool myDurationWasGiven;
-        //SUMOReal myOverallLength;
+        /// @brief state that is to be manipulated by MSPModel
+        PedestrianState* myPedestrianState;
 
         class arrival_finder {
         public:
@@ -320,7 +351,7 @@ public:
         virtual void proceed(MSNet* net, MSPerson* person, SUMOTime now, MSEdge* previousEdge, const SUMOReal at);
 
         /// Returns the current edge
-        const MSEdge* getEdge(SUMOTime now) const;
+        const MSEdge* getEdge() const;
         const MSEdge* getFromEdge() const;
         SUMOReal getEdgePos(SUMOTime now) const;
 
@@ -329,7 +360,7 @@ public:
 
         SUMOReal getAngle(SUMOTime now) const;
 
-        std::string getStageTypeName() const;
+        std::string getStageDescription() const;
 
         /// Whether the person waits for a vehicle of the line specified.
         bool isWaitingFor(const std::string& line) const;
@@ -338,7 +369,9 @@ public:
         bool isWaiting4Vehicle() const;
 
         /// @brief time spent waiting for a ride
-        SUMOTime timeWaiting4Vehicle(SUMOTime now) const;
+        SUMOTime getWaitingTime(SUMOTime now) const;
+
+        SUMOReal getSpeed() const;
 
         void setVehicle(SUMOVehicle* v) {
             myVehicle = v;
@@ -405,7 +438,7 @@ public:
         ~MSPersonStage_Waiting();
 
         /// Returns the current edge
-        const MSEdge* getEdge(SUMOTime now) const;
+        const MSEdge* getEdge() const;
         const MSEdge* getFromEdge() const;
         SUMOReal getEdgePos(SUMOTime now) const;
         SUMOTime getUntil() const;
@@ -415,7 +448,11 @@ public:
 
         SUMOReal getAngle(SUMOTime now) const;
 
-        std::string getStageTypeName() const {
+        SUMOTime getWaitingTime(SUMOTime now) const;
+
+        SUMOReal getSpeed() const;
+
+        std::string getStageDescription() const {
             return "waiting (" + myActType + ")";
         }
 
@@ -454,6 +491,9 @@ public:
 
         /// the time until the person is waiting
         SUMOTime myWaitingUntil;
+
+        /// the time the person is waiting
+        SUMOTime myWaitingStart;
 
         /// @brief The type of activity
         std::string myActType;
@@ -516,8 +556,8 @@ public:
     }
 
     /// @brief Returns the current edge
-    const MSEdge* getEdge(SUMOTime now) const {
-        return (*myStep)->getEdge(now);
+    const MSEdge* getEdge() const {
+        return (*myStep)->getEdge();
     }
 
     /// @brief Returns the departure edge
@@ -525,19 +565,20 @@ public:
         return (*myStep)->getFromEdge();
     }
 
-    SUMOReal getEdgePos(SUMOTime now) const {
-        return (*myStep)->getEdgePos(now);
-    }
+    /// @brief return the offset from the start of the current edge
+    virtual SUMOReal getEdgePos() const;
 
-    ///
-    virtual Position getPosition(SUMOTime now) const {
-        return (*myStep)->getPosition(now);
-    }
+    /// @brief return the Network coordinate of the person
+    virtual Position getPosition() const;
 
+    /// @brief return the current angle of the person
+    virtual SUMOReal getAngle() const;
 
-    SUMOReal getAngle(SUMOTime now) const {
-        return (*myStep)->getAngle(now);
-    }
+    /// @brief the time this person spent waiting in seconds
+    virtual SUMOReal getWaitingSeconds() const;
+
+    /// @brief the current speed of the person
+    virtual SUMOReal getSpeed() const;
 
     ///
     StageType getCurrentStageType() const {
@@ -545,8 +586,8 @@ public:
     }
 
 
-    std::string getCurrentStageTypeName() const {
-        return (*myStep)->getStageTypeName();
+    std::string getCurrentStageDescription() const {
+        return (*myStep)->getStageDescription();
     }
 
     MSPersonStage* getCurrentStage() const {
@@ -578,11 +619,6 @@ public:
     }
 
 
-    /// @brief the time this person spent waiting for a vehicle
-    SUMOTime timeWaiting4Vehicle(SUMOTime now) const {
-        return (*myStep)->timeWaiting4Vehicle(now);
-    }
-
     const SUMOVehicleParameter& getParameter() const {
         return *myParameter;
     }
@@ -591,10 +627,6 @@ public:
     inline const MSVehicleType& getVehicleType() const {
         return *myVType;
     }
-
-
-    /// @brief the offset for computing person positions when walking
-    static const SUMOReal SIDEWALK_OFFSET;
 
 private:
     /// @brief Invalidated copy constructor.

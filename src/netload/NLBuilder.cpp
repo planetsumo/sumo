@@ -9,7 +9,7 @@
 // The main interface for loading a microsim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -121,7 +121,7 @@ NLBuilder::~NLBuilder() {}
 bool
 NLBuilder::build() {
     // try to build the net
-    if (!load("net-file")) {
+    if (!load("net-file", true)) {
         return false;
     }
     // check whether the loaded net agrees with the simulation options
@@ -245,7 +245,7 @@ NLBuilder::buildNet() {
 
 
 bool
-NLBuilder::load(const std::string& mmlWhat) {
+NLBuilder::load(const std::string& mmlWhat, const bool isNet) {
     if (!OptionsCont::getOptions().isUsableFileList(mmlWhat)) {
         return false;
     }
@@ -253,7 +253,7 @@ NLBuilder::load(const std::string& mmlWhat) {
     for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
         PROGRESS_BEGIN_MESSAGE("Loading " + mmlWhat + " from '" + *fileIt + "'");
         long before = SysUtils::getCurrentMillis();
-        if (!XMLSubSys::runParser(myXMLHandler, *fileIt)) {
+        if (!XMLSubSys::runParser(myXMLHandler, *fileIt, isNet)) {
             WRITE_MESSAGE("Loading of " + mmlWhat + " failed.");
             return false;
         }
@@ -271,8 +271,8 @@ NLBuilder::buildRouteLoaderControl(const OptionsCont& oc) {
     if (oc.isSet("route-files") && string2time(oc.getString("route-steps")) > 0) {
         std::vector<std::string> files = oc.getStringVector("route-files");
         for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
-            if (!FileHelpers::exists(*fileIt)) {
-                throw ProcessError("The route file '" + *fileIt + "' does not exist.");
+            if (!FileHelpers::isReadable(*fileIt)) {
+                throw ProcessError("The route file '" + *fileIt + "' is not accessible.");
             }
         }
         // open files for reading

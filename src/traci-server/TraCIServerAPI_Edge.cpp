@@ -5,13 +5,14 @@
 /// @author  Jerome Haerri
 /// @author  Michael Behrisch
 /// @author  Laura Bieker
+/// @author  Mario Krumnow
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -43,17 +44,11 @@
 #include "TraCIConstants.h"
 #include "TraCIServerAPI_Edge.h"
 #include <microsim/MSEdgeWeightsStorage.h>
-#include <utils/common/HelpersHarmonoise.h>
+#include <utils/emissions/HelpersHarmonoise.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-
-
-// ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
 
 
 // ===========================================================================
@@ -105,7 +100,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 SUMOReal value;
-                if (!MSNet::getInstance()->getWeightsStorage().retrieveExistingTravelTime(e, 0, time, value)) {
+                if (!MSNet::getInstance()->getWeightsStorage().retrieveExistingTravelTime(e, time, value)) {
                     tempMsg.writeDouble(-1);
                 } else {
                     tempMsg.writeDouble(value);
@@ -120,7 +115,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 SUMOReal value;
-                if (!MSNet::getInstance()->getWeightsStorage().retrieveExistingEffort(e, 0, time, value)) {
+                if (!MSNet::getInstance()->getWeightsStorage().retrieveExistingEffort(e, time, value)) {
                     tempMsg.writeDouble(-1);
                 } else {
                     tempMsg.writeDouble(value);
@@ -131,14 +126,14 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(e->getCurrentTravelTime());
                 break;
-            case VAR_WAITING_TIME:{
+            case VAR_WAITING_TIME: {
                 SUMOReal wtime = 0;
                 const std::vector<MSLane*>& lanes = e->getLanes();
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                        wtime += (*i)->getWaitingSeconds();
+                    wtime += (*i)->getWaitingSeconds();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
-                tempMsg.writeDouble(wtime); 
+                tempMsg.writeDouble(wtime);
             }
             break;
             case LAST_STEP_VEHICLE_ID_LIST: {
@@ -159,7 +154,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 SUMOReal sum = 0;
                 const std::vector<MSLane*>& lanes = e->getLanes();
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                    sum += (*i)->getHBEFA_CO2Emissions();
+                    sum += (*i)->getCO2Emissions();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(sum);
@@ -169,7 +164,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 SUMOReal sum = 0;
                 const std::vector<MSLane*>& lanes = e->getLanes();
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                    sum += (*i)->getHBEFA_COEmissions();
+                    sum += (*i)->getCOEmissions();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(sum);
@@ -179,7 +174,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 SUMOReal sum = 0;
                 const std::vector<MSLane*>& lanes = e->getLanes();
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                    sum += (*i)->getHBEFA_HCEmissions();
+                    sum += (*i)->getHCEmissions();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(sum);
@@ -189,7 +184,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 SUMOReal sum = 0;
                 const std::vector<MSLane*>& lanes = e->getLanes();
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                    sum += (*i)->getHBEFA_PMxEmissions();
+                    sum += (*i)->getPMxEmissions();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(sum);
@@ -199,7 +194,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 SUMOReal sum = 0;
                 const std::vector<MSLane*>& lanes = e->getLanes();
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                    sum += (*i)->getHBEFA_NOxEmissions();
+                    sum += (*i)->getNOxEmissions();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(sum);
@@ -209,7 +204,7 @@ TraCIServerAPI_Edge::processGet(TraCIServer& server, tcpip::Storage& inputStorag
                 SUMOReal sum = 0;
                 const std::vector<MSLane*>& lanes = e->getLanes();
                 for (std::vector<MSLane*>::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
-                    sum += (*i)->getHBEFA_FuelConsumption();
+                    sum += (*i)->getFuelConsumption();
                 }
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(sum);

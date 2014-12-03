@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    ROAbstractEdgeBuilder.h
 /// @author  Daniel Krajzewicz
+/// @author  Yun-Pang Floetteroed
 /// @date    Wed, 21 Jan 2004
 /// @version $Id$
 ///
 // Interface for building instances of router-edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.

@@ -11,7 +11,7 @@
 // Loader for networks and route imports
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -54,10 +54,7 @@
 #include "ROLoader.h"
 #include "ROEdge.h"
 #include "RORouteHandler.h"
-
-#ifdef HAVE_INTERNAL // catchall for internal stuff
-#include <internal/RouteAggregator.h>
-#endif // have HAVE_INTERNAL
+#include "RORouteAggregator.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -130,23 +127,27 @@ ROLoader::loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
     if (file == "") {
         throw ProcessError("Missing definition of network to load!");
     }
-    if (!FileHelpers::exists(file)) {
-        throw ProcessError("The network file '" + file + "' could not be found.");
+    if (!FileHelpers::isReadable(file)) {
+        throw ProcessError("The network file '" + file + "' is not accessible.");
     }
     PROGRESS_BEGIN_MESSAGE("Loading net");
     RONetHandler handler(toFill, eb);
     handler.setFileName(file);
-    if (!XMLSubSys::runParser(handler, file)) {
+    if (!XMLSubSys::runParser(handler, file, true)) {
         PROGRESS_FAILED_MESSAGE();
         throw ProcessError();
     } else {
         PROGRESS_DONE_MESSAGE();
     }
+    if (!deprecatedVehicleClassesSeen.empty()) {
+        WRITE_WARNING("Deprecated vehicle classes '" + toString(deprecatedVehicleClassesSeen) + "' in input network.");
+        deprecatedVehicleClassesSeen.clear();
+    }
     if (myOptions.isSet("additional-files", false)) { // dfrouter does not register this option
         std::vector<std::string> files = myOptions.getStringVector("additional-files");
         for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
-            if (!FileHelpers::exists(*fileIt)) {
-                throw ProcessError("The additional file '" + *fileIt + "' could not be found.");
+            if (!FileHelpers::isReadable(*fileIt)) {
+                throw ProcessError("The additional file '" + *fileIt + "' is not accessible.");
             }
             PROGRESS_BEGIN_MESSAGE("Loading additional file '" + *fileIt + "' ");
             handler.setFileName(*fileIt);
@@ -164,8 +165,10 @@ ROLoader::loadNet(RONet& toFill, ROAbstractEdgeBuilder& eb) {
 void
 ROLoader::openRoutes(RONet& net) {
     // build loader
+    // load relevant elements from additinal file
+    bool ok = openTypedRoutes("additional-files", net);
     // load sumo-routes when wished
-    bool ok = openTypedRoutes("route-files", net);
+    ok &= openTypedRoutes("route-files", net);
     // load the XML-trip definitions when wished
     ok &= openTypedRoutes("trip-files", net);
     // load the sumo-alternative file when wished
@@ -175,8 +178,12 @@ ROLoader::openRoutes(RONet& net) {
     // check
     if (ok) {
         myLoaders.loadNext(string2time(myOptions.getString("begin")));
-        if (!MsgHandler::getErrorInstance()->wasInformed() && !net.furtherStored()) {
-            throw ProcessError("No route input specified or all routes were invalid.");
+        if (!net.furtherStored()) {
+            if (MsgHandler::getErrorInstance()->wasInformed()) {
+                throw ProcessError();
+            } else {
+                throw ProcessError("No route input specified or all routes were invalid.");
+            }
         }
         // skip routes prior to the begin time
         if (!myOptions.getBool("unsorted-input")) {
@@ -187,22 +194,30 @@ ROLoader::openRoutes(RONet& net) {
 
 
 void
-ROLoader::processRoutes(SUMOTime start, SUMOTime end,
+ROLoader::processRoutes(const SUMOTime start, const SUMOTime end, const SUMOTime increment,
                         RONet& net, SUMOAbstractRouter<ROEdge, ROVehicle>& router) {
-    SUMOTime absNo = end - start;
+    const SUMOTime absNo = end - start;
+    const bool endGiven = !OptionsCont::getOptions().isDefault("end");
     // skip routes that begin before the simulation's begin
     // loop till the end
-    bool endReached = false;
-    bool errorOccured = false;
     const SUMOTime firstStep = myLoaders.getFirstLoadTime();
     SUMOTime lastStep = firstStep;
-    for (SUMOTime time = firstStep; time < end && !errorOccured && !endReached; time += DELTA_T) {
-        writeStats(time, start, absNo);
+    SUMOTime time = MIN2(firstStep, end);
+    while (time <= end) {
+        writeStats(time, start, absNo, endGiven);
         myLoaders.loadNext(time);
-        net.saveAndRemoveRoutesUntil(myOptions, router, time);
-        endReached = !net.furtherStored();
-        lastStep = time;
-        errorOccured = MsgHandler::getErrorInstance()->wasInformed() && !myOptions.getBool("ignore-errors");
+        if (!net.furtherStored() || MsgHandler::getErrorInstance()->wasInformed()) {
+            break;
+        }
+        lastStep = net.saveAndRemoveRoutesUntil(myOptions, router, time);
+        if ((!net.furtherStored() && myLoaders.haveAllLoaded()) || MsgHandler::getErrorInstance()->wasInformed()) {
+            break;
+        }
+        if (time < end && time + increment > end) {
+            time = end;
+        } else {
+            time += increment;
+        }
     }
     if (myLogSteps) {
         WRITE_MESSAGE("Routes found between time steps " + time2string(firstStep) + " and " + time2string(lastStep) + ".");
@@ -210,15 +225,13 @@ ROLoader::processRoutes(SUMOTime start, SUMOTime end,
 }
 
 
-#ifdef HAVE_INTERNAL // catchall for internal stuff
 void
-ROLoader::processAllRoutesWithBulkRouter(SUMOTime start, SUMOTime end,
+ROLoader::processAllRoutesWithBulkRouter(SUMOTime /* start */, SUMOTime end,
         RONet& net, SUMOAbstractRouter<ROEdge, ROVehicle>& router) {
     myLoaders.loadNext(SUMOTime_MAX);
-    RouteAggregator::processAllRoutes(net, router);
+    RORouteAggregator::processAllRoutes(net, router);
     net.saveAndRemoveRoutesUntil(myOptions, router, end);
 }
-#endif
 
 
 bool
@@ -300,10 +313,14 @@ ROLoader::loadWeights(RONet& net, const std::string& optionName,
 
 
 void
-ROLoader::writeStats(SUMOTime time, SUMOTime start, int absNo) {
+ROLoader::writeStats(SUMOTime time, SUMOTime start, int absNo, bool endGiven) {
     if (myLogSteps) {
-        const SUMOReal perc = (SUMOReal)(time - start) / (SUMOReal) absNo;
-        std::cout << "Reading time step: " + time2string(time) + "  (" + time2string(time - start) + "/" + time2string(absNo) + " = " + toString(perc * 100) + "% done)       \r";
+        if (endGiven) {
+            const SUMOReal perc = (SUMOReal)(time - start) / (SUMOReal) absNo;
+            std::cout << "Reading up to time step: " + time2string(time) + "  (" + time2string(time - start) + "/" + time2string(absNo) + " = " + toString(perc * 100) + "% done)       \r";
+        } else {
+            std::cout << "Reading up to time step: " + time2string(time) + "\r";
+        }
     }
 }
 

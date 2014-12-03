@@ -11,7 +11,7 @@
 // Realises dumping the complete network state
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -95,7 +95,7 @@ private:
      * @todo MSGlobals::gOmitEmptyEdgesOnDump should not be used; rather the according option read in write
      * @exception IOError If an error on writing occurs (!!! not yet implemented)
      */
-    static void writeEdge(OutputDevice& of, const MSEdge& edge);
+    static void writeEdge(OutputDevice& of, const MSEdge& edge, SUMOTime timestep);
 
 
     /** @brief Writes the dump of the given lane into the given device

@@ -8,7 +8,7 @@
 // Some list definitions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -25,6 +25,9 @@
 // ===========================================================================
 // included modules
 // ===========================================================================
+#include <vector>
+#include <set>
+
 #ifdef _MSC_VER
 #include <windows_config.h>
 #else
@@ -43,6 +46,9 @@ class NBEdge;
 // ===========================================================================
 /** container for (sorted) edges */
 typedef std::vector<NBEdge*> EdgeVector;
+
+/** container for unique edges */
+typedef std::set<NBEdge*> EdgeSet;
 
 
 /** container for (sorted) lanes.

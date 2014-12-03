@@ -3,13 +3,14 @@
 /// @author  Piotr Woznica
 /// @author  Daniel Krajzewicz
 /// @author  Walter Bamberger
+/// @author  Michael Behrisch
 /// @date    July 2010
 /// @version $Id$
 ///
 // Class for writing Trip objects in a SUMO-route file.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -46,7 +47,7 @@
 // ===========================================================================
 class AGActivityTripWriter {
 public:
-    AGActivityTripWriter(OutputDevice &file) :
+    AGActivityTripWriter(OutputDevice& file) :
         routes(file) {
         initialize();
     }
@@ -55,7 +56,7 @@ public:
     void addTrip(AGTrip trip);
 
 private:
-    OutputDevice &routes;
+    OutputDevice& routes;
     std::map<std::string, std::string> colors;
 
     void vtypes();

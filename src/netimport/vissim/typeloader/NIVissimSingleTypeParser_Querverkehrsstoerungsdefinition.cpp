@@ -9,7 +9,7 @@
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -99,8 +99,7 @@ NIVissimSingleTypeParser_Querverkehrsstoerungsdefinition::parsePositionDescribed
         if (tag == "vmax") {
             from >> vmax;
         }
-        ok = NIVissimDisturbance::dictionary(-1, "", edge, by,
-                                             timegap, waygap, vmax);
+        ok = NIVissimDisturbance::dictionary("", edge, by);
         if (tag != "DATAEND") {
             tag = readEndSecure(from);
         }
@@ -145,8 +144,7 @@ NIVissimSingleTypeParser_Querverkehrsstoerungsdefinition::parseNumbered(std::ist
             from >> vmax;
         }
 
-        ok = NIVissimDisturbance::dictionary(id, name, edge, by,
-                                             timegap, waygap, vmax);
+        ok = NIVissimDisturbance::dictionary(name, edge, by);
         if (tag != "DATAEND") {
             tag = readEndSecure(from);
         }

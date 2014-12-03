@@ -8,7 +8,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,12 +45,11 @@
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-// ===========================================================================
-// used namespaces
-// ===========================================================================
 
-using namespace std;
 
+// ===========================================================================
+// method definitions
+// ===========================================================================
 NIVissimNodeDef_Poly::NIVissimNodeDef_Poly(int id, const std::string& name,
         const PositionVector& poly)
     : NIVissimNodeDef_Edges(id, name, NIVissimNodeParticipatingEdgeVector()),
@@ -91,7 +90,6 @@ NIVissimNodeDef_Poly::getEdgePosition(int edgeid) const
         Position(myBoundary->xmin(), myBoundary->ymin()),
         Position(myBoundary->xmax(), myBoundary->ymax()));
 }
-*/
 
 
 void
@@ -120,7 +118,7 @@ NIVissimNodeDef_Poly::searchAndSetConnections(SUMOReal offset) {
         edge->myConnectionClusters.push_back(c);
     }
 }
-
+*/
 
 
 /****************************************************************************/

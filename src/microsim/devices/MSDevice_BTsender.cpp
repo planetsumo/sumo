@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    MSDevice_BTsender.cpp
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    14.08.2013
 /// @version $Id$
 ///
 // A BT sender
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -30,7 +31,7 @@
 #include <utils/common/TplConvert.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/iodevices/OutputDevice.h>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSLane.h>
 #include <microsim/MSEdge.h>
@@ -83,43 +84,37 @@ MSDevice_BTsender::~MSDevice_BTsender() {
 }
 
 
-bool 
+bool
 MSDevice_BTsender::notifyEnter(SUMOVehicle& veh, Notification reason) {
-    if(reason==MSMoveReminder::NOTIFICATION_DEPARTED && sVehicles.find(veh.getID())==sVehicles.end()) {
+    if (reason == MSMoveReminder::NOTIFICATION_DEPARTED && sVehicles.find(veh.getID()) == sVehicles.end()) {
         sVehicles[veh.getID()] = new VehicleInformation(veh.getID());
     }
-    sVehicles[veh.getID()]->updates.push_back(VehicleState(
-        MSNet::getInstance()->getCurrentTimeStep(), veh.getSpeed(), static_cast<MSVehicle&>(veh).getAngle(), static_cast<MSVehicle&>(veh).getPosition(), static_cast<MSVehicle&>(veh).getLane()->getID(), veh.getPositionOnLane()
-        ));
+    sVehicles[veh.getID()]->updates.push_back(VehicleState(veh.getSpeed(), static_cast<MSVehicle&>(veh).getPosition(), static_cast<MSVehicle&>(veh).getLane()->getID(), veh.getPositionOnLane()));
     return true;
 }
 
 
-bool 
+bool
 MSDevice_BTsender::notifyMove(SUMOVehicle& veh, SUMOReal /* oldPos */, SUMOReal newPos, SUMOReal newSpeed) {
-    if(sVehicles.find(veh.getID())==sVehicles.end()) {
+    if (sVehicles.find(veh.getID()) == sVehicles.end()) {
         WRITE_WARNING("btsender: Can not update position of a vehicle that is not within the road network (" + veh.getID() + ").");
         return true;
     }
-    sVehicles[veh.getID()]->updates.push_back(VehicleState(
-        MSNet::getInstance()->getCurrentTimeStep(), newSpeed, static_cast<MSVehicle&>(veh).getAngle(), static_cast<MSVehicle&>(veh).getPosition(), static_cast<MSVehicle&>(veh).getLane()->getID(), newPos
-        ));
+    sVehicles[veh.getID()]->updates.push_back(VehicleState(newSpeed, static_cast<MSVehicle&>(veh).getPosition(), static_cast<MSVehicle&>(veh).getLane()->getID(), newPos));
     return true;
 }
 
 
-bool 
+bool
 MSDevice_BTsender::notifyLeave(SUMOVehicle& veh, SUMOReal /* lastPos */, Notification reason) {
     if (reason < MSMoveReminder::NOTIFICATION_TELEPORT) {
         return true;
     }
-    if(sVehicles.find(veh.getID())==sVehicles.end()) {
+    if (sVehicles.find(veh.getID()) == sVehicles.end()) {
         WRITE_WARNING("btsender: Can not update position of a vehicle that is not within the road network (" + veh.getID() + ").");
         return true;
     }
-    sVehicles[veh.getID()]->updates.push_back(VehicleState(
-        MSNet::getInstance()->getCurrentTimeStep(), veh.getSpeed(), static_cast<MSVehicle&>(veh).getAngle(), static_cast<MSVehicle&>(veh).getPosition(), static_cast<MSVehicle&>(veh).getLane()->getID(), veh.getPositionOnLane()
-        ));
+    sVehicles[veh.getID()]->updates.push_back(VehicleState(veh.getSpeed(), static_cast<MSVehicle&>(veh).getPosition(), static_cast<MSVehicle&>(veh).getLane()->getID(), veh.getPositionOnLane()));
     if (reason >= MSMoveReminder::NOTIFICATION_TELEPORT) {
         sVehicles[veh.getID()]->amOnNet = false;
     }

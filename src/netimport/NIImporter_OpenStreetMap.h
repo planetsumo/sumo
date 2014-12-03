@@ -10,7 +10,7 @@
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -81,18 +81,25 @@ protected:
      */
     struct NIOSMNode {
         NIOSMNode(SUMOLong _id, double _lon, double _lat) :
-            id(_id), lon(_lon), lat(_lat), tlsControlled(false), node(0) {}
+            id(_id), lon(_lon), lat(_lat), ele(0), tlsControlled(false), node(0) {}
 
         /// @brief The node's id
-        SUMOLong id;
+        const SUMOLong id;
         /// @brief The longitude the node is located at
-        double lon;
+        const SUMOReal lon;
         /// @brief The latitude the node is located at
-        double lat;
+        const SUMOReal lat;
+        /// @brief The elevation of this node
+        SUMOReal ele;
         /// @brief Whether this is a tls controlled junction
         bool tlsControlled;
         /// @brief the NBNode that was instantiated
         NBNode* node;
+
+    private:
+        /// invalidated assignment operator
+        NIOSMNode& operator=(const NIOSMNode& s);
+
     };
 
 
@@ -105,7 +112,7 @@ protected:
             myCurrentIsRoad(false) {}
 
         /// @brief The edge's id
-        SUMOLong id;
+        const SUMOLong id;
         /// @brief The edge's street name
         std::string streetName;
         /// @brief number of lanes, or -1 if unknown
@@ -122,6 +129,11 @@ protected:
         std::vector<SUMOLong> myCurrentNodes;
         /// @brief Information whether this is a road
         bool myCurrentIsRoad;
+
+    private:
+        /// invalidated assignment operator
+        Edge& operator=(const Edge& s);
+
     };
 
 
@@ -216,7 +228,8 @@ protected:
          * @param[in] options The options to use
          */
         NodesHandler(std::map<SUMOLong, NIOSMNode*>& toFill,
-                     std::set<NIOSMNode*, CompareNodes>& uniqueNodes);
+                     std::set<NIOSMNode*, CompareNodes>& uniqueNodes,
+                     bool importElevation);
 
 
         /// @brief Destructor
@@ -263,6 +276,9 @@ protected:
 
         /// @brief the set of unique nodes (used for duplicate detection/substitution)
         std::set<NIOSMNode*, CompareNodes>& myUniqueNodes;
+
+        /// @brief whether elevation data should be imported
+        const bool myImportElevation;
 
 
     private:

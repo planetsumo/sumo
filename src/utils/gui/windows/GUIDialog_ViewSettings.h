@@ -9,7 +9,7 @@
 // The dialog to change the view (gui) settings.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -70,6 +70,19 @@ public:
         FXCheckButton* myCheck;
         FXRealSpinDial* mySizeDial;
         FXColorWell* myColorWell;
+    };
+
+    class SizePanel {
+    public:
+        SizePanel(FXMatrix* parent, GUIDialog_ViewSettings* target,
+                  const GUIVisualizationSizeSettings& settings);
+
+        GUIVisualizationSizeSettings getSettings();
+        void update(const GUIVisualizationSizeSettings& settings);
+
+        FXRealSpinDial* myMinSizeDial;
+        FXRealSpinDial* myExaggerateDial;
+        FXCheckButton* myCheck;
     };
 
     /** @brief Constructor
@@ -163,8 +176,14 @@ private:
                            std::vector<FXButton*>::const_iterator buttonIt,
                            GUIColorScheme& scheme);
 
-    /** @brief Rebuilds color changing dialogs after choosing another coloring scheme
-     * @param[in] doCreate Whether "create" shall be called (only if built the first time)
+    bool updateScaleRanges(FXObject* sender, std::vector<FXRealSpinDial*>::const_iterator colIt,
+                           std::vector<FXRealSpinDial*>::const_iterator colEnd,
+                           std::vector<FXRealSpinDial*>::const_iterator threshIt,
+                           std::vector<FXRealSpinDial*>::const_iterator threshEnd,
+                           std::vector<FXButton*>::const_iterator buttonIt,
+                           GUIScaleScheme& scheme);
+
+    /** @brief Rebuilds manipulators for the current coloring scheme
      */
     FXMatrix* rebuildColorMatrix(FXVerticalFrame* frame,
                                  std::vector<FXColorWell*>& colors,
@@ -172,6 +191,15 @@ private:
                                  std::vector<FXButton*>& buttons,
                                  FXCheckButton* interpolation,
                                  GUIColorScheme& scheme);
+
+    /** @brief Rebuilds manipulators for the current scaling scheme
+     */
+    FXMatrix* rebuildScaleMatrix(FXVerticalFrame* frame,
+                                 std::vector<FXRealSpinDial*>& scales,
+                                 std::vector<FXRealSpinDial*>& thresholds,
+                                 std::vector<FXButton*>& buttons,
+                                 FXCheckButton* interpolation,
+                                 GUIScaleScheme& scheme);
 
 
     /** @brief Rebuilds color changing dialogs after choosing another coloring scheme
@@ -201,6 +229,8 @@ private:
      */
     void loadDecals(const std::string& file);
 
+    /// @brief save window position and size to the registry
+    void saveWindowSize();
 
 private:
     /// @brief The parent view (which settings are changed)
@@ -228,12 +258,21 @@ private:
     FXVerticalFrame* myDecalsFrame;
     MFXAddEditTypedTable* myDecalsTable;
 
+    /// ... lane colorer
     FXComboBox* myLaneEdgeColorMode;
     FXVerticalFrame* myLaneColorSettingFrame;
     std::vector<FXColorWell*> myLaneColors;
     std::vector<FXRealSpinDial*> myLaneThresholds;
     std::vector<FXButton*> myLaneButtons;
     FXCheckButton* myLaneColorInterpolation;
+
+    /// ... lane scaler
+    FXComboBox* myLaneEdgeScaleMode;
+    FXVerticalFrame* myLaneScaleSettingFrame;
+    std::vector<FXRealSpinDial*> myLaneScales;
+    std::vector<FXRealSpinDial*> myLaneScaleThresholds;
+    std::vector<FXButton*> myLaneScaleButtons;
+    FXCheckButton* myLaneScaleInterpolation;
 
     FXCheckButton* myShowLaneBorders, *myShowLaneDecals, *myShowRails,
                    *myHideMacroConnectors;
@@ -245,8 +284,7 @@ private:
     std::vector<FXRealSpinDial*> myVehicleThresholds;
     std::vector<FXButton*> myVehicleButtons;
     FXCheckButton* myVehicleColorInterpolation;
-    FXRealSpinDial* myVehicleMinSizeDialer, *myVehicleUpscaleDialer;
-    FXCheckButton* myShowBlinker, *myShowMinGap; /* *myShowLaneChangePreference,*/
+    FXCheckButton* myShowBlinker, *myShowMinGap, *myShowBTRange; /* *myShowLaneChangePreference,*/
 
     FXComboBox* myPersonColorMode, *myPersonShapeDetail;
     FXVerticalFrame* myPersonColorSettingFrame;
@@ -254,7 +292,6 @@ private:
     std::vector<FXRealSpinDial*> myPersonThresholds;
     std::vector<FXButton*> myPersonButtons;
     FXCheckButton* myPersonColorInterpolation;
-    FXRealSpinDial* myPersonMinSizeDialer, *myPersonUpscaleDialer;
 
     FXComboBox* myJunctionColorMode;
     FXVerticalFrame* myJunctionColorSettingFrame;
@@ -264,19 +301,18 @@ private:
     FXCheckButton* myJunctionColorInterpolation;
     FXCheckButton* myShowTLIndex, *myShowJunctionIndex;
 
-    FXRealSpinDial* myDetectorMinSizeDialer, *myDetectorUpscaleDialer;
-    FXRealSpinDial* myPOIMinSizeDialer, *myPOIUpscaleDialer;
-    FXRealSpinDial* myPolyMinSizeDialer, *myPolyUpscaleDialer;
-
     FXCheckButton* myShowLane2Lane;
+    FXCheckButton* myDrawJunctionShape;
     FXCheckButton* myAntialiase;
     FXCheckButton* myDither;
     FXCheckButton* myShowSizeLegend;
 
-    NamePanel* myEdgeNamePanel, *myInternalEdgeNamePanel, *myStreetNamePanel,
+    NamePanel* myEdgeNamePanel, *myInternalEdgeNamePanel, *myCwaEdgeNamePanel, *myStreetNamePanel,
                *myJunctionNamePanel, *myInternalJunctionNamePanel,
                *myVehicleNamePanel, *myPersonNamePanel,
                *myAddNamePanel, *myPOINamePanel, *myPolyNamePanel;
+
+    SizePanel* myVehicleSizePanel, *myPersonSizePanel, *myPOISizePanel, *myPolySizePanel, *myAddSizePanel;
     /// @}
 
 

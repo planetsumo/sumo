@@ -12,7 +12,7 @@
 // Main for the DFROUTER
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -86,7 +86,7 @@ readDetectors(RODFDetectorCon& detectors, OptionsCont& oc, RODFNet* optNet) {
     // read definitions stored in XML-format
     std::vector<std::string> files = oc.getStringVector("detector-files");
     for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
-        if (!FileHelpers::exists(*fileIt)) {
+        if (!FileHelpers::isReadable(*fileIt)) {
             throw ProcessError("Could not open detector file '" + *fileIt + "'");
         }
         PROGRESS_BEGIN_MESSAGE("Loading detector definitions from '" + *fileIt + "'");
@@ -113,7 +113,7 @@ readDetectorFlows(RODFDetectorFlows& flows, OptionsCont& oc, RODFDetectorCon& dc
     // check whether the file exists
     std::vector<std::string> files = oc.getStringVector("measure-files");
     for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
-        if (!FileHelpers::exists(*fileIt)) {
+        if (!FileHelpers::isReadable(*fileIt)) {
             throw ProcessError("The measure-file '" + *fileIt + "' can not be opened.");
         }
         // parse
@@ -160,9 +160,8 @@ startComputation(RODFNet* optNet, RODFDetectorFlows& flows, RODFDetectorCon& det
         if (!detectors.detectorsHaveRoutes() || oc.getBool("revalidate-routes") || oc.getBool("guess-empty-flows")) {
             PROGRESS_BEGIN_MESSAGE("Computing routes");
             optNet->buildRoutes(detectors,
-                                oc.getBool("all-end-follower"), oc.getBool("keep-unfinished-routes"),
-                                oc.getBool("routes-for-all"), !oc.getBool("keep-longer-routes"),
-                                oc.getInt("max-search-depth"));
+                                oc.getBool("keep-unfinished-routes"), oc.getBool("routes-for-all"),
+                                !oc.getBool("keep-longer-routes"), oc.getInt("max-search-depth"));
             PROGRESS_DONE_MESSAGE();
         }
     }
@@ -265,7 +264,7 @@ main(int argc, char** argv) {
     OptionsCont& oc = OptionsCont::getOptions();
     // give some application descriptions
     oc.setApplicationDescription("Builds vehicle routes for SUMO using detector values.");
-    oc.setApplicationName("dfrouter", "SUMO dfrouter Version " + (std::string)VERSION_STRING);
+    oc.setApplicationName("dfrouter", "SUMO dfrouter Version " + getBuildName(VERSION_STRING));
     int ret = 0;
     RODFNet* net = 0;
     RODFDetectorCon* detectors = 0;
@@ -279,7 +278,7 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getBool("xml-validation"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
         MsgHandler::initOutputOptions();
         if (!RODFFrame::checkOptions()) {
             throw ProcessError();

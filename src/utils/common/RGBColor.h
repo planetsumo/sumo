@@ -9,7 +9,7 @@
 // A RGB-color definition
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -124,9 +124,10 @@ public:
 
     /** @brief Returns a new color with altered brightness
      * @param[in] change The absolute change applied to all channels (within bounds)
+     * @param[in] change The number of colors to change
      * @return The new color
      */
-    RGBColor changedBrightness(const char change);
+    RGBColor changedBrightness(int change, int toChange = 3) const;
 
 
     /** @brief Parses a color information

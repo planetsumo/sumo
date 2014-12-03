@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
+/// @author  Yun-Pang Floetteroed
 /// @date    Tue, 20 Jan 2004
 /// @version $Id$
 ///
 // An edge the jtr-router may route through
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -57,8 +58,8 @@ ROJTREdge::~ROJTREdge() {
 
 
 void
-ROJTREdge::addFollower(ROEdge* s, std::string) {
-    ROEdge::addFollower(s);
+ROJTREdge::addSuccessor(ROEdge* s, std::string) {
+    ROEdge::addSuccessor(s);
     ROJTREdge* js = static_cast<ROJTREdge*>(s);
     if (myFollowingDefs.find(js) == myFollowingDefs.end()) {
         myFollowingDefs[js] = new ValueTimeLine<SUMOReal>();
@@ -67,8 +68,8 @@ ROJTREdge::addFollower(ROEdge* s, std::string) {
 
 
 void
-ROJTREdge::addFollowerProbability(ROJTREdge* follower, SUMOTime begTime,
-                                  SUMOTime endTime, SUMOReal probability) {
+ROJTREdge::addFollowerProbability(ROJTREdge* follower, SUMOReal begTime,
+                                  SUMOReal endTime, SUMOReal probability) {
     FollowerUsageCont::iterator i = myFollowingDefs.find(follower);
     if (i == myFollowingDefs.end()) {
         WRITE_ERROR("The edges '" + getID() + "' and '" + follower->getID() + "' are not connected.");
@@ -79,7 +80,7 @@ ROJTREdge::addFollowerProbability(ROJTREdge* follower, SUMOTime begTime,
 
 
 ROJTREdge*
-ROJTREdge::chooseNext(const ROVehicle* const veh, SUMOTime time) const {
+ROJTREdge::chooseNext(const ROVehicle* const veh, SUMOReal time, const std::set<const ROEdge*>& avoid) const {
     // if no usable follower exist, return 0
     //  their probabilities are not yet regarded
     if (myFollowingEdges.size() == 0 || (veh != 0 && allFollowersProhibit(veh))) {
@@ -89,15 +90,19 @@ ROJTREdge::chooseNext(const ROVehicle* const veh, SUMOTime time) const {
     RandomDistributor<ROJTREdge*> dist;
     // use the loaded definitions, first
     for (FollowerUsageCont::const_iterator i = myFollowingDefs.begin(); i != myFollowingDefs.end(); ++i) {
-        if ((veh == 0 || !(*i).first->prohibits(veh)) && (*i).second->describesTime(time)) {
-            dist.add((*i).second->getValue(time), (*i).first);
+        if (avoid.count(i->first) == 0) {
+            if ((veh == 0 || !(*i).first->prohibits(veh)) && (*i).second->describesTime(time)) {
+                dist.add((*i).second->getValue(time), (*i).first);
+            }
         }
     }
     // if no loaded definitions are valid for this time, try to use the defaults
     if (dist.getOverallProb() == 0) {
         for (size_t i = 0; i < myParsedTurnings.size(); ++i) {
-            if (veh == 0 || !myFollowingEdges[i]->prohibits(veh)) {
-                dist.add(myParsedTurnings[i], static_cast<ROJTREdge*>(myFollowingEdges[i]));
+            if (avoid.count(myFollowingEdges[i]) == 0) {
+                if (veh == 0 || !myFollowingEdges[i]->prohibits(veh)) {
+                    dist.add(myParsedTurnings[i], static_cast<ROJTREdge*>(myFollowingEdges[i]));
+                }
             }
         }
     }

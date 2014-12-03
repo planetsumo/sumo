@@ -9,7 +9,7 @@
 // Some methods which help to draw certain geometrical objects in openGL
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -47,9 +47,26 @@
 std::vector<std::pair<SUMOReal, SUMOReal> > GLHelper::myCircleCoords;
 
 
+void APIENTRY combCallback(GLdouble coords[3],
+                           GLdouble* vertex_data[4],
+                           GLfloat weight[4], GLdouble** dataOut) {
+    UNUSED_PARAMETER(weight);
+    UNUSED_PARAMETER(*vertex_data);
+    GLdouble* vertex;
+
+    vertex = (GLdouble*)malloc(7 * sizeof(GLdouble));
+
+    vertex[0] = coords[0];
+    vertex[1] = coords[1];
+    vertex[2] = coords[2];
+    *dataOut = vertex;
+}
+
 // ===========================================================================
 // method definitions
 // ===========================================================================
+
+
 void
 GLHelper::drawFilledPoly(const PositionVector& v, bool close) {
     if (v.size() == 0) {
@@ -66,6 +83,40 @@ GLHelper::drawFilledPoly(const PositionVector& v, bool close) {
         glVertex2d(p.x(), p.y());
     }
     glEnd();
+}
+
+
+void
+GLHelper::drawFilledPolyTesselated(const PositionVector& v, bool close) {
+    if (v.size() == 0) {
+        return;
+    }
+    GLUtesselator* tobj = gluNewTess();
+    gluTessCallback(tobj, GLU_TESS_VERTEX, (GLvoid(APIENTRY*)()) &glVertex3dv);
+    gluTessCallback(tobj, GLU_TESS_BEGIN, (GLvoid(APIENTRY*)()) &glBegin);
+    gluTessCallback(tobj, GLU_TESS_END, (GLvoid(APIENTRY*)()) &glEnd);
+    gluTessCallback(tobj, GLU_TESS_COMBINE, (GLvoid(APIENTRY*)()) &combCallback);
+    gluTessProperty(tobj, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_ODD);
+    gluTessBeginPolygon(tobj, NULL);
+    gluTessBeginContour(tobj);
+    double* points = new double[(v.size() + int(close)) * 3];
+
+    for (size_t i = 0; i != v.size(); ++i) {
+        points[3 * i] = v[(int)i].x();
+        points[3 * i + 1] = v[(int)i].y();
+        points[3 * i + 2] = 0;
+        gluTessVertex(tobj, points + 3 * i, points + 3 * i);
+    }
+    if (close) {
+        const size_t i = v.size();
+        points[3 * i] = v[0].x();
+        points[3 * i + 1] = v[0].y();
+        points[3 * i + 2] = 0;
+        gluTessVertex(tobj, points + 3 * i, points + 3 * i);
+    }
+    gluTessEndContour(tobj);
+    gluTessEndPolygon(tobj);
+    gluDeleteTess(tobj);
 }
 
 
@@ -106,10 +157,19 @@ void
 GLHelper::drawBoxLines(const PositionVector& geom,
                        const std::vector<SUMOReal>& rots,
                        const std::vector<SUMOReal>& lengths,
-                       SUMOReal width) {
+                       SUMOReal width, int cornerDetail) {
     int e = (int) geom.size() - 1;
     for (int i = 0; i < e; i++) {
         drawBoxLine(geom[i], rots[i], lengths[i], width);
+    }
+    if (cornerDetail > 0) {
+        for (int i = 1; i < e; i++) {
+            glPushMatrix();
+            glTranslated(geom[i].x(), geom[i].y(), 0);
+            drawFilledCircle(width, cornerDetail);
+            glEnd();
+            glPopMatrix();
+        }
     }
 }
 

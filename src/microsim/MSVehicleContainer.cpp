@@ -9,7 +9,7 @@
 // vehicles sorted by their departures
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -122,8 +122,8 @@ void
 MSVehicleContainer::addReplacing(const VehicleDepartureVector& x) {
     if (isFull()) {
         std::vector<VehicleDepartureVector> array2((array.size() - 1) * 2 + 1, VehicleDepartureVector());
-        for (size_t i = array.size(); i-- > 0;) {
-            assert(array2.size() > i);
+        for (int i = (int)array.size(); i-- > 0;) {
+            assert(i < (int)array2.size());
             array2[i] = array[i];
         }
         array = array2;
@@ -141,10 +141,8 @@ MSVehicleContainer::addReplacing(const VehicleDepartureVector& x) {
 
 
 bool
-MSVehicleContainer::anyWaitingFor(SUMOTime time) const {
-    VehicleHeap::const_iterator j =
-        find_if(array.begin() + 1, array.begin() + currentSize + 1, DepartFinder(time));
-    return j != array.begin() + currentSize + 1;
+MSVehicleContainer::anyWaitingBefore(SUMOTime time) const {
+    return !isEmpty() && topTime() < time;
 }
 
 

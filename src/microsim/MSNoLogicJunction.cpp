@@ -2,13 +2,14 @@
 /// @file    MSNoLogicJunction.cpp
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Thu, 06 Jun 2002
 /// @version $Id$
 ///
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -48,6 +49,7 @@
 // method definitions
 // ===========================================================================
 MSNoLogicJunction::MSNoLogicJunction(const std::string& id,
+                                     SumoXMLNodeType type,
                                      const Position& position,
                                      const PositionVector& shape,
                                      std::vector<MSLane*> incoming
@@ -55,7 +57,7 @@ MSNoLogicJunction::MSNoLogicJunction(const std::string& id,
                                      , std::vector<MSLane*> internal
 #endif
                                     ):
-    MSJunction(id, position, shape),
+    MSJunction(id, type, position, shape),
     myIncomingLanes(incoming)
 #ifdef HAVE_INTERNAL_LANES
     , myInternalLanes(internal)
@@ -73,7 +75,7 @@ MSNoLogicJunction::postloadInit() {
     for (i = myIncomingLanes.begin(); i != myIncomingLanes.end(); ++i) {
         const MSLinkCont& links = (*i)->getLinkCont();
         for (MSLinkCont::const_iterator j = links.begin(); j != links.end(); j++) {
-            (*j)->setRequestInformation(0, 0, false, false, std::vector<MSLink*>(), std::vector<MSLane*>());
+            (*j)->setRequestInformation(-1, false, false, std::vector<MSLink*>(), std::vector<MSLane*>());
         }
     }
 }

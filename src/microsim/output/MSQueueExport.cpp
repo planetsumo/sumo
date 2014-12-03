@@ -1,13 +1,16 @@
 /****************************************************************************/
 /// @file    MSQueueExport.cpp
+/// @author  Daniel Krajzewicz
+/// @author  Jakob Erdmann
 /// @author  Mario Krumnow
+/// @author  Michael Behrisch
 /// @date    2012-04-26
 /// @version $Id$
 ///
 // Export the queueing length in front of a junction (very experimental!)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -77,9 +80,9 @@ MSQueueExport::writeEdge(OutputDevice& of) {
 void
 MSQueueExport::writeLane(OutputDevice& of, const MSLane& lane) {
     // maximum of all vehicle waiting times
-    SUMOReal queueing_time = 0.0; 
+    SUMOReal queueing_time = 0.0;
     // back of last stopped vehicle (XXX does not check for continuous queue)
-    SUMOReal queueing_length = 0.0; 
+    SUMOReal queueing_length = 0.0;
     // back of last slow vehicle (XXX does not check for continuous queue)
     SUMOReal queueing_length2 = 0.0;
     const SUMOReal threshold_velocity = 5 / 3.6; // slow

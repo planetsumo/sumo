@@ -10,7 +10,7 @@
 // The original Krauss (1998) car-following model and parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -77,7 +77,7 @@ public:
      * @return EGO's safe speed
      * @see MSCFModel::ffeV
      */
-    virtual SUMOReal followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap2pred, SUMOReal predSpeed, SUMOReal predMaxDecel) const;
+    SUMOReal followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap2pred, SUMOReal predSpeed, SUMOReal predMaxDecel) const;
 
 
     /** @brief Computes the vehicle's safe speed for approaching a non-moving obstacle (no dawdling)
@@ -88,6 +88,21 @@ public:
      * @todo generic Interface, models can call for the values they need
      */
     virtual SUMOReal stopSpeed(const MSVehicle* const veh, const SUMOReal speed, SUMOReal gap2pred) const;
+
+
+    /** @brief Computes the vehicle's safe speed (no dawdling)
+     * This method is used during the insertion stage. Whereas the method
+     * followSpeed returns the desired speed which may be lower than the safe
+     * speed, this method only considers safety constraints
+     *
+     * Returns the velocity of the vehicle in dependence to the vehicle's and its leader's values and the distance between them.
+     * @param[in] veh The vehicle (EGO)
+     * @param[in] speed The vehicle's speed
+     * @param[in] gap2pred The (netto) distance to the LEADER
+     * @param[in] predSpeed The speed of LEADER
+     * @return EGO's safe speed
+     */
+    SUMOReal insertionFollowSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap2pred, SUMOReal predSpeed, SUMOReal predMaxDecel) const;
 
 
     /** @brief Returns the model's name
@@ -148,9 +163,10 @@ private:
     /** @brief Returns the "safe" velocity
      * @param[in] gap2pred The (netto) distance to the LEADER
      * @param[in] predSpeed The LEADER's speed
+     * @param[in] predMaxDecel The LEADER's maximum deceleration
      * @return the safe velocity
      */
-    virtual SUMOReal _vsafe(SUMOReal gap, SUMOReal predSpeed) const;
+    virtual SUMOReal vsafe(SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel) const;
 
 
     /** @brief Applies driver imperfection (dawdling / sigma)

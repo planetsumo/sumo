@@ -9,7 +9,7 @@
 // Class for the window that allows to choose a street, junction or vehicle
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -65,11 +65,9 @@ public:
      * @param[in] parent The calling view
      * @param[in] icon The icon to use
      * @param[in] title The title to use
-     * @param[in] type The type of gl-objects to show instances of
      * @param[in] glStorage The storage to retrieve ids from
      */
     GUIDialog_GLObjChooser(GUIGlChildWindow* parent, FXIcon* icon, const FXString& title,
-                           GUIGlObjectType type,
                            const std::vector<GUIGlID>& ids,
                            GUIGlObjectStorage& glStorage);
 
@@ -109,13 +107,15 @@ public:
     long onCmdFilter(FXObject*, FXSelector, void*);
     /// @}
 
+    /// @brief sets the focus after the window is created to work-around bug in libfox
+    void show();
 
 private:
     /// @brief The list that holds the ids
     FXList* myList;
 
-    /// @brief The artifact to choose
-    GUIGlObjectType myObjectType;
+    /// @brief The button that triggers centering on the select object
+    FXButton* myCenterButton;
 
     /// @brief The parent window
     GUIGlChildWindow* myParent;

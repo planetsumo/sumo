@@ -11,7 +11,7 @@
 // A single child window which contains a view of the simulation area
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -129,6 +129,16 @@ GUISUMOViewParent::~GUISUMOViewParent() {
 }
 
 
+void
+GUISUMOViewParent::toggleGaming() {
+    if (myParent->isGaming()) {
+        myNavigationToolBar->hide();
+    } else {
+        myNavigationToolBar->show();
+    }
+}
+
+
 long
 GUISUMOViewParent::onCmdMakeSnapshot(FXObject*, FXSelector, void*) {
     // get the new file name
@@ -160,51 +170,43 @@ GUISUMOViewParent::onCmdMakeSnapshot(FXObject*, FXSelector, void*) {
 
 long
 GUISUMOViewParent::onCmdLocate(FXObject*, FXSelector sel, void*) {
-    GUIGlObjectType type;
     std::vector<GUIGlID> ids;
     GUIIcon icon;
     std::string title;
     switch (FXSELID(sel)) {
         case MID_LOCATEJUNCTION:
-            type = GLO_JUNCTION;
             ids = static_cast<GUINet*>(GUINet::getInstance())->getJunctionIDs(myParent->listInternal());
             icon = ICON_LOCATEJUNCTION;
             title = "Junction Chooser";
             break;
         case MID_LOCATEEDGE:
-            type = GLO_EDGE;
             ids = GUIEdge::getIDs(myParent->listInternal());
             icon = ICON_LOCATEEDGE;
             title = "Edge Chooser";
             break;
         case MID_LOCATEVEHICLE:
-            type = GLO_VEHICLE;
             static_cast<GUIVehicleControl&>(MSNet::getInstance()->getVehicleControl()).insertVehicleIDs(ids);
             icon = ICON_LOCATEVEHICLE;
             title = "Vehicle Chooser";
             break;
         case MID_LOCATETLS:
-            type = GLO_TLLOGIC;
             ids = static_cast<GUINet*>(GUINet::getInstance())->getTLSIDs();
             icon = ICON_LOCATETLS;
             title = "Traffic Lights Chooser";
             break;
         case MID_LOCATEADD:
-            type = GLO_ADDITIONAL;
             ids = GUIGlObject_AbstractAdd::getIDList();
             icon = ICON_LOCATEADD;
             title = "Additional Objects Chooser";
             break;
         case MID_LOCATEPOI:
-            type = GLO_POI;
             ids = static_cast<GUIShapeContainer&>(GUINet::getInstance()->getShapeContainer()).getPOIIds();
-            icon = ICON_LOCATESHAPE;
+            icon = ICON_LOCATEPOI;
             title = "POI Chooser";
             break;
         case MID_LOCATEPOLY:
-            type = GLO_POLYGON;
             ids = static_cast<GUIShapeContainer&>(GUINet::getInstance()->getShapeContainer()).getPolygonIDs();
-            icon = ICON_LOCATESHAPE;
+            icon = ICON_LOCATEPOLY;
             title = "Polygon Chooser";
             break;
         default:
@@ -214,7 +216,7 @@ GUISUMOViewParent::onCmdLocate(FXObject*, FXSelector sel, void*) {
     myLocatorButton->killFocus();
     myLocatorPopup->update();
     GUIDialog_GLObjChooser* chooser = new GUIDialog_GLObjChooser(
-        this, GUIIconSubSys::getIcon(icon), title.c_str(), type, ids, GUIGlObjectStorage::gIDStorage);
+        this, GUIIconSubSys::getIcon(icon), title.c_str(), ids, GUIGlObjectStorage::gIDStorage);
     chooser->create();
     chooser->show();
     return 1;

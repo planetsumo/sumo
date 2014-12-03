@@ -11,7 +11,7 @@
 // The original Krauss (1998) car-following model and parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -73,14 +73,24 @@ MSCFModel_KraussOrig1::moveHelper(MSVehicle* const veh, SUMOReal vPos) const {
 
 
 SUMOReal
-MSCFModel_KraussOrig1::followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap, SUMOReal predSpeed, SUMOReal /*predMaxDecel*/) const {
-    return MIN2(_vsafe(gap, predSpeed), maxNextSpeed(speed, veh));
+MSCFModel_KraussOrig1::followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel) const {
+    return MIN2(vsafe(gap, predSpeed, predMaxDecel), maxNextSpeed(speed, veh));
+}
+
+
+SUMOReal
+MSCFModel_KraussOrig1::insertionFollowSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap2pred, SUMOReal predSpeed, SUMOReal predMaxDecel) const {
+    // since the Krauss model tries to compute the maximum follow speed in
+    // method followSpeed this is also used for insertionFollowSpeed
+    // (due to discretization error this may not always be the same value as
+    // returned by maximumSafeFollowSpeed)
+    return followSpeed(veh, speed, gap2pred, predSpeed, predMaxDecel);
 }
 
 
 SUMOReal
 MSCFModel_KraussOrig1::stopSpeed(const MSVehicle* const veh, const SUMOReal speed, SUMOReal gap) const {
-    return MIN2(_vsafe(gap, 0), maxNextSpeed(speed, veh));
+    return MIN2(vsafe(gap, 0., 0.), maxNextSpeed(speed, veh));
 }
 
 
@@ -91,7 +101,7 @@ MSCFModel_KraussOrig1::dawdle(SUMOReal speed) const {
 
 
 /** Returns the SK-vsafe. */
-SUMOReal MSCFModel_KraussOrig1::_vsafe(SUMOReal gap, SUMOReal predSpeed) const {
+SUMOReal MSCFModel_KraussOrig1::vsafe(SUMOReal gap, SUMOReal predSpeed, SUMOReal /* predMaxDecel */) const {
     if (predSpeed == 0 && gap < 0.01) {
         return 0;
     }
@@ -110,3 +120,6 @@ MSCFModel*
 MSCFModel_KraussOrig1::duplicate(const MSVehicleType* vtype) const {
     return new MSCFModel_KraussOrig1(vtype, myAccel, myDecel, myDawdle, myHeadwayTime);
 }
+
+
+/****************************************************************************/

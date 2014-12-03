@@ -10,7 +10,7 @@
 // A road/street connecting two junctions (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -66,7 +66,8 @@ public:
      * @see MSEdge
      */
     GUIEdge(const std::string& id, int numericalID,
-            const EdgeBasicFunction function, const std::string& streetName);
+            const EdgeBasicFunction function,
+            const std::string& streetName, const std::string& edgeType, int priority);
 
 
     /// @brief Destructor.
@@ -137,12 +138,12 @@ public:
     //@}
 
 
-    void addPerson(MSPerson* p) {
+    void addPerson(MSPerson* p) const {
         AbstractMutex::ScopedLocker locker(myLock);
         MSEdge::addPerson(p);
     }
 
-    void removePerson(MSPerson* p) {
+    void removePerson(MSPerson* p) const {
         AbstractMutex::ScopedLocker locker(myLock);
         MSEdge::removePerson(p);
     }
@@ -165,11 +166,19 @@ public:
     /// @brief gets the color value according to the current scheme index
     SUMOReal getColorValue(size_t activeScheme) const;
 
+    /// @brief gets the scaling value according to the current scheme index
+    SUMOReal getScaleValue(size_t activeScheme) const;
+
     /// @brief returns the segment closest to the given position
     MESegment* getSegmentAtPosition(const Position& pos);
 
     /// @brief sets the vehicle color according to the currente settings
     void setVehicleColor(const GUIVisualizationSettings& s, MSBaseVehicle* veh) const;
+
+    /// @brief gets the vehicle color value according to the current scheme index
+    SUMOReal getVehicleColorValue(size_t activeScheme, MSBaseVehicle* veh) const;
+
+    void drawMesoVehicles(const GUIVisualizationSettings& s) const;
 
 #endif
 

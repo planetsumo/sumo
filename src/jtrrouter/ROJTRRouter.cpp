@@ -9,7 +9,7 @@
 // Computes routes using junction turning percentages
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -43,10 +43,10 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-ROJTRRouter::ROJTRRouter(RONet& net, bool unbuildIsWarningOnly, bool acceptAllDestinations,
+ROJTRRouter::ROJTRRouter(bool unbuildIsWarningOnly, bool acceptAllDestinations,
                          int maxEdges, bool ignoreClasses, bool allowLoops) :
-    SUMOAbstractRouter<ROEdge, ROVehicle>("JTRRouter"),
-    myNet(net), myUnbuildIsWarningOnly(unbuildIsWarningOnly),
+    SUMOAbstractRouter<ROEdge, ROVehicle>(0, "JTRRouter"),
+    myUnbuildIsWarningOnly(unbuildIsWarningOnly),
     myAcceptAllDestination(acceptAllDestinations), myMaxEdges(maxEdges),
     myIgnoreClasses(ignoreClasses), myAllowLoops(allowLoops)
 { }
@@ -56,24 +56,26 @@ ROJTRRouter::~ROJTRRouter() {}
 
 
 void
-ROJTRRouter::compute(const ROEdge* from, const ROEdge* /*to*/,
+ROJTRRouter::compute(const ROEdge* from, const ROEdge* to,
                      const ROVehicle* const vehicle,
                      SUMOTime time, std::vector<const ROEdge*>& into) {
     const ROJTREdge* current = static_cast<const ROJTREdge*>(from);
+    SUMOReal timeS = STEPS2TIME(time);
+    std::set<const ROEdge*> avoidEdges;
     // route until a sinks has been found
-    while (current != 0
-            &&
-            current->getType() != ROEdge::ET_SINK
-            &&
-            (int) into.size() < myMaxEdges) {
-
+    while (current != 0 && current != to &&
+            current->getType() != ROEdge::ET_SINK &&
+            (int)into.size() < myMaxEdges) {
         into.push_back(current);
-        time += (SUMOTime) current->getTravelTime(vehicle, time);
-        current = current->chooseNext(myIgnoreClasses ? 0 : vehicle, time);
+        if (!myAllowLoops) {
+            avoidEdges.insert(current);
+        }
+        timeS += current->getTravelTime(vehicle, timeS);
+        current = current->chooseNext(myIgnoreClasses ? 0 : vehicle, timeS, avoidEdges);
         assert(myIgnoreClasses || current == 0 || !current->prohibits(vehicle));
     }
     // check whether no valid ending edge was found
-    if ((int) into.size() >= myMaxEdges) {
+    if (current == 0 || (int) into.size() >= myMaxEdges) {
         if (myAcceptAllDestination) {
             return;
         } else {

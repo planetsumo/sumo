@@ -1,5 +1,6 @@
 /****************************************************************************/
 /// @file    MSStateHandler.cpp
+/// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
 /// @author  Jakob Erdmann
 /// @date    Thu, 13 Dec 2012
@@ -8,7 +9,7 @@
 // Parser and output filter for routes and vehicles state saving and loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 200122014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -29,6 +30,10 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_VERSION_H
+#include <version.h>
+#endif
+
 #include <sstream>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
@@ -45,7 +50,6 @@
 #include <mesosim/MESegment.h>
 #include <mesosim/MELoop.h>
 #endif
-
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -126,7 +130,7 @@ MSStateHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) {
         case SUMO_TAG_ROUTE_DISTRIBUTION: {
             const std::string id = attrs.getString(SUMO_ATTR_ID);
             if (MSRoute::dictionary(id) == 0) {
-                RandomDistributor<const MSRoute*>* dist = new RandomDistributor<const MSRoute*>(MSRoute::getMaxRouteDistSize(), &MSRoute::releaseRoute);
+                RandomDistributor<const MSRoute*>* dist = new RandomDistributor<const MSRoute*>();
                 std::vector<std::string> routeIDs;
                 std::istringstream iss(attrs.getString(SUMO_ATTR_PROBS));
                 SUMOSAXAttributes::parseStringVector(attrs.getString(SUMO_ATTR_ROUTES), routeIDs);
@@ -136,8 +140,9 @@ MSStateHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) {
                     const MSRoute* r = MSRoute::dictionary(*it);
                     assert(r != 0);
                     dist->add(prob, r, false);
+                    r->addReference();
                 }
-                MSRoute::dictionary(id, dist);
+                MSRoute::dictionary(id, dist, attrs.getBool(SUMO_ATTR_STATE));
             }
             break;
         }
@@ -175,7 +180,7 @@ MSStateHandler::myStartElement(int element, const SUMOSAXAttributes& attrs) {
             assert(type != 0);
             assert(vc.getVehicle(p->id) == 0);
 
-            SUMOVehicle* v = vc.buildVehicle(p, route, type);
+            SUMOVehicle* v = vc.buildVehicle(p, route, type, true);
             v->loadState(attrs, myOffset);
             if (!vc.addVehicle(p->id, v)) {
                 throw ProcessError("Error: Could not build vehicle " + p->id + "!");

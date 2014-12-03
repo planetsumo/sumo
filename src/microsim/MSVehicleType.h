@@ -10,7 +10,7 @@
 // The car-following model and parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -41,7 +41,7 @@
 #include <utils/common/StdDefs.h>
 #include <utils/common/SUMOVehicleClass.h>
 #include <utils/common/RandHelper.h>
-#include <utils/common/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 #include <utils/common/RGBColor.h>
 #include <foreign/mersenne/MersenneTwister.h>
 
@@ -104,6 +104,14 @@ public:
     }
 
 
+    /** @brief Returns the running index of the vehicle type
+     * @return This type's numerical id
+     */
+    int getNumericalID() const {
+        return myIndex;
+    }
+
+
     /** @brief Get vehicle's length [m]
      * @return The length vehicles of this type have in m
      */
@@ -160,7 +168,7 @@ public:
     /** @brief Computes and returns the speed deviation
      * @return A new, random speed deviation
      */
-    SUMOReal computeChosenSpeedDeviation(MTRand& rng, const SUMOReal minDevFactor=0.2) const;
+    SUMOReal computeChosenSpeedDeviation(MTRand* rng, const SUMOReal minDevFactor = 0.2) const;
 
 
     /** @brief Get the default probability of this vehicle type
@@ -408,11 +416,17 @@ private:
     /// @brief the parameter container
     SUMOVTypeParameter myParameter;
 
+    /// @brief the running index
+    const int myIndex;
+
     /// @brief ID of the car following model.
     MSCFModel* myCarFollowModel;
 
     /// @brief The original type
     const MSVehicleType* myOriginalType;
+
+    /// @brief next value for the running index
+    static int myNextIndex;
 
 
 private:

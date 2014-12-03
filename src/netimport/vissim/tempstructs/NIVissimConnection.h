@@ -8,7 +8,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -54,18 +54,16 @@ class NIVissimConnection
     : public NIVissimBoundedClusterObject,
       public NIVissimAbstractEdge {
 public:
-    enum Direction {
+    /* enum Direction {
         NIVC_DIR_RIGHT,
         NIVC_DIR_LEFT,
         NIVC_DIR_ALL
-    };
+    }; */
 
     NIVissimConnection(int id, const std::string& name,
                        const NIVissimExtendedEdgePoint& from_def,
                        const NIVissimExtendedEdgePoint& to_def,
                        const PositionVector& geom,
-                       Direction direction, SUMOReal dxnothalt, SUMOReal dxeinordnen,
-                       SUMOReal zuschlag1, SUMOReal zuschlag2, SUMOReal seglength,
                        const std::vector<int>& assignedVehicles,
                        const NIVissimClosedLanesVector& clv);
     virtual ~NIVissimConnection();
@@ -100,14 +98,6 @@ public:
 
 
 
-    static bool dictionary(int id, const std::string& name,
-                           const NIVissimExtendedEdgePoint& from_def,
-                           const NIVissimExtendedEdgePoint& to_def,
-                           const PositionVector& geom,
-                           Direction direction, SUMOReal dxnothalt, SUMOReal dxeinordnen,
-                           SUMOReal zuschlag1, SUMOReal zuschlag2, SUMOReal seglength,
-                           const std::vector<int>& assignedVehicles,
-                           const NIVissimClosedLanesVector& clv);
     static bool dictionary(int id, NIVissimConnection* o);
     static NIVissimConnection* dictionary(int id);
     static std::vector<int> getWithin(const AbstractPoly& poly);
@@ -120,9 +110,6 @@ public:
 private:
     std::string myName;
     NIVissimExtendedEdgePoint myFromDef, myToDef;
-    Direction myDirection;
-    SUMOReal myDXNothalt, myDXEinordnen;
-    SUMOReal myZuschlag1, myZuschlag2;
     std::vector<int> myAssignedVehicles;
     NIVissimClosedLanesVector myClosedLanes;
 private:

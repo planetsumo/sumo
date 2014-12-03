@@ -9,7 +9,7 @@
 // Main for JTRROUTER
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -149,11 +149,13 @@ computeRoutes(RONet& net, ROLoader& loader, OptionsCont& oc) {
     // prepare the output
     net.openOutput(oc.getString("output-file"), "", oc.getString("vtype-output"));
     // build the router
-    ROJTRRouter router(net, oc.getBool("ignore-errors"), oc.getBool("accept-all-destinations"),
-                       (int)(((SUMOReal) net.getEdgeNo()) * OptionsCont::getOptions().getFloat("max-edges-factor")),
-                       oc.getBool("ignore-vclasses"), oc.getBool("allow-loops"));
-    loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")), net, router);
-    net.closeOutput();
+    ROJTRRouter* router = new ROJTRRouter(oc.getBool("ignore-errors"), oc.getBool("accept-all-destinations"),
+                                          (int)(((SUMOReal) net.getEdgeNo()) * OptionsCont::getOptions().getFloat("max-edges-factor")),
+                                          oc.getBool("ignore-vclasses"), oc.getBool("allow-loops"));
+    RORouteDef::setUsingJTRR();
+    loader.processRoutes(string2time(oc.getString("begin")), string2time(oc.getString("end")),
+                         string2time(oc.getString("route-steps")), net, *router);
+    net.cleanup(router);
 }
 
 
@@ -165,7 +167,7 @@ main(int argc, char** argv) {
     OptionsCont& oc = OptionsCont::getOptions();
     // give some application descriptions
     oc.setApplicationDescription("Router for the microscopic road traffic simulation SUMO based on junction turning ratios.");
-    oc.setApplicationName("jtrrouter", "SUMO jtrrouter Version " + (std::string)VERSION_STRING);
+    oc.setApplicationName("jtrrouter", "SUMO jtrrouter Version " + getBuildName(VERSION_STRING));
     int ret = 0;
     RONet* net = 0;
     try {
@@ -177,7 +179,7 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getBool("xml-validation"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
         MsgHandler::initOutputOptions();
         if (!ROJTRFrame::checkOptions()) {
             throw ProcessError();
@@ -228,7 +230,6 @@ main(int argc, char** argv) {
     }
     return ret;
 }
-
 
 
 /****************************************************************************/

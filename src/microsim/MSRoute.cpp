@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Friedemann Wesner
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // A vehicle route
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,7 +52,6 @@
 // ===========================================================================
 MSRoute::RouteDict MSRoute::myDict;
 MSRoute::RouteDistDict MSRoute::myDistDict;
-unsigned int MSRoute::MaxRouteDistSize = std::numeric_limits<unsigned int>::max();
 
 
 // ===========================================================================
@@ -61,7 +61,7 @@ MSRoute::MSRoute(const std::string& id,
                  const MSEdgeVector& edges,
                  const bool isPermanent, const RGBColor* const c,
                  const std::vector<SUMOVehicleParameter::Stop>& stops)
-    : Named(id), myEdges(edges), myAmPermanent(isPermanent), 
+    : Named(id), myEdges(edges), myAmPermanent(isPermanent),
       myReferenceCounter(isPermanent ? 1 : 0),
       myColor(c), myStops(stops) {}
 
@@ -123,9 +123,9 @@ MSRoute::dictionary(const std::string& id, const MSRoute* route) {
 
 
 bool
-MSRoute::dictionary(const std::string& id, RandomDistributor<const MSRoute*>* routeDist) {
+MSRoute::dictionary(const std::string& id, RandomDistributor<const MSRoute*>* const routeDist, const bool permanent) {
     if (myDict.find(id) == myDict.end() && myDistDict.find(id) == myDistDict.end()) {
-        myDistDict[id] = routeDist;
+        myDistDict[id] = std::make_pair(routeDist, permanent);
         return true;
     }
     return false;
@@ -133,14 +133,14 @@ MSRoute::dictionary(const std::string& id, RandomDistributor<const MSRoute*>* ro
 
 
 const MSRoute*
-MSRoute::dictionary(const std::string& id) {
+MSRoute::dictionary(const std::string& id, MTRand* rng) {
     RouteDict::iterator it = myDict.find(id);
     if (it == myDict.end()) {
         RouteDistDict::iterator it2 = myDistDict.find(id);
-        if (it2 == myDistDict.end() || it2->second->getOverallProb() == 0) {
+        if (it2 == myDistDict.end() || it2->second.first->getOverallProb() == 0) {
             return 0;
         }
-        return it2->second->get();
+        return it2->second.first->get(rng);
     }
     return it->second;
 }
@@ -152,20 +152,34 @@ MSRoute::distDictionary(const std::string& id) {
     if (it2 == myDistDict.end()) {
         return 0;
     }
-    return it2->second;
+    return it2->second.first;
 }
 
 
 void
 MSRoute::clear() {
     for (RouteDistDict::iterator i = myDistDict.begin(); i != myDistDict.end(); ++i) {
-        delete i->second;
+        delete i->second.first;
     }
     myDistDict.clear();
     for (RouteDict::iterator i = myDict.begin(); i != myDict.end(); ++i) {
         delete i->second;
     }
     myDict.clear();
+}
+
+
+void
+MSRoute::checkDist(const std::string& id) {
+    RouteDistDict::iterator it = myDistDict.find(id);
+    if (it != myDistDict.end() && !it->second.second) {
+        const std::vector<const MSRoute*>& routes = it->second.first->getVals();
+        for (std::vector<const MSRoute*>::const_iterator i = routes.begin(); i != routes.end(); ++i) {
+            (*i)->release();
+        }
+        delete it->second.first;
+        myDistDict.erase(it);
+    }
 }
 
 
@@ -229,8 +243,9 @@ MSRoute::dict_saveState(OutputDevice& out) {
     }
     for (RouteDistDict::iterator it = myDistDict.begin(); it != myDistDict.end(); ++it) {
         out.openTag(SUMO_TAG_ROUTE_DISTRIBUTION).writeAttr(SUMO_ATTR_ID, (*it).first);
-        out.writeAttr(SUMO_ATTR_ROUTES, (*it).second->getVals());
-        out.writeAttr(SUMO_ATTR_PROBS, (*it).second->getProbs());
+        out.writeAttr(SUMO_ATTR_STATE, (*it).second.second);
+        out.writeAttr(SUMO_ATTR_ROUTES, (*it).second.first->getVals());
+        out.writeAttr(SUMO_ATTR_PROBS, (*it).second.first->getProbs());
         out.closeTag();
     }
 }
@@ -247,7 +262,8 @@ MSRoute::getLength() const {
 
 
 SUMOReal
-MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* fromEdge, const MSEdge* toEdge) const {
+MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos,
+                            const MSEdge* fromEdge, const MSEdge* toEdge, bool includeInternal) const {
     bool isFirstIteration = true;
     SUMOReal distance = -fromPos;
     MSEdgeVector::const_iterator it = std::find(myEdges.begin(), myEdges.end(), fromEdge);
@@ -273,19 +289,23 @@ MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* from
             const std::vector<MSLane*>& lanes = (*it)->getLanes();
             distance += lanes[0]->getLength();
 #ifdef HAVE_INTERNAL_LANES
-            // add length of internal lanes to the result
-            for (std::vector<MSLane*>::const_iterator laneIt = lanes.begin(); laneIt != lanes.end(); ++laneIt) {
-                const MSLinkCont& links = (*laneIt)->getLinkCont();
-                for (MSLinkCont::const_iterator linkIt = links.begin(); linkIt != links.end(); ++linkIt) {
-                    if ((*linkIt) == 0 || (*linkIt)->getLane() == 0) {
-                        continue;
-                    }
-                    std::string succLaneId = (*(it + 1))->getLanes()[0]->getID();
-                    if ((*linkIt)->getLane()->getID().compare(succLaneId) == 0) {
-                        distance += (*linkIt)->getLength();
+            if (includeInternal) {
+                // add length of internal lanes to the result
+                for (std::vector<MSLane*>::const_iterator laneIt = lanes.begin(); laneIt != lanes.end(); ++laneIt) {
+                    const MSLinkCont& links = (*laneIt)->getLinkCont();
+                    for (MSLinkCont::const_iterator linkIt = links.begin(); linkIt != links.end(); ++linkIt) {
+                        if ((*linkIt) == 0 || (*linkIt)->getLane() == 0) {
+                            continue;
+                        }
+                        std::string succLaneId = (*(it + 1))->getLanes()[0]->getID();
+                        if ((*linkIt)->getLane()->getID().compare(succLaneId) == 0) {
+                            distance += (*linkIt)->getLength();
+                        }
                     }
                 }
             }
+#else
+            UNUSED_PARAMETER(includeInternal);
 #endif
         }
         isFirstIteration = false;

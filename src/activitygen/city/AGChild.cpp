@@ -4,13 +4,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
 /// @author  Walter Bamberger
+/// @author  Michael Behrisch
 /// @date    July 2010
 /// @version $Id$
 ///
 // Person in age to go to school: linked to a school object
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -44,7 +45,7 @@
 // method definitions
 // ===========================================================================
 void
-AGChild::print() {
+AGChild::print() const {
     std::cout << "- Child: Age=" << age << " School=" << school << std::endl;
 }
 

@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Laura Bieker
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    07.05.2009
 /// @version $Id$
 ///
 // APIs for getting/setting POI values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 20019-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -41,12 +42,6 @@
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-
-
-// ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
 
 
 // ===========================================================================
@@ -230,8 +225,8 @@ TraCIServerAPI_POI::getTree() {
     ShapeContainer& shapeCont = MSNet::getInstance()->getShapeContainer();
     const std::map<std::string, PointOfInterest*>& pois = shapeCont.getPOIs().getMyMap();
     for (std::map<std::string, PointOfInterest*>::const_iterator i = pois.begin(); i != pois.end(); ++i) {
-        const float cmin[2] = {(float) (*i).second->x(), (float) (*i).second->y()};
-        const float cmax[2] = {(float) (*i).second->x(), (float) (*i).second->y()};
+        const float cmin[2] = {(float)(*i).second->x(), (float)(*i).second->y()};
+        const float cmax[2] = {(float)(*i).second->x(), (float)(*i).second->y()};
         t->Insert(cmin, cmax, (*i).second);
     }
     return t;

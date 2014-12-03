@@ -1,5 +1,6 @@
 /****************************************************************************/
 /// @file    MSBaseVehicle.h
+/// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
 /// @author  Jakob Erdmann
 /// @date    Mon, 8 Nov 2010
@@ -8,7 +9,7 @@
 // A base class for vehicle implementations
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -34,17 +35,11 @@
 #include <iostream>
 #include <vector>
 #include <set>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <utils/common/StdDefs.h>
 #include "MSRoute.h"
 #include "MSMoveReminder.h"
-
-
-// ===========================================================================
-// class declarations
-// ===========================================================================
-class SUMOVehicleParameter;
-class MSVehicleType;
+#include "MSVehicleType.h"
 
 
 // ===========================================================================
@@ -63,7 +58,8 @@ public:
      * @param[in] speedFactor The factor for driven lane's speed limits
      * @exception ProcessError If a value is wrong
      */
-    MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, const MSVehicleType* type, const SUMOReal speedFactor);
+    MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+                  const MSVehicleType* type, const SUMOReal speedFactor);
 
 
     /// @brief Destructor
@@ -96,6 +92,13 @@ public:
     }
 
 
+    /** @brief Returns the vehicle's access class
+     * @return The vehicle's access class
+     */
+    inline SUMOVehicleClass getVClass() const {
+        return myType->getParameter().vehicleClass;
+    }
+
     /** @brief Returns the maximum speed
      * @return The vehicle's maximum speed
      */
@@ -126,6 +129,16 @@ public:
     }
 
 
+    /** @brief Returns the starting point for reroutes (usually the current edge)
+     *
+     * This differs from *myCurrEdge only if the vehicle is on an internal edge
+     * @return The rerouting start point
+     */
+    virtual const MSEdge* getRerouteOrigin() const {
+        return *myCurrEdge;
+    }
+
+
     /** @brief Performs a rerouting using the given router
      *
      * Tries to find a new route between the current edge and the destination edge, first.
@@ -148,7 +161,7 @@ public:
      * @param[in] simTime The time at which the route was replaced
      * @return Whether the new route was accepted
      */
-    bool replaceRouteEdges(const MSEdgeVector& edges, bool onInit = false);
+    bool replaceRouteEdges(MSEdgeVector& edges, bool onInit = false);
 
 
     /** @brief Returns the vehicle's acceleration
@@ -157,6 +170,13 @@ public:
      * @return The acceleration
      */
     virtual SUMOReal getAcceleration() const;
+
+    /** @brief Returns the slope of the road at vehicle's position
+     *
+     * This default implementation returns always 0.
+     * @return The slope
+     */
+    virtual SUMOReal getSlope() const;
 
     /** @brief Called when the vehicle is inserted into the network
      *
@@ -195,6 +215,10 @@ public:
     inline unsigned int getNumberReroutes() const {
         return myNumberReroutes;
     }
+
+    /// @brief Returns this vehicles impatience
+    SUMOReal getImpatience() const;
+
 
     /** @brief Returns this vehicle's devices
      * @return This vehicle's devices
@@ -250,6 +274,13 @@ public:
         return myChosenSpeedFactor;
     }
 
+    /** @brief Returns the precomputed factor by which the driver wants to be faster than the speed limit
+     * @return Speed limit factor
+     */
+    inline void setChosenSpeedFactor(const SUMOReal factor) {
+        myChosenSpeedFactor = factor;
+    }
+
     /// @brief Returns a device of the given type if it exists or 0
     MSDevice* getDevice(const std::type_info& type) const;
 
@@ -261,6 +292,16 @@ public:
     virtual void saveState(OutputDevice& out);
 
     //@}
+
+    /** @brief Adds stops to the built vehicle
+     *
+     * This code needs to be separated from the MSBaseVehicle constructor
+     *  since it is not allowed to call virtual functions from a constructor
+     *
+     * @param[in] ignoreStopErrors whether invalid stops trigger a warning only
+     */
+    void addStops(const bool ignoreStopErrors);
+
 
 protected:
     /** @brief (Re-)Calculates the arrival position from the vehicle parameters

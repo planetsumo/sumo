@@ -1,3 +1,27 @@
+/****************************************************************************/
+/// @file    FXSingleEventThread.cpp
+/// @author  unknown_author
+/// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
+/// @author  Laura Bieker
+/// @author  Jakob Erdmann
+/// @date    2004-03-19
+/// @version $Id$
+///
+//
+/****************************************************************************/
+// SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
+// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
+/****************************************************************************/
+//
+//   This file is part of SUMO.
+//   SUMO is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+/****************************************************************************/
+
 /* =========================================================================
  * included modules
  * ======================================================================= */
@@ -46,6 +70,7 @@ FXSingleEventThread::FXSingleEventThread(FXApp* a, MFXInterThreadEventClient* cl
     FXMALLOC(&event, FXThreadEventHandle, 2);
     FXint res = pipe(event);
     FXASSERT(res == 0);
+    UNUSED_PARAMETER(res); // only used for assertion
     myApp->addInput(event[PIPE_READ], INPUT_READ, this, ID_THREAD_EVENT);
 #else
     event = CreateEvent(NULL, FALSE, FALSE, NULL);

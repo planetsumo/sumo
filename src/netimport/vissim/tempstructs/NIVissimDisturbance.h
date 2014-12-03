@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    NIVissimDisturbance.h
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,8 +52,7 @@ class NIVissimDisturbance
 public:
     NIVissimDisturbance(int id, const std::string& name,
                         const NIVissimExtendedEdgePoint& edge,
-                        const NIVissimExtendedEdgePoint& by,
-                        SUMOReal timegap, SUMOReal waygap, SUMOReal vmax);
+                        const NIVissimExtendedEdgePoint& by);
     virtual ~NIVissimDisturbance();
     void computeBounding();
     bool addToNode(NBNode* node, NBDistrictCont& dc,
@@ -66,10 +66,9 @@ public:
     NBConnection getConnection(NBNode* node, int aedgeid);
 
 public:
-    static bool dictionary(int id, const std::string& name,
+    static bool dictionary(const std::string& name,
                            const NIVissimExtendedEdgePoint& edge,
-                           const NIVissimExtendedEdgePoint& by,
-                           SUMOReal timegap, SUMOReal waygap, SUMOReal vmax);
+                           const NIVissimExtendedEdgePoint& by);
     static bool dictionary(int id, NIVissimDisturbance* o);
     static NIVissimDisturbance* dictionary(int id);
     static std::vector<int> getWithin(const AbstractPoly& poly);
@@ -83,7 +82,6 @@ private:
     std::string myName;
     NIVissimExtendedEdgePoint myEdge;
     NIVissimExtendedEdgePoint myDisturbance;
-    SUMOReal myTimeGap, myWayGap, myVMax;
 
     typedef std::map<int, NIVissimDisturbance*> DictType;
     static DictType myDict;

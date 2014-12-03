@@ -9,7 +9,7 @@
 // Some methods for traversing lists of edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -367,6 +367,23 @@ public:
 
     };
 
+    /**
+     * edge_by_angle_to_nodeShapeCentroid_sorter
+     * Class to sort edges by their angle in relation to the node shape
+     * */
+    class edge_by_angle_to_nodeShapeCentroid_sorter {
+    public:
+        /// constructor
+        explicit edge_by_angle_to_nodeShapeCentroid_sorter(NBNode* n) : myNode(n) {}
+
+    public:
+        /// comparing operation
+        int operator()(const NBEdge* e1, const NBEdge* e2) const;
+
+    private:
+        /// the edge to compute the relative angle of
+        NBNode* myNode;
+    };
 
 };
 

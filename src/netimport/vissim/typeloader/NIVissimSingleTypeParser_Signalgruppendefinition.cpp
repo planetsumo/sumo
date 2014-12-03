@@ -9,7 +9,7 @@
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -141,7 +141,7 @@ NIVissimSingleTypeParser_Signalgruppendefinition::parseFixedTime(
     from >> tyellow;
     NIVissimTL::NIVissimTLSignalGroup* group =
         new NIVissimTL::NIVissimTLSignalGroup(
-        lsaid, id, name, isGreenBegin, times, (SUMOTime) tredyellow, (SUMOTime) tyellow);
+        id, name, isGreenBegin, times, (SUMOTime) tredyellow, (SUMOTime) tyellow);
     if (!NIVissimTL::NIVissimTLSignalGroup::dictionary(lsaid, id, group)) {
         throw 1; // !!!
     }

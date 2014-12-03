@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Laura Bieker
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    07.05.2009
 /// @version $Id$
 ///
 // APIs for getting/setting traffic light values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -35,18 +36,11 @@
 #include "TraCIConstants.h"
 #include <microsim/traffic_lights/MSTLLogicControl.h>
 #include <microsim/MSLane.h>
-#include <microsim/MSEdge.h>
 #include "TraCIServerAPI_TLS.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-
-
-// ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
 
 
 // ===========================================================================
@@ -62,8 +56,7 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
     if (variable != ID_LIST && variable != TL_RED_YELLOW_GREEN_STATE && variable != TL_COMPLETE_DEFINITION_RYG
             && variable != TL_CONTROLLED_LANES && variable != TL_CONTROLLED_LINKS
             && variable != TL_CURRENT_PHASE && variable != TL_CURRENT_PROGRAM
-            && variable != TL_NEXT_SWITCH && variable != TL_PHASE_DURATION && variable != ID_COUNT
-            && variable != TL_EXTERNAL_STATE) {
+            && variable != TL_NEXT_SWITCH && variable != TL_PHASE_DURATION && variable != ID_COUNT) {
         return server.writeErrorStatusCmd(CMD_GET_TL_VARIABLE, "Get TLS Variable: unsupported variable specified", outputStorage);
     }
     // begin response building
@@ -147,7 +140,7 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
             }
             break;
             case TL_CONTROLLED_LANES: {
-                const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLanes();
+                const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLaneVectors();
                 tempMsg.writeUnsignedByte(TYPE_STRINGLIST);
                 std::vector<std::string> laneIDs;
                 for (MSTrafficLightLogic::LaneVectorVector::const_iterator i = lanes.begin(); i != lanes.end(); ++i) {
@@ -160,7 +153,7 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
             }
             break;
             case TL_CONTROLLED_LINKS: {
-                const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLanes();
+                const MSTrafficLightLogic::LaneVectorVector& lanes = vars.getActive()->getLaneVectors();
                 const MSTrafficLightLogic::LinkVectorVector& links = vars.getActive()->getLinks();
                 //
                 tempMsg.writeUnsignedByte(TYPE_COMPOUND);
@@ -215,63 +208,9 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
                 tempMsg.writeUnsignedByte(TYPE_INTEGER);
                 tempMsg.writeInt((int) vars.getActive()->getNextSwitchTime());
                 break;
-            case TL_EXTERNAL_STATE: {
-                MSTrafficLightLogic *tls = vars.getActive();
-                const std::string& state = tls->getCurrentPhaseDef().getState();
-                const std::map<std::string, std::string> &params = tls->getMap();
-                unsigned int num = 0;
-                for(std::map<std::string, std::string>::const_iterator i=params.begin(); i!=params.end(); ++i) {
-                    if("connection:"==(*i).first.substr(0, 11)) {
-                        ++num;
-                    }
-                }
-
-                tempMsg.writeUnsignedByte(TYPE_COMPOUND);
-                tempMsg.writeUnsignedByte(TYPE_INTEGER);
-                tempMsg.writeInt(num*2);
-                for(std::map<std::string, std::string>::const_iterator i=params.begin(); i!=params.end(); ++i) {
-                    if("connection:"!=(*i).first.substr(0, 11)) {
-                        continue;
-                    }
-                    tempMsg.writeUnsignedByte(TYPE_STRING);
-                    tempMsg.writeString((*i).second); // foreign id
-                    std::string connection = (*i).first.substr(11);
-                    std::string from, to;
-                    size_t b = connection.find("->");
-                    if(b==std::string::npos) {
-                        from = connection;
-                    } else {
-                        from = connection.substr(0, b);
-                        to = connection.substr(b+2);
-                    }
-                    bool denotesEdge = from.find("_")==std::string::npos;
-                    MSLane *fromLane = 0;
-                    const MSTrafficLightLogic::LaneVectorVector& lanes = tls->getLanes();
-                    MSTrafficLightLogic::LaneVectorVector::const_iterator j = lanes.begin();
-                    for(; j!=lanes.end()&&fromLane==0; ) {
-                        for(MSTrafficLightLogic::LaneVector::const_iterator k=(*j).begin(); k!=(*j).end()&&fromLane==0; ) {
-                            if(denotesEdge && (*k)->getEdge().getID()==from) {
-                                fromLane = *k;
-                            } else if(!denotesEdge && (*k)->getID()==from) {
-                                fromLane = *k;
-                            }
-                            if(fromLane==0) {
-                                ++k;
-                            }
-                        }
-                        if(fromLane==0) {
-                            ++j;
-                        }
-                    }
-                    if(fromLane==0) {
-                        return server.writeErrorStatusCmd(CMD_GET_TL_VARIABLE, "Could not find edge or lane '" + from + "' in traffic light '" + id + "'.", outputStorage);
-                    }
-                    unsigned int pos = std::distance(lanes.begin(), j);
-                    tempMsg.writeUnsignedByte(TYPE_UBYTE);
-                    tempMsg.writeUnsignedByte(state[pos]); // state
-                }
+            case TL_CONTROLLED_JUNCTIONS: {
             }
-                break;
+            break;
             default:
                 break;
         }

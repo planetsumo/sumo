@@ -2,13 +2,14 @@
 /// @file    FileHelpers.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Mon, 17 Dec 2001
 /// @version $Id$
 ///
 // Functions for an easier usage of files
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -50,12 +51,12 @@ public:
     /// @name file access functions
     //@{
 
-    /** @brief Checks whether the given file exists
+    /** @brief Checks whether the given file is readable
      *
      * @param[in] path The path to the file that shall be examined
-     * @return Whether the named file exists
+     * @return Whether the named file is readable
      */
-    static bool exists(std::string path);
+    static bool isReadable(std::string path);
     //@}
 
 
@@ -226,11 +227,11 @@ std::ostream& FileHelpers::writeEdgeVector(std::ostream& os, const std::vector<E
     E prev = edges.front();
     for (typename std::vector<E>::const_iterator i = edges.begin() + 1; i != edges.end(); ++i) {
         unsigned int idx = 0;
-        for (; idx < prev->getNoFollowing(); ++idx) {
+        for (; idx < prev->getNumSuccessors(); ++idx) {
             if (idx > 15) {
                 break;
             }
-            if (prev->getFollower(idx) == (*i)) {
+            if (prev->getSuccessor(idx) == (*i)) {
                 follow.push_back(idx);
                 if (idx > maxFollow) {
                     maxFollow = idx;
@@ -238,7 +239,7 @@ std::ostream& FileHelpers::writeEdgeVector(std::ostream& os, const std::vector<E
                 break;
             }
         }
-        if (idx > 15 || idx == prev->getNoFollowing()) {
+        if (idx > 15 || idx == prev->getNumSuccessors()) {
             follow.clear();
             break;
         }
@@ -299,10 +300,10 @@ void FileHelpers::readEdgeVector(std::istream& in, std::vector<const E*>& edges,
                 field = 0;
             }
             unsigned int followIndex = (data >> ((numFields - field - 1) * bits)) & mask;
-            if (followIndex >= prev->getNoFollowing()) {
+            if (followIndex >= prev->getNumSuccessors()) {
                 throw ProcessError("Invalid follower index in route '" + rid + "'!");
             }
-            prev = prev->getFollower(followIndex);
+            prev = prev->getSuccessor(followIndex);
             edges.push_back(prev);
             field++;
         }

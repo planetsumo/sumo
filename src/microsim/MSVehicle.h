@@ -15,7 +15,7 @@
 // Representation of a vehicle in the micro simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -65,6 +65,7 @@ class MSEdgeWeightsStorage;
 class OutputDevice;
 class Position;
 class MSDevice_Person;
+class MSJunction;
 
 
 // ===========================================================================
@@ -141,7 +142,7 @@ public:
      * @exception ProcessError If a value is wrong
      */
     MSVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
-              const MSVehicleType* type, SUMOReal speedFactor);
+              const MSVehicleType* type, const SUMOReal speedFactor);
 
     /// @brief Destructor.
     virtual ~MSVehicle();
@@ -179,7 +180,7 @@ public:
      * @param[in] route The new route to pass
      * @return Whether the new route was accepted
      */
-    bool replaceRoute(const MSRoute* route, bool onInit = false);
+    bool replaceRoute(const MSRoute* route, bool onInit = false, int offset = 0);
 
 
     /** @brief Returns whether the vehicle wil pass the given edge
@@ -306,14 +307,20 @@ public:
     /// @name Other getter methods
     //@{
 
+    /** @brief Returns the slope of the road at vehicle's position
+     * @return The slope
+     */
+    SUMOReal getSlope() const;
+
+
     /** @brief Return current position (x/y, cartesian)
      *
      * If the vehicle's myLane is 0, Position::INVALID.
-     * @param[in] offset optional offset in longitudianl direction
+     * @param[in] offset optional offset in longitudinal direction
      * @return The current position (in cartesian coordinates)
      * @see myLane
      */
-    Position getPosition(SUMOReal offset = 0) const;
+    Position getPosition(const SUMOReal offset = 0) const;
 
 
     /** @brief Returns the lane the vehicle is on
@@ -330,6 +337,15 @@ public:
     inline bool isOnRoad() const {
         return myAmOnNet;
     }
+
+
+    /** @brief Returns the starting point for reroutes (usually the current edge)
+     *
+     * This differs from *myCurrEdge only if the vehicle is on an internal edge or
+     *  very close to the junction
+     * @return The rerouting start point
+     */
+    const MSEdge* getRerouteOrigin() const;
 
 
     /** @brief Returns the SUMOTime waited (speed was lesser than 0.1m/s)
@@ -409,6 +425,11 @@ public:
     void enterLaneAtInsertion(MSLane* enteredLane, SUMOReal pos, SUMOReal speed,
                               MSMoveReminder::Notification notification);
 
+    /** @brief set tentative lane and position during insertion to ensure that
+     * all cfmodels work (some of them require veh->getLane() to return a valid lane)
+     * Once the vehicle is sucessfully inserted the lane is set again (see enterLaneAtInsertion)
+     */
+    void setTentativeLaneAndPosition(MSLane* lane, const SUMOReal pos);
 
     /** @brief Update when the vehicle enters a new lane in the laneChange step.
      *
@@ -448,6 +469,11 @@ public:
     };
 
     /** @brief Returns the description of best lanes to use in order to continue the route
+     * @return The best lanes structure holding matching the current vehicle position and state ahead
+     */
+    const std::vector<LaneQ>& getBestLanes() const;
+
+    /** @brief computes the best lanes to use in order to continue the route
      *
      * The information is rebuilt if the vehicle is on a different edge than
      *  the one stored in "myLastBestLanesEdge" or "forceRebuild" is true.
@@ -455,7 +481,7 @@ public:
      * Otherwise, only the density changes on the stored lanes are adapted to
      *  the container only.
      *
-     * A rebuild must be done if the vehicle leaves a stop; then, another lane may get
+     * A rebuild must be done if the vehicle leaves a stop; then, another lane may become
      *  the best one.
      *
      * If no starting lane ("startLane") is given, the vehicle's current lane ("myLane")
@@ -463,9 +489,8 @@ public:
      *
      * @param[in] forceRebuild Whether the best lanes container shall be rebuilt even if the vehicle's edge has not changed
      * @param[in] startLane The lane the process shall start at ("myLane" will be used if ==0)
-     * @return The best lanes structure holding matching the current vehicle position and state ahead
      */
-    virtual const std::vector<LaneQ>& getBestLanes(bool forceRebuild = false, MSLane* startLane = 0) const;
+    void updateBestLanes(bool forceRebuild = false, const MSLane* startLane = 0);
 
 
     /** @brief Returns the subpart of best lanes that describes the vehicle's current lane and their successors
@@ -483,8 +508,9 @@ public:
     /// @brief returns the current offset from the best lane
     int getBestLaneOffset() const;
 
-    /// @brief repair errors in bestLanes after changing between internal edges
-    bool fixContinuations();
+    /// @brief update occupation from MSLaneChanger
+    void adaptBestLanesOccupation(int laneIndex, SUMOReal density);
+
     /// @}
 
     /// @brief repair errors in vehicle position after changing between internal edges
@@ -561,7 +587,7 @@ public:
      * @param[in] stop The stop to add
      * @return Whether the stop could be added
      */
-    bool addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffset = 0);
+    bool addStop(const SUMOVehicleParameter::Stop& stopPar, std::string& errorMsg, SUMOTime untilOffset = 0);
 
 
     /** @brief Returns whether the vehicle has to stop somewhere
@@ -611,6 +637,23 @@ public:
      */
     SUMOReal processNextStop(SUMOReal currentVelocity);
 
+    /** @brief Returns the leader of the vehicle looking for a fixed distance.
+     *
+     * If the distance is not given it is calculated from the brake gap.
+     * The gap returned does not include the minGap.
+     * @param dist		up to which distance to look for a leader
+     * @return The leading vehicle together with the gap; (0, -1) if no leader was found.
+     */
+    std::pair<const MSVehicle* const, SUMOReal> getLeader(SUMOReal dist = 0) const;
+
+    /** @brief Returns the time gap in seconds to the leader of the vehicle looking for a fixed distance.
+     *
+     * If the distance is too big -1 is returned.
+     * The gap returned takes the minGap into account.
+     * @return The time gap in seconds; -1 if no leader was found or speed is 0.
+     */
+    SUMOReal getTimeGap() const;
+
 
     /// @name Emission retrieval
     //@{
@@ -618,37 +661,37 @@ public:
     /** @brief Returns CO2 emission of the current state
      * @return The current CO2 emission
      */
-    SUMOReal getHBEFA_CO2Emissions() const;
+    SUMOReal getCO2Emissions() const;
 
 
     /** @brief Returns CO emission of the current state
      * @return The current CO emission
      */
-    SUMOReal getHBEFA_COEmissions() const;
+    SUMOReal getCOEmissions() const;
 
 
     /** @brief Returns HC emission of the current state
      * @return The current HC emission
      */
-    SUMOReal getHBEFA_HCEmissions() const;
+    SUMOReal getHCEmissions() const;
 
 
     /** @brief Returns NOx emission of the current state
      * @return The current NOx emission
      */
-    SUMOReal getHBEFA_NOxEmissions() const;
+    SUMOReal getNOxEmissions() const;
 
 
     /** @brief Returns PMx emission of the current state
      * @return The current PMx emission
      */
-    SUMOReal getHBEFA_PMxEmissions() const;
+    SUMOReal getPMxEmissions() const;
 
 
     /** @brief Returns fuel consumption of the current state
      * @return The current fuel consumption
      */
-    SUMOReal getHBEFA_FuelConsumption() const;
+    SUMOReal getFuelConsumption() const;
 
 
     /** @brief Returns noise emissions of the current state
@@ -672,9 +715,6 @@ public:
      * @return The number of passengers on-board
      */
     unsigned int getPersonNumber() const;
-
-    /// @brief Returns this vehicles impatience
-    SUMOReal getImpatience() const;
 
     /// @name Access to bool signals
     /// @{
@@ -716,7 +756,7 @@ public:
     };
 
 
-    /* @brief modes for resolving conflicts between external control (traci)
+    /** @brief modes for resolving conflicts between external control (traci)
      * and vehicle control over lane changing. Each level of the lane-changing
      * hierarchy (strategic, cooperative, speedGain, keepRight) can be controlled
      * separately */
@@ -724,6 +764,15 @@ public:
         LC_NEVER      = 0,  // lcModel shall never trigger changes at this level
         LC_NOCONFLICT = 1,  // lcModel may trigger changes if not in conflict with TraCI request
         LC_ALWAYS     = 2   // lcModel may always trigger changes of this level regardless of requests
+    };
+
+
+    /// @brief modes for prioritizing traci lane change requests
+    enum TraciLaneChangePriority {
+        LCP_ALWAYS        = 0,  // change regardless of blockers, adapt own speed and speed of blockers
+        LCP_NOOVERLAP     = 1,  // change unless overlapping with blockers, adapt own speed and speed of blockers
+        LCP_URGENT        = 2,  // change if not blocked, adapt own speed and speed of blockers
+        LCP_OPPORTUNISTIC = 3   // change if not blocked
     };
 
 
@@ -781,7 +830,8 @@ public:
      * @param parking   a flag indicating whether the traci stop is used for parking or not
      * @param triggered a flag indicating whether the traci stop is triggered or not
      */
-    bool addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal radius, SUMOTime duration, bool parking, bool triggered);
+    bool addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal radius, SUMOTime duration,
+                      bool parking, bool triggered, std::string& errorMsg);
 
     /**
     * returns the next imminent stop in the stop queue
@@ -843,22 +893,22 @@ public:
          */
         SUMOReal influenceSpeed(SUMOTime currentTime, SUMOReal speed, SUMOReal vSafe, SUMOReal vMin, SUMOReal vMax);
 
-        /// @brief check for valid change requests in the current laneTimeLine
-        void checkForLaneChanges(SUMOTime currentTime, const MSEdge& currentEdge, unsigned int currentLaneIndex); 
-
         /** @brief Applies stored LaneChangeMode information and laneTimeLine
-         *
-         * @param[in] state The LaneChangeAction flags as computed by the laneChangeModel
          * @param[in] currentTime The current simulation time
          * @param[in] currentEdge The current edge the vehicle is on
          * @param[in] currentLaneIndex The index of the lane the vehicle is currently on
+         * @param[in] state The LaneChangeAction flags as computed by the laneChangeModel
          * @return The new LaneChangeAction flags to use
          */
-        int influenceChangeDecision(int state);
+        int influenceChangeDecision(const SUMOTime currentTime, const MSEdge& currentEdge, const unsigned int currentLaneIndex, int state);
 
-        inline ChangeRequest getCurrentChangeRequest() {
-            return myChangeRequest;
-        }
+
+        /** @brief Return the remaining number of seconds of the current
+         * laneTimeLine assuming one exists
+         * @param[in] currentTime The current simulation time
+         * @return The remaining seconds to change lanes
+         */
+        SUMOReal changeRequestRemainingSeconds(const SUMOTime currentTime) const;
 
         /** @brief Sets whether the safe velocity shall be regarded
          * @param[in] value Whether the safe velocity shall be regarded
@@ -878,6 +928,34 @@ public:
         void setConsiderMaxDeceleration(bool value);
 
 
+        /** @brief Sets whether junction priority rules shall be respected
+         * @param[in] value Whether junction priority rules be respected
+         */
+        void setRespectJunctionPriority(bool value);
+
+
+        /** @brief Returns whether junction priority rules shall be respected
+         * @return Whether junction priority rules be respected
+         */
+        inline bool getRespectJunctionPriority() const {
+            return myRespectJunctionPriority;
+        }
+
+
+        /** @brief Sets whether red lights shall be a reason to brake
+         * @param[in] value Whether red lights shall be a reason to brake
+         */
+        void setEmergencyBrakeRedLight(bool value);
+
+
+        /** @brief Returns whether red lights shall be a reason to brake
+         * @return Whether red lights shall be a reason to brake
+         */
+        inline bool getEmergencyBrakeRedLight() const {
+            return myEmergencyBrakeRedLight;
+        }
+
+
         /** @brief Sets lane changing behavior
          * @param[in] value a bitset controlling the different modes
          */
@@ -887,7 +965,7 @@ public:
         /** @brief Returns the originally longitudinal speed to use
          * @return The speed given before influence
          */
-        SUMOReal getOriginalSpeed() const {
+        inline SUMOReal getOriginalSpeed() const {
             return myOriginalSpeed;
         }
 
@@ -908,10 +986,6 @@ public:
 
         inline bool isVTDControlled() const {
             return myAmVTDControlled;
-        }
-
-        inline ChangeRequest getChangeRequest() const {
-            return myChangeRequest;
         }
 
     private:
@@ -936,6 +1010,12 @@ public:
         /// @brief Whether the maximum deceleration shall be regarded
         bool myConsiderMaxDeceleration;
 
+        /// @brief Whether the junction priority rules are respected
+        bool myRespectJunctionPriority;
+
+        /// @brief Whether red lights are a reason to brake
+        bool myEmergencyBrakeRedLight;
+
         bool myAmVTDControlled;
         MSLane* myVTDLane;
         SUMOReal myVTDPos;
@@ -943,26 +1023,19 @@ public:
         MSEdgeVector myVTDRoute;
 		SUMOTime myLastVTDAccess;
 
-        /// @brief the currently active change request
-        ChangeRequest myChangeRequest;
-
-    /// @name Flags for managing conflicts between the laneChangeModel and TraCI laneTimeLine 
-    //@{
+        /// @name Flags for managing conflicts between the laneChangeModel and TraCI laneTimeLine
+        //@{
         /// @brief lane changing which is necessary to follow the current route
         LaneChangeMode myStrategicLC;
         /// @brief lane changing with the intent to help other vehicles
         LaneChangeMode myCooperativeLC;
         /// @brief lane changing to travel with higher speed
         LaneChangeMode mySpeedGainLC;
-        /// @brief changing to the rightmost lane 
+        /// @brief changing to the rightmost lane
         LaneChangeMode myRightDriveLC;
-    //@}
-        /* @brief flags for influencing security precautions when following a TraCI change-request
-         * LC_NEVER : ignore other drivers
-         * LC_NOCONFLICT : avoid immediate collisions
-         * LC_ALWAYS : perform full security checks (front and rear gap)
-         */
-        LaneChangeMode myRespectGapLC;
+        //@}
+        ///* @brief flags for determining the priority of traci lane change requests
+        TraciLaneChangePriority myTraciLaneChangePriority;
 
     };
 
@@ -978,6 +1051,12 @@ public:
         return myInfluencer != 0;
     }
 
+    /// @brief allow TraCI to influence a lane change decision
+    int influenceChangeDecision(int state);
+
+    /// @brief compute safe speed for following the given leader
+    SUMOReal getSafeFollowSpeed(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
+                                const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const;
 
 #endif
 
@@ -1021,6 +1100,9 @@ protected:
 
     void setBlinkerInformation();
 
+    /// updates LaneQ::nextOccupation and myCurrentLaneInBestLanes
+    void updateOccupancyAndCurrentBestLane(const MSLane* startLane);
+
 
     /// @brief The time the vehicle waits (is not faster than 0.1m/s) in seconds
     SUMOTime myWaitingTime;
@@ -1033,9 +1115,11 @@ protected:
 
     MSAbstractLaneChangeModel* myLaneChangeModel;
 
-    mutable const MSEdge* myLastBestLanesEdge;
-    mutable std::vector<std::vector<LaneQ> > myBestLanes;
-    mutable std::vector<LaneQ>::iterator myCurrentLaneInBestLanes;
+    const MSEdge* myLastBestLanesEdge;
+    const MSLane* myLastBestLanesInternalLane;
+
+    std::vector<std::vector<LaneQ> > myBestLanes;
+    std::vector<LaneQ>::iterator myCurrentLaneInBestLanes;
     static std::vector<MSLane*> myEmptyLaneVector;
 
     /// @brief The vehicle's list of stops
@@ -1061,6 +1145,8 @@ protected:
 
     bool myHaveToWaitOnNextLink;
 
+    mutable Position myCachedPosition;
+
 protected:
     struct DriveProcessItem {
         MSLink* myLink;
@@ -1085,8 +1171,7 @@ protected:
             myArrivalTime(arrivalTime), myArrivalSpeed(arrivalSpeed),
             myArrivalTimeBraking(arrivalTimeBraking), myArrivalSpeedBraking(arrivalSpeedBraking),
             myDistance(distance),
-            accelV(leaveSpeed), hadVehicle(false), availableSpace(-1.) 
-        { 
+            accelV(leaveSpeed), hadVehicle(false), availableSpace(-1.) {
             assert(vWait >= 0);
             assert(vPass >= 0);
         };
@@ -1097,8 +1182,7 @@ protected:
             myArrivalTime(0), myArrivalSpeed(0),
             myArrivalTimeBraking(0), myArrivalSpeedBraking(0),
             myDistance(distance),
-            accelV(-1), hadVehicle(false), availableSpace(-1.) 
-        {
+            accelV(-1), hadVehicle(false), availableSpace(-1.) {
             assert(vWait >= 0);
         };
 
@@ -1151,14 +1235,16 @@ protected:
      * @param[in] lane The current Lane the vehicle is on
      * @param[in,out] the safe velocity for driving
      * @param[in,out] the safe velocity for arriving at the next link
+     * @param[in] distToCrossing The distance to the crossing point with the current leader where relevant or -1
      */
     void adaptToLeader(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
                        const SUMOReal seen, DriveProcessItem* const lastLink,
-                       const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass) const;
+                       const MSLane* const lane, SUMOReal& v, SUMOReal& vLinkPass,
+                       SUMOReal distToCrossing = -1) const;
 
 #ifdef HAVE_INTERNAL_LANES
     /// @brief ids of vehicles being followed across a link (for resolving priority)
-    mutable std::set<std::string> myLinkLeaders;
+    mutable std::map<const MSJunction*, std::set<std::string> > myLinkLeaders;
 #endif
 
 private:
@@ -1170,13 +1256,8 @@ private:
     MSCFModel::VehicleVariables* myCFVariables;
 
 #ifndef NO_TRACI
-    /// @brief An instance of a velicty/lane influencing instance; built in "getInfluencer"
+    /// @brief An instance of a velocity/lane influencing instance; built in "getInfluencer"
     Influencer* myInfluencer;
-#endif
-
-#ifdef HAVE_INTERNAL_LANES
-    /// @brief map from the links to link leader ids
-    mutable std::map<const MSLink*, std::string> myLeaderForLink;
 #endif
 
 private:

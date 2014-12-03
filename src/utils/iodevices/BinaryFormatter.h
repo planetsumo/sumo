@@ -1,5 +1,7 @@
 /****************************************************************************/
 /// @file    BinaryFormatter.h
+/// @author  Daniel Krajzewicz
+/// @author  Jakob Erdmann
 /// @author  Michael Behrisch
 /// @date    2012
 /// @version $Id$
@@ -7,7 +9,7 @@
 // Output formatter for plain XML output
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -28,10 +30,6 @@
 #include <windows_config.h>
 #else
 #include <config.h>
-#endif
-
-#ifdef HAVE_VERSION_H
-#include <version.h>
 #endif
 
 #include <vector>
@@ -196,6 +194,17 @@ public:
     static void writeAttr(dummy& into, const std::string& attr, const T& val);
 
 
+    /** @brief writes a preformatted tag to the device but ensures that any
+     * pending tags are closed
+     * @param[in] into The output stream to use
+     * @param[in] val The preformatted data
+     */
+    void writePreformattedTag(std::ostream& into, const std::string& val) {
+        FileHelpers::writeString(into, val);
+    }
+
+
+
     /* we need to use dummy templating here to compile those functions where they get
         called to avoid an explicit dependency of utils/iodevices on the edge implementations */
     template <typename dummy>
@@ -216,6 +225,15 @@ private:
         FileHelpers::writeByte(into, static_cast<unsigned char>(attr));
         FileHelpers::writeByte(into, static_cast<unsigned char>(type));
     }
+
+
+    /** @brief writes the part of the header which is always unchanged.
+     *
+     * This method exists only to reduce include dependencies of BinaryFormatter.h (which promote to OutputDevice.h, ...)
+     *
+     * @param[in] into The output stream to use
+     */
+    static void writeStaticHeader(std::ostream& into);
 
 
     /** @brief writes a list of strings
@@ -245,15 +263,7 @@ private:
 template <typename E>
 bool BinaryFormatter::writeHeader(std::ostream& into, const SumoXMLTag& rootElement) {
     if (myXMLStack.empty()) {
-        FileHelpers::writeByte(into, BF_BYTE);
-        FileHelpers::writeByte(into, 1);
-        FileHelpers::writeByte(into, BF_STRING);
-        FileHelpers::writeString(into, VERSION_STRING);
-        writeStringList(into, SUMOXMLDefinitions::Tags.getStrings());
-        writeStringList(into, SUMOXMLDefinitions::Attrs.getStrings());
-        writeStringList(into, SUMOXMLDefinitions::NodeTypes.getStrings());
-        writeStringList(into, SUMOXMLDefinitions::EdgeFunctions.getStrings());
-
+        writeStaticHeader(into);
         const unsigned int numEdges = (const unsigned int)E::dictSize();
         FileHelpers::writeByte(into, BF_LIST);
         FileHelpers::writeInt(into, numEdges);
@@ -266,10 +276,10 @@ bool BinaryFormatter::writeHeader(std::ostream& into, const SumoXMLTag& rootElem
         for (unsigned int i = 0; i < numEdges; i++) {
             E* e = E::dictionary(i);
             FileHelpers::writeByte(into, BF_LIST);
-            FileHelpers::writeInt(into, e->getNoFollowing());
-            for (unsigned int j = 0; j < e->getNoFollowing(); j++) {
+            FileHelpers::writeInt(into, e->getNumSuccessors());
+            for (unsigned int j = 0; j < e->getNumSuccessors(); j++) {
                 FileHelpers::writeByte(into, BF_INTEGER);
-                FileHelpers::writeInt(into, e->getFollower(j)->getNumericalID());
+                FileHelpers::writeInt(into, e->getSuccessor(j)->getNumericalID());
             }
         }
         openTag(into, rootElement);
@@ -292,7 +302,6 @@ void BinaryFormatter::writeAttr(dummy& into, const std::string& attr, const T& v
         writeAttr(into, (const SumoXMLAttr)(SUMOXMLDefinitions::Attrs.get(attr)), val);
     }
 }
-
 
 template<> void BinaryFormatter::writeAttr(std::ostream& into, const SumoXMLAttr attr, const bool& val);
 template<> void BinaryFormatter::writeAttr(std::ostream& into, const SumoXMLAttr attr, const SUMOReal& val);

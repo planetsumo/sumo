@@ -3,13 +3,15 @@
 /// @author  Piotr Woznica
 /// @author  Daniel Krajzewicz
 /// @author  Walter Bamberger
+/// @author  Jakob Erdmann
+/// @author  Michael Behrisch
 /// @date    July 2010
 /// @version $Id$
 ///
 // Class containing all information of a given trip (car, bus)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -79,24 +81,24 @@ public:
         myVehicle(v),
         myType("default"),
         myDay(day) {};
-    void print();
-    bool operator<(AGTrip& trip);
+    void print() const;
+    bool operator<(const AGTrip& trip) const;
 
     void addLayOver(AGPosition by);
     void addLayOver(AGTrip& trip);
     void addLayOverWithoutDestination(AGTrip& trip);
 
-    AGPosition getDep();
-    AGPosition getArr();
-    int getTime();
+    AGPosition getDep() const;
+    AGPosition getArr() const;
+    int getTime() const;
     void setDepTime(int time);
-    std::string getVehicleName();
+    const std::string& getVehicleName() const;
     void setVehicleName(std::string name);
     void setArr(AGPosition arrival);
     void setDep(AGPosition departure);
-    int getDay();
+    int getDay() const;
     void setDay(int day);
-    std::string getType();
+    const std::string& getType() const;
     void setType(std::string type);
     std::list<AGPosition>* getPassed();
 
@@ -105,27 +107,27 @@ public:
      * going through the different points and coming back to the initial position
      * given the time to make one kilometer
      */
-    int getRideBackArrTime(SUMOReal secPerKm);
+    int getRideBackArrTime(SUMOReal secPerKm) const;
     /**
      * returns the estimated arrival time
      * given the time to make one kilometer
      */
-    int getArrTime(SUMOReal secPerKm);
+    int getArrTime(SUMOReal secPerKm) const;
     /**
      * gives the time in seconds for the trip
      * given a speed in seconds per kilometer (in city, not car speed
      * but time needed to make a distance in the city)
      */
-    int getTimeTrip(SUMOReal secPerKm);
+    int getTimeTrip(SUMOReal secPerKm) const;
     /**
      * estimate the departure time needed for a given arrival time
      * and a speed in seconds per kilometer
      */
-    int estimateDepTime(int arrTime, SUMOReal secPerKm);
+    int estimateDepTime(int arrTime, SUMOReal secPerKm) const;
     /**
      * returns whether this is a daily trip or a one day trip
      */
-    bool isDaily();
+    bool isDaily() const;
 
 private:
     AGPosition myFrom;

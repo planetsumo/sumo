@@ -9,7 +9,7 @@
 // The handler for parsing gui settings from xml.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -33,6 +33,7 @@
 #endif
 
 #include <utils/xml/SUMOSAXHandler.h>
+#include <utils/common/RandomDistributor.h>
 
 
 // ===========================================================================
@@ -139,6 +140,10 @@ public:
         return myViewType;
     }
 
+    RandomDistributor<std::string> getEventDistribution(const std::string& id);
+    SUMOReal getJamSoundTime() {
+        return myJamSoundTime;
+    }
 
 private:
     /// @brief The settings to fill
@@ -168,15 +173,27 @@ private:
     /// @brief The current color scheme
     GUIColorScheme* myCurrentScheme;
 
+    /// @brief The current scaling scheme
+    GUIScaleScheme* myCurrentScaleScheme;
+
     /// @brief The parsed breakpoints
     std::vector<SUMOTime> myBreakpoints;
 
+    /// @brief The parsed event distributions
+    std::map<std::string, RandomDistributor<std::string> > myEventDistributions;
+    SUMOReal myJamSoundTime;
+
 private:
 
-    /// @brief parse combined settings of bool, size and color
+    /// @brief parse attributes for textSettings
     GUIVisualizationTextSettings parseTextSettings(
         const std::string& prefix, const SUMOSAXAttributes& attrs,
         GUIVisualizationTextSettings defaults);
+
+    /// @brief parse attributes for sizeSettings
+    GUIVisualizationSizeSettings parseSizeSettings(
+        const std::string& prefix, const SUMOSAXAttributes& attrs,
+        GUIVisualizationSizeSettings defaults);
 
 };
 

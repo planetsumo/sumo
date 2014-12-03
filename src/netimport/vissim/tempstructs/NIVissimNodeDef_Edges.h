@@ -7,7 +7,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -46,7 +46,7 @@ public:
     static bool dictionary(int id, const std::string& name,
                            const NIVissimNodeParticipatingEdgeVector& edges);
 //    virtual void computeBounding();
-    virtual void searchAndSetConnections();
+//    virtual void searchAndSetConnections();
     virtual SUMOReal getEdgePosition(int edgeid) const;
 
     /**

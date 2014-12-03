@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    NBAlgorithms.h
 /// @author  Daniel Krajzewicz
+/// @author  Jakob Erdmann
 /// @date    02. March 2012
 /// @version $Id$
 ///
 // Algorithms for network computation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -110,6 +111,36 @@ public:
      */
     static void sortNodesEdges(NBNodeCont& nc, bool leftHand);
 
+    /** @class crossing_by_junction_angle_sorter
+     * @brief Sorts crossings by minimum clockwise clockwise edge angle. Use the
+     * ordering found in myAllEdges of the given node
+     */
+    class crossing_by_junction_angle_sorter {
+    public:
+        explicit crossing_by_junction_angle_sorter(const EdgeVector& ordering) : myOrdering(ordering) {}
+        int operator()(const NBNode::Crossing& c1, const NBNode::Crossing& c2) const {
+            return (int)(getMinRank(c1.edges) < getMinRank(c2.edges));
+        }
+
+    private:
+        /// @brief retrieves the minimum index in myAllEdges
+        size_t getMinRank(const EdgeVector& e) const {
+            size_t result = myOrdering.size();
+            for (EdgeVector::const_iterator it = e.begin(); it != e.end(); ++it) {
+                size_t rank = std::distance(myOrdering.begin(), std::find(myOrdering.begin(), myOrdering.end(), *it));
+                result = MIN2(result, rank);
+            }
+            return result;
+        }
+
+    private:
+        const EdgeVector& myOrdering;
+
+    private:
+        /// @brief invalidated assignment operator
+        crossing_by_junction_angle_sorter& operator=(const crossing_by_junction_angle_sorter& s);
+
+    };
 private:
     /** @brief Assures correct order for same-angle opposite-direction edges
      * @param[in] n The currently processed node
@@ -132,7 +163,7 @@ private:
             return getConvAngle(e1) < getConvAngle(e2);
         }
 
-    private:
+    protected:
         /// @brief Converts the angle of the edge if it is an incoming edge
         SUMOReal getConvAngle(NBEdge* e) const {
             SUMOReal angle = e->getAngleAtNode(myNode);
@@ -158,6 +189,7 @@ private:
         NBNode* myNode;
 
     };
+
 };
 
 
@@ -201,9 +233,10 @@ private:
     /** @brief Sets the priorites in case of a priority junction
      * @param[in] n The node to set edges' priorities
      * @param[in] s The vector of edges to get and mark the first from
+     * @param[in] prio The priority to assign
      * @return The vector's first edge
      */
-    static NBEdge* extractAndMarkFirst(NBNode& n, std::vector<NBEdge*>& s);
+    static NBEdge* extractAndMarkFirst(NBNode& n, std::vector<NBEdge*>& s, int prio = 1);
 
     /** @brief Returns whether both edges have the same priority
      * @param[in] e1 The first edge

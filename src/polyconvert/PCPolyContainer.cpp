@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
 /// @author  Michael Behrisch
+/// @author  Melanie Knocke
 /// @date    Mon, 05 Dec 2005
 /// @version $Id$
 ///
 // A storage for loaded polygons and pois
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,9 +52,9 @@
 // method definitions
 // ===========================================================================
 PCPolyContainer::PCPolyContainer(bool prune,
-                                 const Boundary& prunningBoundary,
+                                 const Boundary& pruningBoundary,
                                  const std::vector<std::string>& removeByNames)
-    : myPrunningBoundary(prunningBoundary), myDoPrunne(prune),
+    : myPruningBoundary(pruningBoundary), myDoPrune(prune),
       myRemoveByNames(removeByNames) {}
 
 
@@ -64,24 +65,26 @@ PCPolyContainer::~PCPolyContainer() {
 
 bool
 PCPolyContainer::insert(const std::string& id, Polygon* poly,
-                        int layer, bool ignorePrunning) {
+                        int layer, bool ignorePruning) {
     // check whether the polygon lies within the wished area
     //  - if such an area was given
-    if (myDoPrunne && !ignorePrunning) {
+    if (myDoPrune && !ignorePruning) {
         Boundary b = poly->getShape().getBoxBoundary();
-        if (!b.partialWithin(myPrunningBoundary)) {
+        if (!b.partialWithin(myPruningBoundary)) {
             delete poly;
-            return true;
+            return false;
         }
     }
     // check whether the polygon was named to be a removed one
     if (find(myRemoveByNames.begin(), myRemoveByNames.end(), id) != myRemoveByNames.end()) {
         delete poly;
-        return true;
+        return false;
     }
     //
     PolyCont::iterator i = myPolyCont.find(id);
     if (i != myPolyCont.end()) {
+        WRITE_ERROR("Polygon '" + id + "' could not be added.");
+        delete poly;
         return false;
     }
     myPolyCont[id] = poly;
@@ -92,23 +95,25 @@ PCPolyContainer::insert(const std::string& id, Polygon* poly,
 
 bool
 PCPolyContainer::insert(const std::string& id, PointOfInterest* poi,
-                        int layer, bool ignorePrunning) {
+                        int layer, bool ignorePruning) {
     // check whether the poi lies within the wished area
     //  - if such an area was given
-    if (myDoPrunne && !ignorePrunning) {
-        if (!myPrunningBoundary.around(*poi)) {
+    if (myDoPrune && !ignorePruning) {
+        if (!myPruningBoundary.around(*poi)) {
             delete poi;
-            return true;
+            return false;
         }
     }
     // check whether the polygon was named to be a removed one
     if (find(myRemoveByNames.begin(), myRemoveByNames.end(), id) != myRemoveByNames.end()) {
         delete poi;
-        return true;
+        return false;
     }
     //
     POICont::iterator i = myPOICont.find(id);
     if (i != myPOICont.end()) {
+        WRITE_ERROR("POI '" + id + "' could not be added.");
+        delete poi;
         return false;
     }
     myPOICont[id] = poi;
@@ -150,7 +155,7 @@ PCPolyContainer::report() {
 void
 PCPolyContainer::save(const std::string& file) {
     OutputDevice& out = OutputDevice::getDevice(file);
-    out.writeXMLHeader("shapes");
+    out.writeXMLHeader("additional", "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"http://sumo.dlr.de/xsd/additional_file.xsd\"");
     // write polygons
     for (PolyCont::iterator i = myPolyCont.begin(); i != myPolyCont.end(); ++i) {
         Polygon* p = i->second;

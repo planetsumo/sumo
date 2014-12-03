@@ -4,13 +4,14 @@
 /// @author  Friedemann Wesner
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // A vehicle route
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -40,7 +41,7 @@
 #include <utils/common/Named.h>
 #include <utils/common/RandomDistributor.h>
 #include <utils/common/RGBColor.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/vehicle/SUMOVehicleParameter.h>
 #include <utils/common/Parameterised.h>
 
 
@@ -131,12 +132,29 @@ public:
      * @param[in] toPos	   position on the last edge, at which the coumputed distance endsance
      * @param[in] fromEdge edge at wich computation begins
      * @param[in] toEdge   edge at which distance computation shall stop
+     * @param[in] includeInternal Whether the lengths of internal edges shall be counted
      * @return             distance between the position fromPos on fromEdge and toPos on toEdge
      */
-    SUMOReal getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* fromEdge, const MSEdge* toEdge) const;
+    SUMOReal getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* fromEdge, const MSEdge* toEdge, bool includeInternal = true) const;
 
     /// Returns the color
     const RGBColor& getColor() const;
+
+    /** @brief Returns the costs of the route
+     *
+     * @return The route's costs (normally the time needed to pass it)
+     */
+    SUMOReal getCosts() const {
+        return myCosts;
+    }
+
+    /** @brief Sets the costs of the route
+     *
+     * @param[in] costs The new route costs
+     */
+    void setCosts(SUMOReal costs) {
+        myCosts = costs;
+    }
 
     /// Returns the stops
     const std::vector<SUMOVehicleParameter::Stop>& getStops() const;
@@ -158,11 +176,12 @@ public:
      *  Returns true if the distribution could be added,
      *  false if a route (distribution) with the same name already exists.
      *
-     * @param[in] id    the id for the new route distribution
-     * @param[in] route pointer to the distribution object
-     * @return          whether adding was successful
+     * @param[in] id         the id for the new route distribution
+     * @param[in] routeDist  pointer to the distribution object
+     * @param[in] permanent  whether the new route distribution survives more than one vehicle / flow
+     * @return               whether adding was successful
      */
-    static bool dictionary(const std::string& id, RandomDistributor<const MSRoute*>* routeDist);
+    static bool dictionary(const std::string& id, RandomDistributor<const MSRoute*>* const routeDist, const bool permanent = true);
 
     /** @brief Returns the named route or a sample from the named distribution.
      *
@@ -172,7 +191,7 @@ public:
      * @param[in] id    the id of the route or the distribution
      * @return          the route (sample)
      */
-    static const MSRoute* dictionary(const std::string& id);
+    static const MSRoute* dictionary(const std::string& id, MTRand* rng = 0);
 
     /** @brief Returns the named route distribution.
      *
@@ -186,20 +205,10 @@ public:
     /// Clears the dictionary (delete all known routes, too)
     static void clear();
 
+    /// Checks the distribution whether it is permanent and deletes it if not
+    static void checkDist(const std::string& id);
+
     static void insertIDs(std::vector<std::string>& into);
-
-    /// @brief release the route (to be used as function pointer with RandomDistributor)
-    static void releaseRoute(const MSRoute* route) {
-        route->release();
-    }
-
-    static void setMaxRouteDistSize(unsigned int size) {
-        MaxRouteDistSize = size;
-    }
-
-    static unsigned int getMaxRouteDistSize() {
-        return MaxRouteDistSize;
-    }
 
 private:
     /// The list of edges to pass
@@ -214,6 +223,9 @@ private:
     /// The color
     const RGBColor* const myColor;
 
+    /// @brief The assigned or calculated costs
+    SUMOReal myCosts;
+
     /// @brief List of the stops on the parsed route
     std::vector<SUMOVehicleParameter::Stop> myStops;
 
@@ -225,13 +237,10 @@ private:
     static RouteDict myDict;
 
     /// Definition of the dictionary container
-    typedef std::map<std::string, RandomDistributor<const MSRoute*>*> RouteDistDict;
+    typedef std::map<std::string, std::pair<RandomDistributor<const MSRoute*>*, bool> > RouteDistDict;
 
     /// The dictionary container
     static RouteDistDict myDistDict;
-
-    /// @brief the maximum size for each routeDistribution
-    static unsigned int MaxRouteDistSize;
 
 private:
     /** invalid assignment operator */

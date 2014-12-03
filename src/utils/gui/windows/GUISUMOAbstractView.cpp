@@ -11,7 +11,7 @@
 // The base class for a view
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -284,6 +284,12 @@ GUISUMOAbstractView::getObjectAtPosition(Position pos) {
             if (type == GLO_POI || type == GLO_POLYGON) {
                 layer = dynamic_cast<Shape*>(o)->getLayer();
             }
+#ifdef HAVE_INTERNAL
+            if (type == GLO_LANE && GUIVisualizationSettings::UseMesoSim) {
+                // do not select lanes in meso mode
+                continue;
+            }
+#endif
             // check whether the current object is above a previous one
             if (layer > maxLayer) {
                 idMax = id;
@@ -293,6 +299,34 @@ GUISUMOAbstractView::getObjectAtPosition(Position pos) {
         GUIGlObjectStorage::gIDStorage.unblockObject(id);
     }
     return idMax;
+}
+
+
+std::vector<GUIGlID>
+GUISUMOAbstractView::getObjectsAtPosition(Position pos, SUMOReal radius) {
+    Boundary selection;
+    selection.add(pos);
+    selection.grow(radius);
+    const std::vector<GUIGlID> ids = getObjectsInBoundary(selection);
+    std::vector<GUIGlID> result;
+    // Interpret results
+    for (std::vector<GUIGlID>::const_iterator it = ids.begin(); it != ids.end(); it++) {
+        GUIGlID id = *it;
+        GUIGlObject* o = GUIGlObjectStorage::gIDStorage.getObjectBlocking(id);
+        if (o == 0) {
+            continue;
+        }
+        if (o->getGlID() == 0) {
+            continue;
+        }
+        //std::cout << "point selection hit " << o->getMicrosimID() << "\n";
+        GUIGlObjectType type = o->getType();
+        if (type != 0) {
+            result.push_back(id);
+        }
+        GUIGlObjectStorage::gIDStorage.unblockObject(id);
+    }
+    return result;
 }
 
 
@@ -310,16 +344,24 @@ GUISUMOAbstractView::getObjectsInBoundary(const Boundary& bound) {
     applyGLTransform(false);
 
     // paint in select mode
+    myVisualizationSettings->drawForSelecting = true;
     int hits2 = doPaintGL(GL_SELECT, bound);
+    myVisualizationSettings->drawForSelecting = false;
     // Get the results
     nb_hits = glRenderMode(GL_RENDER);
     if (nb_hits == -1) {
         myApp->setStatusBarText("Selection in boundary failed. Try to select fewer than " + toString(hits2) + " items");
     }
     std::vector<GUIGlID> result;
+    GLuint numNames;
+    GLuint* ptr = hits;
     for (int i = 0; i < nb_hits; ++i) {
-        assert(i * 4 + 3 < NB_HITS_MAX);
-        result.push_back(hits[i * 4 + 3]);
+        numNames = *ptr;
+        ptr += 3;
+        for (int j = 0; j < (int)numNames; j++) {
+            result.push_back(*ptr);
+            ptr++;
+        }
     }
     // switch viewport back to normal
     myChanger->setViewport(oldViewPort);
@@ -588,8 +630,9 @@ GUISUMOAbstractView::onRightBtnPress(FXObject*, FXSelector , void* data) {
 
 
 long
-GUISUMOAbstractView::onRightBtnRelease(FXObject*, FXSelector , void* data) {
+GUISUMOAbstractView::onRightBtnRelease(FXObject* o, FXSelector sel, void* data) {
     destroyPopup();
+    onMouseMove(o, sel, data);
     if (!myChanger->onRightBtnRelease(data) && !myApp->isGaming()) {
         openObjectDialog();
     }
@@ -600,19 +643,21 @@ GUISUMOAbstractView::onRightBtnRelease(FXObject*, FXSelector , void* data) {
 
 long
 GUISUMOAbstractView::onMouseWheel(FXObject*, FXSelector , void* data) {
-    myChanger->onMouseWheel(data);
+    if (!myApp->isGaming()) {
+        myChanger->onMouseWheel(data);
+    }
     return 1;
 }
 
 
 long
 GUISUMOAbstractView::onMouseMove(FXObject*, FXSelector , void* data) {
-    SUMOReal xpos = myChanger->getXPos();
-    SUMOReal ypos = myChanger->getYPos();
-    SUMOReal zoom = myChanger->getZoom();
     if (myViewportChooser == 0 || !myViewportChooser->haveGrabbed()) {
         myChanger->onMouseMove(data);
     }
+    const SUMOReal xpos = myChanger->getXPos();
+    const SUMOReal ypos = myChanger->getYPos();
+    const SUMOReal zoom = myChanger->getZoom();
     if (myViewportChooser != 0 &&
             (xpos != myChanger->getXPos() || ypos != myChanger->getYPos() || zoom != myChanger->getZoom())) {
         myViewportChooser->setValues(myChanger->getZoom(), myChanger->getXPos(), myChanger->getYPos());

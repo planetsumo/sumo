@@ -10,7 +10,7 @@
 // Builder of microsim-junctions and tls
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -156,7 +156,7 @@ NLJunctionControlBuilder::build() const {
 
 MSJunction*
 NLJunctionControlBuilder::buildNoLogicJunction() {
-    return new MSNoLogicJunction(myActiveID, myPosition, myShape, myActiveIncomingLanes
+    return new MSNoLogicJunction(myActiveID, myType, myPosition, myShape, myActiveIncomingLanes
 #ifdef HAVE_INTERNAL_LANES
                                  , myActiveInternalLanes
 #endif
@@ -168,7 +168,7 @@ MSJunction*
 NLJunctionControlBuilder::buildLogicJunction() {
     MSJunctionLogic* jtype = getJunctionLogicSecure();
     // build the junction
-    return new MSRightOfWayJunction(myActiveID, myPosition, myShape, myActiveIncomingLanes,
+    return new MSRightOfWayJunction(myActiveID, myType, myPosition, myShape, myActiveIncomingLanes,
 #ifdef HAVE_INTERNAL_LANES
                                     myActiveInternalLanes,
 #endif
@@ -180,7 +180,7 @@ NLJunctionControlBuilder::buildLogicJunction() {
 MSJunction*
 NLJunctionControlBuilder::buildInternalJunction() {
     // build the junction
-    return new MSInternalJunction(myActiveID, myPosition, myShape, myActiveIncomingLanes,
+    return new MSInternalJunction(myActiveID, myType, myPosition, myShape, myActiveIncomingLanes,
                                   myActiveInternalLanes);
 }
 #endif
@@ -244,9 +244,11 @@ NLJunctionControlBuilder::closeTrafficLightLogic() {
     // build the tls-logic in dependance to its type
     switch (myLogicType) {
         case TLTYPE_ACTUATED:
+            // @note it is unclear how to apply the given offset in the context
+            // of variable-length phases
             tlLogic = new MSActuatedTrafficLightLogic(getTLLogicControlToUse(),
                     myActiveKey, myActiveProgram,
-                    myActivePhases, step, firstEventOffset,
+                    myActivePhases, step, (*i)->minDuration + myNet.getCurrentTimeStep(),
                     myAdditionalParameter);
             break;
         case TLTYPE_AGENT:

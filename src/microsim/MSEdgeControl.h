@@ -12,7 +12,7 @@
 // Stores edges and lanes, performs moving of vehicle
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -150,7 +150,7 @@ public:
      * @param[in] stage The current stage within the simulation step
      * @note see MSNet::simulationStep
      */
-    void detectCollisions(SUMOTime timestep, int stage);
+    void detectCollisions(SUMOTime timestep, const std::string& stage);
 
 
     /** @brief Returns loaded edges

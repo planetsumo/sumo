@@ -2,13 +2,14 @@
 /// @file    SUMORouteLoaderControl.cpp
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Wed, 06 Nov 2002
 /// @version $Id$
 ///
 // Class responsible for loading of routes from some files
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -44,6 +45,7 @@
 // ===========================================================================
 SUMORouteLoaderControl::SUMORouteLoaderControl(SUMOTime inAdvanceStepNo):
     myFirstLoadTime(SUMOTime_MAX),
+    myCurrentLoadTime(-SUMOTime_MAX),
     myInAdvanceStepNo(inAdvanceStepNo),
     myRouteLoaders(),
     myLoadAll(inAdvanceStepNo <= 0),
@@ -72,12 +74,18 @@ SUMORouteLoaderControl::loadNext(SUMOTime step) {
     if (myAllLoaded) {
         return;
     }
-    SUMOTime loadMaxTime = myLoadAll ? SUMOTime_MAX : step + myInAdvanceStepNo;
-
+    if (myCurrentLoadTime > step) {
+        return;
+    }
+    const SUMOTime loadMaxTime = myLoadAll ? SUMOTime_MAX : MAX2(myCurrentLoadTime + myInAdvanceStepNo, step);
+    myCurrentLoadTime = SUMOTime_MAX;
     // load all routes for the specified time period
     bool furtherAvailable = false;
     for (std::vector<SUMORouteLoader*>::iterator i = myRouteLoaders.begin(); i != myRouteLoaders.end(); ++i) {
-        myFirstLoadTime = MIN2(myFirstLoadTime, (*i)->loadUntil(loadMaxTime));
+        myCurrentLoadTime = MIN2(myCurrentLoadTime, (*i)->loadUntil(loadMaxTime));
+        if ((*i)->getFirstDepart() != -1) {
+            myFirstLoadTime = MIN2(myFirstLoadTime, (*i)->getFirstDepart());
+        }
         furtherAvailable |= (*i)->moreAvailable();
     }
     myAllLoaded = !furtherAvailable;

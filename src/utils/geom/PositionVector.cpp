@@ -10,7 +10,7 @@
 // A list of positions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -92,7 +92,9 @@ PositionVector::pop_front() {
 bool
 PositionVector::around(const Position& p, SUMOReal offset) const {
     if (offset != 0) {
-        //throw 1; // !!! not yet implemented
+        PositionVector tmp(*this);
+        tmp.scaleAbsolute(offset);
+        return tmp.around(p);
     }
     SUMOReal angle = 0;
     for (const_iterator i = begin(); i != end() - 1; i++) {
@@ -164,7 +166,7 @@ PositionVector::intersectsAtPoint(const Position& p1,
             return GeomHelper::intersection_position2D(*i, *(i + 1), p1, p2);
         }
     }
-    return Position(-1, -1);
+    return Position::INVALID;
 }
 
 
@@ -180,7 +182,7 @@ PositionVector::intersectsAtPoint(const PositionVector& v1) const {
         return v1.intersectsAtPoint(*(end()-1), *(begin()));
     }
     */
-    return Position(-1, -1);
+    return Position::INVALID;
 }
 
 
@@ -189,7 +191,7 @@ PositionVector::operator[](int index) const {
     if (index >= 0) {
         return at(index);
     } else {
-        return at(size() + index);
+        return at((int)size() + index);
     }
 }
 
@@ -199,19 +201,19 @@ PositionVector::operator[](int index) {
     if (index >= 0) {
         return at(index);
     } else {
-        return at(size() + index);
+        return at((int)size() + index);
     }
 }
 
 
 Position
-PositionVector::positionAtOffset(SUMOReal pos) const {
+PositionVector::positionAtOffset(SUMOReal pos, SUMOReal lateralOffset) const {
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
         const SUMOReal nextLength = (*i).distanceTo(*(i + 1));
         if (seenLength + nextLength > pos) {
-            return positionAtOffset(*i, *(i + 1), pos - seenLength);
+            return positionAtOffset(*i, *(i + 1), pos - seenLength, lateralOffset);
         }
         seenLength += nextLength;
     } while (++i != end() - 1);
@@ -220,13 +222,13 @@ PositionVector::positionAtOffset(SUMOReal pos) const {
 
 
 Position
-PositionVector::positionAtOffset2D(SUMOReal pos) const {
+PositionVector::positionAtOffset2D(SUMOReal pos, SUMOReal lateralOffset) const {
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
         const SUMOReal nextLength = (*i).distanceTo2D(*(i + 1));
         if (seenLength + nextLength > pos) {
-            return positionAtOffset2D(*i, *(i + 1), pos - seenLength);
+            return positionAtOffset2D(*i, *(i + 1), pos - seenLength, lateralOffset);
         }
         seenLength += nextLength;
     } while (++i != end() - 1);
@@ -236,6 +238,9 @@ PositionVector::positionAtOffset2D(SUMOReal pos) const {
 
 SUMOReal
 PositionVector::rotationDegreeAtOffset(SUMOReal pos) const {
+    if (pos < 0) {
+        pos += length();
+    }
     const_iterator i = begin();
     SUMOReal seenLength = 0;
     do {
@@ -269,10 +274,15 @@ PositionVector::slopeDegreeAtOffset(SUMOReal pos) const {
 Position
 PositionVector::positionAtOffset(const Position& p1,
                                  const Position& p2,
-                                 SUMOReal pos) {
+                                 SUMOReal pos, SUMOReal lateralOffset) {
     const SUMOReal dist = p1.distanceTo(p2);
     if (dist < pos) {
-        return Position(-1, -1);
+        return Position::INVALID;
+    }
+    if (lateralOffset != 0) {
+        Line l(p1, p2);
+        l.move2side(-lateralOffset); // move in the same direction as Position::move2side
+        return l.getPositionAtDistance(pos);
     }
     return p1 + (p2 - p1) * (pos / dist);
 }
@@ -281,10 +291,15 @@ PositionVector::positionAtOffset(const Position& p1,
 Position
 PositionVector::positionAtOffset2D(const Position& p1,
                                    const Position& p2,
-                                   SUMOReal pos) {
+                                   SUMOReal pos, SUMOReal lateralOffset) {
     const SUMOReal dist = p1.distanceTo2D(p2);
     if (dist < pos) {
-        return Position(-1, -1);
+        return Position::INVALID;
+    }
+    if (lateralOffset != 0) {
+        Line l(p1, p2);
+        l.move2side(-lateralOffset); // move in the same direction as Position::move2side
+        return l.getPositionAtDistance2D(pos);
     }
     return p1 + (p2 - p1) * (pos / dist);
 }
@@ -342,16 +357,29 @@ PositionVector::getCentroid() const {
             y += (tmp[i].y() + tmp[i + 1].y()) * length / 2;
             lengthSum += length;
         }
+        if (lengthSum == 0) {
+            // it is probably only one point
+            return tmp[0];
+        }
         return Position(x / lengthSum, y / lengthSum);
     }
 }
 
 
 void
-PositionVector::scaleSize(SUMOReal factor) {
+PositionVector::scaleRelative(SUMOReal factor) {
     Position centroid = getCentroid();
     for (int i = 0; i < static_cast<int>(size()); i++) {
         (*this)[i] = centroid + (((*this)[i] - centroid) * factor);
+    }
+}
+
+
+void
+PositionVector::scaleAbsolute(SUMOReal offset) {
+    Position centroid = getCentroid();
+    for (int i = 0; i < static_cast<int>(size()); i++) {
+        (*this)[i] = centroid + (((*this)[i] - centroid) + offset);
     }
 }
 
@@ -715,6 +743,22 @@ PositionVector::pruneFromBeginAt(const Position& p) {
 }
 
 
+PositionVector
+PositionVector::getSubpartByIndex(int beginIndex, int count) const {
+    if (beginIndex < 0) {
+        beginIndex += (int)size();
+    }
+    assert(count > 0);
+    assert(beginIndex < (int)size());
+    assert(beginIndex + count <= (int)size());
+    PositionVector result;
+    for (int i = beginIndex; i < beginIndex + count; ++i) {
+        result.push_back((*this)[i]);
+    }
+    return result;
+}
+
+
 void
 PositionVector::pruneFromEndAt(const Position& p) {
     // find minimum distance (from the end)
@@ -787,16 +831,22 @@ PositionVector::nearest_offset_to_point2D(const Position& p, bool perpendicular)
         const SUMOReal pos =
             GeomHelper::nearest_offset_on_line_to_point2D(*i, *(i + 1), p, perpendicular);
         const SUMOReal dist = pos < 0 ? minDist : p.distanceTo2D(Line(*i, *(i + 1)).getPositionAtDistance(pos));
-        if (pos >= 0 && dist < minDist) {
+        if (dist < minDist) {
             nearestPos = pos + seen;
             minDist = dist;
         }
-        if (perpendicular && i != begin()) {
+        if (perpendicular && i != begin() && pos == -1.) {
             // even if perpendicular is set we still need to check the distance to the inner points
             const SUMOReal cornerDist = p.distanceTo2D(*i);
             if (cornerDist < minDist) {
-                nearestPos = seen;
-                minDist = cornerDist;
+                const SUMOReal pos1 =
+                    GeomHelper::nearest_offset_on_line_to_point2D(*(i - 1), *i, p, false);
+                const SUMOReal pos2 =
+                    GeomHelper::nearest_offset_on_line_to_point2D(*i, *(i + 1), p, false);
+                if (pos1 == (*(i-1)).distanceTo2D(*i) && pos2 == 0.) {
+                    nearestPos = seen;
+                    minDist = cornerDist;
+                }
             }
         }
         seen += (*i).distanceTo2D(*(i + 1));
@@ -934,14 +984,21 @@ PositionVector::move2side(SUMOReal amount) {
             Position from = (*this)[i - 1];
             Position me = (*this)[i];
             Position to = (*this)[i + 1];
-            const double sinAngle = sin(GeomHelper::Angle2D(from.x() - me.x(), from.y() - me.y(),
-                                        me.x() - to.x(), me.y() - to.y()) / 2);
-            const double maxDev = 2 * (from.distanceTo2D(me) + me.distanceTo2D(to)) * sinAngle;
-            if (fabs(maxDev) < POSITION_EPS) {
+            Line fromMe(from, me);
+            fromMe.extrapolateBy2D(me.distanceTo2D(to));
+            const double extrapolateDev = fromMe.p2().distanceTo2D(to);
+            if (fabs(extrapolateDev) < POSITION_EPS) {
                 // parallel case, just shift the middle point
                 std::pair<SUMOReal, SUMOReal> off =
                     GeomHelper::getNormal90D_CW(from, to, amount);
                 shape.push_back(Position(me.x() - off.first, me.y() - off.second, me.z()));
+                continue;
+            }
+            if (fabs(extrapolateDev - 2 * me.distanceTo2D(to)) < POSITION_EPS) {
+                // counterparallel case, just shift the middle point
+                Line fromMe(from, me);
+                fromMe.extrapolateBy2D(amount);
+                shape.push_back(fromMe.p2());
                 continue;
             }
             std::pair<SUMOReal, SUMOReal> offsets =
@@ -951,11 +1008,11 @@ PositionVector::move2side(SUMOReal amount) {
             Line l1(
                 Position(from.x() - offsets.first, from.y() - offsets.second),
                 Position(me.x() - offsets.first, me.y() - offsets.second));
-            l1.extrapolateBy(100);
+            l1.extrapolateBy2D(100);
             Line l2(
                 Position(me.x() - offsets2.first, me.y() - offsets2.second),
                 Position(to.x() - offsets2.first, to.y() - offsets2.second));
-            l2.extrapolateBy(100);
+            l2.extrapolateBy2D(100);
             if (l1.intersects(l2)) {
                 shape.push_back(l1.intersectsAt(l2));
             } else {

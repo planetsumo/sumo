@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    MSBusStop.cpp
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    Mon, 13.12.2005
 /// @version $Id$
 ///
 // A lane area vehicles can halt at
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -31,7 +32,7 @@
 #include <cassert>
 #include "MSTrigger.h"
 #include "MSBusStop.h"
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <microsim/MSVehicleType.h>
 
 #ifdef CHECK_MEMORY_LEAKS

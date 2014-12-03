@@ -10,7 +10,7 @@
 // Importer for edge type information stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -80,12 +80,13 @@ NIXMLTypesHandler::myStartElement(int element,
     bool oneway = attrs.getOpt<bool>(SUMO_ATTR_ONEWAY, id.c_str(), ok, false);
     bool discard = attrs.getOpt<bool>(SUMO_ATTR_DISCARD, id.c_str(), ok, false);
     SUMOReal width = attrs.getOpt<SUMOReal>(SUMO_ATTR_WIDTH, id.c_str(), ok, NBEdge::UNSPECIFIED_WIDTH);
+    SUMOReal sidewalkWidth = attrs.getOpt<SUMOReal>(SUMO_ATTR_SIDEWALKWIDTH, id.c_str(), ok, NBEdge::UNSPECIFIED_WIDTH);
     if (!ok) {
         return;
     }
     // build the type
     SVCPermissions permissions = parseVehicleClasses(allowS, disallowS);
-    if (!myTypeCont.insert(id, noLanes, speed, priority, permissions, width, oneway)) {
+    if (!myTypeCont.insert(id, noLanes, speed, priority, permissions, width, oneway, sidewalkWidth)) {
         WRITE_ERROR("Duplicate type occured. ID='" + id + "'");
     } else {
         if (discard) {

@@ -9,7 +9,7 @@
 // Representation of a lane in the micro simulation (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -137,12 +137,12 @@ public:
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
-    void detectCollisions(SUMOTime timestep, int stage);
+    void detectCollisions(SUMOTime timestep, const std::string& stage);
 
 
     /** the same as in MSLane, but locks the access for the visualisation
         first; the access will be granted at the end of this method */
-    MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification);
+    MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification, bool notify);
 
 
 
@@ -195,54 +195,14 @@ public:
     SUMOReal firstWaitingTime() const;
 
     /// @brief draw lane borders and white markings
-    void drawMarkings(const GUIVisualizationSettings& s) const;
+    void drawMarkings(const GUIVisualizationSettings& s, SUMOReal scale) const;
 
-    /// @brief draw crossties for railroads
-    void drawCrossties(const GUIVisualizationSettings& s) const;
+    /// @brief draw crossties for railroads or pedestrian crossings
+    void drawCrossties(SUMOReal length, SUMOReal spacing, SUMOReal halfWidth) const;
 
     SUMOReal getHalfWidth() const {
         return myHalfLaneWidth;
     }
-
-
-    /// @name Current state retrieval
-    //@{
-
-    /** @brief Returns the sum of last step CO2 emissions normed by the lane's length
-     * @return CO2 emissions of vehicles on this lane during the last step, normed by the lane length
-     */
-    SUMOReal getNormedHBEFA_CO2Emissions() const;
-
-
-    /** @brief Returns the sum of last step CO emissions normed by the lane's length
-     * @return CO emissions of vehicles on this lane during the last step, normed by the lane length
-     */
-    SUMOReal getNormedHBEFA_COEmissions() const;
-
-
-    /** @brief Returns the sum of last step PMx emissions normed by the lane's length
-     * @return PMx emissions of vehicles on this lane during the last step, normed by the lane length
-     */
-    SUMOReal getNormedHBEFA_PMxEmissions() const;
-
-
-    /** @brief Returns the sum of last step NOx emissions normed by the lane's length
-     * @return NOx emissions of vehicles on this lane during the last step, normed by the lane length
-     */
-    SUMOReal getNormedHBEFA_NOxEmissions() const;
-
-
-    /** @brief Returns the sum of last step HC emissions normed by the lane's length
-     * @return HC emissions of vehicles on this lane during the last step, normed by the lane length
-     */
-    SUMOReal getNormedHBEFA_HCEmissions() const;
-
-
-    /** @brief Returns the sum of last step fuel comsumption normed by the lane's length
-     * @return Fuel comsumption of vehicles on this lane during the last step, normed by the lane length
-     */
-    SUMOReal getNormedHBEFA_FuelConsumption() const;
-    /// @}
 
 
     SUMOReal getEdgeLaneNumber() const;
@@ -250,6 +210,10 @@ public:
     /** @brief Returns the stored traveltime for the edge of this lane
      */
     SUMOReal getStoredEdgeTravelTime() const;
+
+    /** @brief Returns the loaded weight (effort) for the edge of this lane
+     */
+    SUMOReal getLoadedEdgeWeight() const;
 
 #ifdef HAVE_OSG
     void setGeometry(osg::Geometry* geom) {
@@ -281,7 +245,9 @@ private:
     /// @brief helper methods
     void drawLinkNo() const;
     void drawTLSLinkNo(const GUINet& net) const;
+    void drawTextAtEnd(const std::string& text, const PositionVector& shape, SUMOReal x) const;
     void drawLinkRules(const GUINet& net) const;
+    void drawLinkRule(const GUINet& net, MSLink* link, const PositionVector& shape, SUMOReal x1, SUMOReal x2) const;
     void drawArrows() const;
     void drawLane2LaneConnections() const;
 
@@ -290,6 +256,12 @@ private:
 private:
     /// @brief gets the color value according to the current scheme index
     SUMOReal getColorValue(size_t activeScheme) const;
+
+    /// @brief gets the scaling value according to the current scheme index
+    SUMOReal getScaleValue(size_t activeScheme) const;
+
+    /// @brief sets the color according to the current scheme index and some lane function
+    bool setFunctionalColor(size_t activeScheme) const;
 
     /// @brief sets the color according to the currente settings
     void setColor(const GUIVisualizationSettings& s) const;

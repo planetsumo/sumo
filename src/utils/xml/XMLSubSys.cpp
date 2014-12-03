@@ -9,7 +9,7 @@
 // Utility methods for initialising, closing and using the XML-subsystem
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -47,7 +47,8 @@
 // ===========================================================================
 std::vector<SUMOSAXReader*> XMLSubSys::myReaders;
 unsigned int XMLSubSys::myNextFreeReader;
-bool XMLSubSys::myEnableValidation;
+XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes XMLSubSys::myValidationScheme = XERCES_CPP_NAMESPACE::SAX2XMLReader::Val_Auto;
+XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes XMLSubSys::myNetValidationScheme = XERCES_CPP_NAMESPACE::SAX2XMLReader::Val_Auto;
 
 
 // ===========================================================================
@@ -65,8 +66,25 @@ XMLSubSys::init() {
 
 
 void
-XMLSubSys::setValidation(bool enableValidation) {
-    myEnableValidation = enableValidation;
+XMLSubSys::setValidation(const std::string& validationScheme, const std::string& netValidationScheme) {
+    if (validationScheme == "never") {
+        myValidationScheme = XERCES_CPP_NAMESPACE::SAX2XMLReader::Val_Never;
+    } else if (validationScheme == "auto") {
+        myValidationScheme = XERCES_CPP_NAMESPACE::SAX2XMLReader::Val_Auto;
+    } else if (validationScheme == "always") {
+        myValidationScheme = XERCES_CPP_NAMESPACE::SAX2XMLReader::Val_Always;
+    } else {
+        throw ProcessError("Unknown xml validation scheme + '" + validationScheme + "'.");
+    }
+    if (netValidationScheme == "never") {
+        myNetValidationScheme = XERCES_CPP_NAMESPACE::SAX2XMLReader::Val_Never;
+    } else if (netValidationScheme == "auto") {
+        myNetValidationScheme = XERCES_CPP_NAMESPACE::SAX2XMLReader::Val_Auto;
+    } else if (netValidationScheme == "always") {
+        myNetValidationScheme = XERCES_CPP_NAMESPACE::SAX2XMLReader::Val_Always;
+    } else {
+        throw ProcessError("Unknown network validation scheme + '" + netValidationScheme + "'.");
+    }
 }
 
 
@@ -82,7 +100,7 @@ XMLSubSys::close() {
 
 SUMOSAXReader*
 XMLSubSys::getSAXReader(SUMOSAXHandler& handler) {
-    return new SUMOSAXReader(handler, myEnableValidation);
+    return new SUMOSAXReader(handler, myValidationScheme);
 }
 
 
@@ -94,11 +112,13 @@ XMLSubSys::setHandler(GenericSAXHandler& handler) {
 
 bool
 XMLSubSys::runParser(GenericSAXHandler& handler,
-                     const std::string& file) {
+                     const std::string& file, const bool isNet) {
     try {
+        XERCES_CPP_NAMESPACE::SAX2XMLReader::ValSchemes validationScheme = isNet ? myNetValidationScheme : myValidationScheme;
         if (myNextFreeReader == myReaders.size()) {
-            myReaders.push_back(new SUMOSAXReader(handler, myEnableValidation));
+            myReaders.push_back(new SUMOSAXReader(handler, validationScheme));
         } else {
+            myReaders[myNextFreeReader]->setValidation(validationScheme);
             myReaders[myNextFreeReader]->setHandler(handler);
         }
         myNextFreeReader++;
@@ -108,12 +128,16 @@ XMLSubSys::runParser(GenericSAXHandler& handler,
         handler.setFileName(prevFile);
         myNextFreeReader--;
     } catch (ProcessError& e) {
-        if (std::string(e.what()) != std::string("Process Error") && std::string(e.what()) != std::string("")) {
-            WRITE_ERROR(e.what());
-        }
+        WRITE_ERROR(std::string(e.what()) != std::string("") ? std::string(e.what()) : std::string("Process Error"));
+        return false;
+    } catch (const std::runtime_error& re) {
+        WRITE_ERROR("Runtime error: " + std::string(re.what()) + " while parsing '" + file + "'");
+        return false;
+    } catch (const std::exception& ex) {
+        WRITE_ERROR("Error occurred: " + std::string(ex.what()) + " while parsing '" + file + "'");
         return false;
     } catch (...) {
-        WRITE_ERROR("An error occured.");
+        WRITE_ERROR("Unspecified error occured wile parsing '" + file + "'");
         return false;
     }
     return !MsgHandler::getErrorInstance()->wasInformed();

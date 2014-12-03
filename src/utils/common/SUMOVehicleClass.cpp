@@ -10,7 +10,7 @@
 // Definitions of SUMO vehicle classes and helper functions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -49,38 +49,52 @@
 // static members
 // ===========================================================================
 StringBijection<SUMOVehicleClass>::Entry sumoVehicleClassStringInitializer[] = {
-    {"unknown",           SVC_UNKNOWN},
-    {"private",           SVC_PRIVATE},
-    {"public_transport",  SVC_PUBLIC_TRANSPORT},
-    {"public_emergency",  SVC_PUBLIC_EMERGENCY},
-    {"public_authority",  SVC_PUBLIC_AUTHORITY},
-    {"public_army",       SVC_PUBLIC_ARMY},
-    {"vip",               SVC_VIP},
     {"ignoring",          SVC_IGNORING},
+    {"private",           SVC_PRIVATE},
+    {"public_emergency",  SVC_EMERGENCY}, // !!! deprecated
+    {"emergency",         SVC_EMERGENCY},
+    {"public_authority",  SVC_AUTHORITY}, // !!! deprecated
+    {"authority",         SVC_AUTHORITY},
+    {"public_army",       SVC_ARMY}, // !!! deprecated
+    {"army",              SVC_ARMY},
+    {"vip",               SVC_VIP},
     {"passenger",         SVC_PASSENGER},
     {"hov",               SVC_HOV},
     {"taxi",              SVC_TAXI},
+    {"public_transport",  SVC_BUS}, // !!! deprecated
     {"bus",               SVC_BUS},
+    {"coach",             SVC_COACH},
     {"delivery",          SVC_DELIVERY},
-    {"transport",         SVC_TRANSPORT},
-    {"lightrail",         SVC_LIGHTRAIL},
-    {"cityrail",          SVC_CITYRAIL},
-    {"rail_slow",         SVC_RAIL_SLOW},
-    {"rail_fast",         SVC_RAIL_FAST},
+    {"transport",         SVC_TRUCK},
+    {"truck",             SVC_TRUCK},
+    {"trailer",           SVC_TRAILER},
+    {"lightrail",         SVC_TRAM}, // !!! deprecated
+    {"tram",              SVC_TRAM},
+    {"cityrail",          SVC_RAIL_URBAN}, // !!! deprecated
+    {"rail_urban",        SVC_RAIL_URBAN},
+    {"rail_slow",         SVC_RAIL}, // !!! deprecated
+    {"rail",              SVC_RAIL},
+    {"rail_fast",         SVC_RAIL_ELECTRIC}, // !!! deprecated
+    {"rail_electric",     SVC_RAIL_ELECTRIC},
     {"motorcycle",        SVC_MOTORCYCLE},
+    {"moped",             SVC_MOPED},
     {"bicycle",           SVC_BICYCLE},
     {"pedestrian",        SVC_PEDESTRIAN},
+    {"evehicle",          SVC_E_VEHICLE},
     {"custom1",           SVC_CUSTOM1},
     {"custom2",           SVC_CUSTOM2}
 };
 
 StringBijection<SUMOVehicleClass> SumoVehicleClassStrings(
-    sumoVehicleClassStringInitializer, SVC_CUSTOM2);
+    sumoVehicleClassStringInitializer, SVC_CUSTOM2, false);
+
+std::set<std::string> deprecatedVehicleClassesSeen;
 
 
 StringBijection<SUMOVehicleShape>::Entry sumoVehicleShapeStringInitializer[] = {
     {"pedestrian",            SVS_PEDESTRIAN},
     {"bicycle",               SVS_BICYCLE},
+    {"moped",                 SVS_MOPED},
     {"motorcycle",            SVS_MOTORCYCLE},
     {"passenger",             SVS_PASSENGER},
     {"passenger/sedan",       SVS_PASSENGER_SEDAN},
@@ -88,19 +102,24 @@ StringBijection<SUMOVehicleShape>::Entry sumoVehicleShapeStringInitializer[] = {
     {"passenger/wagon",       SVS_PASSENGER_WAGON},
     {"passenger/van",         SVS_PASSENGER_VAN},
     {"delivery",              SVS_DELIVERY},
-    {"transport",             SVS_TRANSPORT},
-    {"transport/semitrailer", SVS_TRANSPORT_SEMITRAILER},
-    {"transport/trailer",     SVS_TRANSPORT_1TRAILER},
+    {"transport",             SVS_TRUCK}, // !!! deprecated
+    {"truck",                 SVS_TRUCK},
+    {"transport/semitrailer", SVS_TRUCK_SEMITRAILER}, // !!! deprecated
+    {"truck/semitrailer",     SVS_TRUCK_SEMITRAILER},
+    {"transport/trailer",     SVS_TRUCK_1TRAILER}, // !!! deprecated
+    {"truck/trailer",         SVS_TRUCK_1TRAILER},
+    {"bus/city",              SVS_BUS}, // !!! deprecated
     {"bus",                   SVS_BUS},
-    {"bus/city",              SVS_BUS_CITY},
-    {"bus/flexible",          SVS_BUS_CITY_FLEXIBLE},
-    {"bus/overland",          SVS_BUS_OVERLAND},
+    {"bus/overland",          SVS_BUS_COACH}, // !!! deprecated
+    {"bus/coach",             SVS_BUS_COACH},
+    {"bus/flexible",          SVS_BUS_FLEXIBLE},
     {"bus/trolley",           SVS_BUS_TROLLEY},
+    {"rail/slow",             SVS_RAIL}, // !!! deprecated
+    {"rail/fast",             SVS_RAIL}, // !!! deprecated
     {"rail",                  SVS_RAIL},
-    {"rail/light",            SVS_RAIL_LIGHT},
-    {"rail/city",             SVS_RAIL_CITY},
-    {"rail/slow",             SVS_RAIL_SLOW},
-    {"rail/fast",             SVS_RAIL_FAST},
+    {"rail/light",            SVS_RAIL_CAR}, // !!! deprecated
+    {"rail/city",             SVS_RAIL_CAR}, // !!! deprecated
+    {"rail/railcar",          SVS_RAIL_CAR},
     {"rail/cargo",            SVS_RAIL_CARGO},
     {"evehicle",              SVS_E_VEHICLE},
     {"ant",                   SVS_ANT},
@@ -109,119 +128,16 @@ StringBijection<SUMOVehicleShape>::Entry sumoVehicleShapeStringInitializer[] = {
 
 
 StringBijection<SUMOVehicleShape> SumoVehicleShapeStrings(
-    sumoVehicleShapeStringInitializer, SVS_UNKNOWN);
-
-
-StringBijection<SUMOEmissionClass>::Entry SumoEmissionClassStringInitializer[] = {
-    {"unknown",                SVE_UNKNOWN},
-    // heavy duty vehicles; 3 clusters
-    {"HDV_3_1",                SVE_HDV_3_1},
-    {"HDV_3_2",                SVE_HDV_3_2},
-    {"HDV_3_3",                SVE_HDV_3_3},
-    // heavy duty vehicles; 6 clusters
-    {"HDV_6_1",                SVE_HDV_6_1},
-    {"HDV_6_2",                SVE_HDV_6_2},
-    {"HDV_6_3",                SVE_HDV_6_3},
-    {"HDV_6_4",                SVE_HDV_6_4},
-    {"HDV_6_5",                SVE_HDV_6_5},
-    {"HDV_6_6",                SVE_HDV_6_6},
-    // heavy duty vehicles; 12 clusters
-    {"HDV_12_1",               SVE_HDV_12_1},
-    {"HDV_12_2",               SVE_HDV_12_2},
-    {"HDV_12_3",               SVE_HDV_12_3},
-    {"HDV_12_4",               SVE_HDV_12_4},
-    {"HDV_12_5",               SVE_HDV_12_5},
-    {"HDV_12_6",               SVE_HDV_12_6},
-    {"HDV_12_7",               SVE_HDV_12_7},
-    {"HDV_12_8",               SVE_HDV_12_8},
-    {"HDV_12_9",               SVE_HDV_12_9},
-    {"HDV_12_10",              SVE_HDV_12_10},
-    {"HDV_12_11",              SVE_HDV_12_11},
-    {"HDV_12_12",              SVE_HDV_12_12},
-    // passenger & light duty vehicles; 7 clusters
-    {"P_7_1",                  SVE_P_LDV_7_1},
-    {"P_7_2",                  SVE_P_LDV_7_2},
-    {"P_7_3",                  SVE_P_LDV_7_3},
-    {"P_7_4",                  SVE_P_LDV_7_4},
-    {"P_7_5",                  SVE_P_LDV_7_5},
-    {"P_7_6",                  SVE_P_LDV_7_6},
-    {"P_7_7",                  SVE_P_LDV_7_7},
-    // passenger & light duty vehicles; 14 clusters
-    {"P_14_1",                 SVE_P_LDV_14_1},
-    {"P_14_2",                 SVE_P_LDV_14_2},
-    {"P_14_3",                 SVE_P_LDV_14_3},
-    {"P_14_4",                 SVE_P_LDV_14_4},
-    {"P_14_5",                 SVE_P_LDV_14_5},
-    {"P_14_6",                 SVE_P_LDV_14_6},
-    {"P_14_7",                 SVE_P_LDV_14_7},
-    {"P_14_8",                 SVE_P_LDV_14_8},
-    {"P_14_9",                 SVE_P_LDV_14_9},
-    {"P_14_10",                SVE_P_LDV_14_10},
-    {"P_14_11",                SVE_P_LDV_14_11},
-    {"P_14_12",                SVE_P_LDV_14_12},
-    {"P_14_13",                SVE_P_LDV_14_13},
-    {"P_14_14",                SVE_P_LDV_14_14},
-    // no emissions
-    {"zero",                   SVE_ZERO_EMISSIONS},
-    // heavy duty vehicles, no accel; 3 clusters
-    {"HDV_A0_3_1",             SVE_HDV_A0_3_1},
-    {"HDV_A0_3_2",             SVE_HDV_A0_3_2},
-    {"HDV_A0_3_3",             SVE_HDV_A0_3_3},
-    // heavy duty vehicles, no accel; 6 clusters
-    {"HDV_A0_6_1",             SVE_HDV_A0_6_1},
-    {"HDV_A0_6_2",             SVE_HDV_A0_6_2},
-    {"HDV_A0_6_3",             SVE_HDV_A0_6_3},
-    {"HDV_A0_6_4",             SVE_HDV_A0_6_4},
-    {"HDV_A0_6_5",             SVE_HDV_A0_6_5},
-    {"HDV_A0_6_6",             SVE_HDV_A0_6_6},
-    // heavy duty vehicles, no accel; 12 clusters
-    {"HDV_A0_12_1",            SVE_HDV_A0_12_1},
-    {"HDV_A0_12_2",            SVE_HDV_A0_12_2},
-    {"HDV_A0_12_3",            SVE_HDV_A0_12_3},
-    {"HDV_A0_12_4",            SVE_HDV_A0_12_4},
-    {"HDV_A0_12_5",            SVE_HDV_A0_12_5},
-    {"HDV_A0_12_6",            SVE_HDV_A0_12_6},
-    {"HDV_A0_12_7",            SVE_HDV_A0_12_7},
-    {"HDV_A0_12_8",            SVE_HDV_A0_12_8},
-    {"HDV_A0_12_9",            SVE_HDV_A0_12_9},
-    {"HDV_A0_12_10",           SVE_HDV_A0_12_10},
-    {"HDV_A0_12_11",           SVE_HDV_A0_12_11},
-    {"HDV_A0_12_12",           SVE_HDV_A0_12_12},
-    // passenger & light duty vehicles, no accel; 7 clusters
-    {"P_A0_7_1",               SVE_P_LDV_A0_7_1},
-    {"P_A0_7_2",               SVE_P_LDV_A0_7_2},
-    {"P_A0_7_3",               SVE_P_LDV_A0_7_3},
-    {"P_A0_7_4",               SVE_P_LDV_A0_7_4},
-    {"P_A0_7_5",               SVE_P_LDV_A0_7_5},
-    {"P_A0_7_6",               SVE_P_LDV_A0_7_6},
-    {"P_A0_7_7",               SVE_P_LDV_A0_7_7},
-    // passenger & light duty vehicles, no accel; 14 clusters
-    {"P_A0_14_1",              SVE_P_LDV_A0_14_1},
-    {"P_A0_14_2",              SVE_P_LDV_A0_14_2},
-    {"P_A0_14_3",              SVE_P_LDV_A0_14_3},
-    {"P_A0_14_4",              SVE_P_LDV_A0_14_4},
-    {"P_A0_14_5",              SVE_P_LDV_A0_14_5},
-    {"P_A0_14_6",              SVE_P_LDV_A0_14_6},
-    {"P_A0_14_7",              SVE_P_LDV_A0_14_7},
-    {"P_A0_14_8",              SVE_P_LDV_A0_14_8},
-    {"P_A0_14_9",              SVE_P_LDV_A0_14_9},
-    {"P_A0_14_10",             SVE_P_LDV_A0_14_10},
-    {"P_A0_14_11",             SVE_P_LDV_A0_14_11},
-    {"P_A0_14_12",             SVE_P_LDV_A0_14_12},
-    {"P_A0_14_13",             SVE_P_LDV_A0_14_13},
-    {"P_A0_14_14",             SVE_P_LDV_A0_14_14}
-};
-
-StringBijection<SUMOEmissionClass> SumoEmissionClassStrings(
-    SumoEmissionClassStringInitializer, SVE_P_LDV_A0_14_14);
+    sumoVehicleShapeStringInitializer, SVS_UNKNOWN, false);
 
 
 // ===========================================================================
 // additional constants
 // ===========================================================================
 
-const int SUMOVehicleClass_MAX = SVC_PEDESTRIAN;
-const SVCPermissions SVCFreeForAll = std::numeric_limits<SVCPermissions>::max(); // all bits set to 1
+const int SUMOVehicleClass_MAX = SVC_CUSTOM2;
+const SVCPermissions SVCAll = 2 * SUMOVehicleClass_MAX - 1; // all relevant bits set to 1
+
 
 // ===========================================================================
 // method definitions
@@ -246,45 +162,26 @@ getVehicleClassCompoundName(int id) {
 
 
 std::string
-getAllowedVehicleClassNames(SVCPermissions permissions) {
-    return joinToString(getAllowedVehicleClassNamesList(permissions), ' ');
+getVehicleClassNames(SVCPermissions permissions) {
+    if (permissions == SVCAll) {
+        return "all";
+    }
+    return joinToString(getVehicleClassNamesList(permissions), ' ');
 }
 
 
 std::vector<std::string>
-getAllowedVehicleClassNamesList(SVCPermissions permissions) {
+getVehicleClassNamesList(SVCPermissions permissions) {
     /// @todo cache values?
     const std::vector<std::string> classNames = SumoVehicleClassStrings.getStrings();
     std::vector<std::string> result;
     for (std::vector<std::string>::const_iterator it = classNames.begin(); it != classNames.end(); it++) {
         const int svc = (int)SumoVehicleClassStrings.get(*it);
-        if ((svc & permissions) == svc && svc != SVC_UNKNOWN) {
+        if ((svc & permissions) == svc && svc != SVC_IGNORING) {
             result.push_back(*it);
         }
     }
     return result;
-}
-
-
-std::pair<std::string, bool>
-getPermissionEncoding(SVCPermissions permissions) {
-    // shortcut the common cases
-    if (permissions == SVCFreeForAll) {
-        return std::pair<std::string, bool>("", false); // nothing disallowed
-    }
-    // figure out whether its shorter to write allow or disallow
-    // @note: this code assumes that enum values are assigned contiguous powers of 2 from 1 to SUMOVehicleClass_MAX
-    size_t num_allowed = 0;
-    for (int mask = 1; mask <= SUMOVehicleClass_MAX; mask = mask << 1) {
-        if ((mask & permissions) == mask) {
-            ++num_allowed;
-        }
-    }
-    if (num_allowed <= (SumoVehicleClassStrings.size() - num_allowed) && num_allowed > 0) {
-        return std::pair<std::string, bool>(getAllowedVehicleClassNames(permissions), true);
-    } else {
-        return std::pair<std::string, bool>(getAllowedVehicleClassNames(~permissions), false);
-    }
 }
 
 
@@ -293,13 +190,13 @@ getVehicleClassID(const std::string& name) {
     if (SumoVehicleClassStrings.hasString(name)) {
         return SumoVehicleClassStrings.get(name);
     }
-    throw ProcessError("Unknown vehicle class '" + name + "'.");
+    throw InvalidArgument("Unknown vehicle class '" + name + "'.");
 }
 
 
 int
 getVehicleClassCompoundID(const std::string& name) {
-    int ret = SVC_UNKNOWN;
+    int ret = SVC_IGNORING;
     const std::vector<std::string> names = SumoVehicleClassStrings.getStrings();
     for (std::vector<std::string>::const_iterator it = names.begin(); it != names.end(); it++) {
         if (name.find(*it) != std::string::npos) {
@@ -312,10 +209,19 @@ getVehicleClassCompoundID(const std::string& name) {
 
 SVCPermissions
 parseVehicleClasses(const std::string& allowedS) {
+    if (allowedS == "all") {
+        return SVCAll;
+    }
     SVCPermissions result = 0;
     StringTokenizer sta(allowedS, " ");
     while (sta.hasNext()) {
-        result |= getVehicleClassID(sta.next());
+        const std::string s = sta.next();
+        const SUMOVehicleClass vc = getVehicleClassID(s);
+        const std::string& realName = SumoVehicleClassStrings.getString(vc);
+        if (realName != s) {
+            deprecatedVehicleClassesSeen.insert(s);
+        }
+        result |= vc;
     }
     return result;
 }
@@ -323,6 +229,9 @@ parseVehicleClasses(const std::string& allowedS) {
 
 bool
 canParseVehicleClasses(const std::string& classes) {
+    if (classes == "all") {
+        return true;
+    }
     StringTokenizer sta(classes, " ");
     while (sta.hasNext()) {
         if (!SumoVehicleClassStrings.hasString(sta.next())) {
@@ -335,14 +244,14 @@ canParseVehicleClasses(const std::string& classes) {
 
 extern SVCPermissions parseVehicleClasses(const std::string& allowedS, const std::string& disallowedS) {
     if (allowedS.size() == 0 && disallowedS.size() == 0) {
-        return SVCFreeForAll;
+        return SVCAll;
     } else if (allowedS.size() > 0 && disallowedS.size() > 0) {
         WRITE_WARNING("SVCPermissions must be specified either via 'allow' or 'disallow'. Ignoring 'disallow'");
         return parseVehicleClasses(allowedS);
     } else if (allowedS.size() > 0) {
         return parseVehicleClasses(allowedS);
     } else {
-        return ~parseVehicleClasses(disallowedS);
+        return SVCAll & ~parseVehicleClasses(disallowedS);
     }
 }
 
@@ -351,6 +260,11 @@ SVCPermissions
 parseVehicleClasses(const std::vector<std::string>& allowedS) {
     SVCPermissions result = 0;
     for (std::vector<std::string>::const_iterator i = allowedS.begin(); i != allowedS.end(); ++i) {
+        const SUMOVehicleClass vc = getVehicleClassID(*i);
+        const std::string& realName = SumoVehicleClassStrings.getString(vc);
+        if (realName != *i) {
+            WRITE_WARNING("The vehicle class '" + (*i) + "' is deprecated, use '" + realName + "' instead.");
+        }
         result |= getVehicleClassID(*i);
     }
     return result;
@@ -362,7 +276,7 @@ getVehicleShapeID(const std::string& name) {
     if (SumoVehicleShapeStrings.hasString(name)) {
         return SumoVehicleShapeStrings.get(name);
     } else {
-        throw ProcessError("Unknown vehicle shape '" + name + "'.");
+        throw InvalidArgument("Unknown vehicle shape '" + name + "'.");
     }
 }
 
@@ -374,50 +288,21 @@ getVehicleShapeName(SUMOVehicleShape id) {
 
 
 bool isRailway(SVCPermissions permissions) {
-    const int anyRail = SVC_RAIL_FAST + SVC_RAIL_SLOW + SVC_CITYRAIL + SVC_LIGHTRAIL;
-    return (permissions & anyRail) > 0 && (permissions & SVC_PASSENGER) == 0;
+    return (permissions & (SVC_RAIL_ELECTRIC | SVC_RAIL | SVC_RAIL_URBAN | SVC_TRAM)) > 0 && (permissions & SVC_PASSENGER) == 0;
 }
 
-// ------------ Conversion of SUMOEmissionClass
-SUMOEmissionClass
-getVehicleEmissionTypeID(const std::string& name) {
-    if (SumoEmissionClassStrings.hasString(name)) {
-        return SumoEmissionClassStrings.get(name);
-    } else {
-        throw ProcessError("Unknown emission type '" + name + "'.");
-    }
-}
 
-std::string
-getVehicleEmissionTypeName(SUMOEmissionClass id) {
-    return SumoEmissionClassStrings.getString(id);
+bool isForbidden(SVCPermissions permissions) {
+    return (permissions & SVCAll) == 0;
 }
 
 
 const std::string DEFAULT_VTYPE_ID("DEFAULT_VEHTYPE");
-const SUMOReal DEFAULT_VEH_MAXSPEED(70.0);
-const SUMOReal DEFAULT_VEH_ACCEL(2.6);
-const SUMOReal DEFAULT_VEH_DECEL(4.5);
-const SUMOReal DEFAULT_VEH_SIGMA(0.5);
-const SUMOReal DEFAULT_VEH_LENGTH(5.);
-const SUMOReal DEFAULT_VEH_MINGAP(2.5);
-const SUMOReal DEFAULT_VEH_TAU(1.);
-const SUMOVehicleClass DEFAULT_VEH_CLASS(SVC_UNKNOWN);
-const SUMOReal DEFAULT_VEH_PROB(1.);
-const SUMOReal DEFAULT_VEH_SPEEDFACTOR(1.);
-const SUMOReal DEFAULT_VEH_SPEEDDEV(0.);
-const SUMOReal DEFAULT_VEH_WIDTH(2.);
-const SUMOReal DEFAULT_VEH_HEIGHT(1.5);
-const SumoXMLTag DEFAULT_VEH_FOLLOW_MODEL(SUMO_TAG_CF_KRAUSS);
-const LaneChangeModel DEFAULT_VEH_LANE_CHANGE_MODEL(LCM_DK2008);
-const SUMOVehicleShape DEFAULT_VEH_SHAPE(SVS_UNKNOWN);
-const SUMOReal DEFAULT_VEH_TMP1(1.);
-const SUMOReal DEFAULT_VEH_TMP2(1.);
-const SUMOReal DEFAULT_VEH_TMP3(1.);
-const SUMOReal DEFAULT_VEH_TMP4(1.);
-const SUMOReal DEFAULT_VEH_TMP5(1.);
+const std::string DEFAULT_PEDTYPE_ID("DEFAULT_PEDTYPE");
 
-const SUMOReal DEFAULT_PERSON_SPEED(5. / 3.6);
+const SUMOReal DEFAULT_VEH_PROB(1.);
+
+const SUMOReal DEFAULT_PEDESTRIAN_SPEED(5. / 3.6);
 
 /****************************************************************************/
 

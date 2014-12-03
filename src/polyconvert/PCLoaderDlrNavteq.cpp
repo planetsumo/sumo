@@ -10,7 +10,7 @@
 // A reader of pois and polygons stored in DLR-Navteq (Elmar)-format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -80,7 +80,7 @@ PCLoaderDlrNavteq::loadPOIFiles(OptionsCont& oc, PCPolyContainer& toFill,
                                 PCTypeMap& tm) {
     std::vector<std::string> files = oc.getStringVector("dlr-navteq-poi-files");
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
-        if (!FileHelpers::exists(*file)) {
+        if (!FileHelpers::isReadable(*file)) {
             throw ProcessError("Could not open dlr-navteq-poi-file '" + *file + "'.");
         }
         PROGRESS_BEGIN_MESSAGE("Parsing pois from dlr-navteq-poi-file '" + *file + "'");
@@ -95,7 +95,7 @@ PCLoaderDlrNavteq::loadPolyFiles(OptionsCont& oc, PCPolyContainer& toFill,
                                  PCTypeMap& tm) {
     std::vector<std::string> files = oc.getStringVector("dlr-navteq-poly-files");
     for (std::vector<std::string>::const_iterator file = files.begin(); file != files.end(); ++file) {
-        if (!FileHelpers::exists(*file)) {
+        if (!FileHelpers::isReadable(*file)) {
             throw ProcessError("Could not open dlr-navteq-poly-file '" + *file + "'.");
         }
         PROGRESS_BEGIN_MESSAGE("Parsing pois from dlr-navteq-poly-file '" + *file + "'");
@@ -175,10 +175,7 @@ PCLoaderDlrNavteq::loadPOIFile(const std::string& file,
                 ignorePrunning = true;
             }
             PointOfInterest* poi = new PointOfInterest(name, type, color, pos, (SUMOReal)layer);
-            if (!toFill.insert(name, poi, layer, ignorePrunning)) {
-                WRITE_ERROR("POI '" + name + "' could not be added.");
-                delete poi;
-            }
+            toFill.insert(name, poi, layer, ignorePrunning);
         }
     }
 }
@@ -265,10 +262,7 @@ PCLoaderDlrNavteq::loadPolyFile(const std::string& file,
         }
         if (!discard) {
             Polygon* poly = new Polygon(name, type, color, vec, fill, (SUMOReal)layer);
-            if (!toFill.insert(name, poly, layer)) {
-                WRITE_ERROR("Polygon '" + name + "' could not be added.");
-                delete poly;
-            }
+            toFill.insert(name, poly, layer);
         }
         vec.clear();
     }

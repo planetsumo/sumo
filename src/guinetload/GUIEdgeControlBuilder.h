@@ -10,7 +10,7 @@
 // Derivation of NLEdgeControlBuilder which builds gui-edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -96,7 +96,8 @@ public:
      *
      * @param[in] id The id of the edge to build
      */
-    MSEdge* buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, const std::string& streetName);
+    MSEdge* buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function,
+                      const std::string& streetName, const std::string& edgeType, const int priority);
 
 
 private:

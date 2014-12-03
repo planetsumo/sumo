@@ -12,7 +12,7 @@
 // An unextended detector measuring at a fixed position on a fixed lane.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -52,6 +52,7 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
+#define HAS_NOT_LEFT_DETECTOR -1
 
 // ===========================================================================
 // method definitions
@@ -99,9 +100,13 @@ MSInductLoop::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
         enterDetectorByMove(veh, entryTime);
     }
     if (newPos - veh.getVehicleType().getLength() > myPosition) {
-        // vehicle passed the detector
+        // vehicle passed the detector (it may have changed onto this lane
+        // somewhere past the detector)
+        assert(newSpeed > 0 || myVehiclesOnDet.find(&veh) == myVehiclesOnDet.end());
         SUMOReal leaveTime = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
-        leaveTime += (myPosition - oldPos + veh.getVehicleType().getLength()) / newSpeed;
+        if (newSpeed > 0) {
+            leaveTime += (myPosition - oldPos + veh.getVehicleType().getLength()) / newSpeed;
+        }
         leaveDetectorByMove(veh, leaveTime);
         return false;
     }
@@ -146,8 +151,10 @@ MSInductLoop::getCurrentOccupancy() const {
         return -1;
     }
     SUMOReal occupancy = 0;
+    SUMOReal csecond = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
     for (std::vector< VehicleData >::const_iterator i = d.begin(); i != d.end(); ++i) {
-        SUMOReal timeOnDetDuringInterval = (*i).leaveTimeM - MAX2(STEPS2TIME(tbeg), (*i).entryTimeM);
+        const SUMOReal leaveTime = (*i).leaveTimeM == HAS_NOT_LEFT_DETECTOR ? csecond : (*i).leaveTimeM;
+        SUMOReal timeOnDetDuringInterval = leaveTime - MAX2(STEPS2TIME(tbeg), (*i).entryTimeM);
         timeOnDetDuringInterval = MIN2(timeOnDetDuringInterval, TS);
         occupancy += timeOnDetDuringInterval;
     }
@@ -309,10 +316,9 @@ MSInductLoop::collectVehiclesOnDet(SUMOTime tMS) const {
             ret.push_back(*i);
         }
     }
-    SUMOTime ct = MSNet::getInstance()->getCurrentTimeStep();
     for (VehicleMap::const_iterator i = myVehiclesOnDet.begin(); i != myVehiclesOnDet.end(); ++i) {
         SUMOVehicle* v = (*i).first;
-        VehicleData d(v->getID(), v->getVehicleType().getLength(), (*i).second, STEPS2TIME(ct), v->getVehicleType().getID());
+        VehicleData d(v->getID(), v->getVehicleType().getLength(), (*i).second, HAS_NOT_LEFT_DETECTOR, v->getVehicleType().getID());
         d.speedM = v->getSpeed();
         ret.push_back(d);
     }

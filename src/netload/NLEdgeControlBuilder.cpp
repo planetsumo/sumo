@@ -9,7 +9,7 @@
 // Interface for building edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -35,6 +35,7 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
+#include <microsim/MSGlobals.h>
 #include <microsim/MSLane.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSEdgeControl.h>
@@ -72,8 +73,10 @@ NLEdgeControlBuilder::~NLEdgeControlBuilder() {
 void
 NLEdgeControlBuilder::beginEdgeParsing(
     const std::string& id, const MSEdge::EdgeBasicFunction function,
-    const std::string& streetName) {
-    myActiveEdge = buildEdge(id, function, streetName);
+    const std::string& streetName,
+    const std::string& edgeType,
+    int priority) {
+    myActiveEdge = buildEdge(id, function, streetName, edgeType, priority);
     if (MSEdge::dictionary(id) != 0) {
         throw InvalidArgument("Another edge with the id '" + id + "' exists.");
     }
@@ -113,13 +116,32 @@ NLEdgeControlBuilder::build() {
         }
 #endif
     }
+    // mark internal edges belonging to a roundabout (after all edges are build)
+    if (MSGlobals::gUsingInternalLanes) {
+        for (EdgeCont::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
+            MSEdge* edge = *i1;
+            if (edge->isInternal()) {
+                if (edge->getNumSuccessors() != 1 || edge->getIncomingEdges().size() != 1) {
+                    throw ProcessError("Internal edge '" + edge->getID() + "' is not properly connected (probably a manually modified net.xml).");
+                }
+                if (edge->getSuccessor(0)->isRoundabout() || edge->getIncomingEdges()[0]->isRoundabout()) {
+                    edge->markAsRoundabout();
+                }
+            }
+        }
+    }
+    if (!deprecatedVehicleClassesSeen.empty()) {
+        WRITE_WARNING("Deprecated vehicle classes '" + toString(deprecatedVehicleClassesSeen) + "' in input network.");
+        deprecatedVehicleClassesSeen.clear();
+    }
     return new MSEdgeControl(myEdges);
 }
 
 
 MSEdge*
-NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, const std::string& streetName) {
-    return new MSEdge(id, myCurrentNumericalEdgeID++, function, streetName);
+NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function,
+                                const std::string& streetName, const std::string& edgeType, const int priority) {
+    return new MSEdge(id, myCurrentNumericalEdgeID++, function, streetName, edgeType, priority);
 }
 
 

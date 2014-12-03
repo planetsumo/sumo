@@ -10,7 +10,7 @@
 // }
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -59,6 +59,15 @@ Line::~Line() {}
 void
 Line::extrapolateBy(SUMOReal length) {
     SUMOReal factor = length / myP1.distanceTo(myP2);
+    Position offset = (myP2 - myP1) * factor;
+    myP1.sub(offset);
+    myP2.add(offset);
+}
+
+
+void
+Line::extrapolateBy2D(SUMOReal length) {
+    SUMOReal factor = length / myP1.distanceTo2D(myP2);
     Position offset = (myP2 - myP1) * factor;
     myP1.sub(offset);
     myP2.add(offset);

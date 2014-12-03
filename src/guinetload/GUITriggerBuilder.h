@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Mon, 26.04.2004
 /// @version $Id$
 ///
 // Builds trigger objects for guisim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -132,7 +133,7 @@ protected:
     virtual MSCalibrator* buildCalibrator(MSNet& net,
                                           const std::string& id, MSEdge* edge, SUMOReal pos,
                                           const std::string& file, const std::string& outfile,
-                                          const SUMOTime freq);
+                                          const SUMOTime freq, const MSRouteProbe* probe);
     /// @}
 
 };

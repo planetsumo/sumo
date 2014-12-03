@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    NWWriter_DlrNavteq.h
 /// @author  Jakob Erdmann
+/// @author  Michael Behrisch
 /// @date    26.10.2012
 /// @version $Id$
 ///
 // Exporter writing networks using DlrNavteq (Elmar) format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -118,11 +119,13 @@ NWWriter_DlrNavteq::writeNodesUnsplitted(const OptionsCont& oc, NBNodeCont& nc, 
         NBEdge* e = (*i).second;
         const PositionVector& geom = e->getGeometry();
         if (geom.size() > 2) {
-            if (e->getID() == UNDEFINED) {
-                WRITE_WARNING("Edge id '" + UNDEFINED +
-                              "' clashes with the magic value for NO_BETWEEN_NODE. Internal geometry for this edge will be lost.");
+            std::string internalNodeID = e->getID();
+            if (internalNodeID == UNDEFINED ||
+                    (nc.retrieve(internalNodeID) != 0)) {
+                // need to invent a new name to avoid clashing with the id of a 'real' node or a reserved name
+                internalNodeID += "_geometry";
             }
-            device << e->getID() << "\t1\t" << geom.size() - 2;
+            device << internalNodeID << "\t1\t" << geom.size() - 2;
             for (size_t ii = 1; ii < geom.size() - 1; ++ii) {
                 Position pos = geom[(int)ii];
                 gch.cartesian2geo(pos);
@@ -179,22 +182,22 @@ NWWriter_DlrNavteq::writeLinksUnsplitted(const OptionsCont& oc, NBEdgeCont& ec) 
 
 std::string
 NWWriter_DlrNavteq::getAllowedTypes(SVCPermissions permissions) {
-    if (permissions == SVCFreeForAll) {
+    if (permissions == SVCAll) {
         return "100000000000";
     }
     std::ostringstream oss;
     oss << "0";
-    oss << ((permissions & SVC_PASSENGER)                    > 0 ? 1 : 0);
-    oss << ((permissions & SVC_PASSENGER)                    > 0 ? 1 : 0); // residential
-    oss << ((permissions & SVC_HOV)                          > 0 ? 1 : 0);
-    oss << ((permissions & SVC_PUBLIC_EMERGENCY)             > 0 ? 1 : 0);
-    oss << ((permissions & SVC_TAXI)                         > 0 ? 1 : 0);
-    oss << ((permissions & (SVC_PUBLIC_TRANSPORT | SVC_BUS)) > 0 ? 1 : 0);
-    oss << ((permissions & SVC_DELIVERY)                     > 0 ? 1 : 0);
-    oss << ((permissions & SVC_TRANSPORT)                    > 0 ? 1 : 0);
-    oss << ((permissions & SVC_MOTORCYCLE)                   > 0 ? 1 : 0);
-    oss << ((permissions & SVC_BICYCLE)                      > 0 ? 1 : 0);
-    oss << ((permissions & SVC_PEDESTRIAN)                   > 0 ? 1 : 0);
+    oss << ((permissions & SVC_PASSENGER)              > 0 ? 1 : 0);
+    oss << ((permissions & SVC_PASSENGER)              > 0 ? 1 : 0); // residential
+    oss << ((permissions & SVC_HOV)                    > 0 ? 1 : 0);
+    oss << ((permissions & SVC_EMERGENCY)              > 0 ? 1 : 0);
+    oss << ((permissions & SVC_TAXI)                   > 0 ? 1 : 0);
+    oss << ((permissions & (SVC_BUS | SVC_COACH))      > 0 ? 1 : 0);
+    oss << ((permissions & SVC_DELIVERY)               > 0 ? 1 : 0);
+    oss << ((permissions & (SVC_TRUCK | SVC_TRAILER))  > 0 ? 1 : 0);
+    oss << ((permissions & SVC_MOTORCYCLE)             > 0 ? 1 : 0);
+    oss << ((permissions & SVC_BICYCLE)                > 0 ? 1 : 0);
+    oss << ((permissions & SVC_PEDESTRIAN)             > 0 ? 1 : 0);
     return oss.str();
 }
 

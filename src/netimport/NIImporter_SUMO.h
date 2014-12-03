@@ -9,7 +9,7 @@
 // Importer for networks stored in SUMO format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -147,6 +147,12 @@ private:
     void addJunction(const SUMOSAXAttributes& attrs);
 
 
+    /** @brief Parses a reques and saves selected attributes in myCurrentJunction
+     * @param[in] attrs The attributes to get the junction's values from
+     */
+    void addRequest(const SUMOSAXAttributes& attrs);
+
+
     /** @brief Parses a connection and saves it
      *    into the lane's definition stored in "myCurrentLane"
      * @param[in] attrs The attributes to get the connection from
@@ -157,6 +163,11 @@ private:
      * @param[in] attrs The attributes to get the connection from
      */
     void addProhibition(const SUMOSAXAttributes& attrs);
+
+    /** @brief Parses a roundabout and stores it in myEdgeCont.
+     * @param[in] attrs The attributes to get the roundabouts values from
+     */
+    void addRoundabout(const SUMOSAXAttributes& attrs);
 
     //@}
 
@@ -198,7 +209,7 @@ private:
         /// @brief The width of this lane
         SUMOReal width;
         /// @brief This lane's offset from the intersection
-        SUMOReal offset;
+        SUMOReal endOffset;
     };
 
 
@@ -245,6 +256,26 @@ private:
         std::string prohibitedTo;
     };
 
+    /** @struct Crossing
+     * @brief Describes a pedestrian crossing
+     */
+    struct Crossing {
+        std::string laneID;
+        std::vector<std::string> crossingEdges;
+        SUMOReal width;
+        bool priority;
+    };
+
+    /** @struct JunctionAttrs
+     * @brief Describes the values found in a junction
+     */
+    struct JunctionAttrs {
+        NBNode* node;
+        // @the list of internal lanes corresponding to each link
+        std::vector<std::string> intLanes;
+        // @brief the complete response definition for all links
+        std::vector<std::string> response;
+    };
 
     /// @brief Loaded edge definitions
     std::map<std::string, EdgeAttrs*> myEdges;
@@ -264,6 +295,9 @@ private:
     /// @brief The currently parsed edge's definition (to add loaded lanes to)
     EdgeAttrs* myCurrentEdge;
 
+    /// @brief The currently parsed junction definition to help in reconstructing crossings
+    JunctionAttrs myCurrentJunction;
+
     /// @brief The currently parsed lanes's definition (to add the shape to)
     LaneAttrs* myCurrentLane;
 
@@ -273,11 +307,14 @@ private:
     /// @brief The coordinate transformation which was used to build the loaded network.
     GeoConvHelper* myLocation;
 
-    /// @brief whether we suspect a net that was built with xml.keep-shape
-    bool mySuspectKeepShape;
+    /// @brief The pedestrian crossings found in the network
+    std::map<std::string, std::vector<Crossing> > myPedestrianCrossings;
 
     /// @brief whether the loaded network contains internal lanes
     bool myHaveSeenInternalEdge;
+
+    /// @brief loaded roundabout edges
+    std::vector<std::vector<std::string> > myRoundabouts;
 
     /** @brief Parses lane index from lane ID an retrieve lane from EdgeAttrs
      * @param[in] edge The EdgeAttrs* which should contain the lane

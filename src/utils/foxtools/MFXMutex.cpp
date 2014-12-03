@@ -1,24 +1,26 @@
-/********************************************************************************
-*                                                                               *
-*               Mutal exclusion object (required for threads)                   *
-*                                                                               *
-*********************************************************************************
-* Copyright (C) 2003 by Mathew Robertson.   All Rights Reserved.                *
-*********************************************************************************
-* This library is free software; you can redistribute it and/or                 *
-* modify it under the terms of the GNU Lesser General Public                    *
-* License as published by the Free Software Foundation; either                  *
-* version 2.1 of the License, or (at your option) any later version.            *
-*                                                                               *
-* This library is distributed in the hope that it will be useful,               *
-* but WITHOUT ANY WARRANTY; without even the implied warranty of                *
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU             *
-* Lesser General Public License for more details.                               *
-*                                                                               *
-* You should have received a copy of the GNU Lesser General Public              *
-* License along with this library; if not, write to the Free Software           *
-* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.    *
-********************************************************************************/
+/****************************************************************************/
+/// @file    MFXMutex.cpp
+/// @author  Mathew Robertson
+/// @author  Michael Behrisch
+/// @author  Jakob Erdmann
+/// @date    2007-02-19
+/// @version $Id$
+///
+//
+/****************************************************************************/
+// SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
+// Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
+/****************************************************************************/
+//
+//   This file is part of SUMO.
+//   SUMO is free software: you can redistribute it and/or modify
+//   it under the terms of the GNU General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+/****************************************************************************/
+
+
 /* =========================================================================
  * included modules
  * ======================================================================= */
@@ -55,6 +57,7 @@ MFXMutex::MFXMutex() : lock_(0) {
     FXMALLOC(&mutexHandle, pthread_mutex_t, 1);
     status = pthread_mutex_init((pthread_mutex_t*)mutexHandle, &attr);
     FXASSERT(status == 0);
+    (void)status; // only used for assertion
     pthread_mutexattr_destroy(&attr);
 #else
     mutexHandle = CreateMutex(NULL, FALSE, NULL);

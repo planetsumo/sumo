@@ -13,7 +13,7 @@
 // A class that stores and controls tls and switching of their programs
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -159,18 +159,18 @@ MSTLLogicControl::TLSLogicVariants::getLogicInstantiatingOff(MSTLLogicControl& t
 }
 
 
-void 
+void
 MSTLLogicControl::TLSLogicVariants::setStateInstantiatingOnline(MSTLLogicControl& tlc,
-                const std::string& state) {
+        const std::string& state) {
     // build only once...
     MSTrafficLightLogic* logic = getLogic("online");
     if (logic == 0) {
         MSPhaseDefinition* phase = new MSPhaseDefinition(DELTA_T, state);
         std::vector<MSPhaseDefinition*> phases;
         phases.push_back(phase);
-        logic = new MSSimpleTrafficLightLogic(tlc, myCurrentProgram->getID(), "online", phases, 0, 
-                MSNet::getInstance()->getCurrentTimeStep() + DELTA_T, 
-                std::map<std::string, std::string>());
+        logic = new MSSimpleTrafficLightLogic(tlc, myCurrentProgram->getID(), "online", phases, 0,
+                                              MSNet::getInstance()->getCurrentTimeStep() + DELTA_T,
+                                              std::map<std::string, std::string>());
         addLogic("online", logic, true, true);
     } else {
         MSPhaseDefinition nphase(DELTA_T, state);
@@ -771,7 +771,7 @@ MSTLLogicControl::closeWAUT(const std::string& wautid) {
     // activate the first one
     if (first != w->switches.end()) {
         std::vector<WAUTSwitch>::const_iterator mbegin = w->switches.begin();
-        MSNet::getInstance()->getBeginOfTimestepEvents().addEvent(
+        MSNet::getInstance()->getBeginOfTimestepEvents()->addEvent(
             new SwitchInitCommand(*this, wautid, (unsigned int)distance(mbegin, first)),
             (*first).when, MSEventControl::NO_CHANGE);
     }

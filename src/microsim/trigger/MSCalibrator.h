@@ -2,13 +2,14 @@
 /// @file    MSCalibrator.h
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
+/// @author  Michael Behrisch
 /// @date    Tue, May 2005
 /// @version $Id$
 ///
 // Calibrates the flow on an edge by removing an inserting vehicles
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -43,6 +44,7 @@
 // class declarations
 // ===========================================================================
 class OutputDevice;
+class MSRouteProbe;
 
 
 // ===========================================================================
@@ -59,7 +61,8 @@ public:
                  const MSEdge* const edge, const SUMOReal pos,
                  const std::string& aXMLFilename,
                  const std::string& outputFilename,
-                 const SUMOTime freq, const SUMOReal length, const bool addLaneMeanData=true);
+                 const SUMOTime freq, const SUMOReal length,
+                 const MSRouteProbe* probe, const bool addLaneMeanData = true);
 
     /** destructor */
     virtual ~MSCalibrator();
@@ -199,7 +202,7 @@ protected:
     };
 
 
-    /** @brief remove any vehicles which are scheduled for removal. 
+    /** @brief remove any vehicles which are scheduled for removal.
      * return true if removals took place */
     bool removePending();
 
@@ -208,6 +211,8 @@ protected:
     const MSEdge* const myEdge;
     /// @brief the position on the edge where this calibrator lies
     const SUMOReal myPos;
+    /// @brief the route probe to retrieve routes from
+    const MSRouteProbe* const myProbe;
     /// @brief data collector for the calibrator
     std::vector<MSMeanData_Net::MSLaneMeanDataValues*> myLaneMeanData;
     /// @brief accumlated data for the whole edge

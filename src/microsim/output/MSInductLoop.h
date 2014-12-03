@@ -4,13 +4,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    2004-11-23
 /// @version $Id$
 ///
 // An unextended detector measuring at a fixed position on a fixed lane.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -251,7 +252,7 @@ public:
         VehicleData(const std::string& id, SUMOReal vehLength, SUMOReal entryTimestep, SUMOReal leaveTimestep,
                     const std::string& typeID)
             : idM(id), lengthM(vehLength), entryTimeM(entryTimestep), leaveTimeM(leaveTimestep),
-              speedM(lengthM / ((leaveTimeM - entryTimeM))), typeIDM(typeID) {}
+              speedM(vehLength / MAX2(leaveTimestep - entryTimestep, NUMERICAL_EPS)), typeIDM(typeID) {}
 
         /// @brief The id of the vehicle
         std::string idM;

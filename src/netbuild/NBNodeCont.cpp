@@ -2,7 +2,7 @@
 /// @file    NBNodeCont.cpp
 /// @author  Daniel Krajzewicz
 /// @author  Jakob Erdmann
-/// @author  Yun-Pang Wang
+/// @author  Yun-Pang Floetteroed
 /// @author  Walter Bamberger
 /// @author  Laura Bieker
 /// @author  Michael Behrisch
@@ -13,7 +13,7 @@
 // Container for nodes during the netbuilding process
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -65,7 +65,8 @@
 // method definitions
 // ===========================================================================
 NBNodeCont::NBNodeCont()
-    : myInternalID(1) {}
+    : myInternalID(1) {
+}
 
 
 NBNodeCont::~NBNodeCont() {
@@ -83,33 +84,9 @@ NBNodeCont::insert(const std::string& id, const Position& position,
     }
     NBNode* node = new NBNode(id, position, district);
     myNodes[id] = node;
+    const float pos[2] = {(float)position.x(), (float)position.y()};
+    myRTree.Insert(pos, pos, node);
     return true;
-}
-
-
-bool
-NBNodeCont::insert(const std::string& id, const Position& position) {
-    NodeCont::iterator i = myNodes.find(id);
-    if (i != myNodes.end()) {
-        return false;
-    }
-    NBNode* node = new NBNode(id, position);
-    myNodes[id] = node;
-    return true;
-}
-
-
-Position
-NBNodeCont::insert(const std::string& id) {
-    std::pair<SUMOReal, SUMOReal> ret(-1.0, -1.0);
-    NodeCont::iterator i = myNodes.find(id);
-    if (i != myNodes.end()) {
-        return (*i).second->getPosition();
-    } else {
-        NBNode* node = new NBNode(id, Position(-1.0, -1.0));
-        myNodes[id] = node;
-    }
-    return Position(-1, -1);
 }
 
 
@@ -121,6 +98,8 @@ NBNodeCont::insert(NBNode* node) {
         return false;
     }
     myNodes[id] = node;
+    const float pos[2] = {(float)node->getPosition().x(), (float)node->getPosition().y()};
+    myRTree.Insert(pos, pos, node);
     return true;
 }
 
@@ -136,12 +115,18 @@ NBNodeCont::retrieve(const std::string& id) const {
 
 
 NBNode*
-NBNodeCont::retrieve(const Position& position, SUMOReal offset) const {
-    for (NodeCont::const_iterator i = myNodes.begin(); i != myNodes.end(); i++) {
-        NBNode* node = (*i).second;
-        if (fabs(node->getPosition().x() - position.x()) < offset
+NBNodeCont::retrieve(const Position& position, const SUMOReal offset) const {
+    const SUMOReal extOffset = offset + POSITION_EPS;
+    const float cmin[2] = {(float)(position.x() - extOffset), (float)(position.y() - extOffset)};
+    const float cmax[2] = {(float)(position.x() + extOffset), (float)(position.y() + extOffset)};
+    std::set<std::string> into;
+    Named::StoringVisitor sv(into);
+    myRTree.Search(cmin, cmax, sv);
+    for (std::set<std::string>::const_iterator i = into.begin(); i != into.end(); i++) {
+        NBNode* const node = myNodes.find(*i)->second;
+        if (fabs(node->getPosition().x() - position.x()) <= offset
                 &&
-                fabs(node->getPosition().y() - position.y()) < offset) {
+                fabs(node->getPosition().y() - position.y()) <= offset) {
             return node;
         }
     }
@@ -167,6 +152,8 @@ NBNodeCont::extract(NBNode* node, bool remember) {
         return false;
     }
     myNodes.erase(i);
+    const float pos[2] = {(float)node->getPosition().x(), (float)node->getPosition().y()};
+    myRTree.Remove(pos, pos, node);
     node->removeTrafficLights();
     if (remember) {
         myExtractedNodes.insert(node);
@@ -487,10 +474,10 @@ NBNodeCont::joinLoadedClusters(NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLigh
 
 
 unsigned int
-NBNodeCont::joinJunctions(SUMOReal maxdist, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc) {
+NBNodeCont::joinJunctions(SUMOReal maxDist, NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc) {
     NodeClusters cands;
     NodeClusters clusters;
-    generateNodeClusters(maxdist, cands);
+    generateNodeClusters(maxDist, cands);
     for (NodeClusters::iterator i = cands.begin(); i != cands.end(); ++i) {
         std::set<NBNode*> cluster = (*i);
         // remove join exclusions
@@ -509,41 +496,138 @@ NBNodeCont::joinJunctions(SUMOReal maxdist, NBDistrictCont& dc, NBEdgeCont& ec, 
                 std::set<NBNode*>::iterator check = j;
                 NBNode* n = *check;
                 ++j;
-                // remove nodes with degree <= 2 at fringe of the cluster (at least one edge leads to a non-cluster node)
-                if (
-                    (n->getIncomingEdges().size() <= 1 && n->getOutgoingEdges().size() <= 1) &&
-                    ((n->getIncomingEdges().size() == 0 ||
-                      (n->getIncomingEdges().size() == 1 && cluster.count(n->getIncomingEdges()[0]->getFromNode()) == 0)) ||
-                     (n->getOutgoingEdges().size() == 0 ||
-                      (n->getOutgoingEdges().size() == 1 && cluster.count(n->getOutgoingEdges()[0]->getToNode()) == 0)))
-                ) {
+                // remove geometry-like nodes at fringe of the cluster
+                // (they have 1 neighbor in the cluster and at most 1 neighbor outside the cluster)
+                std::set<NBNode*> neighbors;
+                std::set<NBNode*> clusterNeigbors;
+                for (EdgeVector::const_iterator it_edge = n->getOutgoingEdges().begin(); it_edge != n->getOutgoingEdges().end(); ++it_edge) {
+                    NBNode* neighbor = (*it_edge)->getToNode();
+                    if (cluster.count(neighbor) == 0) {
+                        neighbors.insert(neighbor);
+                    } else {
+                        clusterNeigbors.insert(neighbor);
+                    }
+                }
+                for (EdgeVector::const_iterator it_edge = n->getIncomingEdges().begin(); it_edge != n->getIncomingEdges().end(); ++it_edge) {
+                    NBNode* neighbor = (*it_edge)->getFromNode();
+                    if (cluster.count(neighbor) == 0) {
+                        neighbors.insert(neighbor);
+                    } else {
+                        clusterNeigbors.insert(neighbor);
+                    }
+                }
+                if (neighbors.size() <= 1 && clusterNeigbors.size() == 1) {
                     cluster.erase(check);
                     pruneFringe = true; // other nodes could belong to the fringe now
                 }
             }
         }
+        // exclude the fromNode of a long edge if the toNode is in the cluster (and they were both added via an alternative path).
+        std::set<NBNode*> toRemove;
+        for (std::set<NBNode*>::iterator j = cluster.begin(); j != cluster.end(); ++j) {
+            NBNode* n = *j;
+            const EdgeVector& edges = n->getOutgoingEdges();
+            for (EdgeVector::const_iterator it_edge = edges.begin(); it_edge != edges.end(); ++it_edge) {
+                NBEdge* edge = *it_edge;
+                if (cluster.count(edge->getToNode()) != 0 && edge->getLoadedLength() > maxDist) {
+                    //std::cout << "long edge " << edge->getID() << " (" << edge->getLoadedLength() << ", max=" << maxDist << ")\n";
+                    toRemove.insert(n);
+                    toRemove.insert(edge->getToNode());
+                }
+            }
+        }
+        for (std::set<NBNode*>::iterator j = toRemove.begin(); j != toRemove.end(); ++j) {
+            cluster.erase(*j);
+        }
         if (cluster.size() > 1) {
             // check for clusters which are to complex and probably won't work very well
             // we count the incoming edges of the final junction
-            std::set<NBEdge*> finalIncoming;
+            std::map<std::string, SUMOReal> finalIncomingAngles;
+            std::map<std::string, SUMOReal> finalOutgoingAngles;
             std::vector<std::string> nodeIDs;
             for (std::set<NBNode*>::const_iterator j = cluster.begin(); j != cluster.end(); ++j) {
                 nodeIDs.push_back((*j)->getID());
-                const EdgeVector& edges = (*j)->getIncomingEdges();
-                for (EdgeVector::const_iterator it_edge = edges.begin(); it_edge != edges.end(); ++it_edge) {
+                for (EdgeVector::const_iterator it_edge = (*j)->getIncomingEdges().begin(); it_edge != (*j)->getIncomingEdges().end(); ++it_edge) {
                     NBEdge* edge = *it_edge;
                     if (cluster.count(edge->getFromNode()) == 0) {
                         // incoming edge, does not originate in the cluster
-                        finalIncoming.insert(edge);
+                        finalIncomingAngles[edge->getID()] = edge->getAngleAtNode(edge->getToNode());
+                    }
+                }
+                for (EdgeVector::const_iterator it_edge = (*j)->getOutgoingEdges().begin(); it_edge != (*j)->getOutgoingEdges().end(); ++it_edge) {
+                    NBEdge* edge = *it_edge;
+                    if (cluster.count(edge->getToNode()) == 0) {
+                        // outgoing edge, does not end in the cluster
+                        finalOutgoingAngles[edge->getID()] = edge->getAngleAtNode(edge->getFromNode());
                     }
                 }
 
             }
-            if (finalIncoming.size() > 4) {
+            if (finalIncomingAngles.size() > 4) {
                 std::sort(nodeIDs.begin(), nodeIDs.end());
-                WRITE_WARNING("Not joining junctions " + joinToString(nodeIDs, ',') + " because the cluster is too complex");
+                WRITE_WARNING("Not joining junctions " + joinToStringSorting(nodeIDs, ',') + " because the cluster is too complex (" + toString(finalIncomingAngles.size()) + " incoming edges)");
             } else {
-                clusters.push_back(cluster);
+                // check for incoming parallel edges
+                const SUMOReal PARALLEL_INCOMING_THRESHOLD = 10.0;
+                bool foundParallel = false;
+                for (std::map<std::string, SUMOReal>::const_iterator j = finalIncomingAngles.begin(); j != finalIncomingAngles.end() && !foundParallel; ++j) {
+                    std::map<std::string, SUMOReal>::const_iterator k = j;
+                    for (++k; k != finalIncomingAngles.end() && !foundParallel; ++k) {
+                        if (fabs(j->second - k->second) < PARALLEL_INCOMING_THRESHOLD) {
+                            WRITE_WARNING("Not joining junctions " + joinToStringSorting(nodeIDs, ',') + " because the cluster is too complex (parallel incoming "
+                                          + j->first + "," + k->first + ")");
+                            foundParallel = true;
+                        }
+                    }
+                }
+                // check for outgoing parallel edges
+                for (std::map<std::string, SUMOReal>::const_iterator j = finalOutgoingAngles.begin(); j != finalOutgoingAngles.end() && !foundParallel; ++j) {
+                    std::map<std::string, SUMOReal>::const_iterator k = j;
+                    for (++k; k != finalOutgoingAngles.end() && !foundParallel; ++k) {
+                        if (fabs(j->second - k->second) < PARALLEL_INCOMING_THRESHOLD) {
+                            WRITE_WARNING("Not joining junctions " + joinToStringSorting(nodeIDs, ',') + " because the cluster is too complex (parallel outgoing "
+                                          + j->first + "," + k->first + ")");
+                            foundParallel = true;
+                        }
+                    }
+                }
+                if (!foundParallel && cluster.size() > 1) {
+                    // compute all connected components of this cluster
+                    // (may be more than 1 if intermediate nodes were removed)
+                    NodeClusters components;
+                    for (std::set<NBNode*>::iterator j = cluster.begin(); j != cluster.end(); ++j) {
+                        // merge all connected components into newComp
+                        std::set<NBNode*> newComp;
+                        NBNode* current = *j;
+                        //std::cout << "checking connectivity for " << current->getID() << "\n";
+                        newComp.insert(current);
+                        for (NodeClusters::iterator it_comp = components.begin(); it_comp != components.end();) {
+                            NodeClusters::iterator check = it_comp;
+                            //std::cout << "   connected with " << toString(*check) << "?\n";
+                            bool connected = false;
+                            for (std::set<NBNode*>::iterator k = (*check).begin(); k != (*check).end(); ++k) {
+                                if (current->getConnectionTo(*k) != 0 || (*k)->getConnectionTo(current) != 0) {
+                                    //std::cout << "joining with connected component " << toString(*check) << "\n";
+                                    newComp.insert((*check).begin(), (*check).end());
+                                    it_comp = components.erase(check);
+                                    connected = true;
+                                    break;
+                                }
+                            }
+                            if (!connected) {
+                                it_comp++;
+                            }
+                        }
+                        //std::cout << "adding new component " << toString(newComp) << "\n";
+                        components.push_back(newComp);
+                    }
+                    for (NodeClusters::iterator it_comp = components.begin(); it_comp != components.end(); ++it_comp) {
+                        if ((*it_comp).size() > 1) {
+                            //std::cout << "adding cluster " << toString(*it_comp) << "\n";
+                            clusters.push_back(*it_comp);
+                        }
+                    }
+                }
             }
         }
     }
@@ -730,6 +814,58 @@ NBNodeCont::guessTLs(OptionsCont& oc, NBTrafficLightLogicCont& tlc) {
         }
     }
 
+    // figure out which nodes mark the locations of TLS signals
+    // This assumes nodes are already joined
+    if (oc.exists("tls.guess-signals") && oc.getBool("tls.guess-signals")) {
+        // prepare candidate edges
+        const SUMOReal signalDist = oc.getFloat("tls.guess-signals.dist");
+        for (std::map<std::string, NBNode*>::const_iterator i = myNodes.begin(); i != myNodes.end(); ++i) {
+            NBNode* node = (*i).second;
+            if (node->isTLControlled() && node->geometryLike()) {
+                const EdgeVector& outgoing = node->getOutgoingEdges();
+                for (EdgeVector::const_iterator it_o = outgoing.begin(); it_o != outgoing.end(); ++it_o) {
+                    (*it_o)->setSignalOffset((*it_o)->getLength());
+                }
+            }
+        }
+        // check which nodes should be controlled
+        for (std::map<std::string, NBNode*>::const_iterator i = myNodes.begin(); i != myNodes.end(); ++i) {
+            NBNode* node = i->second;
+            const EdgeVector& incoming = node->getIncomingEdges();
+            if (!node->isTLControlled() && incoming.size() > 1 && !node->geometryLike()) {
+                std::vector<NBNode*> signals;
+                bool isTLS = true;
+                for (EdgeVector::const_iterator it_i = incoming.begin(); it_i != incoming.end(); ++it_i) {
+                    const NBEdge* inEdge = *it_i;
+                    if (inEdge->getSignalOffset() == NBEdge::UNSPECIFIED_SIGNAL_OFFSET || inEdge->getSignalOffset() > signalDist) {
+                        isTLS = false;
+                        break;
+                    }
+                    if (inEdge->getSignalOffset() == inEdge->getLength()) {
+                        signals.push_back(inEdge->getFromNode());
+                    }
+                }
+                if (isTLS) {
+                    for (std::vector<NBNode*>::iterator j = signals.begin(); j != signals.end(); ++j) {
+                        std::set<NBTrafficLightDefinition*> tls = (*j)->getControllingTLS();
+                        (*j)->removeTrafficLights();
+                        for (std::set<NBTrafficLightDefinition*>::iterator k = tls.begin(); k != tls.end(); ++k) {
+                            tlc.removeFully((*j)->getID());
+                        }
+                    }
+                    NBTrafficLightDefinition* tlDef = new NBOwnTLDef("GS_" + node->getID(), node, 0, TLTYPE_STATIC);
+                    // @todo patch endOffset for all incoming lanes according to the signal positions
+                    if (!tlc.insert(tlDef)) {
+                        // actually, nothing should fail here
+                        WRITE_WARNING("Could not build joined tls '" + node->getID() + "'.");
+                        delete tlDef;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     // maybe no tls shall be guessed
     if (!oc.getBool("tls.guess")) {
         return;
@@ -862,9 +998,9 @@ NBNodeCont::setAsTLControlled(NBNode* node, NBTrafficLightLogicCont& tlc,
 
 // -----------
 void
-NBNodeCont::computeLanes2Lanes() {
+NBNodeCont::computeLanes2Lanes(const bool buildCrossingsAndWalkingAreas) {
     for (NodeCont::iterator i = myNodes.begin(); i != myNodes.end(); i++) {
-        (*i).second->computeLanes2Lanes();
+        (*i).second->computeLanes2Lanes(buildCrossingsAndWalkingAreas);
     }
 }
 
@@ -901,9 +1037,9 @@ NBNodeCont::getFreeID() {
 
 
 void
-NBNodeCont::computeNodeShapes(bool leftHand) {
+NBNodeCont::computeNodeShapes(bool leftHand, SUMOReal mismatchThreshold) {
     for (NodeCont::iterator i = myNodes.begin(); i != myNodes.end(); i++) {
-        (*i).second->computeNodeShape(leftHand);
+        (*i).second->computeNodeShape(leftHand, mismatchThreshold);
     }
 }
 
@@ -979,12 +1115,19 @@ NBNodeCont::rename(NBNode* node, const std::string& newID) {
 
 
 void
-NBNodeCont::discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike) {
+NBNodeCont::discardTrafficLights(NBTrafficLightLogicCont& tlc, bool geometryLike, bool guessSignals) {
     for (NodeCont::const_iterator i = myNodes.begin(); i != myNodes.end(); ++i) {
         NBNode* node = i->second;
         if (!geometryLike || node->geometryLike()) {
             // make a copy of tldefs
             const std::set<NBTrafficLightDefinition*> tldefs = node->getControllingTLS();
+            if (guessSignals && node->isTLControlled() && node->geometryLike()) {
+                // record signal location
+                const EdgeVector& outgoing = node->getOutgoingEdges();
+                for (EdgeVector::const_iterator it_o = outgoing.begin(); it_o != outgoing.end(); ++it_o) {
+                    (*it_o)->setSignalOffset((*it_o)->getLength());
+                }
+            }
             for (std::set<NBTrafficLightDefinition*>::const_iterator it = tldefs.begin(); it != tldefs.end(); ++it) {
                 NBTrafficLightDefinition* tlDef = *it;
                 node->removeTrafficLight(tlDef);

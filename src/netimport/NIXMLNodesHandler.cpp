@@ -10,7 +10,7 @@
 // Importer for network nodes stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -180,6 +180,15 @@ NIXMLNodesHandler::addNode(const SUMOSAXAttributes& attrs) {
     if (type == NODETYPE_TRAFFIC_LIGHT || type == NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
         processTrafficLightDefinitions(attrs, node);
     }
+    // set optional shape
+    PositionVector shape;
+    if (attrs.hasAttribute(SUMO_ATTR_SHAPE)) {
+        shape = attrs.getOpt<PositionVector>(SUMO_ATTR_SHAPE, myID.c_str(), ok, PositionVector());
+        if (shape.size() > 2) {
+            shape.closePolygon();
+        }
+        node->setCustomShape(shape);
+    }
 }
 
 
@@ -241,7 +250,7 @@ NIXMLNodesHandler::processTrafficLightDefinitions(const SUMOSAXAttributes& attrs
         type = SUMOXMLDefinitions::TrafficLightTypes.get(typeS);
     } else {
         WRITE_ERROR("Unknown traffic light type '" + typeS + "' for node '" + myID + "'.");
-        ok = false;
+        return;
     }
     if (tlID != "" && myTLLogicCont.getPrograms(tlID).size() > 0) {
         // we already have definitions for this tlID

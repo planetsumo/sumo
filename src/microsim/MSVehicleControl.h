@@ -9,7 +9,7 @@
 // The class responsible for building and deletion of vehicles
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,21 +36,20 @@
 #include <string>
 #include <map>
 #include <set>
-#include "MSGlobals.h"
-#include <utils/common/RandHelper.h>
-#include <utils/common/SUMOTime.h>
 #include <utils/common/RandomDistributor.h>
-#include <utils/common/SUMOVehicleParameter.h>
+#include <utils/common/SUMOTime.h>
+#include <utils/common/SUMOVehicleClass.h>
 
 
 // ===========================================================================
 // class declarations
 // ===========================================================================
 class SUMOVehicle;
+class SUMOVehicleParameter;
 class MSVehicle;
 class MSRoute;
 class MSVehicleType;
-class BinaryInputDevice;
+class OutputDevice;
 class MSEdge;
 
 
@@ -97,10 +96,13 @@ public:
      * @param[in] defs The parameter defining the vehicle
      * @param[in] route The route of this vehicle
      * @param[in] type The type of this vehicle
+     * @param[in] ignoreStopErrors whether invalid stops trigger a warning only
+     * @param[in] fromRouteFile whether we are just reading the route file or creating via trigger, traci, ...
      * @return The built vehicle (MSVehicle instance)
      */
     virtual SUMOVehicle* buildVehicle(SUMOVehicleParameter* defs, const MSRoute* route,
-                                      const MSVehicleType* type);
+                                      const MSVehicleType* type,
+                                      const bool ignoreStopErrors, const bool fromRouteFile = true);
     /// @}
 
 
@@ -223,13 +225,13 @@ public:
     }
 
 
-    /** @brief Returns the information whether the currently vehicle number shall be emitted
-     * considering that only frac of all vehicles shall be emitted overall
+    /** @brief Returns the number of instances of the current vehicle that shall be emitted
+     * considering that "frac" of all vehicles shall be emitted overall
      * if a negative fraction is given the demand scaling factor is used
-     * (--scale or --incremental-dua-step / --incremental-dua-base)
-     * @return True iff the vehicle number is acceptable
+     * (--scale)
+     * @return the number of vehicles to create (something between 0 and ceil(frac))
      */
-    bool isInQuota(SUMOReal frac = -1) const;
+    unsigned int getQuota(SUMOReal frac = -1) const;
 
 
     /** @brief Returns the number of build vehicles that have not been removed
@@ -246,10 +248,29 @@ public:
         return myCollisions;
     }
 
+    /// @brief return the number of teleports due to jamming
+    unsigned int getTeleportsJam() const {
+        return myTeleportsJam;
+    }
+
+    /// @brief return the number of teleports due to vehicles stuck on a minor road
+    unsigned int getTeleportsYield() const {
+        return myTeleportsYield;
+    }
+
+    /// @brief return the number of teleports due to vehicles stuck on the wrong lane
+    unsigned int getTeleportsWrongLane() const {
+        return myTeleportsWrongLane;
+    }
 
     /// @brief return the number of teleports (including collisions)
     unsigned int getTeleportCount() const {
-        return myTeleports;
+        return myCollisions + myTeleportsJam + myTeleportsYield + myTeleportsWrongLane;
+    }
+
+    /// @brief return the number of emergency stops
+    unsigned int getEmergencyStops() const {
+        return myEmergencyStops;
     }
 
 
@@ -319,7 +340,7 @@ public:
      * @param[in] id The id of the vehicle type to return. If left out, the default type is returned.
      * @return The named vehicle type, or 0 if no such type exists
      */
-    MSVehicleType* getVType(const std::string& id = DEFAULT_VTYPE_ID);
+    MSVehicleType* getVType(const std::string& id = DEFAULT_VTYPE_ID, MTRand* rng = 0);
 
 
     /** @brief Inserts ids of all known vehicle types and vehicle type distributions to the given vector
@@ -348,16 +369,28 @@ public:
 
     /// @brief registers one collision-related teleport
     void registerCollision() {
-        myTeleports++;
         myCollisions++;
     }
 
     /// @brief register one non-collision-related teleport
-    void registerTeleport() {
-        myTeleports++;
+    void registerTeleportJam() {
+        myTeleportsJam++;
     }
 
+    /// @brief register one non-collision-related teleport
+    void registerTeleportYield() {
+        myTeleportsYield++;
+    }
 
+    /// @brief register one non-collision-related teleport
+    void registerTeleportWrongLane() {
+        myTeleportsWrongLane++;
+    }
+
+    /// @brief register emergency stop
+    void registerEmergencyStop() {
+        myEmergencyStops++;
+    }
 
     /// @name State I/O (mesosim only)
     /// @{
@@ -376,11 +409,8 @@ public:
      */
     void abortWaiting();
 
-
-public:
-    /// @brief A random number generator used to choose from vtype/route distributions and computing the speed factors
-    static MTRand myVehicleParamsRNG;
-
+    /// @brief compute (optional) random offset to the departure time
+    SUMOTime computeRandomDepartOffset() const;
 
 private:
     /** @brief Checks whether the vehicle type (distribution) may be added
@@ -410,8 +440,18 @@ protected:
     /// @brief The number of collisions
     unsigned int myCollisions;
 
-    /// @brief The number of teleports (including collisions)
-    unsigned int myTeleports;
+    /// @brief The number of teleports due to jam
+    unsigned int myTeleportsJam;
+
+    /// @brief The number of teleports due to vehicles stuck on a minor road
+    unsigned int myTeleportsYield;
+
+    /// @brief The number of teleports due to vehicles stuck on the wrong lane
+    unsigned int myTeleportsWrongLane;
+
+    /// @brief The number of emergency stops
+    unsigned int myEmergencyStops;
+
     /// @}
 
 
@@ -452,6 +492,9 @@ protected:
     /// @brief Whether no vehicle type was loaded
     bool myDefaultVTypeMayBeDeleted;
 
+    /// @brief Whether no pedestrian type was loaded
+    bool myDefaultPedTypeMayBeDeleted;
+
     /// the lists of waiting vehicles
     std::map<const MSEdge* const, std::vector<SUMOVehicle*> > myWaiting;
 
@@ -460,6 +503,10 @@ protected:
 
     /// @brief The scaling factor (especially for inc-dua)
     SUMOReal myScale;
+
+    /// @brief The maximum random offset to be added to vehicles departure times (non-negative)
+    SUMOTime myMaxRandomDepartOffset;
+
 
 private:
     /// @brief invalidated copy constructor

@@ -8,7 +8,7 @@
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -101,7 +101,7 @@ NIVissimSingleTypeParser_Signalgeberdefinition::parse(std::istream& from) {
     from >> laneno;
 
     from >> tag;
-    int position;
+    SUMOReal position;
     from >> position;
     //
     while (tag != "fahrzeugklassen") {
@@ -111,8 +111,8 @@ NIVissimSingleTypeParser_Signalgeberdefinition::parse(std::istream& from) {
     //
     NIVissimTL::dictionary(lsaid); // !!! check whether someting is really done here
     NIVissimTL::NIVissimTLSignal* signal =
-        new NIVissimTL::NIVissimTLSignal(lsaid, id, name, groupids, edgeid,
-                                         laneno, (SUMOReal) position, assignedVehicleTypes);
+        new NIVissimTL::NIVissimTLSignal(id, name, groupids, edgeid,
+                                         laneno, position, assignedVehicleTypes);
     if (!NIVissimTL::NIVissimTLSignal::dictionary(lsaid, id, signal)) {
         throw 1; // !!!
     }

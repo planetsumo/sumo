@@ -9,7 +9,7 @@
 // The class responsible for building and deletion of vehicles (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -31,6 +31,7 @@
 #endif
 
 #include <utils/foxtools/MFXMutex.h>
+#include <microsim/MSRouteHandler.h>
 #include "GUIVehicleControl.h"
 #include "GUIVehicle.h"
 #include "GUINet.h"
@@ -58,9 +59,14 @@ GUIVehicleControl::~GUIVehicleControl() {
 
 SUMOVehicle*
 GUIVehicleControl::buildVehicle(SUMOVehicleParameter* defs,
-                                const MSRoute* route, const MSVehicleType* type) {
+                                const MSRoute* route, const MSVehicleType* type,
+                                const bool ignoreStopErrors, const bool fromRouteFile) {
     myLoadedVehNo++;
-    MSVehicle* built = new GUIVehicle(defs, route, type, type->computeChosenSpeedDeviation(myVehicleParamsRNG));
+    if (fromRouteFile) {
+        defs->depart += computeRandomDepartOffset();
+    }
+    MSVehicle* built = new GUIVehicle(defs, route, type, type->computeChosenSpeedDeviation(fromRouteFile ? MSRouteHandler::getParsingRNG() : 0));
+    built->addStops(ignoreStopErrors);
     MSNet::getInstance()->informVehicleStateListener(built, MSNet::VEHICLE_STATE_BUILT);
     return built;
 }

@@ -10,7 +10,7 @@
 // Exceptions for used by some utility classes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -41,20 +41,6 @@
 // class definitions
 // ===========================================================================
 /**
- * InvalidArgument
- * Thrown when an argument was not proper in the current context
- * A message will be supplied
- */
-class InvalidArgument : public std::runtime_error {
-public:
-    /** constructor */
-    InvalidArgument(const std::string& message)
-        : std::runtime_error(message) {}
-
-};
-
-
-/**
  * ProcessError
  * A general exception type that may be thrown when the process is no
  * longer able to proceed due to any reason. The reason itself is mostly
@@ -69,6 +55,20 @@ public:
     /** constructor */
     ProcessError(const std::string& msg)
         : std::runtime_error(msg) {}
+
+};
+
+
+/**
+ * InvalidArgument
+ * Thrown when an argument was not proper in the current context
+ * A message will be supplied
+ */
+class InvalidArgument : public ProcessError {
+public:
+    /** constructor */
+    InvalidArgument(const std::string& message)
+        : ProcessError(message) {}
 
 };
 

@@ -2,13 +2,14 @@
 /// @file    GUIVehicleControl.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Wed, 10. Dec 2003
 /// @version $Id$
 ///
 // The class responsible for building and deletion of vehicles (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2003-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -75,11 +76,14 @@ public:
      * @param[in] defs The parameter defining the vehicle
      * @param[in] route The route of this vehicle
      * @param[in] type The type of this vehicle
-     * @return The built vehicle (MSVehicle instance)
+     * @param[in] ignoreStopErrors whether invalid stops trigger a warning only
+     * @param[in] fromRouteFile whether we are just reading the route file or creating via trigger, traci, ...
+     * @return The built vehicle (GUIVehicle instance)
      * @see MSVehicleControl::buildVehicle
      */
     SUMOVehicle* buildVehicle(SUMOVehicleParameter* defs,
-                              const MSRoute* route, const MSVehicleType* type);
+                              const MSRoute* route, const MSVehicleType* type,
+                              const bool ignoreStopErrors, const bool fromRouteFile = true);
     /// @}
 
 

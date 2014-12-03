@@ -9,7 +9,7 @@
 // The class holds a description of a connection between two edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -229,6 +229,14 @@ NBConnection::getToLane() const {
 }
 
 
+void
+NBConnection::shiftLaneIndex(NBEdge* edge, int offset) {
+    if (myFrom == edge) {
+        myFromLane += offset;
+    } else if (myTo == edge) {
+        myToLane += offset;
+    }
+}
 
 /****************************************************************************/
 

@@ -2,13 +2,14 @@
 /// @file    ODDistrictCont.cpp
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Yun-Pang Floetteroed
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // A container for districts
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -77,13 +78,13 @@ ODDistrictCont::getRandomSinkFromDistrict(const std::string& name) const {
 
 void
 ODDistrictCont::loadDistricts(std::string districtfile) {
-    if (!FileHelpers::exists(districtfile)) {
-        throw ProcessError("Could not find network '" + districtfile + "' to load.");
+    if (!FileHelpers::isReadable(districtfile)) {
+        throw ProcessError("Could not access network file '" + districtfile + "' to load.");
     }
     PROGRESS_BEGIN_MESSAGE("Loading districts from '" + districtfile + "'");
     // build the xml-parser and handler
     ODDistrictHandler handler(*this, districtfile);
-    if (!XMLSubSys::runParser(handler, districtfile)) {
+    if (!XMLSubSys::runParser(handler, districtfile, true)) {
         PROGRESS_FAILED_MESSAGE();
     } else {
         PROGRESS_DONE_MESSAGE();

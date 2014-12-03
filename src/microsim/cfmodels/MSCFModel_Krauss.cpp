@@ -11,7 +11,7 @@
 // Krauss car-following model, with acceleration decrease and faster start
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -53,21 +53,21 @@ MSCFModel_Krauss::~MSCFModel_Krauss() {}
 
 
 SUMOReal
-MSCFModel_Krauss::followSpeed(const MSVehicle* const veh, const SUMOReal speed, SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel) const {
-    return MIN2(_vsafe(gap, predSpeed, predMaxDecel), maxNextSpeed(speed, veh));
+MSCFModel_Krauss::stopSpeed(const MSVehicle* const veh, const SUMOReal speed, SUMOReal gap) const {
+    return MIN2(maximumSafeStopSpeed(gap), maxNextSpeed(speed, veh));
 }
 
 
 SUMOReal
-MSCFModel_Krauss::stopSpeed(const MSVehicle* const veh, const SUMOReal speed, SUMOReal gap) const {
-    return MIN2(_vsafe(gap, 0, 0), maxNextSpeed(speed, veh));
+MSCFModel_Krauss::followSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel) const {
+    return MIN2(maximumSafeFollowSpeed(gap, predSpeed, predMaxDecel), maxNextSpeed(speed, veh));
 }
 
 
 SUMOReal
 MSCFModel_Krauss::dawdle(SUMOReal speed) const {
-    // generate random number out of [0,1]
-    SUMOReal random = RandHelper::rand();
+    // generate random number out of [0,1)
+    const SUMOReal random = RandHelper::rand();
     // Dawdle.
     if (speed < myAccel) {
         // we should not prevent vehicles from driving just due to dawdling
@@ -81,51 +81,10 @@ MSCFModel_Krauss::dawdle(SUMOReal speed) const {
 }
 
 
-/** Returns the SK-vsafe. */
-SUMOReal
-MSCFModel_Krauss::_vsafe(SUMOReal gap, SUMOReal predSpeed, SUMOReal predMaxDecel) const {
-    if (predSpeed < predMaxDecel) {
-        // avoid discretization error at low speeds
-        predSpeed = 0;
-    }
-    if (predSpeed == 0) {
-        if (gap < 0.01) {
-            return 0;
-        }
-        // g = t * x + x^2 / (2 * b)
-        const SUMOReal result = (SUMOReal)(-myTauDecel + sqrt(myTauDecel * myTauDecel + 2. * myDecel * gap));
-        assert(result >= 0);
-        return result;
-    }
-    // follow the leader
-    // g=gap, t=myHeadwayTime, a=predMaxDecel, b=myDecel, v=predSpeed, x=vSafe
-    // Solution approach: equal distances after leader and follower have stopped (partly discretized).
-    // g + (v^2 - a*v)/(2*a) = x*t + (x^2 - b*x)/(2*b) + 0.5
-    // The term (+ 0.5) gives an upper bound for the follower stopping distance to handle discretization errors.
-    // Unfortunately, the solution approach is not correct when b > a since the
-    // follower path may cross the leader path even with equal stopping distances.
-    // As a workaround we lower the value of b to get a collision free model
-    // This approach should be refined to get a higher (still safe) following speed.
-    const SUMOReal egoDecel = MIN2(myDecel, predMaxDecel);
-    const SUMOReal result = (SUMOReal)(0.5 * sqrt(
-                                           4.0 * egoDecel * (2.0 * gap + predSpeed * predSpeed / predMaxDecel - predSpeed - 1.0)
-                                           + (egoDecel * (2.0 * myHeadwayTime - 1.0))
-                                           * (egoDecel * (2.0 * myHeadwayTime - 1.0)))
-                                       + egoDecel * (0.5 - myHeadwayTime));
-    // XXX recheck use of both branches of the quadratic forumula
-    if (ISNAN(result)) {
-        return 0;
-    } else {
-        return MAX2((SUMOReal)0, result);
-    }
-}
-
-
 MSCFModel*
 MSCFModel_Krauss::duplicate(const MSVehicleType* vtype) const {
     return new MSCFModel_Krauss(vtype, myAccel, myDecel, myDawdle, myHeadwayTime);
 }
 
 
-//void MSCFModel::saveState(std::ostream &os) {}
-
+/****************************************************************************/

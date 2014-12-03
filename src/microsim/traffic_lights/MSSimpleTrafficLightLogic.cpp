@@ -11,7 +11,7 @@
 // A fixed traffic light logic
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -170,7 +170,7 @@ MSSimpleTrafficLightLogic::getOffsetFromIndex(unsigned int index) const {
 
 unsigned int
 MSSimpleTrafficLightLogic::getIndexFromOffset(SUMOTime offset) const {
-    assert(offset <= myDefaultCycleTime);
+    offset = offset % myDefaultCycleTime;
     if (offset == myDefaultCycleTime) {
         return 0;
     }
@@ -200,7 +200,7 @@ MSSimpleTrafficLightLogic::changeStepAndDuration(MSTLLogicControl& tlcontrol,
         setTrafficLightSignals(simStep);
         tlcontrol.get(getID()).executeOnSwitchActions();
     }
-    MSNet::getInstance()->getBeginOfTimestepEvents().addEvent(
+    MSNet::getInstance()->getBeginOfTimestepEvents()->addEvent(
         mySwitchCommand, stepDuration + simStep,
         MSEventControl::ADAPT_AFTER_EXECUTION);
 }

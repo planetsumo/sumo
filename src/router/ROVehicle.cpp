@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Axel Wegener
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // A vehicle as used by router
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -33,7 +34,7 @@
 #include <utils/common/TplConvert.h>
 #include <utils/common/ToString.h>
 #include <utils/common/MsgHandler.h>
-#include <utils/common/SUMOVTypeParameter.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <string>
@@ -54,7 +55,7 @@
 // ===========================================================================
 ROVehicle::ROVehicle(const SUMOVehicleParameter& pars,
                      RORouteDef* route, const SUMOVTypeParameter* type, const RONet* net)
-    : myParameter(pars), myType(type), myRoute(route) {
+    : myParameter(pars), myType(type), myRoute(route), myRoutingSuccess(false) {
     myParameter.stops.clear();
     if (route != 0) {
         for (std::vector<SUMOVehicleParameter::Stop>::const_iterator s = route->getFirstRoute()->getStops().begin(); s != route->getFirstRoute()->getStops().end(); ++s) {
@@ -134,12 +135,10 @@ ROVehicle::saveAllAsXML(OutputDevice& os, OutputDevice* const altos,
         myParameter.write(*altos, OptionsCont::getOptions());
     }
 
-    // check whether the route shall be saved
-    if (!myRoute->isSaved()) {
-        myRoute->writeXMLDefinition(os, this, false, withExitTimes);
-        if (altos != 0) {
-            myRoute->writeXMLDefinition(*altos, this, true, withExitTimes);
-        }
+    // save the route
+    myRoute->writeXMLDefinition(os, this, false, withExitTimes);
+    if (altos != 0) {
+        myRoute->writeXMLDefinition(*altos, this, true, withExitTimes);
     }
     myParameter.writeStops(os);
     if (altos != 0) {

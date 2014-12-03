@@ -4,6 +4,7 @@
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
 /// @author  Walter Bamberger
+/// @author  Jakob Erdmann
 /// @date    July 2010
 /// @version $Id$
 ///
@@ -11,7 +12,7 @@
 // streets, households, bus lines, work positions and school
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -360,7 +361,12 @@ AGCity::carAllocation() {
     }
     // new rate: the rate on the people that have'nt any car yet:
     // nR = (R * Drivers - AlreadyCars) / (Drivers - AlreadyCars)
-    SUMOReal newRate = (statData.carRate * statData.getPeopleOlderThan(statData.limitAgeChildren) - statData.hhFarFromPT) / (statData.getPeopleOlderThan(statData.limitAgeChildren) - statData.hhFarFromPT);
+    SUMOReal newRate = statData.carRate * statData.getPeopleOlderThan(statData.limitAgeChildren) - statData.hhFarFromPT;
+    if (statData.getPeopleOlderThan(statData.limitAgeChildren) == statData.hhFarFromPT) {
+        newRate = 0.;
+    } else {
+        newRate /= statData.getPeopleOlderThan(statData.limitAgeChildren) - statData.hhFarFromPT;
+    }
     //std::cout << " - " << newRate << std::endl;
     if (newRate < 0 || newRate >= 1) {
         newRate = 0;

@@ -4,13 +4,15 @@
 /// @author  Daniel Krajzewicz
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
-/// @date    Tue Dec 02 2003 22:13 CET
+/// @author  Robbin Blokpoel
+/// @author  Jakob Erdmann
+/// @date    Mon Feb 03 2014 14:13 CET
 /// @version $Id$
 ///
 // An areal (along a single lane) detector
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -39,7 +41,7 @@
 #include <microsim/MSMoveReminder.h>
 #include <microsim/output/MSDetectorFileOutput.h>
 #include <utils/common/UtilExceptions.h>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 
 
 // ===========================================================================
@@ -257,6 +259,20 @@ public:
 
     /** @brief Returns the length of all jams in meters */
     unsigned getCurrentStartedHalts() const;
+
+    /** @brief Returns the number of current haltings within the area
+    *
+    * If no vehicle is within the area, 0 is returned.
+    *
+    * @return The mean number of haltings within the area
+    */
+    int getCurrentHaltingNumber() const;
+
+    /** @brief Returns the IDs of the vehicles within the area
+     *
+     * @return The IDs of the vehicles that have passed the entry, but not yet an exit point
+     */
+    std::vector<std::string> getCurrentVehicleIDs() const;
     /// @}
 
 
@@ -342,10 +358,10 @@ private:
     std::list<SUMOVehicle*> myKnownVehicles;
 
     /// @brief Storage for halting durations of known vehicles (for halting vehicles)
-    std::map<SUMOVehicle*, SUMOTime> myHaltingVehicleDurations;
+    std::map<const SUMOVehicle*, SUMOTime> myHaltingVehicleDurations;
 
     /// @brief Storage for halting durations of known vehicles (current interval)
-    std::map<SUMOVehicle*, SUMOTime> myIntervalHaltingVehicleDurations;
+    std::map<const SUMOVehicle*, SUMOTime> myIntervalHaltingVehicleDurations;
 
     /// @brief Halting durations of ended halts [s]
     std::vector<SUMOTime> myPastStandingDurations;
@@ -409,6 +425,8 @@ private:
     unsigned myCurrentJamLengthInVehicles;
     /// @brief The number of started halts in the last step
     unsigned myCurrentStartedHalts;
+    /// @brief The number of halted vehicles [#]
+    int myCurrentHaltingsNumber;
     /// @}
 
 

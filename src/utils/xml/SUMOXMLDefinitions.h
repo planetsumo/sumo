@@ -12,7 +12,7 @@
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -155,6 +155,7 @@ enum SumoXMLTag {
     SUMO_TAG_ROUNDABOUT,
     SUMO_TAG_JOIN,
     SUMO_TAG_JOINEXCLUDE,
+    SUMO_TAG_CROSSING,
 
     SUMO_TAG_WAY,
     SUMO_TAG_ND,
@@ -164,6 +165,7 @@ enum SumoXMLTag {
 
     SUMO_TAG_VIEWSETTINGS,
     SUMO_TAG_VIEWSETTINGS_DECAL,
+    SUMO_TAG_VIEWSETTINGS_LIGHT,
     SUMO_TAG_VIEWSETTINGS_SCHEME,
     SUMO_TAG_VIEWSETTINGS_OPENGL,
     SUMO_TAG_VIEWSETTINGS_BACKGROUND,
@@ -175,6 +177,8 @@ enum SumoXMLTag {
     SUMO_TAG_VIEWSETTINGS_POIS,
     SUMO_TAG_VIEWSETTINGS_POLYS,
     SUMO_TAG_VIEWSETTINGS_LEGEND,
+    SUMO_TAG_VIEWSETTINGS_EVENT,
+    SUMO_TAG_VIEWSETTINGS_EVENT_JAM_TIME,
     SUMO_TAG_INCLUDE,
     SUMO_TAG_DELAY,
     SUMO_TAG_VIEWPORT,
@@ -182,6 +186,7 @@ enum SumoXMLTag {
     SUMO_TAG_BREAKPOINTS_FILE,
     SUMO_TAG_LOCATION,
     SUMO_TAG_COLORSCHEME,
+    SUMO_TAG_SCALINGSCHEME,
     SUMO_TAG_ENTRY,
 
     SUMO_TAG_CF_KRAUSS,
@@ -198,6 +203,13 @@ enum SumoXMLTag {
     SUMO_TAG_PERSON,
     SUMO_TAG_RIDE,
     SUMO_TAG_WALK,
+
+    SUMO_TAG_TRAJECTORIES,
+    SUMO_TAG_TIMESTEP,
+    SUMO_TAG_TIMESLICE,
+    SUMO_TAG_ACTORCONFIG,
+    SUMO_TAG_MOTIONSTATE,
+    SUMO_TAG_OD_PAIR,
 
     /**
      * ActivityGen Tags
@@ -257,6 +269,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_SPEED,
     SUMO_ATTR_ONEWAY,
     SUMO_ATTR_WIDTH,
+    SUMO_ATTR_SIDEWALKWIDTH,
     SUMO_ATTR_REMOVE,
     SUMO_ATTR_LENGTH,
     SUMO_ATTR_X,
@@ -277,6 +290,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_INTLANES,
     /// the weight of a district's source or sink
     SUMO_ATTR_WEIGHT,
+    SUMO_ATTR_NODE,
     SUMO_ATTR_EDGE,
     /// the edges of a route
     SUMO_ATTR_EDGES,
@@ -334,6 +348,9 @@ enum SumoXMLAttr {
     SUMO_ATTR_NUMBER,
     SUMO_ATTR_DURATION,
     SUMO_ATTR_UNTIL,
+    SUMO_ATTR_ROUTEPROBE,
+    /* the edges crossed by a pedestrian crossing */
+    SUMO_ATTR_CROSSING_EDGES,
     /** trigger: the time of the step */
     SUMO_ATTR_TIME,
     /** weights: time range begin */
@@ -459,6 +476,17 @@ enum SumoXMLAttr {
     SUMO_ATTR_ACTTYPE,
     SUMO_ATTR_SLOPE,
     SUMO_ATTR_VERSION,
+    SUMO_ATTR_COMMAND,
+
+    SUMO_ATTR_ACTORCONFIG,
+    SUMO_ATTR_VEHICLE,
+    SUMO_ATTR_STARTTIME,
+    SUMO_ATTR_VEHICLECLASS,
+    SUMO_ATTR_FUEL,
+    SUMO_ATTR_ACCELERATION,
+    SUMO_ATTR_AMOUNT,
+    SUMO_ATTR_ORIGIN,
+    SUMO_ATTR_DESTINATION,
 
 
     /**
@@ -561,6 +589,8 @@ enum SumoXMLEdgeFunc {
     EDGEFUNC_CONNECTOR,
     EDGEFUNC_SINK,
     EDGEFUNC_SOURCE,
+    EDGEFUNC_CROSSING,
+    EDGEFUNC_WALKINGAREA,
     EDGEFUNC_INTERNAL
 };
 
@@ -598,6 +628,8 @@ enum LinkState {
     LINKSTATE_TL_GREEN_MINOR = 'g',
     /// @brief The link has red light (must brake)
     LINKSTATE_TL_RED = 'r',
+    /// @brief The link has red light (must brake) but indicates upcoming green
+    LINKSTATE_TL_REDYELLOW = 'u',
     /// @brief The link has yellow light, may pass
     LINKSTATE_TL_YELLOW_MAJOR = 'Y',
     /// @brief The link has yellow light, has to brake anyway
@@ -660,7 +692,7 @@ enum TrafficLightType {
  */
 enum LaneChangeModel {
     LCM_DK2008,
-    LCM_DK2013,
+    LCM_LC2013,
     LCM_JE2013
 };
 

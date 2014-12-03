@@ -9,7 +9,7 @@
 // A class that allows to steer the visual output in dependence to
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -199,7 +199,7 @@ GUIDanielPerspectiveChanger::onMouseMove(void* data) {
     const int xdiff = myMouseXPosition - e->win_x;
     const int ydiff = myMouseYPosition - e->win_y;
     const bool moved = xdiff != 0 || ydiff != 0;
-    const bool pastDelay = FXThread::time() > (myMouseDownTime + myDragDelay);
+    const bool pastDelay = !gSchemeStorage.getDefault().gaming && FXThread::time() > (myMouseDownTime + myDragDelay);
     switch (myMouseButtonState) {
         case MOUSEBTN_LEFT:
             if (pastDelay) {

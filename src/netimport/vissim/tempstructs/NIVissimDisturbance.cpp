@@ -8,7 +8,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,26 +51,25 @@
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-// ===========================================================================
-// used namespaces
-// ===========================================================================
 
-using namespace std;
 
+// ===========================================================================
+// static member variables
+// ===========================================================================
 NIVissimDisturbance::DictType NIVissimDisturbance::myDict;
 int NIVissimDisturbance::myRunningID = 100000000;
 
 int NIVissimDisturbance::refusedProhibits = 0;
 
 
+// ===========================================================================
+// method definitions
+// ===========================================================================
 NIVissimDisturbance::NIVissimDisturbance(int id,
         const std::string& name,
         const NIVissimExtendedEdgePoint& edge,
-        const NIVissimExtendedEdgePoint& by,
-        SUMOReal timegap, SUMOReal waygap,
-        SUMOReal vmax)
-    : myID(id), myNode(-1), myName(name), myEdge(edge), myDisturbance(by),
-      myTimeGap(timegap), myWayGap(waygap), myVMax(vmax) {}
+        const NIVissimExtendedEdgePoint& by)
+    : myID(id), myNode(-1), myName(name), myEdge(edge), myDisturbance(by) {}
 
 
 NIVissimDisturbance::~NIVissimDisturbance() {}
@@ -78,15 +77,12 @@ NIVissimDisturbance::~NIVissimDisturbance() {}
 
 
 bool
-NIVissimDisturbance::dictionary(int id,
-                                const std::string& name,
+NIVissimDisturbance::dictionary(const std::string& name,
                                 const NIVissimExtendedEdgePoint& edge,
-                                const NIVissimExtendedEdgePoint& by,
-                                SUMOReal timegap, SUMOReal waygap, SUMOReal vmax) {
-    UNUSED_PARAMETER(id);
+                                const NIVissimExtendedEdgePoint& by) {
     int nid = myRunningID++;
     NIVissimDisturbance* o =
-        new NIVissimDisturbance(nid, name, edge, by, timegap, waygap, vmax);
+        new NIVissimDisturbance(nid, name, edge, by);
     if (!dictionary(nid, o)) {
         delete o;
     }
@@ -330,7 +326,7 @@ NIVissimDisturbance::getConnection(NBNode* node, int aedgeid) {
                             toString<int>(c->getToEdgeID()), to);
     } else {
         WRITE_WARNING("NIVissimDisturbance: no connection");
-        return NBConnection(0, 0);
+        return NBConnection::InvalidConnection;
 //        throw 1; // !!! what to do?
     }
 

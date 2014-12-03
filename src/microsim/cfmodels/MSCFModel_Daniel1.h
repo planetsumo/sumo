@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    MSCFModel_Daniel1.h
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    Tue, 05 Jun 2012
 /// @version $Id$
 ///
 // The original Krauss (1998) car-following model and parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.

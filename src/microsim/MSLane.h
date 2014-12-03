@@ -13,7 +13,7 @@
 // Representation of a lane in the micro simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -42,11 +42,14 @@
 #include <utils/common/Named.h>
 #include <utils/common/Parameterised.h>
 #include <utils/common/SUMOVehicleClass.h>
-#include <utils/common/SUMOVehicle.h>
+#include <utils/vehicle/SUMOVehicle.h>
 #include <utils/common/NamedRTree.h>
 #include <utils/geom/PositionVector.h>
 #include "MSLinkCont.h"
 #include "MSMoveReminder.h"
+#ifndef NO_TRACI
+#include <traci-server/TraCIServerAPI_Lane.h>
+#endif
 
 
 // ===========================================================================
@@ -189,9 +192,9 @@ public:
      * @return Whether the vehicle could be inserted
      * @see MSVehicle::enterLaneAtInsertion
      */
-    virtual bool isInsertionSuccess(MSVehicle* vehicle, SUMOReal speed, SUMOReal pos,
-                                    bool recheckNextLanes,
-                                    MSMoveReminder::Notification notification = MSMoveReminder::NOTIFICATION_DEPARTED);
+    bool isInsertionSuccess(MSVehicle* vehicle, SUMOReal speed, SUMOReal pos,
+                            bool recheckNextLanes,
+                            MSMoveReminder::Notification notification);
 
     bool checkFailure(MSVehicle* aVehicle, SUMOReal& speed, SUMOReal& dist, const SUMOReal nspeed, const bool patchSpeed, const std::string errorMsg) const;
     bool pWagGenericInsertion(MSVehicle& veh, SUMOReal speed, SUMOReal maxPos, SUMOReal minPos);
@@ -321,6 +324,11 @@ public:
         return myShape;
     }
 
+    /// @brief return shape.length() / myLength
+    inline SUMOReal getLengthGeometryFactor() const {
+        return myLengthGeometryFactor;
+    }
+
     /* @brief fit the given lane position to a visibly suitable geometry position
      * (lane length might differ from geometry length) */
     inline SUMOReal interpolateLanePosToGeometryPos(SUMOReal lanePos) const {
@@ -380,6 +388,8 @@ public:
     }
     /// @}
 
+    /// @brief return the index of the link to the next crossing if this is walkingArea, else -1
+    int getCrossingIndex() const;
 
 
     /// @name Vehicle movement (longitudinal)
@@ -411,7 +421,7 @@ public:
 
 
     /// Check if vehicles are too close.
-    virtual void detectCollisions(SUMOTime timestep, int stage);
+    virtual void detectCollisions(SUMOTime timestep, const std::string& stage);
 
 
     /** Returns the information whether this lane may be used to continue
@@ -429,14 +439,15 @@ public:
         return myVehicles.empty();
     }
 
-    void setMaxSpeed(SUMOReal val) {
-        myMaxSpeed = val;
-    }
+    /** @brief Sets a new maximum speed for the lane (used by TraCI and MSCalibrator)
+     * @param[in] val the new speed in m/s
+     */
+    void setMaxSpeed(SUMOReal val);
 
-    void setLength(SUMOReal val) {
-        myLength = val;
-    }
-
+    /** @brief Sets a new length for the lane (used by TraCI only)
+     * @param[in] val the new length in m
+     */
+    void setLength(SUMOReal val);
 
     /** @brief Returns the lane's edge
      * @return This lane's edge
@@ -446,30 +457,35 @@ public:
     }
 
 
+    /** @brief Returns the lane's follower if it is an internal lane, the edge of the lane otherwise
+     * @return This lane's follower
+     */
+    const MSEdge* getInternalFollower() const;
 
-    /// @brief Static (sic!) container methods 
+
+    /// @brief Static (sic!) container methods
     /// {
 
     /** @brief Inserts a MSLane into the static dictionary
-     * 
+     *
      * Returns true if the key id isn't already in the dictionary.
-     *  Otherwise returns false. 
-     * @param[in] id The id of the lane 
+     *  Otherwise returns false.
+     * @param[in] id The id of the lane
      * @param[in] lane The lane itself
      * @return Whether the lane was added
      * @todo make non-static
      * @todo why is the id given? The lane is named
      */
-    static bool dictionary(const std::string &id, MSLane* lane);
+    static bool dictionary(const std::string& id, MSLane* lane);
 
 
-    /** @brief Returns the MSLane associated to the key id 
+    /** @brief Returns the MSLane associated to the key id
      *
      * The lane is returned if exists, otherwise 0 is returned.
-     * @param[in] id The id of the lane 
+     * @param[in] id The id of the lane
      * @return The lane
      */
-    static MSLane* dictionary(const std::string &id);
+    static MSLane* dictionary(const std::string& id);
 
 
     /** @brief Clears the dictionary */
@@ -490,11 +506,12 @@ public:
     static void insertIDs(std::vector<std::string>& into);
 
 
-    /** @brief Fills the given NamedRTree with lane instances
-     * @param[in, filled] into The NamedRTree to fill
-     * @see NamedRTree
+    /** @brief Fills the given RTree with lane instances
+     * @param[in, filled] into The RTree to fill
+     * @see TraCILaneRTree
      */
-    static void fill(NamedRTree& into);
+    template<class RTREE>
+    static void fill(RTREE& into);
     /// @}
 
 
@@ -503,10 +520,10 @@ public:
         the succeeding link could not be found;
         Returns the myLinks.end() instead; Further, the number of edges to
         look forward may be given */
-    virtual MSLinkCont::const_iterator succLinkSec(const SUMOVehicle& veh,
+    static MSLinkCont::const_iterator succLinkSec(const SUMOVehicle& veh,
             unsigned int nRouteSuccs,
             const MSLane& succLinkSource,
-            const std::vector<MSLane*>& conts) const;
+            const std::vector<MSLane*>& conts);
 
 
     /** Returns the information whether the given link shows at the end
@@ -518,14 +535,14 @@ public:
     bool isLinkEnd(MSLinkCont::iterator& i);
 
     /// returns the last vehicle
-    virtual MSVehicle* getLastVehicle() const;
-    virtual const MSVehicle* getFirstVehicle() const;
+    MSVehicle* getLastVehicle() const;
+    MSVehicle* getFirstVehicle() const;
 
 
-
-
-    /// @brief remove the vehicle from this lane
-    virtual MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification);
+    /* @brief remove the vehicle from this lane
+     * @param[notify] whether moveReminders of the vehicle shall be triggered
+     */
+    virtual MSVehicle* removeVehicle(MSVehicle* remVehicle, MSMoveReminder::Notification notification, bool notify = true);
 
     /// The shape of the lane
     PositionVector myShape;
@@ -571,8 +588,9 @@ public:
 
 
 
-    std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(SUMOReal dist, SUMOReal seen,
-            SUMOReal leaderSpeed, SUMOReal backOffset, SUMOReal predMaxDecel) const;
+    /// @brief return the follower with the largest missing rear gap among all predecessor lanes (within dist)
+    std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(
+        SUMOReal dist, SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
 
 
     /// @brief return by how much further the leader must be inserted to avoid rear end collisions
@@ -580,7 +598,7 @@ public:
                                SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
 
 
-    /** @brief Returns the leader and the distance to him
+    /** @brief Returns the immediate leader and the distance to him
      *
      * Goes along the vehicle's estimated used lanes (bestLaneConts). For each link,
      *  it is determined whether the vehicle will pass it. If so, the subsequent lane
@@ -606,8 +624,33 @@ public:
             SUMOReal speed, const MSVehicle& veh, const std::vector<MSLane*>& bestLaneConts) const;
 
 
+    /** @brief Returns the most dangerous leader and the distance to him
+     *
+     * Goes along the vehicle's estimated used lanes (bestLaneConts). For each link,
+     *  it is determined whether the ego vehicle will pass it. If so, the subsequent lane
+     *  is investigated. Check all lanes up to the stopping distance of ego.
+     *  Return the leader vehicle (and the gap) which puts the biggest speed constraint on ego.
+     *
+     * If no leading vehicle was found, <0, -1> is returned.
+     *
+     * Pretty slow, as it has to go along lanes.
+     *
+     * @param[in] dist The distance to investigate
+     * @param[in] seen The already seen place (normally the place in front on own lane)
+     * @param[in] speed The speed of the vehicle used for determining whether a subsequent link will be opened at arrival time
+     * @param[in] veh The (ego) vehicle for which the information shall be computed
+     * @return
+     */
+    std::pair<MSVehicle* const, SUMOReal> getCriticalLeader(SUMOReal dist, SUMOReal seen, SUMOReal speed, const MSVehicle& veh) const;
+
+
     MSLane* getLogicalPredecessorLane() const;
 
+    /// @brief get the state of the link from the logical predecessor to this lane
+    LinkState getIncomingLinkState() const;
+
+    /// @brief get the list of outgoing lanes
+    std::vector<const MSLane*> getOutgoingLanes() const;
 
     /// @name Current state retrieval
     //@{
@@ -617,13 +660,13 @@ public:
      */
     SUMOReal getMeanSpeed() const;
 
-	 /** @brief Returns the overall waiting time on this lane
-     * @return The sum of the waiting time of all vehicles during the last step;
-     */
+    /** @brief Returns the overall waiting time on this lane
+    * @return The sum of the waiting time of all vehicles during the last step;
+    */
     SUMOReal getWaitingSeconds() const;
 
 
-    /** @brief Returns the brutto (including minGaps) occupancy of this lane during the last step 
+    /** @brief Returns the brutto (including minGaps) occupancy of this lane during the last step
      * @return The occupancy during the last step
      */
     SUMOReal getBruttoOccupancy() const;
@@ -644,37 +687,37 @@ public:
     /** @brief Returns the sum of last step CO2 emissions
      * @return CO2 emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_CO2Emissions() const;
+    SUMOReal getCO2Emissions() const;
 
 
     /** @brief Returns the sum of last step CO emissions
      * @return CO emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_COEmissions() const;
+    SUMOReal getCOEmissions() const;
 
 
     /** @brief Returns the sum of last step PMx emissions
      * @return PMx emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_PMxEmissions() const;
+    SUMOReal getPMxEmissions() const;
 
 
     /** @brief Returns the sum of last step NOx emissions
      * @return NOx emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_NOxEmissions() const;
+    SUMOReal getNOxEmissions() const;
 
 
     /** @brief Returns the sum of last step HC emissions
      * @return HC emissions of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_HCEmissions() const;
+    SUMOReal getHCEmissions() const;
 
 
     /** @brief Returns the sum of last step fuel consumption
      * @return fuel consumption of vehicles on this lane during the last step
      */
-    SUMOReal getHBEFA_FuelConsumption() const;
+    SUMOReal getFuelConsumption() const;
 
 
     /** @brief Returns the sum of last step noise emissions
@@ -711,6 +754,18 @@ public:
     /// @}
 
 
+#ifndef NO_TRACI
+    /** @brief Callback for visiting the lane when traversing an RTree
+     *
+     * This is used in the TraCIServerAPI_Lane for context subscriptions.
+     *
+     * @param[in] cont The context doing all the work
+     * @see TraCIServerAPI_Lane::StoringVisitor::add
+     */
+    void visit(const TraCIServerAPI_Lane::StoringVisitor& cont) const {
+        cont.add(this);
+    }
+#endif
 
 protected:
     /// moves myTmpVehicles int myVehicles after a lane change procedure
@@ -731,6 +786,10 @@ protected:
                                     MSMoveReminder::Notification notification = MSMoveReminder::NOTIFICATION_DEPARTED);
 
 
+    /// @brief issue warning and add the vehicle to MSVehicleTransfer
+    void handleCollision(SUMOTime timestep, const std::string& stage, MSVehicle* collider, MSVehicle* victim, const SUMOReal gap);
+
+
 protected:
     /// Unique numerical ID (set on reading by netload)
     size_t myNumericalID;
@@ -748,10 +807,10 @@ protected:
     SUMOReal myLength;
 
     /// Lane width [m]
-    SUMOReal myWidth;
+    const SUMOReal myWidth;
 
     /// The lane's edge, for routing only.
-    MSEdge* myEdge;
+    MSEdge* const myEdge;
 
     /// Lane-wide speedlimit [m/s]
     SUMOReal myMaxSpeed;

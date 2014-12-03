@@ -10,7 +10,7 @@
 // Instance responsible for building networks
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -187,15 +187,6 @@ public:
         return myDistrictCont;
     }
 
-
-    /** @brief Returns the determined roundabouts
-     * @return The list of roundabout edges
-     */
-    const std::vector<EdgeVector>& getRoundabouts() const {
-        return myRoundabouts;
-    }
-
-
     /** @brief Returns the joined edges map
      * @return The map of joined edges
      */
@@ -205,18 +196,13 @@ public:
     /// @}
 
 
-    /// @brief declare that roundabouts have been seen during loading
-    void haveSeenRoundabouts() {
-        myHaveSeenRoundabouts = true;
-    }
-
     /**
      * @brief transforms loaded coordinates
-     * handles projections, offsets (using GeoConvHelper) and import of height data (using Heightmapper if available)
+     * handles projections, offsets (using GeoConvHelper) and import of height data (using NBHeightMapper)
      * @param[in,out] from The coordinate to be transformed
      * @param[in] includeInBoundary Whether to patch the convex boundary of the GeoConvHelper default instance
      * @param[in] from_srs The spatial reference system of the input coordinate
-     * @notde These methods are located outside of GeoConvHelper to avoid linker-dependecies on INTERNAL_LIBS and GDAL for libgeom
+     * @notde These methods are located outside of GeoConvHelper to avoid linker-dependencies on GDAL for libgeom
      */
     static bool transformCoordinates(Position& from, bool includeInBoundary = true, GeoConvHelper* from_srs = 0);
     static bool transformCoordinates(PositionVector& from, bool includeInBoundary = true, GeoConvHelper* from_srs = 0);
@@ -253,12 +239,6 @@ protected:
 
     /// @brief The used container for districts
     NBDistrictCont myDistrictCont;
-
-    /// @brief whether a sumo network with roundabout information was loaded
-    bool myHaveSeenRoundabouts;
-
-    /// @brief Edges marked as belonging to a roundabout (each EdgeVector is a roundabout)
-    std::vector<EdgeVector> myRoundabouts;
 
     /// @brief Map of joined edges
     NBJoinedEdgesMap myJoinedEdges;

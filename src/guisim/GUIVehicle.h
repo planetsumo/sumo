@@ -10,7 +10,7 @@
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,12 +51,6 @@
 class GUISUMOAbstractView;
 class GUIGLObjectPopupMenu;
 class MSDevice_Vehroutes;
-#ifdef HAVE_OSG
-class GUIOSGView;
-namespace osg {
-class ShapeDrawable;
-}
-#endif
 
 
 // ===========================================================================
@@ -78,11 +72,10 @@ public:
      * @param[in] route The vehicle's route
      * @param[in] type The vehicle's type
      * @param[in] speedFactor The factor for driven lane's speed limits
-     * @param[in] vehicleIndex The vehicle's running index
      * @exception ProcessError If a value is wrong
      */
     GUIVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
-               const MSVehicleType* type, SUMOReal speedFactor);
+               const MSVehicleType* type, const SUMOReal speedFactor);
 
 
     /// @brief destructor
@@ -171,16 +164,6 @@ public:
      * @return The time since the last lane change in seconds
      */
     SUMOReal getLastLaneChangeOffset() const;
-
-
-    /** @brief Returns the description of best lanes to use in order to continue the route
-     *
-     * Prevents parallel reading and generation of the information by locking
-     *  "myLock" before calling MSVehicle::getBestLanes.
-     * @return The best lanes structure holding matching the current vehicle position and state ahead
-     * @see MSVehicle::getBestLanes
-     */
-    const std::vector<LaneQ>& getBestLanes() const;
 
 
     /**
@@ -284,24 +267,16 @@ public:
     /// @brief adds the blocking foes to the current selection
     void selectBlockingFoes() const;
 
-#ifdef HAVE_OSG
-    void setGeometry(GUIOSGView* view, osg::ShapeDrawable* geom) {
-        myGeom[view] = geom;
-    }
+    /// @brief gets the color value according to the current scheme index
+    SUMOReal getColorValue(size_t activeScheme) const;
 
-    void updateColor(GUIOSGView* view);
-#endif
-
+    /// @brief sets the color according to the current scheme index and some vehicle function
+    static bool setFunctionalColor(size_t activeScheme, const MSBaseVehicle* veh);
 
 private:
     /// @brief sets the color according to the currente settings
     void setColor(const GUIVisualizationSettings& s) const;
 
-    /// @brief gets the color value according to the current scheme index
-    SUMOReal getColorValue(size_t activeScheme) const;
-
-    /// @brief sets the color according to the current scheme index and some vehicle function
-    bool setFunctionalColor(size_t activeScheme) const;
 
     /// @name drawing helper methods
     /// @{
@@ -320,14 +295,18 @@ private:
     /* @brief draw train with individual carriages. The number of carriages is
      * determined from defaultLength of carriages and vehicle length
      * passengerSeats are computed beginning at firstPassengerCarriage */
-    void drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, int firstPassengerCarriage = 0, bool asImage = false) const;
+    void drawAction_drawRailCarriages(const GUIVisualizationSettings& s, SUMOReal defaultLength, SUMOReal carriageGap,
+                                      int firstPassengerCarriage, bool asImage) const;
     /// @}
+
+    /// @brief draws the given guiShape if it has distinc carriages/modules and eturns true if so
+    bool drawAction_drawCarriageClass(const GUIVisualizationSettings& s, SUMOVehicleShape guiShape, bool asImage) const;
 
     /* @brief return the previous lane in this vehicles route including internal lanes
      * @param[in] current The lane of which the predecessor should be returned
      * @param[in,out] routeIndex The index of the current or previous non-internal edge in the route
      */
-    MSLane* getPreviousLane(MSLane* current, int& routeIndex) const;
+    MSLane* getPreviousLane(MSLane* current, int& furtherIndex) const;
 
     /// @brief returns the seat position for the person with the given index
     const Position& getSeatPosition(size_t personIndex) const;
@@ -347,14 +326,13 @@ private:
     /// The mutex used to avoid concurrent updates of the vehicle buffer
     mutable MFXMutex myLock;
 
+    /// Variable to set with the length of the last drawn carriage or the vehicle length
+    mutable SUMOReal myCarriageLength;
+
     MSDevice_Vehroutes* myRoutes;
 
     /// @brief positions of seats in the vehicle (updated at every drawing step)
     mutable PositionVector mySeatPositions;
-
-#ifdef HAVE_OSG
-    std::map<GUIOSGView*, osg::ShapeDrawable*> myGeom;
-#endif
 
 };
 

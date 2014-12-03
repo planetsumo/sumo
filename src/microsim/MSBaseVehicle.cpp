@@ -9,7 +9,7 @@
 // A base class for vehicle implementations
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,6 +36,7 @@
 #include <utils/common/MsgHandler.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/iodevices/OutputDevice.h>
+#include "MSGlobals.h"
 #include "MSVehicleType.h"
 #include "MSEdge.h"
 #include "MSLane.h"
@@ -43,6 +44,7 @@
 #include "MSBaseVehicle.h"
 #include "MSNet.h"
 #include "devices/MSDevice.h"
+#include "devices/MSDevice_Routing.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -59,7 +61,8 @@ std::set<std::string> MSBaseVehicle::myShallTraceMoveReminders;
 // ===========================================================================
 // method definitions
 // ===========================================================================
-MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, const MSVehicleType* type, const SUMOReal speedFactor) :
+MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
+                             const MSVehicleType* type, const SUMOReal speedFactor) :
     myParameter(pars),
     myRoute(route),
     myType(type),
@@ -85,10 +88,13 @@ MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route, c
 
 MSBaseVehicle::~MSBaseVehicle() {
     myRoute->release();
-    delete myParameter;
-    for (std::vector< MSDevice* >::iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {
-        delete(*dev);
+    if (myParameter->repetitionNumber == 0) {
+        MSRoute::checkDist(myParameter->routeid);
     }
+    for (std::vector< MSDevice* >::iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {
+        delete *dev;
+    }
+    delete myParameter;
 }
 
 
@@ -137,7 +143,7 @@ MSBaseVehicle::reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& rout
             edges.pop_back();
         }
     } else {
-        router.compute(*myCurrEdge, myRoute->getLastEdge(), this, t, edges);
+        router.compute(getRerouteOrigin(), myRoute->getLastEdge(), this, t, edges);
     }
     if (edges.empty()) {
         WRITE_WARNING("No route for vehicle '" + getID() + "' found.");
@@ -148,7 +154,7 @@ MSBaseVehicle::reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& rout
 
 
 bool
-MSBaseVehicle::replaceRouteEdges(const MSEdgeVector& edges, bool onInit) {
+MSBaseVehicle::replaceRouteEdges(MSEdgeVector& edges, bool onInit) {
     // build a new id, first
     std::string id = getID();
     if (id[0] != '!') {
@@ -159,15 +165,39 @@ MSBaseVehicle::replaceRouteEdges(const MSEdgeVector& edges, bool onInit) {
     } else {
         id = id + "!var#1";
     }
+    const MSEdge* const origin = getRerouteOrigin();
+    if (origin != *myCurrEdge && edges.front() == origin) {
+        edges.insert(edges.begin(), *myCurrEdge);
+    }
+    const int oldSize = (int)edges.size();
+    edges.insert(edges.begin(), myRoute->begin(), myCurrEdge);
+    if (edges == myRoute->getEdges()) {
+        return true;
+    }
     const RGBColor& c = myRoute->getColor();
     MSRoute* newRoute = new MSRoute(id, edges, false, &c == &RGBColor::DEFAULT_COLOR ? 0 : new RGBColor(c), myRoute->getStops());
+#ifdef HAVE_FOX
+    MSDevice_Routing::lock();
+#endif
     if (!MSRoute::dictionary(id, newRoute)) {
+#ifdef HAVE_FOX
+        MSDevice_Routing::unlock();
+#endif
         delete newRoute;
         return false;
     }
-    if (!replaceRoute(newRoute, onInit)) {
+#ifdef HAVE_FOX
+    MSDevice_Routing::unlock();
+#endif
+    if (!replaceRoute(newRoute, onInit, (int)edges.size() - oldSize)) {
         newRoute->addReference();
+#ifdef HAVE_FOX
+        MSDevice_Routing::lock();
+#endif
         newRoute->release();
+#ifdef HAVE_FOX
+        MSDevice_Routing::unlock();
+#endif
         return false;
     }
     return true;
@@ -176,6 +206,12 @@ MSBaseVehicle::replaceRouteEdges(const MSEdgeVector& edges, bool onInit) {
 
 SUMOReal
 MSBaseVehicle::getAcceleration() const {
+    return 0;
+}
+
+
+SUMOReal
+MSBaseVehicle::getSlope() const {
     return 0;
 }
 
@@ -298,6 +334,13 @@ MSBaseVehicle::calculateArrivalPos() {
 }
 
 
+SUMOReal
+MSBaseVehicle::getImpatience() const {
+    return MAX2((SUMOReal)0, MIN2((SUMOReal)1, getVehicleType().getImpatience() +
+                                  (MSGlobals::gTimeToGridlock > 0 ? (SUMOReal)getWaitingTime() / MSGlobals::gTimeToGridlock : 0)));
+}
+
+
 MSDevice*
 MSBaseVehicle::getDevice(const std::type_info& type) const {
     for (std::vector<MSDevice*>::const_iterator dev = myDevices.begin(); dev != myDevices.end(); ++dev) {
@@ -317,6 +360,29 @@ MSBaseVehicle::saveState(OutputDevice& out) {
     out.writeAttr(SUMO_ATTR_TYPE, myType->getID());
     // here starts the vehicle internal part (see loading)
     // @note: remember to close the vehicle tag when calling this in a subclass!
+}
+
+
+void
+MSBaseVehicle::addStops(const bool ignoreStopErrors) {
+    for (std::vector<SUMOVehicleParameter::Stop>::const_iterator i = myParameter->stops.begin(); i != myParameter->stops.end(); ++i) {
+        std::string errorMsg;
+        if (!addStop(*i, errorMsg) && !ignoreStopErrors) {
+            throw ProcessError(errorMsg);
+        }
+        if (errorMsg != "") {
+            WRITE_WARNING(errorMsg);
+        }
+    }
+    for (std::vector<SUMOVehicleParameter::Stop>::const_iterator i = myRoute->getStops().begin(); i != myRoute->getStops().end(); ++i) {
+        std::string errorMsg;
+        if (!addStop(*i, errorMsg) && !ignoreStopErrors) {
+            throw ProcessError(errorMsg);
+        }
+        if (errorMsg != "") {
+            WRITE_WARNING(errorMsg);
+        }
+    }
 }
 
 

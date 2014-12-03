@@ -10,7 +10,7 @@
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -47,12 +47,6 @@
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
-
-
-// ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace traci;
 
 
 // ===========================================================================
@@ -213,16 +207,46 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
 }
 
 
-void 
-TraCIServerAPI_Simulation::writeVehicleStateNumber(traci::TraCIServer& server, tcpip::Storage& outputStorage, MSNet::VehicleState state) {
+bool
+TraCIServerAPI_Simulation::processSet(TraCIServer& server, tcpip::Storage& inputStorage,
+                                      tcpip::Storage& outputStorage) {
+    std::string warning = ""; // additional description for response
+    // variable
+    int variable = inputStorage.readUnsignedByte();
+    if (variable != CMD_CLEAR_PENDING_VEHICLES) {
+        return server.writeErrorStatusCmd(CMD_SET_SIM_VARIABLE, "Set Simulation Variable: unsupported variable specified", outputStorage);
+    }
+    // id
+    std::string id = inputStorage.readString();
+    // process
+    switch (variable) {
+        case CMD_CLEAR_PENDING_VEHICLES: {
+            //clear any pending vehicle insertions
+            std::string route;
+            if (!server.readTypeCheckingString(inputStorage, route)) {
+                return server.writeErrorStatusCmd(CMD_SET_SIM_VARIABLE, "A string is needed for clearing pending vehicles.", outputStorage);
+            }
+            MSNet::getInstance()->getInsertionControl().clearPendingVehicles(route);
+        }
+        break;
+        default:
+            break;
+    }
+    server.writeStatusCmd(CMD_SET_SIM_VARIABLE, RTYPE_OK, warning, outputStorage);
+    return true;
+}
+
+
+void
+TraCIServerAPI_Simulation::writeVehicleStateNumber(TraCIServer& server, tcpip::Storage& outputStorage, MSNet::VehicleState state) {
     const std::vector<std::string>& ids = server.getVehicleStateChanges().find(state)->second;
     outputStorage.writeUnsignedByte(TYPE_INTEGER);
     outputStorage.writeInt((int) ids.size());
 }
 
 
-void 
-TraCIServerAPI_Simulation::writeVehicleStateIDs(traci::TraCIServer& server, tcpip::Storage& outputStorage, MSNet::VehicleState state) {
+void
+TraCIServerAPI_Simulation::writeVehicleStateIDs(TraCIServer& server, tcpip::Storage& outputStorage, MSNet::VehicleState state) {
     const std::vector<std::string>& ids = server.getVehicleStateChanges().find(state)->second;
     outputStorage.writeUnsignedByte(TYPE_STRINGLIST);
     outputStorage.writeStringList(ids);
@@ -270,7 +294,7 @@ TraCIServerAPI_Simulation::getLaneChecking(std::string roadID, int laneIndex, SU
 
 
 bool
-TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+TraCIServerAPI_Simulation::commandPositionConversion(TraCIServer& server, tcpip::Storage& inputStorage,
         tcpip::Storage& outputStorage, int commandId) {
     std::pair<MSLane*, SUMOReal> roadPos;
     Position cartesianPos;
@@ -304,7 +328,9 @@ TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server,
             SUMOReal pos = inputStorage.readDouble();
             int laneIdx = inputStorage.readUnsignedByte();
             try {
+                // convert edge,offset,laneIdx to cartesian position
                 cartesianPos = geoPos = getLaneChecking(roadID, laneIdx, pos)->getShape().positionAtOffset(pos);
+                z = cartesianPos.z();
                 GeoConvHelper::getFinal().cartesian2geo(geoPos);
             } catch (TraCIException& e) {
                 server.writeStatusCmd(commandId, RTYPE_ERR, e.what());
@@ -325,7 +351,7 @@ TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server,
 
     switch (destPosType) {
         case POSITION_ROADMAP: {
-            // convert road map to 3D position
+            // convert cartesion position to edge,offset,lane_index
             roadPos = convertCartesianToRoadMap(cartesianPos);
             // write result that is added to response msg
             outputStorage.writeUnsignedByte(POSITION_ROADMAP);
@@ -361,7 +387,7 @@ TraCIServerAPI_Simulation::commandPositionConversion(traci::TraCIServer& server,
 /****************************************************************************/
 
 bool
-TraCIServerAPI_Simulation::commandDistanceRequest(traci::TraCIServer& server, tcpip::Storage& inputStorage,
+TraCIServerAPI_Simulation::commandDistanceRequest(TraCIServer& server, tcpip::Storage& inputStorage,
         tcpip::Storage& outputStorage, int commandId) {
     Position pos1;
     Position pos2;
@@ -453,6 +479,7 @@ TraCIServerAPI_Simulation::commandDistanceRequest(traci::TraCIServer& server, tc
     outputStorage.writeDouble(distance);
     return true;
 }
+
 
 #endif
 

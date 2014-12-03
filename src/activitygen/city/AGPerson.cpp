@@ -3,13 +3,14 @@
 /// @author  Piotr Woznica
 /// @author  Walter Bamberger
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    July 2010
 /// @version $Id$
 ///
 // Parent object of every person, contains age and any natural characteristic
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -38,35 +39,25 @@
 
 
 // ===========================================================================
-// used namespaces
-// ===========================================================================
-using namespace std;
-
-
-// ===========================================================================
 // method definitions
 // ===========================================================================
 AGPerson::AGPerson(int age) : age(age) {}
 
-/****************************************************************************/
 
 AGPerson::~AGPerson() {}
 
-/****************************************************************************/
 
 void
 AGPerson::print() const {
-    cout << "- Person: Age=" << age << endl;
+    std::cout << "- Person: Age=" << age << std::endl;
 }
 
-/****************************************************************************/
 
 int
 AGPerson::getAge() const {
     return age;
 }
 
-/****************************************************************************/
 
 bool
 AGPerson::decide(SUMOReal proba) const {

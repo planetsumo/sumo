@@ -9,7 +9,7 @@
 // Importer for network edges stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -86,7 +86,6 @@ public:
     /// @brief Destructor
     ~NIXMLEdgesHandler();
 
-
 protected:
     /// @name inherited from GenericSAXHandler
     //@{
@@ -162,7 +161,7 @@ private:
     SUMOReal myCurrentWidth;
 
     /// @brief The current edge's offset till the destination node
-    SUMOReal myCurrentOffset;
+    SUMOReal myCurrentEndOffset;
 
     /// @brief The current edge's street name
     std::string myCurrentStreetName;
@@ -220,13 +219,15 @@ private:
     NBEdge* myCurrentEdge;
 
     /** @struct Split
-     * @brief A structure which describes changes of lane number along the road
+     * @brief A structure which describes changes of lane number or speed along the road
      */
     struct Split {
-        /// @brief The lanes until this change
+        /// @brief The lanes after this change
         std::vector<int> lanes;
         /// @brief The position of this change
         SUMOReal pos;
+        /// @brief The speed after this change
+        SUMOReal speed;
         /// @brief A numerical id
         int nameid;
         /// @brief A 2D-position (for the node to insert at this place)
@@ -305,6 +306,12 @@ private:
      * @param[in] attrs The attributes to get the splits's values from
      */
     void addSplit(const SUMOSAXAttributes& attrs);
+
+    /** @brief Parses a roundabout and stores it in myEdgeCont.
+     * @param[in] attrs The attributes to get the roundabouts values from
+     */
+    void addRoundabout(const SUMOSAXAttributes& attrs);
+
 
 private:
     /** @brief invalid copy constructor */

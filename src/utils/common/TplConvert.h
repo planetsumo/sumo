@@ -9,7 +9,7 @@
 // Some conversion methods (from strings to other)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -224,7 +224,7 @@ public:
         if (data == 0 || data[0] == 0) {
             throw EmptyData();
         }
-        unsigned i = 0;
+        int i = 0;
         SUMOReal sgn = 1;
         if (data[0] == '+') {
             i++;

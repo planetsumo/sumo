@@ -2,13 +2,14 @@
 /// @file    MSDevice_Vehroutes.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Fri, 30.01.2009
 /// @version $Id$
 ///
 // A device which collects info on the vehicle trip
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -162,8 +163,14 @@ private:
     /// @brief A shortcut for the Option "vehroute-output.last-route"
     static bool myLastRouteOnly;
 
+    /// @brief A shortcut for the Option "vehroute-output.dua"
+    static bool myDUAStyle;
+
     /// @brief A shortcut for the Option "vehroute-output.sorted"
     static bool mySorted;
+
+    /// @brief A shortcut for the Option "vehroute-output.intended-depart"
+    static bool myIntendedDepart;
 
     /// @brief A shortcut for the Option "device.routing.with-taz"
     static bool myWithTaz;
@@ -184,7 +191,7 @@ private:
         void vehicleStateChanged(const SUMOVehicle* const vehicle, MSNet::VehicleState to);
 
         /// @brief A map for internal notification
-        std::map<const SUMOVehicle*, MSDevice_Vehroutes*> myDevices;
+        std::map<const SUMOVehicle*, MSDevice_Vehroutes*, Named::NamedLikeComparatorIdLess<SUMOVehicle> > myDevices;
 
     };
 
@@ -196,7 +203,7 @@ private:
     static std::map<const SUMOTime, int> myDepartureCounts;
 
     /// @todo: describe
-    static std::map<const SUMOTime, std::string> myRouteInfos;
+    static std::map<const SUMOTime, std::map<const std::string, std::string> > myRouteInfos;
 
 
     /**

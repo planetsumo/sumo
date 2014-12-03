@@ -9,7 +9,7 @@
 // Storage for edges, including some functionality operating on multiple edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -124,6 +124,19 @@ public:
 
     /** @brief Tries to retrieve an edge, even if it is splitted
      *
+     * The edge given with the id should exist and is followed downstream or upstream,
+     *  depending on the parameter to the last edge still starting with the id.
+     *
+     * @param[in] id The id of the edge to retrieve
+     * @param[in] downstream search direction
+     * @return The searched edge
+     * @todo Recheck usage
+     */
+    NBEdge* retrievePossiblySplit(const std::string& id, bool downstream) const;
+
+
+    /** @brief Tries to retrieve an edge, even if it is splitted
+     *
      * To describe which part of the edge shall be returned, the
      *  id of a second edge, participating at the node and the information
      *  whether to return the outgoing or the incoming is needed.
@@ -230,7 +243,7 @@ public:
      */
     bool splitAt(NBDistrictCont& dc, NBEdge* edge, NBNode* node,
                  const std::string& firstEdgeName, const std::string& secondEdgeName,
-                 unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge);
+                 unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge, const SUMOReal speed = -1.);
 
 
     /** @brief Splits the edge at the position nearest to the given node using the given modifications
@@ -247,7 +260,7 @@ public:
      */
     bool splitAt(NBDistrictCont& dc, NBEdge* edge, SUMOReal edgepos, NBNode* node,
                  const std::string& firstEdgeName, const std::string& secondEdgeName,
-                 unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge);
+                 unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge, const SUMOReal speed = -1.);
     /// @}
 
 
@@ -350,7 +363,7 @@ public:
      * @todo Recheck whether a visitor-pattern should be used herefor
      * @see NBEdge::computeLanes2Edges
      */
-    void computeLanes2Edges();
+    void computeLanes2Edges(const bool buildCrossingsAndWalkingAreas);
 
 
     /** @brief Rechecks whether all lanes have a successor for each of the stored edges
@@ -360,7 +373,7 @@ public:
      * @todo Recheck whether a visitor-pattern should be used herefor
      * @see NBEdge::recheckLanes
      */
-    void recheckLanes();
+    void recheckLanes(const bool buildCrossingsAndWalkingAreas);
 
 
     /** @brief Appends turnarounds to all edges stored in the container
@@ -433,7 +446,7 @@ public:
     /** @brief Determines which edges belong to roundabouts and increases their priority
      * @param[out] marked Edges which belong to a roundabout are stored here
      */
-    void guessRoundabouts(std::vector<EdgeVector>& marked);
+    void guessRoundabouts();
 
 
     /** @brief Returns whether the built edges are left-handed
@@ -485,6 +498,21 @@ public:
     /// @brief assigns street signs to edges based on toNode types
     void generateStreetSigns();
 
+    /// @brief add sidwalks to edges within the given limits and return the number of edges affected
+    int guessSidewalks(SUMOReal width, SUMOReal minSpeed, SUMOReal maxSpeed);
+
+
+    /** @brief Returns the determined roundabouts
+     * @return The list of roundabout edges
+     */
+    const std::set<EdgeSet> getRoundabouts() const;
+
+    /// @brief add user specified roundabout
+    void addRoundabout(const EdgeSet& roundabout);
+
+    /// @brief mark edge priorities and prohibit turn-arounds for all roundabout edges
+    void markRoundabouts();
+
 private:
     /** @brief Returns the edges which have been built by splitting the edge of the given id
      *
@@ -497,7 +525,6 @@ private:
 
     /// @brief Returns true if this edge matches one of the removal criteria
     bool ignoreFilterMatch(NBEdge* edge);
-
 
 private:
     /// @brief The network builder; used to obtain type information
@@ -586,6 +613,11 @@ private:
     /// @brief whether a geo transform has been applied to the pruning boundary
     bool myNeedGeoTransformedPrunningBoundary;
     /// @}
+
+    /// @brief Edges marked as belonging to a roundabout by the user (each EdgeVector is a roundabout)
+    std::set<EdgeSet> myRoundabouts;
+    /// @brief Edges marked as belonging to a roundabout after guessing
+    std::set<EdgeSet> myGuessedRoundabouts;
 
 
 private:

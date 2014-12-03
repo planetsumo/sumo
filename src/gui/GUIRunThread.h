@@ -9,7 +9,7 @@
 // The thread that runs the simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -46,6 +46,7 @@
 // class declarations
 // ===========================================================================
 class GUINet;
+class GUIEvent;
 class OutputDevice;
 
 
@@ -63,7 +64,7 @@ class GUIRunThread : public FXSingleEventThread {
 public:
     /// constructor
     GUIRunThread(FXApp* app, MFXInterThreadEventClient* mw,
-                 FXRealSpinDial& simDelay, MFXEventQue& eq, FXEX::FXThreadEvent& ev);
+                 FXRealSpinDial& simDelay, MFXEventQue<GUIEvent*>& eq, FXEX::FXThreadEvent& ev);
 
     /// destructor
     virtual ~GUIRunThread();
@@ -107,6 +108,18 @@ public:
     /// Retrieves messages from the loading module
     void retrieveMessage(const MsgHandler::MsgType type, const std::string& msg);
 
+    SUMOTime getSimEndTime() const {
+        return mySimEndTime;
+    }
+
+    std::vector<SUMOTime>& getBreakpoints() {
+        return myBreakpoints;
+    }
+
+    MFXMutex& getBreakpointLock() {
+        return myBreakpointLock;
+    }
+
 protected:
     void makeStep();
 
@@ -140,11 +153,17 @@ protected:
 
     FXRealSpinDial& mySimDelay;
 
-    MFXEventQue& myEventQue;
+    MFXEventQue<GUIEvent*>& myEventQue;
 
     FXEX::FXThreadEvent& myEventThrow;
 
     MFXMutex mySimulationLock;
+
+    /// @brief List of breakpoints
+    std::vector<SUMOTime> myBreakpoints;
+
+    /// @brief Lock for modifying the list of breakpoints
+    MFXMutex myBreakpointLock;
 
 };
 

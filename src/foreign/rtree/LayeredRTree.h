@@ -13,7 +13,7 @@
 // 1 for alpha blending to work
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -76,7 +76,7 @@ public:
      * @param a_max Max of bounding rect
      * @param a_dataId Positive Id of data.  Maybe zero, but negative numbers not allowed.
      */
-    void Insert(const float a_min[2], const float a_max[2], GUIGlObject* a_dataId) {
+    void Insert(const float a_min[2], const float a_max[2], GUIGlObject* const & a_dataId) {
         myLayers[selectLayer(a_dataId)]->Insert(a_min, a_max, a_dataId);
     }
 
@@ -86,7 +86,7 @@ public:
      * @param a_max Max of bounding rect
      * @param a_dataId Positive Id of data.  Maybe zero, but negative numbers not allowed.
      */
-    void Remove(const float a_min[2], const float a_max[2], GUIGlObject* a_dataId) {
+    void Remove(const float a_min[2], const float a_max[2], GUIGlObject* const & a_dataId) {
         myLayers[selectLayer(a_dataId)]->Remove(a_min, a_max, a_dataId);
     }
 

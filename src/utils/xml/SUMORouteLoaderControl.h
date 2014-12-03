@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Wed, 06 Nov 2002
 /// @version $Id$
 ///
 // Class responsible for loading of routes from some files
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -64,7 +65,7 @@ public:
     /// add another loader
     void add(SUMORouteLoader* loader);
 
-    /// loads the next routes
+    /// loads the next routes up to and including the given time step
     void loadNext(SUMOTime step);
 
     /// returns the timestamp of the first loaded vehicle or flow
@@ -72,9 +73,17 @@ public:
         return myFirstLoadTime;
     }
 
+    /// returns whether loading is completed
+    bool haveAllLoaded() const {
+        return myAllLoaded;
+    }
+
 private:
     /// the first time step for which vehicles were loaded
     SUMOTime myFirstLoadTime;
+
+    /// the time step up to which vehicles were loaded
+    SUMOTime myCurrentLoadTime;
 
     /// the number of routes to read in forward
     SUMOTime myInAdvanceStepNo;

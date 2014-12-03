@@ -11,7 +11,7 @@
 // Detectors container; responsible for string and output generation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -64,10 +64,6 @@ class MSMeanData;
  */
 class MSDetectorControl {
 public:
-    // well, well, friends are evil; one could think about overriding MSDetectorControl and introducing GUIDetectorControl...
-    friend class GUINet;
-
-
     /** @brief Constructor
      */
     MSDetectorControl();
@@ -154,13 +150,19 @@ public:
 
 
 
+    /** @brief Returns the list of available detector types
+     *
+     * @return The list of types
+     */
+    const std::vector<SumoXMLTag> getAvailableTypes() const;
+
+
     /** @brief Returns the list of detectors of the given type
      *
      * @param[in] type The type of detectors to be retrieved
      * @return The container of detectors
      */
     const NamedObjectCont<MSDetectorFileOutput*>& getTypedDetectors(SumoXMLTag type) const;
-
 
 
     /** @brief Computes detector values

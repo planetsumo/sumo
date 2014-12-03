@@ -9,7 +9,7 @@
 // The thread that runs the simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -63,7 +63,7 @@
 // member method definitions
 // ===========================================================================
 GUIRunThread::GUIRunThread(FXApp* app, MFXInterThreadEventClient* parent,
-                           FXRealSpinDial& simDelay, MFXEventQue& eq,
+                           FXRealSpinDial& simDelay, MFXEventQue<GUIEvent*>& eq,
                            FXEX::FXThreadEvent& ev)
     : FXSingleEventThread(app, parent),
       myNet(0), myHalting(true), myQuit(false), mySimulationInProgress(false), myOk(true),
@@ -96,10 +96,13 @@ GUIRunThread::init(GUINet* net, SUMOTime start, SUMOTime end) {
     // register message callbacks
     MsgHandler::getErrorInstance()->addRetriever(myErrorRetriever);
     MsgHandler::getMessageInstance()->addRetriever(myMessageRetriever);
-    MsgHandler::getWarningInstance()->addRetriever(myWarningRetriever);
+    if (!OptionsCont::getOptions().getBool("no-warnings")) {
+        MsgHandler::getWarningInstance()->addRetriever(myWarningRetriever);
+    }
     // preload the routes especially for TraCI
     mySimulationLock.lock();
     try {
+        net->setCurrentTimeStep(start);
         net->loadRoutes();
     } catch (ProcessError& e2) {
         if (std::string(e2.what()) != std::string("Process Error") && std::string(e2.what()) != std::string("")) {
@@ -136,7 +139,9 @@ GUIRunThread::run() {
                 }
             }
             // check whether we shall stop at this step
-            const bool haltAfter = find(GUIGlobals::gBreakpoints.begin(), GUIGlobals::gBreakpoints.end(), myNet->getCurrentTimeStep()) != GUIGlobals::gBreakpoints.end();
+            myBreakpointLock.lock();
+            const bool haltAfter = find(myBreakpoints.begin(), myBreakpoints.end(), myNet->getCurrentTimeStep()) != myBreakpoints.end();
+            myBreakpointLock.unlock();
             // do the step
             makeStep();
             // stop if wished
@@ -155,7 +160,7 @@ GUIRunThread::run() {
             }
         } else {
             // sleep if the simulation is not running
-            sleep(500);
+            sleep(50);
         }
     }
     // delete a maybe existing simulation at the end
@@ -185,7 +190,7 @@ GUIRunThread::makeStep() {
         MSNet::SimulationState state = myNet->simulationState(mySimEndTime);
 #ifndef NO_TRACI
         if (state != MSNet::SIMSTATE_RUNNING) {
-            if (OptionsCont::getOptions().getInt("remote-port") != 0 && !traci::TraCIServer::wasClosed()) {
+            if (OptionsCont::getOptions().getInt("remote-port") != 0 && !TraCIServer::wasClosed()) {
                 state = MSNet::SIMSTATE_RUNNING;
             }
         }

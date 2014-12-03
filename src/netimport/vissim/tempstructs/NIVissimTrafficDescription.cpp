@@ -7,7 +7,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -49,9 +49,9 @@ NIVissimTrafficDescription::DictType NIVissimTrafficDescription::myDict;
 // member method definitions
 // ===========================================================================
 NIVissimTrafficDescription::NIVissimTrafficDescription(
-    int id, const std::string& name,
+    const std::string& name,
     const NIVissimVehicleClassVector& vehicleTypes)
-    : myID(id), myName(name), myVehicleTypes(vehicleTypes) {}
+    : myName(name), myVehicleTypes(vehicleTypes) {}
 
 
 NIVissimTrafficDescription::~NIVissimTrafficDescription() {
@@ -66,7 +66,7 @@ bool
 NIVissimTrafficDescription::dictionary(int id,
                                        const std::string& name,
                                        const NIVissimVehicleClassVector& vehicleTypes) {
-    NIVissimTrafficDescription* o = new NIVissimTrafficDescription(id, name, vehicleTypes);
+    NIVissimTrafficDescription* o = new NIVissimTrafficDescription(name, vehicleTypes);
     if (!dictionary(id, o)) {
         delete o;
         return false;

@@ -9,7 +9,7 @@
 // Builds trigger objects for guisim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -92,8 +92,9 @@ GUITriggerBuilder::buildCalibrator(MSNet& net, const std::string& id,
                                    MSEdge* edge, SUMOReal pos,
                                    const std::string& file,
                                    const std::string& outfile,
-                                   const SUMOTime freq) {
-    GUICalibrator* cali = new GUICalibrator(id, edge, pos, file, outfile, freq);
+                                   const SUMOTime freq,
+                                   const MSRouteProbe* probe) {
+    GUICalibrator* cali = new GUICalibrator(id, edge, pos, file, outfile, freq, probe);
     static_cast<GUINet&>(net).getVisualisationSpeedUp().addAdditionalGLObject(cali);
     return cali;
 }

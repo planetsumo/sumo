@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    NIVissimClosedLaneDef.cpp
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,9 +37,8 @@
 #endif // CHECK_MEMORY_LEAKS
 
 
-NIVissimClosedLaneDef::NIVissimClosedLaneDef(int lane,
-        const std::vector<int>& assignedVehicles)
-    : myLaneNo(lane), myAssignedVehicles(assignedVehicles) {}
+NIVissimClosedLaneDef::NIVissimClosedLaneDef(const std::vector<int>& assignedVehicles)
+    : myAssignedVehicles(assignedVehicles) {}
 
 
 NIVissimClosedLaneDef::~NIVissimClosedLaneDef() {}

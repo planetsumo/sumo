@@ -8,7 +8,7 @@
 // A container for routes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -131,11 +131,6 @@ public:
      * @todo Not used, yet
      */
     void removeIllegal(const std::vector<std::vector<ROEdge*> >& illegals);
-
-
-    /** @brief All routes are replaced by their versions extended by follower edges
-    */
-    void addAllEndFollower();
 
 
 protected:

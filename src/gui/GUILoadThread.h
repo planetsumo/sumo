@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // Class describing the thread that performs the loading of a simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -33,17 +34,18 @@
 #endif
 
 #include <utils/common/SUMOTime.h>
+#include <utils/common/MsgHandler.h>
 #include <utils/foxtools/FXSingleEventThread.h>
 #include <utils/foxtools/FXThreadEvent.h>
-#include <utils/common/MsgHandler.h>
+#include <utils/foxtools/MFXEventQue.h>
 
 
 // ===========================================================================
 // class declarations
 // ===========================================================================
 class MFXInterThreadEventClient;
-class MFXEventQue;
 class GUINet;
+class GUIEvent;
 
 
 // ===========================================================================
@@ -55,7 +57,7 @@ class GUINet;
 class GUILoadThread : public FXSingleEventThread {
 public:
     /// constructor
-    GUILoadThread(FXApp* app, MFXInterThreadEventClient* mw, MFXEventQue& eq,
+    GUILoadThread(FXApp* app, MFXInterThreadEventClient* mw, MFXEventQue<GUIEvent*>& eq,
                   FXEX::FXThreadEvent& ev);
 
     /// destructor
@@ -66,7 +68,7 @@ public:
     FXint run();
 
     /// begins the loading of the given file
-    void load(const std::string& file, bool isNet);
+    void loadConfigOrNet(const std::string& file, bool isNet);
 
     /// Retrieves messages from the loading module
     void retrieveMessage(const MsgHandler::MsgType type, const std::string& msg);
@@ -74,9 +76,6 @@ public:
     const std::string& getFileName() const;
 
 protected:
-    virtual bool initOptions();
-
-
     /** @brief Closes the loading process
      *
      * This method is called both on success and failure.
@@ -97,7 +96,7 @@ protected:
         Needed to be deleted from the handler later on */
     OutputDevice* myErrorRetriever, *myMessageRetriever, *myWarningRetriever;
 
-    MFXEventQue& myEventQue;
+    MFXEventQue<GUIEvent*>& myEventQue;
 
     FXEX::FXThreadEvent& myEventThrow;
 

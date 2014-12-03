@@ -9,7 +9,7 @@
 // static methods for processing the coordinates conversion for the current net
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -172,7 +172,7 @@ GeoConvHelper::init(OptionsCont& oc) {
         proj = "DHDN";
     } else if (oc.getBool("proj.dhdnutm")) {
         proj = "DHDN_UTM";
-    } else {
+    } else if (!oc.isDefault("proj")) {
         proj = oc.getString("proj");
     }
 #endif
@@ -307,8 +307,8 @@ GeoConvHelper::x2cartesian(Position& from, bool includeInBoundary) {
     if (myInverseProjection != 0) {
         double x = from.x();
         double y = from.y();
-        if (pj_transform(myInverseProjection, myGeoProjection, 1, 1, &x, &y, NULL )) {
-            WRITE_WARNING("Could not transform (" + toString(x) + "," + toString(y) +")");
+        if (pj_transform(myInverseProjection, myGeoProjection, 1, 1, &x, &y, NULL)) {
+            WRITE_WARNING("Could not transform (" + toString(x) + "," + toString(y) + ")");
         }
         from.set(SUMOReal(x * RAD_TO_DEG), SUMOReal(y * RAD_TO_DEG));
     }

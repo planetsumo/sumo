@@ -9,7 +9,7 @@
 // The class holds a description of a connection between two edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -83,6 +83,9 @@ public:
 
     /// replaces the to-edge by the one given
     bool replaceTo(NBEdge* which, int whichLane, NBEdge* by, int byLane);
+
+    /// @brief patches lane indices refering to the given edge
+    void shiftLaneIndex(NBEdge* edge, int offset);
 
     /// checks whether the edges are still valid
     bool check(const NBEdgeCont& ec);

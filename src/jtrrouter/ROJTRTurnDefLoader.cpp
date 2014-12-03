@@ -9,7 +9,7 @@
 // Loader for the of turning percentages and source/sink definitions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -65,8 +65,8 @@ ROJTRTurnDefLoader::myStartElement(int element,
     bool ok = true;
     switch (element) {
         case SUMO_TAG_INTERVAL:
-            myIntervalBegin = attrs.getSUMOTimeReporting(SUMO_ATTR_BEGIN, 0, ok);
-            myIntervalEnd = attrs.getSUMOTimeReporting(SUMO_ATTR_END, 0, ok);
+            myIntervalBegin = attrs.get<SUMOReal>(SUMO_ATTR_BEGIN, 0, ok);
+            myIntervalEnd = attrs.get<SUMOReal>(SUMO_ATTR_END, 0, ok);
             break;
         case SUMO_TAG_FROMEDGE:
             beginFromEdge(attrs);
@@ -143,7 +143,7 @@ ROJTRTurnDefLoader::addToEdge(const SUMOSAXAttributes& attrs) {
         WRITE_ERROR("The edge '" + id + "' is not known within the network (within a 'to-edge' tag).");
         return;
     }
-    SUMOReal probability = attrs.get<SUMOReal>(SUMO_ATTR_PROB, id.c_str(), ok);
+    const SUMOReal probability = attrs.get<SUMOReal>(SUMO_ATTR_PROB, id.c_str(), ok);
     if (ok) {
         if (probability < 0) {
             WRITE_ERROR("'probability' must be positive (in definition of to-edge '" + id + "').");

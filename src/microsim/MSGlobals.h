@@ -3,13 +3,14 @@
 /// @author  Daniel Krajzewicz
 /// @author  Christian Roessel
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    late summer 2003
 /// @version $Id$
 ///
 // Some static variables for faster access
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2003-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -91,6 +92,9 @@ public:
     /** Information whether limited junction control shall be used */
     static bool gMesoLimitedJunctionControl;
 
+    /** Information whether overtaking is enabled in the mesoscopic simulation */
+    static bool gMesoOvertaking;
+
     /// mesoscopic simulation infrastructure
     static MELoop* gMesoNet;
 #else
@@ -98,10 +102,6 @@ public:
     const static bool gUseMesoSim;
 
 #endif
-
-    /// @brief global utility flags for debugging
-    static bool gDebugFlag1;
-    static bool gDebugFlag2;
 
 };
 

@@ -10,7 +10,7 @@
 // Some static methods performing geometrical operations
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -100,7 +100,11 @@ GeomHelper::intersects(const SUMOReal x1, const SUMOReal y1,
                 } else {
                     *x = x1;
                     *y = a;
-                    *mu = (a - y1) / (y2 - y1);
+                    if (y2 == y1) {
+                        *mu = 0;
+                    } else {
+                        *mu = (a - y1) / (y2 - y1);
+                    }
                 }
             }
             return true;
@@ -112,10 +116,15 @@ GeomHelper::intersects(const SUMOReal x1, const SUMOReal y1,
         return false;
     }
     /* Is the intersection along the segments */
-    const double mua = numera / denominator;
-    const double mub = numerb / denominator;
-    if (mua < 0 || mua > 1 || mub < 0 || mub > 1) {
-        return false;
+    double mua = numera / denominator;
+    /* reduce rounding errors for lines ending in the same point */
+    if (fabs(x2 - x4) < eps && fabs(y2 - y4) < eps) {
+        mua = 1.;
+    } else {
+        const double mub = numerb / denominator;
+        if (mua < 0 || mua > 1 || mub < 0 || mub > 1) {
+            return false;
+        }
     }
     if (x != 0) {
         *x = x1 + mua * (x2 - x1);
@@ -135,19 +144,19 @@ GeomHelper::intersects(const Position& p11, const Position& p12,
 }
 
 
-bool 
-GeomHelper::pointOnLine(const Position &p, const Position &from, const Position &to) {
-    if (p.x() >= MIN2(from.x(), to.x()) && p.x() <= MAX2(from.x(), to.x()) && 
-        p.y() >= MIN2(from.y(), to.y()) && p.y() <= MAX2(from.y(), to.y())) {
+bool
+GeomHelper::pointOnLine(const Position& p, const Position& from, const Position& to) {
+    if (p.x() >= MIN2(from.x(), to.x()) && p.x() <= MAX2(from.x(), to.x()) &&
+            p.y() >= MIN2(from.y(), to.y()) && p.y() <= MAX2(from.y(), to.y())) {
         return true;
     }
     return false;
 }
 
 
-void 
-GeomHelper::FindLineCircleIntersections(const Position &c, SUMOReal radius, const Position &p1, const Position &p2,
-                                        std::vector<SUMOReal> &into) {
+void
+GeomHelper::FindLineCircleIntersections(const Position& c, SUMOReal radius, const Position& p1, const Position& p2,
+                                        std::vector<SUMOReal>& into) {
     SUMOReal dx = p2.x() - p1.x();
     SUMOReal dy = p2.y() - p1.y();
 
@@ -163,7 +172,7 @@ GeomHelper::FindLineCircleIntersections(const Position &c, SUMOReal radius, cons
         // One solution.
         SUMOReal t = -B / (2 * A);
         Position intersection(p1.x() + t * dx, p1.y() + t * dy);
-        if(GeomHelper::pointOnLine(intersection, p1, p2)) {
+        if (GeomHelper::pointOnLine(intersection, p1, p2)) {
             into.push_back(t);
         }
         return;
@@ -171,12 +180,12 @@ GeomHelper::FindLineCircleIntersections(const Position &c, SUMOReal radius, cons
         // Two solutions.
         SUMOReal t = (float)((-B + sqrt(det)) / (2 * A));
         Position intersection(p1.x() + t * dx, p1.y() + t * dy);
-        if(GeomHelper::pointOnLine(intersection, p1, p2)) {
+        if (GeomHelper::pointOnLine(intersection, p1, p2)) {
             into.push_back(t);
         }
         t = (float)((-B - sqrt(det)) / (2 * A));
         intersection.set(p1.x() + t * dx, p1.y() + t * dy);
-        if(GeomHelper::pointOnLine(intersection, p1, p2)) {
+        if (GeomHelper::pointOnLine(intersection, p1, p2)) {
             into.push_back(t);
         }
         return;
@@ -196,7 +205,7 @@ GeomHelper::intersection_position2D(const Position& p11,
         // @todo calculate better "average" z value
         return Position(x, y, p11.z() + m * (p12.z() - p11.z()));
     }
-    return Position(-1, -1);
+    return Position::INVALID;
 }
 
 

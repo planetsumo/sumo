@@ -10,7 +10,7 @@
 // A storage for options (typed value containers)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -71,7 +71,7 @@ OptionsCont::getOptions() {
 
 OptionsCont::OptionsCont()
     : myAddresses(), myValues(), myDeprecatedSynonymes(), myHaveInformedAboutDeprecatedDivider(false) {
-    myCopyrightNotices.push_back("Copyright (C) 2001-2013 DLR and contributors; http://sumo.dlr.de");
+    myCopyrightNotices.push_back("Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de");
 }
 
 
@@ -318,7 +318,9 @@ OptionsCont::relocateFiles(const std::string& configuration) const {
                 }
                 conv += tmp;
             }
-            (*i)->set(conv);
+            if (conv != (*i)->getString()) {
+                (*i)->set(conv);
+            }
         }
     }
 }
@@ -340,9 +342,9 @@ OptionsCont::isUsableFileList(const std::string& name) const {
         ok = false;
     }
     for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
-        if (!FileHelpers::exists(*fileIt)) {
+        if (!FileHelpers::isReadable(*fileIt)) {
             if (*fileIt != "") {
-                WRITE_ERROR("File '" + *fileIt + "' does not exist.");
+                WRITE_ERROR("File '" + *fileIt + "' is not accessible.");
                 ok = false;
             } else {
                 WRITE_WARNING("Empty file name given; ignoring.");
@@ -714,7 +716,7 @@ OptionsCont::printHelp(std::ostream& os) {
     }
     os << std::endl;
     os << "Report bugs at <http://sumo.dlr.de/trac/>." << std::endl;
-    os << "Get in contact via <sumo-user@lists.sourceforge.net>." << std::endl;
+    os << "Get in contact via <sumo@dlr.de>." << std::endl;
 }
 
 

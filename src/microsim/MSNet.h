@@ -13,7 +13,7 @@
 // The simulated network and simulation perfomer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -52,17 +52,19 @@
 #include <microsim/trigger/MSBusStop.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/NamedObjectCont.h>
-#include <utils/common/SUMOAbstractRouter.h>
-#include <utils/common/DijkstraRouterTT.h>
-#include <utils/common/DijkstraRouterEffort.h>
-#include <utils/common/AStarRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
+#include <utils/vehicle/DijkstraRouterTT.h>
+#include <utils/vehicle/DijkstraRouterEffort.h>
+#include <utils/vehicle/AStarRouter.h>
 #include <utils/common/NamedRTree.h>
+#include <utils/vehicle/PedestrianRouter.h>
 
 
 // ===========================================================================
 // class declarations
 // ===========================================================================
 class MSEdge;
+class MSJunction;
 class MSEdgeControl;
 class MSJunctionControl;
 class MSInsertionControl;
@@ -105,6 +107,10 @@ public:
         /// @brief The simulation contains too many vehicles (@deprecated)
         SIMSTATE_TOO_MANY_VEHICLES
     };
+
+    //typedef PedestrianRouterDijkstra<MSEdge, MSLane> MSPedestrianRouterDijkstra;
+    typedef PedestrianRouterDijkstra<MSEdge, MSLane, MSJunction> MSPedestrianRouterDijkstra;
+
 
 
 public:
@@ -152,6 +158,20 @@ public:
     void closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
                        SUMORouteLoaderControl* routeLoaders, MSTLLogicControl* tlc,
                        std::vector<SUMOTime> stateDumpTimes, std::vector<std::string> stateDumpFiles);
+
+
+    /** @brief Returns whether the network has vehicle class restrictions
+     * @return whether restrictions are present
+     */
+    bool hasRestrictions() const {
+        return myHaveRestrictions;
+    }
+
+
+    /// @brief Labels the network to contain vehicle class restrictions
+    void setRestrictionFound() {
+        myHaveRestrictions = true;
+    }
 
 
     /** @brief Clears all dictionaries
@@ -204,10 +224,20 @@ public:
     static std::string getStateMessage(SimulationState state);
 
 
-    /** @brief Returns the current simulation step (in s)
+    /** @brief Returns the current simulation step
      * @return the current simulation step
      */
-    SUMOTime getCurrentTimeStep() const;
+    inline SUMOTime getCurrentTimeStep() const {
+        return myStep;
+    }
+
+
+    /** @brief Sets the current simulation step (used by state loading)
+     * @param step the current simulation step
+     */
+    inline void setCurrentTimeStep(const SUMOTime step) {
+        myStep = step;
+    }
 
 
     /** @brief Write netstate, summary and detector output
@@ -317,32 +347,32 @@ public:
 
 
     /** @brief Returns the event control for events executed at the begin of a time step
-     * @return The control reponsible for events that are executed at the begin of a time step
+     * @return The control responsible for events that are executed at the begin of a time step
      * @see MSEventControl
      * @see myBeginOfTimestepEvents
      */
-    MSEventControl& getBeginOfTimestepEvents() {
-        return *myBeginOfTimestepEvents;
+    MSEventControl* getBeginOfTimestepEvents() {
+        return myBeginOfTimestepEvents;
     }
 
 
     /** @brief Returns the event control for events executed at the end of a time step
-     * @return The control reponsible for events that are executed at the end of a time step
+     * @return The control responsible for events that are executed at the end of a time step
      * @see MSEventControl
      * @see myEndOfTimestepEvents
      */
-    MSEventControl& getEndOfTimestepEvents() {
-        return *myEndOfTimestepEvents;
+    MSEventControl* getEndOfTimestepEvents() {
+        return myEndOfTimestepEvents;
     }
 
 
     /** @brief Returns the event control for insertion events
-     * @return The control reponsible for insertion events
+     * @return The control responsible for insertion events
      * @see MSEventControl
      * @see myInsertionEvents
      */
-    MSEventControl& getInsertionEvents() {
-        return *myInsertionEvents;
+    MSEventControl* getInsertionEvents() {
+        return myInsertionEvents;
     }
 
 
@@ -497,12 +527,13 @@ public:
         const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
     SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouterEffort(
         const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
+    MSPedestrianRouterDijkstra& getPedestrianRouter(const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
 
 
     /** @brief Returns an RTree that contains lane IDs
      * @return An Rtree containing lane IDs
      */
-    const NamedRTree &getLanesRTree() const;
+    const NamedRTree& getLanesRTree() const;
 
 
 protected:
@@ -580,6 +611,9 @@ protected:
 
 
 
+    /// @brief Whether the network contains edges which not all vehicles may pass
+    bool myHaveRestrictions;
+
     /// @brief Storage for maximum vehicle number
     int myTooManyVehicles;
 
@@ -595,14 +629,21 @@ protected:
      * @note we provide one member for every switchable router type
      * because the class structure makes it inconvenient to use a superclass*/
     mutable bool myRouterTTInitialized;
-    mutable DijkstraRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTDijkstra;
-    mutable AStarRouterTT_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
-    mutable DijkstraRouterEffort_ByProxi<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterEffort;
+    mutable DijkstraRouterTT<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTDijkstra;
+    mutable AStarRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
+    mutable DijkstraRouterEffort<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterEffort;
+    mutable MSPedestrianRouterDijkstra* myPedestrianRouter;
 
 
     /// @brief An RTree structure holding lane IDs
     mutable std::pair<bool, NamedRTree> myLanesRTree;
 
+
+    /// @brief string constants for simstep stages
+    static const std::string STAGE_EVENTS;
+    static const std::string STAGE_MOVEMENTS;
+    static const std::string STAGE_LANECHANGE;
+    static const std::string STAGE_INSERTIONS;
 
 private:
     /// @brief Invalidated copy constructor.

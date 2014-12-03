@@ -1,13 +1,14 @@
 /****************************************************************************/
 /// @file    MSDevice_BTsender.h
 /// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    14.08.2013
 /// @version $Id$
 ///
 // A BT sender
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -135,25 +136,19 @@ public:
     class VehicleState {
     public:
         /** @brief Constructor
-         * @param[in] _time The current time
          * @param[in] _speed The speed of the vehicle
-         * @param[in] _angle The angle of the vehicle
          * @param[in] _position The position of the vehicle
          * @param[in] _laneID The id of the lane the vehicle is located at
          * @param[in] _lanePos The position of the vehicle along the lane
          */
-        VehicleState(SUMOReal _time, SUMOReal _speed, SUMOReal _angle, const Position &_position, const std::string &_laneID, SUMOReal _lanePos) 
-            : time(_time), speed(_speed), angle(_angle), position(_position), laneID(_laneID), lanePos(_lanePos) {}
+        VehicleState(SUMOReal _speed, const Position& _position, const std::string& _laneID, SUMOReal _lanePos)
+            : speed(_speed), position(_position), laneID(_laneID), lanePos(_lanePos) {}
 
         /// @brief Destructor
         ~VehicleState() {}
 
-        /// @brief The current time
-        SUMOReal time;
         /// @brief The speed of the vehicle
         SUMOReal speed;
-        /// @brief The angle of the vehicle
-        SUMOReal angle;
         /// @brief The position of the vehicle
         Position position;
         /// @brief The lane the vehicle was at
@@ -173,7 +168,7 @@ public:
         /** @brief Constructor
          * @param[in] id The id of the vehicle
          */
-        VehicleInformation(const std::string &id) : Named(id), amOnNet(true), haveArrived(false)  {}
+        VehicleInformation(const std::string& id) : Named(id), amOnNet(true), haveArrived(false)  {}
 
         /// @brief Destructor
         ~VehicleInformation() {}
@@ -183,7 +178,7 @@ public:
          */
         Boundary getBoxBoundary() const {
             Boundary ret;
-            for(std::vector<VehicleState>::const_iterator i=updates.begin(); i!=updates.end(); ++i) {
+            for (std::vector<VehicleState>::const_iterator i = updates.begin(); i != updates.end(); ++i) {
                 ret.add((*i).position);
             }
             return ret;

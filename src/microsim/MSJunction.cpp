@@ -9,7 +9,7 @@
 // The base class for an intersection
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -42,13 +42,16 @@
 // ===========================================================================
 class MSLink;
 
+// ===========================================================================
+// static member definitions
+// ===========================================================================
 
 // ===========================================================================
 // member method definition
 // ===========================================================================
-MSJunction::MSJunction(const std::string& id, const Position& position,
+MSJunction::MSJunction(const std::string& id, SumoXMLNodeType type, const Position& position,
                        const PositionVector& shape)
-    : Named(id), myPosition(position), myShape(shape) {}
+    : Named(id), myType(type), myPosition(position), myShape(shape) {}
 
 
 MSJunction::~MSJunction() {}
@@ -62,7 +65,6 @@ MSJunction::getPosition() const {
 
 void
 MSJunction::postloadInit() {}
-
 
 
 /****************************************************************************/

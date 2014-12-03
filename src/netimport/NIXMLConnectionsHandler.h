@@ -9,7 +9,7 @@
 // Importer for edge connections stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -131,16 +131,11 @@ private:
      */
     inline bool parseLaneDefinition(const SUMOSAXAttributes& attributes, int* fromLane, int* toLane);
 
-    /** @brief Validates information about lane-2-lane connection. Returns true iff information represents
-     *         a valid connection for the given edges.
-     * @param[in] canLanesBeNegative Whether negative lane indices are allowed (used when specifying resets)
-     * @param[in] fromEdge The originating edge
-     * @param[in] toEdge The target edge
-     * @param[in] fromLane The originating lane index
-     * @param[in] toLane The target lane index
-     */
-    bool validateLaneInfo(bool canLanesBeNegative, NBEdge* fromEdge, NBEdge* toEdge, int fromLane, int toLane);
 
+    /** @brief Parses a crossing and updates the referenced node
+     * @param[in] attrs The attributes to get the crossings's values from
+     */
+    void addCrossing(const SUMOSAXAttributes& attrs);
 
 private:
     /// @brief The edge container to fill

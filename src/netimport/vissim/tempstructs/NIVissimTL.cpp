@@ -9,7 +9,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,23 +51,25 @@
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
+
+
 // ===========================================================================
-// used namespaces
+// static member variables
 // ===========================================================================
-
-using namespace std;
-
-
 NIVissimTL::SignalDictType NIVissimTL::NIVissimTLSignal::myDict;
 
-NIVissimTL::NIVissimTLSignal::NIVissimTLSignal(int lsaid, int id,
+
+// ===========================================================================
+// method definitions
+// ===========================================================================
+NIVissimTL::NIVissimTLSignal::NIVissimTLSignal(int id,
         const std::string& name,
         const std::vector<int>& groupids,
         int edgeid,
         int laneno,
         SUMOReal position,
         const std::vector<int>& vehicleTypes)
-    : myLSA(lsaid), myID(id), myName(name), myGroupIDs(groupids),
+    : myID(id), myName(name), myGroupIDs(groupids),
       myEdgeID(edgeid), myLane(laneno), myPosition(position),
       myVehicleTypes(vehicleTypes) {}
 
@@ -208,11 +210,11 @@ NIVissimTL::NIVissimTLSignal::addTo(NBEdgeCont& ec, NBLoadedTLDef* tl) const {
 NIVissimTL::GroupDictType NIVissimTL::NIVissimTLSignalGroup::myDict;
 
 NIVissimTL::NIVissimTLSignalGroup::NIVissimTLSignalGroup(
-    int lsaid, int id,
+    int id,
     const std::string& name,
     bool isGreenBegin, const std::vector<SUMOReal>& times,
     SUMOTime tredyellow, SUMOTime tyellow)
-    : myLSA(lsaid), myID(id), myName(name), myTimes(times),
+    : myID(id), myName(name), myTimes(times),
       myFirstIsRed(!isGreenBegin), myTRedYellow(tredyellow),
       myTYellow(tyellow) {}
 

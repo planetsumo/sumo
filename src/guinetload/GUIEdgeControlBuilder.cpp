@@ -9,7 +9,7 @@
 // Derivation of NLEdgeControlBuilder which build gui-edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -71,8 +71,9 @@ GUIEdgeControlBuilder::addLane(const std::string& id,
 
 
 MSEdge*
-GUIEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, const std::string& streetName) {
-    return new GUIEdge(id, myCurrentNumericalEdgeID++, function, streetName);
+GUIEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function,
+                                 const std::string& streetName, const std::string& edgeType, const int priority) {
+    return new GUIEdge(id, myCurrentNumericalEdgeID++, function, streetName, edgeType, priority);
 }
 
 /****************************************************************************/

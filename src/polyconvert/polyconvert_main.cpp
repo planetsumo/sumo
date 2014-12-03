@@ -4,13 +4,14 @@
 /// @author  Jakob Erdmann
 /// @author  Christoph Sommer
 /// @author  Michael Behrisch
+/// @author  Melanie Knocke
 /// @date    Mon, 05 Dec 2005
 /// @version $Id$
 ///
 // Main for POLYCONVERT
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -135,6 +136,9 @@ fillOptions() {
     oc.doRegister("shapefile.use-running-id", new Option_Bool());
     oc.addDescription("shapefile.use-running-id", "Input", "A running number will be used as id");
 
+    oc.doRegister("shapefile.add-param", new Option_Bool());
+    oc.addDescription("shapefile.add-param", "Input", "Extract all additonal columns as params");
+
     // typemap reading
     oc.doRegister("type-file", new Option_FileName());
     oc.addSynonyme("type-file", "typemap", true);
@@ -206,7 +210,7 @@ int
 main(int argc, char** argv) {
     OptionsCont& oc = OptionsCont::getOptions();
     oc.setApplicationDescription("Importer of polygons and POIs for the road traffic simulation SUMO.");
-    oc.setApplicationName("polyconvert", "SUMO polyconvert Version " + (std::string)VERSION_STRING);
+    oc.setApplicationName("polyconvert", "SUMO polyconvert Version " + getBuildName(VERSION_STRING));
     int ret = 0;
     try {
         // initialise subsystems
@@ -217,7 +221,7 @@ main(int argc, char** argv) {
             SystemFrame::close();
             return 0;
         }
-        XMLSubSys::setValidation(oc.getBool("xml-validation"));
+        XMLSubSys::setValidation(oc.getString("xml-validation"), oc.getString("xml-validation.net"));
         MsgHandler::initOutputOptions();
         // build the projection
         int shift = 0;

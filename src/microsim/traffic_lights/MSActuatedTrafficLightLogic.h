@@ -2,13 +2,14 @@
 /// @file    MSActuatedTrafficLightLogic.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // An actuated (adaptive) traffic light logic
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -104,15 +105,16 @@ protected:
     /// @name "actuated" algorithm methods
     /// @{
 
-    /** @brief Returns the duration of the given step
-     * @return The wanted duration of the current step
+    /** @brief Returns the minimum duration of the current phase
+     * @param[in] detectionGap The minimum detection gap for the current phase
+     * @return The minimum duration of the current phase
      */
-    SUMOTime duration() const;
+    SUMOTime duration(const SUMOReal detectionGap) const;
 
 
-    /** @brief Decides, whether a phase should be continued by checking the gaps of vehicles having green
+    /** @brief Return the minimum detection gap of all detectors if the current phase should be extended and SUMOReal::max otherwise
      */
-    void gapControl();
+    SUMOReal gapControl();
     /// @}
 
 
@@ -120,16 +122,13 @@ protected:
     /// A map from lanes to induct loops lying on them
     InductLoopMap myInductLoops;
 
-    /// information whether the current phase should be lenghtend
-    bool myContinue;
-
-    /// The maximum gap to check
+    /// The maximum gap to check in seconds
     SUMOReal myMaxGap;
 
-    /// The passing time used
+    /// The passing time used in seconds
     SUMOReal myPassingTime;
 
-    /// The detector distance
+    /// The detector distance in seconds
     SUMOReal myDetectorGap;
 
 };

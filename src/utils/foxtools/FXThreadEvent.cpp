@@ -1,13 +1,15 @@
 /****************************************************************************/
 /// @file    FXThreadEvent.cpp
-/// @author  unknown_author
+/// @author  Mathew Robertson
+/// @author  Daniel Krajzewicz
+/// @author  Michael Behrisch
 /// @date    2004-03-19
 /// @version $Id$
 ///
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -79,6 +81,7 @@ FXThreadEvent::FXThreadEvent(FXObject* tgt, FXSelector sel) : FXBaseObject(tgt, 
     FXMALLOC(&event, FXThreadEventHandle, 2);
     FXint res = pipe(event);
     FXASSERT(res == 0);
+    UNUSED_PARAMETER(res); // only used for assertion
     getApp()->addInput(event[PIPE_READ], INPUT_READ, this, ID_THREAD_EVENT);
 #else
     event = CreateEvent(NULL, FALSE, FALSE, NULL);

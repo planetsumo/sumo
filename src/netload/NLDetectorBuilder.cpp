@@ -5,13 +5,14 @@
 /// @author  Clemens Honomichl
 /// @author  Michael Behrisch
 /// @author  Christian Roessel
+/// @author  Jakob Erdmann
 /// @date    Mon, 15 Apr 2002
 /// @version $Id$
 ///
 // Builds detectors for microsim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -43,8 +44,9 @@
 #include <microsim/output/MSVTypeProbe.h>
 #include <microsim/output/MSRouteProbe.h>
 #include <microsim/output/MSMeanData_Net.h>
-#include <microsim/output/MSMeanData_HBEFA.h>
+#include <microsim/output/MSMeanData_Emissions.h>
 #include <microsim/output/MSMeanData_Harmonoise.h>
+#include <microsim/output/MSMeanData_Amitran.h>
 #include <microsim/output/MSInstantInductLoop.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/actions/Command_SaveTLCoupledDet.h>
@@ -150,7 +152,7 @@ NLDetectorBuilder::buildInstantInductLoop(const std::string& id,
     // build the loop
     MSDetectorFileOutput* loop = createInstantInductLoop(id, clane, pos, device);
     // add the file output
-    myNet.getDetectorControl().add(SUMO_TAG_INDUCTION_LOOP, loop);
+    myNet.getDetectorControl().add(SUMO_TAG_INSTANT_INDUCTION_LOOP, loop);
 }
 
 
@@ -362,7 +364,7 @@ NLDetectorBuilder::buildRouteProbe(const std::string& id, const std::string& edg
                                    const std::string& device) {
     checkSampleInterval(frequency, SUMO_TAG_ROUTEPROBE, id);
     MSEdge* e = getEdgeChecking(edge, SUMO_TAG_ROUTEPROBE, id);
-    MSRouteProbe* probe = new MSRouteProbe(id, e, begin);
+    MSRouteProbe* probe = new MSRouteProbe(id, e, id + "_" + toString(begin), id + "_" + toString(begin - frequency));
     // add the file output
     myNet.getDetectorControl().add(SUMO_TAG_ROUTEPROBE, probe, device, frequency, begin);
 }
@@ -496,16 +498,19 @@ NLDetectorBuilder::createEdgeLaneMeanData(const std::string& id, SUMOTime freque
     MSMeanData* det = 0;
     if (type == "" || type == "performance" || type == "traffic") {
         det = new MSMeanData_Net(id, begin, end, useLanes, withEmpty,
-                                 printDefaults, withInternal, trackVehicles,
-                                 maxTravelTime, minSamples, haltSpeed, vt);
-    } else if (type == "hbefa") {
-        det = new MSMeanData_HBEFA(id, begin, end, useLanes, withEmpty,
-                                   printDefaults, withInternal, trackVehicles,
-                                   maxTravelTime, minSamples, vt);
+                                 printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, haltSpeed, vt);
+    } else if (type == "emissions" || type == "hbefa") {
+        if (type == "hbefa") {
+            WRITE_WARNING("The netstate type 'hbefa' is deprecated. Please use the type 'emissions' instead.");
+        }
+        det = new MSMeanData_Emissions(id, begin, end, useLanes, withEmpty,
+                                       printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vt);
     } else if (type == "harmonoise") {
         det = new MSMeanData_Harmonoise(id, begin, end, useLanes, withEmpty,
-                                        printDefaults, withInternal, trackVehicles,
-                                        maxTravelTime, minSamples, vt);
+                                        printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, vt);
+    } else if (type == "amitran") {
+        det = new MSMeanData_Amitran(id, begin, end, useLanes, withEmpty,
+                                     printDefaults, withInternal, trackVehicles, maxTravelTime, minSamples, haltSpeed, vt);
     } else {
         throw InvalidArgument("Invalid type '" + type + "' for meandata dump '" + id + "'.");
     }

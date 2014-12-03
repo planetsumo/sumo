@@ -2,13 +2,14 @@
 /// @file    RORouteDef.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
+/// @author  Jakob Erdmann
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // Base class for a vehicle's route definition
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -34,8 +35,7 @@
 #include <string>
 #include <iostream>
 #include <utils/common/Named.h>
-#include "ReferencedItem.h"
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 #include "RORoute.h"
 
 
@@ -60,7 +60,7 @@ class OutputDevice;
  *  route through the network or even a route with alternatives depends on
  *  the derived class.
  */
-class RORouteDef : public ReferencedItem, public Named {
+class RORouteDef : public Named {
 public:
     /** @brief Constructor
      *
@@ -68,7 +68,7 @@ public:
      * @param[in] color The color of the route
      */
     RORouteDef(const std::string& id, const unsigned int lastUsed,
-               const bool tryRepair);
+               const bool tryRepair, const bool mayBeDisconnected);
 
 
     /// @brief Destructor
@@ -143,6 +143,10 @@ public:
     /** @brief Returns the sum of the probablities of the contained routes */
     SUMOReal getOverallProb() const;
 
+    static void setUsingJTRR() {
+        myUsingJTRR = true;
+    }
+
 protected:
     /// @brief precomputed route for out-of-order computation
     mutable RORoute* myPrecomputed;
@@ -153,10 +157,16 @@ protected:
     /// @brief The alternatives
     std::vector<RORoute*> myAlternatives;
 
+    /// @brief Routes which are deleted someplace else
+    std::set<RORoute*> myRouteRefs;
+
     /// @brief Information whether a new route was generated
     mutable bool myNewRoute;
 
     const bool myTryRepair;
+    const bool myMayBeDisconnected;
+
+    static bool myUsingJTRR;
 
 private:
     /** Function-object for sorting routes from highest to lowest probability. */

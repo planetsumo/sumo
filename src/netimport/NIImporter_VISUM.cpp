@@ -10,7 +10,7 @@
 // A VISUM network importer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -998,14 +998,14 @@ void NIImporter_VISUM::parse_LanesConnections() {
     }
     // !!! the next is probably a hack
     if (fromLane - fromLaneOffset < 0) {
-        fromLaneOffset = 0;
+        //fromLaneOffset = 0;
     } else {
-        fromLane = fromEdge->getNumLanes() - (fromLane - fromLaneOffset) - 1;
+        fromLane = (int)fromEdge->getNumLanes() - (fromLane - fromLaneOffset) - 1;
     }
     if (toLane - toLaneOffset < 0) {
-        toLaneOffset = 0;
+        //toLaneOffset = 0;
     } else {
-        toLane = toEdge->getNumLanes() - (toLane - toLaneOffset) - 1;
+        toLane = (int)toEdge->getNumLanes() - (toLane - toLaneOffset) - 1;
     }
     //
     if ((int) fromEdge->getNumLanes() <= fromLane) {

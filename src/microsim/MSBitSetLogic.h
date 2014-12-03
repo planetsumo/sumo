@@ -10,7 +10,7 @@
 //	»missingDescription«
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -93,7 +93,7 @@ public:
         return myConts.test(linkIndex);
     }
 
-    virtual bool isCrossing() const {
+    virtual bool hasFoes() const {
         for (typename Logic::const_iterator i = myLogic->begin(); i != myLogic->end(); ++i) {
             if ((*i).any()) {
                 return true;

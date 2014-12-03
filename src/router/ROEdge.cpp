@@ -4,13 +4,15 @@
 /// @author  Jakob Erdmann
 /// @author  Christian Roessel
 /// @author  Michael Behrisch
+/// @author  Melanie Knocke
+/// @author  Yun-Pang Floetteroed
 /// @date    Sept 2002
 /// @version $Id$
 ///
 // A basic edge for routing applications
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -39,9 +41,9 @@
 #include "ROLane.h"
 #include "ROEdge.h"
 #include "ROVehicle.h"
-#include <utils/common/SUMOVTypeParameter.h>
-#include <utils/common/HelpersHBEFA.h>
-#include <utils/common/HelpersHarmonoise.h>
+#include <utils/vehicle/SUMOVTypeParameter.h>
+#include <utils/emissions/PollutantsInterface.h>
+#include <utils/emissions/HelpersHarmonoise.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -64,10 +66,12 @@ std::vector<ROEdge*> ROEdge::myEdges;
 // ===========================================================================
 ROEdge::ROEdge(const std::string& id, RONode* from, RONode* to, unsigned int index, const int priority)
     : Named(id), myFromNode(from), myToNode(to), myIndex(index), myPriority(priority),
-      mySpeed(-1), myLength(-1),
+      mySpeed(-1), myLength(0),
       myUsingTTTimeLine(false),
       myUsingETimeLine(false),
-      myCombinedPermissions(0) {
+      myCombinedPermissions(0),
+      myFromJunction(0),
+      myToJunction(0) {
     while (myEdges.size() <= index) {
         myEdges.push_back(0);
     }
@@ -84,10 +88,9 @@ ROEdge::~ROEdge() {
 
 void
 ROEdge::addLane(ROLane* lane) {
-    SUMOReal length = lane->getLength();
-    assert(myLength == -1 || length == myLength);
-    myLength = length;
-    SUMOReal speed = lane->getSpeed();
+    assert(myLanes.empty() || lane->getLength() == myLength);
+    myLength = lane->getLength();
+    const SUMOReal speed = lane->getSpeed();
     mySpeed = speed > mySpeed ? speed : mySpeed;
     myLanes.push_back(lane);
 
@@ -97,12 +100,10 @@ ROEdge::addLane(ROLane* lane) {
 
 
 void
-ROEdge::addFollower(ROEdge* s, std::string) {
+ROEdge::addSuccessor(ROEdge* s, std::string) {
     if (find(myFollowingEdges.begin(), myFollowingEdges.end(), s) == myFollowingEdges.end()) {
         myFollowingEdges.push_back(s);
-#ifdef HAVE_INTERNAL // catchall for internal stuff
         s->myApproachingEdges.push_back(this);
-#endif
     }
 }
 
@@ -125,7 +126,7 @@ SUMOReal
 ROEdge::getEffort(const ROVehicle* const veh, SUMOReal time) const {
     SUMOReal ret = 0;
     if (!getStoredEffort(time, ret)) {
-        return (SUMOReal)(myLength / MIN2(veh->getType()->maxSpeed, mySpeed));
+        return myLength / MIN2(veh->getType()->maxSpeed, mySpeed);
     }
     return ret;
 }
@@ -144,119 +145,33 @@ ROEdge::getDistanceTo(const ROEdge* other) const {
 
 SUMOReal
 ROEdge::getTravelTime(const ROVehicle* const veh, SUMOReal time) const {
-    return getTravelTime(veh->getType()->maxSpeed, time);
-}
-
-
-SUMOReal
-ROEdge::getTravelTime(const SUMOReal maxSpeed, SUMOReal time) const {
-    return MAX2(myLength / maxSpeed, getTravelTime(time));
-}
-
-
-SUMOReal
-ROEdge::getTravelTime(SUMOReal time) const {
     if (myUsingTTTimeLine) {
-        if (!myHaveTTWarned && !myTravelTimes.describesTime(time)) {
-            WRITE_WARNING("No interval matches passed time " + toString(time)  + " in edge '" + myID + "'.\n Using edge's length / edge's speed.");
-            myHaveTTWarned = true;
-        }
-        if (myInterpolate) {
-            SUMOReal inTT = myTravelTimes.getValue(time);
-            SUMOReal split = (SUMOReal)(myTravelTimes.getSplitTime(time, time + (SUMOTime)inTT) - time);
-            if (split >= 0) {
-                return myTravelTimes.getValue(time + (SUMOTime)inTT) * ((SUMOReal)1. - split / inTT) + split;
+        if (myTravelTimes.describesTime(time)) {
+            SUMOReal lineTT = myTravelTimes.getValue(time);
+            if (myInterpolate) {
+                const SUMOReal inTT = lineTT;
+                const SUMOReal split = (SUMOReal)(myTravelTimes.getSplitTime(time, time + inTT) - time);
+                if (split >= 0) {
+                    lineTT = myTravelTimes.getValue(time + inTT) * ((SUMOReal)1. - split / inTT) + split;
+                }
+            }
+            return MAX2(getMinimumTravelTime(veh), lineTT);
+        } else {
+            if (!myHaveTTWarned) {
+                WRITE_WARNING("No interval matches passed time " + toString(time)  + " in edge '" + myID + "'.\n Using edge's length / max speed.");
+                myHaveTTWarned = true;
             }
         }
-        return myTravelTimes.getValue(time);
     }
-    return myLength / mySpeed;
+    return myLength / MIN2(veh->getType()->maxSpeed, veh->getType()->speedFactor * mySpeed);
 }
 
 
 SUMOReal
-ROEdge::getMinimumTravelTime(const ROVehicle* const veh) const {
-    return (SUMOReal)(myLength / MIN2(veh->getType()->maxSpeed, mySpeed));
-}
-
-
-SUMOReal
-ROEdge::getCOEffort(const ROVehicle* const veh, SUMOReal time) const {
+ROEdge::getNoiseEffort(const ROEdge* const edge, const ROVehicle* const veh, SUMOReal time) {
     SUMOReal ret = 0;
-    if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = HelpersHBEFA::computeDefaultCO(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time));
-    }
-    return ret;
-}
-
-
-SUMOReal
-ROEdge::getCO2Effort(const ROVehicle* const veh, SUMOReal time) const {
-    SUMOReal ret = 0;
-    if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = HelpersHBEFA::computeDefaultCO2(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time));
-    }
-    return ret;
-}
-
-
-SUMOReal
-ROEdge::getPMxEffort(const ROVehicle* const veh, SUMOReal time) const {
-    SUMOReal ret = 0;
-    if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = HelpersHBEFA::computeDefaultPMx(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time));
-    }
-    return ret;
-}
-
-
-SUMOReal
-ROEdge::getHCEffort(const ROVehicle* const veh, SUMOReal time) const {
-    SUMOReal ret = 0;
-    if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = HelpersHBEFA::computeDefaultHC(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time));
-    }
-    return ret;
-}
-
-
-SUMOReal
-ROEdge::getNOxEffort(const ROVehicle* const veh, SUMOReal time) const {
-    SUMOReal ret = 0;
-    if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = HelpersHBEFA::computeDefaultNOx(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time));
-    }
-    return ret;
-}
-
-
-SUMOReal
-ROEdge::getFuelEffort(const ROVehicle* const veh, SUMOReal time) const {
-    SUMOReal ret = 0;
-    if (!getStoredEffort(time, ret)) {
-        const SUMOReal vMax = MIN2(veh->getType()->maxSpeed, mySpeed);
-        const SUMOReal accel = veh->getType()->get(SUMO_ATTR_ACCEL, DEFAULT_VEH_ACCEL) * veh->getType()->get(SUMO_ATTR_SIGMA, DEFAULT_VEH_SIGMA) / 2.;
-        ret = HelpersHBEFA::computeDefaultFuel(veh->getType()->emissionClass, vMax, accel, getTravelTime(veh, time));
-    }
-    return ret;
-}
-
-
-SUMOReal
-ROEdge::getNoiseEffort(const ROVehicle* const veh, SUMOReal time) const {
-    SUMOReal ret = 0;
-    if (!getStoredEffort(time, ret)) {
-        const SUMOReal v = MIN2(veh->getType()->maxSpeed, mySpeed);
+    if (!edge->getStoredEffort(time, ret)) {
+        const SUMOReal v = MIN2(veh->getType()->maxSpeed, edge->mySpeed);
         ret = HelpersHarmonoise::computeNoise(veh->getType()->emissionClass, v, 0);
     }
     return ret;
@@ -289,7 +204,7 @@ ROEdge::getStoredEffort(SUMOReal time, SUMOReal& ret) const {
 
 
 unsigned int
-ROEdge::getNoFollowing() const {
+ROEdge::getNumSuccessors() const {
     if (getType() == ET_SINK) {
         return 0;
     }
@@ -297,15 +212,13 @@ ROEdge::getNoFollowing() const {
 }
 
 
-#ifdef HAVE_INTERNAL // catchall for internal stuff
 unsigned int
-ROEdge::getNumApproaching() const {
+ROEdge::getNumPredecessors() const {
     if (getType() == ET_SOURCE) {
         return 0;
     }
     return (unsigned int) myApproachingEdges.size();
 }
-#endif
 
 
 void
@@ -317,30 +230,30 @@ ROEdge::setType(ROEdge::EdgeType type) {
 void
 ROEdge::buildTimeLines(const std::string& measure) {
     if (myUsingETimeLine) {
-        SUMOReal value = (SUMOReal)(myLength / mySpeed);
+        SUMOReal value = myLength / mySpeed;
+        const SUMOEmissionClass c = PollutantsInterface::getClassByName("unknown");
         if (measure == "CO") {
-            value = HelpersHBEFA::computeCO(SVE_UNKNOWN, mySpeed, 0) * value;
+            value = PollutantsInterface::compute(c, PollutantsInterface::CO, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "CO2") {
-            value = HelpersHBEFA::computeCO2(SVE_UNKNOWN, mySpeed, 0) * value;
+            value = PollutantsInterface::compute(c, PollutantsInterface::CO2, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "HC") {
-            value = HelpersHBEFA::computeHC(SVE_UNKNOWN, mySpeed, 0) * value;
+            value = PollutantsInterface::compute(c, PollutantsInterface::HC, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "PMx") {
-            value = HelpersHBEFA::computePMx(SVE_UNKNOWN, mySpeed, 0) * value;
+            value = PollutantsInterface::compute(c, PollutantsInterface::PM_X, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "NOx") {
-            value = HelpersHBEFA::computeNOx(SVE_UNKNOWN, mySpeed, 0) * value;
+            value = PollutantsInterface::compute(c, PollutantsInterface::NO_X, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         if (measure == "fuel") {
-            value = HelpersHBEFA::computeFuel(SVE_UNKNOWN, mySpeed, 0) * value;
+            value = PollutantsInterface::compute(c, PollutantsInterface::FUEL, mySpeed, 0, 0) * value; // @todo: give correct slope
         }
         myEfforts.fillGaps(value, myUseBoundariesOnOverrideE);
     }
     if (myUsingTTTimeLine) {
-        SUMOReal value = (SUMOReal)(myLength / mySpeed);
-        myTravelTimes.fillGaps(value, myUseBoundariesOnOverrideTT);
+        myTravelTimes.fillGaps(myLength / mySpeed, myUseBoundariesOnOverrideTT);
     }
 }
 

@@ -9,7 +9,7 @@
 // A junction with right-of-way - rules
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -66,7 +66,7 @@ public:
      * @param[in] internal The internal lanes
      * @param[in] logic The logic of this junction
      */
-    MSRightOfWayJunction(const std::string& id, const Position& position,
+    MSRightOfWayJunction(const std::string& id, SumoXMLNodeType type, const Position& position,
                          const PositionVector& shape,
                          std::vector<MSLane*> incoming,
 #ifdef HAVE_INTERNAL_LANES

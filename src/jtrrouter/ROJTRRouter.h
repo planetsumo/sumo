@@ -8,7 +8,7 @@
 // Computes routes using junction turning percentages
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -31,7 +31,7 @@
 #include <config.h>
 #endif
 
-#include <utils/common/SUMOAbstractRouter.h>
+#include <utils/vehicle/SUMOAbstractRouter.h>
 
 
 // ===========================================================================
@@ -52,14 +52,13 @@ class ROJTREdge;
 class ROJTRRouter : public SUMOAbstractRouter<ROEdge, ROVehicle> {
 public:
     /** @brief Constructor
-     * @param[in] net The net used for routing
      * @param[in] unbuildIsWarningOnly Whether not closed routes shall not yield in an error
      * @param[in] acceptAllDestinations If false, only sinks will be used as final edges
      * @param[in] maxEdges The maximum number of edges a route may have
      * @param[in] ignoreClasses Whether routing shall be done without regarding vehicle classes
      * @param[in] allowLoops Whether a vehicle may reuse a road
      */
-    ROJTRRouter(RONet& net, bool unbuildIsWarningOnly,
+    ROJTRRouter(bool unbuildIsWarningOnly,
                 bool acceptAllDestinations, int maxEdges, bool ignoreClasses,
                 bool allowLoops);
 
@@ -67,7 +66,9 @@ public:
     /// @brief Destructor
     ~ROJTRRouter();
 
-
+    virtual SUMOAbstractRouter<ROEdge, ROVehicle>* clone() const {
+        return new ROJTRRouter(myUnbuildIsWarningOnly, myAcceptAllDestination, myMaxEdges, myIgnoreClasses, myAllowLoops);
+    }
 
     /// @name Implementatios of SUMOAbstractRouter
     /// @{
@@ -96,9 +97,6 @@ public:
 
 
 private:
-    /// @brief The network to use
-    RONet& myNet;
-
     /// @brief Whether unbuildable routes shall be reported as warniings, not errors
     const bool myUnbuildIsWarningOnly;
 

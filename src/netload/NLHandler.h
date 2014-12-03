@@ -10,7 +10,7 @@
 // The XML-Handler for network loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -48,6 +48,7 @@
 #include "NLDiscreteEventBuilder.h"
 
 
+
 // ===========================================================================
 // class declarations
 // ===========================================================================
@@ -61,7 +62,7 @@ class MSTrafficLightLogic;
 // class definitions
 // ===========================================================================
 /**
- * @class NLNetHandler
+ * @class NLHandler
  * @brief The XML-Handler for network loading
  *
  * The SAX2-handler responsible for parsing networks and routes to load.
@@ -248,6 +249,11 @@ private:
      * @todo No exception?
      */
     void addDistrictEdge(const SUMOSAXAttributes& attrs, bool isSource);
+
+    /** @begin Parses a roundabout and sets flags for the edges
+     * @param[in] attrs The attributes to parse
+     */
+    void addRoundabout(const SUMOSAXAttributes& attrs);
 
 
     void closeWAUT();

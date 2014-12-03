@@ -9,7 +9,7 @@
 //	»missingDescription«
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -47,26 +47,25 @@ public:
     /// Type of the function to execute.
     typedef O(T::* Operation)() const;
 
-    CastingFunctionBinding(T* source, Operation operation) :
+    CastingFunctionBinding(T* source, Operation operation, const R scale = 1) :
         mySource(source),
-        myOperation(operation) {}
+        myOperation(operation),
+        myScale(scale) {}
 
     /// Destructor.
     ~CastingFunctionBinding() {}
 
     R getValue() const {
-        return (R)(mySource->*myOperation)();
+        return myScale * (R)(mySource->*myOperation)();
     }
 
     ValueSource<R>* copy() const {
-        return new CastingFunctionBinding<T, R, O>(mySource, myOperation);
+        return new CastingFunctionBinding<T, R, O>(mySource, myOperation, myScale);
     }
 
     ValueSource<SUMOReal>* makeSUMORealReturningCopy() const {
-        return new CastingFunctionBinding<T, SUMOReal, O>(mySource, myOperation);
+        return new CastingFunctionBinding<T, SUMOReal, O>(mySource, myOperation, myScale);
     }
-
-protected:
 
 private:
     /// The object the action is directed to.
@@ -74,6 +73,14 @@ private:
 
     /// The object's operation to perform.
     Operation myOperation;
+
+    /// The scale to apply.
+    const R myScale;
+
+private:
+    /// @brief invalidated assignment operator
+    CastingFunctionBinding<T, R, O>& operator=(const CastingFunctionBinding<T, R, O>&);
+
 };
 
 

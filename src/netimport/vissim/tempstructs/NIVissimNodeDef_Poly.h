@@ -8,7 +8,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -47,7 +47,7 @@ public:
                            const PositionVector& poly);
 //    virtual void computeBounding();
 //    SUMOReal getEdgePosition(int edgeid) const;
-    void searchAndSetConnections(SUMOReal offset);
+//    void searchAndSetConnections(SUMOReal offset);
 private:
     PositionVector myPoly;
 

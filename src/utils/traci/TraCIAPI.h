@@ -1,13 +1,15 @@
 /****************************************************************************/
 /// @file    TraCIAPI.h
 /// @author  Daniel Krajzewicz
+/// @author  Mario Krumnow
+/// @author  Michael Behrisch
 /// @date    30.05.2012
 /// @version $Id$
 ///
 // C++ TraCI client API implementation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -381,9 +383,9 @@ public:
     };
 
 
-	 /** @class AreaScope
-     * @brief Scope for interaction with areal detectors
-     */
+    /** @class AreaScope
+    * @brief Scope for interaction with areal detectors
+    */
     class AreaScope : public TraCIScopeWrapper {
     public:
         AreaScope(TraCIAPI& parent) : TraCIScopeWrapper(parent) {}

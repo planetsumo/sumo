@@ -7,7 +7,7 @@
 // A few system-specific functions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2013 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -30,6 +30,7 @@
 #include <config.h>
 #endif
 
+#include <string>
 
 // ===========================================================================
 // class definitions
@@ -54,8 +55,10 @@ public:
     static long getWindowsTicks();
 #endif
 
-};
 
+    /// @brief run a shell command without popping up any windows (particuarly on win32)
+    static unsigned long runHiddenCommand(const std::string& cmd);
+};
 
 #endif
 
