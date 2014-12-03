@@ -69,7 +69,7 @@
     </output>
 
     <processing>
-        <!--  -->
+        <!-- Derive missing flow values from upstream or downstream (not working!) -->
         <guess-empty-flows value="false" type="BOOL"/>
 
         <!-- Switches to highway-mode -->
@@ -83,9 +83,6 @@
 
         <!-- Recomputes routes even if given -->
         <revalidate-routes value="false" type="BOOL"/>
-
-        <!-- Continues routes till the first street after a sink -->
-        <all-end-follower value="false" type="BOOL"/>
 
         <!-- Keeps routes even if they have exhausted max-search-depth -->
         <keep-unfinished-routes value="false" synonymes="keep-unfound-ends" type="BOOL"/>
@@ -132,6 +129,9 @@
         <!--  -->
         <strict-sources value="false" type="BOOL"/>
 
+        <!-- Try to determine further inflows to an inbetween detector when computing split probabilities -->
+        <respect-concurrent-inflows value="false" type="BOOL"/>
+
         <!-- Scale factor for flows -->
         <scale value="1" type="FLOAT"/>
 
@@ -172,7 +172,7 @@
         <verbose value="false" synonymes="v" type="BOOL"/>
 
         <!-- Prints option values before processing -->
-        <print-options value="false" synonymes="p" type="BOOL"/>
+        <print-options value="false" type="BOOL"/>
 
         <!-- Prints this screen -->
         <help value="false" synonymes="?" type="BOOL"/>
@@ -180,8 +180,11 @@
         <!-- Prints the current version -->
         <version value="false" synonymes="V" type="BOOL"/>
 
-        <!-- Enable schema validation of XML inputs -->
-        <xml-validation value="false" synonymes="X" type="BOOL"/>
+        <!-- Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation value="auto" synonymes="X" type="STR"/>
+
+        <!-- Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation.net value="never" type="STR"/>
 
         <!-- Disables output of warnings -->
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL"/>

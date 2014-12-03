@@ -1,5 +1,5 @@
-SUMO od2trips Version 0.17.0
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.dlr.de
+SUMO od2trips Version dev-SVN-r17243
+ Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
 Importer of O/D-matrices for the road traffic simulation SUMO.
 
 Usage: od2trips [OPTION]*
@@ -15,6 +15,8 @@ Configuration Options:
 Input Options:
   -n, --net-file FILE              Loads network (districts) from FILE
   -d, --od-matrix-files FILE       Loads O/D-files from FILE(s)
+  --od-amitran-files FILE          Loads O/D-matrix in Amitran format from
+                                     FILE(s)
 
 Output Options:
   -o, --output-file FILE           Writes trip definitions into FILE
@@ -50,10 +52,13 @@ Defaults Options:
 
 Report Options:
   -v, --verbose                    Switches to verbose output
-  -p, --print-options              Prints option values before processing
+  --print-options                  Prints option values before processing
   -?, --help                       Prints this screen
   -V, --version                    Prints the current version
-  -X, --xml-validation             Enable schema validation of XML inputs
+  -X, --xml-validation STR         Set schema validation scheme of XML inputs
+                                     ("never", "auto" or "always")
+  --xml-validation.net STR         Set schema validation scheme of SUMO network
+                                     inputs ("never", "auto" or "always")
   -W, --no-warnings                Disables output of warnings
   -l, --log FILE                   Writes all messages to FILE (implies
                                      verbose)
@@ -73,4 +78,4 @@ Examples:
     run with configuration file
 
 Report bugs at <http://sumo.dlr.de/trac/>.
-Get in contact via <sumo-user@lists.sourceforge.net>.
+Get in contact via <sumo@dlr.de>.

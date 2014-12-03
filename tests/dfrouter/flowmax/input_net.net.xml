@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Tue May  7 15:49:16 2013 by SUMO netconvert Version dev-SVN-rUNKNOWN
+<!-- generated on Tue Nov  4 23:07:40 2014 by SUMO netconvert Version dev-SVN-r17257
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <node-files value="./tests/dfrouter/flowmax/split.nod.xml"/>
-        <edge-files value="./tests/dfrouter/flowmax/split.edg.xml"/>
+        <node-files value="./dfrouter/flowmax/split.nod.xml"/>
+        <edge-files value="./dfrouter/flowmax/split.edg.xml"/>
     </input>
 
     <output>
-        <output-file value="./tests/dfrouter/flowmax/input_net.net.xml"/>
+        <output-file value="./dfrouter/flowmax/input_net.net.xml"/>
     </output>
 
     <report>
