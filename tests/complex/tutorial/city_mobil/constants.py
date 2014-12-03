@@ -9,7 +9,7 @@
 Defining constants for the CityMobil parking lot.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2012 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -39,7 +39,7 @@ WAIT_PER_PERSON = 5
 OCCUPATION_PROBABILITY = 0.5
 BREAK_DELAY = 1200
 
-PORT = 8813
+PORT = 8883
 SUMO_HOME = os.path.realpath(os.environ.get("SUMO_HOME", os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")))
 sys.path.append(os.path.join(SUMO_HOME, "tools"))
 try:

@@ -1,10 +1,27 @@
 #!/usr/bin/env python
+"""
+@file    runner.py
+@author  Jakob Erdmann
+@author  Laura Bieker
+@date    2013-10-07
+@version $Id$
+
+
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+"""
 
 import os, subprocess, sys, time, math
 
 sumoHome = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), '..', '..', '..', '..', '..'))
 sys.path.append(os.path.join(sumoHome, "tools"))
-import traci
+import sumolib, traci
 
 if sys.argv[1]=="sumo":
     sumoBinary = os.environ.get("SUMO_BINARY", os.path.join(sumoHome, 'bin', 'sumo'))
@@ -12,7 +29,7 @@ if sys.argv[1]=="sumo":
 else:
     sumoBinary = os.environ.get("GUISIM_BINARY", os.path.join(sumoHome, 'bin', 'sumo-gui'))
     addOption = "-S -Q"
-PORT = 8813
+PORT = sumolib.miscutils.getFreeSocketPort()
 
 def run():
     """execute the TraCI control loop"""
@@ -31,7 +48,6 @@ sumoProcess = subprocess.Popen([sumoBinary,
     "-r", "input_routes.rou.xml",
     "-a", "input_additional.add.xml",
     "--no-step-log", 
-    "--verbose", 
     "--remote-port", str(PORT)], 
     stdout=sys.stdout, stderr=sys.stderr)
 run()

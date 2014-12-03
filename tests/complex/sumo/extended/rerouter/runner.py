@@ -1,4 +1,22 @@
 #!/usr/bin/env python
+"""
+@file    runner.py
+@author  Daniel Krajzewicz
+@author  Michael Behrisch
+@author  Jakob Erdmann
+@date    2012-08-10
+@version $Id$
+
+
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+"""
 
 import os,subprocess,sys,time
 sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', '..', '..', '..', '..', "tools"))
@@ -44,11 +62,11 @@ def writeRerouter(edge, t, rerouter, embedded):
     fdo = open("rerouter.xml", "w")
     fdo.write('<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">\n\n')
     if embedded:
-        fdo.write('<rerouter id="rerouter" edges="%s" pos="20">\n' % (edge))
+        fdo.write('<rerouter id="rerouter" edges="%s">\n' % (edge))
         writeRerouterDefinition(fdo, edge, t, rerouter)
         fdo.write('</rerouter>\n')
     else:
-        fdo.write('<rerouter id="rerouter" edges="%s" pos="20" file="input_definition.def.xml"/>\n' % (edge))
+        fdo.write('<rerouter id="rerouter" edges="%s" file="input_definition.def.xml"/>\n' % (edge))
     fdo.write('</additional>\n')
     fdo.close()
     if not embedded:
@@ -134,4 +152,3 @@ for r in rerouter:
                     try: os.remove("vehroutes.xml")
                     except: pass
     nd.close()
-

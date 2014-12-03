@@ -4,13 +4,14 @@
 @author  Lena Kalleske
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2009-03-26
 @version $Id$
 
 Tutorial for traffic light control via the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2009-2012 DLR/TS, Germany
+Copyright (C) 2009-2014 DLR/TS, Germany
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -34,7 +35,7 @@ except ImportError:
 
 import traci
 # the port used for communicating with your sumo instance
-PORT = 8813
+PORT = 8873
 
 NSGREEN = "GrGr" 
 NSYELLOW = "yryr"
@@ -62,15 +63,15 @@ def generate_routefile():
         vehNr = 0
         for i in range(N):
             if random.uniform(0,1) < pWE:
-                print >> routes, '    <vehicle id="%i" type="typeWE" route="right" depart="%i" />' % (vehNr, i)
+                print >> routes, '    <vehicle id="right_%i" type="typeWE" route="right" depart="%i" />' % (vehNr, i)
                 vehNr += 1
                 lastVeh = i
             if random.uniform(0,1) < pEW:
-                print >> routes, '    <vehicle id="%i" type="typeWE" route="left" depart="%i" />' % (vehNr, i)
+                print >> routes, '    <vehicle id="left_%i" type="typeWE" route="left" depart="%i" />' % (vehNr, i)
                 vehNr += 1
                 lastVeh = i
             if random.uniform(0,1) < pNS:
-                print >> routes, '    <vehicle id="%i" type="typeNS" route="down" depart="%i" color="1,0,0"/>' % (vehNr, i)
+                print >> routes, '    <vehicle id="down_%i" type="typeNS" route="down" depart="%i" color="1,0,0"/>' % (vehNr, i)
                 vehNr += 1
                 lastVeh = i
         print >> routes, "</routes>"
@@ -83,9 +84,18 @@ def run():
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
         programPointer = min(programPointer+1, len(PROGRAM)-1)
-        no = traci.inductionloop.getLastStepVehicleNumber("0")
-        if no > 0:
-            programPointer = (0 if programPointer == len(PROGRAM)-1 else 3)
+        numPriorityVehicles = traci.inductionloop.getLastStepVehicleNumber("0")
+        if numPriorityVehicles > 0:
+            if programPointer == len(PROGRAM)-1:
+                # we are in the WEGREEN phase. start the priority phase sequence
+                programPointer = 0
+            elif PROGRAM[programPointer] != WEYELLOW:
+                # horizontal traffic is already stopped. restart priority phase
+                # sequence at green
+                programPointer = 3
+            else:
+                # we are in the WEYELLOW phase. continue sequence
+                pass
         traci.trafficlights.setRedYellowGreenState("0", PROGRAM[programPointer])
         step += 1
     traci.close()
@@ -114,6 +124,6 @@ if __name__ == "__main__":
 
     # this is the normal way of using traci. sumo is started as a
     # subprocess and then the python script connects and runs
-    sumoProcess = subprocess.Popen([sumoBinary, "-c", "data/cross.sumocfg", "--tripinfo-output", "tripinfo.xml"], stdout=sys.stdout, stderr=sys.stderr)
+    sumoProcess = subprocess.Popen([sumoBinary, "-c", "data/cross.sumocfg", "--tripinfo-output", "tripinfo.xml", "--remote-port", str(PORT)], stdout=sys.stdout, stderr=sys.stderr)
     run()
     sumoProcess.wait()

@@ -1,0 +1,166 @@
+> Executing step 0
+>> Running router on input_trips.trips.xml
+>>> Begin time: 2014-11-23 15:27:59.919840
+>>> End time: 2014-11-23 15:27:59.936818
+>>> Duration: 0:00:00.016978
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:27:59.936882
+>>> End time: 2014-11-23 15:27:59.981897
+>>> Duration: 0:00:00.045015
+<<
+< relative travel time deviation in the last 1 steps: 0.00000
+< Step 0 ended (duration: 0:00:00.063680)
+------------------
+
+> Executing step 1
+>> Running router on input_trips_000.rou.alt.xml
+>>> Begin time: 2014-11-23 15:27:59.983503
+>>> End time: 2014-11-23 15:28:00.005059
+>>> Duration: 0:00:00.021556
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.005139
+>>> End time: 2014-11-23 15:28:00.061232
+>>> Duration: 0:00:00.056093
+<<
+< relative travel time deviation in the last 2 steps: 0.00795
+< Step 1 ended (duration: 0:00:00.078638)
+------------------
+
+> Executing step 2
+>> Running router on input_trips_001.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.062159
+>>> End time: 2014-11-23 15:28:00.087461
+>>> Duration: 0:00:00.025302
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.087557
+>>> End time: 2014-11-23 15:28:00.137672
+>>> Duration: 0:00:00.050115
+<<
+< relative travel time deviation in the last 3 steps: 0.00752
+< Step 2 ended (duration: 0:00:00.076390)
+------------------
+
+> Executing step 3
+>> Running router on input_trips_002.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.138566
+>>> End time: 2014-11-23 15:28:00.160660
+>>> Duration: 0:00:00.022094
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.160736
+>>> End time: 2014-11-23 15:28:00.216179
+>>> Duration: 0:00:00.055443
+<<
+< relative travel time deviation in the last 4 steps: 0.00692
+< Step 3 ended (duration: 0:00:00.078696)
+------------------
+
+> Executing step 4
+>> Running router on input_trips_003.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.217292
+>>> End time: 2014-11-23 15:28:00.242223
+>>> Duration: 0:00:00.024931
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.242302
+>>> End time: 2014-11-23 15:28:00.297270
+>>> Duration: 0:00:00.054968
+<<
+< relative travel time deviation in the last 5 steps: 0.00639
+< Step 4 ended (duration: 0:00:00.080887)
+------------------
+
+> Executing step 5
+>> Running router on input_trips_004.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.298206
+>>> End time: 2014-11-23 15:28:00.321427
+>>> Duration: 0:00:00.023221
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.321491
+>>> End time: 2014-11-23 15:28:00.368625
+>>> Duration: 0:00:00.047134
+<<
+< relative travel time deviation in the last 6 steps: 0.00596
+< Step 5 ended (duration: 0:00:00.071314)
+------------------
+
+> Executing step 6
+>> Running router on input_trips_005.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.369531
+>>> End time: 2014-11-23 15:28:00.402132
+>>> Duration: 0:00:00.032601
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.402225
+>>> End time: 2014-11-23 15:28:00.457655
+>>> Duration: 0:00:00.055430
+<<
+< relative travel time deviation in the last 7 steps: 0.00560
+< Step 6 ended (duration: 0:00:00.089408)
+------------------
+
+> Executing step 7
+>> Running router on input_trips_006.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.458960
+>>> End time: 2014-11-23 15:28:00.482956
+>>> Duration: 0:00:00.023996
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.483057
+>>> End time: 2014-11-23 15:28:00.537414
+>>> Duration: 0:00:00.054357
+<<
+< relative travel time deviation in the last 8 steps: 0.00529
+< Step 7 ended (duration: 0:00:00.079382)
+------------------
+
+> Executing step 8
+>> Running router on input_trips_007.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.538363
+>>> End time: 2014-11-23 15:28:00.561631
+>>> Duration: 0:00:00.023268
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.561716
+>>> End time: 2014-11-23 15:28:00.617169
+>>> Duration: 0:00:00.055453
+<<
+< relative travel time deviation in the last 9 steps: 0.00503
+< Step 8 ended (duration: 0:00:00.079689)
+------------------
+
+> Executing step 9
+>> Running router on input_trips_008.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.618086
+>>> End time: 2014-11-23 15:28:00.644115
+>>> Duration: 0:00:00.026029
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.644205
+>>> End time: 2014-11-23 15:28:00.699886
+>>> Duration: 0:00:00.055681
+<<
+< relative travel time deviation in the last 10 steps: 0.00487
+< Step 9 ended (duration: 0:00:00.083067)
+------------------
+
+> Executing step 10
+>> Running router on input_trips_009.rou.alt.xml
+>>> Begin time: 2014-11-23 15:28:00.701187
+>>> End time: 2014-11-23 15:28:00.723942
+>>> Duration: 0:00:00.022755
+<<
+>> Running simulation
+>>> Begin time: 2014-11-23 15:28:00.724021
+>>> End time: 2014-11-23 15:28:00.776975
+>>> Duration: 0:00:00.052954
+<<
+< relative travel time deviation in the last 10 steps: 0.00058
+< Step 10 ended (duration: 0:00:00.077121)
+------------------
+
+dua-iterate ended (duration: 0:00:00.858580)
