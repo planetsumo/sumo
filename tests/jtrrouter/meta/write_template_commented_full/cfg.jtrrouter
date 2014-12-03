@@ -57,6 +57,9 @@
         <!-- Assume input is unsorted -->
         <unsorted-input value="false" synonymes="unsorted" type="BOOL"/>
 
+        <!-- Load routes for the next number of seconds ahead -->
+        <route-steps value="200" synonymes="s" type="TIME"/>
+
         <!-- generate random departure times for flow input -->
         <randomize-flows value="false" type="BOOL"/>
 
@@ -75,14 +78,17 @@
         <!-- Use origin and destination zones (districts) for in- and output -->
         <with-taz value="false" type="BOOL"/>
 
-        <!--  -->
+        <!-- The number of parallel execution threads used for routing -->
+        <routing-threads value="0" type="INT"/>
+
+        <!-- Routes are cut off when the route edges to net edges ratio is larger than FLOAT -->
         <max-edges-factor value="2" type="FLOAT"/>
 
         <!-- Use STR as default turn definition -->
         <turn-defaults value="30,50,20" synonymes="T" type="STR"/>
 
         <!-- Use STR as list of sink edges -->
-        <sink-edges value="" synonymes="s sinks" type="STR"/>
+        <sink-edges value="" synonymes="sinks" type="STR"/>
 
         <!-- Whether all edges are allowed as sink edges -->
         <accept-all-destinations value="false" synonymes="A" type="BOOL"/>
@@ -133,7 +139,7 @@
         <verbose value="false" synonymes="v" type="BOOL"/>
 
         <!-- Prints option values before processing -->
-        <print-options value="false" synonymes="p" type="BOOL"/>
+        <print-options value="false" type="BOOL"/>
 
         <!-- Prints this screen -->
         <help value="false" synonymes="?" type="BOOL"/>
@@ -141,8 +147,11 @@
         <!-- Prints the current version -->
         <version value="false" synonymes="V" type="BOOL"/>
 
-        <!-- Enable schema validation of XML inputs -->
-        <xml-validation value="false" synonymes="X" type="BOOL"/>
+        <!-- Set schema validation scheme of XML inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation value="auto" synonymes="X" type="STR"/>
+
+        <!-- Set schema validation scheme of SUMO network inputs (&quot;never&quot;, &quot;auto&quot; or &quot;always&quot;) -->
+        <xml-validation.net value="never" type="STR"/>
 
         <!-- Disables output of warnings -->
         <no-warnings value="false" synonymes="W suppress-warnings" type="BOOL"/>

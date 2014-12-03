@@ -1,5 +1,5 @@
-SUMO jtrrouter Version dev-SVN-r14787
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.dlr.de
+SUMO jtrrouter Version dev-SVN-r17243
+ Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
 Router for the microscopic road traffic simulation SUMO based on junction
   turning ratios.
 
@@ -29,6 +29,8 @@ Output Options:
 Processing Options:
   --ignore-errors                  Continue if a route could not be build
   --unsorted-input                 Assume input is unsorted
+  -s, --route-steps TIME           Load routes for the next number of seconds
+                                     ahead
   --randomize-flows                generate random departure times for flow
                                      input
   --max-alternatives INT           Prune the number of alternatives to INT
@@ -40,9 +42,12 @@ Processing Options:
                                      boundaries
   --with-taz                       Use origin and destination zones (districts)
                                      for in- and output
-  --max-edges-factor FLOAT         
+  --routing-threads INT            The number of parallel execution threads
+                                     used for routing
+  --max-edges-factor FLOAT         Routes are cut off when the route edges to
+                                     net edges ratio is larger than FLOAT
   -T, --turn-defaults STR          Use STR as default turn definition
-  -s, --sink-edges STR             Use STR as list of sink edges
+  --sink-edges STR                 Use STR as list of sink edges
   -A, --accept-all-destinations    Whether all edges are allowed as sink edges
   -i, --ignore-vclasses            Ignore road restrictions based on vehicle
                                      class
@@ -67,10 +72,13 @@ Time Options:
 
 Report Options:
   -v, --verbose                    Switches to verbose output
-  -p, --print-options              Prints option values before processing
+  --print-options                  Prints option values before processing
   -?, --help                       Prints this screen
   -V, --version                    Prints the current version
-  -X, --xml-validation             Enable schema validation of XML inputs
+  -X, --xml-validation STR         Set schema validation scheme of XML inputs
+                                     ("never", "auto" or "always")
+  --xml-validation.net STR         Set schema validation scheme of SUMO network
+                                     inputs ("never", "auto" or "always")
   -W, --no-warnings                Disables output of warnings
   -l, --log FILE                   Writes all messages to FILE (implies
                                      verbose)
@@ -93,4 +101,4 @@ Examples:
     run with routing options defined in file
 
 Report bugs at <http://sumo.dlr.de/trac/>.
-Get in contact via <sumo-user@lists.sourceforge.net>.
+Get in contact via <sumo@dlr.de>.

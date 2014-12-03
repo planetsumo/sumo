@@ -1,5 +1,5 @@
-SUMO duarouter Version dev-SVN-r14787
- Copyright (C) 2001-2013 DLR and contributors; http://sumo.dlr.de
+SUMO duarouter Version dev-SVN-r17243
+ Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
 Shortest path router and DUE computer for the microscopic road traffic
   simulation SUMO.
 
@@ -23,6 +23,8 @@ Input Options:
   --lane-weight-files FILE         Read lane-based network weights from FILE(s)
   -x, --weight-attribute STR       Name of the xml attribute which gives the
                                      edge weight
+  --phemlight-path FILE            Determines where to load PHEMlight
+                                     definitions from.
   -t, --trip-files FILE            Read trip-definitions from FILE(s)
   -r, --route-files FILE           Read sumo-routes from FILE(s)
 
@@ -34,6 +36,8 @@ Output Options:
 Processing Options:
   --ignore-errors                  Continue if a route could not be build
   --unsorted-input                 Assume input is unsorted
+  -s, --route-steps TIME           Load routes for the next number of seconds
+                                     ahead
   --randomize-flows                generate random departure times for flow
                                      input
   --max-alternatives INT           Prune the number of alternatives to INT
@@ -46,7 +50,13 @@ Processing Options:
   --with-taz                       Use origin and destination zones (districts)
                                      for in- and output
   --routing-algorithm STR          Select among routing algorithms ['dijkstra',
-                                     'astar']
+                                     'astar', 'bulkstar', 'CH', 'CHWrapper']
+  --weight-period TIME             Aggregation period for the given weight
+                                     files;
+                                     triggers rebuilding of Contraction
+                                     Hierarchy
+  --routing-threads INT            The number of parallel execution threads
+                                     used for routing
   --weights.expand                 Expand weights behind the simulation's end
   --gawron.beta FLOAT              Use FLOAT as Gawron's beta
   --gawron.a FLOAT                 Use FLOAT as Gawron's a
@@ -81,10 +91,13 @@ Time Options:
 
 Report Options:
   -v, --verbose                    Switches to verbose output
-  -p, --print-options              Prints option values before processing
+  --print-options                  Prints option values before processing
   -?, --help                       Prints this screen
   -V, --version                    Prints the current version
-  -X, --xml-validation             Enable schema validation of XML inputs
+  -X, --xml-validation STR         Set schema validation scheme of XML inputs
+                                     ("never", "auto" or "always")
+  --xml-validation.net STR         Set schema validation scheme of SUMO network
+                                     inputs ("never", "auto" or "always")
   -W, --no-warnings                Disables output of warnings
   -l, --log FILE                   Writes all messages to FILE (implies
                                      verbose)
@@ -107,4 +120,4 @@ Examples:
     run routing with options from file
 
 Report bugs at <http://sumo.dlr.de/trac/>.
-Get in contact via <sumo-user@lists.sourceforge.net>.
+Get in contact via <sumo@dlr.de>.
