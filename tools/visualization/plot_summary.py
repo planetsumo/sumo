@@ -1,6 +1,27 @@
-                    
+#!/usr/bin/env python
+"""
+@file    plot_summary.py
+@author  Daniel Krajzewicz
+@author  Laura Bieker
+@date    2013-11-11
+@version $Id$
+
+
+This script plots a selected measure from a summary-output.
+matplotlib (http://matplotlib.org/) has to be installed for this purpose
+
+
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
+Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+"""
+
 import os, subprocess, sys, random, helpers
-from matplotlib import rcParams
 from pylab import *
 from matplotlib.ticker import FuncFormatter as ff
 

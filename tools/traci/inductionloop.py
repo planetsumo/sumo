@@ -9,7 +9,7 @@
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -126,7 +126,7 @@ def getTimeSinceDetection(loopID):
     return _getUniversal(tc.LAST_STEP_TIME_SINCE_DETECTION, loopID)
 
 def getVehicleData(loopID):
-    """getVehicleData(string) -> integer
+    """getVehicleData(string) -> [(veh_id, veh_length, entry_time, exit_time, vType), ...]
     
     Returns a complex structure containing several information about vehicles which passed the detector.
     """
@@ -137,9 +137,7 @@ def subscribe(loopID, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more induction loop values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_INDUCTIONLOOP_VARIABLE, begin, end, loopID, varIDs)
 
 def getSubscriptionResults(loopID=None):
@@ -155,7 +153,6 @@ def getSubscriptionResults(loopID=None):
     return subscriptionResults.get(loopID)
 
 def subscribeContext(loopID, domain, dist, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_INDUCTIONLOOP_CONTEXT, begin, end, loopID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(loopID=None):

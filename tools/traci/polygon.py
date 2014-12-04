@@ -8,7 +8,7 @@
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@ _RETURN_VALUE_FUNC = {tc.ID_LIST:   traci.Storage.readStringList,
                       tc.ID_COUNT:  traci.Storage.readInt,
                       tc.VAR_TYPE:  traci.Storage.readString,
                       tc.VAR_SHAPE: traci.Storage.readShape,
-                      tc.VAR_COLOR: lambda(result): result.read("!BBBB")}
+                      tc.VAR_COLOR: lambda result: result.read("!BBBB")}
 subscriptionResults = traci.SubscriptionResults(_RETURN_VALUE_FUNC)
 
 def _getUniversal(varID, polygonID):
@@ -70,9 +70,7 @@ def subscribe(polygonID, varIDs=(tc.VAR_SHAPE,), begin=0, end=2**31-1):
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more polygon values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_POLYGON_VARIABLE, begin, end, polygonID, varIDs)
 
 def getSubscriptionResults(polygonID=None):
@@ -88,7 +86,6 @@ def getSubscriptionResults(polygonID=None):
     return subscriptionResults.get(polygonID)
 
 def subscribeContext(polygonID, domain, dist, varIDs=(tc.VAR_SHAPE,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_POLYGON_CONTEXT, begin, end, polygonID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(polygonID=None):

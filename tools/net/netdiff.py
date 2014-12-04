@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
 @file    netdiff.py
+@author  Daniel Krajzewicz
+@author  Michael Behrisch
 @author  Jakob Erdmann
 @date    2011-10-04
 @version $Id$
@@ -9,7 +11,7 @@ Reads two networks (source, dest) and tries to produce the minimal plain-xml inp
 which can be loaded with netconvert alongside source to create dest
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -26,8 +28,9 @@ from xml.dom import Node
 from optparse import OptionParser
 from subprocess import call
 from collections import namedtuple, defaultdict
-sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), '..', 'lib'))
-from testUtil import checkBinary
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+import sumolib
 from OrderedMultiSet import OrderedMultiSet
 
 INDENT = 4
@@ -313,8 +316,7 @@ def parse_args():
     optParser.add_option("-d", "--direct", action="store_true",
             default=False, help="compare source and dest files directly")
     optParser.add_option("-c", "--copy", help="comma-separated list of element names to copy (if they are unchanged)")
-    optParser.add_option("--path", dest="path",
-            default=os.environ.get("SUMO_BINDIR", ""), help="Path to binaries")
+    optParser.add_option("--path", dest="path", help="Path to binaries")
     options, args = optParser.parse_args()
     if len(args) != 3:
         sys.exit(USAGE)
@@ -380,6 +382,8 @@ def handle_children(xmlfile, handle_parsenode):
                 root_open = parsenode.toprettyxml(indent="")
                 # since we did not expand root_open contains the closing slash
                 root_open = root_open[:-3] + ">\n"
+                # change the schema for edge diffs
+                root_open = root_open.replace("edges_file.xsd", "edgediff_file.xsd")
                 root_close = "</%s>\n" % parsenode.localName
             if level == 1:
                 xml_doc.expandNode(parsenode) # consumes END_ELEMENT, no level increase
@@ -404,7 +408,7 @@ def main():
                 copy_tags)
     else:
         if not options.use_prefix:
-            netconvert = checkBinary("netconvert", options.path)        
+            netconvert = sumolib.checkBinary("netconvert", options.path)
             options.source = create_plain(options.source, netconvert)
             options.dest = create_plain(options.dest, netconvert)
         for type in PLAIN_TYPES:

@@ -1,7 +1,7 @@
 /****************************************************************************/
 /// @file    ValueTimeLineTest.cpp
-/// @author  Matthias Heppner
 /// @author  Daniel Krajzewicz
+/// @author  Matthias Heppner
 /// @author  Michael Behrisch
 /// @date    Sept 2009
 /// @version $Id$
@@ -9,12 +9,13 @@
 // Tests ValueTimeLine class from <SUMO>/src/utils/common
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright 2001-2010 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
-//   This program is free software; you can redistribute it and/or modify
+//   This file is part of SUMO.
+//   SUMO is free software: you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
-//   the Free Software Foundation; either version 2 of the License, or
+//   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
 //
 /****************************************************************************/

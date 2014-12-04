@@ -3,6 +3,7 @@
 @file    schemaCheck.py
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    03.12.2009
 @version $Id$
 
@@ -10,7 +11,7 @@ Checks schema for files matching certain file names using either
 lxml or SAX2Count.exe depending on availability.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -33,7 +34,7 @@ def validate(root, f):
         doc = etree.parse(f)
         schemaLoc = doc.getroot().get('{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation')
         if schemaLoc:
-            localSchema = os.path.join(os.path.dirname(__file__), '..', '..', 'docs', 'internet', 'xsd', os.path.basename(schemaLoc))
+            localSchema = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'xsd', os.path.basename(schemaLoc))
             if os.path.exists(localSchema):
                 schemaLoc = localSchema
 #            if schemaLoc not in schemes: // temporarily disabled due to lxml bug https://bugs.launchpad.net/lxml/+bug/1222132
@@ -53,7 +54,8 @@ def main(srcRoot, toCheck, err):
                 "*.net.xml", "*.rou.xml", "*.add.xml", "*.????cfg",
                 "net.netgen", "net.netconvert",
                 "net.scenario", "tls.scenario",
-                "routes.duarouter", "alts.duarouter", "routes.jtrrouter",
+                "routes.duarouter", "alts.duarouter", "routes.jtrrouter", "routes.marouter",
+                "vehroutes.sumo", "vehroutes.sumo.meso", "trips.od2trips",
                 "*.turns.xml" ]
     sax2count = "SAX2Count.exe"
     if 'XERCES_64' in os.environ:

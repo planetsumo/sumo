@@ -3,13 +3,14 @@
 """
 @file    duaIterate_analysis.py
 @author  Jakob Erdmann
+@author  Michael Behrisch
 @date    2012-09-06
 @version $Id$
 
 Extract statistics from the outputs of a duaIterate run for plotting.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -19,10 +20,12 @@ the Free Software Foundation; either version 3 of the License, or
 """
 import os,sys
 import re
+import glob
 from optparse import OptionParser
 from collections import defaultdict
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sumolib.miscutils import Statistics, uMax
+from sumolib.output import parse_fast
 
 def parse_args():
     USAGE = "Usage: " + sys.argv[0] + " <dua-log.txt> [options]"
@@ -37,6 +40,7 @@ def parse_args():
             help="only parse the first INT number of iterations")
     optParser.add_option("--teleports", default="teleplot",
             help="output prefix for plotting teleport-prone edges")
+    optParser.add_option("--mpl", help="output prefix for matplotlib plots or SHOW for plotting to the display")
     options, args = optParser.parse_args()
     if len(args) != 1:
         sys.exit(USAGE)
@@ -46,34 +50,41 @@ def parse_args():
 def parse_dualog(dualog, limit):
     print "Parsing %s" % dualog
     teleStats = Statistics('Teleports')
-    header = ['#Emitted', 'Running', 'Waiting', 'Teleports', 'Loaded']
+    header = ['#Inserted', 'Running', 'Waiting', 'Teleports', 'Loaded']
     step_values = [] # list of lists
     step_counts = [] # list of edge teleport counters
-    reEmitted = re.compile("Emitted: (\d*)")
+    reInserted = re.compile("Inserted: (\d*)")
     reLoaded = re.compile("Loaded: (\d*)")
     reRunning = re.compile("Running: (\d*)")
     reWaiting = re.compile("Waiting: (\d*)")
-    reFrom = re.compile("from '([^']*)'")
+    reFrom = re.compile("from '([^']*)'") # mesosim
     teleports = 0
-    emitted = None
+    inserted = None
     loaded = None
     running = None
     waiting = None
+    haveMicrosim = None
     counts = defaultdict(lambda:0)
     for line in open(dualog):
         try:
             if "Warning: Teleporting vehicle" in line:
+                if haveMicrosim is None:
+                    if "lane='" in line:
+                        haveMicrosim = True
+                        reFrom = re.compile("lane='([^']*)'") 
+                    else:
+                        haveMicrosim = False
                 teleports += 1
                 edge = reFrom.search(line).group(1)
                 if ':' in edge: # mesosim output
                     edge = edge.split(':')[0]
                 counts[edge] += 1
-            elif "Emitted:" in line:
-                emitted = reEmitted.search(line).group(1)
+            elif "Inserted:" in line:
+                inserted = reInserted.search(line).group(1)
                 if "Loaded:" in line: # optional output
                     loaded = reLoaded.search(line).group(1)
                 else:
-                    loaded = emitted
+                    loaded = inserted
             elif "Running:" in line:
                 running = reRunning.search(line).group(1)
             elif "Waiting:" in line:
@@ -82,7 +93,7 @@ def parse_dualog(dualog, limit):
                     break
                 waiting = reWaiting.search(line).group(1)
                 teleStats.add(teleports, iteration)
-                step_values.append([emitted, running, waiting, teleports, loaded])
+                step_values.append([inserted, running, waiting, teleports, loaded])
                 teleports = 0
                 step_counts.append(counts)
                 counts = defaultdict(lambda:0)
@@ -121,25 +132,7 @@ def parse_stdout(step_values, stdout):
     print "  parsed %s steps" % (step - 1)
 
 
-def write_data(outfile, step_values):
-    with open(outfile, 'w') as f:
-        for values in step_values:
-            f.write(' '.join(map(str,values)) + '\n')
-
-def write_plotfile(outfile, datafile, xlabel):
-    with open(outfile, 'w') as f:
-        f.write("""
-set xlabel '%s'
-plot \\
-'%s' using 0:1 title 'emitted' with lines, \\
-'%s' using 0:4 title 'teleports' with lines, \\
-'%s' using 0:3 title 'waiting' with lines, \\
-'%s' using 0:5 title 'loaded' with lines, \\
-'%s' using 0:2 title 'running' with lines 
-""" % ((xlabel,) + (datafile,) * 5))
-
-
-def create_teleplot(plotfile, step_counts, xlabel):
+def gnuplot_teleport_edges(plotfile, step_counts, xlabel):
     datafile = plotfile + '.data'
     # an edge is interesting if a large proportion of teleports happen on it
     interestingness = defaultdict(lambda:0)
@@ -152,32 +145,69 @@ def create_teleplot(plotfile, step_counts, xlabel):
             interestingness[edge] += count/teleports
     interesting = sorted([(c,e) for e,c in interestingness.iteritems()])[-7:]
     print "most interesting edges:", interesting
-    interesting = [e for c,e in interesting]
-    with open(datafile, 'w') as f:
-        print >>f, '#' + ' '.join(interesting)
-        for counts in step_counts:
-            values = [counts[e] for e in interesting]
-            f.write(' '.join(map(str,values)) + '\n')
-    # write plotfile
-    with open(plotfile, 'w') as f:
-        f.write("set xlabel '%s'\nplot \\\n")
-        lines = ["'%s' using 0:%s title '%s' with lines" % (datafile, ii+1, edge) 
-                for ii, edge in enumerate(interesting)]
-        f.write(', \\\n'.join(lines))
+    if len(interesting) > 0:
+      interesting = [e for c,e in interesting]
+      with open(datafile, 'w') as f:
+          print >>f, '#' + ' '.join(interesting)
+          for counts in step_counts:
+              values = [counts[e] for e in interesting]
+              f.write(' '.join(map(str,values)) + '\n')
+      # write plotfile
+      with open(plotfile, 'w') as f:
+          f.write("set xlabel '%s'\nplot \\\n" % xlabel)
+          lines = ["'%s' using 0:%s title '%s' with lines" % (datafile, ii+1, edge) 
+                  for ii, edge in enumerate(interesting)]
+          f.write(', \\\n'.join(lines))
 
+def parse_trip_durations():
+    result = []
+    for file in sorted(glob.glob("tripinfo_*.xml")):
+        result.append([float(t.duration) for t in parse_fast(file, 'tripinfo', ['duration'])])
+    return result
+
+def matplot(output):
+    if output is not None:
+        import matplotlib
+        if output != 'SHOW':
+            matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        plt.boxplot(parse_trip_durations())
+        if output == 'SHOW':
+            plt.show()
+        else:
+            plt.savefig(output)
+            plt.close()
+
+
+def gnuplot_vehicle_summary(plotfile, xlabel, step_values):
+    datafile = plotfile + '.data'
+    with open(datafile, 'w') as f:
+        for values in step_values:
+            f.write(' '.join(map(str,values)) + '\n')
+
+    with open(plotfile, 'w') as f:
+        f.write("""
+set xlabel '%s'
+plot \\
+'%s' using 0:1 title 'inserted' with lines, \\
+'%s' using 0:4 title 'teleports' with lines, \\
+'%s' using 0:3 title 'waiting' with lines, \\
+'%s' using 0:5 title 'loaded' with lines, \\
+'%s' using 0:2 title 'running' with lines 
+""" % ((xlabel,) + (datafile,) * 5))
 
 def main():
     options = parse_args()
-    plotfile = options.output
-    datafile = plotfile + '.data'
     step_values, step_counts = parse_dualog(options.dualog, options.limit)
     if options.stdout is not None:
         parse_stdout(step_values, options.stdout)
-    write_data(datafile, step_values)
     duaPath = os.path.dirname(os.path.abspath(options.dualog))[-options.label_size:]
     xlabel = 'Iterations in ' + duaPath
-    write_plotfile(plotfile, datafile, xlabel)
-    create_teleplot(options.teleports, step_counts, xlabel)
+
+    gnuplot_vehicle_summary(options.output, xlabel, step_values)
+    gnuplot_teleport_edges(options.teleports, step_counts, xlabel)
+    matplot(options.mpl)
+
 
 ##################
 if __name__ == "__main__":

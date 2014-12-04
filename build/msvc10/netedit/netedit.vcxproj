@@ -87,22 +87,22 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalDebug|Win32'">
     <Link>
-      <AdditionalDependencies>$(PROJ_LIB);$(GDAL_LIB);shell32.lib;opengl32.lib;glu32.lib;$(XERCES_DEBUG_LIB);$(FOX16_DEBUG_LIB);user32.lib;winmm.lib;vfw32.lib;gdi32.lib;ws2_32.lib;$(MSBuildProjectDirectory)\..\y_libinternal\InternalDebug\y_libinternal.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(PROJ_LIB);$(GDAL_LIB);shell32.lib;opengl32.lib;glu32.lib;$(XERCES_DEBUG_LIB);$(FOX16_DEBUG_LIB);user32.lib;winmm.lib;vfw32.lib;gdi32.lib;ws2_32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalDebug|x64'">
     <Link>
-      <AdditionalDependencies>$(PROJ_LIB);$(GDAL_LIB);shell32.lib;opengl32.lib;glu32.lib;$(XERCES_DEBUG_LIB);$(FOX16_DEBUG_LIB);user32.lib;winmm.lib;vfw32.lib;gdi32.lib;ws2_32.lib;$(MSBuildProjectDirectory)\..\y_libinternal\x64\InternalDebug\y_libinternal.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(PROJ_LIB);$(GDAL_LIB);shell32.lib;opengl32.lib;glu32.lib;$(XERCES_DEBUG_LIB);$(FOX16_DEBUG_LIB);user32.lib;winmm.lib;vfw32.lib;gdi32.lib;ws2_32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalRelease|Win32'">
     <Link>
-      <AdditionalDependencies>$(PROJ_LIB);$(GDAL_LIB);shell32.lib;opengl32.lib;glu32.lib;$(XERCES_LIB);$(FOX16_LIB);user32.lib;winmm.lib;vfw32.lib;gdi32.lib;ws2_32.lib;$(MSBuildProjectDirectory)\..\y_libinternal\InternalRelease\y_libinternal.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(PROJ_LIB);$(GDAL_LIB);shell32.lib;opengl32.lib;glu32.lib;$(XERCES_LIB);$(FOX16_LIB);user32.lib;winmm.lib;vfw32.lib;gdi32.lib;ws2_32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalRelease|x64'">
     <Link>
-      <AdditionalDependencies>$(PROJ_LIB);$(GDAL_LIB);shell32.lib;opengl32.lib;glu32.lib;$(XERCES_LIB);$(FOX16_LIB);user32.lib;winmm.lib;vfw32.lib;gdi32.lib;ws2_32.lib;$(MSBuildProjectDirectory)\..\y_libinternal\x64\InternalRelease\y_libinternal.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(PROJ_LIB);$(GDAL_LIB);shell32.lib;opengl32.lib;glu32.lib;$(XERCES_LIB);$(FOX16_LIB);user32.lib;winmm.lib;vfw32.lib;gdi32.lib;ws2_32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='InternalFastbuild|Win32'">
@@ -136,6 +136,7 @@
     <ClCompile Include="..\..\..\src\netedit\GNELoadThread.cpp" />
     <ClCompile Include="..\..\..\src\netedit\GNENet.cpp" />
     <ClCompile Include="..\..\..\src\netedit\GNEPOI.cpp" />
+    <ClCompile Include="..\..\..\src\netedit\GNEPoly.cpp" />
     <ClCompile Include="..\..\..\src\netedit\GNESelector.cpp" />
     <ClCompile Include="..\..\..\src\netedit\GNETLSEditor.cpp" />
     <ClCompile Include="..\..\..\src\netedit\GNEUndoList.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="..\..\..\src\netedit\GNELoadThread.h" />
     <ClInclude Include="..\..\..\src\netedit\GNENet.h" />
     <ClInclude Include="..\..\..\src\netedit\GNEPOI.h" />
+    <ClInclude Include="..\..\..\src\netedit\GNEPoly.h" />
     <ClInclude Include="..\..\..\src\netedit\GNEReferenceCounter.h" />
     <ClInclude Include="..\..\..\src\netedit\GNESelector.h" />
     <ClInclude Include="..\..\..\src\netedit\GNETLSEditor.h" />
@@ -209,6 +211,9 @@
     </ProjectReference>
     <ProjectReference Include="..\z_libutils_distribution\z_libutils_distribution.vcxproj">
       <Project>{f5d8313c-621d-4cce-a6da-83effbde7ce6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\z_libutils_emissions\z_libutils_emissions.vcxproj">
+      <Project>{fa4a6c00-dcae-43cb-a396-15daec3b0141}</Project>
     </ProjectReference>
     <ProjectReference Include="..\z_libutils_foxtools\z_libutils_foxtools.vcxproj">
       <Project>{ecaebbbd-18b0-4e40-9507-4ad2b018c1cd}</Project>

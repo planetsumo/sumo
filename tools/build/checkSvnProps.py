@@ -8,7 +8,7 @@
 Checks svn property settings for all files.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -22,13 +22,13 @@ from optparse import OptionParser
 
 _SOURCE_EXT = [".h", ".cpp", ".py", ".pl", ".java", ".am"]
 _TESTDATA_EXT = [".xml", ".prog", ".csv",
-                 ".complex", ".dfrouter", ".duarouter", ".jtrrouter",
+                 ".complex", ".dfrouter", ".duarouter", ".jtrrouter", ".marouter",
                  ".astar", ".chrouter", ".internal", ".tcl", ".txt",
                  ".netconvert", ".netgen", ".od2trips", ".polyconvert", ".sumo",
                  ".meso", ".tools", ".traci", ".activitygen", ".scenario",
                  ".sumocfg", ".netccfg", ".netgcfg"]
 _VS_EXT = [".vsprops", ".sln", ".vcproj", ".bat", ".props", ".vcxproj", ".filters"]
-_IGNORE = set(["binstate.sumo"])
+_IGNORE = set(["binstate.sumo", "binstate.sumo.meso", "image.tools"])
 _KEYWORDS = "HeadURL Id LastChangedBy LastChangedDate LastChangedRevision"
 
 class PropertyReader(xml.sax.handler.ContentHandler):

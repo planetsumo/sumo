@@ -1,3 +1,24 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@file    main.py
+@author  Lena Kalleske
+@author  Daniel Krajzewicz
+@author  Michael Behrisch
+@date    2009-06-30
+@version $Id$
+
+
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
+Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+"""
+
 import subprocess, sys, os, re, shutil
 from genRoutes import *
 from evaluator import *
@@ -53,13 +74,13 @@ for ini in range(1,5):
     
     avgDelayFile = open(name + ".dat", "w")
 
-    setTLType('sumoConfig\one_intersection\cross.net.xml',tlType)
+    setTLType(os.path.join('sumoConfig','one_intersection','cross.net.xml'),tlType)
     
     if (tlType == 'static'):
         satFlow = getSaturationFlow()
         
     if (tlType == 'actuated'):
-        setPhaseMinMax('sumoConfig\one_intersection\cross.net.xml',phaseMinWE, phaseMaxWE, phaseMinNS, phaseMaxNS)
+        setPhaseMinMax(os.path.join('sumoConfig','one_intersection','cross.net.xml'),phaseMinWE, phaseMaxWE, phaseMinNS, phaseMaxNS)
     
     for i in range(K):    
         for vehphWE in vehphWEA:
@@ -84,17 +105,17 @@ for ini in range(1,5):
                     print greenWE
                     print greenNS
                 
-                    changePhaseDurations('sumoConfig\one_intersection\cross.net.xml',int(round(greenWE)), intergreenLength, int(round(greenNS)), intergreenLength)
+                    changePhaseDurations(os.path.join('sumoConfig','one_intersection','cross.net.xml'),int(round(greenWE)), intergreenLength, int(round(greenNS)), intergreenLength)
                 
                 genRoutes(N, distrWE, vehphWE, distrWE, 0, distrNS, vehphNS, distrNS, 0)
             
                 if gui:
                     sumoExe = "guisim"
-                    sumoConfig = "sumoConfig\one_intersection\cross.sumocfg"
+                    sumoConfig = os.path.join('sumoConfig','one_intersection','cross.sumocfg')
                     sumoProcess = subprocess.Popen("%s -c %s" % (sumoExe, sumoConfig), shell=True, stdout=sys.stdout)
                 else:
                     sumoExe = "sumo"
-                    sumoConfig = "sumoConfig\one_intersection\cross.sumocfg"
+                    sumoConfig = os.path.join('sumoConfig','one_intersection','cross.sumocfg')
                     sumoProcess = subprocess.Popen("%s -c %s --no-duration-log --no-step-log --time-to-teleport 10000000 --actuated-tl.max-gap %f --actuated-tl.detector-pos %f" % (sumoExe, sumoConfig, maxGap, detPos), shell=True, stdout=sys.stdout)
                 
                
@@ -116,4 +137,3 @@ for ini in range(1,5):
     avgDelayFile.close()
     
     plotDiagram(name)
-

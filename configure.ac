@@ -9,9 +9,15 @@ AC_CONFIG_HEADER(src/config.h)
 dnl enable automake-support
 AM_INIT_AUTOMAKE([gnu dist-zip tar-ustar])
 
+AC_LANG([C++])
 
 dnl the debug check has to be made before the program checks
 dnl because it modifies CXXFLAGS
+if test $CXX = clang++; then
+    CXXFLAGS="-msse2 $CXXFLAGS"
+else
+    CXXFLAGS="-msse2 -mfpmath=sse $CXXFLAGS"
+fi
 AC_ARG_ENABLE([debug], [AS_HELP_STRING([--enable-debug],[enable sumo debugging code [default=no].])])
 if test x$enable_debug = xyes; then
     AC_DEFINE(_DEBUG, 1, [Define to 1 in order to enable sumo debugging code.])
@@ -48,6 +54,12 @@ AM_PROG_LIBTOOL
 
 dnl Check for enable-features that shall go into config.h
 AC_ARG_ENABLE([memcheck], [AS_HELP_STRING([--enable-memcheck],[enable compilation of memory leak checks [default=no].])])
+if test x$enable_memcheck = xyes; then
+    if test $CXX = clang++; then
+        AC_MSG_WARN([--enable-memcheck does not work with clang yet])
+        enable_memcheck="no"
+    fi
+fi
 AM_CONDITIONAL(CHECK_MEMORY_LEAKS, test x$enable_memcheck = xyes)
 if test x$enable_memcheck = xyes; then
     AC_DEFINE(CHECK_MEMORY_LEAKS, 1, [Define to 1 in order to enable memory checks.])
@@ -82,8 +94,8 @@ else
     ac_disabled="$ac_disabled Subsecond"
 fi
 
-AC_DEFINE([POSITION_EPS], [0.1], [defines the epsilon to use on position comparison])
-AC_DEFINE([NUMERICAL_EPS], [0.001], [defines the epsilon to use on general floating point comparison])
+AC_DEFINE([POSITION_EPS], [(SUMOReal)0.1], [defines the epsilon to use on position comparison])
+AC_DEFINE([NUMERICAL_EPS], [(SUMOReal)0.001], [defines the epsilon to use on general floating point comparison])
 AC_DEFINE([OUTPUT_ACCURACY], [2], [defines the number of digits after the comma in output])
 AC_DEFINE([GEO_OUTPUT_ACCURACY], [6], [defines the number of digits after the comma in geo-coordinates output])
 AC_DEFINE([SUMOLong], [long long int], [defines the type for very long integers])
@@ -94,19 +106,17 @@ PKG_CHECK_MODULES([XERCES], [xerces-c >= 3.0],
                   [AC_DEFINE([XERCES3_SIZE_t],[unsigned int],[Define length for Xerces 2.])])
 
 
-AM_CONDITIONAL(INTERNAL, test -d $srcdir/src/internal)
-m4_syscmd([test -d src/internal])
+AM_CONDITIONAL(INTERNAL, test -d $srcdir/src/mesosim)
+m4_syscmd([test -d src/mesosim])
 m4_if(m4_sysval,[0],[
     AC_DEFINE([HAVE_INTERNAL], [1], [Define to enable internal code.])
-    AC_CONFIG_FILES([src/mesogui/Makefile src/mesosim/Makefile src/netedit/Makefile src/osgview/Makefile src/marouter/Makefile src/internal/Makefile unittest/src/internal/Makefile])
-    INTERNAL_DIRS="mesosim marouter internal"
+    AC_CONFIG_FILES([src/mesogui/Makefile src/mesosim/Makefile src/netedit/Makefile src/osgview/Makefile])
+    INTERNAL_DIRS="mesosim"
     AC_SUBST([INTERNAL_DIRS])
     GUI_INTERNAL_DIRS="mesogui netedit osgview"
     AC_SUBST([GUI_INTERNAL_DIRS])
-    UNITTEST_INTERNAL_DIRS=internal
-    AC_SUBST([UNITTEST_INTERNAL_DIRS])
     ac_enabled="$ac_enabled Internal"
-    program_transform_name="s,\$\$,Int,; s,sumoInt,meso,; s,sumo-guiInt,meso-gui,; s,marouterInt,marouter,; s,neteditInt,netedit,; $program_transform_name"
+    program_transform_name="s,\$\$,Int,; s,sumoInt,meso,; s,sumo-guiInt,meso-gui,; s,neteditInt,netedit,; $program_transform_name"
 ])
 
 AC_ARG_ENABLE([traci],[AS_HELP_STRING([--disable-traci],[disable Traffic Control Interface (TraCI) Server [default=no].])])
@@ -118,8 +128,8 @@ else
     ac_disabled="$ac_disabled TRACI"
 fi
 
-AM_CONDITIONAL([WITH_VERSION_H], test -f .svn/entries)
-if test -f .svn/entries; then
+AM_CONDITIONAL([WITH_VERSION_H], test -d .svn)
+if test -d .svn; then
    AC_DEFINE([HAVE_VERSION_H], [1], [Define if auto-generated version.h should be used.])
 else
    AC_DEFINE_UNQUOTED(VERSION_STRING, "$PACKAGE_VERSION", [Defined if auto-generated version.h is unavailable.])
@@ -207,16 +217,15 @@ fi
 
 dnl  ... for proj.4
 dnl   ... for libs
-PROJ_LDFLAGS="-lproj"
 AC_ARG_WITH([proj-libraries], [AS_HELP_STRING([--with-proj-libraries=DIR],[where the PROJ library is installed (overrides previous settings).])])
 if test x"$with_proj_libraries" = x; then
-   AC_CHECK_LIB([proj], [main], [with_proj_libraries=yes],
+   AC_CHECK_LIB([proj], [main], [PROJ_LDFLAGS="-lproj"],
                 [AC_MSG_WARN([proj-lib not found. Specify path with option --with-proj-libraries=DIR.])])
 else
    save_ldflags=$LDFLAGS
    LDFLAGS="-L$with_proj_libraries"
    export LDFLAGS
-   AC_CHECK_LIB([proj], [main], [PROJ_LDFLAGS="$LDFLAGS $PROJ_LDFLAGS"],
+   AC_CHECK_LIB([proj], [main], [PROJ_LDFLAGS="$LDFLAGS -lproj"],
                 [AC_MSG_ERROR([proj-lib not found in "$with_proj_libraries".])])
    LDFLAGS=$save_ldflags
 fi
@@ -236,7 +245,7 @@ else
    CPPFLAGS=$save_cppflags
 fi
 fi
-if test x"$with_proj_includes" != x && test x"$with_proj_libraries" != x; then
+if test x"$with_proj_includes" != x && test x"$PROJ_LDFLAGS" != x; then
    AC_DEFINE([HAVE_PROJ], [1], [defined if PROJ is available])
    ac_enabled="$ac_enabled PROJ"
 else
@@ -254,7 +263,7 @@ if test x"$with_proj_gdal" != xno && test x"$with_gdal_config" != xno; then
         AC_PATH_PROG([GDAL_CONFIG], [gdal-config])
         if test -z $GDAL_CONFIG; then
             AC_MSG_WARN([could not find gdal-config from libgdal within the current path. Specify path with option --with-gdal-config.])
-        fi    
+        fi
     else
         if test -f $GDAL_CONFIG; then
             AC_MSG_RESULT([Using user-specified gdal-config file: $GDAL_CONFIG])
@@ -287,13 +296,13 @@ fi
 dnl - - - - - - - - - - - - - - - - - - - - - - -
 dnl  ... for fox
 AC_ARG_WITH([fox-config],
-            [AS_HELP_STRING([--with-fox-config=FILE], [specify an alternative fox-config file])],
+            [AS_HELP_STRING([--with-fox-config=FILE], [specify an alternative fox-config executable])],
             [FOX_CONFIG="$withval"], [FOX_CONFIG=""])
 if test x"$with_fox_config" != xno; then
     if test -z $FOX_CONFIG; then
         AC_PATH_PROG([FOX_CONFIG], [fox-config])
         if test -z $FOX_CONFIG; then
-            AC_MSG_WARN([could not find fox-config from libgdal within the current path. Specify path with option --with-fox-config.])
+            AC_MSG_WARN([could not find fox-config from libfox within the current path. Specify path with option --with-fox-config.])
         fi
     else
         if test -f $FOX_CONFIG; then
@@ -316,6 +325,7 @@ if test x"$with_fox_config" != xno; then
         AC_CHECK_HEADER([fxver.h], [AM_CPPFLAGS="$CPPFLAGS $AM_CPPFLAGS"],
                         [AC_MSG_ERROR([fox-includes not found.])])
         CPPFLAGS=$save_cppflags
+        AC_DEFINE([HAVE_FOX], [1], [defined if FOX is available])
         ac_enabled="$ac_enabled GUI"
     fi
 else
@@ -326,21 +336,38 @@ AM_CONDITIONAL([WITH_GUI], [test x"$FOX_CONFIG" != x && test x"$with_fox_config"
 
 dnl - - - - - - - - - - - - - - - - - - - - - - -
 dnl  ... for gtest
-AC_ARG_WITH([gtest], [AS_HELP_STRING([--with-gtest=DIR],[where googletest is installed (libraries in DIR/lib, headers in DIR/include).])])
-if test x"$with_gtest" == x; then
-    with_gtest=no
-fi
-if test x"$with_gtest" != xno; then
-    LIB_GTEST="$with_gtest/lib/libgtest.a"
-    AC_SUBST(LIB_GTEST)
-    AM_CPPFLAGS="-I$with_gtest/include $AM_CPPFLAGS"
-fi
-AM_CONDITIONAL([WITH_GTEST], [test x"$with_gtest" != xno])
-if test x"$with_gtest" != xno; then
-    ac_enabled="$ac_enabled UnitTests"
+AC_ARG_WITH([gtest-config], [AS_HELP_STRING([--with-gtest-config=FILE], [specify an alternative gtest-config.])],
+            [GTEST_CONFIG="$withval"], [GTEST_CONFIG=""])
+if test x"$with_gtest_config" != xno; then
+    if test -z $GTEST_CONFIG; then
+        AC_PATH_PROG([GTEST_CONFIG], [gtest-config])
+    else
+        if test -f $GTEST_CONFIG; then
+            AC_MSG_RESULT([Using user-specified gtest-config file: $GTEST_CONFIG])
+        else
+            AC_MSG_ERROR([the user-specified gtest-config file $GTEST_CONFIG does not exist])
+        fi
+    fi
+
+    if test -z $GTEST_CONFIG; then
+        ac_disabled="$ac_disabled UnitTests"
+    else
+        GTEST_CFLAGS="`$GTEST_CONFIG --cxxflags`"
+        GTEST_LDFLAGS="`$GTEST_CONFIG --libs`"
+        AC_SUBST([GTEST_LDFLAGS])
+
+        save_cppflags=$CPPFLAGS
+        CPPFLAGS="$GTEST_CFLAGS"
+        export CPPFLAGS
+        AC_CHECK_HEADER([gtest/gtest.h], [AM_CPPFLAGS="$CPPFLAGS $AM_CPPFLAGS"],
+                        [AC_MSG_ERROR([gtest-includes not found.])])
+        CPPFLAGS=$save_cppflags
+        ac_enabled="$ac_enabled UnitTests"
+    fi
 else
     ac_disabled="$ac_disabled UnitTests"
 fi
+AM_CONDITIONAL([WITH_GTEST], [test x"$GTEST_CONFIG" != x && test x"$with_gtest_config" != xno])
 
 
 dnl - - - - - - - - - - - - - - - - - - - - - - -
@@ -433,6 +460,7 @@ src/microsim/logging/Makefile
 src/microsim/output/Makefile
 src/microsim/traffic_lights/Makefile
 src/microsim/trigger/Makefile
+src/marouter/Makefile
 src/netbuild/Makefile
 src/netgen/Makefile
 src/netimport/Makefile
@@ -447,11 +475,13 @@ src/router/Makefile
 src/dfrouter/Makefile
 src/duarouter/Makefile
 src/jtrrouter/Makefile
+src/tools/Makefile
 src/traci_testclient/Makefile
 src/traci-server/Makefile
 src/utils/Makefile
 src/utils/common/Makefile
 src/utils/distribution/Makefile
+src/utils/emissions/Makefile
 src/utils/foxtools/Makefile
 src/utils/geom/Makefile
 src/utils/gui/Makefile
@@ -467,6 +497,7 @@ src/utils/iodevices/Makefile
 src/utils/options/Makefile
 src/utils/shapes/Makefile
 src/utils/traci/Makefile
+src/utils/vehicle/Makefile
 src/utils/xml/Makefile
 unittest/Makefile
 unittest/src/Makefile
@@ -474,6 +505,7 @@ unittest/src/microsim/Makefile
 unittest/src/netbuild/Makefile
 unittest/src/utils/Makefile
 unittest/src/utils/common/Makefile
+unittest/src/utils/foxtools/Makefile
 unittest/src/utils/geom/Makefile
 unittest/src/utils/iodevices/Makefile
 bin/Makefile

@@ -2,13 +2,14 @@
 """
 @file    edge.py
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2011-03-17
 @version $Id$
 
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -72,9 +73,9 @@ def getAdaptedTraveltime(edgeID, time):
                               tc.VAR_EDGE_TRAVELTIME, edgeID).readDouble()
 
 def getWaitingTime(edgeID):
-    """getWaitingTime() -> double
-    
-    .
+    """getWaitingTime() -> double 
+    Returns the sum of the waiting time of all vehicles currently on
+    that edge (see traci.vehicle.getWaitingTime).
     """
     return _getUniversal(tc.VAR_WAITING_TIME, edgeID) 
 
@@ -195,9 +196,7 @@ def subscribe(edgeID, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more edge values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_EDGE_VARIABLE, begin, end, edgeID, varIDs)
 
 def getSubscriptionResults(edgeID=None):
@@ -213,7 +212,6 @@ def getSubscriptionResults(edgeID=None):
     return subscriptionResults.get(edgeID)
 
 def subscribeContext(edgeID, domain, dist, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_EDGE_CONTEXT, begin, end, edgeID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(edgeID=None):
@@ -234,7 +232,9 @@ def adaptTraveltime(edgeID, time):
     
     Adapt the travel time value (in s) used for (re-)routing for the given edge.
     """
-    traci._sendDoubleCmd(tc.CMD_SET_EDGE_VARIABLE, tc.VAR_EDGE_TRAVELTIME, edgeID, time)
+    traci._beginMessage(tc.CMD_SET_EDGE_VARIABLE, tc.VAR_EDGE_TRAVELTIME, edgeID, 1+4+1+8)
+    traci._message.string += struct.pack("!BiBd", tc.TYPE_COMPOUND, 1, tc.TYPE_DOUBLE, time)
+    traci._sendExact()
 
 def setEffort(edgeID, effort):
     """setEffort(string, double) -> None

@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 @file    cadytsIterate.py
-@author  Yun-Pang Wang
+@author  Jakob Erdmann
+@author  Yun-Pang Floetteroed
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
 @date    2010-09-15
@@ -12,7 +13,7 @@ Run cadyts to calibrate the simulation with given routes and traffic measurement
 Respective traffic zones information has to exist in the given route files.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -25,6 +26,8 @@ from datetime import datetime
 from optparse import OptionParser
 from duaIterate import call, writeSUMOConf, addGenericOptions
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+import sumolib
 
 def initOptions():
     optParser = OptionParser()
@@ -76,10 +79,9 @@ def main():
         optParser.error("--net-file, --routes and --detector-values have to be given!")
 
     if options.mesosim:
-        sumoBinary = os.environ.get("SUMO_BINARY", os.path.join(options.path, "meso"))
-        print 'mesosim in action!'
+        sumoBinary = sumolib.checkBinary("meso", options.path)
     else:
-        sumoBinary = os.environ.get("SUMO_BINARY", os.path.join(options.path, "sumo"))
+        sumoBinary = sumolib.checkBinary("sumo", options.path)
     calibrator = ["java", "-cp", options.classpath, "cadyts.interfaces.sumo.SumoController"]
     log = open("cadySumo-log.txt", "w+")
 

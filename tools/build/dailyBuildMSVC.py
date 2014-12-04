@@ -13,7 +13,7 @@ Some paths especially for the temp dir and the compiler are
 hard coded into this script.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -43,6 +43,8 @@ optParser.add_option("-m", "--remote-dir", dest="remoteDir", default=r"O:\Daten\
                      help="directory to move the results to")
 optParser.add_option("-a", "--add-build-config-prefix", dest="addConf",
                      help="prefix of an additional configuration to build")
+optParser.add_option("-l", "--add-solution", dest="addSln", default=r"trunk\sumo\build\msvc10\tools.sln",
+                     help="path to an additional solution to build")
 optParser.add_option("-f", "--force", action="store_true",
                      default=False, help="force rebuild even if no source changed")
 (options, args) = optParser.parse_args()
@@ -98,6 +100,8 @@ for platform in ["Win32", "x64"]:
     subprocess.call(compiler+" /rebuild Release|%s %s\\%s /out %s" % (platform, options.rootDir, options.project, makeLog))
     if options.addConf:
         subprocess.call(compiler+" /rebuild %sRelease|%s %s\\%s /out %s" % (options.addConf, platform, options.rootDir, options.project, makeLog))
+    if options.addSln:
+        subprocess.call(compiler+" /rebuild Release|%s %s\\%s /out %s" % (platform, options.rootDir, options.addSln, makeLog))
     programSuffix = envSuffix = ""
     if platform == "x64":
         envSuffix="_64"
@@ -106,12 +110,12 @@ for platform in ["Win32", "x64"]:
     log = io.open(makeLog, 'a')
     try:
         maxTime = 0
-        for fname in glob.glob(os.path.join(nightlyDir, "sumo-src-*.zip")):
+        for fname in glob.glob(os.path.join(nightlyDir, "sumo-all-*.zip")):
             if os.path.getmtime(fname) > maxTime:
                 maxTime = os.path.getmtime(fname)
                 maxFile = fname
         if maxTime > 0:
-            binaryZip = maxFile.replace("-src-", "-%s-" % env["FILEPREFIX"])
+            binaryZip = maxFile.replace("-all-", "-%s-" % env["FILEPREFIX"])
             zipf = zipfile.ZipFile(binaryZip, 'w', zipfile.ZIP_DEFLATED)
             srcZip = zipfile.ZipFile(maxFile)
             write = False
@@ -119,7 +123,7 @@ for platform in ["Win32", "x64"]:
                 if f.count('/') == 1:
                     write = False
                 if f.endswith('/') and f.count('/') == 2:
-                    write = (f.endswith('/bin/') or f.endswith('/examples/') or f.endswith('/tools/'))
+                    write = (f.endswith('/bin/') or f.endswith('/examples/') or f.endswith('/tools/') or f.endswith('/data/') or f.endswith('/docs/'))
                     if f.endswith('/bin/'):
                         binDir = f
                 elif write or os.path.basename(f) in ["COPYING", "README"]:
@@ -127,12 +131,6 @@ for platform in ["Win32", "x64"]:
             srcZip.close()
         else:
             zipf = zipfile.ZipFile(binaryZip, 'w', zipfile.ZIP_DEFLATED)
-        if os.path.exists(maxFile.replace("-src-", "-doc-")):
-            docZip = zipfile.ZipFile(maxFile.replace("-src-", "-doc-"))
-            for f in docZip.namelist():
-                if not "/doxygen/" in f:
-                    zipf.writestr(f, docZip.read(f))
-            docZip.close()
         files_to_zip = (
                 glob.glob(os.path.join(env["XERCES"+envSuffix], "bin", "xerces-c_?_?.dll")) +
                 glob.glob(os.path.join(env["PROJ_GDAL"+envSuffix], "bin", "*.dll")) +
@@ -153,8 +151,9 @@ for platform in ["Win32", "x64"]:
                     print >> log, "Warning: Could not copy %s to %s!" % (f, nightlyDir)
                     print >> log, "I/O error(%s): %s" % (errno, strerror)
         zipf.close()
-        wix.buildMSI(binaryZip, binaryZip.replace(".zip", ".msi"), platformSuffix=programSuffix)
         shutil.copy2(binaryZip, options.remoteDir)
+        wix.buildMSI(binaryZip, binaryZip.replace(".zip", ".msi"), platformSuffix=programSuffix)
+        shutil.copy2(binaryZip.replace(".zip", ".msi"), options.remoteDir)
     except IOError, (errno, strerror):
         print >> log, "Warning: Could not zip to %s!" % binaryZip
         print >> log, "I/O error(%s): %s" % (errno, strerror)
@@ -175,9 +174,11 @@ for platform in ["Win32", "x64"]:
     if "SUMO_HOME" not in env:
         env["SUMO_HOME"] = os.path.join(os.path.dirname(__file__), '..', '..')
     shutil.rmtree(env["TEXTTEST_TMP"], True)
-    shutil.rmtree(env["SUMO_REPORT"], True)
-    os.mkdir(env["SUMO_REPORT"])
-    for name in ["dfrouter", "duarouter", "jtrrouter", "netconvert", "netgenerate", "od2trips", "sumo", "polyconvert", "sumo-gui", "activitygen"]:
+    if not os.path.exists(env["SUMO_REPORT"]):
+        os.makedirs(env["SUMO_REPORT"])
+    for name in ["dfrouter", "duarouter", "jtrrouter", "marouter", "netconvert", "netgenerate",
+                 "od2trips", "sumo", "polyconvert", "sumo-gui", "activitygen",
+                 "emissionsDrivingCycle", "emissionsMap"]:
         binary = os.path.join(options.rootDir, options.binDir, name + programSuffix + ".exe")
         if name == "sumo-gui":
             if os.path.exists(binary):
@@ -193,9 +194,9 @@ for platform in ["Win32", "x64"]:
         subprocess.call("texttest.py -b "+env["FILEPREFIX"]+nameopt, stdout=log, stderr=subprocess.STDOUT, shell=True)
     subprocess.call("texttest.py -a sumo.gui -b "+env["FILEPREFIX"]+nameopt, stdout=log, stderr=subprocess.STDOUT, shell=True)
     subprocess.call("texttest.py -b "+env["FILEPREFIX"]+" -coll", stdout=log, stderr=subprocess.STDOUT, shell=True)
-#    ago = datetime.datetime.now() - datetime.timedelta(30)
-#    subprocess.call('texttest.py -s "batch.ArchiveRepository session='+env["FILEPREFIX"]+' before=%s"' % ago.strftime("%d%b%Y"),
-#                    stdout=log, stderr=subprocess.STDOUT, shell=True)
+    ago = datetime.datetime.now() - datetime.timedelta(50)
+    subprocess.call('texttest.py -s "batch.ArchiveRepository session='+env["FILEPREFIX"]+' before=%s"' % ago.strftime("%d%b%Y"),
+                    stdout=log, stderr=subprocess.STDOUT, shell=True)
     log.close()
     log = open(statusLog, 'w')
     status.printStatus(makeLog, makeAllLog, env["TEXTTEST_TMP"], env["SMTP_SERVER"], log)

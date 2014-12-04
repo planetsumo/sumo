@@ -18,7 +18,7 @@ doxygen:
 	doxygen sumo.doxyconf &> doxygen.log
 
 userdoc:
-	tools/docs/buildHTMLDocs.py -o docs/userdoc -i docs/wiki/index.html -r $(VERSION) && cp docs/wiki/*.png docs/wiki/*.css docs/userdoc
+	tools/build/buildHTMLDocs.py -o docs/userdoc -i docs/wiki/index.html -r $(VERSION) && cp docs/wiki/*.png docs/wiki/*.css docs/userdoc
 
 man:
 	rm -rf docs/man
@@ -38,15 +38,17 @@ dist-hook: abs_distdir=`pwd`/$(distdir)
 dist-hook:
 	cd $(srcdir) ; \
 	if test -d tests; then \
-	    for f in `find build tools tests/complex/tutorial -name .svn -prune -o -type d -print`; do mkdir -p $(abs_distdir)/$$f; done ; \
+	    for f in `find build data tools tests/complex/tutorial -name .svn -prune -o -type d -print`; do mkdir -p $(abs_distdir)/$$f; done ; \
 	    mkdir -p $(abs_distdir)/docs ; \
 	    find tests/complex/tutorial -regex ".*\.\(xml\|txt\|sumocfg\|netccfg\|py\)" -print0 | xargs -0 cp -v --parents --target-directory $(abs_distdir) ; \
 	    mv -v ${abs_distdir}/tests/complex/tutorial $(abs_distdir)/docs ; \
 	    rm -rf $(abs_distdir)/tests ; \
 	    tests/extractTest.py -i -f tests/examples.txt -o $(abs_distdir)/docs ; \
 	    find build -regex ".*\.\(vcproj\|vsprops\|vcxproj\|vcxproj\.filters\|props\|sln\|spec\)" -print0 | xargs -0 cp --parents --target-directory $(abs_distdir) ; \
+	    find data -regex ".*\.\(xsd\|xml\|csv\|veh\)" -print0 | xargs -0 cp --parents --target-directory $(abs_distdir) ; \
 	    ( svn export --force tools $(distdir)/tools && cd $(distdir) && find tools -type f > ../tools_filelist; true ) ; \
 	    xargs cp --parents --target-directory $(abs_distdir) < tools_filelist ; \
+	    find $(abs_distdir)/tools -name  "*.jar" | xargs rm ; \
 	    cp tools_filelist $(abs_distdir) ; \
 	fi;
 
@@ -58,7 +60,6 @@ dist-doc: doc
 	mv $(distdir)/tests/complex/tutorial $(distdir)/docs
 	rmdir $(distdir)/tests/complex
 	rmdir $(distdir)/tests
-	svn export docs/internet/xsd $(distdir)/docs/xsd
 	cp -r docs/pydoc docs/doxygen docs/userdoc $(distdir)/docs
 	tests/extractTest.py -i -f tests/examples.txt -o $(distdir)/docs
 	tar -czf $(PACKAGE)-doc-$(VERSION).tar.gz $(distdir)
@@ -74,17 +75,32 @@ dist-tests:
 	tar -czf $(PACKAGE)-tests-$(VERSION).tar.gz $(distdir)
 	$(am__remove_distdir)
 
-dist-complete: dist dist-doc dist-tests
+dist-complete: dist dist-doc dist-tests traas traci4j trafficmodeler
 	mv $(PACKAGE)-$(VERSION).tar.gz $(PACKAGE)-src-$(VERSION).tar.gz
 	mv $(PACKAGE)-$(VERSION).zip $(PACKAGE)-src-$(VERSION).zip
 	tar -xzf $(PACKAGE)-doc-$(VERSION).tar.gz $(distdir)
 	tar -xzf $(PACKAGE)-tests-$(VERSION).tar.gz $(distdir)
 	tar -xzf $(PACKAGE)-src-$(VERSION).tar.gz $(distdir)
+	find tools bin -name  "*.jar" | xargs cp --parents --target-directory $(distdir)
 	tar -czf $(PACKAGE)-all-$(VERSION).tar.gz $(distdir)
+	rm -f $(PACKAGE)-all-$(VERSION).zip
+	zip -r $(PACKAGE)-all-$(VERSION).zip $(distdir)
 	$(am__remove_distdir)
 
 examples:
-	tests/extractTest.py -f tests/examples.txt
+	tests/extractTest.py -x -f tests/examples.txt
+
+traas:
+	ant -f tools/contributed/traas/build.xml clean release
+	cp tools/contributed/traas/dist/TraaS.jar bin
+
+traci4j:
+	ant -f tools/contributed/traci4j/build.xml clean build deploy
+	cp tools/contributed/traci4j/*.jar bin
+
+trafficmodeler:
+	cd tools/contributed/trafficmodeler && ./build.sh
+	cp tools/contributed/trafficmodeler/jar/*.jar bin
 
 sumo$(EXEEXT) netconvert$(EXEEXT) \
         netgenerate$(EXEEXT) duarouter$(EXEEXT) \

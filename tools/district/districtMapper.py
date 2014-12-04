@@ -3,15 +3,16 @@
 @file    districtMapper.py
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2007-07-26
 @version $Id$
 
-Maps the geomtetry of the districts of two networks by calculating 
+Maps the geometry of the districts of two networks by calculating 
 translation and scale parameters from junctions which have been 
 identified by the user as reference points.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -71,7 +72,7 @@ class DistrictMapper(handler.ContentHandler):
         if name == 'taz':    
             self._haveDistrict = True
             self._currentID = attrs['id']
-            if 'shape' in attrs:
+            if attrs.has_key('shape'):
                 self._shape = attrs['shape']
         elif name == 'shape' and self._haveDistrict:
             self._parsingDistrictShape = True

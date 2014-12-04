@@ -1,6 +1,6 @@
 """
 @file    tables.py
-@author  Yun-Pang Wang
+@author  Yun-Pang Floetteroed
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
 @date    2008-03-18
@@ -13,7 +13,7 @@ This file defines global tables used to:
 - conduct significance tests
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

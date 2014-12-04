@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\od2trips\od2trips_main.cpp" />
+    <ClCompile Include="..\..\..\src\od2trips\ODAmitranHandler.cpp" />
     <ClCompile Include="..\..\..\src\od2trips\ODDistrict.cpp" />
     <ClCompile Include="..\..\..\src\od2trips\ODDistrictCont.cpp" />
     <ClCompile Include="..\..\..\src\od2trips\ODDistrictHandler.cpp" />
@@ -149,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\od2trips\ODCell.h" />
+    <ClInclude Include="..\..\..\src\od2trips\ODAmitranHandler.h" />
     <ClInclude Include="..\..\..\src\od2trips\ODDistrict.h" />
     <ClInclude Include="..\..\..\src\od2trips\ODDistrictCont.h" />
     <ClInclude Include="..\..\..\src\od2trips\ODDistrictHandler.h" />
@@ -185,6 +187,14 @@
     <ProjectReference Include="..\z_libutils_options\z_libutils_options.vcxproj">
       <Project>{ee29af87-7317-488d-bf6d-ec422d1dbad6}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\z_libutils_vehicle\z_libutils_vehicle.vcxproj">
+      <Project>{421250da-d4bf-4678-8605-837f455552fc}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\z_libutils_xml\z_libutils_xml.vcxproj">
       <Project>{508f0bff-83fe-444c-9509-a359bca83bc4}</Project>

@@ -3,7 +3,7 @@
 @file    routecheck.py
 @author  Michael Behrisch
 @author  Jakob Erdmann
-@author  Yun-Pang Wang
+@author  Yun-Pang Floetteroed
 @date    2007-03-09
 @version $Id$
 
@@ -22,7 +22,7 @@ this is changed without adding comments. The same is true for camelCase
 changes of attributes.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

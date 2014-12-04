@@ -2,13 +2,15 @@
 @file    poi.py
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
+@author  Jakob Erdmann
+@author  Melanie Knocke
 @date    2010-02-18
 @version $Id$
 
 Library for reading and storing PoIs.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -36,11 +38,11 @@ class PoI:
 
     def toXML(self):
         if self.lane:
-            return '<poi id="%s" type="%s" color="%s" layer="%s" lane="%s" pos="%s"' % (self.id, self.type, self.color.toXML(), self.layer, self.lane, self.pos)
+            ret = '<poi id="%s" type="%s" color="%s" layer="%s" lane="%s" pos="%s"' % (self.id, self.type, self.color.toXML(), self.layer, self.lane, self.pos)
         elif self.lonLat:
             ret = '<poi id="%s" type="%s" color="%s" layer="%s" lon="%s" lat="%s"' % (self.id, self.type, self.color.toXML(), self.layer, self.x, self.y)
         else:
-            return '<poi id="%s" type="%s" color="%s" layer="%s" x="%s" y="%s"' % (self.id, self.type, self.color.toXML(), self.layer, self.x, self.y)
+            ret = '<poi id="%s" type="%s" color="%s" layer="%s" x="%s" y="%s"' % (self.id, self.type, self.color.toXML(), self.layer, self.x, self.y)
         if len(self.attributes)==0:
             ret += '/>'
         else:

@@ -9,7 +9,7 @@
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -23,9 +23,9 @@ import traci.constants as tc
 DEFAULT_VIEW = 'View #0'
 _RETURN_VALUE_FUNC = {tc.ID_LIST:           traci.Storage.readStringList,
                       tc.VAR_VIEW_ZOOM:     traci.Storage.readDouble,
-                      tc.VAR_VIEW_OFFSET:   lambda(result): result.read("!dd"),
+                      tc.VAR_VIEW_OFFSET:   lambda result: result.read("!dd"),
                       tc.VAR_VIEW_SCHEMA:   traci.Storage.readString,
-                      tc.VAR_VIEW_BOUNDARY: lambda(result): (result.read("!dd"), result.read("!dd"))}
+                      tc.VAR_VIEW_BOUNDARY: lambda result: (result.read("!dd"), result.read("!dd"))}
 subscriptionResults = traci.SubscriptionResults(_RETURN_VALUE_FUNC)
 
 def _getUniversal(varID, viewID):
@@ -72,9 +72,7 @@ def subscribe(viewID, varIDs=(tc.VAR_VIEW_OFFSET,), begin=0, end=2**31-1):
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more gui values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_GUI_VARIABLE, begin, end, viewID, varIDs)
 
 def getSubscriptionResults(viewID=None):
@@ -90,7 +88,6 @@ def getSubscriptionResults(viewID=None):
     return subscriptionResults.get(viewID)
 
 def subscribeContext(viewID, domain, dist, varIDs=(tc.VAR_VIEW_OFFSET,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_GUI_CONTEXT, begin, end, viewID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(viewID=None):

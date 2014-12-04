@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
 @file    Assignment.py
-@author  Yun-Pang Wang
+@author  Jakob Erdmann
+@author  Yun-Pang Floetteroed
 @author  Michael Behrisch
 @date    2008-03-28
 @version $Id$
@@ -15,7 +16,7 @@ Three assignment models are available:
 The c-logit model are set as default.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

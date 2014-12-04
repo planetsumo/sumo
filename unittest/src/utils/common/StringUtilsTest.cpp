@@ -8,15 +8,17 @@
 // Tests StringUtils class from <SUMO>/src/utils/common
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright 2001-2010 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
-//   This program is free software; you can redistribute it and/or modify
+//   This file is part of SUMO.
+//   SUMO is free software: you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
-//   the Free Software Foundation; either version 2 of the License, or
+//   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
 //
 /****************************************************************************/
+
 // ===========================================================================
 // included modules
 // ===========================================================================
@@ -41,19 +43,27 @@ TEST(StringUtils, test_method_to_lower_case) {
 	EXPECT_EQ("", StringUtils::to_lower_case(str));
 }
 
+/* Tests the method to_lower_case.*/
+TEST(StringUtils, test_method_latin1_to_utf8) {
+	EXPECT_EQ("\xC3\xA4", StringUtils::latin1_to_utf8("\xE4"));
+	EXPECT_EQ("\xC3\xB6", StringUtils::latin1_to_utf8("\xF6"));
+	std::string str;
+	EXPECT_EQ("", StringUtils::latin1_to_utf8(str));
+}
+
 /* Tests the method convertUmlaute.*/
 TEST(StringUtils, test_method_convertUmlaute) {
-	EXPECT_EQ("ae", StringUtils::convertUmlaute("ä"));
-	EXPECT_EQ("Ae", StringUtils::convertUmlaute("Ä"));
-	EXPECT_EQ("oe", StringUtils::convertUmlaute("ö"));
-	EXPECT_EQ("Oe", StringUtils::convertUmlaute("Ö"));
-	EXPECT_EQ("ue", StringUtils::convertUmlaute("ü"));
-	EXPECT_EQ("Ue", StringUtils::convertUmlaute("Ü"));
-	EXPECT_EQ("ss", StringUtils::convertUmlaute("ß"));
-	EXPECT_EQ("E", StringUtils::convertUmlaute("É"));
-	EXPECT_EQ("e", StringUtils::convertUmlaute("é"));
-	EXPECT_EQ("E", StringUtils::convertUmlaute("È"));
-	EXPECT_EQ("e", StringUtils::convertUmlaute("è"));
+	EXPECT_EQ("ae", StringUtils::convertUmlaute("\xE4"));
+	EXPECT_EQ("Ae", StringUtils::convertUmlaute("\xC4"));
+	EXPECT_EQ("oe", StringUtils::convertUmlaute("\xF6"));
+	EXPECT_EQ("Oe", StringUtils::convertUmlaute("\xD6"));
+	EXPECT_EQ("ue", StringUtils::convertUmlaute("\xFC"));
+	EXPECT_EQ("Ue", StringUtils::convertUmlaute("\xDC"));
+	EXPECT_EQ("ss", StringUtils::convertUmlaute("\xDF"));
+	EXPECT_EQ("E", StringUtils::convertUmlaute("\xC9"));
+	EXPECT_EQ("e", StringUtils::convertUmlaute("\xE9"));
+	EXPECT_EQ("E", StringUtils::convertUmlaute("\xC8"));
+	EXPECT_EQ("e", StringUtils::convertUmlaute("\xE8"));
 }
 
 /* Tests the method replace. */

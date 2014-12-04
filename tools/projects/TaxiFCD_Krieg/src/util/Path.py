@@ -5,11 +5,12 @@
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
 @date    2008-04-17
+@version $Id$
 
 Contains paths which are needed frequently
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -69,10 +70,3 @@ FQvehPickle=newPath(main,"fcdQualitaet/vehiclePickleList.pickle")
 FQoutput=newPath(main,"fcdQualitaet/output/plotData/paramEffects_")
 FQrawFCD=newPath(main,"fcdQualitaet/output/rawData/rawData_")
 FQprocessedFCD=newPath(main,"fcdQualitaet/processedFCD/linkspeeds.NUREMBERG_FAKE_03.txt")
-
-
-
-
-
-
-   

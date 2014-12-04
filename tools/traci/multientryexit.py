@@ -8,7 +8,7 @@
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -78,9 +78,7 @@ def subscribe(detID, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more detector values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE, begin, end, detID, varIDs)
 
 def getSubscriptionResults(detID=None):
@@ -96,7 +94,6 @@ def getSubscriptionResults(detID=None):
     return subscriptionResults.get(detID)
 
 def subscribeContext(detID, domain, dist, varIDs=(tc.LAST_STEP_VEHICLE_NUMBER,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT, begin, end, detID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(detID=None):

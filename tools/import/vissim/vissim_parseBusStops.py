@@ -2,6 +2,7 @@
 """
 @file    vissim_parseBusStops.py
 @author  Daniel Krajzewicz
+@author  Michael Behrisch
 @date    2009-05-27
 @version $Id$
 
@@ -15,7 +16,7 @@ The read routes are saved as <OUTPUT_PREFIX>_stops.add.xml
  variable (see below).
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2009-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

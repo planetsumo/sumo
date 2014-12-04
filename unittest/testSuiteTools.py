@@ -1,14 +1,21 @@
 #!/usr/bin/env python
 """
-@file    testSuiteDetector.py
-@author  Matthias.Wagner@dlr.de
+@file    testSuiteTools.py
+@author  Matthias Wagner
+@author  Michael Behrisch
 @date    2008-02-11
 @version $Id$
 
 Test suite to run all tests in the detector package.
 
-Copyright (C) 2008 DLR/FS, Germany
-All rights reserved
+SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+
+This file is part of SUMO.
+SUMO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
 """
 import unittest, os, sys
 import tools
@@ -85,6 +92,7 @@ class ToolsTestSuite(unittest.TestSuite):
         TODO: Apply or write a tool to automatically add the test cases.
         '''
         self.addTest(unittest.TestLoader().loadTestsFromTestCase(tools.district.testEdgesInDistrict.TestEdgesInDistrict))
+        self.addTest(unittest.TestLoader().loadTestsFromTestCase(tools.sumolib.testGeomhelper.TestGeomhelper))
 
 class ToolsTestResult(unittest.TestResult):
     '''

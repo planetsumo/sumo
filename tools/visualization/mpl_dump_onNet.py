@@ -3,6 +3,7 @@
 @file    mpl_dump_onNet.py
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2007-10-25
 @version $Id$
 
@@ -14,7 +15,7 @@ This script reads a network and a dump file and
 matplotlib has to be installed for this purpose
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -284,7 +285,7 @@ class WeightsReader(handler.ContentHandler):
 
     def startElement(self, name, attrs):
         if name == 'interval':
-            self._beginTime = int(attrs['begin'])
+            self._beginTime = float(attrs['begin'])
             self._intervalBegins.append(self._beginTime)
             self._unaggEdge2value2[self._beginTime] = {}
             self._unaggEdge2value1[self._beginTime] = {}

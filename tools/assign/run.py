@@ -3,14 +3,14 @@
 @file    run.py
 @author  Michael Behrisch
 @author  Daniel Krajzewicz
-@author  Yun-Pang Wang
+@author  Yun-Pang Floetteroed
 @date    2008-03-10
 @version $Id$
 
 Runs the assignment tests.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

@@ -2,13 +2,14 @@
 """
 @file    costMemory.py
 @author  Jakob Erdmann
+@author  Michael Behrisch
 @date    2012-03-14
 @version $Id$
 
 Perform smoothing of edge costs across successive iterations of duaIterate
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -140,7 +141,10 @@ class CostMemory(handler.ContentHandler):
     def avg_error(self, values=None):
         if not values:
             values = self.errors
-        return sum(values) / len(values)
+        if len(values) > 0:
+            return sum(values) / len(values)
+        else:
+            return 0
 
     def avg_abs_error(self):
         return self.avg_error(map(abs,self.errors))

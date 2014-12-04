@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 @file    __init__.py
+@author  Daniel Krajzewicz
+@author  Jakob Erdmann
 @author  Michael Behrisch
 @date    2011-06-23
 @version $Id$
@@ -8,7 +10,7 @@
 Python interface to SUMO especially for parsing xml input and output files.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -16,7 +18,7 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-import os, subprocess
+import os, sys, subprocess
 from xml.sax import parseString, handler
 from optparse import OptionParser, OptionGroup, Option
 
@@ -36,7 +38,7 @@ class ConfigurationReader(handler.ContentHandler):
             self._group = OptionGroup(self._opts, name)
         if self._group != self._opts and self._groups and self._group.title not in self._groups:
             return
-        if "type" in attrs and name != "help":
+        if attrs.has_key('type') and name != "help":
             if self._options and name not in self._options:
                 return
             help = attrs.get("help", "")
@@ -88,7 +90,10 @@ def exeExists(binary):
     return os.path.exists(binary)
 
 def checkBinary(name, bindir=None):
-    """Checks for the given binary in the places, defined by the environment variables SUMO_HOME and SUMO_BINDIR."""
+    """
+    Checks for the given binary in the places, defined by the environment
+    variables SUMO_HOME and <NAME>_BINARY.
+    """
     if name == "sumo-gui":
         envName = "GUISIM_BINARY"
     else:
@@ -99,10 +104,6 @@ def checkBinary(name, bindir=None):
         return env.get(envName)
     if bindir is not None:
         binary = join(bindir, name)
-        if exeExists(binary):
-            return binary
-    if "SUMO_BINDIR" in env:
-        binary = join(env.get("SUMO_BINDIR"), name)
         if exeExists(binary):
             return binary
     if "SUMO_HOME" in env:
@@ -123,6 +124,9 @@ class _Running:
   """
   def __init__(self):
     """Contructor"""
+    # running index of assigned numerical IDs
+    self.index = 0 
+    # map from known IDs to assigned numerical IDs
     self._m = {}
     
   def g(self, id):
@@ -130,8 +134,8 @@ class _Running:
     If the given id is known, the numerical representation is returned,
     otherwise a new running number is assigned to the id and returned"""
     if id not in self._m:
-      self._m[id] = len(self._m)   
-      return len(self._m)-1
+      self._m[id] = self.index
+      self.index += 1
     return self._m[id]
 
   def k(self, id):
@@ -144,6 +148,21 @@ class _Running:
     Removed the element."""
     del self._m[id]
 
+
+class TeeFile:
+    """A helper class which allows simultaneous writes to several files"""
+    def __init__(self, *files):
+        self.files = files
+    def write(self, txt):
+        """Writes the text to all files"""
+        for fp in self.files:
+            fp.write(txt)
+    def flush(self):
+        """flushes all file contents to disc"""
+        for fp in self.files:
+            fp.flush()
+            if type(fp) is int or hasattr(fp, "fileno"):
+                os.fsync(fp)
 
 
 def _intTime(tStr):

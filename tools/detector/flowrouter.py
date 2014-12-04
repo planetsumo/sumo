@@ -2,6 +2,7 @@
 """
 @file    flowrouter.py
 @author  Michael Behrisch
+@author  Daniel Krajzewicz
 @date    2007-06-28
 @version $Id$
 
@@ -12,7 +13,7 @@ of the detectors (source, sink, inbetween) itself or read it from
 the detectors file.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -376,6 +377,14 @@ class Net:
 
     def writeRoutes(self, routeOut, suffix=""):
         for edge in self._source.outEdges:
+            routeByEdges = {}
+            for route in edge.routes:
+                key = tuple([e.label for e in route.edges if e.kind == "real"])
+                if key in routeByEdges:
+                    routeByEdges[key].frequency += route.frequency
+                else:
+                    routeByEdges[key] = route
+            edge.routes = routeByEdges.values()
             for id, route in enumerate(edge.routes):
                 firstReal = ''
                 lastReal = None

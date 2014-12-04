@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-@file    poi_atTLS.py
+@file    circlePolygon.py
 @author  Daniel Krajzewicz
 @author  Michael Behrisch
 @date    2010-02-20
@@ -9,7 +9,7 @@
 Approximates a list of circles by polygons.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2010-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

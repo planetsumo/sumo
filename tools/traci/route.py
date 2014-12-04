@@ -9,7 +9,7 @@
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -55,9 +55,7 @@ def subscribe(routeID, varIDs=(tc.ID_LIST,), begin=0, end=2**31-1):
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more route values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_ROUTE_VARIABLE, begin, end, routeID, varIDs)
 
 def getSubscriptionResults(routeID=None):
@@ -73,7 +71,6 @@ def getSubscriptionResults(routeID=None):
     return subscriptionResults.get(routeID)
 
 def subscribeContext(routeID, domain, dist, varIDs=(tc.ID_LIST,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_ROUTE_CONTEXT, begin, end, routeID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(routeID=None):

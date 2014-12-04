@@ -2,6 +2,7 @@
 @file    routeChoices.py
 @author  Evamarie Wiessner
 @author  Yun-Pang Floetteroed
+@author  Michael Behrisch
 @date    2007-02-27
 @version $Id$
 
@@ -11,7 +12,7 @@ This script is to calculate the route choice probabilities based on different me
 - ......
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -21,7 +22,6 @@ the Free Software Foundation; either version 3 of the License, or
 """
 
 import string, glob, os, sys, optparse, random,shutil
-from optparse import OptionParser
 from xml.sax import saxutils, make_parser, handler
 from xml.sax import parse
 from numpy import *

@@ -4,13 +4,14 @@
 @author  Laura Bieker
 @author  Karol Stosiek
 @author  Michael Behrisch
+@author  Jakob Erdmann
 @date    2011-11-28
 @version $Id$
 
 This file contains a Python-representation of a single edge.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -18,6 +19,8 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
+from connection import Connection
+
 class Edge:
     """ Edges from a sumo network """
 
@@ -112,6 +115,9 @@ class Edge:
     def getLane(self, idx):
         return self._lanes[idx]
 
+    def getLanes(self):
+        return self._lanes
+
     def rebuildShape(self):
         noShapes = len(self._lanes)
         if noShapes%2 == 1:
@@ -145,8 +151,21 @@ class Edge:
     def getToNode(self):
         return self._to
 
-    def is_fringe(self):
-        return len(self.getIncoming()) == 0 or len(self.getOutgoing()) == 0
+    def is_fringe(self, connections=None):
+        """true if this edge has no incoming or no outgoing connections (except turnarounds)
+           If connections is given, only those connections are considered"""
+        if connections is None:
+            return self.is_fringe(self._incoming) or self.is_fringe(self._outgoing)
+        else:
+            cons = sum([c for c in connections.values()], [])
+            return len([c for c in cons if c._direction != Connection.LINKDIR_TURN]) == 0
+
+    def allows(self, vClass):
+        """true if this edge has a lane which allows the given vehicle class"""
+        for lane in self._lanes:
+            if vClass in lane._allowed:
+                return True
+        return False
 
     def __repr__(self):
         return '<edge id="%s" from="%s" to="%s"/>' % (self._id, self._from.getID(), self._to.getID())

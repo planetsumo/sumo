@@ -2,13 +2,15 @@
 """
 @file    junction.py
 @author  Michael Behrisch
+@author  Mario Krumnow
+@author  Jakob Erdmann
 @date    2011-03-17
 @version $Id$
 
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -63,9 +65,7 @@ def subscribe(junctionID, varIDs=(tc.VAR_POSITION,), begin=0, end=2**31-1):
     """subscribe(string, list(integer), double, double) -> None
     
     Subscribe to one or more junction values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_JUNCTION_VARIABLE, begin, end, junctionID, varIDs)
 
 def getSubscriptionResults(junctionID=None):
@@ -81,7 +81,6 @@ def getSubscriptionResults(junctionID=None):
     return subscriptionResults.get(junctionID)
 
 def subscribeContext(junctionID, domain, dist, varIDs=(tc.VAR_POSITION,), begin=0, end=2**31-1):
-    subscriptionResults.reset()
     traci._subscribeContext(tc.CMD_SUBSCRIBE_JUNCTION_CONTEXT, begin, end, junctionID, domain, dist, varIDs)
 
 def getContextSubscriptionResults(junctionID=None):

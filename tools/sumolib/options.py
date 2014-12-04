@@ -1,13 +1,14 @@
 """
 @file    options.py
 @author  Jakob Erdmann
+@author  Michael Behrisch
 @date    2012-03-15
 @version $Id$
 
 Provides utility functions for dealing with program options
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

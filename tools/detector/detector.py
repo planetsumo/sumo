@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 @file    detector.py
+@author  Daniel Krajzewicz
 @author  Michael Behrisch
 @date    2007-06-28
 @version $Id$
@@ -8,7 +9,7 @@
 <documentation missing>
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2007-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify

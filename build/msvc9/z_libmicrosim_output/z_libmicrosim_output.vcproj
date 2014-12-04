@@ -555,6 +555,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\microsim\output\MSAmitranTrajectories.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\microsim\output\MSDetectorControl.cpp"
 				>
 			</File>
@@ -591,11 +595,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\output\MSMeanData_Harmonoise.cpp"
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_Amitran.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\output\MSMeanData_HBEFA.cpp"
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_Emissions.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_Harmonoise.cpp"
 				>
 			</File>
 			<File
@@ -629,6 +637,10 @@
 			>
 			<File
 				RelativePath="..\..\..\src\microsim\output\MS_E2_ZS_CollectorOverLanes.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\output\MSAmitranTrajectories.h"
 				>
 			</File>
 			<File
@@ -676,11 +688,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\output\MSMeanData_Harmonoise.h"
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_Amitran.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\microsim\output\MSMeanData_HBEFA.h"
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_Emissions.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\microsim\output\MSMeanData_Harmonoise.h"
 				>
 			</File>
 			<File

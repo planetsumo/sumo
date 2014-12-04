@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 @file    simulation.py
+@author  Daniel Krajzewicz
+@author  Jakob Erdmann
 @author  Michael Behrisch
 @date    2011-03-15
 @version $Id$
@@ -8,7 +10,7 @@
 Python implementation of the TraCI interface.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2013 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -41,7 +43,7 @@ _RETURN_VALUE_FUNC = {tc.VAR_TIME_STEP:                         traci.Storage.re
                       tc.VAR_TELEPORT_ENDING_VEHICLES_NUMBER:   traci.Storage.readInt,
                       tc.VAR_TELEPORT_ENDING_VEHICLES_IDS:      traci.Storage.readStringList,
                       tc.VAR_DELTA_T:                           traci.Storage.readInt,
-                      tc.VAR_NET_BOUNDING_BOX:                  lambda(result): (result.read("!dd"), result.read("!dd"))}
+                      tc.VAR_NET_BOUNDING_BOX:                  lambda result: (result.read("!dd"), result.read("!dd"))}
 subscriptionResults = traci.SubscriptionResults(_RETURN_VALUE_FUNC)
 
 def _getUniversal(varID):
@@ -156,7 +158,12 @@ def getStopEndingVehiclesIDList():
 def getMinExpectedNumber():
     """getMinExpectedNumber() -> integer
     
-    Returns the number of vehicles which are in the net plus the ones still waiting to start. This number may be smaller than the actual number of vehicles still to come because of delayed route file parsing. If the number is 0 however, it is guaranteed that all route files have been parsed completely.
+    Returns the number of vehicles which are in the net plus the
+    ones still waiting to start. This number may be smaller than
+    the actual number of vehicles still to come because of delayed
+    route file parsing. If the number is 0 however, it is
+    guaranteed that all route files have been parsed completely
+    and all vehicles have left the network.
     """
     return _getUniversal(tc.VAR_MIN_EXPECTED_VEHICLES)
 
@@ -219,6 +226,16 @@ def convert2D(edgeID, pos, laneIndex=0, toGeo=False):
     traci._message.string += struct.pack("!dBBB", pos, laneIndex, tc.TYPE_UBYTE, posType)
     return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!dd")
 
+def convert3D(edgeID, pos, laneIndex=0, toGeo=False):
+    posType = tc.POSITION_3D
+    if toGeo:
+        posType = tc.POSITION_LON_LAT_ALT
+    traci._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1+4 + 1+4+len(edgeID)+8+1 + 1+1)
+    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
+    traci._message.string += struct.pack("!Bi", tc.POSITION_ROADMAP, len(edgeID)) + edgeID
+    traci._message.string += struct.pack("!dBBB", pos, laneIndex, tc.TYPE_UBYTE, posType)
+    return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!ddd")
+
 def convertRoad(x, y, isGeo=False):
     posType = tc.POSITION_2D
     if isGeo:
@@ -279,9 +296,7 @@ def subscribe(varIDs=(tc.VAR_DEPARTED_VEHICLES_IDS,), begin=0, end=2**31-1):
     """subscribe(list(integer), double, double) -> None
     
     Subscribe to one or more simulation values for the given interval.
-    A call to this method clears all previous subscription results.
     """
-    subscriptionResults.reset()
     traci._subscribe(tc.CMD_SUBSCRIBE_SIM_VARIABLE, begin, end, "x", varIDs)
 
 def getSubscriptionResults():
@@ -292,3 +307,10 @@ def getSubscriptionResults():
     from the last time step.
     """
     return subscriptionResults.get("x")
+
+
+def clearPending(routeID=""):
+    traci._beginMessage(tc.CMD_SET_SIM_VARIABLE, tc.CMD_CLEAR_PENDING_VEHICLES, "",
+                        1+4+len(routeID))
+    traci._message.string += struct.pack("!Bi", tc.TYPE_STRING, len(routeID)) + routeID
+    traci._sendExact()
