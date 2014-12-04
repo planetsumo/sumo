@@ -917,9 +917,6 @@ MSLane::fill(RTREE& into) {
 }
 
 template void MSLane::fill<NamedRTree>(NamedRTree& into);
-#ifndef NO_TRACI
-template void MSLane::fill<LANE_RTREE_QUAL>(LANE_RTREE_QUAL& into);
-#endif
 
 // ------   ------
 bool

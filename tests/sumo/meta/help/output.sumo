@@ -1,4 +1,4 @@
-SUMO Version dev-SVN-r17243
+SUMO Version dev-SVN-r17276
  Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
 A microscopic road traffic simulation.
 
@@ -201,6 +201,8 @@ Example Device Options:
 
 TraCI Server Options:
   --remote-port INT                    Enables TraCI Server if set
+  --debug.vtd                          Enables debug messages for VTD mapping
+  --debug.vtd-angle                    Enables debug messages for VTD angle
 
 Random Number Options:
   --random                             Initialises the random number generator

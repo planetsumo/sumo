@@ -132,6 +132,8 @@
 
     <traci_server>
         <remote-port value="0" type="INT" help="Enables TraCI Server if set"/>
+        <debug.vtd value="false" type="BOOL" help="Enables debug messages for VTD mapping"/>
+        <debug.vtd-angle value="false" type="BOOL" help="Enables debug messages for VTD angle"/>
     </traci_server>
 
     <random_number>

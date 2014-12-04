@@ -176,7 +176,6 @@ TraCIServer::~TraCIServer() {
     for (std::map<int, NamedRTree*>::const_iterator i = myObjects.begin(); i != myObjects.end(); ++i) {
         delete(*i).second;
     }
-    delete myLaneTree;
 }
 
 
@@ -735,21 +734,76 @@ TraCIServer::collectObjectsInRange(int domain, const PositionVector& shape, SUMO
     const float cmin[2] = {(float) b.xmin(), (float) b.ymin()};
     const float cmax[2] = {(float) b.xmax(), (float) b.ymax()};
     switch (domain) {
-        case CMD_GET_INDUCTIONLOOP_VARIABLE:
-        case CMD_GET_POI_VARIABLE:
-        case CMD_GET_POLYGON_VARIABLE:
+        case CMD_GET_INDUCTIONLOOP_VARIABLE: {
+            Named::StoringVisitor sv(into);
+            myObjects[CMD_GET_INDUCTIONLOOP_VARIABLE]->Search(cmin, cmax, sv);
+        }
+        break;
+        case CMD_GET_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE:
+            break;
+        case CMD_GET_TL_VARIABLE:
+            break;
+        case CMD_GET_LANE_VARIABLE: {
+            Named::StoringVisitor sv(into);
+            myObjects[CMD_GET_LANE_VARIABLE]->Search(cmin, cmax, sv);
+            if (shape.size() == 1) {
+                for (std::set<std::string>::iterator i = into.begin(); i != into.end();) {
+                    const MSLane* const l = MSLane::dictionary(*i);
+                    if (l->getShape().distance(shape[0]) > range) {
+                        into.erase(i++);
+                    } else {
+                        ++i;
+                    }
+                }
+            }
+        }
+        break;
+        case CMD_GET_VEHICLE_VARIABLE: {
+            std::set<std::string> tmp;
+            Named::StoringVisitor sv(tmp);
+            myObjects[CMD_GET_LANE_VARIABLE]->Search(cmin, cmax, sv);
+            for (std::set<std::string>::const_iterator i = tmp.begin(); i != tmp.end(); ++i) {
+                MSLane* l = MSLane::dictionary(*i);
+                if (l != 0) {
+                    const MSLane::VehCont& vehs = l->getVehiclesSecure();
+                    for (MSLane::VehCont::const_iterator j = vehs.begin(); j != vehs.end(); ++j) {
+                        if (shape.distance((*j)->getPosition()) <= range) {
+                            into.insert((*j)->getID());
+                        }
+                    }
+                    l->releaseVehicles();
+                }
+            }
+        }
+        break;
+        case CMD_GET_VEHICLETYPE_VARIABLE:
+            break;
+        case CMD_GET_ROUTE_VARIABLE:
+            break;
+        case CMD_GET_POI_VARIABLE: {
+            Named::StoringVisitor sv(into);
+            myObjects[CMD_GET_POI_VARIABLE]->Search(cmin, cmax, sv);
+        }
+        break;
+        case CMD_GET_POLYGON_VARIABLE: {
+            Named::StoringVisitor sv(into);
+            myObjects[CMD_GET_POLYGON_VARIABLE]->Search(cmin, cmax, sv);
+        }
+        break;
         case CMD_GET_JUNCTION_VARIABLE: {
             Named::StoringVisitor sv(into);
-            myObjects[domain]->Search(cmin, cmax, sv);
+            myObjects[CMD_GET_JUNCTION_VARIABLE]->Search(cmin, cmax, sv);
         }
         break;
-        case CMD_GET_EDGE_VARIABLE:
-        case CMD_GET_LANE_VARIABLE:
-        case CMD_GET_VEHICLE_VARIABLE: {
-            TraCIServerAPI_Lane::StoringVisitor sv(into, shape, range, domain);
-            myLaneTree->Search(cmin, cmax, sv);
+        case CMD_GET_EDGE_VARIABLE: {
+            Named::StoringVisitor sv(into);
+            myObjects[CMD_GET_EDGE_VARIABLE]->Search(cmin, cmax, sv);
         }
         break;
+        case CMD_GET_SIM_VARIABLE:
+            break;
+        case CMD_GET_GUI_VARIABLE:
+            break;
         default:
             break;
     }

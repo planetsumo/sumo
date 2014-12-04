@@ -391,9 +391,6 @@ private:
     /// @brief A storage of objects
     std::map<int, NamedRTree*> myObjects;
 
-    /// @brief A storage of lanes
-    LANE_RTREE_QUAL* myLaneTree;
-
 
 private:
     bool addObjectVariableSubscription(const int commandId, const bool hasContext);
