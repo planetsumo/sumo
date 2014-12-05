@@ -106,6 +106,12 @@ public:
     // @brief the fraction of forward speed to be used for lateral movemenk
     static const SUMOReal LATERAL_SPEED_FACTOR;
 
+    // @brief the minimum fraction of maxSpeed in order to start walking after stopped
+    static const SUMOReal MIN_STARTUP_SPEED;
+
+    // @brief the time threshold before becoming jammed in seconds
+    static const SUMOTime JAM_TIME;
+
     ///@}
 
 
@@ -235,6 +241,8 @@ protected:
         NextLaneInfo myNLI;
         /// @brief the current walkingAreaPath or 0
         WalkingAreaPath* myWalkingAreaPath;
+        /// @brief whether the person is jammed
+        bool myAmJammed;
 
         /// @brief return the length of the pedestrian
         SUMOReal getLength() const;
@@ -256,6 +264,9 @@ protected:
 
         int stripe() const;
         int otherStripe() const;
+
+        int stripe(SUMOReal relY) const;
+        int otherStripe(SUMOReal relY) const;
 
     };
 
@@ -329,10 +340,12 @@ private:
 
     static Obstacles getNeighboringObstacles(const Pedestrians& pedestrians, int egoIndex, int stripes);
 
-    const Obstacles& getNextLaneObstacles(NextLanesObstacles& nextLanesObs, const MSLane* nextLane, int stripes,
+    const Obstacles& getNextLaneObstacles(NextLanesObstacles& nextLanesObs, const MSLane* lane, const MSLane* nextLane, int stripes,
                                           SUMOReal nextLength, int nextDir, SUMOReal currentLength, int currentDir);
 
     static void addMappedObstacle(Obstacles& obs, const PState& p, int stripe, int currentDir, int nextDir, int offset, int stripes, int nextStripes);
+
+    static void addCloserObstacle(Obstacles& obs, SUMOReal x, int stripe, const std::string& id, int stripes, int dir);
 
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     Pedestrians& getPedestrians(const MSLane* lane);
