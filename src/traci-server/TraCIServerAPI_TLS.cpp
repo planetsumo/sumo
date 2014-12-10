@@ -36,6 +36,7 @@
 #include "TraCIConstants.h"
 #include <microsim/traffic_lights/MSTLLogicControl.h>
 #include <microsim/MSLane.h>
+#include <microsim/MSEdge.h>
 #include "TraCIServerAPI_TLS.h"
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -243,7 +244,7 @@ TraCIServerAPI_TLS::processGet(TraCIServer& server, tcpip::Storage& inputStorage
                     }
                     bool denotesEdge = from.find("_")==std::string::npos;
                     MSLane *fromLane = 0;
-                    const MSTrafficLightLogic::LaneVectorVector& lanes = tls->getLanes();
+                    const MSTrafficLightLogic::LaneVectorVector& lanes = tls->getLaneVectors();
                     MSTrafficLightLogic::LaneVectorVector::const_iterator j = lanes.begin();
                     for(; j!=lanes.end()&&fromLane==0; ) {
                         for(MSTrafficLightLogic::LaneVector::const_iterator k=(*j).begin(); k!=(*j).end()&&fromLane==0; ) {
