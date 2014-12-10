@@ -40,7 +40,7 @@
 #include "MSTrafficLightLogic.h"
 //#include "MSSimpleTrafficLightLogic.h"
 #include "MSPhasedTrafficLightLogic.h"
-#include <microsim/output/MS_E2_ZS_CollectorOverLanes.h>
+#include <microsim/output/MSE2Collector.h>
 
 
 // ===========================================================================
@@ -62,7 +62,7 @@ class MSAgentbasedTrafficLightLogic :
     public MSPhasedTrafficLightLogic {
 public:
     /// @brief Definition of a map from lanes to lane state detectors lying on them
-    typedef std::map<MSLane*, MS_E2_ZS_CollectorOverLanes*> E2DetectorMap;
+    typedef std::map<MSLane*, MSE2Collector*> E2DetectorMap;
 
     /// @brief Definition of a map which stores the detector values of one single phase
     typedef std::deque<SUMOReal> ValueType;

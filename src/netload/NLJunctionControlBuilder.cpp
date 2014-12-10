@@ -4,8 +4,6 @@
 /// @author  Jakob Erdmann
 /// @author  Sascha Krieg
 /// @author  Michael Behrisch
-/// @author  Gianfilippo Slager
-/// @author  Anna Chiara Bellini
 /// @date    Mon, 9 Jul 2001
 /// @version $Id$
 ///
@@ -45,14 +43,6 @@
 #include <microsim/MSJunctionControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSSimpleTrafficLightLogic.h>
-#include <microsim/traffic_lights/MSSOTLPolicyBasedTrafficLightLogic.h>
-#include <microsim/traffic_lights/MSSOTLPlatoonPolicy.h>
-#include <microsim/traffic_lights/MSSOTLRequestPolicy.h>
-#include <microsim/traffic_lights/MSSOTLPhasePolicy.h>
-#include <microsim/traffic_lights/MSSOTLMarchingPolicy.h>
-#include <microsim/traffic_lights/MSSwarmTrafficLightLogic.h>
-#include <microsim/traffic_lights/MSDeterministicHiLevelTrafficLightLogic.h>
-#include <microsim/traffic_lights/MSSOTLWaveTrafficLightLogic.h>
 #include <microsim/MSEventControl.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/traffic_lights/MSAgentbasedTrafficLightLogic.h>
@@ -253,36 +243,26 @@ NLJunctionControlBuilder::closeTrafficLightLogic() {
     MSTrafficLightLogic* tlLogic = 0;
     // build the tls-logic in dependance to its type
     switch (myLogicType) {
-		case TLTYPE_SWARM_BASED:
-			firstEventOffset = DELTA_T; //this is needed because swarm needs to update the pheromone on the lanes at every step
-			tlLogic = new MSSwarmTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
-			break;
-		case TLTYPE_HILVL_DETERMINISTIC:
-			tlLogic = new MSDeterministicHiLevelTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
-			break;
-		case TLTYPE_SOTL_REQUEST:
-			tlLogic = new MSSOTLPolicyBasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter,new MSSOTLRequestPolicy(myAdditionalParameter));
-			break;
-		case TLTYPE_SOTL_PLATOON:
-			tlLogic = new MSSOTLPolicyBasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter,new MSSOTLPlatoonPolicy(myAdditionalParameter));
-			break;
-		case TLTYPE_SOTL_WAVE:
-			tlLogic = new MSSOTLWaveTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
-			break;
-		case TLTYPE_SOTL_PHASE:
-			tlLogic = new MSSOTLPolicyBasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter, new MSSOTLPhasePolicy(myAdditionalParameter));
-			break;
-		case TLTYPE_SOTL_MARCHING:
-			tlLogic = new MSSOTLPolicyBasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter,new MSSOTLMarchingPolicy(myAdditionalParameter));
-			break;
         case TLTYPE_ACTUATED:
-            tlLogic = new MSActuatedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
+            // @note it is unclear how to apply the given offset in the context
+            // of variable-length phases
+            tlLogic = new MSActuatedTrafficLightLogic(getTLLogicControlToUse(),
+                    myActiveKey, myActiveProgram,
+                    myActivePhases, step, (*i)->minDuration + myNet.getCurrentTimeStep(),
+                    myAdditionalParameter);
             break;
         case TLTYPE_AGENT:
-            tlLogic = new MSAgentbasedTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
+            tlLogic = new MSAgentbasedTrafficLightLogic(getTLLogicControlToUse(),
+                    myActiveKey, myActiveProgram,
+                    myActivePhases, step, firstEventOffset,
+                    myAdditionalParameter);
             break;
         case TLTYPE_STATIC:
-            tlLogic = new MSSimpleTrafficLightLogic(getTLLogicControlToUse(), myActiveKey, myActiveProgram, myActivePhases, step, firstEventOffset, myAdditionalParameter);
+            tlLogic =
+                new MSSimpleTrafficLightLogic(getTLLogicControlToUse(),
+                                              myActiveKey, myActiveProgram,
+                                              myActivePhases, step, firstEventOffset,
+                                              myAdditionalParameter);
             break;
     }
     myActivePhases.clear();
@@ -367,23 +347,6 @@ NLJunctionControlBuilder::initTrafficLightLogic(const std::string& id, const std
     myLogicType = type;
     myOffset = offset;
     myAdditionalParameter.clear();
-}
-
-
-void
-NLJunctionControlBuilder::addPhase(SUMOTime duration, const std::string &state, int minDuration, int maxDuration, bool transient_notdecisional, bool commit) throw () {
-	// build and add the phase definition to the list
-	myActivePhases.push_back(new MSPhaseDefinition(duration, minDuration, maxDuration, state, transient_notdecisional, commit));
-    // add phase duration to the absolute duration
-    myAbsDuration += duration;
-}
-
-void
-NLJunctionControlBuilder::addPhase(SUMOTime duration, const std::string &state, int minDuration, int maxDuration, bool transient_notdecisional, bool commit, MSPhaseDefinition::LaneIdVector &targetLanes) throw () {
-	// build and add the phase definition to the list
-	myActivePhases.push_back(new MSPhaseDefinition(duration, minDuration, maxDuration, state, transient_notdecisional, commit, targetLanes));
-    // add phase duration to the absolute duration
-    myAbsDuration += duration;
 }
 
 

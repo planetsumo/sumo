@@ -88,6 +88,8 @@ MSE2Collector::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
     }
     if (newPos > myStartPos && oldPos <= myStartPos) {
         assert(find(myKnownVehicles.begin(), myKnownVehicles.end(), &veh) == myKnownVehicles.end());
+			std::string type = veh.getVehicleType().getID(); // get vehicle's type
+			if(type.find("COLOMBO_undetectable") == std::string::npos)
         myKnownVehicles.push_back(&veh);
     }
     if (newPos - veh.getVehicleType().getLength() > myEndPos) {
@@ -126,6 +128,8 @@ MSE2Collector::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification reason
     if (reason != MSMoveReminder::NOTIFICATION_JUNCTION && veh.getPositionOnLane() > myStartPos) {
         // the junction case is handled in the notifyMove
         // vehicle is on the detector, being already beyond was checked before
+		std::string type = veh.getVehicleType().getID(); // get vehicle's type
+		if(type.find("COLOMBO_undetectable") == std::string::npos)
         myKnownVehicles.push_back(&veh);
     }
     // vehicle is in front of the detector

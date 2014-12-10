@@ -55,7 +55,7 @@
 #define DEFAULT_LEARN_HORIZON "3"
 #define DEFAULT_CYCLE_TIME "90"
 #define DEFAULT_MIN_DIFF "1"
-#define DEFAULT_DETECTOR_OFFSET "0"
+#define DEFAULT_DETECTOR_LENGTH "90"
 
 
 // ===========================================================================
@@ -79,7 +79,7 @@ MSAgentbasedTrafficLightLogic::MSAgentbasedTrafficLightLogic(
 void
 MSAgentbasedTrafficLightLogic::init(NLDetectorBuilder& nb) {
     MSTrafficLightLogic::init(nb);
-    SUMOReal det_offset = TplConvert::_2SUMOReal(getParameter("detector_offset", DEFAULT_DETECTOR_OFFSET).c_str());
+    SUMOReal detectorLength = TplConvert::_2SUMOReal(getParameter("detector_length", DEFAULT_DETECTOR_LENGTH).c_str());
     LaneVectorVector::const_iterator i2;
     LaneVector::const_iterator i;
     // build the detectors
@@ -87,17 +87,18 @@ MSAgentbasedTrafficLightLogic::init(NLDetectorBuilder& nb) {
         const LaneVector& lanes = *i2;
         for (i = lanes.begin(); i != lanes.end(); i++) {
             MSLane* lane = (*i);
+            const SUMOReal laneLength = lane->getLength();
+            const SUMOReal length = MIN2(detectorLength, laneLength-POSITION_EPS);
             // Build the lane state detetcor and set it into the container
             std::string id = "TL_" + myID + "_" + myProgramID + "_E2OverLanesDetectorStartingAt_" + lane->getID();
 
             if (myE2Detectors.find(lane) == myE2Detectors.end()) {
-                MSDetectorFileOutput* det =
-                    nb.buildMultiLaneE2Det(id,
-                                           DU_TL_CONTROL, lane, 0, det_offset,
+                MSDetectorFileOutput* det = nb.buildSingleLaneE2Det(id,
+                                           DU_TL_CONTROL, lane, laneLength-length, length,
                                            /*haltingTimeThreshold!!!*/ 1,
                                            /*haltingSpeedThreshold!!!*/(SUMOReal)(5.0 / 3.6),
                                            /*jamDistThreshold!!!*/ 10);
-                myE2Detectors[lane] = static_cast<MS_E2_ZS_CollectorOverLanes*>(det);
+                myE2Detectors[lane] = static_cast<MSE2Collector*>(det);
             }
         }
     }
@@ -176,10 +177,10 @@ MSAgentbasedTrafficLightLogic::nextStep() {
 void
 MSAgentbasedTrafficLightLogic::collectData() {
     const std::string& state = getCurrentPhaseDef().getState();
-    // finds the maximum QUEUE_LENGTH_AHEAD_OF_TRAFFIC_LIGHTS_IN_VEHICLES of one phase
+    // finds the maximum getCurrentJamLengthInMeters of one phase
     SUMOReal maxPerPhase = 0;
     for (unsigned int i = 0; i < (unsigned int) state.size(); i++)  {
-        // finds the maximum QUEUE_LENGTH_AHEAD_OF_TRAFFIC_LIGHTS_IN_VEHICLES of all lanes that have green
+        // finds the maximum getCurrentJamLengthInMeters of all lanes that have green
         if (state[i] == LINKSTATE_TL_GREEN_MAJOR || state[i] == LINKSTATE_TL_GREEN_MINOR) {
             const std::vector<MSLane*>& lanes = getLanesAt(i);
             if (lanes.empty())    {
@@ -190,11 +191,11 @@ MSAgentbasedTrafficLightLogic::collectData() {
                 if ((*j)->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
                     continue;
                 }
-                /*!!!
-                SUMOReal tmp = currentForLane(E2::QUEUE_LENGTH_AHEAD_OF_TRAFFIC_LIGHTS_IN_VEHICLES, *j);
+                SUMOReal tmp = myE2Detectors.find(*j)->second->getCurrentJamLengthInMeters();
                 if (maxPerBit < tmp)  {
                     maxPerBit = tmp;
                 }
+                /*!!!
                 E2DetectorMap::const_iterator it=myE2Detectors.find(*j);
                 (*it).second->resetQueueLengthAheadOfTrafficLights();
                 */

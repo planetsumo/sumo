@@ -18,7 +18,7 @@
 //
 /****************************************************************************/
 #ifndef MSPModel_Striping_h
-#define	MSPModel_Striping_h
+#define MSPModel_Striping_h
 
 // ===========================================================================
 // included modules
@@ -215,8 +215,6 @@ protected:
         int myDir;
         /// @brief the current walking speed
         SUMOReal mySpeed;
-        /// @brief whether the pedestrian is blocked by an oncoming pedestrian
-        int myBlockedByOncoming;
         /// @brief whether the pedestrian is waiting to start its walk
         bool myWaitingToEnter;
         /// @brief the consecutive time spent at speed 0
@@ -239,7 +237,7 @@ protected:
         void walk(const Obstacles& obs, SUMOTime currentTime);
 
         /// @brief returns the impatience
-        SUMOReal getImpatience(SUMOTime now) const; // XXX
+        SUMOReal getImpatience(SUMOTime now) const;
 
         /// @brief return the speed-dependent minGap of the pedestrian
         SUMOReal getMingap() const;
@@ -319,6 +317,8 @@ private:
     const Obstacles& getNextLaneObstacles(NextLanesObstacles& nextLanesObs, const MSLane* nextLane, int stripes,
                                           SUMOReal nextLength, int nextDir, SUMOReal currentLength, int currentDir);
 
+    static void addMappedObstacle(Obstacles& obs, const PState& p, int stripe, int currentDir, int nextDir, int offset, int stripes, int nextStripes);
+
     /// @brief retrieves the pedestian vector for the given lane (may be empty)
     Pedestrians& getPedestrians(const MSLane* lane);
 
@@ -342,5 +342,5 @@ private:
 };
 
 
-#endif	/* MSPModel_Striping_h */
+#endif /* MSPModel_Striping_h */
 

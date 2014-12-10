@@ -140,8 +140,6 @@ MSFrame::fillOptions() {
 
     oc.doRegister("summary-output", new Option_FileName());
     oc.addSynonyme("summary-output", "summary");
-    oc.addSynonyme("summary-output", "emissions-output", true);
-    oc.addSynonyme("summary-output", "emissions", true);
     oc.addDescription("summary-output", "Output", "Save aggregated vehicle departure info into FILE");
 
     oc.doRegister("tripinfo-output", new Option_FileName());
@@ -278,7 +276,8 @@ MSFrame::fillOptions() {
 
     // devices
     oc.addOptionSubTopic("Emissions");
-    oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
+    std::string plp = getenv("PHEMLIGHT_PATH") == 0 ? "./PHEMlight/" : std::string(getenv("PHEMLIGHT_PATH"));
+    oc.doRegister("phemlight-path", new Option_FileName(plp));
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
 
     oc.addOptionSubTopic("Communication");
