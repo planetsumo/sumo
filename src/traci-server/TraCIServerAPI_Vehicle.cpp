@@ -1137,7 +1137,7 @@ TraCIServerAPI_Vehicle::processSet(TraCIServer& server, tcpip::Storage& inputSto
                 return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting VTD vehicle requires a compound object.", outputStorage);
             }
             if (inputStorage.readInt() != 5) {
-                return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting VTD vehicle should obtain: edgeID, lane, x, y.", outputStorage);
+                return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, "Setting VTD vehicle should obtain: edgeID, lane, x, y, angle.", outputStorage);
             }
             // edge ID
             std::string edgeID;
