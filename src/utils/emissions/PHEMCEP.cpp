@@ -311,7 +311,7 @@ double PHEMCEP::GetDecelCoast(double speed, double acc, double gradient, double 
 
     double iTot = iGear * _axleRatio;
 
-	double n = (30 * speed * iTot) / ((_effictiveWheelDiameter / 2) * PI);
+	double n = (30 * speed * iTot) / ((_effictiveWheelDiameter / 2) * M_PI2);
     double nNorm = (n - _engineIdlingSpeed) / (_engineRatedSpeed - _engineIdlingSpeed);
 
     FindLowerUpperInPattern(lowerIndex, upperIndex, _nNormTable, nNorm);
