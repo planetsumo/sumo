@@ -33,7 +33,7 @@
 #include <config.h>
 #endif
 
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include "MSAbstractLaneChangeModel.h"
 #include <vector>
 
 

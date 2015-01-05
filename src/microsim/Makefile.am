@@ -19,7 +19,7 @@ MSLaneChanger.cpp MSLaneChanger.h \
 MSLink.cpp MSLink.h MSLinkCont.cpp MSLinkCont.h \
 MSLogicJunction.cpp MSLogicJunction.h MSMoveReminder.cpp MSMoveReminder.h \
 MSNet.cpp MSNet.h MSNoLogicJunction.cpp MSNoLogicJunction.h \
-MSPerson.cpp MSPerson.h MSPersonControl.cpp MSPersonControl.h \
+MSPersonControl.cpp MSPersonControl.h \
 MSRightOfWayJunction.cpp MSRightOfWayJunction.h \
 MSRoute.cpp MSRoute.h MSRouteHandler.cpp MSRouteHandler.h \
 MSVehicle.cpp MSVehicle.h \
@@ -27,9 +27,7 @@ MSVehicleContainer.cpp MSVehicleContainer.h \
 MSVehicleControl.cpp MSVehicleControl.h \
 MSVehicleTransfer.cpp MSVehicleTransfer.h \
 MSVehicleType.cpp MSVehicleType.h \
-MSPModel.cpp MSPModel.h \
-MSPModel_Striping.cpp MSPModel_Striping.h \
-MSPModel_NonInteracting.cpp MSPModel_NonInteracting.h \
 MSStateHandler.h MSStateHandler.cpp
 
-SUBDIRS = actions cfmodels devices logging output traffic_lights trigger
+SUBDIRS = actions cfmodels devices lcmodels logging output pedestrians \
+traffic_lights trigger

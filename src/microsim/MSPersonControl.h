@@ -35,7 +35,7 @@
 
 #include <vector>
 #include <map>
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
 
 
 // ===========================================================================

@@ -33,9 +33,9 @@
 
 #include <iostream>
 #include <utils/common/RandHelper.h>
-#include "MSEdge.h"
-#include "MSLane.h"
-#include "MSNet.h"
+#include <microsim/MSEdge.h>
+#include <microsim/MSLane.h>
+#include <microsim/MSNet.h>
 #include "MSLCM_JE2013.h"
 
 #ifdef CHECK_MEMORY_LEAKS

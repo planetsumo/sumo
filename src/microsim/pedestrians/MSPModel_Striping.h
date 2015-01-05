@@ -34,8 +34,8 @@
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Command.h>
 #include <utils/options/OptionsCont.h>
-#include <microsim/MSPerson.h>
-#include <microsim/MSPModel.h>
+#include <microsim/pedestrians/MSPerson.h>
+#include <microsim/pedestrians/MSPModel.h>
 #include <microsim/MSLane.h>
 
 // ===========================================================================

@@ -31,7 +31,7 @@
 #ifndef NO_TRACI
 
 #include <microsim/MSPersonControl.h>
-#include <microsim/MSPerson.h>
+#include <microsim/pedestrians/MSPerson.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSEdge.h>
 #include "TraCIConstants.h"

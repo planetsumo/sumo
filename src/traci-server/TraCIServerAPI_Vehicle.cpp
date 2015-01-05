@@ -42,7 +42,7 @@
 #include <microsim/MSLane.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSEdgeWeightsStorage.h>
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <utils/geom/PositionVector.h>
 #include <utils/vehicle/DijkstraRouterTT.h>
 #include <utils/vehicle/DijkstraRouterEffort.h>

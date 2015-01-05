@@ -35,7 +35,7 @@
 #include <algorithm>
 #include "MSNet.h"
 #include "MSEdge.h"
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
 #include "MSVehicle.h"
 #include "MSPersonControl.h"
 #include <utils/iodevices/OutputDevice.h>

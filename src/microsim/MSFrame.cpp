@@ -50,7 +50,7 @@
 #include <microsim/MSRoute.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSGlobals.h>
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <utils/common/RandHelper.h>
