@@ -274,6 +274,9 @@ MSFrame::fillOptions() {
     oc.doRegister("pedestrian.striping.dawdling", new Option_Float(0.2));
     oc.addDescription("pedestrian.striping.dawdling", "Processing", "factor for random slow-downs [0,1] for use with model 'striping'");
 
+    oc.doRegister("pedestrian.striping.jamtime", new Option_String("300", "TIME"));
+    oc.addDescription("pedestrian.striping.jamtime", "Processing", "Time in seconds after which pedestrians start squeezing through a jam when using model 'striping' (non-positive values disable squeezing)");
+
     // devices
     oc.addOptionSubTopic("Emissions");
     std::string plp = getenv("PHEMLIGHT_PATH") == 0 ? "./PHEMlight/" : std::string(getenv("PHEMLIGHT_PATH"));

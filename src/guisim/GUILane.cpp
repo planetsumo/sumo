@@ -71,11 +71,13 @@
 GUILane::GUILane(const std::string& id, SUMOReal maxSpeed, SUMOReal length,
                  MSEdge* const edge, unsigned int numericalID,
                  const PositionVector& shape, SUMOReal width,
-                 SVCPermissions permissions, unsigned int index)
-    : MSLane(id, maxSpeed, length, edge, numericalID, shape, width, permissions),
-      GUIGlObject(GLO_LANE, id) {
+                 SVCPermissions permissions, unsigned int index) : 
+    MSLane(id, maxSpeed, length, edge, numericalID, shape, width, permissions),
+    GUIGlObject(GLO_LANE, id)
+{
     myShapeRotations.reserve(myShape.size() - 1);
     myShapeLengths.reserve(myShape.size() - 1);
+    myShapeColors.reserve(myShape.size() - 1);
     int e = (int) myShape.size() - 1;
     for (int i = 0; i < e; ++i) {
         const Position& f = myShape[i];
@@ -239,10 +241,10 @@ GUILane::drawTextAtEnd(const std::string& text, const PositionVector& shape, SUM
 
 
 void
-GUILane::drawLinkRules(const GUINet& net) const {
+GUILane::drawLinkRules(const GUIVisualizationSettings& s, const GUINet& net) const {
     unsigned int noLinks = (unsigned int)myLinks.size();
     if (noLinks == 0) {
-        drawLinkRule(net, 0, getShape(), 0, 0);
+        drawLinkRule(s, net, 0, getShape(), 0, 0);
         return;
     }
     if (getEdge().isCrossing()) {
@@ -250,8 +252,8 @@ GUILane::drawLinkRules(const GUINet& net) const {
         MSLink* link = MSLinkContHelper::getConnectingLink(*getLogicalPredecessorLane(), *this);
         PositionVector shape = getShape();
         shape.extrapolate(0.5); // draw on top of the walking area
-        drawLinkRule(net, link, shape, 0, myWidth);
-        drawLinkRule(net, link, shape.reverse(), 0, myWidth);
+        drawLinkRule(s, net, link, shape, 0, myWidth);
+        drawLinkRule(s, net, link, shape.reverse(), 0, myWidth);
         return;
     }
     // draw all links
@@ -259,14 +261,14 @@ GUILane::drawLinkRules(const GUINet& net) const {
     SUMOReal x1 = 0;
     for (unsigned int i = 0; i < noLinks; ++i) {
         SUMOReal x2 = x1 + w;
-        drawLinkRule(net, myLinks[i], getShape(), x1, x2);
+        drawLinkRule(s, net, myLinks[i], getShape(), x1, x2);
         x1 = x2;
     }
 }
 
 
 void
-GUILane::drawLinkRule(const GUINet& net, MSLink* link, const PositionVector& shape, SUMOReal x1, SUMOReal x2) const {
+GUILane::drawLinkRule(const GUIVisualizationSettings& s, const GUINet& net, MSLink* link, const PositionVector& shape, SUMOReal x1, SUMOReal x2) const {
     const Position& end = shape.back();
     const Position& f = shape[-2];
     const SUMOReal rot = RAD2DEG(atan2((end.x() - f.x()), (f.y() - end.y())));
@@ -306,7 +308,7 @@ GUILane::drawLinkRule(const GUINet& net, MSLink* link, const PositionVector& sha
                 break;
         }
         GLHelper::setColor(getLinkColor(link->getState()));
-        if (!isRailway(myPermissions) || link->getState() != LINKSTATE_MAJOR) {
+        if (!drawAsRailway(s) || link->getState() != LINKSTATE_MAJOR) {
             // THE WHITE BAR SHOULD BE THE DEFAULT FOR MOST RAILWAY
             // LINKS AND LOOKS UGLY SO WE DO NOT DRAW IT
             glBegin(GL_QUADS);
@@ -436,14 +438,22 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
     // draw lane
     // check whether it is not too small
     if (s.scale * exaggeration < 1.) {
-        GLHelper::drawLine(myShape);
+        if (myShapeColors.size() > 0) {
+            GLHelper::drawLine(myShape, myShapeColors);
+        } else {
+            GLHelper::drawLine(myShape);
+        }
         glPopMatrix();
     } else {
         GUINet* net = (GUINet*) MSNet::getInstance();
-        if (isRailway(myPermissions)) {
+        if (drawAsRailway(s)) {
             // draw as railway
             const SUMOReal halfRailWidth = 0.725 * exaggeration;
-            GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, halfRailWidth);
+            if (myShapeColors.size() > 0) {
+                GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, myShapeColors, halfRailWidth);
+            } else {
+                GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, halfRailWidth);
+            }
             glColor3d(1, 1, 1);
             glTranslated(0, 0, .1);
             GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, halfRailWidth - 0.2);
@@ -480,10 +490,15 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
             glTranslated(0, 0, -.4);
 #endif
         } else {
-            const SUMOReal laneWidth = isInternal ? myQuarterLaneWidth : myHalfLaneWidth;
-            mustDrawMarkings = !isInternal && myPermissions != 0 && myPermissions != SVC_PEDESTRIAN;
+            const SUMOReal halfWidth = isInternal ? myQuarterLaneWidth : myHalfLaneWidth;
+            mustDrawMarkings = !isInternal && myPermissions != 0 && myPermissions != SVC_PEDESTRIAN && exaggeration == 1.0; 
             const int cornerDetail = drawDetails ? s.scale * exaggeration : 0;
-            GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, laneWidth * exaggeration, cornerDetail);
+            const SUMOReal offset = halfWidth * MAX2((SUMOReal)0, (exaggeration - 1));
+            if (myShapeColors.size() > 0) {
+                GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, myShapeColors, halfWidth * exaggeration, cornerDetail, offset);
+            } else {
+                GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, halfWidth * exaggeration, cornerDetail, offset);
+            }
         }
         glPopMatrix();
         // draw ROWs (not for inner lanes)
@@ -491,8 +506,8 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
             glPushMatrix();
             glTranslated(0, 0, GLO_JUNCTION); // must draw on top of junction shape
             glTranslated(0, 0, .5);
-            drawLinkRules(*net);
-            if (s.showLinkDecals && !isRailway(myPermissions) && myPermissions != SVC_PEDESTRIAN) {
+            drawLinkRules(s, *net);
+            if (s.showLinkDecals && !drawAsRailway(s) && myPermissions != SVC_PEDESTRIAN) {
                 drawArrows();
             }
             if (s.showLane2Lane) {
@@ -713,7 +728,7 @@ GUILane::getLoadedEdgeWeight() const {
 void
 GUILane::setColor(const GUIVisualizationSettings& s) const {
     const GUIColorer& c = s.laneColorer;
-    if (!setFunctionalColor(c.getActive())) {
+    if (!setFunctionalColor(c.getActive()) && !setMultiColor(c)) {
         GLHelper::setColor(c.getScheme().getColor(getColorValue(c.getActive())));
     }
 }
@@ -730,6 +745,29 @@ GUILane::setFunctionalColor(size_t activeScheme) const {
         default:
             return false;
     }
+}
+
+
+bool
+GUILane::setMultiColor(const GUIColorer& c) const {
+    const size_t activeScheme = c.getActive();
+    myShapeColors.clear();
+    switch (activeScheme) {
+        case 22: { // color by height at segment start
+            for (int ii = 0; ii < (int)myShape.size() - 1; ++ii) {
+                myShapeColors.push_back(c.getScheme().getColor(myShape[ii].z()));
+            }
+        }
+        case 24: { // color by inclination  at segment start
+            for (int ii = 1; ii < (int)myShape.size(); ++ii) {
+                const SUMOReal inc =  (myShape[ii].z() - myShape[ii-1].z()) / myShape[ii].distanceTo2D(myShape[ii-1]);
+                myShapeColors.push_back(c.getScheme().getColor(inc));
+            }
+        }
+        default:
+            return false;
+    }
+    return true;
 }
 
 
@@ -802,15 +840,15 @@ GUILane::getColorValue(size_t activeScheme) const {
             // color by z of first shape point
             return getShape()[0].z();
         }
-        case 22: {
-            // color by incline
-            return abs(getShape()[-1].z() - getShape()[0].z()) / getLength();
-        }
         case 23: {
+            // color by incline
+            return (getShape()[-1].z() - getShape()[0].z()) / getLength();
+        }
+        case 25: {
             // color by average speed
             return getMeanSpeed();
         }
-        case 24: {
+        case 26: {
             // color by average relative speed
             return getMeanSpeed() / myMaxSpeed;
         }
@@ -884,6 +922,13 @@ GUILane::getScaleValue(size_t activeScheme) const {
     }
     return 0;
 }
+
+
+bool 
+GUILane::drawAsRailway(const GUIVisualizationSettings& s) const {
+    return isRailway(myPermissions) && s.showRails;
+}
+
 
 #ifdef HAVE_OSG
 void

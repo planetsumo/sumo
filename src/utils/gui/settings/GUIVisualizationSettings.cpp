@@ -177,7 +177,21 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::MAGENTA, (SUMOReal)200);
     scheme.setAllowsNegativeValues(true);
     laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by height at segment start", RGBColor::RED);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)-10);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)50);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)100);
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)200);
+    scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
     scheme = GUIColorScheme("by inclination", RGBColor::GREY);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal) .1);
+    scheme.addColor(RGBColor::RED, (SUMOReal) .3);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)-.1);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)-.3);
+    scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by inclination at segment start", RGBColor::GREY);
     scheme.addColor(RGBColor::YELLOW, (SUMOReal) .1);
     scheme.addColor(RGBColor::RED, (SUMOReal) .3);
     scheme.addColor(RGBColor::GREEN, (SUMOReal)-.1);
@@ -313,7 +327,9 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
     personColorer.addScheme(scheme);
     personColorer.addScheme(GUIColorScheme("by angle", RGBColor::YELLOW, "", true));
+    personColorer.addScheme(GUIColorScheme("random", RGBColor::YELLOW, "", true));
 
+    /// add junction coloring schemes
     junctionColorer.addScheme(GUIColorScheme("uniform", RGBColor::BLACK, "", true));
     scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
@@ -521,7 +537,8 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
         << "\" laneShowBorders=\"" << laneShowBorders
         << "\" showLinkDecals=\"" << showLinkDecals
         << "\" showRails=\"" << showRails
-        << "\" hideConnectors=\"" << hideConnectors << "\"\n"
+        << "\" hideConnectors=\"" << hideConnectors
+        << "\" widthExaggeration=\"" << laneWidthExaggeration << "\"\n"
         << "               " << edgeName.print("edgeName") << "\n"
         << "               " << internalEdgeName.print("internalEdgeName") << "\n"
         << "               " << cwaEdgeName.print("cwaEdgeName") << "\n"

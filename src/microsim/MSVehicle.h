@@ -1214,6 +1214,7 @@ protected:
      * @param[in] dist The distance during which accelerating takes place
      * @param[in] v The initial speed
      * @param[in] accel The acceleration
+     * XXX affected by ticket #860 (the formula is invalid for the current position update rule)
      */
     inline SUMOReal estimateSpeedAfterDistance(const SUMOReal dist, const SUMOReal v, const SUMOReal accel) const {
         // dist=v*t + 0.5*accel*t^2, solve for t and multiply with accel, then add v
@@ -1222,7 +1223,9 @@ protected:
     }
 
 
-    /* @brief estimate speed while accelerating for the given distance
+    /* @brief adapt safe velocity in accordance to a moving obstacle:
+     * - a leader vehicle
+     * - a vehicle or pedestrian that crosses this vehicles path on an upcoming intersection
      * @param[in] leaderInfo The leading vehicle and the (virtual) distance to it
      * @param[in] seen the distance to the end of the current lane
      * @param[in] lastLink the lastLink index

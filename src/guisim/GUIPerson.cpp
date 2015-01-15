@@ -279,9 +279,15 @@ GUIPerson::setFunctionalColor(size_t activeScheme) const {
             }
             return false;
         }
-        case 8: {
+        case 8: { // color by angle
             SUMOReal hue = getAngle() + 180; // [0-360]
             GLHelper::setColor(RGBColor::fromHSV(hue, 1., 1.));
+            return true;
+        }
+        case 9: { // color randomly (by pointer)
+            const SUMOReal hue = (long)this % 360; // [0-360]
+            const SUMOReal sat = (((long)this / 360) % 67) / 100.0 + 0.33; // [0.33-1]
+            GLHelper::setColor(RGBColor::fromHSV(hue, sat, 1.));
             return true;
         }
         default:
@@ -358,6 +364,15 @@ GUIPerson::drawAction_drawAsTriangle(const GUIVisualizationSettings& /* s */) co
     glVertex2d(1, -0.5);
     glVertex2d(1, 0.5);
     glEnd();
+    // draw a smaller triangle to indicate facing
+    GLHelper::setColor(GLHelper::getColor().changedBrightness(-64));
+    glTranslated(0, 0, .045);
+    glBegin(GL_TRIANGLES);
+    glVertex2d(0., 0.);
+    glVertex2d(0.5, -0.25);
+    glVertex2d(0.5, 0.25);
+    glEnd();
+    glTranslated(0, 0, -.045);
 }
 
 
