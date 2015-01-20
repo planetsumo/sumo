@@ -473,6 +473,7 @@ StringBijection<SumoXMLNodeType>::Entry SUMOXMLDefinitions::sumoNodeTypeValues[]
     {"internal",            NODETYPE_INTERNAL},
     {"dead_end",            NODETYPE_DEAD_END},
     {"DEAD_END",            NODETYPE_DEAD_END_DEPRECATED},
+    {"rail_signal",         NODETYPE_RAIL_SIGNAL},
 
     {"unknown",             NODETYPE_UNKNOWN}
 };
@@ -528,6 +529,7 @@ StringBijection<LinkDirection>::Entry SUMOXMLDefinitions::linkDirectionValues[] 
 StringBijection<TrafficLightType>::Entry SUMOXMLDefinitions::trafficLightTypesVales[] = {
     { "static", TLTYPE_STATIC },
     { "actuated", TLTYPE_ACTUATED },
+    { "rail", TLTYPE_RAIL },
     { "agentbased", TLTYPE_AGENT }
 };
 

@@ -113,6 +113,8 @@ NWWriter_Amitran::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
             case NODETYPE_NOJUNCTION:
             case NODETYPE_INTERNAL:
             case NODETYPE_UNKNOWN:
+            case NODETYPE_RAIL_SIGNAL:
+                device << "\" type=\"railSignal";
                 break;
         }
         device << "\"/>\n";

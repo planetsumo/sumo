@@ -171,6 +171,8 @@ GUIJunctionWrapper::getColorValue(const GUIVisualizationSettings& s) const {
                 case NODETYPE_INTERNAL:
                     assert(false);
                     return 8;
+                case NODETYPE_RAIL_SIGNAL:
+                    return 9;
             }
         default:
             assert(false);

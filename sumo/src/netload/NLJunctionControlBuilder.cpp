@@ -43,6 +43,7 @@
 #include <microsim/MSJunctionControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSSimpleTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSRailSignal.h>
 #include <microsim/MSEventControl.h>
 #include <microsim/MSGlobals.h>
 #include <microsim/traffic_lights/MSAgentbasedTrafficLightLogic.h>
@@ -129,6 +130,7 @@ NLJunctionControlBuilder::closeJunction() {
             junction = buildLogicJunction();
             break;
         case NODETYPE_INTERNAL:
+        case NODETYPE_RAIL_SIGNAL:
 #ifdef HAVE_INTERNAL_LANES
             if (MSGlobals::gUsingInternalLanes) {
                 junction = buildInternalJunction();
@@ -214,7 +216,10 @@ NLJunctionControlBuilder::closeTrafficLightLogic() {
         }
         return;
     }
-    if (myAbsDuration == 0) {
+//    std::cout <<"id = " << myActiveID << " type = " << myType <<"\n";
+    if (myAbsDuration == 0 && myType != NODETYPE_RAIL_SIGNAL) {
+//        std::cout << NODETYPE_RAIL_SIGNAL << " " << NODETYPE_UNKNOWN<< " "  << NODETYPE_TRAFFIC_LIGHT<< " "  << NODETYPE_TRAFFIC_LIGHT_NOJUNCTION << " " << NODETYPE_PRIORITY<< " "  << NODETYPE_NOJUNCTION<< "\n";
+  //      std::cout <<"id = " << myActiveKey << " type = " << myType <<"\n";
         throw InvalidArgument("TLS program '" + myActiveProgram + "' for TLS '" + myActiveKey + "' has a duration of 0.");
     }
     // compute the initial step and first switch time of the tls-logic
@@ -262,6 +267,11 @@ NLJunctionControlBuilder::closeTrafficLightLogic() {
                 new MSSimpleTrafficLightLogic(getTLLogicControlToUse(),
                                               myActiveKey, myActiveProgram,
                                               myActivePhases, step, firstEventOffset,
+                                              myAdditionalParameter);
+            break;
+        case TLTYPE_RAIL:
+             tlLogic = new MSRailSignal(getTLLogicControlToUse(),
+                                              myActiveKey, myActiveProgram,
                                               myAdditionalParameter);
             break;
     }
