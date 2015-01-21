@@ -136,7 +136,6 @@ class Demand:
     for s in self.streams:
       vehicles.extend(s.toVehicles(b, e, len(vehicles), sampleFactor))
     fdo = tempfile.NamedTemporaryFile(mode="w", delete=False)
-    #fdo = open(tmpFile, "w")
     fdo.write("<routes>\n")
     for v in sorted(vehicles, key=lambda veh: veh.depart):
         via = ""
@@ -149,5 +148,7 @@ class Demand:
     fdo.write("</routes>")
     fdo.close()
     duarouter = sumolib.checkBinary("duarouter")
-    retCode = subprocess.call([duarouter, "-v", "-n", netName,  "-t", fdo.name, "-o", routesName, "--no-warnings"]) # aeh, implizite no-warnings sind nicht schoen
+    print "netName > %s" % netName
+    print "routesName > %s" % routesName
+    retCode = subprocess.call([duarouter, "-v", "-n", netName,  "-t", fdo.name, "-o", routesName, "--no-warnings", "--additional-files", "vtypes.add.xml", "--vtype-output", "tmp.add.xml"]) # aeh, implicitly setting --no-warnings is not nice, is it?; and the need to dump generated vtypes to a temporary file as well
     os.remove(fdo.name)

@@ -47,8 +47,8 @@ flowsRiLSA1 = [
  
 
 
-class Scenario_RiLSA1OutTLS(Scenario):
-  NAME = "RiLSA1OutTLS"
+class Scenario_RiLSA1OutTLS24(Scenario):
+  NAME = "RiLSA1OutTLS24"
   THIS_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), NAME)
   TLS_FILE = "tls.add.xml"
   NET_FILE = "rilsa1.net.xml" 

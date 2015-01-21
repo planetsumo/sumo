@@ -89,6 +89,11 @@ def exeExists(binary):
         binary += ".exe"
     return os.path.exists(binary)
 
+def exeName(binary):
+    if os.name == "nt" and binary[-4:] != ".exe":
+        binary += ".exe"
+    return binary
+    
 def checkBinary(name, bindir=None):
     """
     Checks for the given binary in the places, defined by the environment
@@ -101,18 +106,22 @@ def checkBinary(name, bindir=None):
     env = os.environ
     join = os.path.join
     if envName in env and exeExists(env.get(envName)):
-        return env.get(envName)
+        return exeName(env.get(envName))
     if bindir is not None:
         binary = join(bindir, name)
         if exeExists(binary):
-            return binary
+            return exeName(binary)
+    if "SUMO_BINDIR" in env:
+        binary = join(env.get("SUMO_BINDIR"), name)
+        if exeExists(binary):
+            return exeName(binary)
     if "SUMO_HOME" in env:
         binary = join(env.get("SUMO_HOME"), "bin", name)
         if exeExists(binary):
-            return binary
+            return exeName(binary)
     binary = os.path.abspath(join(os.path.dirname(__file__), '..', '..', 'bin', name))
     if exeExists(binary):
-        return binary
+        return exeName(binary)
     return name
 
 class _Running:

@@ -46,6 +46,6 @@ class Scenario_BasicNet(Scenario):
     if withDefaultDemand:
       print "Demand in '%s' needs to be rebuild" % self.demandName
       self.demand = demandGenerator.Demand()
-      self.demand.addStream(demandGenerator.Stream(None, 0, 3600, 1000, "6/1_to_5/1", "1/1_to_0/1", { .2:"hdv", .8:"passenger"})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
+      self.demand.addStream(demandGenerator.Stream(None, 0, 3600, 1000, "6/1_to_5/1", "1/1_to_0/1", { "hdv":.2, "passenger":.8})) # why isn't it possible to get a network and return all possible routes or whatever - to ease the process
       if fileNeedsRebuild(self.demandName, "duarouter"):
         self.demand.build(0, 3600, self.netName, self.demandName)

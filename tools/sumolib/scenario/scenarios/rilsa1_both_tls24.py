@@ -17,25 +17,25 @@ from sumolib.net.generator.network import *
 
       
 flowsRiLSA1 = [
-   [ "nmp", [
+   [ "nmp1", [
        [ "ms2", 359, 9 ],  
        [ "me2", 59, 9 ],  
        [ "mw2", 64, 12 ]  
    ] ],
 
-   [ "wmp", [
+   [ "wmp1", [
        [ "me2", 508, 10 ],  
        [ "mn2", 80, 14 ],  
        [ "ms2", 130, 2 ]  
    ] ],
 
-   [ "emp", [
+   [ "emp1", [
        [ "mw2", 571, 10 ],  
        [ "mn2", 57, 9 ],  
        [ "ms2", 47, 3 ]  
    ] ],
 
-   [ "smp", [
+   [ "smp1", [
        [ "mn2", 354, 2 ],  
        [ "me2", 49, 2 ],  
        [ "mw2", 92, 2 ]  
@@ -47,11 +47,11 @@ flowsRiLSA1 = [
  
 
 
-class Scenario_RiLSA1OutTLS(Scenario):
-  NAME = "RiLSA1OutTLS"
+class Scenario_RiLSA1BothTLS24(Scenario):
+  NAME = "RiLSA1BothTLS24"
   THIS_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), NAME)
   TLS_FILE = "tls.add.xml"
-  NET_FILE = "rilsa1.net.xml" 
+  NET_FILE = "rilsa1both.net.xml" 
 
   def __init__(self, params, withDefaultDemand=True):
     Scenario.__init__(self, self.THIS_DIR)

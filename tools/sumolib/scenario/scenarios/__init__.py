@@ -47,6 +47,7 @@ def minIndexValue_unset(l, l2):
     return min_idx, min_val
     
 def fileNeedsRebuild(filePath, app):
+  print "fileNeedsRebuild> %s" % filePath 
   if REBUILD:
     return True
   if not os.path.exists(filePath):
@@ -103,8 +104,8 @@ def extrapolateDemand(stream, freq, probs, pivot=demandGenerator.PIVOT__PEAK, tB
 
 
 class Scenario:
-  def __init__(self, name):
-    self.name = name
+  def __init__(self, dataPath):
+    self.dataPath = dataPath
     self.net = None
     self.netName = None
     self.demand = None
@@ -154,8 +155,13 @@ class Scenario:
       return self.net
     raise "network is unknown"   
 
-  def fullPath(self, fileName):
-    return os.path.join(SANDBOX_PATH, self.name, fileName)
+  def fullPath(self, fileName): 
+    print "full >" + os.path.join(self.dataPath, fileName)
+    return os.path.join(self.dataPath, fileName)
+
+  def sandboxPath(self, fileName): 
+    print "sandbox >" + os.path.join(SANDBOX_PATH, fileName)
+    return os.path.join(SANDBOX_PATH, fileName)
 
   def getOppositeFlows(self):
     fNS = [0]*24
@@ -311,31 +317,40 @@ class Scenario:
     
      
 
-def getScenario(name, params, withDefaultDemand=True):
-  if name=="RiLSA1":
+def getScenario(which, useName, params, withDefaultDemand=True):
+  if which=="RiLSA1":
     import rilsa1
-    return rilsa1.Scenario_RiLSA1(withDefaultDemand)  
-  elif name=="RiLSA1OutTLS":
+    return rilsa1.Scenario_RiLSA1(useName, withDefaultDemand)  
+  elif which=="RiLSA1OutTLS":
     import rilsa1_out_tls
     return rilsa1_out_tls.Scenario_RiLSA1OutTLS(params, withDefaultDemand)  
-  elif name=="BasicCross":
+  elif which=="RiLSA1BothTLS":
+    import rilsa1_both_tls
+    return rilsa1_both_tls.Scenario_RiLSA1BothTLS(params, withDefaultDemand)  
+  elif which=="RiLSA1OutTLS24":
+    import rilsa1_out_tls24
+    return rilsa1_out_tls24.Scenario_RiLSA1OutTLS24(params, withDefaultDemand)  
+  elif which=="RiLSA1BothTLS24":
+    import rilsa1_both_tls24
+    return rilsa1_both_tls24.Scenario_RiLSA1BothTLS24(params, withDefaultDemand)  
+  elif which=="BasicCross":
     import basic_cross
-    return basic_cross.Scenario_BasicCross(withDefaultDemand)  
-  elif name=="BasicCrossL":
+    return basic_cross.Scenario_BasicCross(useName, withDefaultDemand)  
+  elif which=="BasicCrossL":
     import basic_crossl
-    return basic_crossl.Scenario_BasicCrossL(withDefaultDemand)  
-  elif name=="BasicCorridor":
+    return basic_crossl.Scenario_BasicCrossL(useName, withDefaultDemand)  
+  elif which=="BasicCorridor":
     import basic_corridor
-    return basic_corridor.Scenario_BasicCorridor(params["xoff"], withDefaultDemand)  
-  elif name=="BasicNet":
+    return basic_corridor.Scenario_BasicCorridor(useName, params["xoff"], withDefaultDemand)  
+  elif which=="BasicNet":
     import basic_net
-    return basic_net.Scenario_BasicNet(params["rot"], withDefaultDemand)  
-  elif name=="RealWorld":
+    return basic_net.Scenario_BasicNet(useName, params["rot"], withDefaultDemand)  
+  elif which=="RealWorld":
     import real_world
-    return real_world.Scenario_RealWorld(params["which"], withDefaultDemand)  
-  elif name=="BasicRiLSANet":
+    return real_world.Scenario_RealWorld(useName, params["which"], withDefaultDemand)  
+  elif which=="BasicRiLSANet":
     import basic_rilsanet
-    return basic_rilsanet.Scenario_BasicRiLSANet(params, withDefaultDemand)  
+    return basic_rilsanet.Scenario_BasicRiLSANet(useName, params, withDefaultDemand)  
   print "unknown scenario '%s'" % name
   raise
 

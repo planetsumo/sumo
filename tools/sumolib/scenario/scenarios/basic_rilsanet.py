@@ -46,16 +46,16 @@ flowsRiLSA1 = [
 class Scenario_BasicRiLSANet(Scenario):
   NAME = "BasicRiLSANet"
   THIS_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), NAME)
-  TLS_FILE = os.path.join(THIS_DIR, "tls.add.xml")
-  NET_FILE = os.path.join(THIS_DIR, "network.net.xml") 
+  TLS_FILE = "tls.add.xml"
+  NET_FILE = "network.net.xml" 
 
-  def __init__(self, params, withDefaultDemand=True):
+  def __init__(self, name, params, withDefaultDemand=True):
     Scenario.__init__(self, self.NAME)
     self.params = params
     self.netName = self.fullPath(self.NET_FILE)
     self.demandName = self.fullPath("routes.rou.xml")
     # network
-    if fileNeedsRebuild(self.netName, "netconvert"):
+    if fileNeedsRebuild(self.fullPath(self.NET_FILE), "netconvert"):
       print "Network in '%s' needs to be rebuild" % self.netName
       lanes = [Lane(dirs="s", allowed="pedestrian"), Lane(dirs="rs", disallowed="pedestrian")]#, Lane(dirs="l", disallowed="pedestrian")]
       defaultEdge = Edge(numLanes=2, maxSpeed=13.89, lanes=lanes)
@@ -72,7 +72,7 @@ class Scenario_BasicRiLSANet(Scenario):
           netGen._nodes[n].addCrossing("%s/%s_to_%s.-100" % (nid[0], nid[1]-1, n), "%s_to_%s/%s" % (n, nid[0], nid[1]-1))
           netGen._nodes[n].addCrossing("%s/%s_to_%s.-100" % (nid[0], nid[1]+1, n), "%s_to_%s/%s" % (n, nid[0], nid[1]+1))
       netGen.build(self.netName) # not nice, the network name should be given/returned
-      fdow = open(self.TLS_FILE, "w")
+      fdow = open(self.fullPath(self.TLS_FILE), "w")
       fdow.write('<additional>\n\n')
       for y in range(1, 4):
         for x in range(1, 4):
@@ -141,3 +141,8 @@ class Scenario_BasicRiLSANet(Scenario):
                   { "passenger":pkwEprob, "COLOMBO_undetectable_passenger":pkwNprob, "hdv":lkwEprob, "COLOMBO_undetectable_hdv":lkwNprob }))
       if fileNeedsRebuild(self.demandName, "duarouter"):
         self.demand.build(0, 86400, self.netName, self.demandName)
+    
+    shutils.copy(self.NET_FILE, self.sandboxPath(self.NET_FILE))
+    shutils.copy(self.TLS_FILE, self.sandboxPath(self.TLS_FILE))    
+    
+    
