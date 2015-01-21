@@ -213,13 +213,13 @@ protected:
     std::map<MSLink*, unsigned int> myLinkIndices;
 
     /// A map that maps an outgoing lane from the junction  to its set of links that lead to this lane
-    std::map<MSLane*, std::vector<MSLink*>> myLinksToLane;
+    std::map<MSLane*, std::vector<MSLink*> > myLinksToLane;
 
     /// A map that maps a link from the junction to its vector of lanes leading from a previous signal to this link
-    std::map<MSLink*, std::vector<MSLane*>> myAfferentBlocks;
+    std::map<MSLink*, std::vector<MSLane*> > myAfferentBlocks;
 
     /// A map that maps an outgoing lane from the junction to its vector of lanes leading to the next signal
-    std::map<MSLane*, std::vector<const MSLane*>> mySucceedingBlocks;
+    std::map<MSLane*, std::vector<const MSLane*> > mySucceedingBlocks;
 
 
 protected:
