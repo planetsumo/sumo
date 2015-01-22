@@ -351,6 +351,12 @@ def getScenario(which, useName, params, withDefaultDemand=True):
   elif which=="BasicRiLSANet":
     import basic_rilsanet
     return basic_rilsanet.Scenario_BasicRiLSANet(useName, params, withDefaultDemand)  
+  elif which=="BasicRiLSANet2x2":
+    import basic_rilsanet2x2
+    return basic_rilsanet2x2.Scenario_BasicRiLSANet2x2(useName, params, withDefaultDemand)  
+  elif which=="BasicRiLSACorridor3":
+    import basic_rilsacorridor3
+    return basic_rilsacorridor3.Scenario_BasicRiLSACorridor3(useName, params, withDefaultDemand)  
   print "unknown scenario '%s'" % name
   raise
 
