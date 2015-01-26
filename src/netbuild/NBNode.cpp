@@ -551,7 +551,7 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
         delete[] def;
         Position prev;
         for (int i = 0; i < (int) numPoints; i++) {
-            Position current(ret_buf[i * 3 + 1], ret_buf[i * 3 + 3]);
+            Position current(ret_buf[i * 3 + 1], ret_buf[i * 3 + 3], myPosition.z());
             if (prev != current) {
                 ret.push_back(current);
             }
@@ -683,6 +683,7 @@ NBNode::computeLanes2Lanes(const bool buildCrossingsAndWalkingAreas) {
     // special case a):
     //  one in, one out, the outgoing has one lane more
     if (myIncomingEdges.size() == 1 && myOutgoingEdges.size() == 1
+            && myIncomingEdges[0]->getStep() <= NBEdge::LANES2EDGES
             && myIncomingEdges[0]->getNumLanes() == myOutgoingEdges[0]->getNumLanes() - 1
             && myIncomingEdges[0] != myOutgoingEdges[0]
             && myIncomingEdges[0]->isConnectedTo(myOutgoingEdges[0])) {
@@ -1698,7 +1699,7 @@ NBNode::buildCrossings() {
 
 void
 NBNode::buildWalkingAreas() {
-    //gDebugFlag1 = getID() == "E";
+    //gDebugFlag1 = getID() == "C";
     unsigned int index = 0;
     myWalkingAreas.clear();
     if (gDebugFlag1) {
@@ -1800,12 +1801,14 @@ NBNode::buildWalkingAreas() {
         const int count = waIndices[i].second;
         const int end = (start + count) % normalizedLanes.size();
 
-        WalkingArea wa(":" + getID() + "_w" + toString(index++), DEFAULT_CROSSING_WIDTH);
+        WalkingArea wa(":" + getID() + "_w" + toString(index++), 1);
         if (gDebugFlag1) {
             std::cout << "build walkingArea " << wa.id << " start=" << start << " end=" << end << " count=" << count << " prev=" << prev << ":\n";
         }
         SUMOReal endCrossingWidth = DEFAULT_CROSSING_WIDTH;
         SUMOReal startCrossingWidth = DEFAULT_CROSSING_WIDTH;
+        PositionVector endCrossingShape;
+        PositionVector startCrossingShape;
         // check for connected crossings
         bool connectsCrossing = false;
         std::vector<Position> connectedPoints;
@@ -1815,6 +1818,8 @@ NBNode::buildWalkingAreas() {
                 // crossing ends
                 (*it).nextWalkingArea = wa.id;
                 endCrossingWidth = (*it).width;
+                endCrossingShape = (*it).shape;
+                wa.width = MAX2(wa.width, endCrossingWidth);
                 connectsCrossing = true;
                 connectedPoints.push_back((*it).shape[-1]);
                 if (gDebugFlag1) {
@@ -1827,6 +1832,8 @@ NBNode::buildWalkingAreas() {
                 (*it).prevWalkingArea = wa.id;
                 wa.nextCrossing = (*it).id;
                 startCrossingWidth = (*it).width;
+                startCrossingShape = (*it).shape;
+                wa.width = MAX2(wa.width, startCrossingWidth);
                 connectsCrossing = true;
                 if (isTLControlled()) {
                     wa.tlID = (*getControllingTLS().begin())->getID();
@@ -1846,7 +1853,6 @@ NBNode::buildWalkingAreas() {
             // not relevant for walking
             continue;
         }
-        wa.width = (endCrossingWidth + startCrossingWidth) / 2;
         // build shape and connections
         std::set<NBEdge*> connected;
         for (int j = 0; j < count; ++j) {
@@ -1854,6 +1860,7 @@ NBNode::buildWalkingAreas() {
             NBEdge* edge = normalizedLanes[nlI].first;
             NBEdge::Lane l = normalizedLanes[nlI].second;
             l.width = (l.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : l.width);
+            wa.width = MAX2(wa.width, l.width);
             if (connected.count(edge) == 0) {
                 if (edge->getFromNode() == this) {
                     wa.nextSidewalks.push_back(edge->getID());
@@ -1871,15 +1878,21 @@ NBNode::buildWalkingAreas() {
         }
         if (buildExtensions) {
             // extension at starting crossing
-            NBEdge::Lane l = normalizedLanes[start].second;
-            l.shape.extrapolate(startCrossingWidth);
-            l.shape.move2side(-l.width / 2);
-            wa.shape.push_front(l.shape[0]);
+            if (startCrossingShape.size() > 0) {
+                if (gDebugFlag1) std::cout << "  extension at startCrossing shape=" << startCrossingShape << "\n";
+                startCrossingShape.move2side(startCrossingWidth / 2);
+                wa.shape.push_front_noDoublePos(startCrossingShape[0]); // right corner
+                startCrossingShape.move2side(-startCrossingWidth);
+                wa.shape.push_front_noDoublePos(startCrossingShape[0]); // left corner goes first
+            } 
             // extension at ending crossing
-            l = normalizedLanes[end > 0 ? end - 1 : normalizedLanes.size() - 1].second;
-            l.shape.extrapolate(endCrossingWidth);
-            l.shape.move2side(l.width / 2);
-            wa.shape.push_back(l.shape[0]);
+            if (endCrossingShape.size() > 0) {
+                if (gDebugFlag1) std::cout << "  extension at endCrossing shape=" << endCrossingShape << "\n";
+                endCrossingShape.move2side(endCrossingWidth / 2);
+                wa.shape.push_back_noDoublePos(endCrossingShape[-1]);
+                endCrossingShape.move2side(-endCrossingWidth);
+                wa.shape.push_back_noDoublePos(endCrossingShape[-1]);
+            } 
         }
         if (connected.size() == 2 && !connectsCrossing && wa.nextSidewalks.size() == 1 && wa.prevSidewalks.size() == 1) {
             // do not build a walkingArea since a normal connection exists

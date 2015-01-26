@@ -87,9 +87,9 @@
 #include <utils/options/OptionsCont.h>
 #include <utils/vehicle/PedestrianRouter.h>
 #include "MSGlobals.h"
-#include "MSPModel.h"
+#include <microsim/pedestrians/MSPModel.h>
 #include <utils/geom/GeoConvHelper.h>
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
 #include "MSEdgeWeightsStorage.h"
 #include "MSStateHandler.h"
 
@@ -166,6 +166,7 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
              ShapeContainer* shapeCont):
     myVehiclesMoved(0),
     myHaveRestrictions(false),
+    myHasInternalLinks(false),
     myRouterTTInitialized(false),
     myRouterTTDijkstra(0),
     myRouterTTAStar(0),
@@ -211,7 +212,8 @@ MSNet::closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
                      SUMORouteLoaderControl* routeLoaders,
                      MSTLLogicControl* tlc,
                      std::vector<SUMOTime> stateDumpTimes,
-                     std::vector<std::string> stateDumpFiles) {
+                     std::vector<std::string> stateDumpFiles,
+                     bool hasInternalLinks) {
     myEdges = edges;
     myJunctions = junctions;
     myRouteLoaders = routeLoaders;
@@ -227,6 +229,7 @@ MSNet::closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
     if (myLogExecutionTime) {
         mySimBeginMillis = SysUtils::getCurrentMillis();
     }
+    myHasInternalLinks = hasInternalLinks;
 }
 
 

@@ -267,6 +267,7 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
 void
 GUIEdge::drawMesoVehicles(const GUIVisualizationSettings& s) const {
     const GUIVisualizationTextSettings& nameSettings = s.vehicleName;
+    const SUMOReal exaggeration = s.vehicleSize.getExaggeration(s);
     GUIMEVehicleControl* vehicleControl = GUINet::getGUIInstance()->getGUIMEVehicleControl();
     if (vehicleControl != 0) {
         // draw the meso vehicles
@@ -279,12 +280,9 @@ GUIEdge::drawMesoVehicles(const GUIVisualizationSettings& s) const {
             const std::vector<SUMOReal>& shapeRotations = l->getShapeRotations();
             const std::vector<SUMOReal>& shapeLengths = l->getShapeLengths();
             const Position& laneBeg = shape[0];
-            glPushMatrix();
-            glTranslated(laneBeg.x(), laneBeg.y(), 0);
-            glRotated(shapeRotations[0], 0, 0, 1);
             // go through the vehicles
             int shapeIndex = 0;
-            SUMOReal shapeOffset = 0; // ofset at start of current shape
+            SUMOReal shapeOffset = 0; // offset at start of current shape
             SUMOReal segmentOffset = 0; // offset at start of current segment
             for (MESegment* segment = MSGlobals::gMesoNet->getSegmentForEdge(*this);
                     segment != 0; segment = segment->getNextSegment()) {
@@ -295,43 +293,44 @@ GUIEdge::drawMesoVehicles(const GUIVisualizationSettings& s) const {
                     const SUMOReal avgCarSize = segment->getBruttoOccupancy() / segment->getCarNumber();
                     const SUMOReal avgCarHalfSize = 0.5 * avgCarSize;
                     const size_t queueSize = queue.size();
+                    SUMOReal vehiclePosition = segmentOffset + length;
+                    // draw vehicles beginning with the leader at the end of the segment
+                    SUMOReal xOff = 0;
                     for (size_t i = 0; i < queueSize; ++i) {
                         MSBaseVehicle* veh = queue[queueSize - i - 1];
+                        const SUMOReal vehLength = veh->getVehicleType().getLengthWithGap();
                         setVehicleColor(s, veh);
-                        SUMOReal vehiclePosition = segmentOffset + length - i * avgCarSize;
-                        SUMOReal xOff = 0.f;
                         while (vehiclePosition < segmentOffset) {
                             // if there is only a single queue for a
                             // multi-lane edge shift vehicles and start
                             // drawing again from the end of the segment
                             vehiclePosition += length;
-                            xOff += 0.5f;
+                            xOff += 2;
                         }
-                        while (shapeIndex < (int)shapeRotations.size() - 1 && vehiclePosition > shapeOffset + shapeLengths[shapeIndex]) {
-                            glPopMatrix();
-                            shapeOffset += shapeLengths[shapeIndex];
-                            shapeIndex++;
-                            glPushMatrix();
-                            glTranslated(shape[shapeIndex].x(), shape[shapeIndex].y(), 0);
-                            glRotated(shapeRotations[shapeIndex], 0, 0, 1);
-                        }
+                        const Position p = l->geometryPositionAtOffset(vehiclePosition);
+                        const SUMOReal angle = -l->getShape().rotationDegreeAtOffset(l->interpolateLanePosToGeometryPos(vehiclePosition));
                         glPushMatrix();
-                        glTranslated(xOff, -(vehiclePosition - shapeOffset), GLO_VEHICLE);
-                        glPushMatrix();
-                        glScaled(1, avgCarSize, 1);
+                        glTranslated(p.x(), p.y(), 0);
+                        glRotated(angle, 0, 0, 1);
+                        glTranslated(xOff, 0, GLO_VEHICLE);
+                        glScaled(exaggeration, vehLength * exaggeration, 1);
                         glBegin(GL_TRIANGLES);
                         glVertex2d(0, 0);
                         glVertex2d(0 - 1.25, 1);
                         glVertex2d(0 + 1.25, 1);
                         glEnd();
                         glPopMatrix();
-                        glPopMatrix();
                         if (nameSettings.show) {
+                            glPushMatrix();
+                            glRotated(angle, 0, 0, 1);
+                            glTranslated(xOff, 0, 0);
+                            glRotated(-angle, 0, 0, 1);
                             GLHelper::drawText(veh->getID(),
-                                               Position(xOff, -(vehiclePosition - avgCarHalfSize - shapeOffset)),
-                                               GLO_MAX, nameSettings.size / s.scale, nameSettings.color, 
-                                               shapeRotations[shapeIndex]);
+                                    l->geometryPositionAtOffset(vehiclePosition - 0.5 * vehLength),
+                                    GLO_MAX, nameSettings.size / s.scale, nameSettings.color); 
+                            glPopMatrix();
                         }
+                        vehiclePosition -= vehLength;
                     }
                 }
                 segmentOffset += length;

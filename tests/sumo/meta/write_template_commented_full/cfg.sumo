@@ -45,6 +45,9 @@
     </input>
 
     <output>
+        <!-- Prefix which is applied to all output files. The special string &apos;TIME&apos; is replaced by the current time. -->
+        <output-prefix value="" type="FILE"/>
+
         <!-- Save complete network states into FILE -->
         <netstate-dump value="" synonymes="ndump netstate netstate-output" type="FILE"/>
 
@@ -76,7 +79,7 @@
         <amitran-output value="" type="FILE"/>
 
         <!-- Save aggregated vehicle departure info into FILE -->
-        <summary-output value="" synonymes="emissions emissions-output summary" type="FILE"/>
+        <summary-output value="" synonymes="summary" type="FILE"/>
 
         <!-- Save single vehicle trip info into FILE -->
         <tripinfo-output value="" synonymes="tripinfo" type="FILE"/>
@@ -194,6 +197,9 @@
 
         <!-- factor for random slow-downs [0,1] for use with model &apos;striping&apos; -->
         <pedestrian.striping.dawdling value="0.2" type="FLOAT"/>
+
+        <!-- Time in seconds after which pedestrians start squeezing through a jam when using model &apos;striping&apos; (non-positive values disable squeezing) -->
+        <pedestrian.striping.jamtime value="300" type="TIME"/>
 
     </processing>
 

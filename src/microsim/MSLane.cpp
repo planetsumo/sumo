@@ -38,8 +38,8 @@
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/StdDefs.h>
 #include "MSVehicle.h"
-#include "MSPModel.h"
-#include "MSAbstractLaneChangeModel.h"
+#include <microsim/pedestrians/MSPModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include "MSNet.h"
 #include "MSVehicleType.h"
 #include "MSEdge.h"
@@ -281,13 +281,8 @@ MSLane::freeInsertion(MSVehicle& veh, SUMOReal mspeed,
 
     if (myVehicles.size() == 0) {
         // ensure sufficient gap to followers on predecessor lanes
-        // to compute an uper bound on the look-back distance we need
-        // the chosenSpeedFactor, minGap and maxDeceleration of approaching vehicles
-        // since we do not know these we use the values from the vehicle to be inserted
-        // and add a safety factor
-        const SUMOReal dist = 2 * (veh.getCarFollowModel().brakeGap(myMaxSpeed) + veh.getVehicleType().getMinGap()) + veh.getVehicleType().getLength();
         const SUMOReal backOffset = minPos - veh.getVehicleType().getLength();
-        const SUMOReal missingRearGap = getMissingRearGap(dist, backOffset, mspeed, veh.getCarFollowModel().getMaxDecel());
+        const SUMOReal missingRearGap = getMissingRearGap(backOffset, mspeed, veh.getCarFollowModel().getMaxDecel());
         if (missingRearGap > 0) {
             if (minPos + missingRearGap <= myLength) {
                 // @note. The rear gap is tailored to mspeed. If it changes due
@@ -612,13 +607,8 @@ MSLane::isInsertionSuccess(MSVehicle* aVehicle,
         }
     } else {
         // check approaching vehicles to prevent rear-end collisions
-        // to compute an uper bound on the look-back distance we need
-        // the chosenSpeedFactor, minGap and maxDeceleration of approaching vehicles
-        // since we do not know these we use the values from the vehicle to be inserted
-        // and add a safety factor
-        const SUMOReal dist = 2 * (aVehicle->getCarFollowModel().brakeGap(myMaxSpeed) + aVehicle->getVehicleType().getMinGap()) + aVehicle->getVehicleType().getLength();
         const SUMOReal backOffset = pos - aVehicle->getVehicleType().getLength();
-        const SUMOReal missingRearGap = getMissingRearGap(dist, backOffset, speed, aVehicle->getCarFollowModel().getMaxDecel());
+        const SUMOReal missingRearGap = getMissingRearGap(backOffset, speed, aVehicle->getCarFollowModel().getMaxDecel());
         if (missingRearGap > 0) {
             // too close to a follower
             return false;
@@ -645,11 +635,7 @@ MSLane::forceVehicleInsertion(MSVehicle* veh, SUMOReal pos) {
 SUMOReal
 MSLane::setPartialOccupation(MSVehicle* v, SUMOReal leftVehicleLength) {
     myInlappingVehicle = v;
-    if (leftVehicleLength > myLength) {
-        myInlappingVehicleEnd = 0;
-    } else {
-        myInlappingVehicleEnd = myLength - leftVehicleLength;
-    }
+    myInlappingVehicleEnd = myLength - leftVehicleLength;
     return myLength;
 }
 
@@ -658,8 +644,8 @@ void
 MSLane::resetPartialOccupation(MSVehicle* v) {
     if (v == myInlappingVehicle) {
         myInlappingVehicleEnd = 10000;
+        myInlappingVehicle = 0;
     }
-    myInlappingVehicle = 0;
 }
 
 
@@ -1096,6 +1082,10 @@ MSLane::addApproachingLane(MSLane* lane) {
     MSEdge* approachingEdge = &lane->getEdge();
     if (myApproachingLanes.find(approachingEdge) == myApproachingLanes.end()) {
         myApproachingLanes[approachingEdge] = std::vector<MSLane*>();
+    } else if (approachingEdge->getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
+        // whenever a normal edge connects twice, there is a corresponding
+        // internal edge wich connects twice, one warning is sufficient
+        WRITE_WARNING("Lane '" + getID() + "' is approached multiple times from edge '" + approachingEdge->getID() + "'. This may cause collisions.");
     }
     myApproachingLanes[approachingEdge].push_back(lane);
 }
@@ -1127,11 +1117,12 @@ public:
 
 
 SUMOReal MSLane::getMissingRearGap(
-    SUMOReal dist, SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const {
+    SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const {
     // this follows the same logic as getFollowerOnConsecutive. we do a tree
-    // search until dist and check for the vehicle with the largest missing rear gap
+    // search and check for the vehicle with the largest missing rear gap within
+    // relevant range
     SUMOReal result = 0;
-    std::pair<MSVehicle* const, SUMOReal> followerInfo = getFollowerOnConsecutive(dist, backOffset, leaderSpeed, leaderMaxDecel);
+    std::pair<MSVehicle* const, SUMOReal> followerInfo = getFollowerOnConsecutive(backOffset, leaderSpeed, leaderMaxDecel);
     MSVehicle* v = followerInfo.first;
     if (v != 0) {
         result = v->getCarFollowModel().getSecureGap(v->getSpeed(), leaderSpeed, leaderMaxDecel) - followerInfo.second;
@@ -1140,11 +1131,24 @@ SUMOReal MSLane::getMissingRearGap(
 }
 
 
+SUMOReal 
+MSLane::getMaximumBrakeDist() const {
+    const MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
+    const SUMOReal maxSpeed = getSpeedLimit() * vc.getMaxSpeedFactor();
+    // this is an upper bound on the actual braking distance (see ticket #860)
+    return maxSpeed * maxSpeed * 0.5 / vc.getMinDeceleration();
+}
+
+
 std::pair<MSVehicle* const, SUMOReal>
 MSLane::getFollowerOnConsecutive(
-    SUMOReal dist, SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const {
+    SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const {
     // do a tree search among all follower lanes and check for the most
     // important vehicle (the one requiring the largest reargap)
+    // to get a safe bound on the necessary search depth, we need to consider the maximum speed and minimum
+    // deceleration of potential follower vehicles
+    SUMOReal dist = getMaximumBrakeDist();
+
     std::pair<MSVehicle*, SUMOReal> result(static_cast<MSVehicle*>(0), -1);
     SUMOReal missingRearGapMax = -std::numeric_limits<SUMOReal>::max();
     std::set<MSLane*> visited;
@@ -1189,6 +1193,7 @@ MSLane::getFollowerOnConsecutive(
                             ili.length = (*j).length + (*i).length;
                             ili.viaLink = (*j).viaLink;
                             newFound.push_back(ili);
+                            dist = MAX2(dist, ili.lane->getMaximumBrakeDist());
                         }
                     }
                 }

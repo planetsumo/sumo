@@ -78,7 +78,6 @@
 #include "TraCIServerAPI_Lane.h"
 #include "TraCIServerAPI_MeMeDetector.h"
 #include "TraCIServerAPI_ArealDetector.h"
-
 #include "TraCIServerAPI_TLS.h"
 #include "TraCIServerAPI_Vehicle.h"
 #include "TraCIServerAPI_VehicleType.h"
@@ -87,6 +86,7 @@
 #include "TraCIServerAPI_Polygon.h"
 #include "TraCIServerAPI_Edge.h"
 #include "TraCIServerAPI_Simulation.h"
+#include "TraCIServerAPI_Person.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -142,6 +142,8 @@ TraCIServer::TraCIServer(const SUMOTime begin, bool printVTDdebug, bool printVTD
     myExecutors[CMD_SET_EDGE_VARIABLE] = &TraCIServerAPI_Edge::processSet;
     myExecutors[CMD_GET_SIM_VARIABLE] = &TraCIServerAPI_Simulation::processGet;
     myExecutors[CMD_SET_SIM_VARIABLE] = &TraCIServerAPI_Simulation::processSet;
+    myExecutors[CMD_GET_PERSON_VARIABLE] = &TraCIServerAPI_Person::processGet;
+    myExecutors[CMD_SET_PERSON_VARIABLE] = &TraCIServerAPI_Person::processSet;
 
     myParameterSizes[VAR_LEADER] = 9;
 
@@ -182,15 +184,14 @@ TraCIServer::~TraCIServer() {
 // ---------- Initialisation and Shutdown
 void
 TraCIServer::openSocket(const std::map<int, CmdExecutor>& execs) {
-    if (myInstance == 0) {
-        if (!myDoCloseConnection && OptionsCont::getOptions().getInt("remote-port") != 0) {
-            myInstance = new TraCIServer(string2time(OptionsCont::getOptions().getString("begin")),
-                OptionsCont::getOptions().getBool("debug.vtd"),
-                OptionsCont::getOptions().getBool("debug.vtd-angle"),
-                OptionsCont::getOptions().getInt("remote-port"));
-            for (std::map<int, CmdExecutor>::const_iterator i = execs.begin(); i != execs.end(); ++i) {
-                myInstance->myExecutors[i->first] = i->second;
-            }
+    if (myInstance != 0) {
+        return;
+    }
+    if (!myDoCloseConnection && OptionsCont::getOptions().getInt("remote-port") != 0) {
+        myInstance = new TraCIServer(string2time(OptionsCont::getOptions().getString("begin")),
+            OptionsCont::getOptions().getInt("remote-port"));
+        for (std::map<int, CmdExecutor>::const_iterator i = execs.begin(); i != execs.end(); ++i) {
+            myInstance->myExecutors[i->first] = i->second;
         }
     }
 }
@@ -198,11 +199,12 @@ TraCIServer::openSocket(const std::map<int, CmdExecutor>& execs) {
 
 void
 TraCIServer::close() {
-    if (myInstance != 0) {
-        delete myInstance;
-        myInstance = 0;
-        myDoCloseConnection = true;
+    if (myInstance == 0) {
+        return;
     }
+    delete myInstance;
+    myInstance = 0;
+    myDoCloseConnection = true;
 }
 
 
@@ -218,6 +220,7 @@ TraCIServer::setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOff
     myVTDControlledVehicles[v->getID()] = v;
     v->getInfluencer().setVTDControlled(true, l, pos, edgeOffset, route, t);
 }
+
 
 void
 TraCIServer::postProcessVTD() {

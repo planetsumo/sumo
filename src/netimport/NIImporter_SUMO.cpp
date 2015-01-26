@@ -246,10 +246,14 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
             EdgeVector edges;
             for (std::vector<std::string>::const_iterator it_e = crossing.crossingEdges.begin(); it_e != crossing.crossingEdges.end(); ++it_e) {
                 NBEdge* edge = myNetBuilder.getEdgeCont().retrieve(*it_e);
-                assert(edge != 0);
-                edges.push_back(edge);
+                // edge might have been removed due to options
+                if (edge != 0) {
+                    edges.push_back(edge);
+                }
             }
-            node->addCrossing(edges, crossing.width, crossing.priority);
+            if (edges.size() > 0) {
+                node->addCrossing(edges, crossing.width, crossing.priority);
+            }
         }
     }
     // add roundabouts
@@ -469,6 +473,8 @@ void
 NIImporter_SUMO::addJunction(const SUMOSAXAttributes& attrs) {
     // get the id, report an error if not given or empty...
     myCurrentJunction.node = 0;
+    myCurrentJunction.intLanes.clear();
+    myCurrentJunction.response.clear();
     bool ok = true;
     std::string id = attrs.get<std::string>(SUMO_ATTR_ID, 0, ok);
     if (!ok) {

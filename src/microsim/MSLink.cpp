@@ -37,11 +37,11 @@
 #include "MSNet.h"
 #include "MSLink.h"
 #include "MSLane.h"
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
 #include "MSEdge.h"
 #include "MSGlobals.h"
 #include "MSVehicle.h"
-#include "MSPModel.h"
+#include <microsim/pedestrians/MSPModel.h>
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -429,7 +429,7 @@ MSLink::getLeaderInfo(SUMOReal dist, SUMOReal minGap, std::vector<const MSPerson
     LinkLeaders result;
     // this link needs to start at an internal lane (either an exit link or between two internal lanes)
     if (MSGlobals::gUsingInternalLanes && (
-                (myJunctionInlane == 0 && getLane()->getEdge().getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL)
+                (myJunctionInlane == 0 && getLane()->getEdge().getPurpose() == MSEdge::EDGEFUNCTION_NORMAL)
                 || (myJunctionInlane != 0 && myJunctionInlane->getLogicalPredecessorLane()->getEdge().isInternal()))) {
         //std::cout << " getLeaderInfo link=" << getViaLaneOrLane()->getID() << "\n";
         // this is an exit link

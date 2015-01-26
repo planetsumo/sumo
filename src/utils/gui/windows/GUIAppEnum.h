@@ -159,6 +159,8 @@ enum {
     MID_LOCATEEDGE,
     /// Locate vehicle - button
     MID_LOCATEVEHICLE,
+    /// Locate person - button
+    MID_LOCATEPERSON,
     /// Locate TLS - button
     MID_LOCATETLS,
     /// Locate addtional structure - button
@@ -251,6 +253,10 @@ enum {
     MID_SHOW_FOES,
     MID_SHOW_LFLINKITEMS,
     MID_HIDE_LFLINKITEMS,
+    /// Show persons's path on walkingarea
+    MID_SHOW_WALKINGAREA_PATH,
+    /// Hide persons's path on walkingarea
+    MID_HIDE_WALKINGAREA_PATH,
     //@}
 
 
