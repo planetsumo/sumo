@@ -961,7 +961,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
             const SUMOReal stopDist = seen + endPos - lane->getLength();
             const SUMOReal stopSpeed = cfModel.stopSpeed(this, getSpeed(), stopDist);
             if (lastLink != 0) {
-                lastLink->adaptLeaveSpeed(stopSpeed);
+                lastLink->adaptLeaveSpeed(cfModel.stopSpeed(this, vLinkPass, endPos));
             }
             v = MIN2(v, stopSpeed);
             lfLinks.push_back(DriveProcessItem(v, stopDist));
@@ -1029,7 +1029,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         const SUMOReal brakeDist = cfModel.brakeGap(myState.mySpeed) - myState.mySpeed * cfModel.getHeadwayTime();
         if (yellowOrRed && seen >= brakeDist ) {
             // the vehicle is able to brake in front of a yellow/red traffic light
-            lfLinks.push_back(DriveProcessItem(*link, vLinkWait, vLinkWait, false, t + TIME2STEPS(seen / MAX2(vLinkWait, NUMERICAL_EPS)), vLinkWait, 0, SUMOTime_MAX, stopDist));
+            lfLinks.push_back(DriveProcessItem(*link, vLinkWait, vLinkWait, false, t + TIME2STEPS(seen / MAX2(vLinkWait, NUMERICAL_EPS)), vLinkWait, 0, SUMOTime_MAX, seen));
             //lfLinks.push_back(DriveProcessItem(0, vLinkWait, vLinkWait, false, 0, 0, stopDist));
             break;
         }
@@ -1104,7 +1104,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
         lfLinks.push_back(DriveProcessItem(*link, v, vLinkWait, setRequest,
                                            arrivalTime, arrivalSpeed,
                                            arrivalTimeBraking, arrivalSpeedBraking,
-                                           stopDist,
+                                           seen,
                                            estimateLeaveSpeed(*link, vLinkPass)));
 #ifdef HAVE_INTERNAL_LANES
         if ((*link)->getViaLane() == 0) {
@@ -1223,7 +1223,7 @@ MSVehicle::executeMove() {
                                              getVehicleType().getLength(), getImpatience(),
                                              getCarFollowModel().getMaxDecel(), getWaitingTime());
             // vehicles should decelerate when approaching a minor link
-            if (opened && !influencerPrio && !link->havePriority() && !link->lastWasContMajor()) {
+            if (opened && !influencerPrio && !link->havePriority() && !link->lastWasContMajor() && !link->isCont()) {
                 if ((*i).myDistance > getCarFollowModel().getMaxDecel()) {
                     vSafe = (*i).myVLinkWait;
                     myHaveToWaitOnNextLink = true;
@@ -1278,12 +1278,18 @@ MSVehicle::executeMove() {
 
     // XXX braking due to lane-changing is not registered
     bool braking = vSafe < getSpeed();
-    // apply speed reduction due to dawdling / lane changing but ensure minimum save speed
+    // apply speed reduction due to dawdling / lane changing but ensure minimum safe speed
     SUMOReal vNext = MAX2(getCarFollowModel().moveHelper(this, vSafe), vSafeMin);
 
-    //if (vNext > vSafe) {
+    // vNext may be higher than vSafe without implying a bug:
+    //  - when approaching a green light that suddenly switches to yellow
+    //  - when using unregulated junctions
+    //  - when using tau < step-size
+    //  - when using unsafe car following models
+    //  - when using TraCI and some speedMode / laneChangeMode settings
+    //if (vNext > vSafe + NUMERICAL_EPS) {
     //    WRITE_WARNING("vehicle '" + getID() + "' cannot brake hard enough to reach safe speed "
-    //            + toString(vSafe) + ", moving at " + toString(vNext) + " instead. time="
+    //            + toString(vSafe, 4) + ", moving at " + toString(vNext, 4) + " instead. time="
     //            + time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
     //}
     vNext = MAX2(vNext, (SUMOReal) 0.);
