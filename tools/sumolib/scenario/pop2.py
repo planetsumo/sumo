@@ -2473,6 +2473,300 @@ class ScenarioSet_BasicRiLSANet(ScenarioSet):
     return "!!!RWS type"
         
 #--------------------------------------
+        
+class ScenarioSet_BasicRiLSANet2x2(ScenarioSet):
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "BasicRiLSANet2x2", merge(
+      {},
+      params))
+    if "other-green" not in self.params:
+      self.params["other-green"] = 31
+  def getNumRuns(self):
+    return 3*3*3*3
+  """
+  Yields returning a built scenario and its description as key/value pairs
+  """
+  def iterateScenarios(self):
+    desc = {"name":"BasicRiLSANet2x2"}
+    RWScurves = getRWScurves()
+    for iWE,cWE in enumerate(RWScurves):
+      for iNS,cNS in enumerate(RWScurves):
+        for iEW,cEW in enumerate(RWScurves):
+          for iSN,cSN in enumerate(RWScurves):
+            yield self.getSingle(RWScurves, iWE, iNS, iEW, iSN)#s, desc, sID
+  def getSingle(self, RWScurves, iWE, iNS, iEW, iSN, uID=None):
+    cWE = RWScurves[iWE]        
+    cNS = RWScurves[iNS]        
+    cEW = RWScurves[iEW]        
+    cSN = RWScurves[iSN]        
+    print "Computing for %s %s %s %s" % (iWE, iNS, iEW, iSN)
+    if uID==None:
+      sID = "BasicRiLSANet(%s-%s-%s-%s)" % (iWE, iNS, iEW, iSN)
+    else:
+      sID = "BasicRiLSANet(%s)" % (uID)
+    s = getScenario("BasicRiLSANet2x2", "BasicRiLSANet2x2", self.params)
+    s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
+    if True:#fileNeedsRebuild(s.demandName, "duarouter"):
+      nStreams = []
+      for stream in s.demand.streams:
+        if stream._departEdgeModel.find("/5_to")>=0:
+          nStreams.extend(extrapolateDemand(stream, 3600, cNS, 7).streams)
+        elif stream._departEdgeModel.startswith("5/"):
+          nStreams.extend(extrapolateDemand(stream, 3600, cEW, 7).streams)
+        elif stream._departEdgeModel.find("/0_to")>=0:
+          nStreams.extend(extrapolateDemand(stream, 3600, cSN, 7).streams)
+        elif stream._departEdgeModel.startswith("0/"):
+          nStreams.extend(extrapolateDemand(stream, 3600, cWE, 7).streams)
+        else:
+          print stream._departEdgeModel
+          raise "Hmmm, unknown stream??"
+      s.demand.streams = nStreams 
+      end = 86400
+      s.demand.build(0, end, s.netName, s.demandName, None)
+      desc = {"scenario":"BasicRiLSANet2x2", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
+      return s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    RWScurves = getRWScurves()
+    i = 0
+    for iWE,cWE in enumerate(RWScurves):
+      for iNS,cNS in enumerate(RWScurves):
+        ret.append([])
+        ranges[0].append(i)
+        i = i + 1
+        j = 0
+        for iEW,cEW in enumerate(RWScurves):
+          for iSN,cSN in enumerate(RWScurves):
+            ret[-1].append({"iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN), "scenario":"BasicRiLSANet2x2"})
+            ranges[-1].append(j)
+            j = j + 1
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!        
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.sandboxPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.sandboxPath("tls_adapted_%s.add.xml" % sID), "w")
+    print "Hahah"
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.fullPath(scenario.TLS_FILE), withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      (streamsNS, streamsWE) = scenario.getOppositeFlows()
+      (greens, times) = scenario.buildWAUT(streamsNS, streamsWE)
+      for prog in tls._programs:
+        i1 = i2 = 0
+        for i,p in enumerate(tls._programs[prog]._phases):
+          if p[1]==40:
+            i1 = i
+          elif p[1]==12:
+            i2 = i
+        for t in greens:
+          tls._programs[prog]._type = tls_algorithm
+          tls._programs[prog]._id = "adapted" + str(t)
+          self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
+          tls._programs[prog]._phases[i1][1] = greens[t][1]
+          tls._programs[prog]._phases[i2][1] = greens[t][0]
+          fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
+      fdo.write('\n\t<WAUT startProg="adapted1" refTime="0" id="WAUT_%s">\n' % tlsID)
+      for t in times:
+        fdo.write('\t\t<wautSwitch to="adapted%s" time="%s"/>\n' % (t[1], t[0]*3600))
+      fdo.write("\t</WAUT>\n")
+      fdo.write('\n\t<wautJunction junctionID="%s" wautID="WAUT_%s"/>\n' % (tlsID, tlsID)) 
+    fdo.write("</additional>\n")
+    fdo.close()
+    args = []
+    return args
+  def adapt2TLS2(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.sandboxPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.sandboxPath("tls_adapted_%s.add.xml" % sID), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.fullPath(scenario.TLS_FILE), withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      """
+      (streamsNS, streamsWE) = scenario.getOppositeFlows2()
+      ns = streamsNS[0] / (streamsNS[0]+streamsWE[0])
+      we = streamsWE[0] / (streamsNS[0]+streamsWE[0])
+      greens = split_by_proportions(72, (ns, we), (10, 10))
+      """
+      for prog in tls._programs:
+        """
+        i1 = i2 = 0
+        for i,p in enumerate(tls._programs[prog]._phases):
+          if p[1]==40:
+            i1 = i
+          elif p[1]==12:
+            i2 = i
+        tls._programs[prog]._phases[i1][1] = greens[1]
+        tls._programs[prog]._phases[i2][1] = greens[0]
+        """
+        tls._programs[prog]._id = "adapted"
+        if tlsID in ["2/3", "3/3", "2/2", "3/2"]:
+          tls._programs[prog]._type = tls_algorithm
+        else:
+          tls._programs[prog]._type = "actuated"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
+        fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
+    fdo.write("</additional>\n")
+    fdo.close()
+    args = []
+    return args
+  def getXLabel(self):
+    return "!!!RWS type"
+  def getYLabel(self):
+    return "!!!RWS type"
+    
+#--------------------------------------
+        
+class ScenarioSet_BasicRiLSACorridor3(ScenarioSet):
+  def __init__(self, params):
+    ScenarioSet.__init__(self, "BasicRiLSACorridor3", merge(
+      {},
+      params))
+    if "other-green" not in self.params:
+      self.params["other-green"] = 31
+  def getNumRuns(self):
+    return 3*3*3*3
+  """
+  Yields returning a built scenario and its description as key/value pairs
+  """
+  def iterateScenarios(self):
+    desc = {"name":"BasicRiLSACorridor3"}
+    RWScurves = getRWScurves()
+    for iWE,cWE in enumerate(RWScurves):
+      for iNS,cNS in enumerate(RWScurves):
+        for iEW,cEW in enumerate(RWScurves):
+          for iSN,cSN in enumerate(RWScurves):
+            yield self.getSingle(RWScurves, iWE, iNS, iEW, iSN)#s, desc, sID
+  def getSingle(self, RWScurves, iWE, iNS, iEW, iSN, uID=None):
+    cWE = RWScurves[iWE]        
+    cNS = RWScurves[iNS]        
+    cEW = RWScurves[iEW]        
+    cSN = RWScurves[iSN]        
+    print "Computing for %s %s %s %s" % (iWE, iNS, iEW, iSN)
+    if uID==None:
+      sID = "BasicRiLSACorridor3(%s-%s-%s-%s)" % (iWE, iNS, iEW, iSN)
+    else:
+      sID = "BasicRiLSACorridor3(%s)" % (uID)
+    s = getScenario("BasicRiLSACorridor3", "BasicRiLSACorridor3", self.params)
+    s.demandName = s.fullPath("routes_%s.rou.xml" % sID)
+    if True:#fileNeedsRebuild(s.demandName, "duarouter"):
+      nStreams = []
+      for stream in s.demand.streams:
+        if stream._departEdgeModel.find("/4_to")>=0:
+          nStreams.extend(extrapolateDemand(stream, 3600, cNS, 7).streams)
+        elif stream._departEdgeModel.startswith("6/"):
+          nStreams.extend(extrapolateDemand(stream, 3600, cEW, 7).streams)
+        elif stream._departEdgeModel.find("/0_to")>=0:
+          nStreams.extend(extrapolateDemand(stream, 3600, cSN, 7).streams)
+        elif stream._departEdgeModel.startswith("0/"):
+          nStreams.extend(extrapolateDemand(stream, 3600, cWE, 7).streams)
+        else:
+          print stream._departEdgeModel
+          raise "Hmmm, unknown stream??" 
+      s.demand.streams = nStreams 
+      end = 86400
+      s.demand.build(0, end, s.netName, s.demandName, None)
+      desc = {"scenario":"BasicRiLSACorridor3", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
+      return s, desc, sID
+  def getRunsMatrix(self):
+    ret = []
+    ranges = [[], []]
+    RWScurves = getRWScurves()
+    i = 0
+    for iWE,cWE in enumerate(RWScurves):
+      for iNS,cNS in enumerate(RWScurves):
+        ret.append([])
+        ranges[0].append(i)
+        i = i + 1
+        j = 0
+        for iEW,cEW in enumerate(RWScurves):
+          for iSN,cSN in enumerate(RWScurves):
+            ret[-1].append({"iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN), "scenario":"BasicRiLSACorridor3"})
+            ranges[-1].append(j)
+            j = j + 1
+    return (ret, ranges)
+  def getAverageDuration(self):
+    return -1 # !!!        
+  def adapt2TLS(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.sandboxPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.sandboxPath("tls_adapted_%s.add.xml" % sID), "w")
+    print "Hahah"
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.fullPath(scenario.TLS_FILE), withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      (streamsNS, streamsWE) = scenario.getOppositeFlows()
+      (greens, times) = scenario.buildWAUT(streamsNS, streamsWE)
+      for prog in tls._programs:
+        i1 = i2 = 0
+        for i,p in enumerate(tls._programs[prog]._phases):
+          if p[1]==40:
+            i1 = i
+          elif p[1]==12:
+            i2 = i
+        for t in greens:
+          tls._programs[prog]._type = tls_algorithm
+          tls._programs[prog]._id = "adapted" + str(t)
+          self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
+          tls._programs[prog]._phases[i1][1] = greens[t][1]
+          tls._programs[prog]._phases[i2][1] = greens[t][0]
+          fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
+      fdo.write('\n\t<WAUT startProg="adapted1" refTime="0" id="WAUT_%s">\n' % tlsID)
+      for t in times:
+        fdo.write('\t\t<wautSwitch to="adapted%s" time="%s"/>\n' % (t[1], t[0]*3600))
+      fdo.write("\t</WAUT>\n")
+      fdo.write('\n\t<wautJunction junctionID="%s" wautID="WAUT_%s"/>\n' % (tlsID, tlsID)) 
+    fdo.write("</additional>\n")
+    fdo.close()
+    args = []
+    return args
+  def adapt2TLS2(self, sID, scenario, options, tls_algorithm):
+    # adapt tls to current settings
+    scenario.addAdditionalFile(scenario.sandboxPath("tls_adapted_%s" % sID))
+    fdo = open(scenario.sandboxPath("tls_adapted_%s.add.xml" % sID), "w")
+    fdo.write("<additional>\n")
+    net = sumolib.net.readNet(scenario.fullPath(scenario.TLS_FILE), withPrograms=True)
+    for tlsID in net._id2tls:
+      tls = net._id2tls[tlsID]
+      """
+      (streamsNS, streamsWE) = scenario.getOppositeFlows2()
+      ns = streamsNS[0] / (streamsNS[0]+streamsWE[0])
+      we = streamsWE[0] / (streamsNS[0]+streamsWE[0])
+      greens = split_by_proportions(72, (ns, we), (10, 10))
+      """
+      for prog in tls._programs:
+        """
+        i1 = i2 = 0
+        for i,p in enumerate(tls._programs[prog]._phases):
+          if p[1]==40:
+            i1 = i
+          elif p[1]==12:
+            i2 = i
+        tls._programs[prog]._phases[i1][1] = greens[1]
+        tls._programs[prog]._phases[i2][1] = greens[0]
+        """
+        tls._programs[prog]._id = "adapted"
+        if tlsID in ["2/2", "3/2", "4/2"]:
+          tls._programs[prog]._type = tls_algorithm
+        else:
+          tls._programs[prog]._type = "actuated"
+        self.addTLSParameterFromFile(tls._programs[prog], options.tls_params)
+        fdo.write(tls._programs[prog].toXML(tlsID)+"\n")
+    fdo.write("</additional>\n")
+    fdo.close()
+    args = []
+    return args
+  def getXLabel(self):
+    return "!!!RWS type"
+  def getYLabel(self):
+    return "!!!RWS type"
+        
+#--------------------------------------
 
 
 
@@ -2527,6 +2821,12 @@ def getScenarioSet(name, params):
     return ScenarioSet_RealWorld(params)
   if name=="BasicRiLSANet":
     return ScenarioSet_BasicRiLSANet(params)
+  if name=="BasicRiLSANet2x2":
+    return ScenarioSet_BasicRiLSANet2x2(params)
+  if name=="BasicRiLSACorridor3":
+    return ScenarioSet_BasicRiLSACorridor3(params)
+    
+    
   raise "unknown scenario '%s'" % name
 
 def getAllScenarioSets():
