@@ -78,8 +78,8 @@ class Scenario_BasicRiLSANet2x2(Scenario):
       for y in range(1, 5):
         for x in range(1, 5):
             eedge = "%s/%s_to_%s/%s.-100" % (x-1, y, x, y) 
-            wedge = "%s/%s_to_%s/%s.-100" % (x, y, x+1, y) 
-            nedge = "%s/%s_to_%s/%s.-100" % (x, y, x, y+1) 
+            wedge = "%s/%s_to_%s/%s.-100" % (x+1, y, x, y) 
+            nedge = "%s/%s_to_%s/%s.-100" % (x, y+1, x, y) 
             sedge = "%s/%s_to_%s/%s.-100" % (x, y-1, x, y) 
             fdow.write('   <tlLogic id="%s/%s" type="actuated" programID="adapted" offset="0">\n' % (x,y))
             fdow.write('      <phase duration="31" state="rrrrrGGgrrrrrGGgGrGr" minDur="10" maxDur="50" type="target;decisional" targetLanes="%s_1 %s_2 %s_1 %s_2"/>\n' % (eedge, eedge, wedge, wedge))
@@ -121,6 +121,7 @@ class Scenario_BasicRiLSANet2x2(Scenario):
                 iedge = "5/%s_to_4/%s" % (ie, ie) 
                 for ve in range(5, 0, -1): via.append("%s/%s_to_%s/%s" % (ve, ie, ve-1, ie))
             if oe==0:
+                #if ie<2 or ie>3: continue # discard vehicles not passing the center
                 if rel[0]=="mn": oedge = "%s/4_to_%s/5.-100" % (ie, ie) 
                 if rel[0]=="ms": oedge = "%s/1_to_%s/0.-100" % (ie, ie) 
                 if rel[0]=="mw": oedge = "1/%s_to_0/%s.-100" % (ie, ie) 
@@ -137,7 +138,7 @@ class Scenario_BasicRiLSANet2x2(Scenario):
                     oedge = "1/%s_to_0/%s.-100" % (oee, oee) 
                 if rel[0]=="me": 
                     oedge = "4/%s_to_5/%s.-100" % (oee, oee) 
-                print "%s %s " % (oee, via)
+                #if (ie<2 or ie>3) and (oee<2 or oee>3): continue # discard vehicles not passing the center
                 self.demand.addStream(demandGenerator.Stream(iedge+"__"+oedge, 0, 3600, int(flow/3.), iedge, oedge, 
                   { "passenger":pkwEprob, "COLOMBO_undetectable_passenger":pkwNprob, "hdv":lkwEprob, "COLOMBO_undetectable_hdv":lkwNprob }))
       if fileNeedsRebuild(self.demandName, "duarouter"):

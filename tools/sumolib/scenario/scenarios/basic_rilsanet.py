@@ -52,8 +52,8 @@ class Scenario_BasicRiLSANet(Scenario):
   def __init__(self, name, params, withDefaultDemand=True):
     Scenario.__init__(self, self.NAME)
     self.params = params
-    self.netName = self.fullPath(self.NET_FILE)
     self.demandName = self.fullPath("routes.rou.xml")
+    self.netName = self.fullPath(self.NET_FILE)
     # network
     if fileNeedsRebuild(self.fullPath(self.NET_FILE), "netconvert"):
       print "Network in '%s' needs to be rebuild" % self.netName
@@ -77,8 +77,8 @@ class Scenario_BasicRiLSANet(Scenario):
       for y in range(1, 4):
         for x in range(1, 4):
             eedge = "%s/%s_to_%s/%s.-100" % (x-1, y, x, y) 
-            wedge = "%s/%s_to_%s/%s.-100" % (x, y, x+1, y) 
-            nedge = "%s/%s_to_%s/%s.-100" % (x, y, x, y+1) 
+            wedge = "%s/%s_to_%s/%s.-100" % (x+1, y, x, y) 
+            nedge = "%s/%s_to_%s/%s.-100" % (x, y+1, x, y) 
             sedge = "%s/%s_to_%s/%s.-100" % (x, y-1, x, y) 
             fdow.write('   <tlLogic id="%s/%s" type="static" programID="adapted" offset="0">\n' % (x,y))
             fdow.write('      <phase duration="31" state="rrrrrGGgrrrrrGGgGrGr" minDur="10" maxDur="50" type="target;decisional" targetLanes="%s_1 %s_2 %s_1 %s_2"/>\n' % (eedge, eedge, wedge, wedge))

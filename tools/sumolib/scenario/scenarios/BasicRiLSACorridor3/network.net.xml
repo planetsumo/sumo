@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 01/22/15 11:43:13 by SUMO netconvert Version dev-SVN-rUNKNOWN
+<!-- generated on 02/03/15 14:27:57 by SUMO netconvert Version dev-SVN-r17707
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <node-files value="c:\users\dkrajzew\appdata\local\temp\tmpgnpguv"/>
-        <edge-files value="c:\users\dkrajzew\appdata\local\temp\tmpw57n2j"/>
-        <connection-files value="c:\users\dkrajzew\appdata\local\temp\tmpzo8jxb"/>
+        <node-files value="c:\users\dkrajzew\appdata\local\temp\tmpilwcg3"/>
+        <edge-files value="c:\users\dkrajzew\appdata\local\temp\tmp6ybi_f"/>
+        <connection-files value="c:\users\dkrajzew\appdata\local\temp\tmps34oov"/>
     </input>
 
     <output>

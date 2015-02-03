@@ -56,7 +56,7 @@ class Scenario_BasicRiLSACorridor3(Scenario):
     self.netName = self.fullPath(self.NET_FILE)
     # network
     if fileNeedsRebuild(self.fullPath(self.NET_FILE), "netconvert"):
-      print "Network in '%s' needs to be rebuild" % self.fullPath(self.NET_FILE)
+      print "Network in '%s' needs to be rebuild" % self.netName
       lanes = [Lane(dirs="s", allowed="pedestrian"), Lane(dirs="rs", disallowed="pedestrian")]#, Lane(dirs="l", disallowed="pedestrian")]
       defaultEdge = Edge(numLanes=2, maxSpeed=13.89, lanes=lanes)
       defaultEdge.addSplit(100, 0, 1)
@@ -71,15 +71,15 @@ class Scenario_BasicRiLSACorridor3(Scenario):
           netGen._nodes[n].addCrossing("%s/%s_to_%s.-100" % (nid[0]+1, nid[1], n), "%s_to_%s/%s" % (n, nid[0]+1, nid[1]))
           netGen._nodes[n].addCrossing("%s/%s_to_%s.-100" % (nid[0], nid[1]-1, n), "%s_to_%s/%s" % (n, nid[0], nid[1]-1))
           netGen._nodes[n].addCrossing("%s/%s_to_%s.-100" % (nid[0], nid[1]+1, n), "%s_to_%s/%s" % (n, nid[0], nid[1]+1))
-      netGen.build(self.fullPath(self.NET_FILE)) # not nice, the network name should be given/returned
+      netGen.build(self.netName) # not nice, the network name should be given/returned
     if True:
       fdow = open(self.fullPath(self.TLS_FILE), "w")
       fdow.write('<additional>\n\n')
       for y in range(1, 4):
         for x in range(1, 6):
             eedge = "%s/%s_to_%s/%s.-100" % (x-1, y, x, y) 
-            wedge = "%s/%s_to_%s/%s.-100" % (x, y, x+1, y) 
-            nedge = "%s/%s_to_%s/%s.-100" % (x, y, x, y+1) 
+            wedge = "%s/%s_to_%s/%s.-100" % (x+1, y, x, y) 
+            nedge = "%s/%s_to_%s/%s.-100" % (x, y+1, x, y) 
             sedge = "%s/%s_to_%s/%s.-100" % (x, y-1, x, y) 
             fdow.write('   <tlLogic id="%s/%s" type="actuated" programID="adapted" offset="0">\n' % (x,y))
             fdow.write('      <phase duration="31" state="rrrrrGGgrrrrrGGgGrGr" minDur="10" maxDur="50" type="target;decisional" targetLanes="%s_1 %s_2 %s_1 %s_2"/>\n' % (eedge, eedge, wedge, wedge))
@@ -123,6 +123,7 @@ class Scenario_BasicRiLSACorridor3(Scenario):
                 iedge = "6/%s_to_5/%s" % (ie, ie) 
                 for ve in range(5, 0, -1): via.append("%s/%s_to_%s/%s" % (ve, ie, ve-1, ie))
             if oe==0:
+                #if ie<2 or ie>2: continue # discard vehicles not passing the center
                 if rel[0]=="mn": oedge = "%s/3_to_%s/4.-100" % (ie, ie) 
                 if rel[0]=="ms": oedge = "%s/1_to_%s/0.-100" % (ie, ie) 
                 if rel[0]=="mw": oedge = "1/%s_to_0/%s.-100" % (ie, ie) 
@@ -139,7 +140,7 @@ class Scenario_BasicRiLSACorridor3(Scenario):
                     oedge = "1/%s_to_0/%s.-100" % (oee, oee) 
                 if rel[0]=="me": 
                     oedge = "5/%s_to_6/%s.-100" % (oee, oee) 
-                print "%s %s " % (oee, via)
+                #if (ie<2 or ie>2) and (oee<2 or oee>2): continue # discard vehicles not passing the center
                 self.demand.addStream(demandGenerator.Stream(iedge+"__"+oedge, 0, 3600, int(flow/3.), iedge, oedge, 
                   { "passenger":pkwEprob, "COLOMBO_undetectable_passenger":pkwNprob, "hdv":lkwEprob, "COLOMBO_undetectable_hdv":lkwNprob }))
       if fileNeedsRebuild(self.demandName, "duarouter"):
