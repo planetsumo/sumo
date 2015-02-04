@@ -66,7 +66,7 @@ class Scenario_BasicRiLSANet2x2(Scenario):
         nid = n.split("/")
         nid[0] = int(nid[0])
         nid[1] = int(nid[1])
-        if nid[0]>0 and nid[0]<6 and nid[1]>0 and nid[1]<4:
+        if nid[0]>0 and nid[0]<5 and nid[1]>0 and nid[1]<5:
           netGen._nodes[n].addCrossing("%s/%s_to_%s.-100" % (nid[0]-1, nid[1], n), "%s_to_%s/%s" % (n, nid[0]-1, nid[1]))
           netGen._nodes[n].addCrossing("%s/%s_to_%s.-100" % (nid[0]+1, nid[1], n), "%s_to_%s/%s" % (n, nid[0]+1, nid[1]))
           netGen._nodes[n].addCrossing("%s/%s_to_%s.-100" % (nid[0], nid[1]-1, n), "%s_to_%s/%s" % (n, nid[0], nid[1]-1))
