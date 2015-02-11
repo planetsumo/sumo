@@ -18,3 +18,4 @@ off
 # Tests for error handling
 errors
 actuated
+rail_signal
