@@ -578,7 +578,8 @@ enum SumoXMLAttr {
 enum SumoXMLNodeType {
     NODETYPE_UNKNOWN, // terminator
     NODETYPE_TRAFFIC_LIGHT,
-    NODETYPE_TRAFFIC_LIGHT_NOJUNCTION, // junction controlled only by traffic light but without other prohibitions
+    NODETYPE_TRAFFIC_LIGHT_NOJUNCTION, // junction controlled only by traffic light but without other prohibitions,
+    NODETYPE_RAIL_SIGNAL,
     NODETYPE_PRIORITY,
     NODETYPE_PRIORITY_STOP, // like priority but all minor links have stop signs
     NODETYPE_RIGHT_BEFORE_LEFT,
@@ -587,8 +588,7 @@ enum SumoXMLNodeType {
     NODETYPE_NOJUNCTION,
     NODETYPE_INTERNAL,
     NODETYPE_DEAD_END,
-    NODETYPE_DEAD_END_DEPRECATED,
-    NODETYPE_RAIL_SIGNAL
+    NODETYPE_DEAD_END_DEPRECATED
 };
 
 
@@ -696,8 +696,8 @@ enum LinkDirection {
 enum TrafficLightType {
     TLTYPE_STATIC,
     TLTYPE_ACTUATED,
-    TLTYPE_AGENT,
-    TLTYPE_RAIL
+    TLTYPE_RAIL,
+    TLTYPE_AGENT
 };
 
 

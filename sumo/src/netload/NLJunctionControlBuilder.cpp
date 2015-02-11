@@ -123,6 +123,7 @@ NLJunctionControlBuilder::closeJunction() {
             junction = buildNoLogicJunction();
             break;
         case NODETYPE_TRAFFIC_LIGHT:
+        case NODETYPE_RAIL_SIGNAL: 
         case NODETYPE_RIGHT_BEFORE_LEFT:
         case NODETYPE_PRIORITY:
         case NODETYPE_PRIORITY_STOP:
@@ -130,7 +131,6 @@ NLJunctionControlBuilder::closeJunction() {
             junction = buildLogicJunction();
             break;
         case NODETYPE_INTERNAL:
-        case NODETYPE_RAIL_SIGNAL:
 #ifdef HAVE_INTERNAL_LANES
             if (MSGlobals::gUsingInternalLanes) {
                 junction = buildInternalJunction();
@@ -216,32 +216,30 @@ NLJunctionControlBuilder::closeTrafficLightLogic() {
         }
         return;
     }
-//    std::cout <<"id = " << myActiveID << " type = " << myType <<"\n";
-    if (myAbsDuration == 0 && myType != NODETYPE_RAIL_SIGNAL) {
-//        std::cout << NODETYPE_RAIL_SIGNAL << " " << NODETYPE_UNKNOWN<< " "  << NODETYPE_TRAFFIC_LIGHT<< " "  << NODETYPE_TRAFFIC_LIGHT_NOJUNCTION << " " << NODETYPE_PRIORITY<< " "  << NODETYPE_NOJUNCTION<< "\n";
-  //      std::cout <<"id = " << myActiveKey << " type = " << myType <<"\n";
-        throw InvalidArgument("TLS program '" + myActiveProgram + "' for TLS '" + myActiveKey + "' has a duration of 0.");
-    }
-    // compute the initial step and first switch time of the tls-logic
-    // a positive offset delays all phases by x (advance by absDuration - x) while a negative offset advances all phases by x seconds
-    // @note The implementation of % for negative values is implementation defined in ISO1998
-    SUMOTime offset; // the time to run the traffic light in advance
-    if (myOffset >= 0) {
-        offset = (myNet.getCurrentTimeStep() + myAbsDuration - (myOffset % myAbsDuration)) % myAbsDuration;
-    } else {
-        offset = (myNet.getCurrentTimeStep() + ((-myOffset) % myAbsDuration)) % myAbsDuration;
-    }
-    unsigned int step = 0;
     SUMOTime firstEventOffset = 0;
+    unsigned int step = 0;
     MSSimpleTrafficLightLogic::Phases::const_iterator i = myActivePhases.begin();
-    while (offset >= (*i)->duration) {
-        step++;
-        offset -= (*i)->duration;
-        ++i;
+    if (myLogicType != TLTYPE_RAIL){    //TODO: undo this if we initiallise rail signals in junctions with node type rail_signal 
+        if (myAbsDuration == 0) {
+            throw InvalidArgument("TLS program '" + myActiveProgram + "' for TLS '" + myActiveKey + "' has a duration of 0.");
+        }
+        // compute the initial step and first switch time of the tls-logic
+        // a positive offset delays all phases by x (advance by absDuration - x) while a negative offset advances all phases by x seconds
+        // @note The implementation of % for negative values is implementation defined in ISO1998
+        SUMOTime offset; // the time to run the traffic light in advance
+        if (myOffset >= 0) {
+            offset = (myNet.getCurrentTimeStep() + myAbsDuration - (myOffset % myAbsDuration)) % myAbsDuration;
+        } else {
+            offset = (myNet.getCurrentTimeStep() + ((-myOffset) % myAbsDuration)) % myAbsDuration;
+        }
+        while (offset >= (*i)->duration) {
+            step++;
+            offset -= (*i)->duration;
+            ++i;
+        }
+        firstEventOffset = (*i)->duration - offset + myNet.getCurrentTimeStep();
     }
-    firstEventOffset = (*i)->duration - offset + myNet.getCurrentTimeStep();
 
-    //
     if (myActiveProgram == "") {
         myActiveProgram = "default";
     }
@@ -270,7 +268,7 @@ NLJunctionControlBuilder::closeTrafficLightLogic() {
                                               myAdditionalParameter);
             break;
         case TLTYPE_RAIL:
-             tlLogic = new MSRailSignal(getTLLogicControlToUse(),
+            tlLogic = new MSRailSignal(getTLLogicControlToUse(),
                                               myActiveKey, myActiveProgram,
                                               myAdditionalParameter);
             break;

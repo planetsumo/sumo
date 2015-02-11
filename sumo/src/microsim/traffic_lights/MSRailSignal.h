@@ -39,6 +39,7 @@
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 //#include "MSSimpleTrafficLightLogic.h"
 #include "MSPhaseDefinition.h"
+#include "MSTLLogicControl.h"
 //#include <microsim/output/MSInductLoop.h>
 
 
@@ -64,10 +65,11 @@ public:
 
 
     /** @brief Initialises the rail signal with information about adjacent rail signals
+     * @param[in] nb The detector builder
      * @exception ProcessError If something fails on initialisation
      */
-    void init();
-
+    void init(NLDetectorBuilder& nb);
+    
 
     /// @brief Destructor
     ~MSRailSignal();
@@ -104,10 +106,7 @@ public:
      * @return The time of the next switch (always the next step)
      * @see MSTrafficLightLogic::trySwitch
      */
-    SUMOTime trySwitch(bool isActive) {
-        UNUSED_PARAMETER(isActive);
-        return DELTA_T;
-    }
+    SUMOTime trySwitch(bool isActive);
 
     /// @}
 
@@ -201,8 +200,13 @@ public:
      * @param[in] stepDuration The left duration of the phase
      * @see MSTrafficLightLogic::changeStepAndDuration
      */
-    void changeStepAndDuration(MSTLLogicControl& tlcontrol, SUMOTime simStep,
-                               unsigned int step, SUMOTime stepDuration);
+    void changeStepAndDuration(MSTLLogicControl& tlcontrol, SUMOTime simStep, unsigned int step, SUMOTime stepDuration) {
+        UNUSED_PARAMETER(tlcontrol);
+        UNUSED_PARAMETER(simStep);
+        UNUSED_PARAMETER(step);
+        UNUSED_PARAMETER(stepDuration);
+    }
+    /// @}
 
 protected:
 

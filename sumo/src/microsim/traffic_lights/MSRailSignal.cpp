@@ -62,7 +62,7 @@ MSRailSignal::MSRailSignal(MSTLLogicControl& tlcontrol,
 }
 
 void
-MSRailSignal::init() {
+MSRailSignal::init(NLDetectorBuilder&) {
     assert(myLanes.size() > 0);
     LinkVectorVector::iterator i2;    //iterator of the link indices of this junction (most likely there is just one link per index)
     // find all outgoing lanes from the junction and its succeeding lanes leading to the next rail signal
@@ -82,7 +82,13 @@ MSRailSignal::init() {
             bool noRailSignal = true;   //true if the considered lane is not outgoing from a rail signal
             //look recursively for all lanes that lie before toLane and add them to afferentBlock until a rail signal is found 
             while (noRailSignal) {
-                MSLane* precedentLane = currentLane->getLogicalPredecessorLane(); //the preceeding lane of the currentLane
+                std::vector<MSLane::IncomingLaneInfo> incomingLanes = currentLane->getIncomingLanes();
+                MSLane* precedentLane;
+                if (!incomingLanes.empty()) {
+                    precedentLane = incomingLanes.front().lane;                    
+                } else { 
+                    precedentLane = 0; 
+                }
                 if (precedentLane==0) { //if there is no preceeding lane
                     noRailSignal = false;
                 } else {
@@ -148,6 +154,14 @@ MSRailSignal::adaptLinkInformationFrom(const MSTrafficLightLogic& logic) {
     updateCurrentPhase();
 }
 
+
+// ------------ Switching and setting current rows
+SUMOTime
+MSRailSignal::trySwitch(bool) {
+    updateCurrentPhase();
+    return DELTA_T;
+}
+
 std::string
 MSRailSignal::getAppropriateState(){
     std::string state (myLinks.size(), 'G');  //the state of the phase definition (all signal are green)
@@ -208,6 +222,7 @@ MSRailSignal::getAppropriateState(){
     return state;
 }
 
+
 void
 MSRailSignal::updateCurrentPhase(){
     myCurrentPhase = MSPhaseDefinition(DELTA_T, getAppropriateState());
@@ -258,21 +273,5 @@ MSRailSignal::getIndexFromOffset(SUMOTime) const {
 }
 
 
-// ------------ Changing phases and phase durations
-void
-MSRailSignal::changeStepAndDuration(MSTLLogicControl& tlcontrol,
-        SUMOTime simStep, unsigned int step, SUMOTime stepDuration) {
-    //TODO: check if all the following steps are necessary. it seems that this method will be called only if the program switches wich shouldn't occur for rail signals.
-    UNUSED_PARAMETER(step);
-    mySwitchCommand->deschedule(this);
-    mySwitchCommand = new SwitchCommand(tlcontrol, this, simStep + DELTA_T);
-    updateCurrentPhase();
-    setTrafficLightSignals(simStep);
-    tlcontrol.get(getID()).executeOnSwitchActions();
-    MSNet::getInstance()->getBeginOfTimestepEvents()->addEvent(
-        mySwitchCommand, simStep + DELTA_T,
-        MSEventControl::ADAPT_AFTER_EXECUTION);
-
-}
 /****************************************************************************/
 
