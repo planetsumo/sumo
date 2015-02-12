@@ -53,9 +53,9 @@
  *  variants during the simulation. In addition, the schedule for switching
  *  between different tls programs are also stored.
  *
- * When a WAUT (weekly switch automatism) is forced to switch, for each TLS, 
- *  a switching procedure derived from WAUTSwitchProcedure is initialised and 
- *  is asked repeatedly whether a switch could be done until it returns true.
+ * When a WAUT is forced to switch, for each TLS, a switching procedure
+ *  derived from WAUTSwitchProcedure is initialised and is asked repeatedly
+ *  whether a switch could be done until it returns true.
  */
 class MSTLLogicControl {
 public:

@@ -1047,7 +1047,6 @@ NLHandler::addConnection(const SUMOSAXAttributes& attrs) {
         }
         link = new MSLink(toLane, via, dir, state, length);
         if (via != 0) {
-            //todo: not sure if this link, which leads to tolane, should be considered as a link that leads to 'via' 
             via->addIncomingLane(fromLane, link);
         } else {
             toLane->addIncomingLane(fromLane, link);
