@@ -1,4 +1,4 @@
-SUMO Version dev-SVN-r17243
+SUMO Version dev-SVN-r17263
  Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
 A microscopic road traffic simulation.
 
@@ -225,4 +225,4 @@ Examples:
     print help
 
 Report bugs at <http://sumo.dlr.de/trac/>.
-Get in contact via <sumo@dlr.de>.
+Get in contact via <sumo-user@lists.sourceforge.net>.

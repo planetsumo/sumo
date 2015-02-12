@@ -78,14 +78,17 @@ MSRailSignal::init(NLDetectorBuilder&) {
 
             //find all lanes leading from a previous signal to link (we presume that there exists only one path from a previous signal to link)
             std::vector<MSLane*> afferentBlock; //the vector of lanes leading from a previous signal to link
-            const MSLane* currentLane = toLane;
             bool noRailSignal = true;   //true if the considered lane is not outgoing from a rail signal
-            //look recursively for all lanes that lie before toLane and add them to afferentBlock until a rail signal is found 
+            //get the approaching lane of the link
+            MSLane* approachingLane = link->getApproachingLane();   //the lane this link is coming from
+            afferentBlock.push_back(approachingLane);
+            const MSLane* currentLane = approachingLane;
+            //look recursively for all lanes that lie before approachingLane and add them to afferentBlock until a rail signal is found 
             while (noRailSignal) {
                 std::vector<MSLane::IncomingLaneInfo> incomingLanes = currentLane->getIncomingLanes();
                 MSLane* precedentLane;
                 if (!incomingLanes.empty()) {
-                    precedentLane = incomingLanes.front().lane;                    
+                    precedentLane = incomingLanes.front().lane;  
                 } else { 
                     precedentLane = 0; 
                 }
@@ -93,7 +96,7 @@ MSRailSignal::init(NLDetectorBuilder&) {
                     noRailSignal = false;
                 } else {
                     const MSJunction* junction = MSLinkContHelper::getConnectingLink(*precedentLane, *currentLane)->getJunction();  //the junction between precentLane and currentLane
-                    if ((junction != 0) && (junction->getType() == NODETYPE_RAIL_SIGNAL)) { //if this junction exists and if it has a rail signal    
+                    if ((junction != 0) && (junction->getType() == NODETYPE_RAIL_SIGNAL)) { //if this junction exists and if it has a rail signal   
                         noRailSignal = false;
                     } else {
                         afferentBlock.push_back(precedentLane);

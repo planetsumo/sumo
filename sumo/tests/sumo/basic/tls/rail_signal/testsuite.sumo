@@ -1,3 +1,17 @@
+# a rail signal with three incoming lanes, each with a train at the beginning of the simulation, and one outgoing lane. 
+several_incoming_trains
+
+# a rail signal with three incoming, one outgoing lane, one train. 
+# with internal lanes
+several_incoming_lanes_2
+
+# a rail signal with three incoming, one outgoing lane, one train. 
+# no internal lanes
+several_incoming_lanes
+
+# a rail signal with one incoming and three outgoing lanes
+several_outgoing_lanes
+
 # a train gets inserted behind a rail signal
 inserted_behind_signal
 

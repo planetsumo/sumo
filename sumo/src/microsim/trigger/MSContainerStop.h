@@ -167,7 +167,7 @@ protected:
 
 protected:
     /// @brief The id of the terminal the stop belongs to
-    std::string terminalId;
+    std::string terminalId; //TODO: is not used
 
     /// @brief The list of lines that are assigned to this stop
     std::vector<std::string> myLines;
