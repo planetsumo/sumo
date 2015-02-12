@@ -268,6 +268,8 @@ NIXMLNodesHandler::processTrafficLightDefinitions(const SUMOSAXAttributes& attrs
     } else {
         // we need to add a new defition
         tlID = (tlID == "" ? myID : tlID);
+        //TODO: this constructor creates a simpleTrafficLightLogic and adds currentNode to it;
+        //  this has to be changed for rail signals
         NBTrafficLightDefinition* tlDef = new NBOwnTLDef(tlID, currentNode, 0, type);
         if (!myTLLogicCont.insert(tlDef)) {
             // actually, nothing should fail here

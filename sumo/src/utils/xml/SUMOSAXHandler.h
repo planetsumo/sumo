@@ -47,7 +47,7 @@
  *  SUMO-XML - loading classes should be derived from it.
  */
 class SUMOSAXHandler : public GenericSAXHandler {
-public:
+public: 
     /**
      * @brief Constructor
      *
