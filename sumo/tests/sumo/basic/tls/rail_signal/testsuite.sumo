@@ -1,4 +1,4 @@
-# a rail signal with three incoming lanes, each with a train at the beginning of the simulation, and one outgoing lane. 
+# a rail signal with three incoming lanes, each with a train at the beginning of the simulation, and one outgoing lane.
 several_incoming_trains
 
 # a rail signal with three incoming, one outgoing lane, one train. 
