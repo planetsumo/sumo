@@ -162,6 +162,7 @@ MSRailSignal::adaptLinkInformationFrom(const MSTrafficLightLogic& logic) {
 SUMOTime
 MSRailSignal::trySwitch(bool) {
     updateCurrentPhase();
+    setTrafficLightSignals(SIMTIME);
     return DELTA_T;
 }
 
@@ -204,7 +205,6 @@ MSRailSignal::getAppropriateState(){
                     for (l = myAfferentBlocks[(*k)].begin(); l != myAfferentBlocks[(*k)].end(); l++) {    //for every lane of the block leading from a previous signal to the link (*k)
                         if (!(*l)->isEmpty()) { //if this lane is not empty
                             hasOccupiedBlock = true;
-
                             //set the signals for all links leading to lane, except for (*k), to red; the signal for (*k) will remain green
                             std::vector<MSLink*>::const_iterator m;
                             for (m = myLinksToLane[lane].begin(); m != myLinksToLane[lane].end(); m++){ //for every link leading to lane
