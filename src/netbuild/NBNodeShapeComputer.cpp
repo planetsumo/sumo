@@ -113,24 +113,24 @@ NBNodeShapeComputer::compute(bool leftHand) {
 
 void
 computeSameEnd(PositionVector& l1, PositionVector& l2) {
-    Line sub(l1.lineAt(0).getPositionAtDistance(100), l1[1]);
+    Line sub(l1.lineAt(0).getPositionAtDistance2D(100), l1[1]);
     Line tmp(sub);
     tmp.rotateAtP1(M_PI / 2);
-    tmp.extrapolateBy(100);
+    tmp.extrapolateBy2D(100);
     if (l1.intersects(tmp.p1(), tmp.p2())) {
         SUMOReal offset1 = l1.intersectsAtLengths2D(tmp)[0];
         Line tl1 = Line(
-                       l1.lineAt(0).getPositionAtDistance(offset1),
+                       l1.lineAt(0).getPositionAtDistance2D(offset1),
                        l1[1]);
-        tl1.extrapolateBy(100);
+        tl1.extrapolateBy2D(100);
         l1.replaceAt(0, tl1.p1());
     }
     if (l2.intersects(tmp.p1(), tmp.p2())) {
         SUMOReal offset2 = l2.intersectsAtLengths2D(tmp)[0];
         Line tl2 = Line(
-                       l2.lineAt(0).getPositionAtDistance(offset2),
+                       l2.lineAt(0).getPositionAtDistance2D(offset2),
                        l2[1]);
-        tl2.extrapolateBy(100);
+        tl2.extrapolateBy2D(100);
         l2.replaceAt(0, tl2.p1());
     }
 }
@@ -242,8 +242,9 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
         assert(geomsCCW.find(*i) != geomsCCW.end());
         assert(geomsCW.find(*ccwi) != geomsCW.end());
         assert(geomsCW.find(*cwi) != geomsCW.end());
+       
 
-        // there are only 2 edges and they are almost parallel
+        // there are only 2 directions and they are almost parallel
         if (*cwi == *ccwi &&
            ( 
             // no change in lane numbers, even low angles still give a good intersection
@@ -301,7 +302,7 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
 
         } else {
             // the angles are different enough to compute the intersection of
-            // the outer boundaries directly. The "nearer" neighbar causes the furthest distance
+            // the outer boundaries directly (or there are more than 2 directions). The "nearer" neighbar causes the furthest distance
             if (ccad < cad) {
                 if (!simpleContinuation) {
                     if (geomsCCW[*i].intersects(geomsCW[*ccwi])) {
@@ -386,7 +387,7 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
                       ? geomsCW[*ccwi].positionAtOffset2D(distances[*ccwi])
                       : geomsCW[*ccwi].positionAtOffset2D((SUMOReal) - .1);
         Line l(p1, p2);
-        l.extrapolateBy(1000);
+        l.extrapolateBy2D(1000);
         SUMOReal offset = 0;
         int laneDiff = (*i)->getNumLanes() - (*ccwi)->getNumLanes();
         if (*ccwi != *cwi) {
@@ -536,18 +537,8 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
             p = ccwBound.positionAtOffset2D(len);
         }
         p.set(p.x(), p.y(), myNode.getPosition().z());
-        if (cornerDetail > 0 && i != newAll.begin()) {
-            // smooth connection with the previous edge
-            PositionVector begShape = geomsCW[*(i-1)];
-            begShape[-1] = ret[-1];
-            PositionVector endShape = ccwBound;
-            endShape[0] = p;
-            PositionVector curve = myNode.computeSmoothShape(begShape, endShape, cornerDetail + 2, false, 25, 25);
-            if (curve.size() > 2) {
-                curve.eraseAt(0);
-                curve.eraseAt(-1);
-                ret.append(curve);
-            }
+        if (i != newAll.begin()) {
+            ret.append(getSmoothCorner(geomsCW[*(i-1)].reverse(), ccwBound, ret[-1], p, cornerDetail));
         }
         ret.push_back_noDoublePos(p);
         //
@@ -562,22 +553,28 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
         ret.push_back_noDoublePos(p);
     }
     // final curve segment
-    if (cornerDetail > 0) {
-        PositionVector begShape = geomsCW[*(newAll.end() - 1)];
-        begShape[-1] = ret[-1];
-        PositionVector endShape = geomsCCW[*newAll.begin()];
-        endShape[0] = ret[0];
-        PositionVector curve = myNode.computeSmoothShape(begShape, endShape, cornerDetail + 2, false, 25, 25);
-        if (curve.size() > 2) {
-            curve.eraseAt(0);
-            curve.eraseAt(-1);
-            ret.append(curve);
-        }
-    }
+    ret.append(getSmoothCorner(geomsCW[*(newAll.end() - 1)], geomsCCW[*newAll.begin()], ret[-1], ret[0], cornerDetail));
     return ret;
 }
 
 
+PositionVector 
+NBNodeShapeComputer::getSmoothCorner(PositionVector begShape, PositionVector endShape, 
+        const Position& begPoint, const Position& endPoint, int cornerDetail) {
+    PositionVector ret;
+    if (cornerDetail > 0) {
+        begShape = begShape.reverse();
+        begShape[-1] = begPoint;
+        endShape[0] = endPoint;
+        PositionVector curve = myNode.computeSmoothShape(begShape, endShape, cornerDetail + 2, false, 25, 25);
+        if (curve.size() > 2) {
+            curve.eraseAt(0);
+            curve.eraseAt(-1);
+            ret = curve;
+        }
+    }
+    return ret;
+}
 
 void
 NBNodeShapeComputer::joinSameDirectionEdges(std::map<NBEdge*, EdgeVector >& same,
@@ -605,10 +602,10 @@ NBNodeShapeComputer::joinSameDirectionEdges(std::map<NBEdge*, EdgeVector >& same
             : (*i)->getCWBoundaryLine(myNode);
         Line l1 = g1.lineAt(0);
         Line tmp = geomsCCW[*i].lineAt(0);
-        tmp.extrapolateBy(100);
+        tmp.extrapolateBy2D(100);
         geomsCCW[*i].replaceAt(0, tmp.p1());
         tmp = geomsCW[*i].lineAt(0);
-        tmp.extrapolateBy(100);
+        tmp.extrapolateBy2D(100);
         geomsCW[*i].replaceAt(0, tmp.p1());
         //
         for (j = i + 1; j != myNode.myAllEdges.end(); j++) {
@@ -620,10 +617,10 @@ NBNodeShapeComputer::joinSameDirectionEdges(std::map<NBEdge*, EdgeVector >& same
                 : (*j)->getCWBoundaryLine(myNode);
             Line l2 = g2.lineAt(0);
             tmp = geomsCCW[*j].lineAt(0);
-            tmp.extrapolateBy(100);
+            tmp.extrapolateBy2D(100);
             geomsCCW[*j].replaceAt(0, tmp.p1());
             tmp = geomsCW[*j].lineAt(0);
-            tmp.extrapolateBy(100);
+            tmp.extrapolateBy2D(100);
             geomsCW[*j].replaceAt(0, tmp.p1());
             if (fabs(l1.atan2DegreeAngle() - l2.atan2DegreeAngle()) < 20) {
                 if (same.find(*i) == same.end()) {
@@ -763,9 +760,9 @@ NBNodeShapeComputer::computeNodeShapeSmall() {
         Line cross(edgebound1);
         cross.rotateAtP1(M_PI / 2.);
         cross.add(myNode.getPosition() - cross.p1());
-        cross.extrapolateBy(500);
-        edgebound1.extrapolateBy(500);
-        edgebound2.extrapolateBy(500);
+        cross.extrapolateBy2D(500);
+        edgebound1.extrapolateBy2D(500);
+        edgebound2.extrapolateBy2D(500);
         if (cross.intersects(edgebound1)) {
             Position np = cross.intersectsAt(edgebound1);
             np.set(np.x(), np.y(), myNode.getPosition().z());
