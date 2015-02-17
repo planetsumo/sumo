@@ -144,6 +144,7 @@ MSRailSignal::init(NLDetectorBuilder&) {
         }
     }
     updateCurrentPhase();   //check if this is necessary or if will be done already at another stage
+    setTrafficLightSignals(SIMTIME);
 }
 
 
