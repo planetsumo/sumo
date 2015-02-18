@@ -42,6 +42,8 @@ $(GUI_TESTS) \
 ../../src/traci-server/TraCIServer.o \
 ../../src/microsim/trigger/libmicrosimtrigger.a \
 ../../src/microsim/cfmodels/libmicrosimcfmodels.a \
+../../src/microsim/lcmodels/libmicrosimlcmodels.a \
+../../src/microsim/pedestrians/libmicrosimpeds.a \
 ../../src/microsim/devices/libmicrosimdevs.a \
 ../../src/microsim/output/libmicrosimoutput.a \
 ../../src/microsim/MSMoveReminder.o \
@@ -62,8 +64,7 @@ $(MESO_LIBS) \
 $(MEM_LIBS) \
 $(PYTHON_LIBS) \
 $(XERCES_LIBS) \
-$(FOX_LDFLAGS) \
-$(LIB_GTEST)
+$(FOX_LDFLAGS)
 
 SUBDIRS = utils microsim netbuild
 endif
