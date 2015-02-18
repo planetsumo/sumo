@@ -53,7 +53,10 @@
 // class declarations
 // ===========================================================================
 class ROLane;
+class ROEdge;
 
+typedef std::vector<ROEdge*> ROEdgeVector;
+typedef std::vector<const ROEdge*> ConstROEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -308,8 +311,8 @@ public:
      * @param[in] pos The position of the list within the list of incoming
      * @return The incoming edge, stored at position pos
      */
-    ROEdge* getPredecessor(unsigned int pos) const {
-        return myApproachingEdges[pos];
+    const ROEdgeVector& getPredecessors() const {
+        return myApproachingEdges;
     }
 
 
@@ -482,10 +485,10 @@ protected:
     static bool myHaveTTWarned;
 
     /// @brief List of edges that may be approached from this edge
-    std::vector<ROEdge*> myFollowingEdges;
+    ROEdgeVector myFollowingEdges;
 
     /// @brief List of edges that approached this edge
-    std::vector<ROEdge*> myApproachingEdges;
+    ROEdgeVector myApproachingEdges;
 
     /// @brief The type of the edge
     EdgeType myType;
@@ -496,7 +499,7 @@ protected:
     /// @brief The list of allowed vehicle classes combined across lanes
     SVCPermissions myCombinedPermissions;
 
-    static std::vector<ROEdge*> myEdges;
+    static ROEdgeVector myEdges;
 
     /// @brief the junctions for this edge
     RONode* myFromJunction;
