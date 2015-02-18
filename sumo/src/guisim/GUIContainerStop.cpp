@@ -126,12 +126,12 @@ void
 GUIContainerStop::drawGL(const GUIVisualizationSettings& s) const {
     glPushName(getGlID());
     glPushMatrix();
-    RGBColor green(76, 170, 50, 255);
-    RGBColor yellow(255, 235, 0, 255);
+    RGBColor grey(177, 184, 186, 171);
+    RGBColor blue(83, 89, 172, 255);
     // draw the area
     size_t i;
     glTranslated(0, 0, getType());
-    GLHelper::setColor(green);
+    GLHelper::setColor(blue);
     GLHelper::drawBoxLines(myFGShape, myFGShapeRotations, myFGShapeLengths, 1.0);
     // draw details unless zoomed out to far
     const SUMOReal exaggeration = s.addSize.getExaggeration(s);
@@ -159,10 +159,10 @@ GUIContainerStop::drawGL(const GUIVisualizationSettings& s) const {
         glScaled(exaggeration, exaggeration, 1);
         GLHelper::drawFilledCircle((SUMOReal) 1.1, noPoints);
         glTranslated(0, 0, .1);
-        GLHelper::setColor(yellow);
+        GLHelper::setColor(grey);
         GLHelper::drawFilledCircle((SUMOReal) 0.9, noPoints);
         if (s.scale * exaggeration >= 4.5) {
-            GLHelper::drawText("H", Position(), .1, 1.6 * exaggeration, green, myFGSignRot);
+            GLHelper::drawText("C", Position(), .1, 1.6 * exaggeration, blue, myFGSignRot);
         }
     }
     glPopMatrix();
