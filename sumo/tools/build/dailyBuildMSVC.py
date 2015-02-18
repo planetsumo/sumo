@@ -53,12 +53,19 @@ sys.path.append(os.path.join(options.rootDir, options.testsDir))
 import runInternalTests
 
 env = os.environ
-env["SMTP_SERVER"]="smtprelay.dlr.de"
-env["TEMP"]=env["TMP"]=r"D:\Delphi\texttesttmp"
-nightlyDir=r"O:\Daten\Sumo\Nightly"
-compiler=r"D:\Programme\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe"
-svnrev=""
-for platform in ["Win32", "x64"]:
+env["SMTP_SERVER"] = "smtprelay.dlr.de"
+env["TEMP"] = env["TMP"] = r"D:\Delphi\texttesttmp"
+env["REMOTEDIR_BASE"] = 'O:/Daten/Sumo'
+compiler = r"D:\Programme\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe"
+svnrev = ""
+
+maxTime = 0
+sumoAllZip = None
+for fname in glob.glob(r"O:\Daten\Sumo\Nightly\sumo-all-*.zip"):
+    if os.path.getmtime(fname) > maxTime:
+        maxTime = os.path.getmtime(fname)
+        sumoAllZip = fname
+for platform, nightlyDir in [("Win32", r"O:\Daten\Sumo\Nightly"), ("x64", r"O:\Daten\Sumo\Nightly\bin64")]:
     env["FILEPREFIX"]="msvc10" + options.suffix + platform
     prefix = os.path.join(options.remoteDir, env["FILEPREFIX"])
     makeLog = prefix + "Release.log"
@@ -85,7 +92,7 @@ for platform in ["Win32", "x64"]:
         else:
             open(makeLog, 'a').write("Error parsing svn revision\n")
             sys.exit()
-        end_marker = 'Fetching external'        
+        end_marker = 'Fetching external'
         if end_marker in update_log:
             update_lines = len(update_log[:update_log.index(end_marker)].splitlines())
         else:
@@ -109,15 +116,10 @@ for platform in ["Win32", "x64"]:
     # we need to use io.open here due to http://bugs.python.org/issue16273
     log = io.open(makeLog, 'a')
     try:
-        maxTime = 0
-        for fname in glob.glob(os.path.join(nightlyDir, "sumo-all-*.zip")):
-            if os.path.getmtime(fname) > maxTime:
-                maxTime = os.path.getmtime(fname)
-                maxFile = fname
-        if maxTime > 0:
-            binaryZip = maxFile.replace("-all-", "-%s-" % env["FILEPREFIX"])
+        if sumoAllZip:
+            binaryZip = sumoAllZip.replace("-all-", "-%s-" % env["FILEPREFIX"])
             zipf = zipfile.ZipFile(binaryZip, 'w', zipfile.ZIP_DEFLATED)
-            srcZip = zipfile.ZipFile(maxFile)
+            srcZip = zipfile.ZipFile(sumoAllZip)
             write = False
             for f in srcZip.namelist():
                 if f.count('/') == 1:
@@ -126,6 +128,8 @@ for platform in ["Win32", "x64"]:
                     write = (f.endswith('/bin/') or f.endswith('/examples/') or f.endswith('/tools/') or f.endswith('/data/') or f.endswith('/docs/'))
                     if f.endswith('/bin/'):
                         binDir = f
+                elif f.endswith('/') and '/docs/' in f and f.count('/') == 3:
+                    write = not f.endswith('/doxygen/')
                 elif write or os.path.basename(f) in ["COPYING", "README"]:
                     zipf.writestr(f, srcZip.read(f))
             srcZip.close()
@@ -144,7 +148,7 @@ for platform in ["Win32", "x64"]:
                 glob.glob(os.path.join(options.rootDir, options.binDir, "*.bat")))
         for f in files_to_zip:
             zipf.write(f, os.path.join(binDir, os.path.basename(f)))
-            if platform == "Win32" and not f.startswith(nightlyDir):
+            if not f.startswith(nightlyDir):
                 try:
                     shutil.copy2(f, nightlyDir)
                 except IOError, (errno, strerror):
@@ -162,7 +166,13 @@ for platform in ["Win32", "x64"]:
             setup = os.path.join(os.path.dirname(__file__), '..', 'game', 'setup.py')
             subprocess.call(['python', setup], stdout=log, stderr=subprocess.STDOUT)
         except Exception as e:
-            print >> log, "Warning: Could not create nightly sumogame.zip! (%s)" % e
+            print >> log, "Warning: Could not create nightly sumo-game.zip! (%s)" % e
+    if platform == "x64" and options.sumoExe == "meso":
+        try:
+            setup = os.path.join(os.path.dirname(__file__), '..', 'game', 'setup.py')
+            subprocess.call(['python', setup, 'internal'], stdout=log, stderr=subprocess.STDOUT)
+        except Exception as e:
+            print >> log, "Warning: Could not create nightly sumo-game-internal.zip! (%s)" % e
     log.close()
     subprocess.call(compiler+" /rebuild Debug|%s %s\\%s /out %s" % (platform, options.rootDir, options.project, makeAllLog))
     if options.addConf:

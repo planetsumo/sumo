@@ -22,6 +22,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 import os, subprocess, sys, re, pickle, httplib, glob, Tkinter
+from optparse import OptionParser
 from xml.dom import pulldom
 
 _SCOREFILE = "scores.pkl"
@@ -35,7 +36,8 @@ _LANGUAGE_EN = {'title': 'Interactive Traffic Light',
                 'cross_demo': 'Simple Junction (Demo)',
                 'square': 'Four Junctions',
                 'kuehne': 'Prof. Kühne',
-                'bs3d': '3D Junction',
+                'bs3d': '3D Junction Virtual World',
+                'bs3Dosm': '3D Junction OpenStreetMap',
                 'ramp': 'Highway Scenario',
                 'high': 'Highscore',
                 'reset': 'Reset Highscore',
@@ -46,7 +48,8 @@ _LANGUAGE_DE = {'title': 'Interaktives Ampelspiel',
                 'cross_demo': 'Einfache Kreuzung (Demo)',
                 'square': 'Vier Kreuzungen',
                 'kuehne': 'Prof. Kühne',
-                'bs3d': '3D Kreuzung',
+                'bs3d': '3D Forschungskreuzung Virtuelle Welt',
+                'bs3Dosm': '3D Forschungskreuzung OpenStreetMap',
                 'ramp': 'Autobahnauffahrt',
                 'high': 'Highscore',
                 'reset': 'Highscore zurücksetzen',
@@ -98,12 +101,12 @@ class StartDialog:
         # we use a grid layout with 4 columns
         COL_DLRLOGO, COL_START, COL_HIGH, COL_SUMOLOGO = range(4)
         # there is one column for every config, +2 more columns for control buttons
-        configs = glob.glob(os.path.join(base, "*.sumocfg"))
+        configs = sorted(glob.glob(os.path.join(base, "*.sumocfg")))
         numButtons = len(configs) + 3
         # button dimensions
-        bWidth_start = 20
-        bWidth_high = 7
-        bWidth_control = 31   
+        bWidth_start = 30
+        bWidth_high = 10
+        bWidth_control = 41
 
         self.gametime = 0
         self.ret = 0
@@ -115,6 +118,8 @@ class StartDialog:
 
         # 2 button for each config (start, highscore)
         for row, cfg in enumerate(configs):
+            if "bs3" in cfg and "meso-gui" not in guisimPath:
+                continue
             category = os.path.basename(cfg)[:-8]
             # lambda must make a copy of cfg argument
             button=Tkinter.Button(self.root, width=bWidth_start, 
@@ -260,20 +265,48 @@ class ScoreDialog:
     def quit(self, event=None):
         self.root.destroy()
 
+stereoModes = ('ANAGLYPHIC', 'QUAD_BUFFER', 'VERTICAL_SPLIT', 'HORIZONTAL_SPLIT')
+optParser = OptionParser()
+optParser.add_option("-s", "--stereo", metavar="OSG_STEREO_MODE",
+                     help="Defines the stereo mode to use for 3D output; unique prefix of %s" % (", ".join(stereoModes)))
+options, args = optParser.parse_args()
 
 base = os.path.dirname(sys.argv[0])
 high = loadHighscore()
-guisimBinary = "meso-gui"
-if os.name != "posix":
-    guisimBinary += ".exe"
-if os.path.exists(os.path.join(base, guisimBinary)):
-    guisimPath = os.path.join(base, guisimBinary)
+def findSumoBinary(guisimBinary):
+    if os.name != "posix":
+        guisimBinary += ".exe"
+    elif guisimBinary.endswith("64"):
+        guisimBinary = guisimBinary[:-2]
+    if os.path.exists(os.path.join(base, guisimBinary)):
+        guisimPath = os.path.join(base, guisimBinary)
+    else:
+        guisimPath = os.environ.get("GUISIM_BINARY", os.path.join(base, '..', '..', 'bin', guisimBinary))
+    if not os.path.exists(guisimPath):
+        guisimPath = guisimBinary
+    return guisimPath
+
+guisimPath = findSumoBinary("meso-gui64")
+try: 
+    subprocess.call([guisimPath, "-Q", "-c", "blub"], stderr=open(os.devnull))
+except OSError:
+    print("meso-gui64 not found. 3D scenario will not work.")
+    guisimPath = findSumoBinary("sumo-gui")
+
+
+if options.stereo:
+    for m in stereoModes:
+        if m.lower().startswith(options.stereo.lower()):
+            os.environ["OSG_STEREO_MODE"] = m
+            os.environ["OSG_STEREO"] = "ON"
+            break
+
+lang = _LANGUAGE_EN
+if "OSG_FILE_PATH" in os.environ:
+    os.environ["OSG_FILE_PATH"] += os.pathsep + os.path.join(os.environ.get("SUMO_HOME", ""), "data", "3D")
 else:
-    guisimPath = os.environ.get("GUISIM_BINARY", os.path.join(base, '..', '..', 'bin', guisimBinary))
-if not os.path.exists(guisimPath):
-    guisimPath = guisimBinary
-lang = _LANGUAGE_EN  
-    
+    os.environ["OSG_FILE_PATH"] = os.path.join(os.environ.get("SUMO_HOME", ""), "data", "3D")
+
 while True:
     start = StartDialog(lang)
     totalDistance = 0

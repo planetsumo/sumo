@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>sumo-websocket</title>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="style.css" />
+        <script type="text/javascript" src="lib.js"></script>
+        <script type="text/javascript" src="http://www.openlayers.org/api/OpenLayers.js"></script>
+        <script type="text/javascript" src="script.js"></script>
+    </head>
+    <body>
+        <div id="map"></div>
+        <canvas style="display: none"></canvas>
+        <div id="controls">
+            <span id="position" class="container always">
+                Position
+                <div class="options">
+                    <label>Längengrad <input id="current-lon" /></label>
+                    <label>Breitengrad <input id="current-lat" /></label>
+                    <label id="set-position">aktueller Standort</label>
+                </div>
+            </span>
+            <span class="container always">
+                <span id="export-button">Exportieren</span>
+                <div class="options">
+                    <label>Bereich auswählen<input type="checkbox" id="canvas-toogle" /></label>
+                </div>
+            </span>
+        </div>
+    </body>
+</html>

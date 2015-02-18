@@ -68,9 +68,9 @@ def addGenericOptions(optParser):
                          help="define the applied eco measure, e.g. fuel, CO2, noise")
     optParser.add_option("--eager-insert", action="store_true",
                          default=False, help="eager insertion tests (may slow down the sim considerably)")
-    optParser.add_option("--time-to-teleport", dest="timetoteleport", type="int", default=300,
-                         help="Delay before blocked vehicles are teleported where -1 means no teleporting")
-    optParser.add_option("--time-to-teleport.highways", dest="timetoteleport_highways", type="int", default=0,
+    optParser.add_option("--time-to-teleport", dest="timetoteleport", type="float", default=300,
+                         help="Delay before blocked vehicles are teleported (negative value disables teleporting)")
+    optParser.add_option("--time-to-teleport.highways", dest="timetoteleport_highways", type="float", default=0,
                          help="Delay before blocked vehicles are teleported on wrong highway lanes")
     optParser.add_option("--cost-modifier", dest="costmodifier", type="choice",
                          choices=('grohnde', 'isar', 'None'), 
@@ -79,7 +79,10 @@ def addGenericOptions(optParser):
                          default=False, help="zip old iterations using 7zip")
 
 def initOptions():
-    optParser = OptionParser()
+    optParser = OptionParser(usage="""usage: %prog [options] [sumo--options]
+Any options of the form sumo--long-option-name will be passed to sumo. 
+These must be given after all the other options of %prog
+example: sumo--step-length 0.5 will add the option --step-length 0.5 to sumo.""")
     addGenericOptions(optParser)
 
     optParser.add_option("-C", "--continue-on-unbuild", action="store_true", dest="continueOnUnbuild",

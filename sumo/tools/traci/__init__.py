@@ -157,8 +157,35 @@ class SubscriptionResults:
 
 
 from . import constants
+
+def getParameterAccessors(cmdGetID, cmdSetID):
+
+    def getParameter(objID, param):
+        """getParameter(string, string) -> string
+        
+        Returns the value of the given parameter for the given objID
+        """
+        _beginMessage(cmdGetID, constants.VAR_PARAMETER, objID, 1+4+len(param))
+        _message.string += struct.pack("!Bi", constants.TYPE_STRING, len(param)) + param
+        result = _checkResult(cmdGetID, constants.VAR_PARAMETER, objID)
+        return result.readString()
+
+    def setParameter(objID, param, value):
+        """setParameter(string, string, string) -> string
+        
+        Sets the value of the given parameter to value for the given objID
+        """
+        _beginMessage(cmdSetID, constants.VAR_PARAMETER, objID, 1+4+1+4+len(param)+1+4+len(value))
+        _message.string += struct.pack("!Bi", constants.TYPE_COMPOUND, 2)
+        _message.string += struct.pack("!Bi", constants.TYPE_STRING, len(param)) + param
+        _message.string += struct.pack("!Bi", constants.TYPE_STRING, len(value)) + value
+        _sendExact()
+
+    return getParameter, setParameter
+
+
 from . import inductionloop, multientryexit, trafficlights
-from . import lane, vehicle, vehicletype, route, areal
+from . import lane, vehicle, vehicletype, person, route, areal
 from . import poi, polygon, junction, edge, simulation, gui
 
 _modules = {constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE: inductionloop,
@@ -168,6 +195,7 @@ _modules = {constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE: inductionloop,
             constants.RESPONSE_SUBSCRIBE_TL_VARIABLE: trafficlights,
             constants.RESPONSE_SUBSCRIBE_LANE_VARIABLE: lane,
             constants.RESPONSE_SUBSCRIBE_VEHICLE_VARIABLE: vehicle,
+            constants.RESPONSE_SUBSCRIBE_PERSON_VARIABLE: person,
             constants.RESPONSE_SUBSCRIBE_VEHICLETYPE_VARIABLE: vehicletype,
             constants.RESPONSE_SUBSCRIBE_ROUTE_VARIABLE: route,
             constants.RESPONSE_SUBSCRIBE_POI_VARIABLE: poi,
@@ -184,6 +212,7 @@ _modules = {constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE: inductionloop,
             constants.RESPONSE_SUBSCRIBE_TL_CONTEXT: trafficlights,
             constants.RESPONSE_SUBSCRIBE_LANE_CONTEXT: lane,
             constants.RESPONSE_SUBSCRIBE_VEHICLE_CONTEXT: vehicle,
+            constants.RESPONSE_SUBSCRIBE_PERSON_CONTEXT: person,
             constants.RESPONSE_SUBSCRIBE_VEHICLETYPE_CONTEXT: vehicletype,
             constants.RESPONSE_SUBSCRIBE_ROUTE_CONTEXT: route,
             constants.RESPONSE_SUBSCRIBE_POI_CONTEXT: poi,
@@ -308,7 +337,7 @@ def _readSubscription(result):
     result.printDebug() # to enable this you also need to set _DEBUG to True
     result.readLength()
     response = result.read("!B")[0]
-    isVariableSubscription = response>=constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE and response<=constants.RESPONSE_SUBSCRIBE_GUI_VARIABLE
+    isVariableSubscription = response>=constants.RESPONSE_SUBSCRIBE_INDUCTIONLOOP_VARIABLE and response<=constants.RESPONSE_SUBSCRIBE_PERSON_VARIABLE
     objectID = result.readString()
     if not isVariableSubscription:
         domain = result.read("!B")[0]
@@ -430,3 +459,6 @@ def close():
 
 def switch(label):
     _connections[""] = _connections[label]
+
+
+

@@ -490,7 +490,8 @@ def setMaxSpeed(vehID, speed):
 def setStop(vehID, edgeID, pos=1., laneIndex=0, duration=2**31-1, flags=STOP_DEFAULT):
     """setStop(string, string, double, integer, integer, integer) -> None
     
-    Adds or modifies a stop with the given parameters.
+    Adds or modifies a stop with the given parameters. The duration attribute is
+    in milliseconds.
     """
     traci._beginMessage(tc.CMD_SET_VEHICLE_VARIABLE, tc.CMD_STOP, vehID, 1+4+1+4+len(edgeID)+1+8+1+1+1+4+1+1)
     traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 5)
@@ -769,3 +770,5 @@ def moveToVTD(vehID, edgeID, lane, x, y):
     traci._message.string += struct.pack("!Bd", tc.TYPE_DOUBLE, y)
     traci._sendExact()
 
+
+getParameter, setParameter = traci.getParameterAccessors(tc.CMD_GET_VEHICLE_VARIABLE, tc.CMD_SET_VEHICLE_VARIABLE)

@@ -20,14 +20,17 @@ from distutils.core import setup
 import py2exe, sys, shutil, os, glob, zipfile
 import subprocess, tempfile
 
-nightlyDir="O:\\Daten\\Sumo\\Nightly"
+nightlyDir=r"O:\Daten\Sumo\Nightly"
+sevenZip = r'C:\Program Files\7-Zip\7z.exe'
+if not os.path.exists(sevenZip):
+    sevenZip = r'C:\Program Files (x86)\7-Zip\7z.exe'
 
-if len(sys.argv) == 1:
-    sys.argv.append("py2exe")
 internal = False
 if "internal" in sys.argv:
     internal = True
-    sys.arg.remove["internal"]
+    sys.argv.remove("internal")
+if len(sys.argv) == 1:
+    sys.argv.append("py2exe")
 
 base = os.path.abspath(os.path.dirname(__file__))
 oldDir = os.getcwd()
@@ -37,24 +40,33 @@ os.mkdir("dist")
 
 setup(console=[os.path.join(base, 'runner.py')])
 
-for f in glob.glob(os.path.join(base, "*.sumocfg")): 
+for f in glob.glob(os.path.join(base, "*.sumocfg")):
     shutil.copy2(f, "dist")
 for f in ['input_additional.add.xml', 'logo.gif', 'dlr.gif']:
     shutil.copy2(os.path.join(base, f), "dist")
 for dir in ['cross', 'square', 'kuehne', 'highway', 'sounds', 'ramp', 'bs3d']:
     subprocess.call(['svn', 'export', os.path.join(base, dir), os.path.join("dist", dir)])
-for dll in glob.glob(os.path.join(nightlyDir, "*.dll")):
-    shutil.copy2(dll, "dist")
+os.chdir("dist")
 if internal:
-    pluginDir = glob.glob(os.path.join(nightlyDir, "osgPlugins*"))[0]
-    shutil.copytree(pluginDir, os.path.join("dist", os.path.basename(pluginDir)))
-    shutil.copy2(os.path.join(nightlyDir, "meso-gui.exe"), "dist")
+    for dll in glob.glob(os.path.join(nightlyDir, 'bin64', '*.dll')):
+        shutil.copy2(dll, ".")
+    pluginDir = glob.glob(os.path.join(nightlyDir, 'bin64', 'osgPlugins*'))[0]
+    shutil.copytree(pluginDir, os.path.basename(pluginDir))
+    shutil.copy2(os.path.join(nightlyDir, 'bin64', 'meso-gui64.exe'), ".")
+    for f in glob.glob(os.path.join(base, '..', '..', 'data', '3D', '*')):
+        shutil.copy2(f, ".")
+    os.chdir("bs3d")
+    subprocess.call([sevenZip, 'x', os.path.join(nightlyDir, '..', '3D_Modell_Forschungskreuzung_BS.7z')])
+    os.chdir("..")
+    zipf = zipfile.ZipFile(os.path.join(nightlyDir, "sumo-game-internal.zip"), 'w', zipfile.ZIP_DEFLATED)
 else:
-    shutil.copy2(os.path.join(nightlyDir, "sumo-gui.exe"), "dist")
+    for dll in glob.glob(os.path.join(nightlyDir, "*.dll")):
+        shutil.copy2(dll, ".")
+    shutil.copy2(os.path.join(nightlyDir, "sumo-gui.exe"), ".")
+    zipf = zipfile.ZipFile(os.path.join(nightlyDir, "sumo-game.zip"), 'w', zipfile.ZIP_DEFLATED)
 
-zipf = zipfile.ZipFile(os.path.join(nightlyDir, "sumogame.zip"), 'w', zipfile.ZIP_DEFLATED)
-root_len = len(os.path.abspath("dist"))
-for root, dirs, files in os.walk("dist"):
+root_len = len(os.path.abspath("."))
+for root, dirs, files in os.walk("."):
     archive_root = os.path.abspath(root)[root_len:]
     for f in files:
         fullpath = os.path.join(root, f)
