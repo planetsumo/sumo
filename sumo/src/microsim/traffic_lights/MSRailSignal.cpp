@@ -36,6 +36,7 @@
 #include <microsim/MSEventControl.h>
 //#include <microsim/output/MSInductLoop.h>
 #include <microsim/MSNet.h>
+#include <microsim/MSEdge.h>
 #include "MSTrafficLightLogic.h"
 #include "MSRailSignal.h"
 #include <microsim/MSLane.h>
@@ -106,7 +107,7 @@ MSRailSignal::init(NLDetectorBuilder&) {
             }
             myAfferentBlocks[link] = afferentBlock;
 
-            //find all lanes leading from toLane to the next signal if was not already done
+            //find all lanes leading from toLane to the next signal if it was not already done
             if (std::find(myOutgoingLanes.begin(), myOutgoingLanes.end(), toLane) == myOutgoingLanes.end()){//if toLane was not already contained in myOutgoingLanes
                 myOutgoingLanes.push_back(toLane);
                 std::vector<const MSLane*> succeedingBlock;   //the vector of lanes leading to the next rail signal
@@ -118,7 +119,9 @@ MSRailSignal::init(NLDetectorBuilder&) {
                     std::vector<MSLink*> outGoingLinks = currentLane->getLinkCont();
                     std::vector<MSLink*>::const_iterator j;
                     for (j = outGoingLinks.begin(); j != outGoingLinks.end(); j++) {
-                        const MSJunction* junction = (*j)->getJunction();   //the junction (if it exists) of the j-th outgoing link of currentLane 
+                        //const MSJunction* junction = (*j)->getJunction();   //the junction (if it exists) of the j-th outgoing link of currentLane 
+                        //const MSJunction* junction = (*j)->getLane()->getEdge().getFromJunction();   //the junction (if it exists) of the j-th outgoing link of currentLane 
+                        const MSJunction* junction = currentLane->getEdge().getToJunction();
                         if ((junction != 0) && (junction->getType() == NODETYPE_RAIL_SIGNAL)) { //if this junctions exists and if it has a rail signal
                             noRailSignal = false;
                             break;

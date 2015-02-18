@@ -235,7 +235,6 @@ NLHandler::myEndElement(int element) {
             endE3Detector();
             break;
         case SUMO_TAG_NET:
-            myJunctionControlBuilder.postLoadInitialization();
             // build junction graph
             for (JunctionGraph::iterator it = myJunctionGraph.begin(); it != myJunctionGraph.end(); ++it) {
                 MSEdge* edge = MSEdge::dictionary(it->first);
@@ -247,6 +246,8 @@ NLHandler::myEndElement(int element) {
                     to->addIncoming(edge);
                 }
             }
+            //initialise traffic lights 
+            myJunctionControlBuilder.postLoadInitialization();
             break;
         default:
             break;
