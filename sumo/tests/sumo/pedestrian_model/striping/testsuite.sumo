@@ -7,8 +7,16 @@ use_crossing
 # tests related to pedestrians interacting with each other
 pedestrian_interactions
 
+# test for subsecond behavior
+subsecond
+errors
+bugs
+
+# two flows in opposite directions with a change in walking direction
+counterflow_change_direction
+
 # full connectivity among 3 one-way paths
 3_arm_pathing
 
-# test for subsecond behavior
-subsecond
+# no sidewalks, walkingareas nor crossings
+no_sidewalks

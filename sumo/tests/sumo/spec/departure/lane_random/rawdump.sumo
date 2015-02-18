@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 10/13/14 14:42:54 by SUMO Version dev-SVN-r17179
+<!-- generated on 02/17/15 16:40:22 by SUMO Version dev-SVN-r17881
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
@@ -32,10 +32,10 @@
     <timestep time="0.00">
         <edge id="beg">
             <lane id="beg_0"/>
-            <lane id="beg_1">
+            <lane id="beg_1"/>
+            <lane id="beg_2">
                 <vehicle id="1" pos="5.10" speed="0.00" personNumber="0" containerNumber="0"/>
             </lane>
-            <lane id="beg_2"/>
         </edge>
     </timestep>
 </netstate>

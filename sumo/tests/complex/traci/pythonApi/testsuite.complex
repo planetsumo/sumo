@@ -9,6 +9,7 @@ vehicle
 
 # Tests the vehicletype API
 vehicletype
+person
 
 # Tests the junction API
 junction
@@ -39,3 +40,6 @@ polygon
 
 # Tests the stop resume
 resume
+
+# test setting and getting of params to all objects which support it
+params

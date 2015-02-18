@@ -1,4 +1,6 @@
 Warning: Value of key 'ele' is not numeric ('extected_wrong_value') in node '27541970'.
+Warning: Discarding unusable type "waterway.riverbank" (first occurence for edge "4616435#0").
+Warning: Discarding unusable type "waterway.canal" (first occurence for edge "31233332#0").
 Warning: No way found for reference '81096600' in relation '1216677'
 Warning: Ignoring restriction relation '1216677' with unknown from-way.
 Warning: No way found for reference '143308555' in relation '1727169'
@@ -8,4 +10,3 @@ Warning: Ignoring restriction relation '1727169' with unknown to-way.
 Warning: No way found for reference '48858193' in relation '2439689'
 Warning: Ignoring restriction relation '2439689' with unknown from-way.
 Warning: Found sharp turn with radius 1.71 at the start of edge 128643746#0
-Warning: Junction shape for '567607201' has distance 24.98 to its given position

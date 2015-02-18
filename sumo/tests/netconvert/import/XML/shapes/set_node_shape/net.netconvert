@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on Thu May 22 16:10:49 2014 by SUMO netconvert Version dev-SVN-r16411
+<!-- generated on Thu Feb 12 13:42:23 2015 by SUMO netconvert Version dev-SVN-r17839I
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
@@ -12,6 +12,7 @@
 
     <output>
         <output-file value="net.net.xml"/>
+        <plain-output-prefix value="plain"/>
     </output>
 
     <processing>
@@ -133,7 +134,7 @@
         <phase duration="4" state="yyyyyrrrrrrrrrr"/>
     </tlLogic>
 
-    <junction id="C" type="traffic_light" x="100.00" y="100.00" incLanes="NC_0 NC_1 NC_2 EC_0 EC_1 EC_2 WC_0 WC_1 WC_2" intLanes=":C_0_0 :C_15_0 :C_16_0 :C_17_0 :C_4_0 :C_5_0 :C_5_1 :C_5_2 :C_18_0 :C_9_0 :C_9_1 :C_9_2 :C_19_0 :C_20_0 :C_21_0" shape="90.15,151.35 109.85,151.35 121.35,109.85 111.35,90.15 100.00,60.00 88.65,90.15 88.65,109.85 90.15,151.35">
+    <junction id="C" type="traffic_light" x="100.00" y="100.00" incLanes="NC_0 NC_1 NC_2 EC_0 EC_1 EC_2 WC_0 WC_1 WC_2" intLanes=":C_0_0 :C_15_0 :C_16_0 :C_17_0 :C_4_0 :C_5_0 :C_5_1 :C_5_2 :C_18_0 :C_9_0 :C_9_1 :C_9_2 :C_19_0 :C_20_0 :C_21_0" shape="90.15,151.35 109.85,151.35 121.35,109.85 111.35,90.15 100.00,60.00 88.65,90.15 88.65,109.85 90.15,151.35" customShape="1">
         <request index="0" response="000000011100000" foes="100000011100000" cont="0"/>
         <request index="1" response="011111011100000" foes="011111111100000" cont="1"/>
         <request index="2" response="011111011100000" foes="011111111100000" cont="1"/>

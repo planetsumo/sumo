@@ -1,4 +1,4 @@
-SUMO netgenerate Version dev-SVN-r17243
+SUMO netgenerate Version dev-SVN-r17834
  Copyright (C) 2001-2014 DLR and contributors; http://sumo.dlr.de
 Road network generator for the microscopic road traffic simulation SUMO.
 
@@ -59,6 +59,9 @@ Random Network Options:
   --rand.neighbor-dist6 FLOAT          
 
 Output Options:
+  --output-prefix FILE                 Prefix which is applied to all output
+                                         files. The special string 'TIME' is
+                                         replaced by the current time.
   -o, --output-file FILE               The generated net will be written to
                                          FILE
   --plain-output-prefix FILE           Prefix of files to write plain xml
@@ -66,7 +69,6 @@ Output Options:
   --junctions.join-output FILE         Writes information about joined
                                          junctions to FILE (can be loaded as
                                          additional node-file to reproduce joins
-  -M, --map-output FILE                Writes joined edges information to FILE
   --amitran-output FILE                The generated net will be written to
                                          FILE using Amitran format
   --matsim-output FILE                 The generated net will be written to
@@ -140,6 +142,8 @@ Processing Options:
                                          other (recommended for OSM import)
   --junctions.join-dist FLOAT          Determines the maximal distance for
                                          joining junctions (defaults to 10)
+  --junctions.corner-detail INT        Generate INT intermediate points to
+                                         smooth out intersection corners
   --check-lane-foes.roundabout         Allow driving onto a multi-lane road if
                                          there are foes on other lanes (at
                                          roundabouts)
@@ -152,6 +156,9 @@ Processing Options:
                                          equal or below the given limit
   --sidewalks.guess.min-speed FLOAT    Add sidewalks for edges with a speed
                                          above the given limit
+  --sidewalks.guess.from-permissions   Add sidewalks for edges that allow
+                                         pedestrians on any of their lanes
+                                         regardless of speed
   --crossings.guess                    Guess pedestrian crossings based on the
                                          presence of sidewalks
   --tls.join-dist FLOAT                Determines the maximal distance for

@@ -75,19 +75,21 @@ def generateTargetName(baseDir, source):
 
 
 def main(options):
-    targets = {}
+    targets = []
     if options.file:
         dirname = os.path.dirname(options.file)
         for line in open(options.file):
             line = line.strip()
             if line and line[0] != '#':
-                key, value = line.split(SOURCE_DEST_SEP)
-                targets[join(dirname, key)] = join(dirname, value)
+                l = line.split(SOURCE_DEST_SEP) + [""]
+                l[0] = join(dirname, l[0])
+                l[1] = join(dirname, l[1])
+                targets.append(l[:3])
     for val in options.args:
-        source_and_maybe_target = val.split(SOURCE_DEST_SEP) + [""]
-        targets[source_and_maybe_target[0]] = source_and_maybe_target[1]
+        source_and_maybe_target = val.split(SOURCE_DEST_SEP) + ["", ""]
+        targets.append(source_and_maybe_target[:3])
 
-    for source, target in targets.iteritems():
+    for source, target, app in targets:
         outputFiles = glob.glob(join(source, "output.[0-9a-z]*"))
         #print source, target, outputFiles
         # XXX we should collect the options.app.variant files in all parent
@@ -96,6 +98,8 @@ def main(options):
         if len(appName) != 1:
             if options.application in appName:
                 appName = set([options.application])
+            elif app in appName:
+                appName = set([app])
             else:
                 print >> sys.stderr, "Skipping %s because the application was not unique (found %s)." % (source, appName)
                 continue
@@ -154,7 +158,6 @@ def main(options):
         nameBase = "test"
         if options.names:
             nameBase = os.path.basename(target)
-        appOptions += ['--save-configuration', '%s.%scfg' % (nameBase, app[:4])]
         exclude = []
         # gather copy_test_path exclusions
         for line in open(config):
@@ -174,17 +177,26 @@ def main(options):
                             copy_merge(toCopy, join(testPath, os.path.basename(toCopy)), merge, exclude)
                     else:
                         shutil.copy2(toCopy, testPath)
+        if options.skip_configuration:
+            continue
         oldWorkDir = os.getcwd()
         os.chdir(testPath)
-        if (not options.skip_configuration 
-                and app in ["dfrouter", "duarouter", "jtrrouter", "marouter", "netconvert", 
-                    "netgen", "netgenerate", "od2trips", "polyconvert", "sumo", "activitygen"]):
+        if app in ["dfrouter", "duarouter", "jtrrouter", "marouter", "netconvert", 
+                   "netgen", "netgenerate", "od2trips", "polyconvert", "sumo", "activitygen"]:
+            appOptions += ['--save-configuration', '%s.%scfg' % (nameBase, app[:4])]
             if "meso" in testPath and app == "sumo":
                 app = "meso"
             if app == "netgen":
                 # binary is now called differently but app still has the old name
                 app = "netgenerate"
             subprocess.call([checkBinary(app)] + appOptions)
+        elif app == "tools":
+            if os.name == "posix" or options.file:
+                tool = join("$SUMO_HOME", appOptions[-1])
+                open(nameBase + ".sh", "w").write(tool + " " + " ".join(appOptions[:-1]))
+            if os.name != "posix" or options.file:
+                tool = join("%SUMO_HOME%", appOptions[-1])
+                open(nameBase + ".bat", "w").write(tool + " " + " ".join(appOptions[:-1]))
         os.chdir(oldWorkDir)
 
 if __name__ == "__main__":
