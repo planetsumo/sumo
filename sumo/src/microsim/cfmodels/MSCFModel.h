@@ -21,7 +21,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFModel_h
-#define	MSCFModel_h
+#define MSCFModel_h
 
 // ===========================================================================
 // included modules
@@ -96,7 +96,7 @@ public:
      * @return EGO's safe speed
      */
     virtual SUMOReal freeSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal seen,
-                               SUMOReal maxSpeed, const bool onInsertion=false) const;
+                               SUMOReal maxSpeed, const bool onInsertion = false) const;
 
 
     /** @brief Computes the vehicle's follow speed (no dawdling)
@@ -332,7 +332,7 @@ protected:
 
 
     /** @brief Returns the maximum velocity for stopping within gap
-     * This depends stronlgy on the position update model 
+     * This depends stronlgy on the position update model
      * @param[in] gap The (netto) distance to the LEADER
      */
     SUMOReal maximumSafeStopSpeed(SUMOReal gap) const;
@@ -352,5 +352,5 @@ protected:
 };
 
 
-#endif	/* MSCFModel_h */
+#endif /* MSCFModel_h */
 

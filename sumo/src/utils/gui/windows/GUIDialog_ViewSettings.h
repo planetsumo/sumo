@@ -320,7 +320,7 @@ private:
                *myVehicleNamePanel, *myPersonNamePanel, *myContainerNamePanel,
                *myAddNamePanel, *myPOINamePanel, *myPolyNamePanel;
 
-    SizePanel *myVehicleSizePanel, *myPersonSizePanel, *myContainerSizePanel, *myPOISizePanel, *myPolySizePanel, *myAddSizePanel;
+    SizePanel* myVehicleSizePanel, *myPersonSizePanel, *myContainerSizePanel, *myPOISizePanel, *myPolySizePanel, *myAddSizePanel;
     /// @}
 
 

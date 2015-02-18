@@ -258,8 +258,26 @@ int
 NBContHelper::edge_by_angle_to_nodeShapeCentroid_sorter::operator()(const NBEdge* e1, const NBEdge* e2) const {
     assert(e1->getFromNode() == myNode || e1->getToNode() == myNode);
     assert(e2->getFromNode() == myNode || e2->getToNode() == myNode);
-    const SUMOReal angle1 = e1->getFromNode() == myNode ? e1->getStartAngle() : e1->getEndAngle();
-    const SUMOReal angle2 = e2->getFromNode() == myNode ? e2->getStartAngle() : e2->getEndAngle();
+    const SUMOReal angle1 = e1->getAngleAtNodeToCenter(myNode);
+    const SUMOReal angle2 = e2->getAngleAtNodeToCenter(myNode);
+    const SUMOReal absDiff = abs(angle1 - angle2);
+
+    // cannot trust the angle difference hence a heuristic: 
+    if (absDiff < 2 || absDiff > (360 - 2)) {
+        const bool sameDir = ((e1->getFromNode() == myNode && e2->getFromNode() == myNode) 
+                || (e1->getToNode() == myNode && e2->getToNode() == myNode));
+        if (sameDir) {
+            // put edges that allow pedestrians on the 'outside'
+            if (e1->getToNode() == myNode) {
+                return (e1->getPermissions() & SVC_PEDESTRIAN) != 0;
+            } else {
+                return (e1->getPermissions() & SVC_PEDESTRIAN) == 0;
+            }
+        } else {
+            // sort incoming before outgoing
+            return e1->getToNode() == myNode;
+        }
+    }
     return angle1 < angle2;
 }
 

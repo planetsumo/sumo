@@ -38,7 +38,6 @@
 #include <iomanip>
 #include <fstream>
 #include <ctime>
-#include <stdlib.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/options/Option.h>
 #include <utils/common/MsgHandler.h>
@@ -51,7 +50,7 @@
 #include <microsim/MSRoute.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSGlobals.h>
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <utils/common/RandHelper.h>
@@ -119,6 +118,11 @@ MSFrame::fillOptions() {
     oc.addSynonyme("netstate-dump.empty-edges", "netstate-output.empty-edges");
     oc.addSynonyme("netstate-dump.empty-edges", "dump-empty-edges", true);
     oc.addDescription("netstate-dump.empty-edges", "Output", "Write also empty edges completely when dumping");
+    oc.doRegister("netstate-dump.precision", new Option_Integer(OUTPUT_ACCURACY));
+    oc.addSynonyme("netstate-dump.precision", "netstate.precision");
+    oc.addSynonyme("netstate-dump.precision", "netstate-output.precision");
+    oc.addSynonyme("netstate-dump.precision", "dump-precision", true);
+    oc.addDescription("netstate-dump.precision", "Output", "Write positions and speeds with the given precision (default 2)");
 
 
     oc.doRegister("emission-output", new Option_FileName());
@@ -141,8 +145,6 @@ MSFrame::fillOptions() {
 
     oc.doRegister("summary-output", new Option_FileName());
     oc.addSynonyme("summary-output", "summary");
-    oc.addSynonyme("summary-output", "emissions-output", true);
-    oc.addSynonyme("summary-output", "emissions", true);
     oc.addDescription("summary-output", "Output", "Save aggregated vehicle departure info into FILE");
 
     oc.doRegister("tripinfo-output", new Option_FileName());
@@ -226,7 +228,7 @@ MSFrame::fillOptions() {
 #endif
 
     oc.doRegister("ignore-accidents", new Option_Bool(false));
-    oc.addDescription("ignore-accidents", "Processing", "Do not check whether accidents occure more deeply");
+    oc.addDescription("ignore-accidents", "Processing", "Do not check whether accidents occur");
 
     oc.doRegister("ignore-route-errors", new Option_Bool(false));
     oc.addDescription("ignore-route-errors", "Processing", "Do not check whether routes are connected");
@@ -277,10 +279,12 @@ MSFrame::fillOptions() {
     oc.doRegister("pedestrian.striping.dawdling", new Option_Float(0.2));
     oc.addDescription("pedestrian.striping.dawdling", "Processing", "factor for random slow-downs [0,1] for use with model 'striping'");
 
+    oc.doRegister("pedestrian.striping.jamtime", new Option_String("300", "TIME"));
+    oc.addDescription("pedestrian.striping.jamtime", "Processing", "Time in seconds after which pedestrians start squeezing through a jam when using model 'striping' (non-positive values disable squeezing)");
+
     // devices
     oc.addOptionSubTopic("Emissions");
-    std::string plp = getenv("PHEMLIGHT_PATH") == 0 ? "./PHEMlight/" : std::string(getenv("PHEMLIGHT_PATH"));
-    oc.doRegister("phemlight-path", new Option_FileName(plp));
+    oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
 
     oc.addOptionSubTopic("Communication");
@@ -321,7 +325,7 @@ MSFrame::fillOptions() {
     oc.addDescription("meso-taujj", "Mesoscopic", "Factor for calculating the jam-jam headway time");
     oc.doRegister("meso-jam-threshold", new Option_Float(-1));
     oc.addDescription("meso-jam-threshold", "Mesoscopic", "Minimum percentage of occupied space to consider a segment jammed. A negative argument causes thresholds to be computed based on edge speed and tauff (default)");
-    oc.doRegister("meso-multi-queue", new Option_Bool(false));
+    oc.doRegister("meso-multi-queue", new Option_Bool(true));
     oc.addDescription("meso-multi-queue", "Mesoscopic", "Enable multiple queues at edge ends");
     oc.doRegister("meso-junction-control", new Option_Bool(false));
     oc.addDescription("meso-junction-control", "Mesoscopic", "Enable mesoscopic traffic light and priority junction handling");

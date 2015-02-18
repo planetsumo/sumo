@@ -1,17 +1,16 @@
 /****************************************************************************/
-/// @file    MSLCM_DK2008.h
-/// @author  Daniel Krajzewicz
-/// @author  Friedemann Wesner
-/// @author  Sascha Krieg
-/// @author  Michael Behrisch
+/// @file    MSLCM_JE2013.h
 /// @author  Jakob Erdmann
-/// @date    Fri, 29.04.2005
+/// @author  Michael Behrisch
+/// @author  Laura Bieker
+/// @date    Fri, 08.10.2013
 /// @version $Id$
 ///
-// A lane change model developed by D. Krajzewicz between 2004 and 2010
+// A lane change model developed by J. Erdmann
+// based on the model of D. Krajzewicz developed between 2004 and 2011 (MSLCM_DK2004)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -21,8 +20,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef MSLCM_DK2008_h
-#define MSLCM_DK2008_h
+#ifndef MSLCM_JE2013_h
+#define MSLCM_JE2013_h
 
 
 // ===========================================================================
@@ -34,17 +33,18 @@
 #include <config.h>
 #endif
 
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include "MSAbstractLaneChangeModel.h"
 #include <vector>
+
 
 // ===========================================================================
 // class definitions
 // ===========================================================================
 /**
- * @class MSLCM_DK2008
- * @brief A lane change model developed by D. Krajzewicz between 2004 and 2010
+ * @class MSLCM_JE2013
+ * @brief A lane change model developed by J. Erdmann
  */
-class MSLCM_DK2008 : public MSAbstractLaneChangeModel {
+class MSLCM_JE2013 : public MSAbstractLaneChangeModel {
 public:
 
     enum MyLCAEnum {
@@ -55,16 +55,17 @@ public:
         // !!! never set LCA_UNBLOCK = 1 << 20,
         LCA_AMBLOCKINGFOLLOWER_DONTBRAKE = 1 << 21,
         // !!! never used LCA_AMBLOCKINGSECONDFOLLOWER = 1 << 22,
-
+        LCA_CHANGE_TO_HELP = 1 << 23,
         // !!! never read LCA_KEEP1 = 1 << 24,
         // !!! never used LCA_KEEP2 = 1 << 25,
         LCA_AMBACKBLOCKER = 1 << 26,
         LCA_AMBACKBLOCKER_STANDING = 1 << 27
     };
 
-    MSLCM_DK2008(MSVehicle& v);
 
-    virtual ~MSLCM_DK2008();
+    MSLCM_JE2013(MSVehicle& v);
+
+    virtual ~MSLCM_JE2013();
 
     /** @brief Called to examine whether the vehicle wants to change
      * using the given laneOffset.
@@ -81,7 +82,7 @@ public:
         MSVehicle** lastBlocked,
         MSVehicle** firstBlocked);
 
-    virtual void* inform(void* info, MSVehicle* sender);
+    void* inform(void* info, MSVehicle* sender);
 
     /** @brief Called to adapt the speed in order to allow a lane change.
      *
@@ -91,19 +92,22 @@ public:
      * @param cfModel The model used
      * @return the new speed of the vehicle as proposed by the lane changer
      */
-    virtual SUMOReal patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOReal max,
-                                const MSCFModel& cfModel);
+    SUMOReal patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOReal max,
+                        const MSCFModel& cfModel);
+    /** helper function which contains the actual logic */
+    SUMOReal _patchSpeed(const SUMOReal min, const SUMOReal wanted, const SUMOReal max,
+                         const MSCFModel& cfModel);
 
-    virtual void changed(int dir);
+    void changed(int dir);
 
-    virtual void prepareStep();
+    void prepareStep();
 
 
 protected:
-    /** @brief Called to examine whether the vehicle wants to change to right
-        This method gets the information about the surrounding vehicles
-        and whether another lane may be more preferable */
-    virtual int wantsChangeToRight(
+
+    /// @brief helper function for doing the actual work
+    int _wantsChange(
+        int laneOffset,
         MSAbstractLaneChangeModel::MSLCMessager& msgPass, int blocked,
         const std::pair<MSVehicle*, SUMOReal>& leader,
         const std::pair<MSVehicle*, SUMOReal>& neighLead,
@@ -113,23 +117,34 @@ protected:
         MSVehicle** lastBlocked,
         MSVehicle** firstBlocked);
 
-    /** @brief Called to examine whether the vehicle wants to change to left
-        This method gets the information about the surrounding vehicles
-        and whether another lane may be more preferable */
-    virtual int wantsChangeToLeft(
-        MSAbstractLaneChangeModel::MSLCMessager& msgPass, int blocked,
-        const std::pair<MSVehicle*, SUMOReal>& leader,
-        const std::pair<MSVehicle*, SUMOReal>& neighLead,
-        const std::pair<MSVehicle*, SUMOReal>& neighFollow,
-        const MSLane& neighLane,
-        const std::vector<MSVehicle::LaneQ>& preb,
-        MSVehicle** lastBlocked,
-        MSVehicle** firstBlocked);
 
-    void informBlocker(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
-                       int& blocked, int dir,
-                       const std::pair<MSVehicle*, SUMOReal>& neighLead,
-                       const std::pair<MSVehicle*, SUMOReal>& neighFollow);
+    /* @brief decide whether we will overtake or follow a blocking leader
+     * and inform it accordingly
+     * If we decide to follow, myVSafes will be extended
+     * returns the planned speed if following or -1 if overtaking */
+    SUMOReal informLeader(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
+                          int blocked, int dir,
+                          const std::pair<MSVehicle*, SUMOReal>& neighLead,
+                          SUMOReal remainingSeconds);
+
+    /// @brief decide whether we will try cut in before the follower or allow to be overtaken
+    void informFollower(MSAbstractLaneChangeModel::MSLCMessager& msgPass,
+                        int blocked, int dir,
+                        const std::pair<MSVehicle*, SUMOReal>& neighFollow,
+                        SUMOReal remainingSeconds,
+                        SUMOReal plannedSpeed);
+
+
+    /// @brief compute useful slowdowns for blocked vehicles
+    int slowDownForBlocked(MSVehicle** blocked, int state);
+
+    /// @brief save space for vehicles which need to counter-lane-change
+    void saveBlockerLength(MSVehicle* blocker, int lcaCounter);
+
+    /// @brief reserve space at the end of the lane to avoid dead locks
+    inline void saveBlockerLength(SUMOReal length) {
+        myLeadingBlockerLength = MAX2(length, myLeadingBlockerLength);
+    };
 
     inline bool amBlockingLeader() {
         return (myOwnState & LCA_AMBLOCKINGLEADER) != 0;
@@ -150,15 +165,25 @@ protected:
         return dist / abs(laneOffset) > lookForwardDist;
     }
 
+    /// @brief information regarding save velocity (unused) and state flags of the ego vehicle
     typedef std::pair<SUMOReal, int> Info;
 
 
 
 protected:
-    SUMOReal myChangeProbability;
+    /// @brief a value for tracking the probability that a change to the offset with the same sign is beneficial
+    SUMOReal mySpeedGainProbability;
+    /* @brief a value for tracking the probability of following the/"Rechtsfahrgebot"
+     * A larger negative value indicates higher probability for moving to the
+     * right (as in mySpeedGainProbability) */
+    SUMOReal myKeepRightProbability;
 
     SUMOReal myLeadingBlockerLength;
     SUMOReal myLeftSpace;
+
+    /*@brief the speed to use when computing the look-ahead distance for
+     * determining urgency of strategic lane changes */
+    SUMOReal myLookAheadSpeed;
 
     std::vector<SUMOReal> myVSafes;
     bool myDontBrake;

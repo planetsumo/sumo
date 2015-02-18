@@ -31,20 +31,20 @@
 #endif
 
 #include <string>
-#include "ODDistrict.h"
-#include "ODDistrictCont.h"
 #include <utils/common/MsgHandler.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/NamedObjectCont.h>
-#include <od2trips/ODDistrictCont.h>
-#include <od2trips/ODDistrictHandler.h>
 #include <utils/xml/XMLSubSys.h>
 #include <utils/common/RandHelper.h>
 #include <utils/common/FileHelpers.h>
 #include <utils/options/OptionsCont.h>
+#include "ODDistrict.h"
+#include "ODDistrictHandler.h"
+#include "ODDistrictCont.h"
+
+
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
-#include <utils/options/OptionsCont.h>
 #endif // CHECK_MEMORY_LEAKS
 
 
@@ -76,6 +76,7 @@ ODDistrictCont::getRandomSinkFromDistrict(const std::string& name) const {
     return district->getRandomSink();
 }
 
+
 void
 ODDistrictCont::loadDistricts(std::string districtfile) {
     if (!FileHelpers::isReadable(districtfile)) {
@@ -91,5 +92,22 @@ ODDistrictCont::loadDistricts(std::string districtfile) {
     }
 }
 
-/****************************************************************************/
 
+void
+ODDistrictCont::makeDistricts(const std::map<std::string, std::pair<std::vector<std::string>, std::vector<std::string> > >& districts) {
+    for (std::map<std::string, std::pair<std::vector<std::string>, std::vector<std::string> > >::const_iterator it = districts.begin(); it != districts.end(); ++it) {
+        ODDistrict* current = new ODDistrict(it->first);
+        const std::vector<std::string>& sources = it->second.first;
+        for (std::vector<std::string>::const_iterator i = sources.begin(); i != sources.end(); ++i) {
+            current->addSource(*i, 1.);
+        }
+        const std::vector<std::string>& sinks = it->second.second;
+        for (std::vector<std::string>::const_iterator i = sinks.begin(); i != sinks.end(); ++i) {
+            current->addSink(*i, 1.);
+        }
+        add(current->getID(), current);
+    }
+}
+
+
+/****************************************************************************/

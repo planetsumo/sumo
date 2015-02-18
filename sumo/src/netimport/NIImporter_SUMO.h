@@ -167,7 +167,7 @@ private:
     /** @brief Parses a roundabout and stores it in myEdgeCont.
      * @param[in] attrs The attributes to get the roundabouts values from
      */
-    void addRoundabout(const SUMOSAXAttributes& attrs); 
+    void addRoundabout(const SUMOSAXAttributes& attrs);
 
     //@}
 
@@ -315,6 +315,9 @@ private:
 
     /// @brief loaded roundabout edges
     std::vector<std::vector<std::string> > myRoundabouts;
+
+    /// @brief customLaneShape (cannot be added to the NBNode when parsed since the node doesn't yet exist
+    std::map<std::string, NBNode::CustomShapeMap> myCustomShapeMaps;
 
     /** @brief Parses lane index from lane ID an retrieve lane from EdgeAttrs
      * @param[in] edge The EdgeAttrs* which should contain the lane

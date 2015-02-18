@@ -66,6 +66,15 @@ Line::extrapolateBy(SUMOReal length) {
 
 
 void
+Line::extrapolateBy2D(SUMOReal length) {
+    SUMOReal factor = length / myP1.distanceTo2D(myP2);
+    Position offset = (myP2 - myP1) * factor;
+    myP1.sub(offset);
+    myP2.add(offset);
+}
+
+
+void
 Line::extrapolateFirstBy(SUMOReal length) {
     myP1 = GeomHelper::extrapolate_first(myP1, myP2, length);
 }
@@ -232,6 +241,14 @@ Line::rotateAtP1(SUMOReal rot) {
     p.add(myP1);
     myP2 = p;
 }
+
+
+std::ostream&
+operator<<(std::ostream& os, const Line& line) {
+    os << line.myP1 << " " << line.myP2;
+    return os;
+}
+
 
 
 /****************************************************************************/

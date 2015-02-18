@@ -148,7 +148,7 @@ public:
 #endif
 
 private:
-    SUMOReal getColorValue(const GUIVisualizationSettings& s) const; 
+    SUMOReal getColorValue(const GUIVisualizationSettings& s) const;
 
 private:
     /// @brief A reference to the represented junction
@@ -162,6 +162,9 @@ private:
 
     /// @brief whether this wraps an instance of MSInternalJunction
     bool myIsInner;
+
+    /// @brief whether this junction has only waterways as incoming and outgoing edges
+    bool myAmWaterway;
 
 #ifdef HAVE_OSG
     osg::Geometry* myGeom;

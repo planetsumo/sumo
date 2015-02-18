@@ -60,19 +60,11 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
     switch (vclass) {
         case SVC_PEDESTRIAN:
             length = 0.215;
-            minGap = 0.5;
+            minGap = 0.25;
             maxSpeed = DEFAULT_PEDESTRIAN_SPEED;
             width = 0.478;
             height = 1.719;
             shape = SVS_PEDESTRIAN;
-            break;
-        case SVC_CONTAINER:
-            length = 6.058; //length of a 20' ISO container
-            minGap = 0.0;
-            maxSpeed = DEFAULT_CONTAINER_TRANSFER_SPEED;
-            width = 2.438;  //width of a 20' ISO container
-            height = 2.591; //height of a 20' ISO container
-            shape = SVS_CONTAINER;
             break;
         case SVC_BICYCLE:
             length = 1.6;
@@ -184,29 +176,11 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
         case SVC_E_VEHICLE:
             shape = SVS_E_VEHICLE;
             break;
-		case SVC_SHIP:
-            length = 30.0;
-            width = 7.0;
-            height = 7.0;
-            maxSpeed = 15.0;
-			//TODO: a shape for ships has to be created
-            shape = SVS_SHIP;
-            break;
-		case SVC_FREIGHTER:
-            length = 30.0;
-            width = 7.0;
-            height = 7.0;
-            maxSpeed = 15.0;
-			//TODO: a shape for ships has to be created
-            shape = SVS_SHIP;
-			containerCapacity = 20;
-            break;
-		case SVC_PASSENGER_SHIP:
-            length = 30.0;
-            width = 7.0;
-            height = 7.0;
-            maxSpeed = 15.0;
-			//TODO: a shape for ships has to be created
+        case SVC_SHIP:
+            length = 17;
+            width = 4;
+            maxSpeed = 8 / 1.94; // 8 knots
+            height = 4;
             shape = SVS_SHIP;
             break;
         default:
@@ -298,10 +272,8 @@ SUMOVTypeParameter::write(OutputDevice& dev) const {
             dev.writeAttr(*i, cfParameter.find(*i)->second);
         }
         dev.closeTag();
-        dev.closeTag();
-    } else {
-        dev.closeTag();
     }
+    dev.closeTag();
 }
 
 
@@ -342,6 +314,8 @@ SUMOVTypeParameter::getDefaultAccel(const SUMOVehicleClass vc) {
             return 0.25;
         case SVC_RAIL_ELECTRIC:
             return 0.5;
+        case SVC_SHIP:
+            return 0.1;
         default:
             return 2.6;//2.9;
     }
@@ -375,6 +349,8 @@ SUMOVTypeParameter::getDefaultDecel(const SUMOVehicleClass vc) {
             return 1.3;
         case SVC_RAIL_ELECTRIC:
             return 1.3;
+        case SVC_SHIP:
+            return 0.1;
         default:
             return 4.5;//7.5;
     }
@@ -388,6 +364,7 @@ SUMOVTypeParameter::getDefaultImperfection(const SUMOVehicleClass vc) {
         case SVC_RAIL_URBAN:
         case SVC_RAIL:
         case SVC_RAIL_ELECTRIC:
+        case SVC_SHIP:
             return 0.;
         default:
             return 0.5;

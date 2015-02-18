@@ -121,8 +121,9 @@ NLEdgeControlBuilder::build() {
         for (EdgeCont::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
             MSEdge* edge = *i1;
             if (edge->isInternal()) {
-                assert(edge->getNumSuccessors() == 1);
-                assert(edge->getIncomingEdges().size() == 1);
+                if (edge->getNumSuccessors() != 1 || edge->getIncomingEdges().size() != 1) {
+                    throw ProcessError("Internal edge '" + edge->getID() + "' is not properly connected (probably a manually modified net.xml).");
+                }
                 if (edge->getSuccessor(0)->isRoundabout() || edge->getIncomingEdges()[0]->isRoundabout()) {
                     edge->markAsRoundabout();
                 }
@@ -138,8 +139,8 @@ NLEdgeControlBuilder::build() {
 
 
 MSEdge*
-NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function, 
-        const std::string& streetName, const std::string& edgeType, const int priority) {
+NLEdgeControlBuilder::buildEdge(const std::string& id, const MSEdge::EdgeBasicFunction function,
+                                const std::string& streetName, const std::string& edgeType, const int priority) {
     return new MSEdge(id, myCurrentNumericalEdgeID++, function, streetName, edgeType, priority);
 }
 

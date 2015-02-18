@@ -96,9 +96,8 @@ enum SUMOVehicleShape {
     SVS_E_VEHICLE,
     /// @brief render as a giant ant
     SVS_ANT,
-	/// @brief render as a arbitrary ship
-	SVS_SHIP
-
+    /// @brief render as a arbitrary ship
+    SVS_SHIP
 };
 
 
@@ -181,19 +180,13 @@ enum SUMOVehicleClass {
     SVC_PEDESTRIAN = 1 << 20,
     /// @brief is an electric vehicle
     SVC_E_VEHICLE = 1 << 21,
+    /// @brief is an arbitrary ship
+    SVC_SHIP = 1 << 22,
     /// @brief is a user-defined type
-    SVC_CUSTOM1 = 1 << 22,
+    SVC_CUSTOM1 = 1 << 23,
     /// @brief is a user-defined type
-    SVC_CUSTOM2 = 1 << 23,
-	/// @brief is an arbitrary ship
-	SVC_SHIP = 1 << 24,
-	/// @brief is a freighter
-	SVC_FREIGHTER = 1 << 25,
-	/// @brief is passenger ship
-	SVC_PASSENGER_SHIP = 1 << 26,
-	/// @brief is a container
-	SVC_CONTAINER = 1 << 27
-                  //@}
+    SVC_CUSTOM2 = 1 << 24
+    //@}
 };
 
 extern const int SUMOVehicleClass_MAX;
@@ -204,7 +197,8 @@ extern StringBijection<SUMOVehicleShape> SumoVehicleShapeStrings;
 /* @brief bitset where each bit declares whether a certain SVC may use this edge/lane
  */
 typedef int SVCPermissions;
-extern const SVCPermissions SVCAll;
+extern const SVCPermissions SVCAll; // everything allowed
+extern const SVCPermissions SVC_UNSPECIFIED; // permissions not specified 
 
 
 /**
@@ -308,6 +302,12 @@ extern SUMOVehicleShape getVehicleShapeID(const std::string& name);
  */
 extern bool isRailway(SVCPermissions permissions);
 
+/** @brief Returns whether an edge with the given permission is a waterway edge
+ * @param[in] permissions The permissions of the edge
+ * @return Whether the edge is a waterway edge
+ */
+extern bool isWaterway(SVCPermissions permissions);
+
 /** @brief Returns whether an edge with the given permission is a forbidden edge
  * @param[in] permissions The permissions of the edge
  * @return Whether the edge is forbidden
@@ -318,6 +318,7 @@ extern bool isForbidden(SVCPermissions permissions);
 // default vehicle type parameter
 // ---------------------------------------------------------------------------
 extern const std::string DEFAULT_VTYPE_ID;
+extern const std::string DEFAULT_PEDTYPE_ID;
 
 extern const SUMOReal DEFAULT_VEH_PROB; // !!! does this belong here?
 

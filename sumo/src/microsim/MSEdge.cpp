@@ -45,7 +45,7 @@
 #include "MSLaneChanger.h"
 #include "MSGlobals.h"
 #include "MSVehicle.h"
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
 #include "MSContainer.h"
 #include "MSEdgeWeightsStorage.h"
 
@@ -346,7 +346,7 @@ MSEdge::getDepartLane(MSVehicle& veh) const {
         }
         case DEPART_LANE_DEFAULT:
         case DEPART_LANE_FIRST_ALLOWED:
-            for (std::vector<MSLane*>::const_iterator i=myLanes->begin(); i!=myLanes->end(); ++i) {
+            for (std::vector<MSLane*>::const_iterator i = myLanes->begin(); i != myLanes->end(); ++i) {
                 if ((*i)->allowsVehicleClass(veh.getVehicleType().getVehicleClass())) {
                     return *i;
                 }
@@ -427,14 +427,20 @@ MSEdge::insertVehicle(SUMOVehicle& v, SUMOTime time, const bool checkOnly) const
     UNUSED_PARAMETER(time);
 #endif
     if (checkOnly) {
+        if (v.getEdge()->getPurpose() == MSEdge::EDGEFUNCTION_DISTRICT) {
+            return true;
+        }
         switch (v.getParameter().departLaneProcedure) {
             case DEPART_LANE_GIVEN:
             case DEPART_LANE_DEFAULT:
-            case DEPART_LANE_FIRST_ALLOWED:
-                return getDepartLane(static_cast<MSVehicle&>(v))->getBruttoOccupancy() * myLength + v.getVehicleType().getLengthWithGap() <= myLength;
+            case DEPART_LANE_FIRST_ALLOWED: {
+                const SUMOReal occupancy = getDepartLane(static_cast<MSVehicle&>(v))->getBruttoOccupancy();
+                return occupancy == (SUMOReal)0 || occupancy * myLength + v.getVehicleType().getLengthWithGap() <= myLength;
+            }
             default:
-                for (std::vector<MSLane*>::const_iterator i=myLanes->begin(); i!=myLanes->end(); ++i) {
-                    if ((*i)->getBruttoOccupancy() * myLength + v.getVehicleType().getLengthWithGap() <= myLength) {
+                for (std::vector<MSLane*>::const_iterator i = myLanes->begin(); i != myLanes->end(); ++i) {
+                    const SUMOReal occupancy = (*i)->getBruttoOccupancy();
+                    if (occupancy == (SUMOReal)0 || occupancy * myLength + v.getVehicleType().getLengthWithGap() <= myLength) {
                         return true;
                     }
                 }

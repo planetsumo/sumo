@@ -34,9 +34,9 @@
 
 #include <iostream>
 #include <utils/common/RandHelper.h>
-#include "MSEdge.h"
-#include "MSLane.h"
-#include "MSNet.h"
+#include <microsim/MSEdge.h>
+#include <microsim/MSLane.h>
+#include <microsim/MSNet.h>
 #include "MSLCM_LC2013.h"
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -507,7 +507,7 @@ MSLCM_LC2013::_wantsChange(
             MSVehicle* nv = neighLead.first;
             if (nv->getSpeed() < myVehicle.getSpeed()) {
                 const SUMOReal vSafe = myCarFollowModel.followSpeed(
-                        &myVehicle, myVehicle.getSpeed(), neighLead.second, nv->getSpeed(), nv->getCarFollowModel().getMaxDecel());
+                                           &myVehicle, myVehicle.getSpeed(), neighLead.second, nv->getSpeed(), nv->getCarFollowModel().getMaxDecel());
                 myVSafes.push_back(vSafe);
                 if (vSafe < myVehicle.getSpeed()) {
                     mySpeedGainProbability += CHANGE_PROB_THRESHOLD_LEFT / 3;

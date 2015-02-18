@@ -59,7 +59,7 @@ SUMORouteHandler::SUMORouteHandler(const std::string& file) :
     myCurrentVType(0),
     myBeginDefault(string2time(OptionsCont::getOptions().getString("begin"))),
     myEndDefault(string2time(OptionsCont::getOptions().getString("end"))),
-    myFirstDepart(-1) {
+    myFirstDepart(-1), myInsertStopEdgesAt(-1) {
 }
 
 
@@ -107,7 +107,7 @@ SUMORouteHandler::myStartElement(int element,
             break;
         case SUMO_TAG_PERSON:
             delete myVehicleParameter;
-            myVehicleParameter = SUMOVehicleParserHelper::parseVehicleAttributes(attrs);
+            myVehicleParameter = SUMOVehicleParserHelper::parseVehicleAttributes(attrs, false, false, true);
             break;
         case SUMO_TAG_CONTAINER:
             delete myVehicleParameter;
@@ -199,9 +199,6 @@ SUMORouteHandler::myEndElement(int element) {
             myBeginDefault = string2time(OptionsCont::getOptions().getString("begin"));
             myEndDefault = string2time(OptionsCont::getOptions().getString("end"));
             break;
-        case SUMO_TAG_TRIP:
-            delete myVehicleParameter;
-            myVehicleParameter = 0;
         default:
             break;
     }

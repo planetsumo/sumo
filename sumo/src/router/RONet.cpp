@@ -61,9 +61,8 @@ RONet::RONet()
       myReadRouteNo(0), myDiscardedRouteNo(0), myWrittenRouteNo(0),
       myHaveRestrictions(false),
       myNumInternalEdges(0),
-      myErrorHandler(OptionsCont::getOptions().exists("ignore-errors") 
-              && OptionsCont::getOptions().getBool("ignore-errors") ? MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance())
-{
+      myErrorHandler(OptionsCont::getOptions().exists("ignore-errors")
+                     && OptionsCont::getOptions().getBool("ignore-errors") ? MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()) {
     SUMOVTypeParameter* type = new SUMOVTypeParameter(DEFAULT_VTYPE_ID, SVC_IGNORING);
     type->onlyReferenced = true;
     myVehicleTypes.add(type->id, type);
@@ -88,6 +87,45 @@ RONet::addEdge(ROEdge* edge) {
     }
     if (edge->getType() == ROEdge::ET_INTERNAL) {
         myNumInternalEdges += 1;
+    }
+    return true;
+}
+
+
+bool
+RONet::addDistrict(const std::string id, ROEdge* source, ROEdge* sink) {
+    if (myDistricts.count(id) > 0) {
+        WRITE_ERROR("The TAZ '" + id + "' occurs at least twice.");
+        delete source;
+        delete sink;
+        return false;
+    }
+    sink->setType(ROEdge::ET_DISTRICT);
+    addEdge(sink);
+    source->setType(ROEdge::ET_DISTRICT);
+    addEdge(source);
+    myDistricts[id] = std::make_pair(std::vector<std::string>(), std::vector<std::string>());
+    return true;
+}
+
+
+bool
+RONet::addDistrictEdge(const std::string tazID, const std::string edgeID, const bool isSource) {
+    if (myDistricts.count(tazID) == 0) {
+        WRITE_ERROR("The TAZ '" + tazID + "' is unknown.");
+        return false;
+    }
+    ROEdge* edge = getEdge(edgeID);
+    if (edge == 0) {
+        WRITE_ERROR("The edge '" + edgeID + "' for TAZ '" + tazID + "' is unknown.");
+        return false;
+    }
+    if (isSource) {
+        getEdge(tazID + "-source")->addSuccessor(edge);
+        myDistricts[tazID].first.push_back(edgeID);
+    } else {
+        edge->addSuccessor(getEdge(tazID + "-sink"));
+        myDistricts[tazID].second.push_back(edgeID);
     }
     return true;
 }
@@ -176,7 +214,7 @@ RONet::cleanup(SUMOAbstractRouter<ROEdge, ROVehicle>* router) {
 
 
 SUMOVTypeParameter*
-RONet::getVehicleTypeSecure(const std::string& id) {
+RONet::getVehicleTypeSecure(const std::string& id, bool defaultIfMissing) {
     // check whether the type was already known
     SUMOVTypeParameter* type = myVehicleTypes.get(id);
     if (id == DEFAULT_VTYPE_ID) {
@@ -189,8 +227,8 @@ RONet::getVehicleTypeSecure(const std::string& id) {
     if (it2 != myVTypeDistDict.end()) {
         return it2->second->get();
     }
-    if (id == "") {
-        // ok, no vehicle type was given within the user input
+    if (id == "" || defaultIfMissing) {
+        // ok, no vehicle type or an unknown type was given within the user input
         //  return the default type
         myDefaultVTypeMayBeDeleted = false;
         return myVehicleTypes.get(DEFAULT_VTYPE_ID);
@@ -247,7 +285,7 @@ RONet::addVehicle(const std::string& id, ROVehicle* veh) {
         myReadRouteNo++;
         return true;
     }
-    WRITE_ERROR("The vehicle '" + id + "' occurs at least twice.");
+    WRITE_ERROR("Another vehicle with the id '" + id + "' exists.");
     return false;
 }
 
@@ -315,30 +353,53 @@ RONet::checkFlows(SUMOTime time) {
     std::vector<std::string> toRemove;
     for (NamedObjectCont<SUMOVehicleParameter*>::IDMap::const_iterator i = myFlows.getMyMap().begin(); i != myFlows.getMyMap().end(); ++i) {
         SUMOVehicleParameter* pars = i->second;
-        while (pars->repetitionsDone < pars->repetitionNumber) {
-            SUMOTime depart = static_cast<SUMOTime>(pars->depart + pars->repetitionsDone * pars->repetitionOffset);
-            if (myDepartures.find(pars->id) != myDepartures.end()) {
-                depart = myDepartures[pars->id].back();
+        if (pars->repetitionProbability > 0) {
+            while (pars->depart < time) {
+                if (pars->repetitionEnd <= pars->depart) {
+                    toRemove.push_back(i->first);
+                    break;
+                }
+                // only call rand if all other conditions are met
+                if (RandHelper::rand() < (pars->repetitionProbability * TS)) {
+                    SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*pars);
+                    newPars->id = pars->id + "." + toString(pars->repetitionsDone);
+                    newPars->depart = pars->depart;
+                    pars->repetitionsDone++;
+                    // try to build the vehicle
+                    SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid, true);
+                    RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
+                    ROVehicle* veh = new ROVehicle(*newPars, route, type, this);
+                    addVehicle(newPars->id, veh);
+                    delete newPars;
+                }
+                pars->depart += DELTA_T;
             }
-            if (depart >= time + DELTA_T) {
-                break;
+        } else {
+            while (pars->repetitionsDone < pars->repetitionNumber) {
+                SUMOTime depart = static_cast<SUMOTime>(pars->depart + pars->repetitionsDone * pars->repetitionOffset);
+                if (myDepartures.find(pars->id) != myDepartures.end()) {
+                    depart = myDepartures[pars->id].back();
+                }
+                if (depart >= time + DELTA_T) {
+                    break;
+                }
+                if (myDepartures.find(pars->id) != myDepartures.end()) {
+                    myDepartures[pars->id].pop_back();
+                }
+                SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*pars);
+                newPars->id = pars->id + "." + toString(pars->repetitionsDone);
+                newPars->depart = depart;
+                pars->repetitionsDone++;
+                // try to build the vehicle
+                SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid, true);
+                RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
+                ROVehicle* veh = new ROVehicle(*newPars, route, type, this);
+                addVehicle(newPars->id, veh);
+                delete newPars;
             }
-            if (myDepartures.find(pars->id) != myDepartures.end()) {
-                myDepartures[pars->id].pop_back();
+            if (pars->repetitionsDone == pars->repetitionNumber) {
+                toRemove.push_back(i->first);
             }
-            SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*pars);
-            newPars->id = pars->id + "." + toString(pars->repetitionsDone);
-            newPars->depart = depart;
-            pars->repetitionsDone++;
-            // try to build the vehicle
-            SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid);
-            RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
-            ROVehicle* veh = new ROVehicle(*newPars, route, type, this);
-            addVehicle(newPars->id, veh);
-            delete newPars;
-        }
-        if (pars->repetitionsDone == pars->repetitionNumber) {
-            toRemove.push_back(i->first);
         }
     }
     for (std::vector<std::string>::const_iterator i = toRemove.begin(); i != toRemove.end(); ++i) {
@@ -359,7 +420,7 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
     if (myVehicles.size() != 0) {
         const std::map<std::string, ROVehicle*>& mmap = myVehicles.getMyMap();
         for (std::map<std::string, ROVehicle*>::const_iterator i = mmap.begin(); i != mmap.end(); ++i) {
-            if (i->second->getDepartureTime() >= time) {
+            if (i->second->getDepart() >= time) {
                 // we cannot go through a sorted list here, because the priority queue in the myVehicles container is not fully sorted
                 continue;
             }
@@ -386,7 +447,7 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
     while (myVehicles.size() != 0 || myPersons.size() != 0 || myContainers.size() != 0) {
         // get the next vehicle, person or container
         const ROVehicle* const veh = myVehicles.getTopVehicle();
-        const SUMOTime vehicleTime = veh == 0 ? SUMOTime_MAX : veh->getDepartureTime();
+        const SUMOTime vehicleTime = veh == 0 ? SUMOTime_MAX : veh->getDepart();
         PersonMap::iterator person = myPersons.begin();
         const SUMOTime personTime = person == myPersons.end() ? SUMOTime_MAX : person->first;
         ContainerMap::iterator container = myContainers.begin();

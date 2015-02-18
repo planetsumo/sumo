@@ -119,7 +119,7 @@ public:
      * @param[in] function A basic type of the edge
      * @param[in] streetName The street name for that edge
      */
-    MSEdge(const std::string& id, int numericalID, const EdgeBasicFunction function, 
+    MSEdge(const std::string& id, int numericalID, const EdgeBasicFunction function,
            const std::string& streetName, const std::string& edgeType, int priority);
 
 
@@ -278,11 +278,14 @@ public:
     /// @name Access to succeeding/predecessing edges
     /// @{
 
-    /** @brief Returns the list of edges which may be reached from this edge
-     * @return Edges reachable from this edge
+    /** @brief Adds an edge to the list of edges which may be reached from this edge and to the incoming of the other edge
+     *
+     * This is mainly used by the taz (district) parsing
+     * @param[in] edge The edge to add
      */
     void addSuccessor(MSEdge* edge) {
         mySuccessors.push_back(edge);
+        edge->myPredecessors.push_back(this);
     }
 
 
@@ -434,7 +437,7 @@ public:
      * @return Whether the vehicle could be inserted
      * @see MSLane::insertVehicle
      */
-    bool insertVehicle(SUMOVehicle& v, SUMOTime time, const bool checkOnly=false) const;
+    bool insertVehicle(SUMOVehicle& v, SUMOTime time, const bool checkOnly = false) const;
 
 
     /** @brief Finds the emptiest lane allowing the vehicle class

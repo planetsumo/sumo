@@ -201,11 +201,14 @@ public:
     static const SUMOReal UNSPECIFIED_WIDTH;
     /// @brief unspecified lane offset
     static const SUMOReal UNSPECIFIED_OFFSET;
-    /// @brief unspecified signal offset
-    static const SUMOReal UNSPECIFIED_SIGNAL_OFFSET;
+    /// @brief unspecified lane speed
+    static const SUMOReal UNSPECIFIED_SPEED;
+
     /// @brief no length override given
     static const SUMOReal UNSPECIFIED_LOADED_LENGTH;
-    /// @brief the distance at which to take the default anglen
+    /// @brief unspecified signal offset
+    static const SUMOReal UNSPECIFIED_SIGNAL_OFFSET;
+    /// @brief the distance at which to take the default angle
     static const SUMOReal ANGLE_LOOKAHEAD;
 
 public:
@@ -505,8 +508,11 @@ public:
     }
     //@}
 
-    /// @brief return the first lane with permissions other than SVC_PEDESTRIAN
-    int getFirstNonPedestrianLaneIndex(int direction) const;
+    /** @brief return the first lane with permissions other than SVC_PEDESTRIAN and 0
+     * @param[in] direction The direction in which the lanes shall be checked
+     * @param[in] exclusive Whether lanes that allow pedestrians along with other classes shall be counted as non-pedestrian
+     */
+    int getFirstNonPedestrianLaneIndex(int direction, bool exclusive=false) const;
     NBEdge::Lane getFirstNonPedestrianLane(int direction) const;
 
     /// @brief return the angle for computing pedestrian crossings at the given node
@@ -947,10 +953,11 @@ public:
     void addCrossingPointsAsIncomingWithGivenOutgoing(NBEdge* o,
             PositionVector& into);
 
-    SUMOReal width() const;
+    /// @brief get the outer boundary of this edge when going clock-wise around the given node
+    PositionVector getCWBoundaryLine(const NBNode& n) const;
 
-    PositionVector getCWBoundaryLine(const NBNode& n, SUMOReal offset) const;
-    PositionVector getCCWBoundaryLine(const NBNode& n, SUMOReal offset) const;
+    /// @brief get the outer boundary of this edge when going counter-clock-wise around the given node
+    PositionVector getCCWBoundaryLine(const NBNode& n) const;
 
     bool expandableBy(NBEdge* possContinuation) const;
     void append(NBEdge* continuation);
@@ -979,6 +986,17 @@ public:
      * @return This edge's angle at the given node
      */
     SUMOReal getAngleAtNode(const NBNode* const node) const;
+
+
+    /** @brief Returns the angle of from the node shape center to where the edge meets
+     * the node shape
+     *
+     * The angle is signed, disregards direction, and starts at 12 o'clock
+     *  (north->south), proceeds positive clockwise.
+     * @param[in] node The node for which the edge's angle shall be returned
+     * @return This edge's angle at the given node shape
+     */
+    SUMOReal getAngleAtNodeToCenter(const NBNode* const node) const;
 
 
     void incLaneNo(unsigned int by);

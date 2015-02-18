@@ -35,7 +35,7 @@
 #include <microsim/MSVehicle.h>
 #include <microsim/MSLane.h>
 #include "MSCFModel_KraussOrig1.h"
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <utils/common/RandHelper.h>
 
 
@@ -78,7 +78,7 @@ MSCFModel_KraussOrig1::followSpeed(const MSVehicle* const veh, SUMOReal speed, S
 }
 
 
-SUMOReal 
+SUMOReal
 MSCFModel_KraussOrig1::insertionFollowSpeed(const MSVehicle* const veh, SUMOReal speed, SUMOReal gap2pred, SUMOReal predSpeed, SUMOReal predMaxDecel) const {
     // since the Krauss model tries to compute the maximum follow speed in
     // method followSpeed this is also used for insertionFollowSpeed

@@ -77,6 +77,20 @@ public:
      */
     virtual SUMOReal getPositionOnLane() const = 0;
 
+    /** @brief Get the vehicle's angle
+     * @return The angle of the vehicle (in degree)
+     */
+    virtual SUMOReal getAngle() const = 0;
+
+    /** @brief Return current position (x/y, cartesian)
+     *
+     * If the vehicle is not in the net, Position::INVALID.
+     * @param[in] offset optional offset in longitudinal direction
+     * @return The current position (in cartesian coordinates)
+     * @see myLane
+     */
+    virtual Position getPosition(const SUMOReal offset = 0) const = 0;
+
     /** @brief Returns the vehicle's maximum speed
      * @return The vehicle's maximum speed
      */
@@ -124,7 +138,13 @@ public:
      * @param[in] router The router to use
      * @see replaceRoute
      */
-    virtual void reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, bool withTaz = false) = 0;
+    virtual void reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, const bool onInit = false, const bool withTaz = false) = 0;
+
+
+    /** @brief Returns an iterator pointing to the current edge in this vehicles route
+     * @return The current route pointer
+     */
+    virtual const MSEdgeVector::const_iterator& getCurrentRouteEdge() const = 0;
 
     /** @brief Returns the vehicle's acceleration
      * @return The acceleration
@@ -211,7 +231,7 @@ public:
      * @param[in] stop The stop to add
      * @return Whether the stop could be added
      */
-    virtual bool addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffset = 0) = 0;
+    virtual bool addStop(const SUMOVehicleParameter::Stop& stopPar, std::string& errorMsg, SUMOTime untilOffset = 0) = 0;
 
     /** @brief Returns whether the vehicle is at a stop
      * @return Whether the has stopped

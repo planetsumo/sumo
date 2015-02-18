@@ -36,10 +36,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_VERSION_H
-#include <version.h>
-#endif
-
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -92,9 +88,9 @@
 #include <utils/options/OptionsCont.h>
 #include <utils/vehicle/PedestrianRouter.h>
 #include "MSGlobals.h"
-#include "MSPModel.h"
+#include <microsim/pedestrians/MSPModel.h>
 #include <utils/geom/GeoConvHelper.h>
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
 #include "MSContainer.h"
 #include "MSEdgeWeightsStorage.h"
 #include "MSStateHandler.h"
@@ -172,6 +168,7 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
              ShapeContainer* shapeCont):
     myVehiclesMoved(0),
     myHaveRestrictions(false),
+    myHasInternalLinks(false),
     myRouterTTInitialized(false),
     myRouterTTDijkstra(0),
     myRouterTTAStar(0),
@@ -218,7 +215,8 @@ MSNet::closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
                      SUMORouteLoaderControl* routeLoaders,
                      MSTLLogicControl* tlc,
                      std::vector<SUMOTime> stateDumpTimes,
-                     std::vector<std::string> stateDumpFiles) {
+                     std::vector<std::string> stateDumpFiles,
+                     bool hasInternalLinks) {
     myEdges = edges;
     myJunctions = junctions;
     myRouteLoaders = routeLoaders;
@@ -234,6 +232,7 @@ MSNet::closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
     if (myLogExecutionTime) {
         mySimBeginMillis = SysUtils::getCurrentMillis();
     }
+    myHasInternalLinks = hasInternalLinks;
 }
 
 
@@ -333,7 +332,7 @@ MSNet::closeSimulation(SUMOTime start) {
         long duration = SysUtils::getCurrentMillis() - mySimBeginMillis;
         std::ostringstream msg;
         // print performance notice
-        msg << "Performance: " << "\n" << " Duration: " << duration << " ms" << "\n";
+        msg << "Performance: " << "\n" << " Duration: " << duration << "ms" << "\n";
         if (duration != 0) {
             msg << " Real time factor: " << (STEPS2TIME(myStep - start) * 1000. / (SUMOReal)duration) << "\n";
             msg.setf(std::ios::fixed , std::ios::floatfield);    // use decimal format
@@ -555,10 +554,12 @@ void
 MSNet::writeOutput() {
     // update detector values
     myDetectorControl->updateDetectors(myStep);
+    const OptionsCont& oc = OptionsCont::getOptions();
 
     // check state dumps
-    if (OptionsCont::getOptions().isSet("netstate-dump")) {
-        MSXMLRawOut::write(OutputDevice::getDeviceByOption("netstate-dump"), *myEdges, myStep);
+    if (oc.isSet("netstate-dump")) {
+        MSXMLRawOut::write(OutputDevice::getDeviceByOption("netstate-dump"), *myEdges, myStep,
+                oc.getInt("netstate-dump.precision"));
     }
 
     // check fcd dumps

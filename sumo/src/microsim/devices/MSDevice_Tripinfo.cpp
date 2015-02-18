@@ -70,12 +70,12 @@ MSDevice_Tripinfo::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& i
 // ---------------------------------------------------------------------------
 // MSDevice_Tripinfo-methods
 // ---------------------------------------------------------------------------
-MSDevice_Tripinfo::MSDevice_Tripinfo(SUMOVehicle& holder, const std::string& id) : 
-    MSDevice(holder, id), 
+MSDevice_Tripinfo::MSDevice_Tripinfo(SUMOVehicle& holder, const std::string& id) :
+    MSDevice(holder, id),
     myDepartLane(""),
     myDepartPos(-1),
     myDepartSpeed(-1),
-    myWaitingSteps(0), 
+    myWaitingSteps(0),
     myArrivalTime(NOT_ARRIVED),
     myArrivalLane(""),
     myArrivalPos(-1),
@@ -104,7 +104,7 @@ MSDevice_Tripinfo::notifyMove(SUMOVehicle& veh, SUMOReal /*oldPos*/,
     // (current interfaces do not give access to maximum acceleration)
     const SUMOReal vmax = MIN2(veh.getMaxSpeed(), veh.getEdge()->getVehicleMaxSpeed(&veh));
     if (vmax > 0) {
-        myTimeLoss += TIME2STEPS(TS * (vmax - newSpeed) / vmax); 
+        myTimeLoss += TIME2STEPS(TS * (vmax - newSpeed) / vmax);
     }
     return true;
 }
@@ -133,7 +133,12 @@ MSDevice_Tripinfo::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/,
         }
         // @note vehicle may have moved past its arrivalPos during the last step
         // due to non-zero arrivalspeed but we consider it as arrived at the desired position
-        myArrivalPos = myHolder.getArrivalPos();
+        // However, vaporization may happen anywhere (via TraCI)
+        if (reason == MSMoveReminder::NOTIFICATION_VAPORIZED) {
+            myArrivalPos = veh.getPositionOnLane();
+        } else {
+            myArrivalPos = myHolder.getArrivalPos();
+        }
         myArrivalSpeed = veh.getSpeed();
     }
     return true;
@@ -143,17 +148,27 @@ MSDevice_Tripinfo::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/,
 void
 MSDevice_Tripinfo::generateOutput() const {
     myPendingOutput.erase(this);
-    SUMOReal routeLength = myHolder.getRoute().getLength();
-    routeLength -= myDepartPos;
-    if (myArrivalLane != "") {
-        routeLength -= MSLane::dictionary(myArrivalLane)->getLength() - myArrivalPos;
-    }
-    SUMOTime exit = myArrivalTime;
+    SUMOTime finalTime;
+    SUMOReal finalPos;
+    SUMOReal finalPosOnInternal = 0;
     if (myArrivalTime == NOT_ARRIVED) {
-        exit = MSNet::getInstance()->getCurrentTimeStep();
-        routeLength = myHolder.getRoute().getDistanceBetween(myDepartPos, myHolder.getPositionOnLane(), 
-                *myHolder.getRoute().begin(), myHolder.getEdge(), false);
+        finalTime = MSNet::getInstance()->getCurrentTimeStep();
+        finalPos = myHolder.getPositionOnLane();
+        if (!MSGlobals::gUseMesoSim) {
+            const MSLane* lane = static_cast<MSVehicle&>(myHolder).getLane();
+            if (lane->getEdge().isInternal()) {
+                finalPosOnInternal = finalPos;
+                finalPos = myHolder.getEdge()->getLength();
+            }
+        }
+    } else {
+        finalTime = myArrivalTime;
+        finalPos = myArrivalPos;
     }
+    const bool includeInternalLengths = MSGlobals::gUsingInternalLanes && MSNet::getInstance()->hasInternalLinks();
+    const SUMOReal routeLength = myHolder.getRoute().getDistanceBetween(myDepartPos, finalPos,
+            myHolder.getRoute().begin(), myHolder.getCurrentRouteEdge(), includeInternalLengths) + finalPosOnInternal;
+
     // write
     OutputDevice& os = OutputDevice::getDeviceByOption("tripinfo-output");
     os.openTag("tripinfo").writeAttr("id", myHolder.getID());
@@ -166,7 +181,7 @@ MSDevice_Tripinfo::generateOutput() const {
     os.writeAttr("arrivalLane", myArrivalLane);
     os.writeAttr("arrivalPos", myArrivalPos);
     os.writeAttr("arrivalSpeed", myArrivalSpeed);
-    os.writeAttr("duration", time2string(exit - myHolder.getDeparture()));
+    os.writeAttr("duration", time2string(finalTime - myHolder.getDeparture()));
     os.writeAttr("routeLength", routeLength);
     os.writeAttr("waitSteps", myWaitingSteps);
     os.writeAttr("timeLoss", time2string(myTimeLoss));

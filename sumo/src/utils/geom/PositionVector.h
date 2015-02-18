@@ -217,7 +217,7 @@ public:
     int appendWithCrossingPoint(const PositionVector& v);
 
     // @brief append the given vector to this one
-    void append(const PositionVector& v);
+    void append(const PositionVector& v, SUMOReal sameThreshold = 2.0);
 
     PositionVector getSubpart(SUMOReal beginOffset, SUMOReal endOffset) const;
 
@@ -279,6 +279,15 @@ public:
     SUMOReal beginEndAngle() const;
 
     SUMOReal nearest_offset_to_point2D(const Position& p, bool perpendicular = true) const;
+
+    /** @brief return position p within the length-wise coordinate system
+     * defined by this position vector. The x value is the same as that returned
+     * by nearest_offset_to_point2D(p) and the y value is the perpendicular distance to this
+     * vector with the sign indicating the side (right is postive).
+     * if extend is true, the vector is extended on both sides and the
+     * x-coordinate of the result may be below 0 or above the length of the original vector
+     */
+    Position transformToVectorCoordinates(const Position& p, bool extend=false) const;
 
     /* @brief index of the closest position to p
      * @note: may only be called for a non-empty vector */

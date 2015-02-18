@@ -318,7 +318,9 @@ OptionsCont::relocateFiles(const std::string& configuration) const {
                 }
                 conv += tmp;
             }
-            (*i)->set(conv);
+            if (conv != (*i)->getString()) {
+                (*i)->set(conv);
+            }
         }
     }
 }
@@ -714,7 +716,7 @@ OptionsCont::printHelp(std::ostream& os) {
     }
     os << std::endl;
     os << "Report bugs at <http://sumo.dlr.de/trac/>." << std::endl;
-    os << "Get in contact via <sumo-user@lists.sourceforge.net>." << std::endl;
+    os << "Get in contact via <sumo@dlr.de>." << std::endl;
 }
 
 

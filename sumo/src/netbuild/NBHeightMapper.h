@@ -1,5 +1,6 @@
 /****************************************************************************/
 /// @file    NBHeightMapper.h
+/// @author  Jakob Erdmann
 /// @author  Laura Bieker
 /// @author  Michael Behrisch
 /// @date    Sept 2011
@@ -8,12 +9,13 @@
 // Set z-values for all network positions based on data from a height map
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
-//   This program is free software; you can redistribute it and/or modify
+//   This file is part of SUMO.
+//   SUMO is free software: you can redistribute it and/or modify
 //   it under the terms of the GNU General Public License as published by
-//   the Free Software Foundation; either version 2 of the License, or
+//   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
 //
 /****************************************************************************/
@@ -28,6 +30,12 @@
 #include <windows_config.h>
 #else
 #include <config.h>
+#endif
+
+#ifdef _MSC_VER
+   typedef __int16 int16_t;
+#else
+   #include <stdint.h>
 #endif
 
 #include <string>
@@ -132,6 +140,12 @@ private:
     /// @brief The RTree for spatial queries
     TRIANGLE_RTREE_QUAL myRTree;
 
+    /// @brief raster height information in m
+    int16_t* myRaster;
+
+    /// @brief dimensions of one pixel in raster data
+    Position mySizeOfPixel;
+
     /// @brief convex boundary of all known triangles;
     Boundary myBoundary;
 
@@ -143,11 +157,17 @@ private:
     /// @brief adds one triangles worth of height data
     void addTriangle(PositionVector corners);
 
-    /** @brief load height data from Arcgis-shape file and returns the number of
-     * @return The number of parsed featuers
+    /** @brief load height data from Arcgis-shape file and returns the number of parsed features
+     * @return The number of parsed features
      * @throws ProcessError
      */
     int loadShapeFile(const std::string& file);
+
+    /** @brief load height data from GeoTIFF file and returns the number of non void pixels
+     * @return The number of valid pixels
+     * @throws ProcessError
+     */
+    int loadTiff(const std::string& file);
 
     /// @brief clears loaded data
     void clearData();
@@ -166,10 +186,10 @@ private:
 // ===========================================================================
 template<>
 inline float TRIANGLE_RTREE_QUAL::RectSphericalVolume(Rect* a_rect) {
-  ASSERT(a_rect);
-  const float extent0 = a_rect->m_max[0] - a_rect->m_min[0];
-  const float extent1 = a_rect->m_max[1] - a_rect->m_min[1];
-  return .78539816f * (extent0 * extent0 + extent1 * extent1);
+    ASSERT(a_rect);
+    const float extent0 = a_rect->m_max[0] - a_rect->m_min[0];
+    const float extent1 = a_rect->m_max[1] - a_rect->m_min[1];
+    return .78539816f * (extent0 * extent0 + extent1 * extent1);
 }
 
 template<>

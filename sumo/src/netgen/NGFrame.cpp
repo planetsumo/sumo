@@ -219,16 +219,18 @@ NGFrame::checkOptions() {
                 type != toString(NODETYPE_PRIORITY) &&
                 type != toString(NODETYPE_PRIORITY_STOP) &&
                 type != toString(NODETYPE_ALLWAY_STOP) &&
-                type != toString(NODETYPE_RIGHT_BEFORE_LEFT)&&
-                type != toString(NODETYPE_RAIL_SIGNAL)) {   //todo: enhance the other nodetypes of SUMOXMLDefinitions
+                type != toString(NODETYPE_NOJUNCTION)&&
+                type != toString(NODETYPE_RAIL_SIGNAL) &&
+                type != toString(NODETYPE_RIGHT_BEFORE_LEFT)) {
             WRITE_ERROR("Only the following junction types are known: " +
                         toString(NODETYPE_TRAFFIC_LIGHT) + ", " +
                         toString(NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) + ", " +
                         toString(NODETYPE_PRIORITY) + ", " +
                         toString(NODETYPE_PRIORITY_STOP) + ", " +
                         toString(NODETYPE_ALLWAY_STOP) + ", " +
-                        toString(NODETYPE_RIGHT_BEFORE_LEFT) + ", " +
-                        toString(NODETYPE_RAIL_SIGNAL));    //todo: enhance the other nodetypes of SUMOXMLDefinitions
+                        toString(NODETYPE_NOJUNCTION) + ", " +
+                        toString(NODETYPE_RAIL_SIGNAL) + ", " +
+                        toString(NODETYPE_RIGHT_BEFORE_LEFT));
             ok = false;
         }
     }

@@ -31,6 +31,7 @@
 #endif
 
 #include <algorithm>
+#include <iterator>
 #include <utils/geom/PositionVector.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/geom/GeomHelper.h>
@@ -112,24 +113,24 @@ NBNodeShapeComputer::compute(bool leftHand) {
 
 void
 computeSameEnd(PositionVector& l1, PositionVector& l2) {
-    Line sub(l1.lineAt(0).getPositionAtDistance(100), l1[1]);
+    Line sub(l1.lineAt(0).getPositionAtDistance2D(100), l1[1]);
     Line tmp(sub);
     tmp.rotateAtP1(M_PI / 2);
-    tmp.extrapolateBy(100);
+    tmp.extrapolateBy2D(100);
     if (l1.intersects(tmp.p1(), tmp.p2())) {
         SUMOReal offset1 = l1.intersectsAtLengths2D(tmp)[0];
         Line tl1 = Line(
-                       l1.lineAt(0).getPositionAtDistance(offset1),
+                       l1.lineAt(0).getPositionAtDistance2D(offset1),
                        l1[1]);
-        tl1.extrapolateBy(100);
+        tl1.extrapolateBy2D(100);
         l1.replaceAt(0, tl1.p1());
     }
     if (l2.intersects(tmp.p1(), tmp.p2())) {
         SUMOReal offset2 = l2.intersectsAtLengths2D(tmp)[0];
         Line tl2 = Line(
-                       l2.lineAt(0).getPositionAtDistance(offset2),
+                       l2.lineAt(0).getPositionAtDistance2D(offset2),
                        l2[1]);
-        tl2.extrapolateBy(100);
+        tl2.extrapolateBy2D(100);
         l2.replaceAt(0, tl2.p1());
     }
 }
@@ -196,14 +197,18 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
     if (myNode.myAllEdges.size() < 2) {
         return PositionVector();
     }
+    // magic values
+    const SUMOReal radius = (myNode.getRadius() == NBNode::UNSPECIFIED_RADIUS ? NBNode::DEFAULT_RADIUS : myNode.getRadius());
+    const int cornerDetail = OptionsCont::getOptions().getInt("junctions.corner-detail");
+
     // initialise
     EdgeVector::const_iterator i;
     // edges located in the value-vector have the same direction as the key edge
     std::map<NBEdge*, EdgeVector > same;
     // the counter-clockwise boundary of the edge regarding possible same-direction edges
-    std::map<NBEdge*, PositionVector> geomsCCW;
+    GeomsMap geomsCCW;
     // the clockwise boundary of the edge regarding possible same-direction edges
-    std::map<NBEdge*, PositionVector> geomsCW;
+    GeomsMap geomsCW;
     // store relationships
     std::map<NBEdge*, NBEdge*> ccwBoundary;
     std::map<NBEdge*, NBEdge*> cwBoundary;
@@ -219,63 +224,35 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
     if (newAll.size() < 2) {
         return PositionVector();
     }
-    // combine all geoms
-    std::map<NBEdge*, bool> myExtended;
+
+    // All geoms are outoing from myNode.
+    // for every direction in newAll we compute the offset at which the
+    // intersection ends and the edge starts. This value is saved in 'distances'
+    // If the geometries need to be extended to get an intersection, this is
+    // recorded in 'myExtended'
     std::map<NBEdge*, SUMOReal> distances;
+    std::map<NBEdge*, bool> myExtended;
+
     for (i = newAll.begin(); i != newAll.end(); ++i) {
         EdgeVector::const_iterator cwi = i;
-        cwi++;
-        if (cwi == newAll.end()) {
-            cwi = newAll.begin();
-        }
         EdgeVector::const_iterator ccwi = i;
-        if (ccwi == newAll.begin()) {
-            ccwi = newAll.end() - 1;
-        } else {
-            ccwi--;
-        }
-
+        SUMOReal ccad;
+        SUMOReal cad;
+        initNeighbors(newAll, i, simpleContinuation, geomsCW, geomsCCW, cwi, ccwi, cad, ccad);
         assert(geomsCCW.find(*i) != geomsCCW.end());
         assert(geomsCW.find(*ccwi) != geomsCW.end());
         assert(geomsCW.find(*cwi) != geomsCW.end());
-        SUMOReal angleI = geomsCCW[*i].lineAt(0).atan2PositiveAngle();
-        SUMOReal angleCCW = geomsCW[*ccwi].lineAt(0).atan2PositiveAngle();
-        SUMOReal angleCW = geomsCW[*cwi].lineAt(0).atan2PositiveAngle();
-        SUMOReal ccad;
-        SUMOReal cad;
-        SUMOReal twoPI = (SUMOReal)(2 * M_PI);
-        if (angleI > angleCCW) {
-            ccad = angleI - angleCCW;
-        } else {
-            ccad = twoPI - angleCCW + angleI;
-        }
+       
 
-        if (angleI > angleCW) {
-            cad = twoPI - angleI + angleCW;
-        } else {
-            cad = angleCW - angleI;
-        }
-        if (ccad < 0) {
-            ccad += twoPI;
-        }
-        if (ccad > twoPI) {
-            ccad -= twoPI;
-        }
-        if (cad < 0) {
-            cad += twoPI;
-        }
-        if (cad > twoPI) {
-            cad -= twoPI;
-        }
-
-        if (simpleContinuation && ccad < DEG2RAD(45.)) {
-            ccad += twoPI;
-        }
-        if (simpleContinuation && cad < DEG2RAD(45.)) {
-            cad += twoPI;
-        }
-
-        if (fabs(ccad - cad) < (SUMOReal) 0.1 && *cwi == *ccwi) {
+        // there are only 2 directions and they are almost parallel
+        if (*cwi == *ccwi &&
+           ( 
+            // no change in lane numbers, even low angles still give a good intersection
+            (simpleContinuation && fabs(ccad - cad) < (SUMOReal) 0.1) 
+            // lane numbers change, a direct intersection could be far away from the node position 
+            // so we use a larger threshold
+            || (!simpleContinuation && fabs(ccad - cad) < DEG2RAD(22.5)))
+           ) {
             // compute the mean position between both edges ends ...
             Position p;
             if (myExtended.find(*ccwi) != myExtended.end()) {
@@ -304,29 +281,35 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
                 }
                 (*i)->setGeometry(g);
                 // and rebuild previous information
-                geomsCCW[*i] = (*i)->getCCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+                geomsCCW[*i] = (*i)->getCCWBoundaryLine(myNode);
                 geomsCCW[*i].extrapolate(100);
-                geomsCW[*i] = (*i)->getCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+                geomsCW[*i] = (*i)->getCWBoundaryLine(myNode);
                 geomsCW[*i].extrapolate(100);
                 // the distance is now = zero (the point we have appended)
                 distances[*i] = 100;
                 myExtended[*i] = true;
             } else {
                 if (!simpleContinuation) {
-                    // let us put some geometry stuff into it
-                    dist = (SUMOReal) 1.5 + dist;
+                    // since there are only two (almost parallel) directions, the
+                    // concept of a turning radius does not quite fit. Instead we need
+                    // to enlarge the intersection to accomodate the change in
+                    // the number of lanes
+                    // @todo: make this independently configurable
+                    dist += radius;
                 }
                 distances[*i] = dist;
             }
 
         } else {
+            // the angles are different enough to compute the intersection of
+            // the outer boundaries directly (or there are more than 2 directions). The "nearer" neighbar causes the furthest distance
             if (ccad < cad) {
                 if (!simpleContinuation) {
                     if (geomsCCW[*i].intersects(geomsCW[*ccwi])) {
-                        distances[*i] = (SUMOReal) 1.5 + geomsCCW[*i].intersectsAtLengths2D(geomsCW[*ccwi])[0];
+                        distances[*i] = radius + geomsCCW[*i].intersectsAtLengths2D(geomsCW[*ccwi])[0];
                         if (*cwi != *ccwi && geomsCW[*i].intersects(geomsCCW[*cwi])) {
                             SUMOReal a1 = distances[*i];
-                            SUMOReal a2 = (SUMOReal) 1.5 + geomsCW[*i].intersectsAtLengths2D(geomsCCW[*cwi])[0];
+                            SUMOReal a2 = radius + geomsCW[*i].intersectsAtLengths2D(geomsCCW[*cwi])[0];
                             if (ccad > DEG2RAD(90. + 45.) && cad > DEG2RAD(90. + 45.)) {
                                 SUMOReal mmin = MIN2(distances[*cwi], distances[*ccwi]);
                                 if (mmin > 100) {
@@ -338,9 +321,9 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
                         }
                     } else {
                         if (*cwi != *ccwi && geomsCW[*i].intersects(geomsCCW[*cwi])) {
-                            distances[*i] = (SUMOReal) 1.5 + geomsCW[*i].intersectsAtLengths2D(geomsCCW[*cwi])[0];
+                            distances[*i] = radius + geomsCW[*i].intersectsAtLengths2D(geomsCCW[*cwi])[0];
                         } else {
-                            distances[*i] = (SUMOReal)(100. + 1.5);
+                            distances[*i] = 100 + radius;
                         }
                     }
                 } else {
@@ -353,10 +336,10 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
             } else {
                 if (!simpleContinuation) {
                     if (geomsCW[*i].intersects(geomsCCW[*cwi])) {
-                        distances[*i] = (SUMOReal)(1.5 + geomsCW[*i].intersectsAtLengths2D(geomsCCW[*cwi])[0]);
+                        distances[*i] = (radius + geomsCW[*i].intersectsAtLengths2D(geomsCCW[*cwi])[0]);
                         if (*cwi != *ccwi && geomsCCW[*i].intersects(geomsCW[*ccwi])) {
                             SUMOReal a1 = distances[*i];
-                            SUMOReal a2 = (SUMOReal)(1.5 + geomsCCW[*i].intersectsAtLengths2D(geomsCW[*ccwi])[0]);
+                            SUMOReal a2 = (radius + geomsCCW[*i].intersectsAtLengths2D(geomsCW[*ccwi])[0]);
                             if (ccad > DEG2RAD(90. + 45.) && cad > DEG2RAD(90. + 45.)) {
                                 SUMOReal mmin = MIN2(distances[*cwi], distances[*ccwi]);
                                 if (mmin > 100) {
@@ -368,9 +351,9 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
                         }
                     } else {
                         if (*cwi != *ccwi && geomsCCW[*i].intersects(geomsCW[*ccwi])) {
-                            distances[*i] = (SUMOReal) 1.5 + geomsCCW[*i].intersectsAtLengths2D(geomsCW[*ccwi])[0];
+                            distances[*i] = radius + geomsCCW[*i].intersectsAtLengths2D(geomsCW[*ccwi])[0];
                         } else {
-                            distances[*i] = (SUMOReal)(100. + 1.5);
+                            distances[*i] = 100 + radius;
                         }
                     }
                 } else {
@@ -389,19 +372,14 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
             continue;
         }
         EdgeVector::const_iterator cwi = i;
-        cwi++;
-        if (cwi == newAll.end()) {
-            cwi = newAll.begin();
-        }
         EdgeVector::const_iterator ccwi = i;
-        if (ccwi == newAll.begin()) {
-            ccwi = newAll.end() - 1;
-        } else {
-            ccwi--;
-        }
-
+        SUMOReal ccad;
+        SUMOReal cad;
+        initNeighbors(newAll, i, simpleContinuation, geomsCW, geomsCCW, cwi, ccwi, cad, ccad);
+        assert(geomsCCW.find(*i) != geomsCCW.end());
         assert(geomsCW.find(*ccwi) != geomsCW.end());
         assert(geomsCW.find(*cwi) != geomsCW.end());
+
         Position p1 = distances.find(*cwi) != distances.end() && distances[*cwi] != -1
                       ? geomsCCW[*cwi].positionAtOffset2D(distances[*cwi])
                       : geomsCCW[*cwi].positionAtOffset2D((SUMOReal) - .1);
@@ -409,37 +387,7 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
                       ? geomsCW[*ccwi].positionAtOffset2D(distances[*ccwi])
                       : geomsCW[*ccwi].positionAtOffset2D((SUMOReal) - .1);
         Line l(p1, p2);
-        l.extrapolateBy(1000);
-        SUMOReal angleI = geomsCCW[*i].lineAt(0).atan2PositiveAngle();
-        SUMOReal angleCCW = geomsCW[*ccwi].lineAt(0).atan2PositiveAngle();
-        SUMOReal angleCW = geomsCW[*cwi].lineAt(0).atan2PositiveAngle();
-        SUMOReal ccad;
-        SUMOReal cad;
-        SUMOReal twoPI = (SUMOReal)(2 * M_PI);
-        if (angleI > angleCCW) {
-            ccad = angleI - angleCCW;
-        } else {
-            ccad = twoPI - angleCCW + angleI;
-        }
-
-        if (angleI > angleCW) {
-            cad = twoPI - angleI + angleCW;
-        } else {
-            cad = angleCW - angleI;
-        }
-
-        if (ccad < 0) {
-            ccad += twoPI;
-        }
-        if (ccad > twoPI) {
-            ccad -= twoPI;
-        }
-        if (cad < 0) {
-            cad += twoPI;
-        }
-        if (cad > twoPI) {
-            cad -= twoPI;
-        }
+        l.extrapolateBy2D(1000);
         SUMOReal offset = 0;
         int laneDiff = (*i)->getNumLanes() - (*ccwi)->getNumLanes();
         if (*ccwi != *cwi) {
@@ -521,9 +469,9 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
             }
             cwBoundary[*i]->setGeometry(g);
             myExtended[cwBoundary[*i]] = true;
-            geomsCW[*i] = cwBoundary[*i]->getCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+            geomsCW[*i] = cwBoundary[*i]->getCWBoundaryLine(myNode);
         } else {
-            geomsCW[*i] = (*i)->getCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+            geomsCW[*i] = (*i)->getCWBoundaryLine(myNode);
 
         }
 
@@ -552,9 +500,9 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
             }
             ccwBoundary[*i]->setGeometry(g);
             myExtended[ccwBoundary[*i]] = true;
-            geomsCCW[*i] = ccwBoundary[*i]->getCCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+            geomsCCW[*i] = ccwBoundary[*i]->getCCWBoundaryLine(myNode);
         } else {
-            geomsCCW[*i] = (*i)->getCCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+            geomsCCW[*i] = (*i)->getCCWBoundaryLine(myNode);
 
         }
         geomsCCW[*i].extrapolate(100);
@@ -576,51 +524,73 @@ NBNodeShapeComputer::computeNodeShapeDefault(bool simpleContinuation) {
     // build
     PositionVector ret;
     for (i = newAll.begin(); i != newAll.end(); ++i) {
-        PositionVector l = geomsCCW[*i];
-        SUMOReal len = l.length();
+        const PositionVector& ccwBound = geomsCCW[*i];
+        SUMOReal len = ccwBound.length();
         SUMOReal offset = distances[*i];
         if (offset == -1) {
             offset = (SUMOReal) - .1;
         }
         Position p;
         if (len >= offset) {
-            p = l.positionAtOffset2D(offset);
+            p = ccwBound.positionAtOffset2D(offset);
         } else {
-            p = l.positionAtOffset2D(len);
+            p = ccwBound.positionAtOffset2D(len);
         }
         p.set(p.x(), p.y(), myNode.getPosition().z());
+        if (i != newAll.begin()) {
+            ret.append(getSmoothCorner(geomsCW[*(i-1)].reverse(), ccwBound, ret[-1], p, cornerDetail));
+        }
         ret.push_back_noDoublePos(p);
         //
-        l = geomsCW[*i];
-        len = l.length();
+        const PositionVector& cwBound = geomsCW[*i];
+        len = cwBound.length();
         if (len >= offset) {
-            p = l.positionAtOffset2D(offset);
+            p = cwBound.positionAtOffset2D(offset);
         } else {
-            p = l.positionAtOffset2D(len);
+            p = cwBound.positionAtOffset2D(len);
         }
         p.set(p.x(), p.y(), myNode.getPosition().z());
         ret.push_back_noDoublePos(p);
     }
+    // final curve segment
+    ret.append(getSmoothCorner(geomsCW[*(newAll.end() - 1)], geomsCCW[*newAll.begin()], ret[-1], ret[0], cornerDetail));
     return ret;
 }
 
 
+PositionVector 
+NBNodeShapeComputer::getSmoothCorner(PositionVector begShape, PositionVector endShape, 
+        const Position& begPoint, const Position& endPoint, int cornerDetail) {
+    PositionVector ret;
+    if (cornerDetail > 0) {
+        begShape = begShape.reverse();
+        begShape[-1] = begPoint;
+        endShape[0] = endPoint;
+        PositionVector curve = myNode.computeSmoothShape(begShape, endShape, cornerDetail + 2, false, 25, 25);
+        if (curve.size() > 2) {
+            curve.eraseAt(0);
+            curve.eraseAt(-1);
+            ret = curve;
+        }
+    }
+    return ret;
+}
 
 void
 NBNodeShapeComputer::joinSameDirectionEdges(std::map<NBEdge*, EdgeVector >& same,
-        std::map<NBEdge*, PositionVector>& geomsCCW,
-        std::map<NBEdge*, PositionVector>& geomsCW) {
+        GeomsMap& geomsCCW,
+        GeomsMap& geomsCW) {
     EdgeVector::const_iterator i, j;
     for (i = myNode.myAllEdges.begin(); i != myNode.myAllEdges.end() - 1; i++) {
         // store current edge's boundary as current ccw/cw boundary
         try {
-            geomsCCW[*i] = (*i)->getCCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+            geomsCCW[*i] = (*i)->getCCWBoundaryLine(myNode);
         } catch (InvalidArgument& e) {
             WRITE_WARNING(std::string("While computing intersection geometry: ") + std::string(e.what()));
             geomsCCW[*i] = (*i)->getGeometry();
         }
         try {
-            geomsCW[*i] = (*i)->getCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+            geomsCW[*i] = (*i)->getCWBoundaryLine(myNode);
         } catch (InvalidArgument& e) {
             WRITE_WARNING(std::string("While computing intersection geometry: ") + std::string(e.what()));
             geomsCW[*i] = (*i)->getGeometry();
@@ -628,29 +598,29 @@ NBNodeShapeComputer::joinSameDirectionEdges(std::map<NBEdge*, EdgeVector >& same
         // extend the boundary by extroplating it by 100m
         PositionVector g1 =
             myNode.hasIncoming(*i)
-            ? (*i)->getCCWBoundaryLine(myNode, SUMO_const_halfLaneWidth)
-            : (*i)->getCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+            ? (*i)->getCCWBoundaryLine(myNode)
+            : (*i)->getCWBoundaryLine(myNode);
         Line l1 = g1.lineAt(0);
         Line tmp = geomsCCW[*i].lineAt(0);
-        tmp.extrapolateBy(100);
+        tmp.extrapolateBy2D(100);
         geomsCCW[*i].replaceAt(0, tmp.p1());
         tmp = geomsCW[*i].lineAt(0);
-        tmp.extrapolateBy(100);
+        tmp.extrapolateBy2D(100);
         geomsCW[*i].replaceAt(0, tmp.p1());
         //
         for (j = i + 1; j != myNode.myAllEdges.end(); j++) {
-            geomsCCW[*j] = (*j)->getCCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
-            geomsCW[*j] = (*j)->getCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+            geomsCCW[*j] = (*j)->getCCWBoundaryLine(myNode);
+            geomsCW[*j] = (*j)->getCWBoundaryLine(myNode);
             PositionVector g2 =
                 myNode.hasIncoming(*j)
-                ? (*j)->getCCWBoundaryLine(myNode, SUMO_const_halfLaneWidth)
-                : (*j)->getCWBoundaryLine(myNode, SUMO_const_halfLaneWidth);
+                ? (*j)->getCCWBoundaryLine(myNode)
+                : (*j)->getCWBoundaryLine(myNode);
             Line l2 = g2.lineAt(0);
             tmp = geomsCCW[*j].lineAt(0);
-            tmp.extrapolateBy(100);
+            tmp.extrapolateBy2D(100);
             geomsCCW[*j].replaceAt(0, tmp.p1());
             tmp = geomsCW[*j].lineAt(0);
-            tmp.extrapolateBy(100);
+            tmp.extrapolateBy2D(100);
             geomsCW[*j].replaceAt(0, tmp.p1());
             if (fabs(l1.atan2DegreeAngle() - l2.atan2DegreeAngle()) < 20) {
                 if (same.find(*i) == same.end()) {
@@ -674,8 +644,8 @@ NBNodeShapeComputer::joinSameDirectionEdges(std::map<NBEdge*, EdgeVector >& same
 EdgeVector
 NBNodeShapeComputer::computeUniqueDirectionList(
     const std::map<NBEdge*, EdgeVector >& same,
-    std::map<NBEdge*, PositionVector>& geomsCCW,
-    std::map<NBEdge*, PositionVector>& geomsCW,
+    GeomsMap& geomsCCW,
+    GeomsMap& geomsCW,
     std::map<NBEdge*, NBEdge*>& ccwBoundary,
     std::map<NBEdge*, NBEdge*>& cwBoundary) {
     EdgeVector newAll = myNode.myAllEdges;
@@ -719,20 +689,80 @@ NBNodeShapeComputer::computeUniqueDirectionList(
 }
 
 
+void 
+NBNodeShapeComputer::initNeighbors(const EdgeVector& edges, const EdgeVector::const_iterator& current,
+        bool simpleContinuation,
+        GeomsMap& geomsCW,
+        GeomsMap& geomsCCW,
+        EdgeVector::const_iterator& cwi,
+        EdgeVector::const_iterator& ccwi,
+        SUMOReal& cad,
+        SUMOReal& ccad) {
+    const SUMOReal twoPI = (SUMOReal)(2 * M_PI);
+    cwi = current;
+    cwi++;
+    if (cwi == edges.end()) {
+        std::advance(cwi, -edges.size()); // set to edges.begin();
+    }
+    ccwi = current;
+    if (ccwi == edges.begin()) {
+        std::advance(ccwi, edges.size() - 1); // set to edges.end() - 1;
+    } else {
+        ccwi--;
+    }
+
+    const SUMOReal angleI = geomsCCW[*current].lineAt(0).atan2PositiveAngle();
+    const SUMOReal angleCCW = geomsCW[*ccwi].lineAt(0).atan2PositiveAngle();
+    const SUMOReal angleCW = geomsCW[*cwi].lineAt(0).atan2PositiveAngle();
+    if (angleI > angleCCW) {
+        ccad = angleI - angleCCW;
+    } else {
+        ccad = twoPI - angleCCW + angleI;
+    }
+
+    if (angleI > angleCW) {
+        cad = twoPI - angleI + angleCW;
+    } else {
+        cad = angleCW - angleI;
+    }
+    if (ccad < 0) {
+        ccad += twoPI;
+    }
+    if (ccad > twoPI) {
+        ccad -= twoPI;
+    }
+    if (cad < 0) {
+        cad += twoPI;
+    }
+    if (cad > twoPI) {
+        cad -= twoPI;
+    }
+
+    if (simpleContinuation && ccad < DEG2RAD(45.)) {
+        ccad += twoPI;
+    }
+    if (simpleContinuation && cad < DEG2RAD(45.)) {
+        cad += twoPI;
+    }
+
+}
+
+
+
 PositionVector
 NBNodeShapeComputer::computeNodeShapeSmall() {
     PositionVector ret;
     EdgeVector::const_iterator i;
     for (i = myNode.myAllEdges.begin(); i != myNode.myAllEdges.end(); i++) {
         // compute crossing with normal
-        Line edgebound1 = (*i)->getCCWBoundaryLine(myNode, SUMO_const_halfLaneWidth).lineAt(0);
-        Line edgebound2 = (*i)->getCWBoundaryLine(myNode, SUMO_const_halfLaneWidth).lineAt(0);
+        Line edgebound1 = (*i)->getCCWBoundaryLine(myNode).lineAt(0);
+        Line edgebound2 = (*i)->getCWBoundaryLine(myNode).lineAt(0);
         Line cross(edgebound1);
         cross.rotateAtP1(M_PI / 2.);
         cross.add(myNode.getPosition() - cross.p1());
-        cross.extrapolateBy(500);
-        edgebound1.extrapolateBy(500);
-        edgebound2.extrapolateBy(500);
+        cross.extrapolateBy2D(500);
+        edgebound1.extrapolateBy2D(500);
+        edgebound2.extrapolateBy2D(500);
         if (cross.intersects(edgebound1)) {
             Position np = cross.intersectsAt(edgebound1);
             np.set(np.x(), np.y(), myNode.getPosition().z());

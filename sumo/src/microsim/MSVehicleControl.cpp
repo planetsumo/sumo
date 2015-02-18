@@ -65,10 +65,16 @@ MSVehicleControl::MSVehicleControl() :
     myTotalTravelTime(0),
     myDefaultVTypeMayBeDeleted(true),
     myWaitingForPerson(0),
-    myWaitingForContainer(0),
-    myScale(-1) {
+    myScale(-1),
+    myMaxSpeedFactor(1),
+	myWaitingForContainer(0),
+    myMinDeceleration(SUMOVTypeParameter::getDefaultDecel(SVC_IGNORING))
+{
     SUMOVTypeParameter defType(DEFAULT_VTYPE_ID, SVC_IGNORING);
     myVTypeDict[DEFAULT_VTYPE_ID] = MSVehicleType::build(defType);
+    SUMOVTypeParameter defPedType(DEFAULT_PEDTYPE_ID, SVC_PEDESTRIAN);
+    defPedType.setParameter |= VTYPEPARS_VEHICLECLASS_SET;
+    myVTypeDict[DEFAULT_PEDTYPE_ID] = MSVehicleType::build(defPedType);
     OptionsCont& oc = OptionsCont::getOptions();
     if (oc.isSet("scale")) {
         myScale = oc.getFloat("scale");
@@ -95,7 +101,7 @@ MSVehicleControl::~MSVehicleControl() {
     myVTypeDict.clear();
 }
 
-SUMOTime 
+SUMOTime
 MSVehicleControl::computeRandomDepartOffset() const {
     if (myMaxRandomDepartOffset > 0) {
         // round to the closest usable simulation step
@@ -143,6 +149,8 @@ MSVehicleControl::vehicleDeparted(const SUMOVehicle& v) {
     ++myRunningVehNo;
     myTotalDepartureDelay += STEPS2TIME(v.getDeparture() - STEPFLOOR(v.getParameter().depart));
     MSNet::getInstance()->informVehicleStateListener(&v, MSNet::VEHICLE_STATE_DEPARTED);
+    myMaxSpeedFactor = MAX2(myMaxSpeedFactor, v.getChosenSpeedFactor());
+    myMinDeceleration = MIN2(myMinDeceleration, v.getVehicleType().getCarFollowModel().getMaxDecel());
 }
 
 
@@ -208,18 +216,6 @@ MSVehicleControl::deleteVehicle(SUMOVehicle* veh, bool discard) {
 }
 
 
-MSVehicleControl::constVehIt
-MSVehicleControl::loadedVehBegin() const {
-    return myVehicleDict.begin();
-}
-
-
-MSVehicleControl::constVehIt
-MSVehicleControl::loadedVehEnd() const {
-    return myVehicleDict.end();
-}
-
-
 bool
 MSVehicleControl::checkVType(const std::string& id) {
     if (id == DEFAULT_VTYPE_ID) {
@@ -227,6 +223,14 @@ MSVehicleControl::checkVType(const std::string& id) {
             delete myVTypeDict[id];
             myVTypeDict.erase(myVTypeDict.find(id));
             myDefaultVTypeMayBeDeleted = false;
+        } else {
+            return false;
+        }
+    } else if (id == DEFAULT_PEDTYPE_ID) {
+        if (myDefaultPedTypeMayBeDeleted) {
+            delete myVTypeDict[id];
+            myVTypeDict.erase(myVTypeDict.find(id));
+            myDefaultPedTypeMayBeDeleted = false;
         } else {
             return false;
         }
@@ -276,6 +280,8 @@ MSVehicleControl::getVType(const std::string& id, MTRand* rng) {
     }
     if (id == DEFAULT_VTYPE_ID) {
         myDefaultVTypeMayBeDeleted = false;
+    } else if (id == DEFAULT_PEDTYPE_ID) {
+        myDefaultPedTypeMayBeDeleted = false;
     }
     return it->second;
 }

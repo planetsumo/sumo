@@ -66,7 +66,7 @@ public:
      * @see MSEdge
      */
     GUIEdge(const std::string& id, int numericalID,
-            const EdgeBasicFunction function, 
+            const EdgeBasicFunction function,
             const std::string& streetName, const std::string& edgeType, int priority);
 
 
@@ -78,6 +78,12 @@ public:
      * @param[in] includeInternal Whether to include ids of internal edges
      */
     static std::vector<GUIGlID> getIDs(bool includeInternal);
+
+    /* @brief Returns the combined length of all edges
+     * @param[in] includeInternal Whether to include lengths of internal edges
+     * @param[in] eachLane Whether to count each lane separately
+     */
+    static SUMOReal getTotalLength(bool includeInternal, bool eachLane);
 
     /// Returns the street's geometry
     Boundary getBoundary() const;
@@ -184,6 +190,9 @@ public:
 
     /// @brief sets the vehicle color according to the currente settings
     void setVehicleColor(const GUIVisualizationSettings& s, MSBaseVehicle* veh) const;
+
+    /// @brief gets the vehicle color value according to the current scheme index
+    SUMOReal getVehicleColorValue(size_t activeScheme, MSBaseVehicle* veh) const;
 
     void drawMesoVehicles(const GUIVisualizationSettings& s) const;
 

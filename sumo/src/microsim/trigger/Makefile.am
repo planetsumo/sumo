@@ -6,5 +6,4 @@ MSContainerStop.cpp MSContainerStop.h \
 MSContainerTerminal.cpp MSContainerTerminal.h \
 MSLaneSpeedTrigger.cpp MSLaneSpeedTrigger.h \
 MSTrigger.h MSTrigger.cpp \
-MSTriggeredReader.cpp MSTriggeredReader.h \
 MSTriggeredRerouter.cpp MSTriggeredRerouter.h

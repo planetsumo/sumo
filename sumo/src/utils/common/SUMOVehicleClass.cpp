@@ -80,13 +80,11 @@ StringBijection<SUMOVehicleClass>::Entry sumoVehicleClassStringInitializer[] = {
     {"moped",             SVC_MOPED},
     {"bicycle",           SVC_BICYCLE},
     {"pedestrian",        SVC_PEDESTRIAN},
-    {"container",         SVC_CONTAINER},
     {"evehicle",          SVC_E_VEHICLE},
+    {"ship",              SVC_SHIP},
     {"custom1",           SVC_CUSTOM1},
     {"custom2",           SVC_CUSTOM2},
 	{"ship",			  SVC_SHIP},
-	{"freighter",		  SVC_FREIGHTER},
-	{"passenger_ship",	  SVC_PASSENGER_SHIP},
 };
 
 StringBijection<SUMOVehicleClass> SumoVehicleClassStrings(
@@ -128,6 +126,7 @@ StringBijection<SUMOVehicleShape>::Entry sumoVehicleShapeStringInitializer[] = {
     {"rail/cargo",            SVS_RAIL_CARGO},
     {"evehicle",              SVS_E_VEHICLE},
     {"ant",                   SVS_ANT},
+    {"ship",                  SVS_SHIP},
     {"",                      SVS_UNKNOWN}
 };
 
@@ -142,6 +141,7 @@ StringBijection<SUMOVehicleShape> SumoVehicleShapeStrings(
 
 const int SUMOVehicleClass_MAX = SVC_CUSTOM2;
 const SVCPermissions SVCAll = 2 * SUMOVehicleClass_MAX - 1; // all relevant bits set to 1
+const SVCPermissions SVC_UNSPECIFIED = -1;
 
 
 // ===========================================================================
@@ -297,12 +297,18 @@ bool isRailway(SVCPermissions permissions) {
 }
 
 
+bool isWaterway(SVCPermissions permissions) {
+    return permissions == SVC_SHIP;
+}
+
+
 bool isForbidden(SVCPermissions permissions) {
     return (permissions & SVCAll) == 0;
 }
 
 
 const std::string DEFAULT_VTYPE_ID("DEFAULT_VEHTYPE");
+const std::string DEFAULT_PEDTYPE_ID("DEFAULT_PEDTYPE");
 
 const SUMOReal DEFAULT_VEH_PROB(1.);
 

@@ -41,15 +41,10 @@
 #include "MSFCDExport.h"
 #include <microsim/MSNet.h>
 #include <microsim/MSVehicle.h>
-#include <microsim/MSPerson.h>
+#include <microsim/pedestrians/MSPerson.h>
 #include <microsim/MSPersonControl.h>
 #include <microsim/MSContainer.h>
 #include <microsim/MSContainerControl.h>
-#ifdef HAVE_MESOSIM
-#include <mesosim/MELoop.h>
-#include <mesosim/MESegment.h>
-#endif
-
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
@@ -62,17 +57,13 @@ void
 MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
     const bool useGeo = OptionsCont::getOptions().getBool("fcd-output.geo");
     const bool signals = OptionsCont::getOptions().getBool("fcd-output.signals");
-    MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
-    MSVehicleControl::constVehIt it = vc.loadedVehBegin();
-    MSVehicleControl::constVehIt end = vc.loadedVehEnd();
-
     of.openTag("timestep").writeAttr(SUMO_ATTR_TIME, time2string(timestep));
-    // write vehicles
-    for (; it != end; ++it) {
-        const MSVehicle* veh = static_cast<const MSVehicle*>((*it).second);
+    MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
+    for (MSVehicleControl::constVehIt it = vc.loadedVehBegin(); it != vc.loadedVehEnd(); ++it) {
+        const SUMOVehicle* veh = it->second;
+        const MSVehicle* microVeh = dynamic_cast<const MSVehicle*>(veh);
         if (veh->isOnRoad()) {
             Position pos = veh->getPosition();
-            MSLane* lane = veh->getLane();
             if (useGeo) {
                 of.setPrecision(GEO_OUTPUT_ACCURACY);
                 GeoConvHelper::getFinal().cartesian2geo(pos);
@@ -85,10 +76,12 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
             of.writeAttr(SUMO_ATTR_TYPE, veh->getVehicleType().getID());
             of.writeAttr(SUMO_ATTR_SPEED, veh->getSpeed());
             of.writeAttr(SUMO_ATTR_POSITION, veh->getPositionOnLane());
-            of.writeAttr(SUMO_ATTR_LANE, lane->getID());
-            of.writeAttr(SUMO_ATTR_SLOPE, lane->getShape().slopeDegreeAtOffset(veh->getPositionOnLane()));
-            if (signals) {
-                of.writeAttr("signals", toString(veh->getSignals()));
+            if (microVeh != 0) {
+                of.writeAttr(SUMO_ATTR_LANE, microVeh->getLane()->getID());
+            }
+            of.writeAttr(SUMO_ATTR_SLOPE, veh->getSlope());
+            if (microVeh != 0 && signals) {
+                of.writeAttr("signals", toString(microVeh->getSignals()));
             }
             of.closeTag();
         }

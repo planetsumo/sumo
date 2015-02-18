@@ -69,7 +69,9 @@ RORouteDef::RORouteDef(const std::string& id, const unsigned int lastUsed,
 
 RORouteDef::~RORouteDef() {
     for (std::vector<RORoute*>::iterator i = myAlternatives.begin(); i != myAlternatives.end(); i++) {
-        delete *i;
+        if (myRouteRefs.count(*i) == 0) {
+            delete *i;
+        }
     }
 }
 
@@ -84,6 +86,8 @@ void
 RORouteDef::addAlternativeDef(const RORouteDef* alt) {
     std::copy(alt->myAlternatives.begin(), alt->myAlternatives.end(),
               back_inserter(myAlternatives));
+    std::copy(alt->myAlternatives.begin(), alt->myAlternatives.end(),
+              std::inserter(myRouteRefs, myRouteRefs.end()));
 }
 
 

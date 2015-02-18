@@ -38,6 +38,7 @@
 #include <osg/Geometry>
 #endif
 #include <microsim/MSLane.h>
+#include <microsim/MSEdge.h>
 #include <microsim/MSJunction.h>
 #include <utils/geom/Position.h>
 #include <microsim/MSNet.h>
@@ -58,6 +59,7 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
+//#define GUIJunctionWrapper_DEBUG_DRAW_NODE_SHAPE_VERTICES
 
 // ===========================================================================
 // method definitions
@@ -77,6 +79,19 @@ GUIJunctionWrapper::GUIJunctionWrapper(MSJunction& junction)
 #else
     myIsInner = false;
 #endif
+    myAmWaterway = true;
+    for(std::vector<const MSEdge*>::const_iterator it = myJunction.getIncoming().begin(); it != myJunction.getIncoming().end(); ++it) {
+        if (!(*it)->isInternal() && !isWaterway((*it)->getPermissions())) {
+            myAmWaterway = false;
+            break;
+        }
+    }
+    for(std::vector<const MSEdge*>::const_iterator it = myJunction.getOutgoing().begin(); it != myJunction.getOutgoing().end(); ++it) {
+        if (!(*it)->isInternal() && !isWaterway((*it)->getPermissions())) {
+            myAmWaterway = false;
+            break;
+        }
+    }
 }
 
 
@@ -128,6 +143,9 @@ GUIJunctionWrapper::drawGL(const GUIVisualizationSettings& s) const {
         } else {
             GLHelper::drawFilledPolyTesselated(myJunction.getShape(), true);
         }
+#ifdef GUIJunctionWrapper_DEBUG_DRAW_NODE_SHAPE_VERTICES
+        GLHelper::debugVertices(myJunction.getShape(), 80 / s.scale);
+#endif
         glPopName();
         glPopMatrix();
     }
@@ -143,7 +161,11 @@ SUMOReal
 GUIJunctionWrapper::getColorValue(const GUIVisualizationSettings& s) const {
     switch (s.junctionColorer.getActive()) {
         case 0:
-            return 0;
+            if (myAmWaterway) {
+                return 1;
+            } else {
+                return 0;
+            }
         case 1:
             return gSelected.isSelected(getType(), getGlID()) ? 1 : 0;
         case 2:

@@ -187,6 +187,9 @@ private:
     /// @brief Whether the edge shape shall be kept at reinitilization
     bool myReinitKeepEdgeShape;
 
+    /// @brief The width of the sidewalk that shall be added to the current edge
+    SUMOReal mySidewalkWidth;
+
     /// @}
 
 
@@ -310,7 +313,7 @@ private:
     /** @brief Parses a roundabout and stores it in myEdgeCont.
      * @param[in] attrs The attributes to get the roundabouts values from
      */
-    void addRoundabout(const SUMOSAXAttributes& attrs); 
+    void addRoundabout(const SUMOSAXAttributes& attrs);
 
 
 private:

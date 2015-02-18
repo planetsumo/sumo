@@ -134,6 +134,9 @@ public:
     /// @brief Called on menu File->Open Network
     long onCmdOpenNetwork(FXObject*, FXSelector, void*);
 
+    /// @brief Called on menu File->Load Shapes
+    long onCmdOpenShapes(FXObject*, FXSelector, void*);
+
     /// @brief Called on reload
     long onCmdReload(FXObject*, FXSelector, void*);
 
@@ -159,6 +162,9 @@ public:
 
     /// @brief Toggle gaming mode
     long onCmdGaming(FXObject*, FXSelector, void*);
+
+    /// @brief Toggle full screen mode
+    long onCmdFullScreen(FXObject*, FXSelector, void*);
 
     /// @brief Toggle listing of internal structures
     long onCmdListInternal(FXObject*, FXSelector, void*);
@@ -333,6 +339,9 @@ protected:
 
     /// @brief whether to show time as hour:minute:second
     bool myShowTimeAsHMS;
+
+    /// @brief whether to show the window in full screen mode
+    bool myAmFullScreen;
 
 
     /// @name game related things

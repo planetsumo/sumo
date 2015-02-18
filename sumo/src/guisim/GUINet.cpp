@@ -38,6 +38,7 @@
 #include <utils/gui/globjects/GUIPointOfInterest.h>
 #include <utils/gui/globjects/GUIGLObjectPopupMenu.h>
 #include <utils/gui/div/GUIParameterTableWindow.h>
+#include <utils/gui/globjects/GUIShapeContainer.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/RGBColor.h>
 #include <utils/gui/div/GLObjectValuePassConnector.h>
@@ -45,7 +46,7 @@
 #include <microsim/MSJunction.h>
 #include <microsim/output/MSDetectorControl.h>
 #include <microsim/MSEdge.h>
-#include <microsim/MSPModel.h>
+#include <microsim/pedestrians/MSPModel.h>
 #include <microsim/MSInsertionControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSTLLogicControl.h>
@@ -61,7 +62,6 @@
 #include <guisim/GUIVehicleControl.h>
 #include <gui/GUIGlobals.h>
 #include "GUINet.h"
-#include "GUIShapeContainer.h"
 
 #ifdef HAVE_INTERNAL
 #include <mesogui/GUIMEVehicleControl.h>
@@ -226,6 +226,7 @@ void
 GUINet::guiSimulationStep() {
     GLObjectValuePassConnector<SUMOReal>::updateAll();
     GLObjectValuePassConnector<std::pair<SUMOTime, MSPhaseDefinition> >::updateAll();
+    GUIParameterTableWindow::updateAll();
 }
 
 
@@ -427,7 +428,7 @@ GUIParameterTableWindow*
 GUINet::getParameterWindow(GUIMainWindow& app,
                            GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 15);
+        new GUIParameterTableWindow(app, *this, 19);
     // add items
     ret->mkItem("loaded vehicles [#]", true,
                 new FunctionBinding<MSVehicleControl, unsigned int>(&getVehicleControl(), &MSVehicleControl::getLoadedVehicleNo));
@@ -464,6 +465,11 @@ GUINet::getParameterWindow(GUIMainWindow& app,
         ret->mkItem("ups [#]", true, new FunctionBinding<GUINet, SUMOReal>(this, &GUINet::getUPS));
         ret->mkItem("mean ups [#]", true, new FunctionBinding<GUINet, SUMOReal>(this, &GUINet::getMeanUPS));
     }
+    ret->mkItem("nodes [#]", false, (int)myJunctions->size());
+    ret->mkItem("edges [#]", false, (int)GUIEdge::getIDs(false).size());
+    ret->mkItem("total edge length [km]", false, GUIEdge::getTotalLength(false, false) / 1000);
+    ret->mkItem("total lane length [km]", false, GUIEdge::getTotalLength(false, true) / 1000);
+
     // close building
     ret->closeBuilding();
     return ret;

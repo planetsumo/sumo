@@ -600,7 +600,7 @@ public:
      * @param[in] stop The stop to add
      * @return Whether the stop could be added
      */
-    bool addStop(const SUMOVehicleParameter::Stop& stopPar, SUMOTime untilOffset = 0);
+    bool addStop(const SUMOVehicleParameter::Stop& stopPar, std::string& errorMsg, SUMOTime untilOffset = 0);
 
 
     /** @brief Returns whether the vehicle has to stop somewhere
@@ -633,11 +633,11 @@ public:
     /**
      * Compute distance that will be covered, if the vehicle moves to a given position on its route,
      * starting at its current position.
-     * @param destPos:	position on the destination edge that shall be reached
+     * @param destPos:  position on the destination edge that shall be reached
      * @param destEdge: destination edge that shall be reached
-     * @return			distance from the vehicles current position to the destination position,
-     *					or a near infinite real value if the destination position is not contained
-     *					within the vehicles route or the vehicle is not active
+     * @return      distance from the vehicles current position to the destination position,
+     *          or a near infinite real value if the destination position is not contained
+     *          within the vehicles route or the vehicle is not active
      */
     SUMOReal getDistanceToPosition(SUMOReal destPos, const MSEdge* destEdge);
 
@@ -655,7 +655,7 @@ public:
      *
      * If the distance is not given it is calculated from the brake gap.
      * The gap returned does not include the minGap.
-     * @param dist		up to which distance to look for a leader
+     * @param dist    up to which distance to look for a leader
      * @return The leading vehicle together with the gap; (0, -1) if no leader was found.
      */
     std::pair<const MSVehicle* const, SUMOReal> getLeader(SUMOReal dist = 0) const;
@@ -850,15 +850,16 @@ public:
     /**
      * schedule a new stop for the vehicle; each time a stop is reached, the vehicle
      * will wait for the given duration before continuing on its route
-     * @param lane		lane on wich to stop
-     * @param pos		position on the given lane at wich to stop
-     * @param radius	the vehicle will stop if it is within the range [pos-radius, pos+radius]
-     * @param duration	after waiting for the time period duration, the vehicle will
-     * @param parking   a flag indicating whether the traci stop is used for parking or not
+     * @param lane  lane on wich to stop
+     * @param pos   position on the given lane at wich to stop
+     * @param radius  the vehicle will stop if it is within the range [pos-radius, pos+radius]
+     * @param duration after waiting for the time period duration, the vehicle will
+     * @param parking  a flag indicating whether the traci stop is used for parking or not
      * @param triggered a flag indicating whether the traci stop is triggered or not
      * @param containerTriggered a flag indicating whether the traci stop is triggered by a container or not
      */
-    bool addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal radius, SUMOTime duration, bool parking, bool triggered, bool containerTriggered);
+    bool addTraciStop(MSLane* lane, SUMOReal pos, SUMOReal radius, SUMOTime duration,
+                      bool parking, bool triggered, bool containerTriggered, std::string& errorMsg);
 
     /**
     * returns the next imminent stop in the stop queue
@@ -996,19 +997,29 @@ public:
             return myOriginalSpeed;
         }
 
-        void setVTDControlled(bool c, MSLane* l, SUMOReal pos, int edgeOffset, const MSEdgeVector& route) {
+        void setVTDControlled(bool c, MSLane* l, SUMOReal pos, int edgeOffset, const MSEdgeVector& route, SUMOTime t) {
             myAmVTDControlled = c;
             myVTDLane = l;
             myVTDPos = pos;
             myVTDEdgeOffset = edgeOffset;
             myVTDRoute = route;
+			myLastVTDAccess = t;
         }
+
+		SUMOTime getLastAccessTimeStep() const {
+			return myLastVTDAccess;
+		}
 
         void postProcessVTD(MSVehicle* v);
 
         inline bool isVTDControlled() const {
             return myAmVTDControlled;
         }
+
+        inline bool isVTDAffected(SUMOTime t) const {
+            return myAmVTDControlled && myLastVTDAccess>=t-TIME2STEPS(10); 
+        }
+
 
     private:
         /// @brief The velocity time line to apply
@@ -1043,6 +1054,7 @@ public:
         SUMOReal myVTDPos;
         int myVTDEdgeOffset;
         MSEdgeVector myVTDRoute;
+		SUMOTime myLastVTDAccess;
 
         /// @name Flags for managing conflicts between the laneChangeModel and TraCI laneTimeLine
         //@{
@@ -1077,7 +1089,7 @@ public:
 
     /// @brief compute safe speed for following the given leader
     SUMOReal getSafeFollowSpeed(const std::pair<const MSVehicle*, SUMOReal> leaderInfo,
-                         const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const;
+                                const SUMOReal seen, const MSLane* const lane, SUMOReal distToCrossing) const;
 
 #endif
 
@@ -1123,6 +1135,10 @@ protected:
 
     /// updates LaneQ::nextOccupation and myCurrentLaneInBestLanes
     void updateOccupancyAndCurrentBestLane(const MSLane* startLane);
+
+    /** @brief Returns the list of still pending stop edges
+     */
+    const std::vector<const MSEdge*> getStopEdges() const;
 
 
     /// @brief The time the vehicle waits (is not faster than 0.1m/s) in seconds
@@ -1247,6 +1263,7 @@ protected:
      * @param[in] dist The distance during which accelerating takes place
      * @param[in] v The initial speed
      * @param[in] accel The acceleration
+     * XXX affected by ticket #860 (the formula is invalid for the current position update rule)
      */
     inline SUMOReal estimateSpeedAfterDistance(const SUMOReal dist, const SUMOReal v, const SUMOReal accel) const {
         // dist=v*t + 0.5*accel*t^2, solve for t and multiply with accel, then add v
@@ -1255,7 +1272,9 @@ protected:
     }
 
 
-    /* @brief estimate speed while accelerating for the given distance
+    /* @brief adapt safe velocity in accordance to a moving obstacle:
+     * - a leader vehicle
+     * - a vehicle or pedestrian that crosses this vehicles path on an upcoming intersection
      * @param[in] leaderInfo The leading vehicle and the (virtual) distance to it
      * @param[in] seen the distance to the end of the current lane
      * @param[in] lastLink the lastLink index

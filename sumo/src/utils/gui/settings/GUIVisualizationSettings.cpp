@@ -63,7 +63,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
       drawLaneChangePreference(false), drawMinGap(false),
       showBTRange(false), vehicleSize(1),
       vehicleName(false, 50, RGBColor(204, 153, 0, 255)),
-      personQuality(0), 
+      personQuality(0),
       personSize(1),
       personName(false, 50, RGBColor(0, 153, 204, 255)),
       containerQuality(0), 
@@ -80,13 +80,13 @@ GUIVisualizationSettings::GUIVisualizationSettings()
       showSizeLegend(true),
       gaming(false),
       selectionScale(1),
-      drawForSelecting(false)
-{
+      drawForSelecting(false) {
     /// add lane coloring schemes
     GUIColorScheme scheme = GUIColorScheme("uniform", RGBColor::BLACK, "road", true);
     scheme.addColor(RGBColor::GREY, 1, "sidewalk");
     scheme.addColor(RGBColor(192, 66, 44), 2, "bike lane");
     scheme.addColor(RGBColor(0, 0, 0, 0), 3, "green verge");
+    scheme.addColor(RGBColor(150, 200, 200), 4, "waterway");
     laneColorer.addScheme(scheme);
     scheme = GUIColorScheme("by selection (lane-/streetwise)", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
@@ -100,11 +100,16 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor(166, 147, 26), (SUMOReal)SVC_TAXI, "taxi");
     scheme.addColor(RGBColor::BLACK, (SUMOReal)(SVCAll & ~SVC_PEDESTRIAN), "disallow_pedestrian");
     scheme.addColor(RGBColor(64, 0, 86), (SUMOReal)(SVCAll & ~(SVC_PEDESTRIAN | SVC_BICYCLE | SVC_MOPED)), "disallow_apedestrian_bicycle");
+    scheme.addColor(RGBColor(150, 200, 200), (SUMOReal)SVC_SHIP, "waterway");
     scheme.addColor(RGBColor::GREEN, (SUMOReal)SVCAll, "all");
     laneColorer.addScheme(scheme);
     // ... traffic states ...
     scheme = GUIColorScheme("by allowed speed (lanewise)", RGBColor::RED);
-    scheme.addColor(RGBColor::BLUE, (SUMOReal)(150.0 / 3.6));
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)(30 / 3.6));
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)(55 / 3.6));
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)(80 / 3.6));
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)(120 / 3.6));
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)(150 / 3.6));
     laneColorer.addScheme(scheme);
     scheme = GUIColorScheme("by current occupancy (lanewise, brutto)", RGBColor::BLUE);
     scheme.addColor(RGBColor::RED, (SUMOReal)0.95);
@@ -143,7 +148,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme = GUIColorScheme("by noise emissions (Harmonoise)", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)100);
     laneColorer.addScheme(scheme);
-    // ... weights (experimental) ...
+	// ... weights (experimental) ...
     scheme = GUIColorScheme("by global travel time", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)100);
     scheme.setAllowsNegativeValues(true);
@@ -166,9 +171,51 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.setAllowsNegativeValues(true);
     laneColorer.addScheme(scheme);
     scheme = GUIColorScheme("by priority", RGBColor::YELLOW);
-    scheme.addColor(RGBColor::RED, (SUMOReal)-20);
+    scheme.addColor(RGBColor::RED, (SUMOReal) - 20);
     scheme.addColor(RGBColor::GREEN, (SUMOReal)20);
     scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by height at start", RGBColor::RED);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)-10);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)50);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)100);
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)200);
+    scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by height at segment start", RGBColor::RED);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)-10);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)50);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)100);
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)200);
+    scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by inclination", RGBColor::GREY);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal) .1);
+    scheme.addColor(RGBColor::RED, (SUMOReal) .3);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)-.1);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)-.3);
+    scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by inclination at segment start", RGBColor::GREY);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal) .1);
+    scheme.addColor(RGBColor::RED, (SUMOReal) .3);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)-.1);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)-.3);
+    scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by average speed", RGBColor::RED);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)(30 / 3.6));
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)(55 / 3.6));
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)(80 / 3.6));
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)(120 / 3.6));
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)(150 / 3.6));
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by average relative speed ", RGBColor::RED);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)(0.25));
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)(0.5));
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)(0.75));
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)(1));
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)(1.25));
     laneColorer.addScheme(scheme);
 
 
@@ -285,8 +332,9 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
     personColorer.addScheme(scheme);
     personColorer.addScheme(GUIColorScheme("by angle", RGBColor::YELLOW, "", true));
+    personColorer.addScheme(GUIColorScheme("random", RGBColor::YELLOW, "", true));
 
-    /// add container coloring schemes
+	/// add container coloring schemes
     containerColorer.addScheme(GUIColorScheme("given container/type color", RGBColor::YELLOW, "", true));
     containerColorer.addScheme(GUIColorScheme("uniform", RGBColor::YELLOW, "", true));
     containerColorer.addScheme(GUIColorScheme("given/assigned container color", RGBColor::YELLOW, "", true));
@@ -310,9 +358,12 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
     containerColorer.addScheme(scheme);
-    containerColorer.addScheme(GUIColorScheme("by angle", RGBColor::YELLOW, "", true));
+    containerColorer.addScheme(GUIColorScheme("by angle", RGBColor::YELLOW, "", true));    
 
-    junctionColorer.addScheme(GUIColorScheme("uniform", RGBColor::BLACK, "", true));
+	/// add junction coloring schemes
+    scheme = GUIColorScheme("uniform", RGBColor::BLACK, "", true);
+    scheme.addColor(RGBColor(150, 200, 200), 1, "waterway");
+    junctionColorer.addScheme(scheme);
     scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
     junctionColorer.addScheme(scheme);
@@ -386,14 +437,22 @@ GUIVisualizationSettings::GUIVisualizationSettings()
         scheme.addColor(10, (SUMOReal)10.0);
         laneScaler.addScheme(scheme);
         scheme = GUIScaleScheme("by loaded weight", 0);
-        scheme.addColor(-1000, (SUMOReal)-1000);
+        scheme.addColor(-1000, (SUMOReal) - 1000);
         scheme.addColor(1000, (SUMOReal)1000);
         scheme.setAllowsNegativeValues(true);
         laneScaler.addScheme(scheme);
         scheme = GUIScaleScheme("by priority", 1);
-        scheme.addColor(0.5, (SUMOReal)-20);
+        scheme.addColor(0.5, (SUMOReal) - 20);
         scheme.addColor(5, (SUMOReal)20);
         scheme.setAllowsNegativeValues(true);
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by average speed", 0);
+        scheme.addColor(10, (SUMOReal)(150.0 / 3.6));
+        laneScaler.addScheme(scheme);
+        scheme = GUIScaleScheme("by average relative speed", 0);
+        scheme.addColor(0.5, (SUMOReal)(0.5));
+        scheme.addColor(2, (SUMOReal)(1));
+        scheme.addColor(10, (SUMOReal)(2));
         laneScaler.addScheme(scheme);
     }
 
@@ -409,7 +468,11 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::BLUE, 2, "internal"); // see MSEdge::EdgeBasicFunction::EDGEFUNCTION_INTERNAL
     edgeColorer.addScheme(scheme);
     scheme = GUIColorScheme("by allowed speed (streetwise)", RGBColor::RED);
-    scheme.addColor(RGBColor::BLUE, (SUMOReal)(150.0 / 3.6));
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)(30 / 3.6));
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)(55 / 3.6));
+    scheme.addColor(RGBColor::CYAN, (SUMOReal)(80 / 3.6));
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)(120 / 3.6));
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)(150 / 3.6));
     edgeColorer.addScheme(scheme);
     scheme = GUIColorScheme("by current occupancy (streetwise)", RGBColor::BLUE);
     scheme.addColor(RGBColor::RED, (SUMOReal)0.95);
@@ -507,7 +570,8 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
         << "\" laneShowBorders=\"" << laneShowBorders
         << "\" showLinkDecals=\"" << showLinkDecals
         << "\" showRails=\"" << showRails
-        << "\" hideConnectors=\"" << hideConnectors << "\"\n"
+        << "\" hideConnectors=\"" << hideConnectors
+        << "\" widthExaggeration=\"" << laneWidthExaggeration << "\"\n"
         << "               " << edgeName.print("edgeName") << "\n"
         << "               " << internalEdgeName.print("internalEdgeName") << "\n"
         << "               " << cwaEdgeName.print("cwaEdgeName") << "\n"
@@ -529,7 +593,7 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
     vehicleColorer.save(dev);
     dev << "        </vehicles>\n";
     dev << "        <persons personMode=\"" << personColorer.getActive()
-        << "\" personQuality=\"" << personQuality << "\" " 
+        << "\" personQuality=\"" << personQuality << "\" "
         << personSize.print("person")
         << personName.print("personName")
         << ">\n";
@@ -554,17 +618,17 @@ GUIVisualizationSettings::save(OutputDevice& dev) const {
     junctionColorer.save(dev);
     dev << "        </junctions>\n";
 
-    dev << "        <additionals addMode=\"" << addMode << "\" " 
+    dev << "        <additionals addMode=\"" << addMode << "\" "
         << addSize.print("add")
         << addName.print("addName")
         << "/>\n";
 
-    dev << "        <pois " 
-        << poiSize.print("poi") 
+    dev << "        <pois "
+        << poiSize.print("poi")
         << poiName.print("poiName")
         << "/>\n";
 
-    dev << "        <polys " 
+    dev << "        <polys "
         << polySize.print("poly")
         << polyName.print("polyName")
         << "/>\n";
@@ -739,7 +803,7 @@ GUIVisualizationSettings::operator==(const GUIVisualizationSettings& v2) {
 }
 
 
-SUMOReal 
+SUMOReal
 GUIVisualizationSizeSettings::getExaggeration(const GUIVisualizationSettings& s) const {
     /// @note should look normal-sized at zoom 1000
     return (constantSize && !s.drawForSelecting) ? MAX2((SUMOReal)exaggeration, exaggeration * 20 / s.scale) : exaggeration;

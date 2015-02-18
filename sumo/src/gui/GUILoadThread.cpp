@@ -119,6 +119,7 @@ GUILoadThread::run() {
         oc.clear();
         MSFrame::fillOptions();
         if (myFile != "") {
+            // triggered by menu option
             if (myLoadNet) {
                 oc.set("net-file", myFile);
             } else {
@@ -126,7 +127,15 @@ GUILoadThread::run() {
             }
             OptionsIO::getOptions(true, 1, 0);
         } else {
+            // triggered at application start or reload
             OptionsIO::getOptions(true);
+            // set myFile to get a useful Window title
+            if (oc.isSet("configuration-file")) {
+                myFile = oc.getString("configuration-file");
+            } else if (oc.isSet("net-file")) {
+                myFile = oc.getString("net-file");
+                myLoadNet = true;
+            }
         }
         // within gui-based applications, nothing is reported to the console
         MsgHandler::getMessageInstance()->removeRetriever(&OutputDevice::getDevice("stdout"));
@@ -150,7 +159,7 @@ GUILoadThread::run() {
         submitEndAndCleanup(net, simStartTime, simEndTime);
         return 0;
     }
-    
+
     // initialise global settings
     RandHelper::initRandGlobal();
     RandHelper::initRandGlobal(MSRouteHandler::getParsingRNG());
@@ -241,6 +250,11 @@ GUILoadThread::submitEndAndCleanup(GUINet* net,
     myEventThrow.signal();
 }
 
+
+void
+GUILoadThread::reloadConfigOrNet() {
+    start();
+}
 
 void
 GUILoadThread::loadConfigOrNet(const std::string& file, bool isNet) {

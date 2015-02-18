@@ -102,7 +102,7 @@ public:
      */
     virtual SUMOVehicle* buildVehicle(SUMOVehicleParameter* defs, const MSRoute* route,
                                       const MSVehicleType* type,
-                                      const bool ignoreStopErrors, const bool fromRouteFile=true);
+                                      const bool ignoreStopErrors, const bool fromRouteFile = true);
     /// @}
 
 
@@ -160,17 +160,19 @@ public:
 
 
     /** @brief Returns the begin of the internal vehicle map
-     *
      * @return The begin of the internal vehicle map
      */
-    constVehIt loadedVehBegin() const;
+    constVehIt loadedVehBegin() const {
+        return myVehicleDict.begin();
+    }
 
 
     /** @brief Returns the end of the internal vehicle map
-     *
      * @return The end of the internal vehicle map
      */
-    constVehIt loadedVehEnd() const;
+    constVehIt loadedVehEnd() const {
+        return myVehicleDict.end();
+    }
     /// @}
 
 
@@ -431,6 +433,16 @@ public:
     /// @brief compute (optional) random offset to the departure time
     SUMOTime computeRandomDepartOffset() const;
 
+    /// @brief return the maximum speed factor for all vehicles that ever entered the network
+    SUMOReal getMaxSpeedFactor() const {
+        return myMaxSpeedFactor;
+    }
+
+    /// @brief return the minimum deceleration capability for all vehicles that ever entered the network
+    SUMOReal getMinDeceleration() const {
+        return myMinDeceleration;
+    }
+
 private:
     /** @brief Checks whether the vehicle type (distribution) may be added
      *
@@ -511,6 +523,9 @@ protected:
     /// @brief Whether no vehicle type was loaded
     bool myDefaultVTypeMayBeDeleted;
 
+    /// @brief Whether no pedestrian type was loaded
+    bool myDefaultPedTypeMayBeDeleted;
+
     /// the lists of waiting vehicles to a given edge
     std::map<const MSEdge* const, std::vector<SUMOVehicle*> > myWaiting;
 
@@ -526,6 +541,11 @@ protected:
     /// @brief The maximum random offset to be added to vehicles departure times (non-negative)
     SUMOTime myMaxRandomDepartOffset;
 
+    /// @brief The maximum speed factor for all vehicles in the network
+    SUMOReal myMaxSpeedFactor;
+
+    /// @brief The minimum deceleration capability for all vehicles in the network
+    SUMOReal myMinDeceleration;
 
 private:
     /// @brief invalidated copy constructor

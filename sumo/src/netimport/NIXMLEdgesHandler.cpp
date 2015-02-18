@@ -129,18 +129,27 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     myCurrentEdge = myEdgeCont.retrieve(myCurrentID);
     // check deprecated (unused) attributes
     // use default values, first
-    myCurrentSpeed = myTypeCont.getSpeed("");
     myCurrentPriority = myTypeCont.getPriority("");
     myCurrentLaneNo = myTypeCont.getNumLanes("");
-    myPermissions = myTypeCont.getPermissions("");
-    myCurrentWidth = myTypeCont.getWidth("");
     myCurrentEndOffset = NBEdge::UNSPECIFIED_OFFSET;
+    if (myCurrentEdge != 0) {
+        // update existing edge. only update lane-specific settings when explicitly requested
+        myCurrentSpeed = NBEdge::UNSPECIFIED_SPEED;
+        myPermissions = SVC_UNSPECIFIED;
+        myCurrentWidth = NBEdge::UNSPECIFIED_WIDTH;
+    } else {
+        // this is a completely new edge. get the type specific defaults
+        myCurrentSpeed = myTypeCont.getSpeed("");
+        myPermissions = myTypeCont.getPermissions("");
+        myCurrentWidth = myTypeCont.getWidth("");
+    }
     myCurrentType = "";
     myShape = PositionVector();
     myLanesSpread = LANESPREAD_RIGHT;
     myLength = NBEdge::UNSPECIFIED_LOADED_LENGTH;
     myCurrentStreetName = "";
     myReinitKeepEdgeShape = false;
+    mySidewalkWidth = NBEdge::UNSPECIFIED_WIDTH;
     // check whether a type's values shall be used
     if (attrs.hasAttribute(SUMO_ATTR_TYPE)) {
         myCurrentType = attrs.get<std::string>(SUMO_ATTR_TYPE, myCurrentID.c_str(), ok);
@@ -156,6 +165,7 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
         myCurrentLaneNo = myTypeCont.getNumLanes(myCurrentType);
         myPermissions = myTypeCont.getPermissions(myCurrentType);
         myCurrentWidth = myTypeCont.getWidth(myCurrentType);
+        mySidewalkWidth = myTypeCont.getSidewalkWidth(myCurrentType);
     }
     // use values from the edge to overwrite if existing, then
     if (myCurrentEdge != 0) {
@@ -169,17 +179,13 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
             myCurrentEdge = 0;
             return;
         }
-        myCurrentSpeed = myCurrentEdge->getSpeed();
         myCurrentPriority = myCurrentEdge->getPriority();
         myCurrentLaneNo = myCurrentEdge->getNumLanes();
         myCurrentType = myCurrentEdge->getTypeID();
-        myPermissions = myCurrentEdge->getPermissions();
         if (!myCurrentEdge->hasDefaultGeometry()) {
             myShape = myCurrentEdge->getGeometry();
             myReinitKeepEdgeShape = true;
         }
-        myCurrentWidth = myCurrentEdge->getLaneWidth();
-        myCurrentEndOffset = myCurrentEdge->getEndOffset();
         myLanesSpread = myCurrentEdge->getLaneSpreadFunction();
         if (myCurrentEdge->hasLoadedLength()) {
             myLength = myCurrentEdge->getLoadedLength();
@@ -191,7 +197,7 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     if (attrs.hasAttribute(SUMO_ATTR_SPEED)) {
         myCurrentSpeed = attrs.get<SUMOReal>(SUMO_ATTR_SPEED, myCurrentID.c_str(), ok);
     }
-    if (myOptions.getBool("speed-in-kmh")) {
+    if (myOptions.getBool("speed-in-kmh") && myCurrentSpeed != NBEdge::UNSPECIFIED_SPEED) {
         myCurrentSpeed = myCurrentSpeed / (SUMOReal) 3.6;
     }
     // try to get the number of lanes
@@ -206,7 +212,7 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     if (attrs.hasAttribute(SUMO_ATTR_WIDTH)) {
         myCurrentWidth = attrs.get<SUMOReal>(SUMO_ATTR_WIDTH, myCurrentID.c_str(), ok);
     }
-    // try to get the width
+    // try to get the offset of the stop line from the intersection
     if (attrs.hasAttribute(SUMO_ATTR_ENDOFFSET)) {
         myCurrentEndOffset = attrs.get<SUMOReal>(SUMO_ATTR_ENDOFFSET, myCurrentID.c_str(), ok);
     }
@@ -236,6 +242,8 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     myLanesSpread = tryGetLaneSpread(attrs);
     // try to get the length
     myLength = attrs.getOpt<SUMOReal>(SUMO_ATTR_LENGTH, myCurrentID.c_str(), ok, myLength);
+    // tro to get the sidewalkWidth
+    mySidewalkWidth = attrs.getOpt<SUMOReal>(SUMO_ATTR_SIDEWALKWIDTH, myCurrentID.c_str(), ok, mySidewalkWidth);
     // insert the parsed edge into the edges map
     if (!ok) {
         return;
@@ -261,10 +269,8 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
         }
     }
     myCurrentEdge->setLoadedLength(myLength);
-    myCurrentEdge->setPermissions(myPermissions);
-    if (myTypeCont.getSidewalkWidth(myCurrentType) != NBEdge::UNSPECIFIED_WIDTH) {
-        // lane specifications may override this
-        myCurrentEdge->addSidewalk(myTypeCont.getSidewalkWidth(myCurrentType));
+    if (myPermissions != SVC_UNSPECIFIED) {
+        myCurrentEdge->setPermissions(myPermissions);
     }
 }
 
@@ -467,6 +473,10 @@ NIXMLEdgesHandler::deleteEdge(const SUMOSAXAttributes& attrs) {
 void
 NIXMLEdgesHandler::myEndElement(int element) {
     if (element == SUMO_TAG_EDGE && myCurrentEdge != 0) {
+        // add sidewalk, wait until lanes are loaded to avoid building if it already exists
+        if (mySidewalkWidth != NBEdge::UNSPECIFIED_WIDTH) {
+            myCurrentEdge->addSidewalk(mySidewalkWidth);
+        }
         if (!myIsUpdate) {
             try {
                 if (!myEdgeCont.insert(myCurrentEdge)) {
@@ -491,16 +501,20 @@ NIXMLEdgesHandler::myEndElement(int element) {
                 sort((*i).lanes.begin(), (*i).lanes.end());
                 noLanesMax = MAX2(noLanesMax, (unsigned int)(*i).lanes.size());
             }
-            // invalidate traffic light definitions loaded from a SUMO network
-            // XXX it would be preferable to reconstruct the phase definitions heuristically
-            e->getToNode()->invalidateTLS(myTLLogicCont);
-            e->invalidateConnections(true);
-
             // split the edge
             std::vector<int> currLanes;
             for (unsigned int l = 0; l < e->getNumLanes(); ++l) {
                 currLanes.push_back(l);
             }
+            if (e->getNumLanes() != mySplits.back().lanes.size()) {
+                // invalidate traffic light definitions loaded from a SUMO network
+                // XXX it would be preferable to reconstruct the phase definitions heuristically
+                e->getToNode()->invalidateTLS(myTLLogicCont);
+                // if the number of lanes changes the connections should be
+                // recomputed
+                e->invalidateConnections(true);
+            }
+
             std::string edgeid = e->getID();
             SUMOReal seen = 0;
             for (i = mySplits.begin(); i != mySplits.end(); ++i) {
@@ -514,7 +528,7 @@ NIXMLEdgesHandler::myEndElement(int element) {
                         std::string nid = myCurrentID + "." +  toString(exp.nameid);
                         std::string pid = e->getID();
                         myEdgeCont.splitAt(myDistrictCont, e, exp.pos - seen, rn,
-                            pid, nid, e->getNumLanes(), (unsigned int) exp.lanes.size(), exp.speed);
+                                           pid, nid, e->getNumLanes(), (unsigned int) exp.lanes.size(), exp.speed);
                         seen = exp.pos;
                         std::vector<int> newLanes = exp.lanes;
                         NBEdge* pe = myEdgeCont.retrieve(pid);
@@ -605,7 +619,9 @@ NIXMLEdgesHandler::addRoundabout(const SUMOSAXAttributes& attrs) {
         for (std::vector<std::string>::iterator it = edgeIDs.begin(); it != edgeIDs.end(); ++it) {
             NBEdge* edge = myEdgeCont.retrieve(*it);
             if (edge == 0) {
-                WRITE_ERROR("Unknown edge '" + (*it) + "' in roundabout");
+                if (!myEdgeCont.wasIgnored(*it)) {
+                    WRITE_ERROR("Unknown edge '" + (*it) + "' in roundabout");
+                }
             } else {
                 roundabout.insert(edge);
             }

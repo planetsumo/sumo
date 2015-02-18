@@ -6,7 +6,7 @@
 /// @date    Feb 2013
 /// @version $Id$
 ///
-// A container for districts
+// Assignment methods
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
 // Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
@@ -36,7 +36,7 @@
 #include <router/RONet.h>
 #include <router/RORoute.h>
 #include <utils/distribution/Distribution_Points.h>
-#include <od2trips/ODMatrix.h>
+#include <od/ODMatrix.h>
 #include <utils/common/SUMOTime.h>
 #include <utils/vehicle/SUMOAbstractRouter.h>
 #include "ROMAEdge.h"
@@ -77,7 +77,10 @@ ROMAAssignments::capacityConstraintFunction(const ROEdge* edge, const SUMOReal f
     }
     const int roadClass = -edge->getPriority();
     // TODO: differ road class 1 from the unknown road class 1!!!
-    if (roadClass == 0 || roadClass == 1)  {
+    if (edge->getLaneNo() == 0) {
+        // TAZ have no cost
+        return 0;
+    } else if (roadClass == 0 || roadClass == 1)  {
         return edge->getLength() / edge->getSpeed() * (1. + 1.*(flow / (edge->getLaneNo() * 2000.*1.3)) * 2.); //CR13 in table.py
     } else if (roadClass == 2 && edge->getSpeed() <= 11.) {
         return edge->getLength() / edge->getSpeed() * (1. + 1.*(flow / (edge->getLaneNo() * 1333.33 * 0.9)) * 3.); //CR5 in table.py
@@ -187,6 +190,7 @@ ROMAAssignments::sue(const int maxOuterIteration, const int maxInnerIteration, c
                 for (std::vector<RORoute*>::const_iterator j = c->pathsVector.begin(); j != c->pathsVector.end(); ++j) {
                     RORoute* r = *j;
                     r->setCosts(myRouter.recomputeCosts(r->getEdgeVector(), myDefaultVehicle, 0));
+//                    std::cout << std::setprecision(20) << r->getID() << ":" << r->getCosts() << std::endl;
                 }
                 // calculate route utilities and probabilities
                 RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().calculateProbabilities(c->pathsVector, myDefaultVehicle, 0);

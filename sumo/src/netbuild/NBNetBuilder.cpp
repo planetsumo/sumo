@@ -72,25 +72,6 @@ NBNetBuilder::~NBNetBuilder() {}
 
 void
 NBNetBuilder::applyOptions(OptionsCont& oc) {
-    // we possibly have to load the edges to keep
-    if (oc.isSet("keep-edges.input-file")) {
-        std::ifstream strm(oc.getString("keep-edges.input-file").c_str());
-        if (!strm.good()) {
-            throw ProcessError("Could not load names of edges too keep from '" + oc.getString("keep-edges.input-file") + "'.");
-        }
-        std::ostringstream oss;
-        bool first = true;
-        while (strm.good()) {
-            if (!first) {
-                oss << ',';
-            }
-            std::string name;
-            strm >> name;
-            oss << name;
-            first = false;
-        }
-        oc.set("keep-edges.explicit", oss.str());
-    }
     // apply options to type control
     myTypeCont.setDefaults(oc.getInt("default.lanenumber"), oc.getFloat("default.speed"), oc.getInt("default.priority"));
     // apply options to edge control
@@ -121,7 +102,7 @@ NBNetBuilder::compute(OptionsCont& oc,
     }
     //
     if (oc.exists("keep-edges.postload") && oc.getBool("keep-edges.postload")) {
-        if (oc.isSet("keep-edges.explicit")) {
+        if (oc.isSet("keep-edges.explicit") || oc.isSet("keep-edges.input-file")) {
             PROGRESS_BEGIN_MESSAGE("Removing unwished edges");
             myEdgeCont.removeUnwishedEdges(myDistrictCont);
             PROGRESS_DONE_MESSAGE();
@@ -216,10 +197,11 @@ NBNetBuilder::compute(OptionsCont& oc,
         PROGRESS_DONE_MESSAGE();
     }
     // guess sidewalks
-    if (oc.getBool("sidewalks.guess")) {
+    if (oc.getBool("sidewalks.guess") || oc.getBool("sidewalks.guess.from-permissions")) {
         const int sidewalks = myEdgeCont.guessSidewalks(oc.getFloat("default.sidewalk-width"),
                               oc.getFloat("sidewalks.guess.min-speed"),
-                              oc.getFloat("sidewalks.guess.max-speed"));
+                              oc.getFloat("sidewalks.guess.max-speed"),
+                              oc.getBool("sidewalks.guess.from-permissions"));
         WRITE_MESSAGE("Guessed " + toString(sidewalks) + " sidewalks.");
     }
 

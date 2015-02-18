@@ -99,7 +99,7 @@ AGActivityGen::importInfoCity() {
 }
 
 bool
-AGActivityGen::timeTripValidation(AGTrip trip) {
+AGActivityGen::timeTripValidation(const AGTrip& trip) const {
     if (trip.getDay() > durationInDays + 1) {
         return false;
     }
@@ -123,7 +123,7 @@ AGActivityGen::timeTripValidation(AGTrip trip) {
 }
 
 void
-AGActivityGen::varDepTime(AGTrip& trip) {
+AGActivityGen::varDepTime(AGTrip& trip) const {
     if (trip.getType() != "default") {
         return;
     }
@@ -220,7 +220,7 @@ AGActivityGen::makeActivityTrips(int days, int beginSec, int endSec) {
                     expTrips.push_back(tr);
                 }
                 //else
-                //	std::cout << "trop tard 1 pour " << tr.getVehicleName() << " " << tr.getTime() << " day: " << tr.getDay() << std::endl;
+                //std::cout << "trop tard 1 pour " << tr.getVehicleName() << " " << tr.getTime() << " day: " << tr.getDay() << std::endl;
             }
         } else {
             AGTrip tr(it->getDep(), it->getArr(), it->getVehicleName(), it->getTime(), it->getDay());
@@ -239,7 +239,7 @@ AGActivityGen::makeActivityTrips(int days, int beginSec, int endSec) {
                 expTrips.push_back(tr);
             }
             //else
-            //	std::cout << "trop tard 2 pour " << tr.getVehicleName() << " " << tr.getTime() << " day: " << tr.getDay() << std::endl;
+            //std::cout << "trop tard 2 pour " << tr.getVehicleName() << " " << tr.getTime() << " day: " << tr.getDay() << std::endl;
         }
     }
 

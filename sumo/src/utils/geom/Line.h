@@ -54,6 +54,7 @@ public:
     Line(const Position& p1, const Position& p2);
     ~Line();
     void extrapolateBy(SUMOReal length);
+    void extrapolateBy2D(SUMOReal length);
     void extrapolateFirstBy(SUMOReal length);
     void extrapolateSecondBy(SUMOReal length);
     const Position& p1() const;
@@ -79,6 +80,9 @@ public:
     void sub(SUMOReal x, SUMOReal y);
     Line& reverse();
     void rotateAtP1(SUMOReal rot);
+
+    /// @brief Output operator
+    friend std::ostream& operator<<(std::ostream& os, const Line& geom);
 
 private:
     Position myP1, myP2;

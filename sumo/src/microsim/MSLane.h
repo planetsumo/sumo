@@ -594,12 +594,11 @@ public:
 
     /// @brief return the follower with the largest missing rear gap among all predecessor lanes (within dist)
     std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(
-            SUMOReal dist, SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
+        SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
 
 
     /// @brief return by how much further the leader must be inserted to avoid rear end collisions
-    SUMOReal getMissingRearGap(SUMOReal dist, SUMOReal backOffset,
-                               SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
+    SUMOReal getMissingRearGap(SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
 
 
     /** @brief Returns the immediate leader and the distance to him
@@ -632,7 +631,7 @@ public:
      *
      * Goes along the vehicle's estimated used lanes (bestLaneConts). For each link,
      *  it is determined whether the ego vehicle will pass it. If so, the subsequent lane
-     *  is investigated. Check all lanes up to the stopping distance of ego. 
+     *  is investigated. Check all lanes up to the stopping distance of ego.
      *  Return the leader vehicle (and the gap) which puts the biggest speed constraint on ego.
      *
      * If no leading vehicle was found, <0, -1> is returned.
@@ -791,8 +790,10 @@ protected:
 
 
     /// @brief issue warning and add the vehicle to MSVehicleTransfer
-    void handleCollision(SUMOTime timestep, const std::string& stage, MSVehicle* collider, MSVehicle* victim, const SUMOReal gap); 
+    void handleCollision(SUMOTime timestep, const std::string& stage, MSVehicle* collider, MSVehicle* victim, const SUMOReal gap);
 
+    /// @brief compute maximum braking distance on this lane
+    SUMOReal getMaximumBrakeDist() const;
 
 protected:
     /// Unique numerical ID (set on reading by netload)

@@ -36,7 +36,7 @@
 #include <microsim/MSVehicleType.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/MSLane.h>
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include "MSCFModel.h"
 
 
@@ -94,7 +94,7 @@ MSCFModel::freeSpeed(const MSVehicle* const /* veh */, SUMOReal /* speed */, SUM
 }
 
 
-SUMOReal 
+SUMOReal
 MSCFModel::insertionFollowSpeed(const MSVehicle* const, SUMOReal, SUMOReal gap2pred, SUMOReal predSpeed, SUMOReal predMaxDecel) const {
     return maximumSafeFollowSpeed(gap2pred, predSpeed, predMaxDecel);
 }
@@ -117,7 +117,7 @@ MSCFModel::maximumSafeStopSpeed(SUMOReal gap) const {
     // exactly after gap and decelerate with b every simulation step
     // h = 0.5 * n * (n-1) * b * s + n * b * t (solve for n)
     //n = ((1.0/2.0) - ((t + (pow(((s*s) + (4.0*((s*((2.0*h/b) - t)) + (t*t)))), (1.0/2.0))*sign/2.0))/s));
-    const SUMOReal n = floor((1.0 / 2.0) - ((t + (pow(((s * s) + (4.0 * ((s * ((2.0 * g / b) - t)) + (t * t)))), (1.0 / 2.0)) * -0.5)) / s));
+    const SUMOReal n = floor(.5 - ((t + (sqrt(((s * s) + (4.0 * ((s * (2.0 * g / b - t)) + (t * t))))) * -0.5)) / s));
     const SUMOReal h = 0.5 * n * (n - 1) * b * s + n * b * t;
     assert(h <= g + NUMERICAL_EPS);
     // compute the additional speed that must be used during deceleration to fix

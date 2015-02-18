@@ -151,7 +151,7 @@ NBNodesEdgesSorter::sortNodesEdges(NBNodeCont& nc, bool leftHand) {
             swapWhenReversed(n, leftHand, allEdges.end() - 1, allEdges.begin());
         }
         // sort the crossings
-        std::sort(crossings.begin(), crossings.end(), crossing_by_junction_angle_sorter(allEdges));
+        std::sort(crossings.begin(), crossings.end(), crossing_by_junction_angle_sorter(n, allEdges));
         // DEBUG
         //if (n->getID() == "cluster_492462300_671564296") {
         //    if (crossings.size() > 0) {
@@ -283,11 +283,11 @@ NBEdgePriorityComputer::setPriorityJunctionPriorities(NBNode& n) {
     }
     // special case: user input makes mainDirection unambiguous
     const bool mainDirectionExplicit = (
-            bestIncoming.size() == 1 && n.myIncomingEdges.size() <= 2
-            && (incoming.size() == 0 || bestIncoming[0]->getPriority() > incoming[0]->getPriority())
-            && bestOutgoing.size() == 1 && n.myOutgoingEdges.size() <= 2
-            && (outgoing.size() == 0 || bestOutgoing[0]->getPriority() > outgoing[0]->getPriority())
-            && !bestIncoming[0]->isTurningDirectionAt(&n, bestOutgoing[0]));
+                                           bestIncoming.size() == 1 && n.myIncomingEdges.size() <= 2
+                                           && (incoming.size() == 0 || bestIncoming[0]->getPriority() > incoming[0]->getPriority())
+                                           && bestOutgoing.size() == 1 && n.myOutgoingEdges.size() <= 2
+                                           && (outgoing.size() == 0 || bestOutgoing[0]->getPriority() > outgoing[0]->getPriority())
+                                           && !bestIncoming[0]->isTurningDirectionAt(&n, bestOutgoing[0]));
     // now, let's compute for each of the best incoming edges
     //  the incoming which is most opposite
     //  the outgoing which is most opposite
@@ -397,6 +397,15 @@ NBEdgePriorityComputer::samePriority(const NBEdge* const e1, const NBEdge* const
         return false;
     }
     return (int) e1->getNumLanes() == (int) e2->getNumLanes();
+}
+
+
+NBNodesEdgesSorter::crossing_by_junction_angle_sorter::crossing_by_junction_angle_sorter(const NBNode* node, const EdgeVector& ordering) {
+    // reorder based on getAngleAtNodeToCenter 
+    myOrdering = ordering;
+    sort(myOrdering.begin(), myOrdering.end(), NBContHelper::edge_by_angle_to_nodeShapeCentroid_sorter(node));
+    // let the first edge remain the first
+    rotate(myOrdering.begin(), std::find(myOrdering.begin(), myOrdering.end(), ordering.front()), myOrdering.end());
 }
 
 

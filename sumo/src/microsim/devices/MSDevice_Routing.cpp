@@ -96,6 +96,7 @@ MSDevice_Routing::insertOptions(OptionsCont& oc) {
 
     oc.doRegister("device.rerouting.with-taz", new Option_Bool(false));
     oc.addSynonyme("device.rerouting.with-taz", "device.routing.with-taz", true);
+    oc.addSynonyme("device.rerouting.with-taz", "with-taz");
     oc.addDescription("device.rerouting.with-taz", "Routing", "Use zones (districts) as routing end points");
 
     oc.doRegister("device.rerouting.init-with-loaded-weights", new Option_Bool(false));
@@ -108,9 +109,11 @@ MSDevice_Routing::insertOptions(OptionsCont& oc) {
     oc.doRegister("device.rerouting.threads", new Option_Integer(0));
     oc.addDescription("device.rerouting.threads", "Routing", "The number of parallel execution threads used for rerouting");
 #endif
-    
+
     myEdgeWeightSettingCommand = 0;
     myEdgeEfforts.clear();
+    myAdaptationInterval = -1;
+    myLastAdaptation = -1;
 }
 
 
@@ -161,16 +164,6 @@ MSDevice_Routing::buildVehicleDevices(SUMOVehicle& v, std::vector<MSDevice*>& in
                     myEdgeWeightSettingCommand, 0, MSEventControl::ADAPT_AFTER_EXECUTION);
             } else if (period > 0) {
                 WRITE_WARNING("Rerouting is useless if the edge weights do not get updated!");
-            }
-        }
-        if (myWithTaz) {
-            if (MSEdge::dictionary(v.getParameter().fromTaz + "-source") == 0) {
-                WRITE_ERROR("Source district '" + v.getParameter().fromTaz + "' not known when rerouting '" + v.getID() + "'!");
-                return;
-            }
-            if (MSEdge::dictionary(v.getParameter().toTaz + "-sink") == 0) {
-                WRITE_ERROR("Destination district '" + v.getParameter().toTaz + "' not known when rerouting '" + v.getID() + "'!");
-                return;
             }
         }
         // build the device
@@ -228,20 +221,16 @@ MSDevice_Routing::preInsertionReroute(const SUMOTime currentTime) {
     if (mySkipRouting == currentTime) {
         return DELTA_T;
     }
-    if (myWithTaz) {
-        const MSEdge* source = MSEdge::dictionary(myHolder.getParameter().fromTaz + "-source");
-        const MSEdge* dest = MSEdge::dictionary(myHolder.getParameter().toTaz + "-sink");
-        if (source && dest) {
-            const std::pair<const MSEdge*, const MSEdge*> key = std::make_pair(source, dest);
-            if (myCachedRoutes.find(key) == myCachedRoutes.end()) {
-                reroute(currentTime, true);
-            } else {
-                myHolder.replaceRoute(myCachedRoutes[key], true);
-            }
+    const MSEdge* source = *myHolder.getRoute().begin();
+    const MSEdge* dest = myHolder.getRoute().getLastEdge();
+    if (source->getPurpose() == MSEdge::EDGEFUNCTION_DISTRICT && dest->getPurpose() == MSEdge::EDGEFUNCTION_DISTRICT) {
+        const std::pair<const MSEdge*, const MSEdge*> key = std::make_pair(source, dest);
+        if (myCachedRoutes.find(key) != myCachedRoutes.end()) {
+            myHolder.replaceRoute(myCachedRoutes[key], true);
+            return myPreInsertionPeriod;
         }
-    } else {
-        reroute(currentTime, true);
     }
+    reroute(currentTime, true);
     return myPreInsertionPeriod;
 }
 
@@ -280,7 +269,7 @@ MSDevice_Routing::adaptEdgeEfforts(SUMOTime currentTime) {
         const SUMOReal currTT = (*i)->getCurrentTravelTime();
         if (currTT != myEdgeEfforts[id]) {
             myEdgeEfforts[id] = myEdgeEfforts[id] * myAdaptationWeight + currTT * newWeightFactor;
-        }    
+        }
     }
     myLastAdaptation = currentTime + DELTA_T; // because we run at the end of the time step
     return myAdaptationInterval;
@@ -360,7 +349,7 @@ MSDevice_Routing::reroute(const SUMOTime currentTime, const bool onInit) {
         return;
     }
 #endif
-    myHolder.reroute(currentTime, *myRouter, onInit);
+    myHolder.reroute(currentTime, *myRouter, onInit, myWithTaz);
 }
 
 
@@ -395,10 +384,10 @@ MSDevice_Routing::waitForAll() {
 // ---------------------------------------------------------------------------
 void
 MSDevice_Routing::RoutingTask::run(FXWorkerThread* context) {
-    myVehicle.reroute(myTime, static_cast<WorkerThread*>(context)->getRouter(), myOnInit);
-    if (myOnInit) {
-        const MSEdge* source = MSEdge::dictionary(myVehicle.getParameter().fromTaz + "-source");
-        const MSEdge* dest = MSEdge::dictionary(myVehicle.getParameter().toTaz + "-sink");
+    myVehicle.reroute(myTime, static_cast<WorkerThread*>(context)->getRouter(), myOnInit, myWithTaz);
+    const MSEdge* source = *myVehicle.getRoute().begin();
+    const MSEdge* dest = myVehicle.getRoute().getLastEdge();
+    if (source->getPurpose() == MSEdge::EDGEFUNCTION_DISTRICT && dest->getPurpose() == MSEdge::EDGEFUNCTION_DISTRICT) {
         const std::pair<const MSEdge*, const MSEdge*> key = std::make_pair(source, dest);
         lock();
         if (MSDevice_Routing::myCachedRoutes.find(key) == MSDevice_Routing::myCachedRoutes.end()) {
@@ -410,6 +399,6 @@ MSDevice_Routing::RoutingTask::run(FXWorkerThread* context) {
 }
 #endif
 
-        
+
 /****************************************************************************/
 

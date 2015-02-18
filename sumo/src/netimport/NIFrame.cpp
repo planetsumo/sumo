@@ -133,6 +133,9 @@ NIFrame::fillOptions() {
     oc.doRegister("heightmap.shapefiles", new Option_FileName());
     oc.addDescription("heightmap.shapefiles", "Input", "Read heightmap from ArcGIS shapefile");
 
+    oc.doRegister("heightmap.geotiff", new Option_FileName());
+    oc.addDescription("heightmap.geotiff", "Input", "Read heightmap from GeoTIFF");
+
     // register basic processing options
     oc.doRegister("ignore-errors", new Option_Bool(false));
     oc.addSynonyme("ignore-errors", "dismiss-loading-errors", true);
@@ -287,6 +290,11 @@ NIFrame::checkOptions() {
     }
     if (oc.isSet("dlr-navteq-prefix") && oc.isDefault("proj.scale")) {
         oc.set("proj.scale", toString(NIImporter_DlrNavteq::GEO_SCALE));
+    }
+#else
+    if ((oc.isSet("osm-files") || oc.isSet("dlr-navteq-prefix") || oc.isSet("shapefile-prefix")) && !oc.getBool("simple-projection")) {
+        WRITE_ERROR("Cannot import network data without PROJ-Library. Please install packages proj before building sumo");
+        ok = false;
     }
 #endif
     if (oc.isSet("sumo-net-file")) {

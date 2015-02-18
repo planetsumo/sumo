@@ -411,22 +411,32 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
                     SUMOReal sidewalkWidth = NBEdge::UNSPECIFIED_WIDTH;
                     bool defaultIsOneWay = false;
                     SVCPermissions permissions = 0;
+                    bool discard = true;
                     for (std::vector<std::string>::iterator it = types.begin(); it != types.end(); it++) {
-                        numLanes = MAX2(numLanes, tc.getNumLanes(*it));
-                        maxSpeed = MAX2(maxSpeed, tc.getSpeed(*it));
-                        prio = MAX2(prio, tc.getPriority(*it));
-                        defaultIsOneWay &= tc.getIsOneWay(*it);
-                        permissions |= tc.getPermissions(*it);
-                        width = MAX2(width, tc.getWidth(*it));
-                        sidewalkWidth = MAX2(sidewalkWidth, tc.getSidewalkWidth(*it));
+                        if (!tc.getShallBeDiscarded(*it)) {
+                            numLanes = MAX2(numLanes, tc.getNumLanes(*it));
+                            maxSpeed = MAX2(maxSpeed, tc.getSpeed(*it));
+                            prio = MAX2(prio, tc.getPriority(*it));
+                            defaultIsOneWay &= tc.getIsOneWay(*it);
+                            permissions |= tc.getPermissions(*it);
+                            width = MAX2(width, tc.getWidth(*it));
+                            sidewalkWidth = MAX2(sidewalkWidth, tc.getSidewalkWidth(*it));
+                            discard = false;
+                        }
                     }
                     if (width != NBEdge::UNSPECIFIED_WIDTH) {
                         width = MAX2(width, SUMO_const_laneWidth);
                     }
-                    WRITE_MESSAGE("Adding new type \"" + type + "\" (first occurence for edge \"" + id + "\").");
-                    tc.insert(newType, numLanes, maxSpeed, prio, permissions, width, defaultIsOneWay, sidewalkWidth);
-                    myKnownCompoundTypes[type] = newType;
-                    type = newType;
+                    if (discard) {
+                        WRITE_WARNING("Discarding compound type \"" + newType + "\" (first occurence for edge \"" + id + "\").");
+                        myUnusableTypes.insert(newType);
+                        return newIndex;
+                    } else {
+                        WRITE_MESSAGE("Adding new type \"" + type + "\" (first occurence for edge \"" + id + "\").");
+                        tc.insert(newType, numLanes, maxSpeed, prio, permissions, width, defaultIsOneWay, sidewalkWidth);
+                        myKnownCompoundTypes[type] = newType;
+                        type = newType;
+                    }
                 }
             }
         }
@@ -698,13 +708,14 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
         std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentEdge->id).c_str(), ok, false);
         std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myCurrentEdge->id).c_str(), ok, false);
 
-        if (key == "highway" || key == "railway") {
+        if (key == "highway" || key == "railway" || key == "waterway") {
+            const std::string singleTypeID = key + "." + value;
             if (myCurrentEdge->myHighWayType != "") {
                 // osm-ways may be used by more than one mode (eg railway.tram + highway.residential. this is relevant for multimodal traffic)
                 // we create a new type for this kind of situation which must then be resolved in insertEdge()
-                myCurrentEdge->myHighWayType = myCurrentEdge->myHighWayType + compoundTypeSeparator + key + "." + value;
+                myCurrentEdge->myHighWayType = myCurrentEdge->myHighWayType + compoundTypeSeparator + singleTypeID;
             } else {
-                myCurrentEdge->myHighWayType = key + "." + value;
+                myCurrentEdge->myHighWayType = singleTypeID;
             }
             myCurrentEdge->myCurrentIsRoad = true;
         } else if (key == "lanes") {
@@ -881,6 +892,8 @@ NIImporter_OpenStreetMap::RelationHandler::myStartElement(int element,
             return;
         }
         if (key == "restriction") {
+            // @note: the 'right/left/straight' part is ignored since the information is
+            // redundantly encoded in the 'from', 'to' and 'via' members
             if (value.substr(0, 5) == "only_") {
                 myRestrictionType = RESTRICTION_ONLY;
             } else if (value.substr(0, 3) == "no_") {
