@@ -42,8 +42,20 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\microsim\lcmodels\MSAbstractLaneChangeModel.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\lcmodels\MSLCM_DK2008.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\lcmodels\MSLCM_JE2013.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\lcmodels\MSLCM_LC2013.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\microsim\lcmodels\MSAbstractLaneChangeModel.h" />
+    <ClInclude Include="..\..\..\src\microsim\lcmodels\MSLCM_DK2008.h" />
+    <ClInclude Include="..\..\..\src\microsim\lcmodels\MSLCM_JE2013.h" />
+    <ClInclude Include="..\..\..\src\microsim\lcmodels\MSLCM_LC2013.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CC278DE5-D3D8-4BD8-B8A4-BD76CB8FB4F1}</ProjectGuid>
+    <ProjectGuid>{2355DDE8-3DD2-4CB3-A5B3-3F78A90D44DC}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Fastbuild|Win32'" Label="Configuration">
@@ -220,52 +232,6 @@
       <Culture>0x0407</Culture>
     </ResourceCompile>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\..\src\microsim\output\MSInstantInductLoop.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_Emissions.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MS_E2_ZS_CollectorOverLanes.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSDetectorControl.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSE2Collector.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSE3Collector.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSInductLoop.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSMeanData.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_Harmonoise.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_Net.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSRouteProbe.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSVTypeProbe.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSXMLRawOut.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSFCDExport.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSEmissionExport.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSFullExport.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSVTKExport.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSQueueExport.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSAmitranTrajectories.cpp" />
-    <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_Amitran.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\src\microsim\output\MSInstantInductLoop.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_Emissions.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MS_E2_ZS_CollectorOverLanes.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSCrossSection.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSDetectorControl.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSDetectorFileOutput.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSE2Collector.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSE3Collector.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSInductLoop.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSMeanData.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_Harmonoise.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_Net.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSRouteProbe.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSVTypeProbe.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSXMLRawOut.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSFCDExport.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSEmissionExport.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSFullExport.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSVTKExport.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSQueueExport.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSAmitranTrajectories.h" />
-    <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_Amitran.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

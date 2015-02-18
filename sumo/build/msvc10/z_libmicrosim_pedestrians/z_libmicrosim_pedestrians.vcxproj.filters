@@ -2,42 +2,39 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Quellcodedateien">
-      <UniqueIdentifier>{a470a529-363a-4777-9f01-9caeef8999b2}</UniqueIdentifier>
+      <UniqueIdentifier>{6f3818c8-582e-42f7-8400-01f7d3e3d633}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
     <Filter Include="Header-Dateien">
-      <UniqueIdentifier>{cc502a28-ac4e-4b73-ba76-c8ec38bc6648}</UniqueIdentifier>
+      <UniqueIdentifier>{ee950d5c-47b9-422d-9c00-89e7d5421551}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\marouter\marouter_main.cpp">
+    <ClCompile Include="..\..\..\src\microsim\pedestrians\MSPerson.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\marouter\ROMAEdgeBuilder.cpp">
+    <ClCompile Include="..\..\..\src\microsim\pedestrians\MSPModel.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\marouter\ROMAFrame.cpp">
+    <ClCompile Include="..\..\..\src\microsim\pedestrians\MSPModel_NonInteracting.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\marouter\ROMAEdge.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\marouter\ROMAAssignments.cpp">
+    <ClCompile Include="..\..\..\src\microsim\pedestrians\MSPModel_Striping.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\marouter\ROMAEdgeBuilder.h">
+    <ClInclude Include="..\..\..\src\microsim\pedestrians\MSPerson.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\marouter\ROMAFrame.h">
+    <ClInclude Include="..\..\..\src\microsim\pedestrians\MSPModel.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\marouter\ROMAEdge.h">
+    <ClInclude Include="..\..\..\src\microsim\pedestrians\MSPModel_NonInteracting.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\marouter\ROMAAssignments.h">
+    <ClInclude Include="..\..\..\src\microsim\pedestrians\MSPModel_Striping.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>
