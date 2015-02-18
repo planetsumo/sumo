@@ -30,15 +30,20 @@
 #include <config.h>
 #endif
 
-#include <utils/iodevices/OutputDevice.h>
 #include <microsim/MSEdgeControl.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSLane.h>
 #include <microsim/MSGlobals.h>
+#include <utils/iodevices/OutputDevice.h>
+#include "MSBatteryExport.h"
 #include <microsim/MSNet.h>
 #include <microsim/MSVehicle.h>
 #include <microsim/devices/MSDevice_Battery.h>
-#include "MSBatteryExport.h"
+
+#ifdef HAVE_MESOSIM
+#include <mesosim/MELoop.h>
+#include <mesosim/MESegment.h>
+#endif
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -51,96 +56,105 @@
 void
 MSBatteryExport::write(OutputDevice& of, SUMOTime timestep) 
 {
-    
     of.openTag("timestep").writeAttr("time", time2string(timestep));
 
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
     MSVehicleControl::constVehIt it = vc.loadedVehBegin();
     MSVehicleControl::constVehIt end = vc.loadedVehEnd();
     for (; it != end; ++it) 
-    {
+	{
         const MSVehicle* veh = static_cast<const MSVehicle*>((*it).second);
         
-        if (!veh->isOnRoad()) 
-        {
+		if (!veh->isOnRoad()) 
+		{
             continue;
         }
-
-        //MSDevice_Battery* Battery = static_cast<MSDevice_Battery*>(veh->getDevice(typeid(MSDevice_Battery)));
 
         std::string fclass = veh->getVehicleType().getID();
         fclass = fclass.substr(0, fclass.find_first_of("@"));
 
         Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
      
-        if(static_cast<MSDevice_Battery*>(veh->getDevice(typeid(MSDevice_Battery))) != 0)
-        {
-            // Get battery
-            MSDevice_Battery* batteryToExport = dynamic_cast<MSDevice_Battery*>(veh->getDevice(typeid(MSDevice_Battery)));
+		if(static_cast<MSDevice_Battery*>(veh->getDevice(typeid(MSDevice_Battery))) != 0)
+		{
+			// Get battery
+			MSDevice_Battery* batteryToExport = dynamic_cast<MSDevice_Battery*>(veh->getDevice(typeid(MSDevice_Battery)));
 
-            // Open Row
-            of.openTag("vehicle");
+			// Open Row
+			of.openTag("vehicle");
 
-            // Write ID
-            of.writeAttr("id", veh->getID());
+			// Write ID
+			of.writeAttr("id", veh->getID());
 
-            // Write consum
-            of.writeAttr("Consum", batteryToExport->getConsum());
+			// Write consum
+			of.writeAttr("Consum", batteryToExport->getConsum());
 
-            // Write ActBatKap
-            of.writeAttr("ActBatKap", batteryToExport->getActBatKap());
+			// Write ActBatKap
+			of.writeAttr("ActBatKap", batteryToExport->getActBatKap());
 
-            // Write MaxBatKap
-            of.writeAttr("MaxBatKap", batteryToExport->getMaxBatKap());
+			// Write MaxBatKap
+			of.writeAttr("MaxBatKap", batteryToExport->getMaxBatKap());
 
-            // Write Charging Station ID
-            of.writeAttr("ChrgStnId", batteryToExport->getChrgStnID());
+			// Write Charging Station ID
+			of.writeAttr("ChrgStnId", batteryToExport->getChrgStnID());
 
-            // Write Charge charged in the Battery
-            of.writeAttr("Charge", batteryToExport->getChrgEnergy());
+			// Write Charge charged in the Battery
+			of.writeAttr("Charge", batteryToExport->getChrgEnergy());
 
-            // Write ChargeInTransit
-            if(batteryToExport->isChargingInTransit())
-            {
-                of.writeAttr("ChargeInTransit",batteryToExport->getChrgEnergy());
-            }
-            else
-            {
-                of.writeAttr("ChargeInTransit", 0.00);
-            }
+			// Write ChargeInTransit
+			if(batteryToExport->isChargingInTransit())
+			{
+				of.writeAttr("ChargeInTransit",batteryToExport->getChrgEnergy());
+			}
+			else
+			{
+				of.writeAttr("ChargeInTransit", 0.00);
+			}
 
-            // Write ChargingStopped
-            if(batteryToExport->isChargingStopped() )
-            {
-                of.writeAttr("ChargeStopped", batteryToExport->getChrgEnergy());
-            }
-            else
-            {
-                of.writeAttr("ChargeStopped", 0.00);
-            }
-            
-            // Write Speed
-            of.writeAttr("speed", veh->getSpeed());
+			// Write ChargingStopped
+			if(batteryToExport->isChargingStopped() )
+			{
+				of.writeAttr("ChargeStopped", batteryToExport->getChrgEnergy());
+			}
+			else
+			{
+				of.writeAttr("ChargeStopped", 0.00);
+			}
+			
+			// Write Speed
+			of.writeAttr("speed", veh->getSpeed());
 
-            // Write Acceleration
-            of.writeAttr("acceleration", veh->getAcceleration());
+			// Write Acceleration
+			of.writeAttr("acceleration", veh->getAcceleration());
 
-            // Write pos x
-            of.writeAttr("x", veh->getPosition().x());
+			// Write pos x
+			of.writeAttr("x", veh->getPosition().x());
 
-            // Write pos y
-            of.writeAttr("y", veh->getPosition().y());
+			// Write pos y
+			of.writeAttr("y", veh->getPosition().y());
 
-            // Write Lane ID
-            of.writeAttr("lane", veh->getLane()->getID());
+			// Write Lane ID
+			of.writeAttr("lane", veh->getLane()->getID());
 
-            // Write vehicle position in the lane
-            of.writeAttr("posOnLane", veh->getPositionOnLane());
-            
-            // Close Row
-            of.closeTag();
-        }
+			// Write vehicle position in the lane
+			of.writeAttr("posOnLane", veh->getPositionOnLane());
+			
+			// Write Time stopped (In all cases)
+			of.writeAttr("timeStopped", batteryToExport->getVehicleStopped());
+
+			/*0
+				1
+				2
+				3
+				4
+			vehiclestopped‹berein station
+
+				wielangevehiceladen
+				*/
+			// Close Row
+			of.closeTag();
+		}
     }
     of.closeTag();
-    
+	
 }
