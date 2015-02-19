@@ -119,8 +119,6 @@ MSRailSignal::init(NLDetectorBuilder&) {
                     std::vector<MSLink*> outGoingLinks = currentLane->getLinkCont();
                     std::vector<MSLink*>::const_iterator j;
                     for (j = outGoingLinks.begin(); j != outGoingLinks.end(); j++) {
-                        //const MSJunction* junction = (*j)->getJunction();   //the junction (if it exists) of the j-th outgoing link of currentLane 
-                        //const MSJunction* junction = (*j)->getLane()->getEdge().getFromJunction();   //the junction (if it exists) of the j-th outgoing link of currentLane 
                         const MSJunction* junction = currentLane->getEdge().getToJunction();
                         if ((junction != 0) && (junction->getType() == NODETYPE_RAIL_SIGNAL)) { //if this junctions exists and if it has a rail signal
                             noRailSignal = false;
