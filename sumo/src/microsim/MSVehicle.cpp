@@ -712,6 +712,9 @@ MSVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, std::string& error
     if (stop.busstop != 0 && myType->getLength() / 2. > stop.endPos - stop.startPos) {
         errorMsg = "Bus stop '" + stop.busstop->getID() + "' on lane '" + stopPar.lane + "' is too short for vehicle '" + myParameter->id + "'.";
     }
+    if (stop.containerstop != 0 && myType->getLength() / 2. > stop.endPos - stop.startPos) {
+        errorMsg = "Container stop '" + stop.containerstop->getID() + "' on lane '" + stopPar.lane + "' is too short for vehicle '" + myParameter->id + "'.";
+    }
     stop.edge = find(myCurrEdge, myRoute->end(), &stop.lane->getEdge());
     MSRouteIterator prevStopEdge = myCurrEdge;
     SUMOReal prevStopPos = myState.myPos;
@@ -897,7 +900,7 @@ MSVehicle::processNextStop(SUMOReal currentVelocity) {
             if (stop.containerstop != 0) {
                 // on container stops, we have to wait for free place if they are in use...
                 endPos = stop.containerstop->getLastFreePos(*this);
-                if (endPos - myType->getLength() < stop.containerstop->getBeginLanePosition()) { 
+                if (endPos != stop.containerstop->getEndLanePosition() && endPos - myType->getLength() / 2. < stop.containerstop->getBeginLanePosition()) { 
                     containerStopsMustHaveSpace = false;
                 }
             }
