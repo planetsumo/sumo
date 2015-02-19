@@ -1,3 +1,6 @@
+# a ship stopping at a container stop
+ship_at_containerstop
+
 # one bus is stopping at a busstop, such that at least half of a second bus fits into the busstop
 two_busses_at_one_busstop
 
