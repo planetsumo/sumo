@@ -148,10 +148,10 @@ public:
 	// GET FUNCTIONS
 
 	/// @brief Get parameter 01, the actual vehicles' Battery Capacity in kWh
-	inline const SUMOReal getActBatKap();
+	const SUMOReal getActBatKap();
 
 	/// @brief Get parameter 02, the total vehicles' Battery Capacity in kWh
-	inline const SUMOReal getMaxBatKap();
+	const SUMOReal getMaxBatKap();
 
 	/// @brief Get parameter 03, the maximum power when accelerating
 	inline const SUMOReal getPowerMax();
