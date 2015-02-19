@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 02/19/15 15:16:11 by SUMO Version dev-SVN-r17895
+<!-- generated on 02/19/15 17:03:25 by SUMO Version dev-SVN-r17895
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
@@ -12,6 +12,7 @@
     </input>
 
     <output>
+        <netstate-dump value="rawdump.xml"/>
         <tripinfo-output value="tripinfos.xml"/>
     </output>
 
@@ -29,5 +30,5 @@
 -->
 
 <tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tripinfo_file.xsd">
-    <tripinfo id="v1" depart="0.00" departLane="gneE0_0" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="319.00" arrivalLane="gneE2_0" arrivalPos="278.05" arrivalSpeed="4.12" duration="319.00" routeLength="884.99" waitSteps="45" timeLoss="103.47" rerouteNo="0" devices="tripinfo_v1" vType="ship" vaporized=""/>
+    <tripinfo id="v1" depart="0.00" departLane="gneE0_0" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="332.00" arrivalLane="gneE2_0" arrivalPos="278.05" arrivalSpeed="4.12" duration="332.00" routeLength="884.99" waitSteps="59" timeLoss="116.48" rerouteNo="0" devices="tripinfo_v1" vType="ship" vaporized=""/>
 </tripinfos>
