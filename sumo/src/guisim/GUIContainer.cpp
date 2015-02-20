@@ -50,6 +50,7 @@
 #include <utils/gui/div/GUIGlobalSelection.h>
 #include <utils/gui/div/GLHelper.h>
 #include <utils/gui/div/GLObjectValuePassConnector.h>
+#include <utils/geom/PositionVector.h>
 #include <gui/GUIApplicationWindow.h>
 #include <gui/GUIGlobals.h>
 #include "GUIContainer.h"
@@ -84,7 +85,7 @@ FXDEFMAP(GUIContainer::GUIContainerPopupMenu) GUIContainerPopupMenuMap[] = {
 FXIMPLEMENT(GUIContainer::GUIContainerPopupMenu, GUIGLObjectPopupMenu, GUIContainerPopupMenuMap, ARRAYNUMBER(GUIContainerPopupMenuMap))
 */
 
-
+#define WATER_WAY_OFFSET 6.0
 
 // ===========================================================================
 // method definitions
@@ -332,6 +333,11 @@ GUIContainer::getPosition() const {
     AbstractMutex::ScopedLocker locker(myLock);
     if (getCurrentStageType() == DRIVING && !isWaiting4Vehicle()) {
         return myPositionInVehicle;
+    }
+    if (getCurrentStageType() == WAITING && getEdge()->getPermissions() == SVC_SHIP){
+        MSLane* lane = getEdge()->getLanes().front();   //the most right lane of the water way
+        PositionVector laneShape = lane->getShape();
+        return laneShape.positionAtOffset2D(getEdgePos(), WATER_WAY_OFFSET);
     }
     return MSContainer::getPosition();
 }
