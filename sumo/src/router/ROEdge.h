@@ -53,7 +53,10 @@
 // class declarations
 // ===========================================================================
 class ROLane;
+class ROEdge;
 
+typedef std::vector<ROEdge*> ROEdgeVector;
+typedef std::vector<const ROEdge*> ConstROEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -224,11 +227,10 @@ public:
     /** @brief returns the information whether this edge is directly connected to the given
      *
      * @param[in] e The edge which may be connected
+     * @param[in] vehicle The vehicle for which the connectivity is checked
      * @return Whether the given edge is a direct successor to this one
      */
-    bool isConnectedTo(const ROEdge* const e) const {
-        return std::find(myFollowingEdges.begin(), myFollowingEdges.end(), e) != myFollowingEdges.end();
-    }
+    bool isConnectedTo(const ROEdge* const e, const ROVehicle* const vehicle) const;
 
 
     /** @brief Returns whether this edge prohibits the given vehicle to pass it
@@ -285,13 +287,18 @@ public:
     unsigned int getNumSuccessors() const;
 
 
-    /** @brief Returns the edge at the given position from the list of reachable edges
-     * @param[in] pos The position of the list within the list of following
-     * @return The following edge, stored at position pos
+    /** @brief Returns the following edges
      */
-    ROEdge* getSuccessor(unsigned int pos) const {
-        return myFollowingEdges[pos];
+    const ROEdgeVector& getSuccessors() const {
+        return myFollowingEdges;
     }
+
+
+    /** @brief Returns the following edges, restricted by vClass
+     * @param[in] vClass The vClass for which to restrict the successors
+     * @return The eligible following edges
+     */
+    const ROEdgeVector& getSuccessors(SUMOVehicleClass vClass) const;
 
 
     /** @brief Returns the number of edges connected to this edge
@@ -308,8 +315,8 @@ public:
      * @param[in] pos The position of the list within the list of incoming
      * @return The incoming edge, stored at position pos
      */
-    ROEdge* getPredecessor(unsigned int pos) const {
-        return myApproachingEdges[pos];
+    const ROEdgeVector& getPredecessors() const {
+        return myApproachingEdges;
     }
 
 
@@ -482,10 +489,10 @@ protected:
     static bool myHaveTTWarned;
 
     /// @brief List of edges that may be approached from this edge
-    std::vector<ROEdge*> myFollowingEdges;
+    ROEdgeVector myFollowingEdges;
 
     /// @brief List of edges that approached this edge
-    std::vector<ROEdge*> myApproachingEdges;
+    ROEdgeVector myApproachingEdges;
 
     /// @brief The type of the edge
     EdgeType myType;
@@ -496,12 +503,15 @@ protected:
     /// @brief The list of allowed vehicle classes combined across lanes
     SVCPermissions myCombinedPermissions;
 
-    static std::vector<ROEdge*> myEdges;
+    static ROEdgeVector myEdges;
 
     /// @brief the junctions for this edge
     RONode* myFromJunction;
     RONode* myToJunction;
 
+    /// @brief The successors available for a given vClass
+    typedef std::map<SUMOVehicleClass, ROEdgeVector> ClassesSuccesorMap;
+    mutable ClassesSuccesorMap myClassesSuccessorMap;
 
 private:
     /// @brief Invalidated copy constructor

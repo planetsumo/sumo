@@ -64,7 +64,7 @@
 // static member definitions
 // ===========================================================================
 MSEdge::DictType MSEdge::myDict;
-std::vector<MSEdge*> MSEdge::myEdges;
+MSEdgeVector MSEdge::myEdges;
 
 
 // ===========================================================================
@@ -174,6 +174,7 @@ MSEdge::rebuildAllowedLanes() {
         }
     }
     myClassedAllowed.clear();
+    myClassesSuccessorMap.clear();
     // rebuild myMinimumPermissions and myCombinedPermissions
     myMinimumPermissions = SVCAll;
     myCombinedPermissions = 0;
@@ -590,7 +591,7 @@ MSEdge::insertIDs(std::vector<std::string>& into) {
 
 
 void
-MSEdge::parseEdgesList(const std::string& desc, std::vector<const MSEdge*>& into,
+MSEdge::parseEdgesList(const std::string& desc, ConstMSEdgeVector& into,
                        const std::string& rid) {
     if (desc[0] == BinaryFormatter::BF_ROUTE) {
         std::istringstream in(desc, std::ios::binary);
@@ -605,7 +606,7 @@ MSEdge::parseEdgesList(const std::string& desc, std::vector<const MSEdge*>& into
 
 
 void
-MSEdge::parseEdgesList(const std::vector<std::string>& desc, std::vector<const MSEdge*>& into,
+MSEdge::parseEdgesList(const std::vector<std::string>& desc, ConstMSEdgeVector& into,
                        const std::string& rid) {
     for (std::vector<std::string>::const_iterator i = desc.begin(); i != desc.end(); ++i) {
         const MSEdge* edge = MSEdge::dictionary(*i);
@@ -678,6 +679,28 @@ MSEdge::container_by_position_sorter::operator()(const MSContainer* const c1, co
     }
     return c1->getID() < c2->getID();
 }
+
+const MSEdgeVector& 
+MSEdge::getSuccessors(SUMOVehicleClass vClass) const {
+    if (vClass == SVC_IGNORING) {
+        return mySuccessors;
+    }
+    ClassesSuccesorMap::const_iterator i = myClassesSuccessorMap.find(vClass);
+    if (i != myClassesSuccessorMap.end()) {
+        // can use cached value
+        return i->second;
+    } else {
+        // this vClass is requested for the first time. rebuild all succesors
+        for (MSEdgeVector::const_iterator it = mySuccessors.begin(); it != mySuccessors.end(); ++it) {
+            const std::vector<MSLane*>* allowed = allowedLanes(*it, vClass);
+            if (allowed == 0 || allowed->size() > 0) {
+                myClassesSuccessorMap[vClass].push_back(*it);
+            }
+        }
+        return myClassesSuccessorMap[vClass];
+    }
+}
+
 
 /****************************************************************************/
 

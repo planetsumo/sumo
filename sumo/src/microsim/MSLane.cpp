@@ -843,7 +843,7 @@ const MSEdge*
 MSLane::getInternalFollower() const {
     const MSEdge* e = myEdge;
     while (e->getPurpose() == MSEdge::EDGEFUNCTION_INTERNAL) {
-        e = e->getSuccessor(0);
+        e = e->getSuccessors()[0];
     }
     return e;
 }
@@ -1361,9 +1361,9 @@ MSLane::getLogicalPredecessorLane() const {
         return myLogicalPredecessorLane;
     }
     if (myLogicalPredecessorLane == 0) {
-        std::vector<MSEdge*> pred = myEdge->getIncomingEdges();
+        MSEdgeVector pred = myEdge->getIncomingEdges();
         // get only those edges which connect to this lane
-        for (std::vector<MSEdge*>::iterator i = pred.begin(); i != pred.end();) {
+        for (MSEdgeVector::iterator i = pred.begin(); i != pred.end();) {
             std::vector<IncomingLaneInfo>::const_iterator j = find_if(myIncomingLanes.begin(), myIncomingLanes.end(), edge_finder(*i));
             if (j == myIncomingLanes.end()) {
                 i = pred.erase(i);

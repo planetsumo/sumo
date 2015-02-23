@@ -137,7 +137,7 @@ private:
         SameTargetMap result;
         // we want to merg edges with few vehicles to edges with many vehicles
         // so we have to sort by number of vehicles first
-        std::vector<const ROEdge*> heap;
+        ConstROEdgeVector heap;
         heap.reserve(stm.size());
         ComparatorNumVehicles cmp(stm);
         for (SameTargetMap::iterator it = stm.begin(); it != stm.end(); it++) {
@@ -182,10 +182,7 @@ private:
     static EdgeSet approachingEdges(EdgeSet edges) {
         EdgeSet result;
         for (EdgeSet::iterator it = edges.begin(); it != edges.end(); it++) {
-            const unsigned int length_size = (*it)->getNumPredecessors();
-            for (unsigned int i = 0; i < length_size; i++) {
-                result.insert((*it)->getPredecessor(i));
-            }
+            result.insert((*it)->getPredecessors().begin(), (*it)->getPredecessors().end());
         }
         return result;
     }

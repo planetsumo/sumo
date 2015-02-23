@@ -321,6 +321,10 @@ private:
                *myAddNamePanel, *myPOINamePanel, *myPolyNamePanel;
 
     SizePanel* myVehicleSizePanel, *myPersonSizePanel, *myContainerSizePanel, *myPOISizePanel, *myPolySizePanel, *myAddSizePanel;
+
+
+    // load/save-menu
+    FXCheckButton *mySaveViewPort, *mySaveDelay;
     /// @}
 
 

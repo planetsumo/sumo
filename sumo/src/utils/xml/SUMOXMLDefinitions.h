@@ -701,9 +701,8 @@ enum LinkDirection {
  */
 enum TrafficLightType {
     TLTYPE_STATIC,
-    TLTYPE_ACTUATED,
     TLTYPE_RAIL,
-    TLTYPE_AGENT
+    TLTYPE_ACTUATED
 };
 
 

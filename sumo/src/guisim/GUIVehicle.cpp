@@ -135,6 +135,8 @@ double vehiclePoly_Ship[] =  { 0.25,0,  0,0,  0.1,0.25, 0.2,0.45, 0.25,0.5,  0.9
 double vehiclePoly_ShipDeck[] =  { 0.5,0,  0.25,0.4,  0.95,0.4, 0.95,-0.4, 0.25,-0.4, 0.25,0.4, -10000 };
 double vehiclePoly_ShipSuperStructure[] =  { 0.8,0,  0.5,0.3,  0.85,0.3,  0.85,-0.3, 0.5,-0.3,  0.5,0.3,  -10000 };
 
+double vehiclePoly_Cyclist[] =  { 0.5,0,  0.25,0.45,  0.25,0.5, 0.8,0.15,     0.8,-0.15, 0.25,-0.5, 0.25,-0.45,     -10000 };
+
 // ===========================================================================
 // method definitions
 // ===========================================================================
@@ -488,17 +490,28 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
         case SVS_BICYCLE:
         case SVS_MOPED:
         case SVS_MOTORCYCLE: {
+            RGBColor darker = current.changedBrightness(-50);
+            // body
+            drawPoly(vehiclePoly_Cyclist, 4);
+            // head
             glPushMatrix();
-            glTranslated(.5, 0, 0);
-            glScaled(.25 / (length), 1, 1.);
-            glTranslated(0, 0, .045);
+            glTranslated(0.4, 0, .5);
+            glScaled(0.1, 0.2, 1);
+            GLHelper::setColor(darker);
             GLHelper::drawFilledCircle(1);
-            glScaled(.7, 2, 1);
-            glTranslated(0, 0, -.045);
-            glTranslated(0, 0, .04);
-            GLHelper::setColor(lighter);
+            glPopMatrix();
+            // bike frame
+            GLHelper::setColor(RGBColor::GREY);
+            glPushMatrix();
+            glTranslated(0.5, 0, .3);
+            glScaled(0.5, 0.05, 1);
             GLHelper::drawFilledCircle(1);
-            glTranslated(0, 0, -.04);
+            glPopMatrix();
+            // handle bar
+            glPushMatrix();
+            glTranslated(0.25, 0, .3);
+            glScaled(0.02, 0.5, 1);
+            GLHelper::drawFilledCircle(1);
             glPopMatrix();
         }
         break;
@@ -1238,6 +1251,12 @@ GUIVehicle::setFunctionalColor(size_t activeScheme, const MSBaseVehicle* veh) {
             Position minp(b.xmin(), b.ymin());
             Position maxp(b.xmax(), b.ymax());
             SUMOReal sat = pb.distanceTo(pe) / minp.distanceTo(maxp);
+            GLHelper::setColor(RGBColor::fromHSV(hue, sat, 1.));
+            return true;
+        }
+        case 24: { // color randomly (by pointer)
+            const SUMOReal hue = (long)veh % 360; // [0-360]
+            const SUMOReal sat = (((long)veh / 360) % 67) / 100.0 + 0.33; // [0.33-1]
             GLHelper::setColor(RGBColor::fromHSV(hue, sat, 1.));
             return true;
         }
