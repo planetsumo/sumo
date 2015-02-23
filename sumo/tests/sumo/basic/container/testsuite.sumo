@@ -1,3 +1,24 @@
+# container with a transfer between two unconnceted edges. Its route is specified by a from and to edge
+transfer_unconnected_fromto
+
+# container with a transfer between two unconnceted edges. Its route is specified by a from and to edge and an edge chain. only the start and end element of the chain shall be considered for the route
+transfer_unconnected_fromto_chain
+
+# container with a transfer between two unconnceted edges. Its route is specified by a chain, but only the start and end element shall be considered
+transfer_unconnected_chain
+
+# container with a transfer between two unconnceted edges
+transfer_unconnected_4
+
+# container with a transfer between two unconnceted edges
+transfer_unconnected_3
+
+# container with a transfer between two unconnceted edges
+transfer_unconnected
+
+# container with a transfer between two unconnceted edges
+transfer_unconnected_2
+
 # person ride for restricted capacity
 capacity
 

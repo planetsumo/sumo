@@ -449,6 +449,9 @@ public:
         /// Returns first edge of the containers route
         const MSEdge* getFromEdge() const;
 
+        /// Returns last edge of the containers route
+        const MSEdge* getToEdge() const;
+
         /// Returns the offset from the start of the current edge measured in its natural direction
         SUMOReal getEdgePos(SUMOTime now) const;
 
@@ -535,7 +538,7 @@ public:
         /// current step
         std::vector<const MSEdge*>::iterator myRouteStep;
         
-        /// @brief state that is to be manipulated by MSPModel
+        /// @brief state that is to be manipulated by MSCModel
         CState* myContainerState;
 
         /// the depart position

@@ -367,7 +367,7 @@ MSContainer::MSContainerStage_Transfer::~MSContainerStage_Transfer() {
 void
 MSContainer::MSContainerStage_Transfer::proceed(MSNet* net, MSContainer* container, SUMOTime now, MSEdge* previousEdge, const SUMOReal at) {
     previousEdge->removeContainer(container);
-    myRouteStep = myRoute.begin();
+    myRouteStep = myRoute.end() - 1;   //define that the container is already on its destination edge
     MSNet::getInstance()->getContainerControl().setTransfer(container);
     if (at >= 0) {
         myDepartPos = at;
@@ -388,6 +388,11 @@ MSContainer::MSContainerStage_Transfer::getEdge() const {
 const MSEdge*
 MSContainer::MSContainerStage_Transfer::getFromEdge() const {
     return myRoute.front();
+}
+
+const MSEdge*
+MSContainer::MSContainerStage_Transfer::getToEdge() const {
+    return myRoute.back();
 }
 
 SUMOReal

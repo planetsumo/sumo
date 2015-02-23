@@ -48,7 +48,7 @@ MSCModel_NonInteracting* MSCModel_NonInteracting::myModel(0);
 const int CState::FORWARD(1);
 const int CState::BACKWARD(-1);
 const int CState::UNDEFINED_DIRECTION(0);
-const SUMOReal CState::LATERAL_OFFSET(3);
+const SUMOReal CState::LATERAL_OFFSET(0);
 
 // ===========================================================================
 // MSCModel_NonInteracting method definitions
@@ -105,14 +105,15 @@ CState::getEdgePos(const MSContainer::MSContainerStage_Transfer&, SUMOTime now) 
 
 Position
 CState::getPosition(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const {
-    const MSLane* lane = stage.getEdge()->getLanes().front();
-    //containers get always an offset with respect to the edge
-    return stage.getLanePosition(lane, getEdgePos(stage, now), LATERAL_OFFSET);
+    const SUMOReal dist = myCurrentBeginPosition.distanceTo2D(myCurrentEndPosition);    //distance between begin and end position of this transfer stage
+    SUMOReal pos = MIN2(STEPS2TIME(now - myLastEntryTime) *  stage.getMaxSpeed(), dist);    //the containerd shall not go beyond its end position
+    return PositionVector::positionAtOffset2D(myCurrentBeginPosition, myCurrentEndPosition, pos, 0);
 }
 
 
 SUMOReal
 CState::getAngle(const MSContainer::MSContainerStage_Transfer& stage, SUMOTime now) const {
+    //todo: change angle by 90 degree
     SUMOReal angle = stage.getEdgeAngle(stage.getEdge(), getEdgePos(stage, now)) + (myCurrentEndPos < myCurrentBeginPos ? 180 : 0);
     if (angle > 180) {
         angle -= 360;
@@ -130,27 +131,16 @@ CState::getSpeed(const MSContainer::MSContainerStage_Transfer& stage) const {
 SUMOTime
 CState::computeTransferTime(const MSEdge* prev, const MSContainer::MSContainerStage_Transfer& stage, SUMOTime currentTime) {
     myLastEntryTime = currentTime;
-    const MSEdge* edge = stage.getEdge();
-    const MSEdge* next = stage.getNextRouteEdge();
-    int dir = UNDEFINED_DIRECTION;
-    if (prev == 0) {
-        myCurrentBeginPos = stage.getDepartPos();
-    } else {
-        // default to FORWARD if not connected
-        dir = (edge->getToJunction() == prev->getToJunction() || edge->getToJunction() == prev->getFromJunction()) ? BACKWARD : FORWARD;
-        myCurrentBeginPos = dir == FORWARD ? 0 : edge->getLength();
-    }
-    if (next == 0) {
-        myCurrentEndPos = stage.getArrivalPos();
-    } else {
-        if (dir == UNDEFINED_DIRECTION) {
-            // default to FORWARD if not connected
-            dir = (edge->getFromJunction() == next->getFromJunction() || edge->getFromJunction() == next->getToJunction()) ? BACKWARD : FORWARD;
-        }
-        myCurrentEndPos = dir == FORWARD ? edge->getLength() : 0;
-    }
-    // ensure that a result > 0 is returned even if the transfer ends immediately
-    myCurrentDuration = MAX2((SUMOTime)1, TIME2STEPS(fabs(myCurrentEndPos - myCurrentBeginPos) / stage.getMaxSpeed()));
+
+    myCurrentBeginPos = stage.getDepartPos();  
+    myCurrentEndPos = stage.getArrivalPos();    
+
+    const MSLane* fromLane = stage.getFromEdge()->getLanes().front(); //the lane the container starts from during its transfer stage
+    myCurrentBeginPosition = stage.getLanePosition(fromLane, myCurrentBeginPos, LATERAL_OFFSET);
+    const MSLane* toLane = stage.getToEdge()->getLanes().front(); //the lane the container ends during its transfer stage
+    myCurrentEndPosition = stage.getLanePosition(toLane, myCurrentEndPos, LATERAL_OFFSET);
+
+    myCurrentDuration = MAX2((SUMOTime)1, TIME2STEPS(fabs(myCurrentEndPosition.distanceTo(myCurrentBeginPosition)) / stage.getMaxSpeed()));
     return myCurrentDuration;
 }
 

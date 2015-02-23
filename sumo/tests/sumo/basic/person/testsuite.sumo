@@ -1,3 +1,6 @@
+# person walking between two unconnected edges
+walk_unconnected
+
 # a bus will stop at two busstop that are located at the same edge and a person is waiting at the second bus stop. the person has to enter the bus when the bus stops at the second busstop and not before.
 two_busstops_at_one_edge
 

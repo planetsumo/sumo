@@ -335,10 +335,9 @@ MSRouteHandler::myStartElement(int element,
                     if (to == 0) {
                         throw ProcessError("The to edge '" + toID + "' within a transfer of container '" + myVehicleParameter->id + "' is not known.");
                     }
-                    MSNet::getInstance()->getPedestrianRouter().compute(from, to,
-                            SUMOVehicleParameter::interpretEdgePos(departPos, from->getLength(), SUMO_ATTR_DEPARTPOS, "container getting transfered from " + from->getID()),
-                            SUMOVehicleParameter::interpretEdgePos(arrivalPos, to->getLength(), SUMO_ATTR_ARRIVALPOS, "container getting transfered to " + to->getID()),
-                            speed, 0, 0, myActiveRoute);
+                    //the route of the container's transfer stage consists only of the 'from' and the 'to' edge
+                    myActiveRoute.push_back(from);
+                    myActiveRoute.push_back(to);
                     if (myActiveRoute.empty()) {
                         const std::string error = "No connection found between '" + from->getID() + "' and '" + to->getID() + "' for container '" + myVehicleParameter->id + "'.";
                         if (OptionsCont::getOptions().getBool("ignore-route-errors")) {

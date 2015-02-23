@@ -124,6 +124,8 @@ private:
     SUMOTime myCurrentDuration;
     SUMOReal myCurrentBeginPos;
     SUMOReal myCurrentEndPos;
+    Position myCurrentBeginPosition;  //the position the container is moving from during its transfer stage
+    Position myCurrentEndPosition;  //the position the container is moving to during its transfer stage
 
 };
 
