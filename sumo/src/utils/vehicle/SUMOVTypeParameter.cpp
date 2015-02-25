@@ -53,8 +53,8 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
       defaultProbability(DEFAULT_VEH_PROB),
       speedFactor(1.0), speedDev(0.0),
       emissionClass(PollutantsInterface::getClassByName("unknown", vclass)), color(RGBColor::DEFAULT_COLOR),
-      vehicleClass(vclass), impatience(0.0), personCapacity(5), containerCapacity(0), boardingDuration(0),
-      loadingDuration(0), width(1.8), height(1.5), shape(SVS_UNKNOWN),
+      vehicleClass(vclass), impatience(0.0), personCapacity(5), containerCapacity(0), boardingDuration(500),
+      loadingDuration(90000), width(1.8), height(1.5), shape(SVS_UNKNOWN),
       cfModel(SUMO_TAG_CF_KRAUSS), lcModel(LCM_LC2013),
       setParameter(0), saved(false), onlyReferenced(false) {
     switch (vclass) {
