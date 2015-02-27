@@ -109,11 +109,10 @@ public:
     /// @brief process all commands until a simulation step is wanted
     static void processCommandsUntilSimStep(SUMOTime step);
 
-    void setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, MSEdgeVector route);
+    void setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, ConstMSEdgeVector route,
+		SUMOTime t);
 
     void postProcessVTD();
-
-    bool vtdDebug() const;
 
 
 
@@ -258,6 +257,7 @@ public:
      */
     bool readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector& into);
     /// @}
+
 
 private:
     /** @brief Constructor

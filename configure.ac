@@ -13,14 +13,19 @@ AC_LANG([C++])
 
 dnl the debug check has to be made before the program checks
 dnl because it modifies CXXFLAGS
+if test x$CXX = xclang++; then
+    CXXFLAGS="-msse2 $CXXFLAGS"
+else
+    CXXFLAGS="-msse2 -mfpmath=sse $CXXFLAGS"
+fi
 AC_ARG_ENABLE([debug], [AS_HELP_STRING([--enable-debug],[enable sumo debugging code [default=no].])])
 if test x$enable_debug = xyes; then
     AC_DEFINE(_DEBUG, 1, [Define to 1 in order to enable sumo debugging code.])
-    CXXFLAGS="-g -pthread -msse2 -mfpmath=sse $CXXFLAGS"
+    CXXFLAGS="-g -pthread $CXXFLAGS"
     ac_enabled="$ac_enabled Debug"
     program_transform_name="s,\$\$,D,; $program_transform_name"
 else
-    CXXFLAGS="-O2 -DNDEBUG -msse2 -mfpmath=sse $CXXFLAGS"
+    CXXFLAGS="-O2 -DNDEBUG $CXXFLAGS"
     ac_disabled="$ac_disabled Debug"
 fi
 
@@ -50,7 +55,7 @@ AM_PROG_LIBTOOL
 dnl Check for enable-features that shall go into config.h
 AC_ARG_ENABLE([memcheck], [AS_HELP_STRING([--enable-memcheck],[enable compilation of memory leak checks [default=no].])])
 if test x$enable_memcheck = xyes; then
-    if test $CXX = clang++; then
+    if test x$CXX = xclang++; then
         AC_MSG_WARN([--enable-memcheck does not work with clang yet])
         enable_memcheck="no"
     fi
@@ -393,7 +398,7 @@ fi
 if test -d src/osgview; then
     AC_CHECK_HEADER([osg/Config], 
                     [AC_DEFINE([HAVE_OSG], [1], [defined if osg is available])
-                     OSG_LIBS="-losg -losgGA -losgViewer -losgUtil -losgDB -lOpenThreads" AC_SUBST(OSG_LIBS)
+                     OSG_LIBS="-losg -losgGA -losgViewer -losgUtil -losgDB -lOpenThreads -losgText" AC_SUBST(OSG_LIBS)
                      ac_enabled="$ac_enabled OSG"],
                     [ac_disabled="$ac_disabled OSG"])
 fi
@@ -451,8 +456,10 @@ src/microsim/Makefile
 src/microsim/actions/Makefile
 src/microsim/cfmodels/Makefile
 src/microsim/devices/Makefile
+src/microsim/lcmodels/Makefile
 src/microsim/logging/Makefile
 src/microsim/output/Makefile
+src/microsim/pedestrians/Makefile
 src/microsim/traffic_lights/Makefile
 src/microsim/trigger/Makefile
 src/marouter/Makefile
@@ -464,7 +471,7 @@ src/netimport/vissim/tempstructs/Makefile
 src/netimport/vissim/typeloader/Makefile
 src/netload/Makefile
 src/netwrite/Makefile
-src/od2trips/Makefile
+src/od/Makefile
 src/polyconvert/Makefile
 src/router/Makefile
 src/dfrouter/Makefile

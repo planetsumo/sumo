@@ -72,8 +72,11 @@ MSInsertionControl::add(SUMOVehicle* veh) {
 }
 
 
-void
-MSInsertionControl::add(SUMOVehicleParameter* pars) {
+bool
+MSInsertionControl::add(SUMOVehicleParameter* const pars) {
+    if (myFlowIDs.count(pars->id) > 0) {
+        return false;
+    }
     Flow flow;
     flow.pars = pars;
     flow.isVolatile = pars->departLaneProcedure == DEPART_LANE_RANDOM ||
@@ -99,6 +102,8 @@ MSInsertionControl::add(SUMOVehicleParameter* pars) {
     }
     flow.vehicle = 0;
     myFlows.push_back(flow);
+    myFlowIDs.insert(pars->id);
+    return true;
 }
 
 
@@ -137,7 +142,7 @@ MSInsertionControl::tryInsert(SUMOTime time, SUMOVehicle* veh,
     assert(veh->getParameter().depart < time + DELTA_T);
     const MSEdge& edge = *veh->getEdge();
     if ((!myCheckEdgesOnce || edge.getLastFailedInsertionTime() != time) && edge.insertVehicle(*veh, time)) {
-        // Successful emission.
+        // Successful insertion
         checkFlowWait(veh);
         veh->onDepart();
         return 1;
@@ -223,7 +228,7 @@ MSInsertionControl::determineCandidates(SUMOTime time) {
             tryEmitByProb = false; // only emit one per step
             SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*pars);
             newPars->id = pars->id + "." + toString(i->index);
-            newPars->depart = static_cast<SUMOTime>(pars->depart + pars->repetitionsDone * pars->repetitionOffset);
+            newPars->depart = pars->repetitionProbability > 0 ? time : (SUMOTime)(pars->depart + pars->repetitionsDone * pars->repetitionOffset);
             pars->repetitionsDone++;
             // try to build the vehicle
             if (vehControl.getVehicle(newPars->id) == 0) {
@@ -238,7 +243,7 @@ MSInsertionControl::determineCandidates(SUMOTime time) {
                     while (--quota > 0) {
                         SUMOVehicleParameter* quotaPars = new SUMOVehicleParameter(*pars);
                         quotaPars->id = pars->id + "." + toString(i->index);
-                        quotaPars->depart = static_cast<SUMOTime>(pars->depart + pars->repetitionsDone * pars->repetitionOffset);
+                        quotaPars->depart = pars->repetitionProbability > 0 ? time : (SUMOTime)(pars->depart + pars->repetitionsDone * pars->repetitionOffset);
                         i->vehicle = vehControl.buildVehicle(quotaPars, route, vtype, false);
                         vehControl.addVehicle(quotaPars->id, i->vehicle);
                         add(i->vehicle);

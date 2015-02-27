@@ -92,6 +92,45 @@ RONet::addEdge(ROEdge* edge) {
 }
 
 
+bool
+RONet::addDistrict(const std::string id, ROEdge* source, ROEdge* sink) {
+    if (myDistricts.count(id) > 0) {
+        WRITE_ERROR("The TAZ '" + id + "' occurs at least twice.");
+        delete source;
+        delete sink;
+        return false;
+    }
+    sink->setType(ROEdge::ET_DISTRICT);
+    addEdge(sink);
+    source->setType(ROEdge::ET_DISTRICT);
+    addEdge(source);
+    myDistricts[id] = std::make_pair(std::vector<std::string>(), std::vector<std::string>());
+    return true;
+}
+
+
+bool
+RONet::addDistrictEdge(const std::string tazID, const std::string edgeID, const bool isSource) {
+    if (myDistricts.count(tazID) == 0) {
+        WRITE_ERROR("The TAZ '" + tazID + "' is unknown.");
+        return false;
+    }
+    ROEdge* edge = getEdge(edgeID);
+    if (edge == 0) {
+        WRITE_ERROR("The edge '" + edgeID + "' for TAZ '" + tazID + "' is unknown.");
+        return false;
+    }
+    if (isSource) {
+        getEdge(tazID + "-source")->addSuccessor(edge);
+        myDistricts[tazID].first.push_back(edgeID);
+    } else {
+        edge->addSuccessor(getEdge(tazID + "-sink"));
+        myDistricts[tazID].second.push_back(edgeID);
+    }
+    return true;
+}
+
+
 void
 RONet::addNode(RONode* node) {
     if (!myNodes.add(node->getID(), node)) {
@@ -164,7 +203,7 @@ RONet::cleanup(SUMOAbstractRouter<ROEdge, ROVehicle>* router) {
 
 
 SUMOVTypeParameter*
-RONet::getVehicleTypeSecure(const std::string& id) {
+RONet::getVehicleTypeSecure(const std::string& id, bool defaultIfMissing) {
     // check whether the type was already known
     SUMOVTypeParameter* type = myVehicleTypes.get(id);
     if (id == DEFAULT_VTYPE_ID) {
@@ -177,8 +216,8 @@ RONet::getVehicleTypeSecure(const std::string& id) {
     if (it2 != myVTypeDistDict.end()) {
         return it2->second->get();
     }
-    if (id == "") {
-        // ok, no vehicle type was given within the user input
+    if (id == "" || defaultIfMissing) {
+        // ok, no vehicle type or an unknown type was given within the user input
         //  return the default type
         myDefaultVTypeMayBeDeleted = false;
         return myVehicleTypes.get(DEFAULT_VTYPE_ID);
@@ -235,7 +274,7 @@ RONet::addVehicle(const std::string& id, ROVehicle* veh) {
         myReadRouteNo++;
         return true;
     }
-    WRITE_ERROR("The vehicle '" + id + "' occurs at least twice.");
+    WRITE_ERROR("Another vehicle with the id '" + id + "' exists.");
     return false;
 }
 
@@ -304,15 +343,14 @@ RONet::checkFlows(SUMOTime time) {
                     toRemove.push_back(i->first);
                     break;
                 }
-                if (
-                        // only call rand if all other conditions are met
-                        RandHelper::rand() < (pars->repetitionProbability * TS)) {
+                // only call rand if all other conditions are met
+                if (RandHelper::rand() < (pars->repetitionProbability * TS)) {
                     SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*pars);
                     newPars->id = pars->id + "." + toString(pars->repetitionsDone);
                     newPars->depart = pars->depart;
                     pars->repetitionsDone++;
                     // try to build the vehicle
-                    SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid);
+                    SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid, true);
                     RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
                     ROVehicle* veh = new ROVehicle(*newPars, route, type, this);
                     addVehicle(newPars->id, veh);
@@ -337,7 +375,7 @@ RONet::checkFlows(SUMOTime time) {
                 newPars->depart = depart;
                 pars->repetitionsDone++;
                 // try to build the vehicle
-                SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid);
+                SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid, true);
                 RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
                 ROVehicle* veh = new ROVehicle(*newPars, route, type, this);
                 addVehicle(newPars->id, veh);

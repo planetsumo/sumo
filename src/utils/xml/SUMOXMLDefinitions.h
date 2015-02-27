@@ -158,6 +158,7 @@ enum SumoXMLTag {
     SUMO_TAG_JOIN,
     SUMO_TAG_JOINEXCLUDE,
     SUMO_TAG_CROSSING,
+    SUMO_TAG_CUSTOMSHAPE,
 
     SUMO_TAG_WAY,
     SUMO_TAG_ND,
@@ -193,6 +194,7 @@ enum SumoXMLTag {
 
     SUMO_TAG_CF_KRAUSS,
     SUMO_TAG_CF_KRAUSS_PLUS_SLOPE,
+    SUMO_TAG_CF_KRAUSS_ACCEL_BOUND,
     SUMO_TAG_CF_KRAUSS_ORIG1,
     SUMO_TAG_CF_SMART_SK,
     SUMO_TAG_CF_DANIEL1,
@@ -376,6 +378,10 @@ enum SumoXMLAttr {
     SUMO_ATTR_SHAPE,
     /// The information about how to spread the lanes from the given position
     SUMO_ATTR_SPREADTYPE,
+    /// The turning radius at an intersection in m 
+    SUMO_ATTR_RADIUS,
+    /// whether a given shape is user-defined
+    SUMO_ATTR_CUSTOMSHAPE,
     /// A color information
     SUMO_ATTR_COLOR,
     /// The abstract direction of a link
@@ -691,8 +697,7 @@ enum LinkDirection {
  */
 enum TrafficLightType {
     TLTYPE_STATIC,
-    TLTYPE_ACTUATED,
-    TLTYPE_AGENT
+    TLTYPE_ACTUATED
 };
 
 

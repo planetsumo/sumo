@@ -411,22 +411,32 @@ NIImporter_OpenStreetMap::insertEdge(Edge* e, int index, NBNode* from, NBNode* t
                     SUMOReal sidewalkWidth = NBEdge::UNSPECIFIED_WIDTH;
                     bool defaultIsOneWay = false;
                     SVCPermissions permissions = 0;
+                    bool discard = true;
                     for (std::vector<std::string>::iterator it = types.begin(); it != types.end(); it++) {
-                        numLanes = MAX2(numLanes, tc.getNumLanes(*it));
-                        maxSpeed = MAX2(maxSpeed, tc.getSpeed(*it));
-                        prio = MAX2(prio, tc.getPriority(*it));
-                        defaultIsOneWay &= tc.getIsOneWay(*it);
-                        permissions |= tc.getPermissions(*it);
-                        width = MAX2(width, tc.getWidth(*it));
-                        sidewalkWidth = MAX2(sidewalkWidth, tc.getSidewalkWidth(*it));
+                        if (!tc.getShallBeDiscarded(*it)) {
+                            numLanes = MAX2(numLanes, tc.getNumLanes(*it));
+                            maxSpeed = MAX2(maxSpeed, tc.getSpeed(*it));
+                            prio = MAX2(prio, tc.getPriority(*it));
+                            defaultIsOneWay &= tc.getIsOneWay(*it);
+                            permissions |= tc.getPermissions(*it);
+                            width = MAX2(width, tc.getWidth(*it));
+                            sidewalkWidth = MAX2(sidewalkWidth, tc.getSidewalkWidth(*it));
+                            discard = false;
+                        }
                     }
                     if (width != NBEdge::UNSPECIFIED_WIDTH) {
                         width = MAX2(width, SUMO_const_laneWidth);
                     }
-                    WRITE_MESSAGE("Adding new type \"" + type + "\" (first occurence for edge \"" + id + "\").");
-                    tc.insert(newType, numLanes, maxSpeed, prio, permissions, width, defaultIsOneWay, sidewalkWidth);
-                    myKnownCompoundTypes[type] = newType;
-                    type = newType;
+                    if (discard) {
+                        WRITE_WARNING("Discarding compound type \"" + newType + "\" (first occurence for edge \"" + id + "\").");
+                        myUnusableTypes.insert(newType);
+                        return newIndex;
+                    } else {
+                        WRITE_MESSAGE("Adding new type \"" + type + "\" (first occurence for edge \"" + id + "\").");
+                        tc.insert(newType, numLanes, maxSpeed, prio, permissions, width, defaultIsOneWay, sidewalkWidth);
+                        myKnownCompoundTypes[type] = newType;
+                        type = newType;
+                    }
                 }
             }
         }
@@ -603,15 +613,18 @@ NIImporter_OpenStreetMap::NodesHandler::myStartElement(int element, const SUMOSA
         }
         bool ok = true;
         std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myLastNodeID).c_str(), ok, false);
-        std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myLastNodeID).c_str(), ok, false);
-        if (key == "highway" && value.find("traffic_signal") != std::string::npos) {
-            myToFill[myLastNodeID]->tlsControlled = true;
-        } else if (myImportElevation && key == "ele") {
-            try {
-                myToFill[myLastNodeID]->ele = TplConvert::_2SUMOReal(value.c_str());
-            } catch (...) {
-                WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in node '" +
-                              toString(myLastNodeID) + "'.");
+        // we check whether the key is relevant (and we really need to transcode the value) to avoid hitting #1636
+        if (key == "highway" || key == "ele") {
+            std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myLastNodeID).c_str(), ok, false);
+            if (key == "highway" && value.find("traffic_signal") != std::string::npos) {
+                myToFill[myLastNodeID]->tlsControlled = true;
+            } else if (myImportElevation && key == "ele") {
+                try {
+                    myToFill[myLastNodeID]->ele = TplConvert::_2SUMOReal(value.c_str());
+                } catch (...) {
+                    WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in node '" +
+                                toString(myLastNodeID) + "'.");
+                }
             }
         }
     }
@@ -696,15 +709,20 @@ NIImporter_OpenStreetMap::EdgesHandler::myStartElement(int element,
         }
         bool ok = true;
         std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentEdge->id).c_str(), ok, false);
+        // we check whether the key is relevant (and we really need to transcode the value) to avoid hitting #1636
+        if (!StringUtils::endsWith(key, "way") && !StringUtils::startsWith(key, "lanes") && key != "maxspeed" && key != "junction" && key != "name" && key != "tracks") {
+            return;
+        }
         std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myCurrentEdge->id).c_str(), ok, false);
 
-        if (key == "highway" || key == "railway") {
+        if (key == "highway" || key == "railway" || key == "waterway") {
+            const std::string singleTypeID = key + "." + value;
             if (myCurrentEdge->myHighWayType != "") {
                 // osm-ways may be used by more than one mode (eg railway.tram + highway.residential. this is relevant for multimodal traffic)
                 // we create a new type for this kind of situation which must then be resolved in insertEdge()
-                myCurrentEdge->myHighWayType = myCurrentEdge->myHighWayType + compoundTypeSeparator + key + "." + value;
+                myCurrentEdge->myHighWayType = myCurrentEdge->myHighWayType + compoundTypeSeparator + singleTypeID;
             } else {
-                myCurrentEdge->myHighWayType = key + "." + value;
+                myCurrentEdge->myHighWayType = singleTypeID;
             }
             myCurrentEdge->myCurrentIsRoad = true;
         } else if (key == "lanes") {
@@ -874,21 +892,25 @@ NIImporter_OpenStreetMap::RelationHandler::myStartElement(int element,
     if (element == SUMO_TAG_TAG) {
         bool ok = true;
         std::string key = attrs.get<std::string>(SUMO_ATTR_K, toString(myCurrentRelation).c_str(), ok, false);
-        std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myCurrentRelation).c_str(), ok, false);
-
-        if (key == "type" && value == "restriction") {
-            myIsRestriction = true;
-            return;
-        }
-        if (key == "restriction") {
-            if (value.substr(0, 5) == "only_") {
-                myRestrictionType = RESTRICTION_ONLY;
-            } else if (value.substr(0, 3) == "no_") {
-                myRestrictionType = RESTRICTION_NO;
-            } else {
-                WRITE_WARNING("Found unknown restriction type '" + value + "' in relation '" + toString(myCurrentRelation) + "'");
+        // we check whether the key is relevant (and we really need to transcode the value) to avoid hitting #1636
+        if (key == "type" || key == "restriction") {
+            std::string value = attrs.get<std::string>(SUMO_ATTR_V, toString(myCurrentRelation).c_str(), ok, false);
+            if (key == "type" && value == "restriction") {
+                myIsRestriction = true;
+                return;
             }
-            return;
+            if (key == "restriction") {
+                // @note: the 'right/left/straight' part is ignored since the information is
+                // redundantly encoded in the 'from', 'to' and 'via' members
+                if (value.substr(0, 5) == "only_") {
+                    myRestrictionType = RESTRICTION_ONLY;
+                } else if (value.substr(0, 3) == "no_") {
+                    myRestrictionType = RESTRICTION_NO;
+                } else {
+                    WRITE_WARNING("Found unknown restriction type '" + value + "' in relation '" + toString(myCurrentRelation) + "'");
+                }
+                return;
+            }
         }
     }
 }

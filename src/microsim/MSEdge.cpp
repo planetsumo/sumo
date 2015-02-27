@@ -45,7 +45,7 @@
 #include "MSLaneChanger.h"
 #include "MSGlobals.h"
 #include "MSVehicle.h"
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
 #include "MSEdgeWeightsStorage.h"
 
 #ifdef HAVE_INTERNAL
@@ -63,7 +63,7 @@
 // static member definitions
 // ===========================================================================
 MSEdge::DictType MSEdge::myDict;
-std::vector<MSEdge*> MSEdge::myEdges;
+MSEdgeVector MSEdge::myEdges;
 
 
 // ===========================================================================
@@ -173,6 +173,7 @@ MSEdge::rebuildAllowedLanes() {
         }
     }
     myClassedAllowed.clear();
+    myClassesSuccessorMap.clear();
     // rebuild myMinimumPermissions and myCombinedPermissions
     myMinimumPermissions = SVCAll;
     myCombinedPermissions = 0;
@@ -426,14 +427,20 @@ MSEdge::insertVehicle(SUMOVehicle& v, SUMOTime time, const bool checkOnly) const
     UNUSED_PARAMETER(time);
 #endif
     if (checkOnly) {
+        if (v.getEdge()->getPurpose() == MSEdge::EDGEFUNCTION_DISTRICT) {
+            return true;
+        }
         switch (v.getParameter().departLaneProcedure) {
             case DEPART_LANE_GIVEN:
             case DEPART_LANE_DEFAULT:
-            case DEPART_LANE_FIRST_ALLOWED:
-                return getDepartLane(static_cast<MSVehicle&>(v))->getBruttoOccupancy() * myLength + v.getVehicleType().getLengthWithGap() <= myLength;
+            case DEPART_LANE_FIRST_ALLOWED: {
+                const SUMOReal occupancy = getDepartLane(static_cast<MSVehicle&>(v))->getBruttoOccupancy();
+                return occupancy == (SUMOReal)0 || occupancy * myLength + v.getVehicleType().getLengthWithGap() <= myLength;
+            }
             default:
                 for (std::vector<MSLane*>::const_iterator i = myLanes->begin(); i != myLanes->end(); ++i) {
-                    if ((*i)->getBruttoOccupancy() * myLength + v.getVehicleType().getLengthWithGap() <= myLength) {
+                    const SUMOReal occupancy = (*i)->getBruttoOccupancy();
+                    if (occupancy == (SUMOReal)0 || occupancy * myLength + v.getVehicleType().getLengthWithGap() <= myLength) {
                         return true;
                     }
                 }
@@ -583,7 +590,7 @@ MSEdge::insertIDs(std::vector<std::string>& into) {
 
 
 void
-MSEdge::parseEdgesList(const std::string& desc, std::vector<const MSEdge*>& into,
+MSEdge::parseEdgesList(const std::string& desc, ConstMSEdgeVector& into,
                        const std::string& rid) {
     if (desc[0] == BinaryFormatter::BF_ROUTE) {
         std::istringstream in(desc, std::ios::binary);
@@ -598,7 +605,7 @@ MSEdge::parseEdgesList(const std::string& desc, std::vector<const MSEdge*>& into
 
 
 void
-MSEdge::parseEdgesList(const std::vector<std::string>& desc, std::vector<const MSEdge*>& into,
+MSEdge::parseEdgesList(const std::vector<std::string>& desc, ConstMSEdgeVector& into,
                        const std::string& rid) {
     for (std::vector<std::string>::const_iterator i = desc.begin(); i != desc.end(); ++i) {
         const MSEdge* edge = MSEdge::dictionary(*i);
@@ -653,6 +660,29 @@ MSEdge::person_by_offset_sorter::operator()(const MSPerson* const p1, const MSPe
     }
     return p1->getID() < p2->getID();
 }
+
+
+const MSEdgeVector& 
+MSEdge::getSuccessors(SUMOVehicleClass vClass) const {
+    if (vClass == SVC_IGNORING) {
+        return mySuccessors;
+    }
+    ClassesSuccesorMap::const_iterator i = myClassesSuccessorMap.find(vClass);
+    if (i != myClassesSuccessorMap.end()) {
+        // can use cached value
+        return i->second;
+    } else {
+        // this vClass is requested for the first time. rebuild all succesors
+        for (MSEdgeVector::const_iterator it = mySuccessors.begin(); it != mySuccessors.end(); ++it) {
+            const std::vector<MSLane*>* allowed = allowedLanes(*it, vClass);
+            if (allowed == 0 || allowed->size() > 0) {
+                myClassesSuccessorMap[vClass].push_back(*it);
+            }
+        }
+        return myClassesSuccessorMap[vClass];
+    }
+}
+
 
 /****************************************************************************/
 

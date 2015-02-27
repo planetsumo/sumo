@@ -217,7 +217,7 @@ public:
     int appendWithCrossingPoint(const PositionVector& v);
 
     // @brief append the given vector to this one
-    void append(const PositionVector& v);
+    void append(const PositionVector& v, SUMOReal sameThreshold = 2.0);
 
     PositionVector getSubpart(SUMOReal beginOffset, SUMOReal endOffset) const;
 
@@ -280,14 +280,29 @@ public:
 
     SUMOReal nearest_offset_to_point2D(const Position& p, bool perpendicular = true) const;
 
+    /** @brief return position p within the length-wise coordinate system
+     * defined by this position vector. The x value is the same as that returned
+     * by nearest_offset_to_point2D(p) and the y value is the perpendicular distance to this
+     * vector with the sign indicating the side (right is postive).
+     * if extend is true, the vector is extended on both sides and the
+     * x-coordinate of the result may be below 0 or above the length of the original vector
+     */
+    Position transformToVectorCoordinates(const Position& p, bool extend=false) const;
+
     /* @brief index of the closest position to p
      * @note: may only be called for a non-empty vector */
     int indexOfClosest(const Position& p) const;
 
-    // distances of all my points to s and all of s points to myself
-    std::vector<SUMOReal> distances(const PositionVector& s) const;
+    /* @brief distances of all my points to s and all of s points to myself
+     * if perpenciualr is set to true, only the perpendicular distances are
+     * returned
+     */
+    std::vector<SUMOReal> distances(const PositionVector& s, bool perpendicular=false) const;
 
-    SUMOReal distance(const Position& p) const;
+    /* @brief closest distance to point p 
+     * (or -1 if perpendicular is true and the point is beyond this vector)
+     */
+    SUMOReal distance(const Position& p, bool perpendicular=false) const;
 
     void push_back_noDoublePos(const Position& p);
     void push_front_noDoublePos(const Position& p);

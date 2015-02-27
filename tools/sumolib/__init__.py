@@ -22,7 +22,15 @@ import os, sys, subprocess
 from xml.sax import parseString, handler
 from optparse import OptionParser, OptionGroup, Option
 
-from . import net, shapes, output, files, sensors, color, geomhelper, miscutils, options, route
+try:
+    from . import visualization
+except ImportError as e:
+    class VisDummy:
+        def __getattr__(self, name):
+            raise e
+    visualization = VisDummy()
+from . import files, net, output, sensors, shapes
+from . import color, geomhelper, miscutils, options, route
 
 class ConfigurationReader(handler.ContentHandler):
     """Reads a configuration template, storing the options in an OptionParser"""
@@ -122,8 +130,12 @@ class _Running:
   - a member method for returning the size
   - a member iterator over the stored ids
   """
-  def __init__(self):
+  def __init__(self, orig_ids=False, warn=False):
     """Contructor"""
+    # whether original IDs shall be used instead of an index
+    self.orig_ids = orig_ids
+    # whether a warning for non-integer IDs shall be given
+    self.warn = warn
     # running index of assigned numerical IDs
     self.index = 0 
     # map from known IDs to assigned numerical IDs
@@ -134,8 +146,17 @@ class _Running:
     If the given id is known, the numerical representation is returned,
     otherwise a new running number is assigned to the id and returned"""
     if id not in self._m:
-      self._m[id] = self.index
-      self.index += 1
+      if self.orig_ids:
+          self._m[id] = id
+          if self.warn:
+              try:
+                  int(id)
+              except:
+                  sys.stderr.write('Warning: ID "%s" is not an integer.\n' % id)
+                  self.warn = False
+      else:
+          self._m[id] = self.index
+          self.index += 1
     return self._m[id]
 
   def k(self, id):

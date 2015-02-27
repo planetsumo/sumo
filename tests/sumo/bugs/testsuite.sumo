@@ -156,3 +156,18 @@ ticket1273
 # at revision 16874 this test showcases ticket #1400 (vehicles intersect physically but no collision warning is issued).
 ticket1107
 ticket1402
+ticket1520
+ticket1539
+ticket1549
+ticket1551
+
+# collision
+ticket1553
+ticket1559
+ticket1560
+ticket1575
+ticket1591
+ticket1635
+
+# left turning vehicles are not physically blocked by straight going vehicles
+ticket1635b

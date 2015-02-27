@@ -5,7 +5,7 @@
 /// @author  Michael Behrisch
 /// @author  Marek Heinrich
 /// @date    Thu, 13.06.2013
-/// @version $Id$
+/// @version $$
 ///
 // Helper singleton class for PHEM Light, holds CEP data for emission computation
 /****************************************************************************/
@@ -72,7 +72,7 @@ public:
 
 private:
     /** @brief Helper method to read a vehicle file from file system
-    * @param[in] path The path to PHEMlight data files
+    * @param[in] path The possible paths to PHEMlight data files
     * @param[in] emissionClass desired PHEM emission class
     * @param[in] vehicleMass out variable for vehicle mass
     * @param[in] vehivleLoading out variable for vehicle loading
@@ -94,26 +94,47 @@ private:
     * @return Indicator if reading was successul
     */
     bool ReadVehicleFile(const std::vector<std::string>& path, const std::string& emissionClass,
-                         double& vehicleMass, double& vehicleLoading, double& vehicleMassRot,
-                         double& crossArea, double& cWValue,
-                         double& f0, double& f1, double& f2, double& f3, double& f4, double& ratedPower, std::string& vehicleMassType, std::string& vehicleFuelType,
-                         double& pNormV0, double& pNormP0, double& pNormV1, double& pNormP1, std::vector< std::vector<double> >& matrixRotFactor);
+									 double &vehicleMass,
+									 double &vehicleLoading,
+									 double &vehicleMassRot,
+									 double &crossArea,
+									 double &cWValue,
+									 double &f0,
+									 double &f1,
+									 double &f2,
+									 double &f3,
+									 double &f4,
+									 double &axleRatio,
+									 double &ratedPower,
+									 double &engineIdlingSpeed,
+									 double &engineRatedSpeed,
+									 double &effectiveWheelDiameter,
+									 std::string &vehicleMassType,
+									 std::string &vehicleFuelType,
+									 double &pNormV0,
+									 double &pNormP0,
+									 double &pNormV1,
+									 double &pNormP1,
+									 std::vector< std::vector<double> > &matrixSpeedInertiaTable,
+									 std::vector< std::vector<double> > &normedDragTable);
+
 
 
     /** @brief Helper method to read a CEP file from file system
-     * @param[in] path The path to PHEMlight data files
+     * @param[in] path The possible paths to PHEMlight data files
      * @param[in] emissionClass desired PHEM emission class
      * @param[in] header vector of pollutant identifiers
      * @param[in] matrix matrix holding power pattern and CEP curves
      * @return Indicator if reading was successul
      */
     bool ReadEmissionData(bool readFC, const std::vector<std::string>& path, const std::string& emissionClass,
-                          std::vector<std::string>& header, std::vector<std::vector<double> >& matrix);
+                          std::vector<std::string> &header, std::vector<std::vector<double> > &matrix, std::vector<double> &idlingValues);
 
 
 private:
     /// @brief bijection between PHEMEmissionClass and CEPs
     std::map<SUMOEmissionClass, PHEMCEP*> _ceps;
+//	StringBijection<PHEMEmissionClass> _stringRepsPhemEmissionClass;
 
 
 private:

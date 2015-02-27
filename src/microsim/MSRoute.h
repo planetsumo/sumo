@@ -56,8 +56,9 @@ class OutputDevice;
 // ===========================================================================
 // types definitions
 // ===========================================================================
-typedef std::vector<const MSEdge*> MSEdgeVector;
-typedef MSEdgeVector::const_iterator MSRouteIterator;
+typedef std::vector<const MSEdge*> ConstMSEdgeVector;
+typedef std::vector<MSEdge*> MSEdgeVector;
+typedef ConstMSEdgeVector::const_iterator MSRouteIterator;
 
 
 // ===========================================================================
@@ -69,7 +70,7 @@ typedef MSEdgeVector::const_iterator MSRouteIterator;
 class MSRoute : public Named, public Parameterised {
 public:
     /// Constructor
-    MSRoute(const std::string& id, const MSEdgeVector& edges,
+    MSRoute(const std::string& id, const ConstMSEdgeVector& edges,
             const bool isPermanent, const RGBColor* const c,
             const std::vector<SUMOVehicleParameter::Stop>& stops);
 
@@ -106,7 +107,7 @@ public:
         return std::find(myEdges.begin(), myEdges.end(), edge) != myEdges.end();
     }
 
-    bool containsAnyOf(const std::vector<MSEdge*>& edgelist) const;
+    bool containsAnyOf(const MSEdgeVector& edgelist) const;
 
     const MSEdge* operator[](unsigned index) const;
 
@@ -120,22 +121,36 @@ public:
     static void dict_saveState(OutputDevice& out);
     /// @}
 
-    const MSEdgeVector& getEdges() const {
+    const ConstMSEdgeVector& getEdges() const {
         return myEdges;
     }
 
-    SUMOReal getLength() const;
-
     /** @brief Compute the distance between 2 given edges on this route, including the length of internal lanes.
+     * Note, that for edges which contain loops:
+     * - the first occurance of fromEdge will be used
+     * - the first occurance of toEdge after the first occurance of fromEdge will be used
      *
      * @param[in] fromPos  position on the first edge, at wich the computed distance begins
-     * @param[in] toPos	   position on the last edge, at which the coumputed distance endsance
+     * @param[in] toPos    position on the last edge, at which the coumputed distance endsance
      * @param[in] fromEdge edge at wich computation begins
      * @param[in] toEdge   edge at which distance computation shall stop
      * @param[in] includeInternal Whether the lengths of internal edges shall be counted
      * @return             distance between the position fromPos on fromEdge and toPos on toEdge
      */
     SUMOReal getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSEdge* fromEdge, const MSEdge* toEdge, bool includeInternal = true) const;
+
+    /** @brief Compute the distance between 2 given edges on this route, including the length of internal lanes.
+     * This has the same semantics as above but uses iterators instead of edge
+     * points so looping routes are not an issue.
+     *
+     * @param[in] fromPos  position on the first edge, at wich the computed distance begins
+     * @param[in] toPos    position on the last edge, at which the coumputed distance endsance
+     * @param[in] fromEdge edge at wich computation begins
+     * @param[in] toEdge   edge at which distance computation shall stop
+     * @param[in] includeInternal Whether the lengths of internal edges shall be counted
+     * @return             distance between the position fromPos on fromEdge and toPos on toEdge
+     */
+    SUMOReal getDistanceBetween(SUMOReal fromPos, SUMOReal toPos, const MSRouteIterator& fromEdge, const MSRouteIterator& toEdge, bool includeInternal = true) const;
 
     /// Returns the color
     const RGBColor& getColor() const;
@@ -212,7 +227,7 @@ public:
 
 private:
     /// The list of edges to pass
-    MSEdgeVector myEdges;
+    ConstMSEdgeVector myEdges;
 
     /// whether the route may be deleted after the last vehicle abandoned it
     const bool myAmPermanent;

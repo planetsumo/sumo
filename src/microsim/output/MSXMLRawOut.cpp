@@ -37,7 +37,7 @@
 #include <microsim/MSLane.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSVehicle.h>
-#include <microsim/MSPModel.h>
+#include <microsim/pedestrians/MSPModel.h>
 #include <microsim/MSGlobals.h>
 #include <utils/iodevices/OutputDevice.h>
 #include "MSXMLRawOut.h"
@@ -57,12 +57,14 @@
 // ===========================================================================
 void
 MSXMLRawOut::write(OutputDevice& of, const MSEdgeControl& ec,
-                   SUMOTime timestep) {
+                   SUMOTime timestep, int precision) {
     of.openTag("timestep") << " time=\"" << time2string(timestep) << "\"";
-    const std::vector<MSEdge*>& edges = ec.getEdges();
-    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    of.setPrecision(precision);
+    const MSEdgeVector& edges = ec.getEdges();
+    for (MSEdgeVector::const_iterator e = edges.begin(); e != edges.end(); ++e) {
         writeEdge(of, **e, timestep);
     }
+    of.setPrecision(OUTPUT_ACCURACY);
     of.closeTag();
 }
 

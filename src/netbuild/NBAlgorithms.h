@@ -108,8 +108,9 @@ public:
     /** @brief Sorts a node's edges clockwise regarding driving direction
      * @param[in] nc The container of nodes to loop along
      * @param[in] leftHand Whether the network is left-handed
+     * @param[in] useNodeShape Whether to sort based on the node shape (instead of only the edge angle)
      */
-    static void sortNodesEdges(NBNodeCont& nc, bool leftHand);
+    static void sortNodesEdges(NBNodeCont& nc, bool leftHand, bool useNodeShape = false);
 
     /** @class crossing_by_junction_angle_sorter
      * @brief Sorts crossings by minimum clockwise clockwise edge angle. Use the
@@ -117,7 +118,8 @@ public:
      */
     class crossing_by_junction_angle_sorter {
     public:
-        explicit crossing_by_junction_angle_sorter(const EdgeVector& ordering) : myOrdering(ordering) {}
+        explicit crossing_by_junction_angle_sorter(const NBNode* node, const EdgeVector& ordering);
+
         int operator()(const NBNode::Crossing& c1, const NBNode::Crossing& c2) const {
             return (int)(getMinRank(c1.edges) < getMinRank(c2.edges));
         }
@@ -134,7 +136,7 @@ public:
         }
 
     private:
-        const EdgeVector& myOrdering;
+       EdgeVector myOrdering;
 
     private:
         /// @brief invalidated assignment operator

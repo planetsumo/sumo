@@ -42,7 +42,7 @@
 #include <iterator>
 #include <cstdlib>
 #include <cmath>
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <utils/common/MsgHandler.h>
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -379,14 +379,8 @@ MSLaneChanger::getRealFollower(const ChangerIt& target) const {
     }
     if (neighFollow == 0) {
         MSVehicle* candi = veh(myCandi);
-        // in order to look back, we'd need the minimum braking ability of vehicles in the net...
-        // we'll assume it to be 4m/s^2
-        // !!!revisit
-        SUMOReal speed = target->lane->getSpeedLimit();
-        SUMOReal dist = speed * speed / (2.*4.) + SPEED2DIST(speed) + candi->getVehicleType().getLength();
-        dist = MIN2(dist, (SUMOReal) 500.);
         return target->lane->getFollowerOnConsecutive(
-                   dist, candi->getPositionOnLane() - candi->getVehicleType().getLength(),
+                   candi->getPositionOnLane() - candi->getVehicleType().getLength(),
                    candi->getSpeed(), candi->getCarFollowModel().getMaxDecel());
     } else {
         MSVehicle* candi = veh(myCandi);

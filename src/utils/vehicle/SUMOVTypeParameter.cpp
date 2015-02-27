@@ -60,7 +60,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
     switch (vclass) {
         case SVC_PEDESTRIAN:
             length = 0.215;
-            minGap = 0.5;
+            minGap = 0.25;
             maxSpeed = DEFAULT_PEDESTRIAN_SPEED;
             width = 0.478;
             height = 1.719;
@@ -160,6 +160,13 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             break;
         case SVC_E_VEHICLE:
             shape = SVS_E_VEHICLE;
+            break;
+        case SVC_SHIP:
+            length = 17;
+            width = 4;
+            maxSpeed = 8 / 1.94; // 8 knots
+            height = 4;
+            shape = SVS_SHIP;
             break;
         default:
             break;
@@ -280,6 +287,8 @@ SUMOVTypeParameter::getDefaultAccel(const SUMOVehicleClass vc) {
             return 0.25;
         case SVC_RAIL_ELECTRIC:
             return 0.5;
+        case SVC_SHIP:
+            return 0.1;
         default:
             return 2.6;//2.9;
     }
@@ -313,6 +322,8 @@ SUMOVTypeParameter::getDefaultDecel(const SUMOVehicleClass vc) {
             return 1.3;
         case SVC_RAIL_ELECTRIC:
             return 1.3;
+        case SVC_SHIP:
+            return 0.15;
         default:
             return 4.5;//7.5;
     }
@@ -326,6 +337,7 @@ SUMOVTypeParameter::getDefaultImperfection(const SUMOVehicleClass vc) {
         case SVC_RAIL_URBAN:
         case SVC_RAIL:
         case SVC_RAIL_ELECTRIC:
+        case SVC_SHIP:
             return 0.;
         default:
             return 0.5;

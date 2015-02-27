@@ -80,6 +80,8 @@ class NBNode : public Named {
     friend class NBEdgePriorityComputer; // < computes priorities of edges per intersection
 
 public:
+    typedef std::map<std::string, PositionVector> CustomShapeMap;
+
     /**
      * @class ApproachingDivider
      * @brief Computes lane-2-lane connections
@@ -188,6 +190,11 @@ public:
     /// @brief default width of pedetrian crossings
     static const SUMOReal DEFAULT_CROSSING_WIDTH;
 
+    /// @brief the default turning radius at intersections in m
+    static const SUMOReal DEFAULT_RADIUS;
+
+    /// @brief unspecified lane width
+    static const SUMOReal UNSPECIFIED_RADIUS;
 
 public:
     /// @brief maximum number of connections allowed
@@ -268,6 +275,13 @@ public:
      */
     SumoXMLNodeType getType() const {
         return myType;
+    }
+
+    /** @brief Returns the turning radius of this node
+     * @return The turning radius of this node
+     */
+    SUMOReal getRadius() const {
+        return myRadius;
     }
     /// @}
 
@@ -479,8 +493,21 @@ public:
     /// @brief set the junction shape
     void setCustomShape(const PositionVector& shape);
 
+    /// @brief sets a custom shape for an internal lane
+    void setCustomLaneShape(const std::string& laneID, const PositionVector& shape);
+
+    /// @brief sets a custom shape for an internal lane
+    const CustomShapeMap& getCustomLaneShapes() const {
+        return myCustomLaneShapes;
+    }
+
+    /// @brief set the turning radius
+    void setRadius(SUMOReal radius) {
+        myRadius = radius;
+    }
+
     /// @brief return whether the shape was set by the user
-    bool hasCustomShape() {
+    bool hasCustomShape() const {
         return myHaveCustomPoly;
     }
 
@@ -507,6 +534,24 @@ public:
      */
     PositionVector computeInternalLaneShape(
         NBEdge* fromE, int fromL, NBEdge* toE, int toL, int numPoints = 5) const;
+
+
+    /** @brief Compute a smooth curve between the given geometries
+     * @param[in] begShape The geometry at the start
+     * @param[in] endShape The geometry at the end
+     * @param[in] numPoints The number of geometry points for the internal lane
+     * @param[in] isTurnaround Whether this shall be the shape for a turnaround
+     * @param[in] extrapolateBeg Extrapolation distance at the beginning
+     * @param[in] extrapolateEnd Extrapolation distance at the end
+     * @return The shape of the internal lane
+     */
+    PositionVector computeSmoothShape(
+            const PositionVector& begShape,
+            const PositionVector& endShape,
+            int numPoints,
+            bool isTurnaround,
+            SUMOReal extrapolateBeg,
+            SUMOReal extrapolateEnd) const;
 
 
     /** @brief Replaces occurences of the first edge within the list of incoming by the second
@@ -543,10 +588,9 @@ public:
     unsigned int buildCrossings();
 
     /* @brief build pedestrian walking areas and set connections from/to walkingAreas
-     * @param[in] index The starting index for naming the created internal lanes
-     * @param[in] tlIndex The starting traffic light index to assign to connections to controlled crossings
+     * @param[in] cornerDetail The detail level when generating the inner curve
      * */
-    void buildWalkingAreas();
+    void buildWalkingAreas(int cornerDetail);
 
     /// @brief return all edges that lie clockwise between the given edges
     EdgeVector edgesBetween(const NBEdge* e1, const NBEdge* e2) const;
@@ -622,6 +666,9 @@ public:
 
     };
 
+    /// @brief returns the node id for internal lanes, crossings and walkingareas
+    static std::string getNodeIDFromInternalLane(const std::string id);
+
 private:
     bool isSimpleContinuation() const;
 
@@ -645,6 +692,10 @@ private:
 
     /// @brief return whether there is a non-sidewalk lane after the given index;
     bool forbidsPedestriansAfter(std::vector<std::pair<NBEdge*, bool> > normalizedLanes, int startIndex);
+
+
+    /// @brief returns the list of all edges sorted clockwise by getAngleAtNodeToCenter
+    EdgeVector getEdgesSortedByAngleAtNodeCenter() const;
 
 private:
     /// @brief The position the node lies at
@@ -683,6 +734,11 @@ private:
     NBRequest* myRequest;
 
     std::set<NBTrafficLightDefinition*> myTrafficLights;
+
+    /// @brief the turning radius (for all corners) at this node in m.
+    SUMOReal myRadius;
+
+    CustomShapeMap myCustomLaneShapes;
 
 private:
     /// @brief invalidated copy constructor

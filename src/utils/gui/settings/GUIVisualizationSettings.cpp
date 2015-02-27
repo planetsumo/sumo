@@ -33,7 +33,7 @@
 #include <map>
 #include <vector>
 #include "GUIVisualizationSettings.h"
-#include "GUIColorScheme.h"
+#include "GUIPropertyScheme.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
@@ -83,6 +83,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::GREY, 1, "sidewalk");
     scheme.addColor(RGBColor(192, 66, 44), 2, "bike lane");
     scheme.addColor(RGBColor(0, 0, 0, 0), 3, "green verge");
+    scheme.addColor(RGBColor(150, 200, 200), 4, "waterway");
     laneColorer.addScheme(scheme);
     scheme = GUIColorScheme("by selection (lane-/streetwise)", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
@@ -96,6 +97,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor(166, 147, 26), (SUMOReal)SVC_TAXI, "taxi");
     scheme.addColor(RGBColor::BLACK, (SUMOReal)(SVCAll & ~SVC_PEDESTRIAN), "disallow_pedestrian");
     scheme.addColor(RGBColor(64, 0, 86), (SUMOReal)(SVCAll & ~(SVC_PEDESTRIAN | SVC_BICYCLE | SVC_MOPED)), "disallow_apedestrian_bicycle");
+    scheme.addColor(RGBColor(150, 200, 200), (SUMOReal)SVC_SHIP, "waterway");
     scheme.addColor(RGBColor::GREEN, (SUMOReal)SVCAll, "all");
     laneColorer.addScheme(scheme);
     // ... traffic states ...
@@ -143,7 +145,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme = GUIColorScheme("by noise emissions (Harmonoise)", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)100);
     laneColorer.addScheme(scheme);
-    // ... weights (experimental) ...
+	// ... weights (experimental) ...
     scheme = GUIColorScheme("by global travel time", RGBColor::GREEN);
     scheme.addColor(RGBColor::RED, (SUMOReal)100);
     scheme.setAllowsNegativeValues(true);
@@ -177,7 +179,21 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor::MAGENTA, (SUMOReal)200);
     scheme.setAllowsNegativeValues(true);
     laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by height at segment start", RGBColor::RED);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)-10);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal)50);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)100);
+    scheme.addColor(RGBColor::MAGENTA, (SUMOReal)200);
+    scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
     scheme = GUIColorScheme("by inclination", RGBColor::GREY);
+    scheme.addColor(RGBColor::YELLOW, (SUMOReal) .1);
+    scheme.addColor(RGBColor::RED, (SUMOReal) .3);
+    scheme.addColor(RGBColor::GREEN, (SUMOReal)-.1);
+    scheme.addColor(RGBColor::BLUE, (SUMOReal)-.3);
+    scheme.setAllowsNegativeValues(true);
+    laneColorer.addScheme(scheme);
+    scheme = GUIColorScheme("by inclination at segment start", RGBColor::GREY);
     scheme.addColor(RGBColor::YELLOW, (SUMOReal) .1);
     scheme.addColor(RGBColor::RED, (SUMOReal) .3);
     scheme.addColor(RGBColor::GREEN, (SUMOReal)-.1);
@@ -287,6 +303,7 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor(0,   0, 255, 255), 2);
     scheme.setAllowsNegativeValues(true);
     vehicleColorer.addScheme(scheme);
+    vehicleColorer.addScheme(GUIColorScheme("random", RGBColor::YELLOW, "", true));
 
     /// add person coloring schemes
     personColorer.addScheme(GUIColorScheme("given person/type color", RGBColor::YELLOW, "", true));
@@ -313,8 +330,12 @@ GUIVisualizationSettings::GUIVisualizationSettings()
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
     personColorer.addScheme(scheme);
     personColorer.addScheme(GUIColorScheme("by angle", RGBColor::YELLOW, "", true));
+    personColorer.addScheme(GUIColorScheme("random", RGBColor::YELLOW, "", true));
 
-    junctionColorer.addScheme(GUIColorScheme("uniform", RGBColor::BLACK, "", true));
+    /// add junction coloring schemes
+    scheme = GUIColorScheme("uniform", RGBColor::BLACK, "", true);
+    scheme.addColor(RGBColor(150, 200, 200), 1, "waterway");
+    junctionColorer.addScheme(scheme);
     scheme = GUIColorScheme("by selection", RGBColor(179, 179, 179, 255), "unselected", true);
     scheme.addColor(RGBColor(0, 102, 204, 255), 1, "selected");
     junctionColorer.addScheme(scheme);
@@ -510,74 +531,106 @@ GUIVisualizationSettings::getLaneEdgeScaleScheme() {
 
 void
 GUIVisualizationSettings::save(OutputDevice& dev) const {
-    dev << "<viewsettings>\n";
-    dev << "    <scheme name=\"" << name << "\">\n";
-    dev << "        <opengl antialiase=\"" << antialiase << "\" dither=\"" << dither << "\"/>\n";
-    dev << "        <background backgroundColor=\"" << backgroundColor << "\"\n"
-        << "                    showGrid=\"" << showGrid
-        << "\" gridXSize=\"" << gridXSize << "\" gridYSize=\"" << gridYSize << "\"/>\n";
-    dev << "        <edges laneEdgeMode=\"" << getLaneEdgeMode()
-        << "\" scaleMode=\"" << getLaneEdgeScaleMode()
-        << "\" laneShowBorders=\"" << laneShowBorders
-        << "\" showLinkDecals=\"" << showLinkDecals
-        << "\" showRails=\"" << showRails
-        << "\" hideConnectors=\"" << hideConnectors << "\"\n"
-        << "               " << edgeName.print("edgeName") << "\n"
-        << "               " << internalEdgeName.print("internalEdgeName") << "\n"
-        << "               " << cwaEdgeName.print("cwaEdgeName") << "\n"
-        << "               " << streetName.print("streetName") << ">\n";
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_SCHEME);
+    dev.writeAttr(SUMO_ATTR_NAME, name);
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_OPENGL);
+    dev.writeAttr("antialiase", antialiase);
+    dev.writeAttr("dither", dither);
+    dev.closeTag();
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_BACKGROUND);
+    dev.writeAttr("backgroundColor", backgroundColor);
+    dev.writeAttr("showGrid", showGrid);
+    dev.writeAttr("gridXSize", gridXSize);
+    dev.writeAttr("gridYSize", gridYSize);
+    dev.closeTag();
+    // edges
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_EDGES);
+    dev.writeAttr("laneEdgeMode", getLaneEdgeMode());
+    dev.writeAttr("scaleMode", getLaneEdgeScaleMode());
+    dev.writeAttr("laneShowBorders", laneShowBorders);
+    dev.writeAttr("showLinkDecals", showLinkDecals);
+    dev.writeAttr("showRails", showRails);
+    dev.writeAttr("hideConnectors", hideConnectors);
+    dev.writeAttr("widthExaggeration", laneWidthExaggeration);
+    dev.lf();
+    dev << "               ";
+    edgeName.print(dev, "edgeName");
+    dev.lf();
+    dev << "               ";
+    internalEdgeName.print(dev, "internalEdgeName");
+    dev.lf();
+    dev << "               ";
+    cwaEdgeName.print(dev, "cwaEdgeName");
+    dev.lf();
+    dev << "               ";
+    streetName.print(dev, "streetName");
     laneColorer.save(dev);
     laneScaler.save(dev);
 #ifdef HAVE_INTERNAL
     edgeColorer.save(dev);
     edgeScaler.save(dev);
 #endif
-    dev << "        </edges>\n";
-
-    dev << "        <vehicles vehicleMode=\"" << vehicleColorer.getActive()
-        << "\" vehicleQuality=\"" << vehicleQuality
-        << "\" " << vehicleSize.print("vehicle")
-        << "showBlinker=\"" << showBlinker << "\"\n"
-        << "                  " << vehicleName.print("vehicleName")
-        << ">\n";
+    dev.closeTag();
+    // vehicles
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_VEHICLES);
+    dev.writeAttr("vehicleMode", vehicleColorer.getActive());
+    dev.writeAttr("vehicleQuality", vehicleQuality);
+    vehicleSize.print(dev, "vehicle");
+    dev.writeAttr("showBlinker", showBlinker);
+    dev.lf();
+    dev << "                 ";
+    vehicleName.print(dev, "vehicleName");
     vehicleColorer.save(dev);
-    dev << "        </vehicles>\n";
-    dev << "        <persons personMode=\"" << personColorer.getActive()
-        << "\" personQuality=\"" << personQuality << "\" "
-        << personSize.print("person")
-        << personName.print("personName")
-        << ">\n";
+    dev.closeTag();
+    // vehicles
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_PERSONS);
+    dev.writeAttr("personMode", personColorer.getActive());
+    dev.writeAttr("personQuality", personQuality);
+    personSize.print(dev, "person");
+    dev.lf();
+    dev << "                ";
+    personName.print(dev, "personName");
     personColorer.save(dev);
-    dev << "        </persons>\n";
-
-    dev << "        <junctions junctionMode=\"" << junctionColorer.getActive()
-        << "\" drawLinkTLIndex=\"" << drawLinkTLIndex
-        << "\" drawLinkJunctionIndex=\"" << drawLinkJunctionIndex << "\"\n"
-        << "                  " << junctionName.print("junctionName") << "\n"
-        << "                  " << internalJunctionName.print("internalJunctionName") << "\n"
-        << " showLane2Lane=\"" << showLane2Lane << "\""
-        << " drawShape=\"" << drawJunctionShape << "\">\n";
+    dev.closeTag();
+    // junctions
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_JUNCTIONS);
+    dev.writeAttr("junctionMode", junctionColorer.getActive());
+    dev.writeAttr("drawLinkTLIndex", drawLinkTLIndex);
+    dev.writeAttr("drawLinkJunctionIndex", drawLinkJunctionIndex);
+    dev.lf();
+    dev << "                  ";
+    junctionName.print(dev, "junctionName");
+    dev.lf();
+    dev << "                  ";
+    internalJunctionName.print(dev, "internalJunctionName");
+    dev.lf();
+    dev << "                  ";
+    dev.writeAttr("showLane2Lane", showLane2Lane);
+    dev.writeAttr("drawShape", drawJunctionShape);
     junctionColorer.save(dev);
-    dev << "        </junctions>\n";
+    dev.closeTag();
+    // additionals
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_ADDITIONALS);
+    dev.writeAttr("addMode", addMode);
+    addSize.print(dev, "add");
+    addName.print(dev, "addName");
+    dev.closeTag();
+    // pois
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_POIS);
+    poiSize.print(dev, "poi");
+    poiName.print(dev, "poiName");
+    dev.closeTag();
+    // polys
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_POLYS);
+    polySize.print(dev, "poly");
+    polyName.print(dev, "polyName");
+    dev.closeTag();
+    // legend
+    dev.openTag(SUMO_TAG_VIEWSETTINGS_LEGEND);
+    dev.writeAttr("showSizeLegend", showSizeLegend);
+    dev.closeTag();
 
-    dev << "        <additionals addMode=\"" << addMode << "\" "
-        << addSize.print("add")
-        << addName.print("addName")
-        << "/>\n";
-
-    dev << "        <pois "
-        << poiSize.print("poi")
-        << poiName.print("poiName")
-        << "/>\n";
-
-    dev << "        <polys "
-        << polySize.print("poly")
-        << polyName.print("polyName")
-        << "/>\n";
-
-    dev << "        <legend showSizeLegend=\"" << showSizeLegend << "\"/>\n";
-    dev << "    </scheme>\n";
-    dev << "</viewsettings>\n";
+    dev.closeTag();
 }
 
 

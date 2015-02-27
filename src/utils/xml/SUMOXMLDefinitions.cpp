@@ -92,13 +92,13 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "fromEdge",         SUMO_TAG_FROMEDGE },
     { "toEdge",           SUMO_TAG_TOEDGE },
     { "sink",             SUMO_TAG_SINK },
-    { "param",	          SUMO_TAG_PARAM },
-    { "WAUT",	          SUMO_TAG_WAUT },
+    { "param",            SUMO_TAG_PARAM },
+    { "WAUT",             SUMO_TAG_WAUT },
     { "wautSwitch",       SUMO_TAG_WAUT_SWITCH },
     { "wautJunction",     SUMO_TAG_WAUT_JUNCTION },
-    { "segment",      	  SUMO_TAG_SEGMENT },
-    { "delete",        	  SUMO_TAG_DELETE },
-    { "stop",        	  SUMO_TAG_STOP },
+    { "segment",          SUMO_TAG_SEGMENT },
+    { "delete",           SUMO_TAG_DELETE },
+    { "stop",             SUMO_TAG_STOP },
     { "destProbReroute",  SUMO_TAG_DEST_PROB_REROUTE },
     { "closingReroute",   SUMO_TAG_CLOSING_REROUTE },
     { "routeProbReroute", SUMO_TAG_ROUTE_PROB_REROUTE },
@@ -116,6 +116,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "join",             SUMO_TAG_JOIN },
     { "joinExclude",      SUMO_TAG_JOINEXCLUDE },
     { "crossing",         SUMO_TAG_CROSSING },
+    { "customShape",      SUMO_TAG_CUSTOMSHAPE },
 
     { "way",              SUMO_TAG_WAY },
     { "nd",               SUMO_TAG_ND },
@@ -153,6 +154,7 @@ StringBijection<int>::Entry SUMOXMLDefinitions::tags[] = {
     { "carFollowing-IDMM",        SUMO_TAG_CF_IDMM },
     { "carFollowing-Krauss",      SUMO_TAG_CF_KRAUSS },
     { "carFollowing-KraussPS",    SUMO_TAG_CF_KRAUSS_PLUS_SLOPE },
+    { "carFollowing-KraussAB",    SUMO_TAG_CF_KRAUSS_ACCEL_BOUND },
     { "carFollowing-KraussOrig1", SUMO_TAG_CF_KRAUSS_ORIG1 },
     { "carFollowing-SmartSK",     SUMO_TAG_CF_SMART_SK },
     { "carFollowing-Daniel1",     SUMO_TAG_CF_DANIEL1 },
@@ -301,6 +303,8 @@ StringBijection<int>::Entry SUMOXMLDefinitions::attrs[] = {
     { "linkIndex",      SUMO_ATTR_TLLINKINDEX },
     { "shape",          SUMO_ATTR_SHAPE },
     { "spreadType",     SUMO_ATTR_SPREADTYPE },
+    { "radius",         SUMO_ATTR_RADIUS },
+    { "customShape",    SUMO_ATTR_CUSTOMSHAPE },
     { "color",          SUMO_ATTR_COLOR },
     { "dir",            SUMO_ATTR_DIR },
     { "state",          SUMO_ATTR_STATE },
@@ -521,7 +525,6 @@ StringBijection<LinkDirection>::Entry SUMOXMLDefinitions::linkDirectionValues[] 
 StringBijection<TrafficLightType>::Entry SUMOXMLDefinitions::trafficLightTypesVales[] = {
     { "static", TLTYPE_STATIC },
     { "actuated", TLTYPE_ACTUATED },
-    { "agentbased", TLTYPE_AGENT }
 };
 
 
@@ -553,7 +556,7 @@ StringBijection<LinkDirection> SUMOXMLDefinitions::LinkDirections(
     SUMOXMLDefinitions::linkDirectionValues, LINKDIR_NODIR);
 
 StringBijection<TrafficLightType> SUMOXMLDefinitions::TrafficLightTypes(
-    SUMOXMLDefinitions::trafficLightTypesVales, TLTYPE_AGENT);
+    SUMOXMLDefinitions::trafficLightTypesVales, TLTYPE_ACTUATED);
 
 StringBijection<LaneChangeModel> SUMOXMLDefinitions::LaneChangeModels(
     SUMOXMLDefinitions::laneChangeModelValues, LCM_JE2013);

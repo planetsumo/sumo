@@ -52,6 +52,7 @@ class MSEdge;
 class MSLane;
 class OutputDevice;
 
+typedef std::vector<MSEdge*> MSEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -71,9 +72,6 @@ class OutputDevice;
  *  in "patchActiveLanes".
  */
 class MSEdgeControl {
-public:
-    /// @brief Container for edges.
-    typedef std::vector< MSEdge* > EdgeCont;
 
 public:
     /** @brief Constructor
@@ -158,7 +156,7 @@ public:
      * @return the container storing one-lane edges
      * @todo Check: Is this secure?
      */
-    const std::vector<MSEdge*>& getEdges() const {
+    const MSEdgeVector& getEdges() const {
         return myEdges;
     }
 
@@ -205,7 +203,7 @@ public:
 
 private:
     /// @brief Loaded edges
-    std::vector<MSEdge*> myEdges;
+    MSEdgeVector myEdges;
 
     /// @brief Definition of a container about a lane's number of vehicles and neighbors
     typedef std::vector<LaneUsage> LaneUsageVector;

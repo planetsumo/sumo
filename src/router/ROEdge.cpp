@@ -58,7 +58,7 @@ bool ROEdge::myUseBoundariesOnOverrideE = false;
 bool ROEdge::myInterpolate = false;
 bool ROEdge::myHaveTTWarned = false;
 bool ROEdge::myHaveEWarned = false;
-std::vector<ROEdge*> ROEdge::myEdges;
+ROEdgeVector ROEdge::myEdges;
 
 
 // ===========================================================================
@@ -260,7 +260,7 @@ ROEdge::buildTimeLines(const std::string& measure) {
 
 bool
 ROEdge::allFollowersProhibit(const ROVehicle* const vehicle) const {
-    for (std::vector<ROEdge*>::const_iterator i = myFollowingEdges.begin(); i != myFollowingEdges.end(); ++i) {
+    for (ROEdgeVector::const_iterator i = myFollowingEdges.begin(); i != myFollowingEdges.end(); ++i) {
         if (!(*i)->prohibits(vehicle)) {
             return false;
         }
@@ -276,6 +276,44 @@ ROEdge::dictionary(size_t id) {
 }
 
 
+const ROEdgeVector& 
+ROEdge::getSuccessors(SUMOVehicleClass vClass) const {
+    if (vClass == SVC_IGNORING) {
+        return myFollowingEdges;
+    }
+    ClassesSuccesorMap::const_iterator i = myClassesSuccessorMap.find(vClass);
+    if (i != myClassesSuccessorMap.end()) {
+        // can use cached value
+        return i->second;
+    } else {
+        // this vClass is requested for the first time. rebuild all succesors
+        std::set<ROEdge*> followers;
+        for (std::vector<ROLane*>::const_iterator it = myLanes.begin(); it != myLanes.end(); ++it) {
+            ROLane* lane = *it;
+            if ((lane->getPermissions() & vClass) != 0) {
+                const std::vector<const ROLane*>& outgoing = lane->getOutgoingLanes();
+                for (std::vector<const ROLane*>::const_iterator it2 = outgoing.begin(); it2 != outgoing.end(); ++it2) {
+                    const ROLane* next = *it2;
+                    if ((next->getPermissions() & vClass) != 0) {
+                        followers.insert(&next->getEdge());
+                    }
+                }
+            }
+        }
+        myClassesSuccessorMap[vClass].insert(myClassesSuccessorMap[vClass].begin(), 
+                followers.begin(), followers.end());
+        return myClassesSuccessorMap[vClass];
+    }
+
+}
+
+
+bool 
+ROEdge::isConnectedTo(const ROEdge* const e, const ROVehicle* const vehicle) const {
+    const SUMOVehicleClass vClass = (vehicle == 0 ? SVC_IGNORING : vehicle->getVClass());
+    const ROEdgeVector& followers = getSuccessors(vClass);
+    return std::find(followers.begin(), followers.end(), e) != followers.end();
+}
 
 /****************************************************************************/
 

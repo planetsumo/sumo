@@ -62,9 +62,6 @@
     <ClCompile Include="..\..\..\src\microsim\output\MSQueueExport.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_Emissions.cpp">
-      <Filter>Quellcodedateien</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\output\MSAmitranTrajectories.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
@@ -72,6 +69,9 @@
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\output\MSBatteryExport.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\output\MSMeanData_Emissions.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -133,9 +133,6 @@
     <ClInclude Include="..\..\..\src\microsim\output\MSQueueExport.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_Emissions.h">
-      <Filter>Header-Dateien</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\output\MSAmitranTrajectories.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
@@ -143,6 +140,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\output\MSBatteryExport.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\output\MSMeanData_Emissions.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -50,7 +50,7 @@
 #include <microsim/MSRoute.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSGlobals.h>
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <utils/common/RandHelper.h>
@@ -118,6 +118,11 @@ MSFrame::fillOptions() {
     oc.addSynonyme("netstate-dump.empty-edges", "netstate-output.empty-edges");
     oc.addSynonyme("netstate-dump.empty-edges", "dump-empty-edges", true);
     oc.addDescription("netstate-dump.empty-edges", "Output", "Write also empty edges completely when dumping");
+    oc.doRegister("netstate-dump.precision", new Option_Integer(OUTPUT_ACCURACY));
+    oc.addSynonyme("netstate-dump.precision", "netstate.precision");
+    oc.addSynonyme("netstate-dump.precision", "netstate-output.precision");
+    oc.addSynonyme("netstate-dump.precision", "dump-precision", true);
+    oc.addDescription("netstate-dump.precision", "Output", "Write positions and speeds with the given precision (default 2)");
 
 
     oc.doRegister("emission-output", new Option_FileName());
@@ -144,8 +149,6 @@ MSFrame::fillOptions() {
 
     oc.doRegister("summary-output", new Option_FileName());
     oc.addSynonyme("summary-output", "summary");
-    oc.addSynonyme("summary-output", "emissions-output", true);
-    oc.addSynonyme("summary-output", "emissions", true);
     oc.addDescription("summary-output", "Output", "Save aggregated vehicle departure info into FILE");
 
     oc.doRegister("tripinfo-output", new Option_FileName());
@@ -229,7 +232,7 @@ MSFrame::fillOptions() {
 #endif
 
     oc.doRegister("ignore-accidents", new Option_Bool(false));
-    oc.addDescription("ignore-accidents", "Processing", "Do not check whether accidents occure more deeply");
+    oc.addDescription("ignore-accidents", "Processing", "Do not check whether accidents occur");
 
     oc.doRegister("ignore-route-errors", new Option_Bool(false));
     oc.addDescription("ignore-route-errors", "Processing", "Do not check whether routes are connected");
@@ -279,6 +282,9 @@ MSFrame::fillOptions() {
 
     oc.doRegister("pedestrian.striping.dawdling", new Option_Float(0.2));
     oc.addDescription("pedestrian.striping.dawdling", "Processing", "factor for random slow-downs [0,1] for use with model 'striping'");
+
+    oc.doRegister("pedestrian.striping.jamtime", new Option_String("300", "TIME"));
+    oc.addDescription("pedestrian.striping.jamtime", "Processing", "Time in seconds after which pedestrians start squeezing through a jam when using model 'striping' (non-positive values disable squeezing)");
 
     // devices
     oc.addOptionSubTopic("Emissions");

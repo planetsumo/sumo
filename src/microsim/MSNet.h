@@ -81,6 +81,7 @@ class BinaryInputDevice;
 class MSEdgeWeightsStorage;
 class SUMOVehicle;
 
+typedef std::vector<MSEdge*> MSEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -154,11 +155,13 @@ public:
      * @param[in] tlc The control of traffic lights which belong to this network
      * @param[in] stateDumpTimes List of time steps at which state shall be written
      * @param[in] stateDumpFiles Filenames for states
+     * @param[in] hasInternalLinks Whether the network actually contains internal links
      * @todo Try to move all this to the constructor?
      */
     void closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
                        SUMORouteLoaderControl* routeLoaders, MSTLLogicControl* tlc,
-                       std::vector<SUMOTime> stateDumpTimes, std::vector<std::string> stateDumpFiles);
+                       std::vector<SUMOTime> stateDumpTimes, std::vector<std::string> stateDumpFiles,
+                       bool hasInternalLinks);
 
 
     /** @brief Returns whether the network has vehicle class restrictions
@@ -538,10 +541,10 @@ public:
      * @param[in] prohibited The vector of forbidden edges (optional)
      */
     SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouterTT(
-        const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
+        const MSEdgeVector& prohibited = MSEdgeVector()) const;
     SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouterEffort(
-        const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
-    MSPedestrianRouterDijkstra& getPedestrianRouter(const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
+        const MSEdgeVector& prohibited = MSEdgeVector()) const;
+    MSPedestrianRouterDijkstra& getPedestrianRouter(const MSEdgeVector& prohibited = MSEdgeVector()) const;
 
 
     /** @brief Returns an RTree that contains lane IDs
@@ -549,6 +552,10 @@ public:
      */
     const NamedRTree& getLanesRTree() const;
 
+    /// @brief return whether the network contains internal links
+    bool hasInternalLinks() const {
+        return myHasInternalLinks;
+    }
 
 protected:
     /// @brief Unique instance of MSNet
@@ -627,6 +634,9 @@ protected:
 
     /// @brief Whether the network contains edges which not all vehicles may pass
     bool myHaveRestrictions;
+
+    /// @brief Whether the network contains internal links/lanes/edges
+    bool myHasInternalLinks;
 
     /// @brief Storage for maximum vehicle number
     int myTooManyVehicles;

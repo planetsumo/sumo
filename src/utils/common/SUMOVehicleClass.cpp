@@ -81,6 +81,7 @@ StringBijection<SUMOVehicleClass>::Entry sumoVehicleClassStringInitializer[] = {
     {"bicycle",           SVC_BICYCLE},
     {"pedestrian",        SVC_PEDESTRIAN},
     {"evehicle",          SVC_E_VEHICLE},
+    {"ship",              SVC_SHIP},
     {"custom1",           SVC_CUSTOM1},
     {"custom2",           SVC_CUSTOM2}
 };
@@ -123,6 +124,7 @@ StringBijection<SUMOVehicleShape>::Entry sumoVehicleShapeStringInitializer[] = {
     {"rail/cargo",            SVS_RAIL_CARGO},
     {"evehicle",              SVS_E_VEHICLE},
     {"ant",                   SVS_ANT},
+    {"ship",                  SVS_SHIP},
     {"",                      SVS_UNKNOWN}
 };
 
@@ -137,6 +139,7 @@ StringBijection<SUMOVehicleShape> SumoVehicleShapeStrings(
 
 const int SUMOVehicleClass_MAX = SVC_CUSTOM2;
 const SVCPermissions SVCAll = 2 * SUMOVehicleClass_MAX - 1; // all relevant bits set to 1
+const SVCPermissions SVC_UNSPECIFIED = -1;
 
 
 // ===========================================================================
@@ -289,6 +292,11 @@ getVehicleShapeName(SUMOVehicleShape id) {
 
 bool isRailway(SVCPermissions permissions) {
     return (permissions & (SVC_RAIL_ELECTRIC | SVC_RAIL | SVC_RAIL_URBAN | SVC_TRAM)) > 0 && (permissions & SVC_PASSENGER) == 0;
+}
+
+
+bool isWaterway(SVCPermissions permissions) {
+    return permissions == SVC_SHIP;
 }
 
 
