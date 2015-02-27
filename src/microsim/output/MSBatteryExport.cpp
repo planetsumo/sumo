@@ -54,9 +54,10 @@
 // method definitions
 // ===========================================================================
 void
-MSBatteryExport::write(OutputDevice& of, SUMOTime timestep) 
+MSBatteryExport::write(OutputDevice& of, SUMOTime timestep, int precision) 
 {
     of.openTag("timestep").writeAttr("time", time2string(timestep));
+    of.setPrecision(precision);
 
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
     MSVehicleControl::constVehIt it = vc.loadedVehBegin();

@@ -565,7 +565,8 @@ MSNet::writeOutput() {
 
     // battery dumps
     if (OptionsCont::getOptions().isSet("battery-output")) {
-        MSBatteryExport::write(OutputDevice::getDeviceByOption("battery-output"), myStep);
+        MSBatteryExport::write(OutputDevice::getDeviceByOption("battery-output"), myStep,
+                oc.getInt("battery-output.precision"));
     }
 
     // check full dumps

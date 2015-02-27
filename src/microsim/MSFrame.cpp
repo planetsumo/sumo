@@ -130,6 +130,8 @@ MSFrame::fillOptions() {
 
     oc.doRegister("battery-output", new Option_FileName());
     oc.addDescription("battery-output", "Output", "Save the battery values of each vehicle");
+    oc.doRegister("battery-output.precision", new Option_Integer(OUTPUT_ACCURACY));
+    oc.addDescription("battery-output.precision", "Output", "Write battery values with the given precision (default 2)");
 
     oc.doRegister("fcd-output", new Option_FileName());
     oc.addDescription("fcd-output", "Output", "Save the Floating Car Data");
