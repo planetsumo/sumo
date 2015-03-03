@@ -69,7 +69,7 @@ NBNodeShapeComputer::compute(bool leftHand) {
         singleDirection = true;
     }
     if (myNode.myAllEdges.size() == 2 && myNode.getIncomingEdges().size() == 1) {
-        if (myNode.getIncomingEdges()[0]->isTurningDirectionAt(&myNode, myNode.getOutgoingEdges()[0])) {
+        if (myNode.getIncomingEdges()[0]->isTurningDirectionAt(myNode.getOutgoingEdges()[0])) {
             singleDirection = true;
         }
     }
@@ -635,8 +635,7 @@ NBNodeShapeComputer::joinSameDirectionEdges(std::map<NBEdge*, EdgeVector >& same
             // do not join edges which are both entering or both leaving. A
             // separation point must always be computed in later steps
             const SUMOReal angleDiff = l1.atan2DegreeAngle() - l2.atan2DegreeAngle();
-            const bool differentDirs = ((incoming && (*j)->getFromNode() == &myNode) || 
-                    !incoming && (*j)->getToNode() == &myNode);
+            const bool differentDirs = incoming ? (*j)->getFromNode() == &myNode : (*j)->getToNode() == &myNode;
             const SUMOReal angleDiffFurther = angle1further - angle2further;
             const bool ambiguousGeometry = ((angleDiff > 0 && angleDiffFurther < 0) || (angleDiff < 0 && angleDiffFurther > 0));
             //if (ambiguousGeometry) {

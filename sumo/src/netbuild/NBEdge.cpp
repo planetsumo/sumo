@@ -191,6 +191,7 @@ NBEdge::NBEdge(const std::string& id, NBNode* from, NBNode* to,
     myStartAngle(0), myEndAngle(0), myTotalAngle(0),
     myPriority(priority), mySpeed(speed),
     myTurnDestination(0),
+    myPossibleTurnDestination(0),
     myFromJunctionPriority(-1), myToJunctionPriority(-1),
     myLaneSpreadFunction(spread), myEndOffset(offset), myLaneWidth(laneWidth),
     myLoadedLength(UNSPECIFIED_LOADED_LENGTH), myAmLeftHand(false),
@@ -214,6 +215,7 @@ NBEdge::NBEdge(const std::string& id, NBNode* from, NBNode* to,
     myStartAngle(0), myEndAngle(0), myTotalAngle(0),
     myPriority(priority), mySpeed(speed),
     myTurnDestination(0),
+    myPossibleTurnDestination(0),
     myFromJunctionPriority(-1), myToJunctionPriority(-1),
     myGeom(geom), myLaneSpreadFunction(spread), myEndOffset(offset), myLaneWidth(laneWidth),
     myLoadedLength(UNSPECIFIED_LOADED_LENGTH), myAmLeftHand(false),
@@ -232,6 +234,7 @@ NBEdge::NBEdge(const std::string& id, NBNode* from, NBNode* to, NBEdge* tpl, con
     myStartAngle(0), myEndAngle(0), myTotalAngle(0),
     myPriority(tpl->getPriority()), mySpeed(tpl->getSpeed()),
     myTurnDestination(0),
+    myPossibleTurnDestination(0),
     myFromJunctionPriority(-1), myToJunctionPriority(-1),
     myGeom(geom),
     myLaneSpreadFunction(tpl->getLaneSpreadFunction()),
@@ -1051,7 +1054,7 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
             toEdge = (*i).toEdge;
             internalLaneIndex = 0;
         }
-        PositionVector shape = n.computeInternalLaneShape(this, con.fromLane, con.toEdge, con.toLane);
+        PositionVector shape = n.computeInternalLaneShape(this, con);
         std::vector<unsigned int> foeInternalLinks;
 
         LinkDirection dir = n.getDirection(this, con.toEdge);
@@ -1063,6 +1066,8 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
         std::pair<SUMOReal, std::vector<unsigned int> > crossingPositions(-1, std::vector<unsigned int>());
         std::set<std::string> tmpFoeIncomingLanes;
         switch (dir) {
+            case LINKDIR_RIGHT:
+            case LINKDIR_PARTRIGHT:
             case LINKDIR_LEFT:
             case LINKDIR_PARTLEFT:
             case LINKDIR_TURN: {
@@ -1074,32 +1079,34 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
                         if ((*k2).toEdge == 0) {
                             continue;
                         }
-                        bool needsCont = n.needsCont(this, con.toEdge, *i2, (*k2).toEdge, *k2);
+                        bool needsCont = n.needsCont(this, *i2, con, *k2);
                         // compute the crossing point
                         if (needsCont) {
                             crossingPositions.second.push_back(index);
-                            // for left-turning vehicles only oncoming streams are relevant for waiting on the intersection
-                            if (con.toEdge != (*k2).toEdge || dir == LINKDIR_TURN) { 
-                                const PositionVector otherShape = n.computeInternalLaneShape(*i2, (*k2).fromLane, (*k2).toEdge, (*k2).toLane);
-                                const std::vector<SUMOReal> dv = shape.intersectsAtLengths2D(otherShape);
-                                if (dv.size() > 0) {
-                                    const SUMOReal minDV = dv[0];
-                                    if (minDV < shape.length() - POSITION_EPS && minDV > POSITION_EPS) { // !!!?
-                                        assert(minDV >= 0);
-                                        if (crossingPositions.first < 0 || crossingPositions.first > minDV) {
-                                            crossingPositions.first = minDV;
-                                        }
-                                    }
+                            const PositionVector otherShape = n.computeInternalLaneShape(*i2, *k2);
+                            // vehicles are typically less wide than the lane
+                            // they drive on but but bicycle lanes should be kept clear for their whole width
+                            SUMOReal width2 = (*k2).toEdge->getLaneWidth((*k2).toLane);
+                            if ((*k2).toEdge->getPermissions((*k2).toLane) != SVC_BICYCLE) {
+                                width2 *= 0.5;
+                            }
+                            const SUMOReal minDV = firstIntersection(shape, otherShape, width2);
+                            if (minDV < shape.length() - POSITION_EPS && minDV > POSITION_EPS) { // !!!?
+                                assert(minDV >= 0);
+                                if (crossingPositions.first < 0 || crossingPositions.first > minDV) {
+                                    crossingPositions.first = minDV;
                                 }
                             }
                         }
+                        const bool rightTurnConflict = n.rightTurnConflict(
+                                this, con.toEdge, con.fromLane, (*i2), (*k2).toEdge, (*k2).fromLane);
                         // compute foe internal lanes
-                        if (n.foes(this, con.toEdge, *i2, (*k2).toEdge)) {
+                        if (n.foes(this, con.toEdge, *i2, (*k2).toEdge) || rightTurnConflict) {
                             foeInternalLinks.push_back(index);
                         }
                         // compute foe incoming lanes
                         const bool signalised = hasSignalisedConnectionTo(con.toEdge);
-                        if (n.forbids(*i2, (*k2).toEdge, this, con.toEdge, signalised) && (needsCont || dir == LINKDIR_TURN)) {
+                        if ((n.forbids(*i2, (*k2).toEdge, this, con.toEdge, signalised) || rightTurnConflict) && (needsCont || dir == LINKDIR_TURN)) {
                             tmpFoeIncomingLanes.insert((*i2)->getID() + "_" + toString((*k2).fromLane));
                         }
                         index++;
@@ -1168,6 +1175,32 @@ NBEdge::buildInnerEdges(const NBNode& n, unsigned int noInternalNoSplits, unsign
     }
 }
 
+
+SUMOReal 
+NBEdge::firstIntersection(const PositionVector& v1, const PositionVector& v2, SUMOReal width2) {
+    SUMOReal intersect = std::numeric_limits<double>::max();
+    if (v2.length() < POSITION_EPS) {
+        return intersect;
+    }
+    PositionVector v2Right = v2;
+    v2Right.move2side(width2);
+
+    PositionVector v2Left = v2;
+    v2Left.move2side(-width2);
+
+    // intersect center line of v1 with left and right border of v2
+    std::vector<SUMOReal> tmp = v1.intersectsAtLengths2D(v2Right);
+    if (tmp.size() > 0) {
+        intersect = MIN2(intersect, tmp[0]);
+    }
+    tmp = v1.intersectsAtLengths2D(v2Left);
+    if (tmp.size() > 0) {
+        intersect = MIN2(intersect, tmp[0]);
+    }
+    return intersect;
+}
+
+
 // -----------
 int
 NBEdge::getJunctionPriority(const NBNode* const node) const {
@@ -1217,8 +1250,11 @@ NBEdge::getAngleAtNodeToCenter(const NBNode* const atNode) const {
 
 
 void
-NBEdge::setTurningDestination(NBEdge* e) {
-    myTurnDestination = e;
+NBEdge::setTurningDestination(NBEdge* e, bool onlyPossible) {
+    if (!onlyPossible) {
+        myTurnDestination = e;
+    }
+    myPossibleTurnDestination = e;
 }
 
 
@@ -1698,7 +1734,7 @@ NBEdge::appendTurnaround(bool noTLSControlled) {
 
 
 bool
-NBEdge::isTurningDirectionAt(const NBNode* n, const NBEdge* const edge) const {
+NBEdge::isTurningDirectionAt(const NBEdge* const edge) const {
     // maybe it was already set as the turning direction
     if (edge == myTurnDestination) {
         return true;
@@ -1706,23 +1742,8 @@ NBEdge::isTurningDirectionAt(const NBNode* n, const NBEdge* const edge) const {
         // otherwise - it's not if a turning direction exists
         return false;
     }
-    // if the same nodes are connected
-    if (myFrom == edge->myTo && myTo == edge->myFrom) {
-        return true;
-    }
-    // we have to check whether the connection between the nodes is
-    //  geometrically similar
-    SUMOReal thisFromAngle2 = getAngleAtNode(n);
-    SUMOReal otherToAngle2 = edge->getAngleAtNode(n);
-    if (thisFromAngle2 < otherToAngle2) {
-        std::swap(thisFromAngle2, otherToAngle2);
-    }
-    if (thisFromAngle2 - otherToAngle2 > 170 && thisFromAngle2 - otherToAngle2 < 190) {
-        return true;
-    }
-    return false;
+    return edge == myPossibleTurnDestination;
 }
-
 
 
 NBNode*

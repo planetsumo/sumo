@@ -569,19 +569,37 @@ NBNode::computeSmoothShape(const PositionVector& begShape,
 
 
 PositionVector
-NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
-                                 NBEdge* toE, int toL, int numPoints) const {
-    if (fromL >= (int) fromE->getNumLanes()) {
-        throw ProcessError("Connection '" + fromE->getID() + "_" + toString(fromL) + "->" + toE->getID() + "_" + toString(toL) + "' starts at a not existing lane.");
+NBNode::computeInternalLaneShape(NBEdge* fromE, const NBEdge::Connection& con, int numPoints) const {
+    if (con.fromLane >= (int) fromE->getNumLanes()) {
+        throw ProcessError("Connection '" + fromE->getID() + "_" + toString(con.fromLane) + "->" + con.toEdge->getID() + "_" + toString(con.toLane) + "' starts at a non-existant lane.");
     }
-    if (toL >= (int) toE->getNumLanes()) {
-        throw ProcessError("Connection '" + fromE->getID() + "_" + toString(fromL) + "->" + toE->getID() + "_" + toString(toL) + "' yields in a not existing lane.");
+    if (con.toLane >= (int) con.toEdge->getNumLanes()) {
+        throw ProcessError("Connection '" + fromE->getID() + "_" + toString(con.fromLane) + "->" + con.toEdge->getID() + "_" + toString(con.toLane) + "' targets a non-existant lane.");
     }
-    PositionVector ret = computeSmoothShape(fromE->getLaneShape(fromL), toE->getLaneShape(toL), 
-            numPoints, fromE->getTurnDestination() == toE,
+    PositionVector ret;
+    if (myCustomLaneShapes.size() > 0 && con.id != "") {
+        // this is the second pass (ids and shapes are already set
+        assert(con.shape.size() > 0);
+        CustomShapeMap::const_iterator it = myCustomLaneShapes.find(con.getInternalLaneID());
+        if (it != myCustomLaneShapes.end()) {
+            ret = it->second;
+        } else {
+            ret = con.shape;
+        }
+        it = myCustomLaneShapes.find(con.viaID + "_0");
+        if (it != myCustomLaneShapes.end()) {
+            ret.append(it->second);
+        } else {
+            ret.append(con.viaShape);
+        }
+        return ret;
+    }
+
+    ret = computeSmoothShape(fromE->getLaneShape(con.fromLane), con.toEdge->getLaneShape(con.toLane), 
+            numPoints, fromE->getTurnDestination() == con.toEdge,
             (SUMOReal) 5. * (SUMOReal) fromE->getNumLanes(),
-            (SUMOReal) 5. * (SUMOReal) toE->getNumLanes());
-    const NBEdge::Lane& lane = fromE->getLaneStruct(fromL);
+            (SUMOReal) 5. * (SUMOReal) con.toEdge->getNumLanes());
+    const NBEdge::Lane& lane = fromE->getLaneStruct(con.fromLane);
     if (lane.endOffset > 0) {
         PositionVector beg = lane.shape.getSubpart(lane.shape.length() - lane.endOffset, lane.shape.length());;
         beg.append(ret);
@@ -592,29 +610,45 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
 
 
 bool
-NBNode::needsCont(NBEdge* fromE, NBEdge* toE, NBEdge* otherFromE, NBEdge* otherToE, const NBEdge::Connection& c) const {
-    if (myType == NODETYPE_RIGHT_BEFORE_LEFT) {
-        return false;
-    }
-    if (fromE == otherFromE) {
-        // ignore same edge links
-        return false;
-    }
-    if (!foes(otherFromE, otherToE, fromE, toE)) {
-        // if they do not cross, no waiting place is needed
+NBNode::needsCont(const NBEdge* fromE, const NBEdge* otherFromE, 
+        const NBEdge::Connection& c, const NBEdge::Connection& otherC) const {
+    const NBEdge* toE = c.toEdge;
+    const NBEdge* otherToE = otherC.toEdge;
+
+    if (myType == NODETYPE_RIGHT_BEFORE_LEFT || myType == NODETYPE_ALLWAY_STOP) {
         return false;
     }
     LinkDirection d1 = getDirection(fromE, toE);
+    const bool thisRight = (d1 == LINKDIR_RIGHT || d1 == LINKDIR_PARTRIGHT);
+    const bool rightTurnConflict = (thisRight && 
+            myRequest->rightTurnConflict(fromE, toE, c.fromLane, otherFromE, otherToE, otherC.fromLane));
+    if (thisRight && !rightTurnConflict) {
+        return false;
+    }
+    if (!(foes(otherFromE, otherToE, fromE, toE) || myRequest == 0 || rightTurnConflict)) {
+        // if they do not cross, no waiting place is needed
+        return false;
+    }
     LinkDirection d2 = getDirection(otherFromE, otherToE);
-    bool thisLeft = (d1 == LINKDIR_LEFT || d1 == LINKDIR_TURN);
-    bool otherLeft = (d2 == LINKDIR_LEFT || d2 == LINKDIR_TURN);
-    bool bothLeft = thisLeft && otherLeft;
+    if (d2 == LINKDIR_TURN) {
+        return false;
+    }
+    const bool thisLeft = (d1 == LINKDIR_LEFT || d1 == LINKDIR_TURN);
+    const bool otherLeft = (d2 == LINKDIR_LEFT || d2 == LINKDIR_TURN);
+    const bool bothLeft = thisLeft && otherLeft;
+    if (fromE == otherFromE && !thisRight) {
+        // ignore same edge links except for right-turns
+        return false;
+    }
+    if (thisRight && d2 != LINKDIR_STRAIGHT) {
+        return false;
+    }
     if (c.tlID != "" && !bothLeft) {
-        // tls-controlled links will have space
-        return true;
+        assert(myTrafficLights.size() > 0);
+        return (*myTrafficLights.begin())->needsCont(fromE, toE, otherFromE, otherToE);
     }
     if (fromE->getJunctionPriority(this) > 0 && otherFromE->getJunctionPriority(this) > 0) {
-        return mustBrake(fromE, toE, c.toLane);
+        return mustBrake(fromE, toE, c.fromLane, false);
     }
     return false;
 }
@@ -1125,16 +1159,7 @@ NBNode::invalidateOutgoingConnections() {
 
 
 bool
-NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int /* toLane */) const {
-    // check whether it is participant to a traffic light
-    //  - controlled links are set by the traffic lights, not the normal
-    //    right-of-way rules
-    //  - uncontrolled participants (spip lanes etc.) should always break
-    if (myTrafficLights.size() != 0) {
-        // ok, we have a traffic light, return true by now, it will be later
-        //  controlled by the tls
-        return true;
-    }
+NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int fromLane, bool includePedCrossings) const {
     // unregulated->does not need to brake
     if (myRequest == 0) {
         return false;
@@ -1144,12 +1169,19 @@ NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int /* toLan
         return true;
     }
     // check whether any other connection on this node prohibits this connection
-    return myRequest->mustBrake(from, to);
+    return myRequest->mustBrake(from, to, fromLane, includePedCrossings);
 }
 
 bool
 NBNode::mustBrakeForCrossing(const NBEdge* const from, const NBEdge* const to, const NBNode::Crossing& crossing) const {
     return myRequest->mustBrakeForCrossing(from, to, crossing);
+}
+
+
+bool 
+NBNode::rightTurnConflict(const NBEdge* from, const NBEdge* to, int fromLane, 
+        const NBEdge* prohibitorFrom, const NBEdge* prohibitorTo, int prohibitorFromLane) const {
+    return myRequest->rightTurnConflict(from, to, fromLane, prohibitorFrom, prohibitorTo, prohibitorFromLane);
 }
 
 
@@ -1167,7 +1199,7 @@ NBNode::isLeftMover(const NBEdge* const from, const NBEdge* const to) const {
     std::vector<NBEdge*>::const_iterator i = std::find(myAllEdges.begin(), myAllEdges.end(), from);
     do {
         NBContHelper::nextCW(myAllEdges, i);
-    } while ((!hasOutgoing(*i) || from->isTurningDirectionAt(this, *i)) && *i != from);
+    } while ((!hasOutgoing(*i) || from->isTurningDirectionAt(*i)) && *i != from);
     return cw < ccw && (*i) == to && myOutgoingEdges.size() > 2;
 }
 
@@ -1277,7 +1309,7 @@ NBNode::getDirection(const NBEdge* const incoming, const NBEdge* const outgoing)
         return LINKDIR_NODIR;
     }
     // turning direction
-    if (incoming->isTurningDirectionAt(this, outgoing)) {
+    if (incoming->isTurningDirectionAt(outgoing)) {
         return LINKDIR_TURN;
     }
     // get the angle between incoming/outgoing at the junction
@@ -1307,7 +1339,7 @@ NBNode::getDirection(const NBEdge* const incoming, const NBEdge* const outgoing)
         find(myAllEdges.begin(), myAllEdges.end(), outgoing);
     NBContHelper::nextCCW(myAllEdges, i);
     while ((*i) != incoming) {
-        if ((*i)->getFromNode() == this && !incoming->isTurningDirectionAt(this, *i)) {
+        if ((*i)->getFromNode() == this && !incoming->isTurningDirectionAt(*i)) {
             return LINKDIR_PARTLEFT;
         }
         NBContHelper::nextCCW(myAllEdges, i);
@@ -1331,7 +1363,7 @@ NBNode::getLinkState(const NBEdge* incoming, NBEdge* outgoing, int fromlane,
     if (myType == NODETYPE_ALLWAY_STOP) {
         return LINKSTATE_ALLWAY_STOP; // all drive, first one to arrive may drive first
     }
-    if ((!incoming->isInnerEdge() && mustBrake(incoming, outgoing, fromlane)) && !mayDefinitelyPass) {
+    if ((!incoming->isInnerEdge() && mustBrake(incoming, outgoing, fromlane, true)) && !mayDefinitelyPass) {
         return myType == NODETYPE_PRIORITY_STOP ? LINKSTATE_STOP : LINKSTATE_MINOR; // minor road
     }
     // traffic lights are not regarded here
@@ -1683,6 +1715,16 @@ NBNode::buildInnerEdges(bool buildCrossingsAndWalkingAreas) {
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
         (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
     }
+    // if there are custom lane shapes we need to built twice: 
+    // first to set the ids then to build intersections with the custom geometries
+    if (myCustomLaneShapes.size() > 0) {
+        unsigned int lno = 0;
+        unsigned int splitNo = 0;
+        for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
+            (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
+        }
+    }
+
     if (buildCrossingsAndWalkingAreas) {
         buildCrossings();
         buildWalkingAreas(OptionsCont::getOptions().getInt("junctions.corner-detail"));

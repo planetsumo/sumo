@@ -434,10 +434,11 @@ public:
     /** @brief Returns the information whether the described flow must let any other flow pass
      * @param[in] from The connection's start edge
      * @param[in] to The connection's end edge
-     * @param[in] toLane The lane the connection ends at
+     * @param[in] fromLane The lane the connection start at
+     * @param[in] includePedCrossings Whether braking due to a pedestrian crossing counts
      * @return Whether the described connection must brake (has higher priorised foes)
      */
-    bool mustBrake(const NBEdge* const from, const NBEdge* const to, int toLane) const;
+    bool mustBrake(const NBEdge* const from, const NBEdge* const to, int fromLane, bool includePedCrossings) const;
 
     /** @brief Returns the information whether the described flow must brake for the given crossing
      * @param[in] from The connection's start edge
@@ -446,6 +447,11 @@ public:
      * @return Whether the described connection must brake (has higher priorised foes)
      */
     bool mustBrakeForCrossing(const NBEdge* const from, const NBEdge* const to, const Crossing& crossing) const;
+
+    /** @brief return whether the given laneToLane connection is a right turn which must yield to a bicycle crossings
+     */
+    bool rightTurnConflict(const NBEdge* from, const NBEdge* to, int fromLane, 
+            const NBEdge* prohibitorFrom, const NBEdge* prohibitorTo, int prohibitorFromLane) const;
 
     /** @brief Returns the information whether "prohibited" flow must let "prohibitor" flow pass
      * @param[in] possProhibitedFrom The maybe prohibited connection's begin
@@ -522,18 +528,17 @@ public:
     bool isNearDistrict() const;
     bool isDistrict() const;
 
-    bool needsCont(NBEdge* fromE, NBEdge* toE, NBEdge* otherFromE, NBEdge* otherToE, const NBEdge::Connection& c) const;
+    /// @brief whether an internal junction should be built at from and respect other
+    bool needsCont(const NBEdge* fromE, const NBEdge* otherFromE, 
+            const NBEdge::Connection& c, const NBEdge::Connection& otherC) const;
 
     /** @brief Compute the shape for an internal lane
      * @param[in] fromE The starting edge
-     * @param[in] fromL The index of the starting lane
-     * @param[in] toE The destination edge
-     * @param[in] toL The index of the destination lane
+     * @param[in] con The connection for this internal lane
      * @param[in] numPoints The number of geometry points for the internal lane
      * @return The shape of the internal lane
      */
-    PositionVector computeInternalLaneShape(
-        NBEdge* fromE, int fromL, NBEdge* toE, int toL, int numPoints = 5) const;
+    PositionVector computeInternalLaneShape(NBEdge* fromE, const NBEdge::Connection& con, int numPoints = 5) const;
 
 
     /** @brief Compute a smooth curve between the given geometries

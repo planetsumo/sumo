@@ -824,12 +824,18 @@ public:
 
 
     /** @brief Returns whether the given edge is the opposite direction to this edge
-     * @param[in] n The node at which this may be turnaround direction
      * @param[in] edge The edge which may be the turnaround direction
      * @return Whether the given edge is this edge's turnaround direction
+     * (regardless of whether a connection exists)
      */
-    bool isTurningDirectionAt(const NBNode* n, const NBEdge* const edge) const;
-    void setTurningDestination(NBEdge* e);
+    bool isTurningDirectionAt(const NBEdge* const edge) const;
+
+
+    /** @brief Sets the turing destination at the given edge
+     * @param[in] e The turn destination
+     * @param[in] onlyPossible If true, only sets myPossibleTurnDestination 
+     */
+    void setTurningDestination(NBEdge* e, bool onlyPossible = false);
 
 
 
@@ -1218,6 +1224,11 @@ private:
 
     /// @brief computes the angle of this edge and stores it in myAngle
     void computeAngle();
+    
+
+    /* @brief compute the first intersection point between the given lane
+     * geometries considering their rspective widths */
+    static SUMOReal firstIntersection(const PositionVector& v1, const PositionVector& v2, SUMOReal width2);
 
 private:
     /** @brief The building step
@@ -1254,8 +1265,10 @@ private:
      */
     std::vector<Connection> myConnectionsToDelete;
 
-    /// @brief The turn destination edge
+    /// @brief The turn destination edge (if a connection exists)
     NBEdge* myTurnDestination;
+    /// @brief The edge that would be the turn destination if there was one
+    NBEdge* myPossibleTurnDestination;
 
     /// @brief The priority normalised for the node the edge is outgoing of
     int myFromJunctionPriority;
