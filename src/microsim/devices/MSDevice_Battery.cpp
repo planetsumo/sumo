@@ -640,7 +640,7 @@ const SUMOReal MSDevice_Battery::getPropEnergy(SUMOVehicle& veh)
 																																	
 	if (getLastAngle() != veh.getAngle())
 	{
-		radius = veh.getSpeed() * 180 / (PI * ( abs(getLastAngle() - veh.getAngle()) < abs(veh.getAngle() - getLastAngle())) ? abs(getLastAngle() - veh.getAngle()): abs(veh.getAngle() - getLastAngle()) );										
+		radius = veh.getSpeed() * 180 / (PI * ( fabs(getLastAngle() - veh.getAngle()) < fabs(veh.getAngle() - getLastAngle())) ? fabs(getLastAngle() - veh.getAngle()): fabs(veh.getAngle() - getLastAngle()) );										
 		radius = 0.0001 > radius ? 0.0001 : radius;
 	}
 
@@ -657,20 +657,20 @@ const SUMOReal MSDevice_Battery::getPropEnergy(SUMOVehicle& veh)
 	// EnergyLoss,Air = 1/2 * rho_air [kg/m^3] * FrontSurfaceArea [m^2] * AirDragCoefficient [-] * v_Veh^2 [m/s] * s [m]											
 	//					... with rho_air [kg/m^3] = 1,2041 kg/m^3 (at T = 20°C)														
 	//					... with s [m] = v_Veh [m/s] * 1 [s]																		
-	EnergyLoss += 0.5 * 1.2041 * getFrontSurfaceArea() * getAirDragCoefficient() * abs(veh.getSpeed() * veh.getSpeed() * SPEED2DIST(veh.getSpeed()));					
+	EnergyLoss += 0.5 * 1.2041 * getFrontSurfaceArea() * getAirDragCoefficient() * fabs(veh.getSpeed() * veh.getSpeed() * SPEED2DIST(veh.getSpeed()));					
 
 	// Energy loss through Air resistance [Ws]																						
 	// EnergyLoss,Tire = c_R [-] * F_N [N] * s [m]																						
 	//					... with c_R = ~0.012	(car tire on asphalt)																
 	//					... with F_N [N] = Mass [kg] * g [m/s^2]																	
-	EnergyLoss += getRollDragCoefficient() * 9.81 * getMass() * cos(veh.getSlope()) * abs(SPEED2DIST(veh.getSpeed()));										
+	EnergyLoss += getRollDragCoefficient() * 9.81 * getMass() * cos(veh.getSlope()) * fabs(SPEED2DIST(veh.getSpeed()));										
 
 	// Energy loss through Roll resistance [Ws]																						
 	//					... (abs(veh.getSpeed())>=0.01) = 0, if vehicle isn't moving															
 	// EnergyLoss,internalFrictionRadialForce = c [m] * F_rad [N];																		
 	if (getLastAngle() != veh.getAngle()) {
 		// Energy loss through friction by radial force [Ws]																		
-		EnergyLoss += getRadialDragCoefficient() * getMass() * veh.getSpeed() * veh.getSpeed() * abs(SPEED2DIST(veh.getSpeed())) / radius;		
+		EnergyLoss += getRadialDragCoefficient() * getMass() * veh.getSpeed() * veh.getSpeed() * fabs(SPEED2DIST(veh.getSpeed())) / radius;		
 	}																																
 																																	
 	// EnergyLoss,constantConsumers																										
