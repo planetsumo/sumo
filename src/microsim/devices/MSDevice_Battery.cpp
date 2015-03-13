@@ -666,7 +666,7 @@ const SUMOReal MSDevice_Battery::getPropEnergy(SUMOVehicle& veh)
 	EnergyLoss += getRollDragCoefficient() * 9.81 * getMass() * cos(veh.getSlope()) * fabs(SPEED2DIST(veh.getSpeed()));										
 
 	// Energy loss through Roll resistance [Ws]																						
-	//					... (abs(veh.getSpeed())>=0.01) = 0, if vehicle isn't moving															
+	//					... (fabs(veh.getSpeed())>=0.01) = 0, if vehicle isn't moving															
 	// EnergyLoss,internalFrictionRadialForce = c [m] * F_rad [N];																		
 	if (getLastAngle() != veh.getAngle()) {
 		// Energy loss through friction by radial force [Ws]																		
