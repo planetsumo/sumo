@@ -8,7 +8,7 @@
 Generates a ';'-separated file that contains the time line of the NEFZ
  driving cycle.
 
-Copyright (C) 2013-2014 DLR/TS, Germany
+Copyright (C) 2013-2015 DLR/TS, Germany
 All rights reserved
 """
 
