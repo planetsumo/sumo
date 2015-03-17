@@ -10,7 +10,7 @@
 // The class for modelling person-movements
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -349,7 +349,7 @@ MSPerson::MSPersonStage_Driving::proceed(MSNet* net, MSPerson* person, SUMOTime 
     myWaitingPos = at;
     myWaitingSince = now;
     SUMOVehicle* availableVehicle = net->getVehicleControl().getWaitingVehicle(previousEdge, myLines, myWaitingPos, person->getID());
-	if (availableVehicle != 0 && availableVehicle->getParameter().departProcedure == DEPART_TRIGGERED) {
+    if (availableVehicle != 0 && availableVehicle->getParameter().departProcedure == DEPART_TRIGGERED) {
         myVehicle = availableVehicle;
         previousEdge->removePerson(person);
         myVehicle->addPerson(person);

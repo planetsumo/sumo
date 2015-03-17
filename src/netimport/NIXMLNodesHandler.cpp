@@ -10,7 +10,7 @@
 // Importer for network nodes stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -119,7 +119,7 @@ NIXMLNodesHandler::addNode(const SUMOSAXAttributes& attrs) {
         xOk = yOk = true;
         needConversion = false;
     } else {
-        myPosition.set(0,0,0); // better to reset than to reuse the previous (z)-value
+        myPosition.set(0, 0, 0); // better to reset than to reuse the previous (z)-value
     }
     if (attrs.hasAttribute(SUMO_ATTR_X)) {
         myPosition.set(attrs.get<SUMOReal>(SUMO_ATTR_X, myID.c_str(), ok), myPosition.y());

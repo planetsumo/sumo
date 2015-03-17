@@ -13,7 +13,7 @@
 // Representation of a lane in the micro simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -534,7 +534,7 @@ public:
         of the list of links (is not valid) */
     bool isLinkEnd(MSLinkCont::iterator& i);
 
-    /** Returns the information whether the lane is has no vehicle and no 
+    /** Returns the information whether the lane is has no vehicle and no
         partial occupation*/
     bool isEmpty() const;
 

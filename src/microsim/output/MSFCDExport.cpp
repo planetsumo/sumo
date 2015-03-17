@@ -10,7 +10,7 @@
 // Realises dumping Floating Car Data (FCD) Data
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -112,7 +112,7 @@ MSFCDExport::write(OutputDevice& of, SUMOTime timestep) {
             }
         }
     }
-    if (MSNet::getInstance()->getContainerControl().hasContainers()){
+    if (MSNet::getInstance()->getContainerControl().hasContainers()) {
         // write containers
         MSEdgeControl& ec = MSNet::getInstance()->getEdgeControl();
         const std::vector<MSEdge*>& edges = ec.getEdges();

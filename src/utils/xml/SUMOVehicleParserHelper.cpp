@@ -11,7 +11,7 @@
 // Helper methods for parsing vehicle attributes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2008-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -410,20 +410,20 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
             throw ProcessError();
         }
     }
-	if (attrs.hasAttribute(SUMO_ATTR_PERSON_CAPACITY)) {
+    if (attrs.hasAttribute(SUMO_ATTR_PERSON_CAPACITY)) {
         vtype->personCapacity = attrs.get<int>(SUMO_ATTR_PERSON_CAPACITY, vtype->id.c_str(), ok);
         vtype->setParameter |= VTYPEPARS_PERSON_CAPACITY;
-    } 
-	if (attrs.hasAttribute(SUMO_ATTR_CONTAINER_CAPACITY)) {
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_CONTAINER_CAPACITY)) {
         vtype->containerCapacity = attrs.get<int>(SUMO_ATTR_CONTAINER_CAPACITY, vtype->id.c_str(), ok);
         vtype->setParameter |= VTYPEPARS_CONTAINER_CAPACITY;
-    } 
-	if (attrs.hasAttribute(SUMO_ATTR_BOARDING_DURATION)) {
-		vtype->boardingDuration = attrs.getSUMOTimeReporting(SUMO_ATTR_BOARDING_DURATION, vtype->id.c_str(), ok);
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_BOARDING_DURATION)) {
+        vtype->boardingDuration = attrs.getSUMOTimeReporting(SUMO_ATTR_BOARDING_DURATION, vtype->id.c_str(), ok);
         vtype->setParameter |= VTYPEPARS_BOARDING_DURATION;
-    }  
-	if (attrs.hasAttribute(SUMO_ATTR_LOADING_DURATION)) {
-		vtype->loadingDuration = attrs.getSUMOTimeReporting(SUMO_ATTR_LOADING_DURATION, vtype->id.c_str(), ok);
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_LOADING_DURATION)) {
+        vtype->loadingDuration = attrs.getSUMOTimeReporting(SUMO_ATTR_LOADING_DURATION, vtype->id.c_str(), ok);
         vtype->setParameter |= VTYPEPARS_LOADING_DURATION;
     }
     try {

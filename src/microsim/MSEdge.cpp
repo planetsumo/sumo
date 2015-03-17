@@ -13,7 +13,7 @@
 // A road/street connecting two junctions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -680,7 +680,7 @@ MSEdge::container_by_position_sorter::operator()(const MSContainer* const c1, co
     return c1->getID() < c2->getID();
 }
 
-const MSEdgeVector& 
+const MSEdgeVector&
 MSEdge::getSuccessors(SUMOVehicleClass vClass) const {
     if (vClass == SVC_IGNORING) {
         return mySuccessors;

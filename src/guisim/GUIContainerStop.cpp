@@ -8,7 +8,7 @@
 // A lane area vehicles can halt at (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -64,7 +64,7 @@
 // method definitions
 // ===========================================================================
 GUIContainerStop::GUIContainerStop(const std::string& id, const std::vector<std::string>& lines, MSLane& lane,
-                       SUMOReal frompos, SUMOReal topos)
+                                   SUMOReal frompos, SUMOReal topos)
     : MSContainerStop(id, lines, lane, frompos, topos),
       GUIGlObject_AbstractAdd("containerStop", GLO_TRIGGER, id) {
     myFGShape = lane.getShape();
@@ -95,7 +95,7 @@ GUIContainerStop::~GUIContainerStop() {}
 
 GUIGLObjectPopupMenu*
 GUIContainerStop::getPopUpMenu(GUIMainWindow& app,
-                         GUISUMOAbstractView& parent) {
+                               GUISUMOAbstractView& parent) {
     GUIGLObjectPopupMenu* ret = new GUIGLObjectPopupMenu(app, parent, *this);
     buildPopupHeader(ret, app);
     buildCenterPopupEntry(ret);
@@ -109,7 +109,7 @@ GUIContainerStop::getPopUpMenu(GUIMainWindow& app,
 
 GUIParameterTableWindow*
 GUIContainerStop::getParameterWindow(GUIMainWindow& app,
-                               GUISUMOAbstractView&) {
+                                     GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
         new GUIParameterTableWindow(app, *this, 4);
     // add items

@@ -10,7 +10,7 @@
 // Parser for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -322,7 +322,7 @@ SUMORouteHandler::parseStop(SUMOVehicleParameter::Stop& stop, const SUMOSAXAttri
     std::set<std::string> personIDs;
     SUMOSAXAttributes::parseStringSet(expectedStr, personIDs);
     stop.awaitedPersons = personIDs;
-    
+
     // expected containers
     std::string expectedContainersStr = attrs.getOpt<std::string>(SUMO_ATTR_EXPECTED_CONTAINERS, 0, ok, "");
     std::set<std::string> containerIDs;

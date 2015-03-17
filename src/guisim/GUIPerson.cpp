@@ -9,7 +9,7 @@
 // A MSPerson extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -209,7 +209,7 @@ GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
     glPopName();
 }
 
-void 
+void
 GUIPerson::drawAction_drawWalkingareaPath(const GUIVisualizationSettings& s) const {
     MSPersonStage_Walking* stage = dynamic_cast<MSPersonStage_Walking*>(getCurrentStage());
     if (stage != 0) {

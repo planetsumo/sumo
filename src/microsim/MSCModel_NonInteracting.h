@@ -8,7 +8,7 @@
 // The container following model for tranship (prototype)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2014-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2014-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -101,7 +101,7 @@ public:
     CState() {};
 
     ~CState() {};
-   
+
     // @brief walking directions
     static const int FORWARD;
     static const int BACKWARD;

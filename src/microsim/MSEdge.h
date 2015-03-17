@@ -11,7 +11,7 @@
 // A road/street connecting two junctions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -732,7 +732,7 @@ protected:
     /// @brief Persons on the edge (only for drawing)
     mutable std::set<MSPerson*> myPersons;
 
-    /// @brief Containers on the edge 
+    /// @brief Containers on the edge
     mutable std::set<MSContainer*> myContainers;
 
     /// @name Storages for allowed lanes (depending on vehicle classes)

@@ -9,7 +9,7 @@
 // Some methods for traversing lists of edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -262,10 +262,10 @@ NBContHelper::edge_by_angle_to_nodeShapeCentroid_sorter::operator()(const NBEdge
     const SUMOReal angle2 = e2->getAngleAtNodeToCenter(myNode);
     const SUMOReal absDiff = abs(angle1 - angle2);
 
-    // cannot trust the angle difference hence a heuristic: 
+    // cannot trust the angle difference hence a heuristic:
     if (absDiff < 2 || absDiff > (360 - 2)) {
-        const bool sameDir = ((e1->getFromNode() == myNode && e2->getFromNode() == myNode) 
-                || (e1->getToNode() == myNode && e2->getToNode() == myNode));
+        const bool sameDir = ((e1->getFromNode() == myNode && e2->getFromNode() == myNode)
+                              || (e1->getToNode() == myNode && e2->getToNode() == myNode));
         if (sameDir) {
             // put edges that allow pedestrians on the 'outside'
             if (e1->getToNode() == myNode) {

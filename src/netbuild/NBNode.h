@@ -10,7 +10,7 @@
 // The representation of a single node
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -450,8 +450,8 @@ public:
 
     /** @brief return whether the given laneToLane connection is a right turn which must yield to a bicycle crossings
      */
-    bool rightTurnConflict(const NBEdge* from, const NBEdge* to, int fromLane, 
-            const NBEdge* prohibitorFrom, const NBEdge* prohibitorTo, int prohibitorFromLane) const;
+    bool rightTurnConflict(const NBEdge* from, const NBEdge* to, int fromLane,
+                           const NBEdge* prohibitorFrom, const NBEdge* prohibitorTo, int prohibitorFromLane) const;
 
     /** @brief Returns the information whether "prohibited" flow must let "prohibitor" flow pass
      * @param[in] possProhibitedFrom The maybe prohibited connection's begin
@@ -529,8 +529,8 @@ public:
     bool isDistrict() const;
 
     /// @brief whether an internal junction should be built at from and respect other
-    bool needsCont(const NBEdge* fromE, const NBEdge* otherFromE, 
-            const NBEdge::Connection& c, const NBEdge::Connection& otherC) const;
+    bool needsCont(const NBEdge* fromE, const NBEdge* otherFromE,
+                   const NBEdge::Connection& c, const NBEdge::Connection& otherC) const;
 
     /** @brief Compute the shape for an internal lane
      * @param[in] fromE The starting edge
@@ -551,12 +551,12 @@ public:
      * @return The shape of the internal lane
      */
     PositionVector computeSmoothShape(
-            const PositionVector& begShape,
-            const PositionVector& endShape,
-            int numPoints,
-            bool isTurnaround,
-            SUMOReal extrapolateBeg,
-            SUMOReal extrapolateEnd) const;
+        const PositionVector& begShape,
+        const PositionVector& endShape,
+        int numPoints,
+        bool isTurnaround,
+        SUMOReal extrapolateBeg,
+        SUMOReal extrapolateEnd) const;
 
 
     /** @brief Replaces occurences of the first edge within the list of incoming by the second

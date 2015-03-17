@@ -7,7 +7,7 @@
 // The Pedestrian Router build a special network and (delegegates to a SUMOAbstractRouter)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -200,8 +200,8 @@ public:
                 for (typename std::vector<const L*>::iterator it = outgoing.begin(); it != outgoing.end(); ++it) {
                     const L* target = *it;
                     const E* targetEdge = &(target->getEdge());
-                    const bool used = (target == getSidewalk<E, L>(targetEdge) 
-                            && (!hasWalkingArea || targetEdge->isWalkingArea()));
+                    const bool used = (target == getSidewalk<E, L>(targetEdge)
+                                       && (!hasWalkingArea || targetEdge->isWalkingArea()));
 #ifdef PedestrianRouter_DEBUG_NETWORK
                     const L* potTarget = getSidewalk<E, L>(targetEdge);
                     std::cout << "   lane=" << (potTarget == 0 ? "NULL" : potTarget->getID()) << (used ? "(used)" : "") << "\n";

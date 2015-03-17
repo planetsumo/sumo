@@ -10,7 +10,7 @@
 // A device which collects info on the vehicle trip
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2009-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -167,7 +167,7 @@ MSDevice_Tripinfo::generateOutput() const {
     }
     const bool includeInternalLengths = MSGlobals::gUsingInternalLanes && MSNet::getInstance()->hasInternalLinks();
     const SUMOReal routeLength = myHolder.getRoute().getDistanceBetween(myDepartPos, finalPos,
-            myHolder.getRoute().begin(), myHolder.getCurrentRouteEdge(), includeInternalLengths) + finalPosOnInternal;
+                                 myHolder.getRoute().begin(), myHolder.getCurrentRouteEdge(), includeInternalLengths) + finalPosOnInternal;
 
     // write
     OutputDevice& os = OutputDevice::getDeviceByOption("tripinfo-output");

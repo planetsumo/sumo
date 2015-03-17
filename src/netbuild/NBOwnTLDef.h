@@ -9,7 +9,7 @@
 // A traffic light logics which must be computed (only nodes/edges are given)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -130,7 +130,7 @@ public:
 
     /** @brief helper function for myCompute
      * @param[in] brakingTime Duration a vehicle needs for braking in front of the tls
-     * @param[in] onlyConts whether the method is only called to compute myNeedsContRelation 
+     * @param[in] onlyConts whether the method is only called to compute myNeedsContRelation
      * @return The computed logic
      */
     NBTrafficLightLogic* computeLogicAndConts(unsigned int brakingTimeSeconds, bool onlyConts = false);

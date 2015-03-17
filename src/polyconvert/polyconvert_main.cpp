@@ -11,7 +11,7 @@
 // Main for POLYCONVERT
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -291,7 +291,7 @@ main(int argc, char** argv) {
         PCLoaderDlrNavteq::loadIfSet(oc, toFill, tm); // Elmar-files
         PCLoaderVisum::loadIfSet(oc, toFill, tm); // VISUM
         PCLoaderArcView::loadIfSet(oc, toFill, tm); // shape-files
-        GeoConvHelper::computeFinal(); 
+        GeoConvHelper::computeFinal();
         // error processing
         if (MsgHandler::getErrorInstance()->wasInformed() && oc.getBool("ignore-errors")) {
             MsgHandler::getErrorInstance()->clear();

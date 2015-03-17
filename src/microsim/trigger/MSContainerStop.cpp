@@ -8,7 +8,7 @@
 // A lane area vehicles can halt at
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -44,9 +44,9 @@
 // method definitions
 // ===========================================================================
 MSContainerStop::MSContainerStop(const std::string& id,
-                     const std::vector<std::string>& lines,
-                     MSLane& lane,
-                     SUMOReal begPos, SUMOReal endPos)
+                                 const std::vector<std::string>& lines,
+                                 MSLane& lane,
+                                 SUMOReal begPos, SUMOReal endPos)
     : Named(id), myLines(lines), myLane(lane),
       myBegPos(begPos), myEndPos(endPos), myLastFreePos(endPos) {
     computeLastFreePos();

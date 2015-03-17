@@ -11,7 +11,7 @@
 // A view on the simulation; this view is a microscopic one
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -119,9 +119,9 @@ GUIViewTraffic::buildViewToolBars(GUIGlChildWindow& v) {
                      ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     }
     new FXButton(v.getLocatorPopup(),
-            "\tLocate Vehicle\tLocate a person within the network.",
-            GUIIconSubSys::getIcon(ICON_LOCATEPERSON), &v, MID_LOCATEPERSON,
-            ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
+                 "\tLocate Vehicle\tLocate a person within the network.",
+                 GUIIconSubSys::getIcon(ICON_LOCATEPERSON), &v, MID_LOCATEPERSON,
+                 ICON_ABOVE_TEXT | FRAME_THICK | FRAME_RAISED);
     // for tls
     new FXButton(v.getLocatorPopup(),
                  "\tLocate TLS\tLocate a tls within the network.",

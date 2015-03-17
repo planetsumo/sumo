@@ -10,7 +10,7 @@
 // Storage for edges, including some functionality operating on multiple edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -436,11 +436,11 @@ NBEdgeCont::splitAt(NBDistrictCont& dc,
                     unsigned int noLanesFirstEdge, unsigned int noLanesSecondEdge,
                     const SUMOReal speed,
                     const int changedLeft
-                    ) {
+                   ) {
     // there must be at least some overlap between first and second edge
-    assert(changedLeft > -((int)noLanesFirstEdge)); 
+    assert(changedLeft > -((int)noLanesFirstEdge));
     assert(changedLeft < (int)noLanesSecondEdge);
-    
+
     // build the new edges' geometries
     std::pair<PositionVector, PositionVector> geoms =
         edge->getGeometry().splitAt(pos);
@@ -995,10 +995,10 @@ NBEdgeCont::guessSidewalks(SUMOReal width, SUMOReal minSpeed, SUMOReal maxSpeed,
     for (EdgeCont::iterator it = myEdges.begin(); it != myEdges.end(); it++) {
         NBEdge* edge = it->second;
         if ((
-                // guess.from-permissions
-                (fromPermissions && (edge->getPermissions() & SVC_PEDESTRIAN) != 0)
-                // guess from speed
-                || (!fromPermissions && edge->getSpeed() > minSpeed && edge->getSpeed() <= maxSpeed))
+                    // guess.from-permissions
+                    (fromPermissions && (edge->getPermissions() & SVC_PEDESTRIAN) != 0)
+                    // guess from speed
+                    || (!fromPermissions && edge->getSpeed() > minSpeed && edge->getSpeed() <= maxSpeed))
                 // does not yet have a sidewalk
                 && edge->getPermissions(0) != SVC_PEDESTRIAN) {
             edge->addSidewalk(width);

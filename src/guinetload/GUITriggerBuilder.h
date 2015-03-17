@@ -10,7 +10,7 @@
 // Builds trigger objects for guisim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -132,8 +132,8 @@ protected:
      * @exception InvalidArgument If the container stop can not be added to the net (is duplicate)
      */
     virtual void buildContainerStop(MSNet& net, const std::string& id,
-                              const std::vector<std::string>& lines, MSLane* lane,
-                              SUMOReal frompos, SUMOReal topos);
+                                    const std::vector<std::string>& lines, MSLane* lane,
+                                    SUMOReal frompos, SUMOReal topos);
 
 
     /** @brief builds a microscopic calibrator

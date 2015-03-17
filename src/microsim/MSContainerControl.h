@@ -8,7 +8,7 @@
 // Stores all containers in the net and handles their waiting for cars.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -108,7 +108,7 @@ public:
      */
     virtual MSContainer* buildContainer(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSContainer::MSContainerPlan* plan) const;
 
-    /// adds a container to myTranship 
+    /// adds a container to myTranship
     void setTranship(MSContainer* c);
 
     /// removes a container from myTranship

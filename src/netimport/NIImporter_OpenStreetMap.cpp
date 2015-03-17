@@ -10,7 +10,7 @@
 // Importer for networks stored in OpenStreetMap format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -623,7 +623,7 @@ NIImporter_OpenStreetMap::NodesHandler::myStartElement(int element, const SUMOSA
                     myToFill[myLastNodeID]->ele = TplConvert::_2SUMOReal(value.c_str());
                 } catch (...) {
                     WRITE_WARNING("Value of key '" + key + "' is not numeric ('" + value + "') in node '" +
-                                toString(myLastNodeID) + "'.");
+                                  toString(myLastNodeID) + "'.");
                 }
             }
         }

@@ -8,7 +8,7 @@
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -157,7 +157,7 @@ public:
          * @param[in, out] additionalVisualizations Information which additional visualisations are enabled (per view)
          */
         GUIContainerPopupMenu(GUIMainWindow& app,
-                           GUISUMOAbstractView& parent, GUIGlObject& o, std::map<GUISUMOAbstractView*, int>& additionalVisualizations);
+                              GUISUMOAbstractView& parent, GUIGlObject& o, std::map<GUISUMOAbstractView*, int>& additionalVisualizations);
 
         /// @brief Destructor
         ~GUIContainerPopupMenu();

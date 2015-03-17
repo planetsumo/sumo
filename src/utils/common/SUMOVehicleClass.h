@@ -10,7 +10,7 @@
 // Definitions of SUMO vehicle classes and helper functions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -184,7 +184,7 @@ enum SUMOVehicleClass {
     SVC_CUSTOM1 = 1 << 23,
     /// @brief is a user-defined type
     SVC_CUSTOM2 = 1 << 24
-    //@}
+                  //@}
 };
 
 extern const int SUMOVehicleClass_MAX;
@@ -196,7 +196,7 @@ extern StringBijection<SUMOVehicleShape> SumoVehicleShapeStrings;
  */
 typedef int SVCPermissions;
 extern const SVCPermissions SVCAll; // everything allowed
-extern const SVCPermissions SVC_UNSPECIFIED; // permissions not specified 
+extern const SVCPermissions SVC_UNSPECIFIED; // permissions not specified
 
 
 /**

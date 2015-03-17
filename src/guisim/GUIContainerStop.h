@@ -8,7 +8,7 @@
 // A lane area vehicles can halt at (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -78,8 +78,8 @@ public:
      * @param[in] endPos End position of the container stop on the lane
      */
     GUIContainerStop(const std::string& id,
-               const std::vector<std::string>& lines, MSLane& lane,
-               SUMOReal frompos, SUMOReal topos);
+                     const std::vector<std::string>& lines, MSLane& lane,
+                     SUMOReal frompos, SUMOReal topos);
 
 
     /// @brief Destructor

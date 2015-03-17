@@ -10,7 +10,7 @@
 // Parser and container for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -573,7 +573,7 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         stop.endPos = busstop->endPos;
         stop.startPos = busstop->startPos;
         edge = myNet.getEdge(stop.lane.substr(0, stop.lane.rfind('_')));
-	} // try to parse the assigned container stop
+    } // try to parse the assigned container stop
     else if (stop.containerstop != "") {
         const SUMOVehicleParameter::Stop* containerstop = myNet.getContainerStop(stop.containerstop);
         if (containerstop == 0) {

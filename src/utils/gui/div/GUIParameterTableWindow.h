@@ -9,7 +9,7 @@
 // The window that holds the table of an object's parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -203,7 +203,7 @@ public:
     long onRightButtonPress(FXObject*, FXSelector, void*);
     /// @}
 
-    /** @brief Updates all instances 
+    /** @brief Updates all instances
      */
     static void updateAll() {
         AbstractMutex::ScopedLocker locker(myGlobalContainerLock);

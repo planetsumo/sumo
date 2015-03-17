@@ -10,7 +10,7 @@
 // The base class for a view
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -190,7 +190,7 @@ public:
 
 
     /// @brief get the viewport and create it on first access
-    GUIDialog_EditViewport* getViewportEditor(); 
+    GUIDialog_EditViewport* getViewportEditor();
 
     virtual void showViewportEditor();
 

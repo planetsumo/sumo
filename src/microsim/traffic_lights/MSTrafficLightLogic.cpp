@@ -9,7 +9,7 @@
 // The parent class for traffic light logics
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -129,8 +129,8 @@ MSTrafficLightLogic::init(NLDetectorBuilder&) {
             assert(state1.size() == state2.size());
             if (!haveWarnedAboutUnusedStates && state1.size() > myLanes.size()) {
                 WRITE_WARNING("Unused states in tlLogic '" + getID()
-                                          + "', program '" + getProgramID() + "' in phase " + toString(i) 
-                                          + " after tl-index " + toString((int)myLanes.size() - 1));
+                              + "', program '" + getProgramID() + "' in phase " + toString(i)
+                              + " after tl-index " + toString((int)myLanes.size() - 1));
                 haveWarnedAboutUnusedStates = true;
             }
             for (int j = 0; j < (int)MIN3(state1.size(), state2.size(), myLanes.size()); ++j) {

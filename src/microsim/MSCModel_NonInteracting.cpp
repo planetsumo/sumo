@@ -8,7 +8,7 @@
 // The container following model for tranship (prototype)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2014-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2014-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -141,8 +141,8 @@ SUMOTime
 CState::computeTranshipTime(const MSEdge* /* prev */, const MSContainer::MSContainerStage_Tranship& stage, SUMOTime currentTime) {
     myLastEntryTime = currentTime;
 
-    myCurrentBeginPos = stage.getDepartPos();  
-    myCurrentEndPos = stage.getArrivalPos();    
+    myCurrentBeginPos = stage.getDepartPos();
+    myCurrentEndPos = stage.getArrivalPos();
 
     const MSLane* fromLane = stage.getFromEdge()->getLanes().front(); //the lane the container starts from during its tranship stage
     myCurrentBeginPosition = stage.getLanePosition(fromLane, myCurrentBeginPos, LATERAL_OFFSET);

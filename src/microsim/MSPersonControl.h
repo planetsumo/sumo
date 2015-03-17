@@ -10,7 +10,7 @@
 // Stores all persons in the net and handles their waiting for cars.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -81,14 +81,14 @@ public:
      */
     bool add(const std::string& id, MSPerson* person);
 
-    
+
     /** @brief Returns the named person, if existing
      * @param[in] id The id of the person
      * @return The named person, if existing, otherwise 0
      */
     MSPerson* get(const std::string& id) const;
 
-    
+
     /// removes a single person
     virtual void erase(MSPerson* person);
 
@@ -152,7 +152,7 @@ public:
         return myPersons.end();
     }
 
-    
+
     /** @brief Returns the number of known persons
      * @return The number of stored persons
      */

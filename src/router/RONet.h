@@ -10,7 +10,7 @@
 // The router's network representation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -267,7 +267,7 @@ public:
      * @return The named vehicle type
      * @todo Check whether a const pointer may be returned
      */
-    SUMOVTypeParameter* getVehicleTypeSecure(const std::string& id, bool defaultIfMissing=false);
+    SUMOVTypeParameter* getVehicleTypeSecure(const std::string& id, bool defaultIfMissing = false);
 
 
     /* @brief Adds a route definition to the network

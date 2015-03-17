@@ -9,7 +9,7 @@
 // Structure representing possible vehicle parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -139,14 +139,14 @@ public:
     SUMOVehicleClass vehicleClass;
     /// @brief The vehicle's impatience (willingness to obstruct others)
     SUMOReal impatience;
-	/// @brief The person capacity of the vehicle
-	unsigned int personCapacity;
-	/// @brief The container capacity of the vehicle
-	unsigned int containerCapacity;
-	/// @brief The time a person needs to board the vehicle
-	SUMOTime boardingDuration;
-	/// @brief The time a container needs to get loaded on the vehicle
-	SUMOTime loadingDuration;
+    /// @brief The person capacity of the vehicle
+    unsigned int personCapacity;
+    /// @brief The container capacity of the vehicle
+    unsigned int containerCapacity;
+    /// @brief The time a person needs to board the vehicle
+    SUMOTime boardingDuration;
+    /// @brief The time a container needs to get loaded on the vehicle
+    SUMOTime loadingDuration;
 
 
 

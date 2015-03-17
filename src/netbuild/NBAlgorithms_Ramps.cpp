@@ -9,7 +9,7 @@
 // Algorithms for highway on-/off-ramps computation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -311,8 +311,8 @@ NBRampsComputer::moveRampRight(NBEdge* ramp, int addedLanes) {
     }
     try {
         PositionVector g = ramp->getGeometry();
-        const SUMOReal offset = (0.5 * addedLanes * 
-                (ramp->getLaneWidth() == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : ramp->getLaneWidth()));
+        const SUMOReal offset = (0.5 * addedLanes *
+                                 (ramp->getLaneWidth() == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : ramp->getLaneWidth()));
         g.move2side(offset);
         ramp->setGeometry(g);
     } catch (InvalidArgument&) {

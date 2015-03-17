@@ -11,7 +11,7 @@
 // }
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -80,13 +80,13 @@ GUIJunctionWrapper::GUIJunctionWrapper(MSJunction& junction)
     myIsInner = false;
 #endif
     myAmWaterway = true;
-    for(ConstMSEdgeVector::const_iterator it = myJunction.getIncoming().begin(); it != myJunction.getIncoming().end(); ++it) {
+    for (ConstMSEdgeVector::const_iterator it = myJunction.getIncoming().begin(); it != myJunction.getIncoming().end(); ++it) {
         if (!(*it)->isInternal() && !isWaterway((*it)->getPermissions())) {
             myAmWaterway = false;
             break;
         }
     }
-    for(ConstMSEdgeVector::const_iterator it = myJunction.getOutgoing().begin(); it != myJunction.getOutgoing().end(); ++it) {
+    for (ConstMSEdgeVector::const_iterator it = myJunction.getOutgoing().begin(); it != myJunction.getOutgoing().end(); ++it) {
         if (!(*it)->isInternal() && !isWaterway((*it)->getPermissions())) {
             myAmWaterway = false;
             break;

@@ -9,7 +9,7 @@
 // The base class for traffic light logic definitions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -402,8 +402,8 @@ protected:
             to2(_to2) {}
 
         bool operator==(const StreamPair& o) const {
-                return (from1 == o.from1 && to1 == o.to1
-                        && from2 == o.from2 && to2 == o.to2);
+            return (from1 == o.from1 && to1 == o.to1
+                    && from2 == o.from2 && to2 == o.to2);
         }
 
         bool operator<(const StreamPair& o) const {

@@ -10,7 +10,7 @@
 // The main window of the SUMO-gui.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -234,9 +234,9 @@ public:
     /// @brief Somebody wants our clipped text
     long onClipboardRequest(FXObject* sender, FXSelector sel, void* ptr);
     /// @}
-    
-    
-    /** @brief Returns the simulation delay 
+
+
+    /** @brief Returns the simulation delay
      * @return delay in milliseconds
      */
     virtual SUMOReal getDelay() const {
