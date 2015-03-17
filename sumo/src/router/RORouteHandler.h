@@ -9,7 +9,7 @@
 // Parser and container for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -136,6 +136,9 @@ protected:
     /// Ends the processing of a person
     void closePerson();
 
+    /// Ends the processing of a container
+    void closeContainer();
+
     /// Ends the processing of a flow
     void closeFlow();
 
@@ -143,7 +146,7 @@ protected:
     void addStop(const SUMOSAXAttributes& attrs);
 
     /// Parse edges from strings
-    void parseEdges(const std::string& desc, std::vector<const ROEdge*>& into,
+    void parseEdges(const std::string& desc, ConstROEdgeVector& into,
                     const std::string& rid);
 
     /// @brief route a walking person and write the corresponding walk element (return whether sucessful)
@@ -158,13 +161,19 @@ protected:
     RONet& myNet;
 
     /// @brief The current route
-    std::vector<const ROEdge*> myActiveRoute;
+    ConstROEdgeVector myActiveRoute;
 
     /// @brief The plan of the current person
     OutputDevice_String* myActivePlan;
 
+    /// @brief The plan of the current container
+    OutputDevice_String* myActiveContainerPlan;
+
     /// @brief The number of stages in myActivePlan
     int myActivePlanSize;
+
+    /// @brief The number of stages in myActiveContainerPlan
+    int myActiveContainerPlanSize;
 
     /// @brief Information whether routes shall be repaired
     const bool myTryRepair;

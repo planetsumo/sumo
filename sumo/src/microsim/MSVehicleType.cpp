@@ -11,7 +11,7 @@
 // The car-following model and parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -43,6 +43,7 @@
 #include "cfmodels/MSCFModel_Krauss.h"
 #include "cfmodels/MSCFModel_KraussOrig1.h"
 #include "cfmodels/MSCFModel_KraussPS.h"
+#include "cfmodels/MSCFModel_KraussAccelBound.h"
 #include "cfmodels/MSCFModel_SmartSK.h"
 #include "cfmodels/MSCFModel_Daniel1.h"
 #include "cfmodels/MSCFModel_PWag2009.h"
@@ -77,6 +78,9 @@ MSVehicleType::~MSVehicleType() {
 
 SUMOReal
 MSVehicleType::computeChosenSpeedDeviation(MTRand* rng, const SUMOReal minDevFactor) const {
+    if (myParameter.speedDev == 0) {
+        return myParameter.speedFactor;
+    }
     // for speedDev = 0.1, most 95% of the vehicles will drive between 80% and 120% of speedLimit * speedFactor
     const SUMOReal devA = MIN2(SUMOReal(2.), RandHelper::randNorm(0, 1., rng));
     // avoid voluntary speeds below 20% of the requested speedFactor
@@ -220,6 +224,9 @@ MSVehicleType::build(SUMOVTypeParameter& from) {
             break;
         case SUMO_TAG_CF_KRAUSS_PLUS_SLOPE:
             vtype->myCarFollowModel = new MSCFModel_KraussPS(vtype, accel, decel, sigma, tau);
+            break;
+        case SUMO_TAG_CF_KRAUSS_ACCEL_BOUND:
+            vtype->myCarFollowModel = new MSCFModel_KraussAccelBound(vtype, accel, decel, sigma, tau);
             break;
         case SUMO_TAG_CF_SMART_SK:
             vtype->myCarFollowModel = new MSCFModel_SmartSK(vtype, accel, decel, sigma, tau,

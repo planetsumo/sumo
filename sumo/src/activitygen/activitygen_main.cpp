@@ -11,7 +11,7 @@
 // Main object of the ActivityGen application
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -121,7 +121,7 @@ main(int argc, char* argv[]) {
 
         // Load network
         net = new RONet();
-        RODUAEdgeBuilder builder(oc.getBool("weights.expand"), oc.getBool("weights.interpolate"));
+        AGStreet::Builder builder;
         loadNet(*net, builder);
         WRITE_MESSAGE("Loaded " + toString(net->getEdgeNo()) + " edges.");
         if (oc.getBool("debug")) {

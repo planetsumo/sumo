@@ -11,7 +11,7 @@
 // Something on a lane to be noticed about vehicle movement
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2003-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2003-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -183,7 +183,8 @@ public:
 
 #ifdef HAVE_INTERNAL
     void updateDetector(SUMOVehicle& veh, SUMOReal entryPos, SUMOReal leavePos,
-                        SUMOTime entryTime, SUMOTime currentTime, SUMOTime leaveTime);
+                        SUMOTime entryTime, SUMOTime currentTime, SUMOTime leaveTime,
+                        bool cleanUp);
 #endif
 
     /// @}
@@ -218,14 +219,20 @@ public:
         return myDescription;
     }
 
+#ifdef HAVE_INTERNAL
+protected:
+    void removeFromVehicleUpdateValues(SUMOVehicle& veh);
+#endif
 
 protected:
+
     /// @brief Lane on which the reminder works
     MSLane* const myLane;
     /// @brief a description of this moveReminder
     std::string myDescription;
 
 #ifdef HAVE_INTERNAL
+private:
     std::map<SUMOVehicle*, std::pair<SUMOTime, SUMOReal> > myLastVehicleUpdateValues;
 #endif
 

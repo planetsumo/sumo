@@ -111,6 +111,9 @@
     </random_network>
 
     <output>
+        <!-- Prefix which is applied to all output files. The special string &apos;TIME&apos; is replaced by the current time. -->
+        <output-prefix value="" type="FILE"/>
+
         <!-- The generated net will be written to FILE -->
         <output-file value="" synonymes="o output sumo-output" type="FILE"/>
 
@@ -119,9 +122,6 @@
 
         <!-- Writes information about joined junctions to FILE (can be loaded as additional node-file to reproduce joins -->
         <junctions.join-output value="" type="FILE"/>
-
-        <!-- Writes joined edges information to FILE -->
-        <map-output value="" synonymes="M" type="FILE"/>
 
         <!-- The generated net will be written to FILE using Amitran format -->
         <amitran-output value="" type="FILE"/>
@@ -255,6 +255,9 @@
         <!-- Determines the maximal distance for joining junctions (defaults to 10) -->
         <junctions.join-dist value="10" type="FLOAT"/>
 
+        <!-- Generate INT intermediate points to smooth out intersection corners -->
+        <junctions.corner-detail value="0" type="INT"/>
+
         <!-- Allow driving onto a multi-lane road if there are foes on other lanes (at roundabouts) -->
         <check-lane-foes.roundabout value="true" type="BOOL"/>
 
@@ -269,6 +272,9 @@
 
         <!-- Add sidewalks for edges with a speed above the given limit -->
         <sidewalks.guess.min-speed value="5.8" type="FLOAT"/>
+
+        <!-- Add sidewalks for edges that allow pedestrians on any of their lanes regardless of speed -->
+        <sidewalks.guess.from-permissions value="false" type="BOOL"/>
 
         <!-- Guess pedestrian crossings based on the presence of sidewalks -->
         <crossings.guess value="false" type="BOOL"/>

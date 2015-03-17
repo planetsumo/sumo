@@ -9,7 +9,7 @@
 // Some methods for traversing lists of edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -353,17 +353,16 @@ public:
     class opposite_finder {
     public:
         /// constructor
-        opposite_finder(NBEdge* edge, const NBNode* n)
-            : myReferenceEdge(edge), myAtNode(n) { }
+        opposite_finder(NBEdge* edge)
+            : myReferenceEdge(edge) { }
 
         bool operator()(NBEdge* e) const {
-            return e->isTurningDirectionAt(myAtNode, myReferenceEdge) ||
-                   myReferenceEdge->isTurningDirectionAt(myAtNode, e);
+            return e->isTurningDirectionAt(myReferenceEdge) ||
+                   myReferenceEdge->isTurningDirectionAt(e);
         }
 
     private:
         NBEdge* myReferenceEdge;
-        const NBNode* myAtNode;
 
     };
 
@@ -374,7 +373,7 @@ public:
     class edge_by_angle_to_nodeShapeCentroid_sorter {
     public:
         /// constructor
-        explicit edge_by_angle_to_nodeShapeCentroid_sorter(NBNode* n) : myNode(n) {}
+        explicit edge_by_angle_to_nodeShapeCentroid_sorter(const NBNode* n) : myNode(n) {}
 
     public:
         /// comparing operation
@@ -382,7 +381,7 @@ public:
 
     private:
         /// the edge to compute the relative angle of
-        NBNode* myNode;
+        const NBNode* myNode;
     };
 
 };

@@ -9,7 +9,7 @@
 // Algorithms for highway on-/off-ramps computation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -167,7 +167,7 @@ NBRampsComputer::buildOnRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDist
                 if (curr->getNumLanes() != firstLaneNumber) {
                     // the number of lanes changes along the computation; we'll stop...
                     curr = 0;
-                } else if (curr->isTurningDirectionAt(nextN, last)) {
+                } else if (curr->isTurningDirectionAt(last)) {
                     // turnarounds certainly should not be included in a ramp
                     curr = 0;
                 } else if (curr == potHighway || curr == potRamp) {
@@ -195,7 +195,6 @@ NBRampsComputer::buildOnRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDist
             }
             //ec.retrieve(name)->invalidateConnections();
             curr = ec.retrieve(name + ADDED_ON_RAMP_EDGE);
-            curr->invalidateConnections(true);
             incremented.insert(curr);
             last = curr;
             moveRampRight(curr, toAdd);
@@ -220,14 +219,6 @@ NBRampsComputer::buildOnRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDist
     p.pop_back();
     p.push_back(first->getLaneShape(0)[0]);
     potRamp->setGeometry(p);
-    // set connections from added ramp to following highway
-    NBNode* nextN = last->getToNode();
-    if (nextN->getOutgoingEdges().size() == 1) {
-        NBEdge* next = nextN->getOutgoingEdges()[0];//const EdgeVector& o1 = cont->getToNode()->getOutgoingEdges();
-        if (next->getNumLanes() < last->getNumLanes()) {
-            last->addLane2LaneConnections(last->getNumLanes() - next->getNumLanes(), next, 0, next->getNumLanes(), NBEdge::L2L_VALIDATED);
-        }
-    }
 }
 
 
@@ -258,7 +249,7 @@ NBRampsComputer::buildOffRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDis
                 if (curr->getNumLanes() != firstLaneNumber) {
                     // the number of lanes changes along the computation; we'll stop...
                     curr = 0;
-                } else if (last->isTurningDirectionAt(prevN, curr)) {
+                } else if (last->isTurningDirectionAt(curr)) {
                     // turnarounds certainly should not be included in a ramp
                     curr = 0;
                 } else if (curr == potHighway || curr == potRamp) {
@@ -286,7 +277,6 @@ NBRampsComputer::buildOffRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDis
                 return;
             }
             curr = ec.retrieve(name + "-AddedOffRampEdge");
-            curr->invalidateConnections(true);
             incremented.insert(curr);
             last = curr;
             moveRampRight(curr, toAdd);
@@ -311,14 +301,6 @@ NBRampsComputer::buildOffRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDis
     p.pop_front();
     p.push_front(first->getLaneShape(0)[-1]);
     potRamp->setGeometry(p);
-    // set connections from previous highway to added ramp
-    NBNode* prevN = last->getFromNode();
-    if (prevN->getIncomingEdges().size() == 1) {
-        NBEdge* prev = prevN->getIncomingEdges()[0];//const EdgeVector& o1 = cont->getToNode()->getOutgoingEdges();
-        if (prev->getNumLanes() < last->getNumLanes()) {
-            last->addLane2LaneConnections(last->getNumLanes() - prev->getNumLanes(), last, 0, prev->getNumLanes(), NBEdge::L2L_VALIDATED);
-        }
-    }
 }
 
 
@@ -329,8 +311,9 @@ NBRampsComputer::moveRampRight(NBEdge* ramp, int addedLanes) {
     }
     try {
         PositionVector g = ramp->getGeometry();
-        SUMOReal factor = SUMO_const_laneWidthAndOffset * (SUMOReal)(addedLanes - 1) + SUMO_const_halfLaneAndOffset * (SUMOReal)(addedLanes % 2);
-        g.move2side(factor);
+        const SUMOReal offset = (0.5 * addedLanes *
+                                 (ramp->getLaneWidth() == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : ramp->getLaneWidth()));
+        g.move2side(offset);
         ramp->setGeometry(g);
     } catch (InvalidArgument&) {
         WRITE_WARNING("For edge '" + ramp->getID() + "': could not compute shape.");
@@ -439,14 +422,14 @@ NBRampsComputer::fulfillsRampConstraints(
     // is any of the connections a turnaround?
     if (other->getToNode() == potHighway->getFromNode()) {
         // off ramp
-        if (other->isTurningDirectionAt(other->getToNode(), potHighway) ||
-                other->isTurningDirectionAt(other->getToNode(), potRamp)) {
+        if (other->isTurningDirectionAt(potHighway) ||
+                other->isTurningDirectionAt(potRamp)) {
             return false;
         }
     } else {
         // on ramp
-        if (other->isTurningDirectionAt(other->getFromNode(), potHighway) ||
-                other->isTurningDirectionAt(other->getFromNode(), potRamp)) {
+        if (other->isTurningDirectionAt(potHighway) ||
+                other->isTurningDirectionAt(potRamp)) {
             return false;
         }
     }

@@ -9,7 +9,7 @@
 Python interface to SUMO especially for parsing output files.
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2011-2015 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -31,37 +31,62 @@ from . import dump, inductionloop, convert
 
 
 def compound_object(element_name, attrnames):
-    """return a class which delegates attribute acces to a namedtuple instance and
-       bracket access to an internal dict. Missing attributes are deletegated to
-       the child dict for convenience
+    """return a class which delegates bracket access to an internal dict. 
+       Missing attributes are delegated to the child dict for convenience.
        @note: Care must be taken when child nodes and attributes have the same names"""
-    nt = namedtuple(element_name, attrnames)
     class CompoundObject():
-        _fields = attrnames
+        _fields = sorted(attrnames)
+
         def __init__(self, values, child_dict):
-            self.nt_instance = nt(*values)
-            self.child_dict = child_dict
-        def __coerce__(self, other):
-            return None
-        def __cmp__(self, other):
-            if (self.nt_instance == other.nt_instance and
-                    self.child_dict == other.child_dict):
-                return 0
-            elif (self.nt_instance < other.nt_instance or
-                    (self.nt_instance == other.nt_instance and
-                        self.child_dict < other.child_dict)):
-                return -1
-            else:
-                return 1
+            for name, val in zip(self._fields, values):
+                self.__dict__[name] = val
+            self._child_dict = child_dict
+
+        def getAttributes(self):
+            return [(k, getattr(self, k)) for k in self._fields]
+
+        def hasAttribute(self, name):
+            return name in self._fields
+
+        def hasChild(self, name):
+            return name in self._child_dict
+
         def __getattr__(self, name):
-            try:
-                return getattr(self.nt_instance, name)
-            except AttributeError:
-                return self.child_dict.get(name, None)
+            if name[:2] != "__":
+                return self._child_dict.get(name, None)
+            raise AttributeError
+
+        def __setattr__(self, name, value):
+            if name != "_child_dict" and name in self._child_dict:
+                self._child_dict[name] = value
+            else:
+                self.__dict__[name] = value
+
+        def __delattr__(self, name):
+            if name in self._child_dict:
+                del self._child_dict[name]
+            else:
+                del self.__dict__[name]
+                self._fields.remove(name)
+
         def __getitem__(self, name):
-            return self.child_dict[name]
+            return self._child_dict[name]
+
         def __str__(self):
-            return "<%s,child_dict=%s>" % (self.nt_instance, dict(self.child_dict))
+            return "<%s,child_dict=%s>" % (self.getAttributes(), dict(self._child_dict))
+
+        def toXML(self, initialIndent="", indent="    "):
+            fields = ['%s="%s"' % (k, getattr(self, k)) for k in self._fields]
+            if not self._child_dict:
+                return "%s<%s %s/>\n" % (initialIndent, element_name, " ".join(fields))
+            else:
+                s = "%s<%s %s>\n" % (
+                    initialIndent, element_name, " ".join(fields))
+                for l in self._child_dict.itervalues():
+                    for c in l:
+                        s += c.toXML(initialIndent + indent)
+                return s + "%s</%s>\n" % (initialIndent, element_name)
+
         def __repr__(self):
             return str(self)
 
@@ -88,66 +113,77 @@ def parse(xmlfile, element_names, element_attrs={}, attr_conversions={}):
     the subtree in which they occur
     @Note: Attribute names may be modified to avoid name clashes
     with python keywords.
+    @Note: The element_names may be either a single string or a list of strings.
     @Example: parse('plain.edg.xml', ['edge'])
     """
+    if isinstance(element_names, str):
+        element_names = [element_names]
     elementTypes = {}
     xml_doc = pulldom.parse(xmlfile)
     for event, parsenode in xml_doc:
         if event == pulldom.START_ELEMENT and parsenode.localName in element_names:
             xml_doc.expandNode(parsenode)
             yield _get_compound_object(parsenode, elementTypes,
-                    parsenode.localName, element_attrs, attr_conversions)
+                                       parsenode.localName, element_attrs, attr_conversions)
 
 
-_NO_CHILDREN = defaultdict(lambda:[])
-_IDENTITY = lambda x:x
+_NO_CHILDREN = defaultdict(lambda: [])
+_IDENTITY = lambda x: x
+
+
 def _get_compound_object(node, elementTypes, element_name, element_attrs, attr_conversions):
     if not element_name in elementTypes:
-        # initialized the compound_object type from the first encountered # element
-        attrnames = element_attrs.get(element_name, 
-                [node.attributes.item(i).localName for i in range(node.attributes.length)])
+        # initialized the compound_object type from the first encountered #
+        # element
+        attrnames = element_attrs.get(element_name,
+                                      [node.attributes.item(i).localName for i in range(node.attributes.length)])
         if len(attrnames) != len(set(attrnames)):
-            raise Exception("non-unique attributes %s for element '%s'" % (attrnames, element_name))
+            raise Exception(
+                "non-unique attributes %s for element '%s'" % (attrnames, element_name))
         attrnames = [_prefix_keyword(a) for a in attrnames]
         elementTypes[element_name] = compound_object(element_name, attrnames)
     # prepare children
-    child_dict = _NO_CHILDREN # conserve space by reusing singleton
-    child_elements = [c for c in node.childNodes if c.nodeType == xml.dom.Node.ELEMENT_NODE]
+    child_dict = _NO_CHILDREN  # conserve space by reusing singleton
+    child_elements = [
+        c for c in node.childNodes if c.nodeType == xml.dom.Node.ELEMENT_NODE]
     if child_elements:
-        child_dict = defaultdict(lambda:[])
+        child_dict = defaultdict(lambda: [])
         for c in child_elements:
             child_dict[c.localName].append(_get_compound_object(
                 c, elementTypes, c.localName, element_attrs, attr_conversions))
     attrnames = elementTypes[element_name]._fields
     return elementTypes[element_name](
-            [(attr_conversions.get(a, _IDENTITY)(node.getAttribute(a)) if node.hasAttribute(a) else None) for a in attrnames],
-            child_dict)
+        [(attr_conversions.get(a, _IDENTITY)(node.getAttribute(a))
+          if node.hasAttribute(a) else None) for a in attrnames],
+        child_dict)
 
 
 def _prefix_keyword(name, warn=False):
     result = name
     # create a legal identifier (xml allows '-', ':' and '.' ...)
-    result = ''.join([c for c in name if c.isalnum() or c=='_'])
+    result = ''.join([c for c in name if c.isalnum() or c == '_'])
     if result != name:
         if result == '':
             result == 'attr_'
         if warn:
-            print("Warning: Renaming attribute '%s' to '%s' because it contains illegal characters" % (name, result), file=sys.stderr)
+            print("Warning: Renaming attribute '%s' to '%s' because it contains illegal characters" % (
+                name, result), file=sys.stderr)
     if iskeyword(name):
         result = 'attr_' + name
         if warn:
-            print("Warning: Renaming attribute '%s' to '%s' because it conflicts with a python keyword" % (name, result), file=sys.stderr)
+            print("Warning: Renaming attribute '%s' to '%s' because it conflicts with a python keyword" % (
+                name, result), file=sys.stderr)
     return result
 
 
 def sum(elements, attrname):
-    # for the given elements (as returned by method parse) compute the sum for attrname 
+    # for the given elements (as returned by method parse) compute the sum for attrname
     # attrname must be the name of a numerical attribute
-    return reduce(lambda x,y: x+y, [float(getattr(e, attrname)) for e in elements])
+    return reduce(lambda x, y: x + y, [float(getattr(e, attrname)) for e in elements])
 
 
 def average(elements, attrname):
-    # for the given elements (as returned by method parse) compute the average for attrname 
+    # for the given elements (as returned by method parse) compute the average for attrname
     # attrname must be the name of a numerical attribute
     if elements:
         return sum(elements, attrname) / len(elements)
@@ -163,7 +199,7 @@ def parse_fast(xmlfile, element_name, attrnames, warn=False):
     @Example: parse_fast('plain.edg.xml', 'edge', ['id', 'speed'])
     """
     pattern = '.*'.join(['<%s' % element_name] +
-        ['%s="([^"]*)"' % attr for attr in attrnames])
+                        ['%s="([^"]*)"' % attr for attr in attrnames])
     attrnames = [_prefix_keyword(a, warn) for a in attrnames]
     Record = namedtuple(element_name, attrnames)
     reprog = re.compile(pattern)
@@ -174,14 +210,15 @@ def parse_fast(xmlfile, element_name, attrnames, warn=False):
 
 
 class AbstractHandler__byID(ContentHandler):
+
     def __init__(self, element_name, idAttr, attributes):
         self._element_name = element_name
         self._attributes = attributes
         self._idAttr = idAttr
         self._values = {}
-        
+
     def startElement(self, name, attrs):
-        if name!=self._element_name:
+        if name != self._element_name:
             return
         cid = float(attrs[self._idAttr])
         self._values[cid] = {}
@@ -190,29 +227,35 @@ class AbstractHandler__byID(ContentHandler):
                 self._values[cid][a] = float(attrs[a])
         else:
             for a in attrs.keys():
-                if a!=self._idAttr:
+                if a != self._idAttr:
                     self._values[cid][a] = float(attrs[a])
 
+
 class AbstractHandler__asList(ContentHandler):
+
     def __init__(self, element_name, attributes):
         self._element_name = element_name
         self._attributes = attributes
         self._values = []
-        
+
     def startElement(self, name, attrs):
-        if name!=self._element_name:
+        if name != self._element_name:
             return
         tmp = {}
         if self._attributes:
             for a in self._attributes:
-                try: tmp[a] = float(attrs[a])
-                except: tmp[a] = attrs[a]
+                try:
+                    tmp[a] = float(attrs[a])
+                except:
+                    tmp[a] = attrs[a]
         else:
             for a in attrs.keys():
-                try: tmp[a] = float(attrs[a])
-                except: tmp[a] = attrs[a]
-        self._values.append(tmp)            
-            
+                try:
+                    tmp[a] = float(attrs[a])
+                except:
+                    tmp[a] = attrs[a]
+        self._values.append(tmp)
+
 
 def parse_sax(xmlfile, handler):
     myparser = make_parser()
@@ -224,23 +267,25 @@ def parse_sax__byID(xmlfile, element_name, idAttr, attrnames):
     h = AbstractHandler__byID(element_name, idAttr, attrnames)
     parse_sax(xmlfile, h)
     return h._values
-    
+
+
 def parse_sax__asList(xmlfile, element_name, attrnames):
     h = AbstractHandler__asList(element_name, attrnames)
     parse_sax(xmlfile, h)
     return h._values
-    
+
+
 def toList(mapList, attr):
     ret = []
     for a in mapList:
         ret.append(a[attr])
     return ret
 
+
 def prune(fv, minV, maxV):
-    if minV!=None:
-        for i,v in enumerate(fv):
+    if minV != None:
+        for i, v in enumerate(fv):
             fv[i] = max(v, minV)
-    if maxV!=None:
-        for i,v in enumerate(fv):
+    if maxV != None:
+        for i, v in enumerate(fv):
             fv[i] = min(v, maxV)
-    

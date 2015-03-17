@@ -13,7 +13,7 @@
 // Representation of a lane in the micro simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -534,6 +534,10 @@ public:
         of the list of links (is not valid) */
     bool isLinkEnd(MSLinkCont::iterator& i);
 
+    /** Returns the information whether the lane is has no vehicle and no
+        partial occupation*/
+    bool isEmpty() const;
+
     /// returns the last vehicle
     MSVehicle* getLastVehicle() const;
     MSVehicle* getFirstVehicle() const;
@@ -590,12 +594,11 @@ public:
 
     /// @brief return the follower with the largest missing rear gap among all predecessor lanes (within dist)
     std::pair<MSVehicle* const, SUMOReal> getFollowerOnConsecutive(
-        SUMOReal dist, SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
+        SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
 
 
     /// @brief return by how much further the leader must be inserted to avoid rear end collisions
-    SUMOReal getMissingRearGap(SUMOReal dist, SUMOReal backOffset,
-                               SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
+    SUMOReal getMissingRearGap(SUMOReal backOffset, SUMOReal leaderSpeed, SUMOReal leaderMaxDecel) const;
 
 
     /** @brief Returns the immediate leader and the distance to him
@@ -789,6 +792,8 @@ protected:
     /// @brief issue warning and add the vehicle to MSVehicleTransfer
     void handleCollision(SUMOTime timestep, const std::string& stage, MSVehicle* collider, MSVehicle* victim, const SUMOReal gap);
 
+    /// @brief compute maximum braking distance on this lane
+    SUMOReal getMaximumBrakeDist() const;
 
 protected:
     /// Unique numerical ID (set on reading by netload)

@@ -9,7 +9,7 @@
 // A MSVehicle extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -51,14 +51,16 @@
 #include <microsim/logging/CastingFunctionBinding.h>
 #include <microsim/logging/FunctionBinding.h>
 #include <microsim/MSVehicleControl.h>
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <microsim/devices/MSDevice_Person.h>
+#include <microsim/devices/MSDevice_Container.h>
 #include <microsim/devices/MSDevice_BTreceiver.h>
 #include <gui/GUIApplicationWindow.h>
 #include <gui/GUIGlobals.h>
 #include "GUIVehicle.h"
 #include "GUIPerson.h"
+#include "GUIContainer.h"
 #include "GUINet.h"
 #include "GUIEdge.h"
 #include "GUILane.h"
@@ -129,6 +131,11 @@ double vehiclePoly_EVehicleFrontGlass[] = { .5, 0,  0.05, .05,  0.05, .25,  0.13
 //double vehiclePoly_EVehicleFrontGlass[] = { 0.35,0,  0.1,0,  0.1,0.4,  0.43,0.3,  0.43,-0.3,  0.1,-0.4,  0.1,0,  -10000 };
 double vehiclePoly_EVehicleBackGlass[] =  { 0.65, 0,  0.9, 0,  0.9, 0.4,  0.57, 0.3,  0.57, -0.3,  0.9, -0.4,  0.9, 0,  -10000 };
 
+double vehiclePoly_Ship[] =  { 0.25, 0,  0, 0,  0.1, 0.25, 0.2, 0.45, 0.25, 0.5,  0.95, 0.5, 1.0, 0.45,   1.0, -0.45, 0.95, -0.5,  0.25, -0.5, 0.2, -0.45,  0.1, -0.25, 0, 0,   -10000 };
+double vehiclePoly_ShipDeck[] =  { 0.5, 0,  0.25, 0.4,  0.95, 0.4, 0.95, -0.4, 0.25, -0.4, 0.25, 0.4, -10000 };
+double vehiclePoly_ShipSuperStructure[] =  { 0.8, 0,  0.5, 0.3,  0.85, 0.3,  0.85, -0.3, 0.5, -0.3,  0.5, 0.3,  -10000 };
+
+double vehiclePoly_Cyclist[] =  { 0.5, 0,  0.25, 0.45,  0.25, 0.5, 0.8, 0.15,     0.8, -0.15, 0.25, -0.5, 0.25, -0.45,     -10000 };
 
 // ===========================================================================
 // method definitions
@@ -315,7 +322,7 @@ GUIParameterTableWindow*
 GUIVehicle::getParameterWindow(GUIMainWindow& app,
                                GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 35);
+        new GUIParameterTableWindow(app, *this, 36);
     // add items
     ret->mkItem("lane [id]", false, myLane->getID());
     ret->mkItem("position [m]", true,
@@ -346,6 +353,7 @@ GUIVehicle::getParameterWindow(GUIMainWindow& app,
         ret->mkItem("insertion probability", false, getParameter().repetitionProbability);
     }
     ret->mkItem("stop info", false, getStopInfo());
+    ret->mkItem("line", false, myParameter->line);
     ret->mkItem("CO2 [mg/s]", true,
                 new FunctionBinding<GUIVehicle, SUMOReal>(this, &GUIVehicle::getCO2Emissions));
     ret->mkItem("CO [mg/s]", true,
@@ -481,17 +489,28 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
         case SVS_BICYCLE:
         case SVS_MOPED:
         case SVS_MOTORCYCLE: {
+            RGBColor darker = current.changedBrightness(-50);
+            // body
+            drawPoly(vehiclePoly_Cyclist, 4);
+            // head
             glPushMatrix();
-            glTranslated(.5, 0, 0);
-            glScaled(.25 / (length), 1, 1.);
-            glTranslated(0, 0, .045);
+            glTranslated(0.4, 0, .5);
+            glScaled(0.1, 0.2, 1);
+            GLHelper::setColor(darker);
             GLHelper::drawFilledCircle(1);
-            glScaled(.7, 2, 1);
-            glTranslated(0, 0, -.045);
-            glTranslated(0, 0, .04);
-            GLHelper::setColor(lighter);
+            glPopMatrix();
+            // bike frame
+            GLHelper::setColor(RGBColor::GREY);
+            glPushMatrix();
+            glTranslated(0.5, 0, .3);
+            glScaled(0.5, 0.05, 1);
             GLHelper::drawFilledCircle(1);
-            glTranslated(0, 0, -.04);
+            glPopMatrix();
+            // handle bar
+            glPushMatrix();
+            glTranslated(0.25, 0, .3);
+            glScaled(0.02, 0.5, 1);
+            GLHelper::drawFilledCircle(1);
             glPopMatrix();
         }
         break;
@@ -645,6 +664,16 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
             GLHelper::drawFilledCircle(.3, 16);
             glPopMatrix();
             break;
+        case SVS_SHIP: {
+            RGBColor darker = current.changedBrightness(-30);
+            RGBColor darker2 = current.changedBrightness(-70);
+            drawPoly(vehiclePoly_Ship, 4);
+            GLHelper::setColor(darker);
+            drawPoly(vehiclePoly_ShipDeck, 5);
+            GLHelper::setColor(darker2);
+            drawPoly(vehiclePoly_ShipSuperStructure, 6);
+            break;
+        }
         default: // same as passenger
             drawPoly(vehiclePoly_PassengerCarBody, 4);
             glColor3d(1, 1, 1);
@@ -747,6 +776,7 @@ GUIVehicle::drawAction_drawVehicleAsPoly(const GUIVisualizationSettings& s) cons
         case SVS_RAIL_CARGO:
         case SVS_E_VEHICLE:
         case SVS_ANT:
+        case SVS_SHIP:
             break;
         default: // same as passenger/sedan
             drawPoly(vehiclePoly_PassengerSedanRightGlass, 4.5);
@@ -992,6 +1022,7 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
             case SVS_PEDESTRIAN:
             case SVS_BICYCLE:
             case SVS_ANT:
+            case SVS_SHIP:
             case SVS_RAIL:
             case SVS_RAIL_CARGO:
                 // only SVS_RAIL_CAR has blinkers and brake lights
@@ -1050,9 +1081,13 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
     }
     */
     glPopMatrix();
-    drawName(getPosition(-MIN2(getVehicleType().getLength() / 2, SUMOReal(5))),
-             s.scale,
+    const Position namePos = getPosition(-MIN2(getVehicleType().getLength() / 2, SUMOReal(5)));
+    drawName(namePos, s.scale,
              getVehicleType().getGuiShape() == SVS_PEDESTRIAN ? s.personName : s.vehicleName);
+    if (s.vehicleName.show && myParameter->line != "") {
+        GLHelper::drawText("line:" + myParameter->line, namePos + Position(0, -0.6 * s.vehicleName.size / s.scale),
+                           GLO_MAX, s.vehicleName.size / s.scale, s.vehicleName.color);
+    }
     glPopName();
     if (myPersonDevice != 0) {
         const std::vector<MSPerson*>& ps = myPersonDevice->getPersons();
@@ -1062,6 +1097,16 @@ GUIVehicle::drawGL(const GUIVisualizationSettings& s) const {
             assert(person != 0);
             person->setPositionInVehicle(getSeatPosition(personIndex++));
             person->drawGL(s);
+        }
+    }
+    if (myContainerDevice != 0) {
+        const std::vector<MSContainer*>& cs = myContainerDevice->getContainers();
+        size_t containerIndex = 0;
+        for (std::vector<MSContainer*>::const_iterator i = cs.begin(); i != cs.end(); ++i) {
+            GUIContainer* container = dynamic_cast<GUIContainer*>(*i);
+            assert(container != 0);
+            container->setPositionInVehicle(getSeatPosition(containerIndex++));
+            container->drawGL(s);
         }
     }
 }
@@ -1203,6 +1248,12 @@ GUIVehicle::setFunctionalColor(size_t activeScheme, const MSBaseVehicle* veh) {
             Position minp(b.xmin(), b.ymin());
             Position maxp(b.xmax(), b.ymax());
             SUMOReal sat = pb.distanceTo(pe) / minp.distanceTo(maxp);
+            GLHelper::setColor(RGBColor::fromHSV(hue, sat, 1.));
+            return true;
+        }
+        case 24: { // color randomly (by pointer)
+            const SUMOReal hue = (long)veh % 360; // [0-360]
+            const SUMOReal sat = (((long)veh / 360) % 67) / 100.0 + 0.33; // [0.33-1]
             GLHelper::setColor(RGBColor::fromHSV(hue, sat, 1.));
             return true;
         }
@@ -1529,6 +1580,8 @@ GUIVehicle::getStopInfo() const {
     }
     if (myStops.front().triggered) {
         result += ", triggered";
+    } else if (myStops.front().containerTriggered) {
+        result += ", containerTriggered";
     } else {
         result += ", duration=" + time2string(myStops.front().duration);
     }

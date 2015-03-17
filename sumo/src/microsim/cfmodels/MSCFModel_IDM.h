@@ -9,7 +9,7 @@
 // The Intelligent Driver Model (IDM) car-following model
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -20,7 +20,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFMODEL_IDM_H
-#define	MSCFMODEL_IDM_H
+#define MSCFMODEL_IDM_H
 
 // ===========================================================================
 // included modules
@@ -184,4 +184,4 @@ private:
     MSCFModel_IDM& operator=(const MSCFModel_IDM& s);
 };
 
-#endif	/* MSCFMODEL_IDM_H */
+#endif /* MSCFMODEL_IDM_H */

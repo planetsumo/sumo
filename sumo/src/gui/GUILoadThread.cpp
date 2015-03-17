@@ -9,7 +9,7 @@
 // Class describing the thread that performs the loading of a simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -119,6 +119,8 @@ GUILoadThread::run() {
         oc.clear();
         MSFrame::fillOptions();
         if (myFile != "") {
+            myTitle = myFile;
+            // triggered by menu option
             if (myLoadNet) {
                 oc.set("net-file", myFile);
             } else {
@@ -126,7 +128,13 @@ GUILoadThread::run() {
             }
             OptionsIO::getOptions(true, 1, 0);
         } else {
+            // triggered at application start or reload
             OptionsIO::getOptions(true);
+            if (oc.isSet("configuration-file")) {
+                myTitle = oc.getString("configuration-file");
+            } else if (oc.isSet("net-file")) {
+                myTitle = oc.getString("net-file");
+            }
         }
         // within gui-based applications, nothing is reported to the console
         MsgHandler::getMessageInstance()->removeRetriever(&OutputDevice::getDevice("stdout"));
@@ -236,11 +244,16 @@ GUILoadThread::submitEndAndCleanup(GUINet* net,
     MsgHandler::getWarningInstance()->removeRetriever(myWarningRetriever);
     MsgHandler::getMessageInstance()->removeRetriever(myMessageRetriever);
     // inform parent about the process
-    GUIEvent* e = new GUIEvent_SimulationLoaded(net, simStartTime, simEndTime, myFile, guiSettingsFiles, osgView);
+    GUIEvent* e = new GUIEvent_SimulationLoaded(net, simStartTime, simEndTime, myTitle, guiSettingsFiles, osgView);
     myEventQue.add(e);
     myEventThrow.signal();
 }
 
+
+void
+GUILoadThread::reloadConfigOrNet() {
+    start();
+}
 
 void
 GUILoadThread::loadConfigOrNet(const std::string& file, bool isNet) {

@@ -9,7 +9,7 @@
 // Builds trigger objects for guisim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,6 +36,7 @@
 #include <guisim/GUINet.h>
 #include <guisim/GUITriggeredRerouter.h>
 #include <guisim/GUIBusStop.h>
+#include <guisim/GUIContainerStop.h>
 #include <guisim/GUICalibrator.h>
 #include "GUITriggerBuilder.h"
 
@@ -65,7 +66,7 @@ GUITriggerBuilder::buildLaneSpeedTrigger(MSNet& net,
 
 MSTriggeredRerouter*
 GUITriggerBuilder::buildRerouter(MSNet& net, const std::string& id,
-                                 std::vector<MSEdge*>& edges,
+                                 MSEdgeVector& edges,
                                  SUMOReal prob, const std::string& file, bool off) {
     GUITriggeredRerouter* rr = new GUITriggeredRerouter(id, edges, prob, file, off,
             dynamic_cast<GUINet&>(net).getVisualisationSpeedUp());
@@ -82,6 +83,19 @@ GUITriggerBuilder::buildBusStop(MSNet& net, const std::string& id,
     if (!net.addBusStop(stop)) {
         delete stop;
         throw InvalidArgument("Could not build bus stop '" + id + "'; probably declared twice.");
+    }
+    static_cast<GUINet&>(net).getVisualisationSpeedUp().addAdditionalGLObject(stop);
+}
+
+void
+GUITriggerBuilder::buildContainerStop(MSNet& net, const std::string& id,
+                                      const std::vector<std::string>& lines,
+                                      MSLane* lane,
+                                      SUMOReal frompos, SUMOReal topos) {
+    GUIContainerStop* stop = new GUIContainerStop(id, lines, *lane, frompos, topos);
+    if (!net.addContainerStop(stop)) {
+        delete stop;
+        throw InvalidArgument("Could not build container stop '" + id + "'; probably declared twice.");
     }
     static_cast<GUINet&>(net).getVisualisationSpeedUp().addAdditionalGLObject(stop);
 }

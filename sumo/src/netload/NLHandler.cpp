@@ -12,7 +12,7 @@
 // The XML-Handler for network loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -50,7 +50,6 @@
 #include <microsim/MSJunction.h>
 #include <microsim/MSJunctionLogic.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
-#include <microsim/traffic_lights/MSAgentbasedTrafficLightLogic.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/geom/GeoConvHelper.h>
@@ -70,16 +69,18 @@ NLHandler::NLHandler(const std::string& file, MSNet& net,
                      NLDetectorBuilder& detBuilder,
                      NLTriggerBuilder& triggerBuilder,
                      NLEdgeControlBuilder& edgeBuilder,
-                     NLJunctionControlBuilder& junctionBuilder)
-    : MSRouteHandler(file, true),
-      myNet(net), myActionBuilder(net),
-      myCurrentIsInternalToSkip(false),
-      myDetectorBuilder(detBuilder), myTriggerBuilder(triggerBuilder),
-      myEdgeControlBuilder(edgeBuilder), myJunctionControlBuilder(junctionBuilder),
-      myAmInTLLogicMode(false), myCurrentIsBroken(false),
-      myHaveWarnedAboutDeprecatedLanes(false),
-      myLastParameterised(0),
-      myHaveSeenInternalEdge(false) {}
+                     NLJunctionControlBuilder& junctionBuilder) :
+    MSRouteHandler(file, true),
+    myNet(net), myActionBuilder(net),
+    myCurrentIsInternalToSkip(false),
+    myDetectorBuilder(detBuilder), myTriggerBuilder(triggerBuilder),
+    myEdgeControlBuilder(edgeBuilder), myJunctionControlBuilder(junctionBuilder),
+    myAmInTLLogicMode(false), myCurrentIsBroken(false),
+    myHaveWarnedAboutDeprecatedLanes(false),
+    myLastParameterised(0),
+    myHaveSeenInternalEdge(false),
+    myNetIsLoaded(false)
+{}
 
 
 NLHandler::~NLHandler() {}
@@ -95,12 +96,6 @@ NLHandler::myStartElement(int element,
                 break;
             case SUMO_TAG_LANE:
                 addLane(attrs);
-                break;
-            case SUMO_TAG_POLY:
-                addPoly(attrs);
-                break;
-            case SUMO_TAG_POI:
-                addPOI(attrs);
                 break;
             case SUMO_TAG_JUNCTION:
                 openJunction(attrs);
@@ -159,6 +154,9 @@ NLHandler::myStartElement(int element,
                 break;
             case SUMO_TAG_BUS_STOP:
                 myTriggerBuilder.parseAndBuildBusStop(myNet, attrs);
+                break;
+            case SUMO_TAG_CONTAINER_STOP:
+                myTriggerBuilder.parseAndBuildContainerStop(myNet, attrs);
                 break;
             case SUMO_TAG_VTYPEPROBE:
                 addVTypeProbeDetector(attrs);
@@ -238,7 +236,6 @@ NLHandler::myEndElement(int element) {
             endE3Detector();
             break;
         case SUMO_TAG_NET:
-            myJunctionControlBuilder.postLoadInitialization();
             // build junction graph
             for (JunctionGraph::iterator it = myJunctionGraph.begin(); it != myJunctionGraph.end(); ++it) {
                 MSEdge* edge = MSEdge::dictionary(it->first);
@@ -250,6 +247,9 @@ NLHandler::myEndElement(int element) {
                     to->addIncoming(edge);
                 }
             }
+            //initialise traffic lights
+            myJunctionControlBuilder.postLoadInitialization();
+            myNetIsLoaded = true;
             break;
         default:
             break;
@@ -274,10 +274,12 @@ NLHandler::beginEdgeParsing(const SUMOSAXAttributes& attrs) {
         return;
     }
     // omit internal edges if not wished
-    if (!MSGlobals::gUsingInternalLanes && id[0] == ':') {
+    if (id[0] == ':') {
         myHaveSeenInternalEdge = true;
-        myCurrentIsInternalToSkip = true;
-        return;
+        if (!MSGlobals::gUsingInternalLanes) {
+            myCurrentIsInternalToSkip = true;
+            return;
+        }
     }
     if (attrs.hasAttribute(SUMO_ATTR_FROM)) {
         myJunctionGraph[id] = std::make_pair(
@@ -366,24 +368,18 @@ NLHandler::addLane(const SUMOSAXAttributes& attrs) {
         myCurrentIsBroken = true;
         return;
     }
-    SUMOReal maxSpeed = attrs.get<SUMOReal>(SUMO_ATTR_SPEED, id.c_str(), ok);
-    SUMOReal length = attrs.get<SUMOReal>(SUMO_ATTR_LENGTH, id.c_str(), ok);
-    std::string allow;
-    try {
-        bool dummy;
-        allow = attrs.getOpt<std::string>(SUMO_ATTR_ALLOW, id.c_str(), dummy, "", false);
-    } catch (EmptyData e) {
-        // !!! deprecated
-    }
-    std::string disallow = attrs.getOpt<std::string>(SUMO_ATTR_DISALLOW, id.c_str(), ok, "");
-    SUMOReal width = attrs.getOpt<SUMOReal>(SUMO_ATTR_WIDTH, id.c_str(), ok, SUMO_const_laneWidth);
-    PositionVector shape = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok);
+    const SUMOReal maxSpeed = attrs.get<SUMOReal>(SUMO_ATTR_SPEED, id.c_str(), ok);
+    const SUMOReal length = attrs.get<SUMOReal>(SUMO_ATTR_LENGTH, id.c_str(), ok);
+    const std::string allow = attrs.getOpt<std::string>(SUMO_ATTR_ALLOW, id.c_str(), ok, "", false);
+    const std::string disallow = attrs.getOpt<std::string>(SUMO_ATTR_DISALLOW, id.c_str(), ok, "");
+    const SUMOReal width = attrs.getOpt<SUMOReal>(SUMO_ATTR_WIDTH, id.c_str(), ok, SUMO_const_laneWidth);
+    const PositionVector shape = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok);
     if (shape.size() < 2) {
         WRITE_ERROR("Shape of lane '" + id + "' is broken.\n Can not build according edge.");
         myCurrentIsBroken = true;
         return;
     }
-    SVCPermissions permissions = parseVehicleClasses(allow, disallow);
+    const SVCPermissions permissions = parseVehicleClasses(allow, disallow);
     if (permissions != SVCAll) {
         myNet.setRestrictionFound();
     }
@@ -556,94 +552,6 @@ NLHandler::addWAUTJunction(const SUMOSAXAttributes& attrs) {
     } catch (InvalidArgument& e) {
         WRITE_ERROR(e.what());
         myCurrentIsBroken = true;
-    }
-}
-
-
-
-
-
-
-
-void
-NLHandler::addPOI(const SUMOSAXAttributes& attrs) {
-    bool ok = true;
-    const SUMOReal INVALID_POSITION(-1000000);
-    std::string id = attrs.get<std::string>(SUMO_ATTR_ID, 0, ok);
-    SUMOReal x = attrs.getOpt<SUMOReal>(SUMO_ATTR_X, id.c_str(), ok, INVALID_POSITION);
-    SUMOReal y = attrs.getOpt<SUMOReal>(SUMO_ATTR_Y, id.c_str(), ok, INVALID_POSITION);
-    SUMOReal lon = attrs.getOpt<SUMOReal>(SUMO_ATTR_LON, id.c_str(), ok, INVALID_POSITION);
-    SUMOReal lat = attrs.getOpt<SUMOReal>(SUMO_ATTR_LAT, id.c_str(), ok, INVALID_POSITION);
-    SUMOReal lanePos = attrs.getOpt<SUMOReal>(SUMO_ATTR_POSITION, id.c_str(), ok, INVALID_POSITION);
-    SUMOReal layer = attrs.getOpt<SUMOReal>(SUMO_ATTR_LAYER, id.c_str(), ok, (SUMOReal)GLO_POI);
-    std::string type = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, "");
-    std::string laneID = attrs.getOpt<std::string>(SUMO_ATTR_LANE, id.c_str(), ok, "");
-    RGBColor color = attrs.hasAttribute(SUMO_ATTR_COLOR) ? attrs.get<RGBColor>(SUMO_ATTR_COLOR, id.c_str(), ok) : RGBColor::RED;
-    SUMOReal angle = attrs.getOpt<SUMOReal>(SUMO_ATTR_ANGLE, id.c_str(), ok, Shape::DEFAULT_ANGLE);
-    std::string imgFile = attrs.getOpt<std::string>(SUMO_ATTR_IMGFILE, id.c_str(), ok, Shape::DEFAULT_IMG_FILE);
-    if (imgFile != "" && !FileHelpers::isAbsolute(imgFile)) {
-        imgFile = FileHelpers::getConfigurationRelative(getFileName(), imgFile);
-    }
-    SUMOReal width = attrs.getOpt<SUMOReal>(SUMO_ATTR_WIDTH, id.c_str(), ok, Shape::DEFAULT_IMG_WIDTH);
-    SUMOReal height = attrs.getOpt<SUMOReal>(SUMO_ATTR_HEIGHT, id.c_str(), ok, Shape::DEFAULT_IMG_HEIGHT);
-    if (!ok) {
-        return;
-    }
-    Position pos(x, y);
-    if (x == INVALID_POSITION || y == INVALID_POSITION) {
-        // try computing x,y from lane,pos
-        if (laneID != "") {
-            MSLane* lane = MSLane::dictionary(laneID);
-            if (lane == 0) {
-                WRITE_ERROR("Lane '" + laneID + "' to place poi '" + id + "' on is not known.");
-                return;
-            }
-            if (lanePos < 0) {
-                lanePos = lane->getLength() + lanePos;
-            }
-            pos = lane->geometryPositionAtOffset(lanePos);
-        } else {
-            // try computing x,y from lon,lat
-            if (lat == INVALID_POSITION || lon == INVALID_POSITION) {
-                WRITE_ERROR("Either (x,y), (lon,lat) or (lane,pos) must be specified for poi '" + id + "'.");
-                return;
-            } else if (!GeoConvHelper::getFinal().usingGeoProjection()) {
-                WRITE_ERROR("(lon, lat) is specified for poi '" + id + "' but no geo-conversion is specified for the network.");
-                return;
-            }
-            pos.set(lon, lat);
-            GeoConvHelper::getFinal().x2cartesian_const(pos);
-        }
-    }
-    if (!myNet.getShapeContainer().addPOI(id, type, color, layer, angle, imgFile, pos, width, height)) {
-        WRITE_ERROR("PoI '" + id + "' already exists.");
-    }
-}
-
-
-void
-NLHandler::addPoly(const SUMOSAXAttributes& attrs) {
-    bool ok = true;
-    std::string id = attrs.get<std::string>(SUMO_ATTR_ID, 0, ok);
-    // get the id, report an error if not given or empty...
-    if (!ok) {
-        return;
-    }
-    SUMOReal layer = attrs.getOpt<SUMOReal>(SUMO_ATTR_LAYER, id.c_str(), ok, Shape::DEFAULT_LAYER);
-    bool fill = attrs.getOpt<bool>(SUMO_ATTR_FILL, id.c_str(), ok, false);
-    std::string type = attrs.getOpt<std::string>(SUMO_ATTR_TYPE, id.c_str(), ok, Shape::DEFAULT_TYPE);
-    std::string colorStr = attrs.get<std::string>(SUMO_ATTR_COLOR, id.c_str(), ok);
-    RGBColor color = attrs.get<RGBColor>(SUMO_ATTR_COLOR, id.c_str(), ok);
-    PositionVector shape = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok);
-    SUMOReal angle = attrs.getOpt<SUMOReal>(SUMO_ATTR_ANGLE, id.c_str(), ok, Shape::DEFAULT_ANGLE);
-    std::string imgFile = attrs.getOpt<std::string>(SUMO_ATTR_IMGFILE, id.c_str(), ok, Shape::DEFAULT_IMG_FILE);
-    if (imgFile != "" && !FileHelpers::isAbsolute(imgFile)) {
-        imgFile = FileHelpers::getConfigurationRelative(getFileName(), imgFile);
-    }
-    if (shape.size() != 0) {
-        if (!myNet.getShapeContainer().addPolygon(id, type, color, layer, angle, imgFile, shape, fill)) {
-            WRITE_WARNING("Skipping redefinition of polygon '" + id + "'.");
-        }
     }
 }
 
@@ -1017,7 +925,8 @@ NLHandler::addConnection(const SUMOSAXAttributes& attrs) {
             tlLinkIdx = attrs.get<int>(SUMO_ATTR_TLLINKINDEX, 0, ok);
             // make sure that the index is in range
             MSTrafficLightLogic* logic = myJunctionControlBuilder.getTLLogic(tlID).getActive();
-            if (tlLinkIdx < 0 || tlLinkIdx >= (int)logic->getCurrentPhaseDef().getState().size()) {
+            if ((tlLinkIdx < 0 || tlLinkIdx >= (int)logic->getCurrentPhaseDef().getState().size())
+                    && logic->getLogicType() != "railSignal") {
                 WRITE_ERROR("Invalid " + toString(SUMO_ATTR_TLLINKINDEX) + " '" + toString(tlLinkIdx) +
                             "' in connection controlled by '" + tlID + "'");
                 return;
@@ -1095,6 +1004,10 @@ NLHandler::parseLinkState(const std::string& state) {
 // ----------------------------------
 void
 NLHandler::setLocation(const SUMOSAXAttributes& attrs) {
+    if (myNetIsLoaded) {
+        //WRITE_WARNING("POIs and Polygons should be loaded using option --po-files")
+        return;
+    }
     bool ok = true;
     PositionVector s = attrs.get<PositionVector>(SUMO_ATTR_NET_OFFSET, 0, ok);
     Boundary convBoundary = attrs.get<Boundary>(SUMO_ATTR_CONV_BOUNDARY, 0, ok);
@@ -1225,4 +1138,16 @@ NLHandler::closeWAUT() {
 }
 
 
+Position
+NLShapeHandler::getLanePos(const std::string& poiID, const std::string& laneID, SUMOReal lanePos) {
+    MSLane* lane = MSLane::dictionary(laneID);
+    if (lane == 0) {
+        WRITE_ERROR("Lane '" + laneID + "' to place poi '" + poiID + "' on is not known.");
+        return Position::INVALID;
+    }
+    if (lanePos < 0) {
+        lanePos = lane->getLength() + lanePos;
+    }
+    return lane->geometryPositionAtOffset(lanePos);
+}
 /****************************************************************************/

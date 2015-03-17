@@ -11,7 +11,7 @@
 // Class containing all information of a given trip (car, bus)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2015 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -100,7 +100,7 @@ public:
     void setDay(int day);
     const std::string& getType() const;
     void setType(std::string type);
-    std::list<AGPosition>* getPassed();
+    const std::list<AGPosition>* getPassed() const;
 
     /**
      * returns the time regarding the departure time

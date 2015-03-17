@@ -8,7 +8,7 @@
 // Some helping methods for router
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -84,7 +84,7 @@ namespace ROHelper {
  *
  * @param[in] edges The list of edges to remove loops from
  */
-void recheckForLoops(std::vector<const ROEdge*>& edges);
+void recheckForLoops(ConstROEdgeVector& edges);
 
 }
 

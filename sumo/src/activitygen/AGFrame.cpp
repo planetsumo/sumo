@@ -10,7 +10,7 @@
 // Configuration of the options of ActivityGen
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -53,9 +53,9 @@ void AGFrame::fillOptions() {
     OptionsCont& oc = OptionsCont::getOptions();
     // Options handling
     oc.addCallExample("--net-file <INPUT>.net.xml --stat-file <INPUT>.stat.xml --output <OUTPUT>.rou.xml --rand",
-                      "generate a route file from a stats file on a given net using arbitrary random seed");
+                      "generate a trips file from a stats file on a given net using arbitrary random seed");
     oc.addCallExample("--net-file <INPUT>.net.xml --stat-file <INPUT>.stat.xml --output <OUTPUT>.rou.xml --duration-d <NBR_OF_DAYS>",
-                      "generate a route file from a stats file on a given net for numerous days (with fixed random seed)");
+                      "generate a trips file from a stats file on a given net for numerous days (with fixed random seed)");
 
     // Add categories and insert the standard options
     SystemFrame::addConfigurationOptions(oc);
@@ -69,14 +69,14 @@ void AGFrame::fillOptions() {
     // Insert options
     oc.doRegister("net-file", 'n', new Option_FileName());
     oc.addSynonyme("net-file", "net");
-    oc.addDescription("net-file", "Input", "Use FILE as SUMO-network to route on");
+    oc.addDescription("net-file", "Input", "Use FILE as SUMO-network to create trips for");
 
     oc.doRegister("stat-file", 's', new Option_FileName());
     oc.addDescription("stat-file", "Input", "Loads the SUMO-statistics FILE");
 
     oc.doRegister("output-file", 'o', new Option_FileName());
     oc.addSynonyme("output-file", "output", true);
-    oc.addDescription("output-file", "Output", "Write generated routes to FILE");
+    oc.addDescription("output-file", "Output", "Write generated trips to FILE");
 
     oc.doRegister("debug", new Option_Bool(false));
     oc.addDescription("debug", "Report",
@@ -92,15 +92,6 @@ void AGFrame::fillOptions() {
 
     oc.doRegister("duration-d", new Option_Integer());
     oc.addDescription("duration-d", "Time", "Sets the duration of the simulation in days");
-
-    // Options needed by the router
-    oc.doRegister("weights.interpolate", new Option_Bool(false));
-    oc.addSynonyme("weights.interpolate", "interpolate", true);
-    oc.addDescription("weights.interpolate", "Processing", "Interpolate edge weights at interval boundaries");
-
-    oc.doRegister("weights.expand", new Option_Bool(false));
-    oc.addSynonyme("weights.expand", "expand-weights", true);
-    oc.addDescription("weights.expand", "Processing", "Expand weights behind the simulation's end");
 }
 
 

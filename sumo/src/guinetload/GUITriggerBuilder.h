@@ -10,7 +10,7 @@
 // Builds trigger objects for guisim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -98,7 +98,7 @@ protected:
      * @param[in] file The file to read the reroute definitions from
      */
     virtual MSTriggeredRerouter* buildRerouter(MSNet& net,
-            const std::string& id, std::vector<MSEdge*>& edges,
+            const std::string& id, MSEdgeVector& edges,
             SUMOReal prob, const std::string& file, bool off);
 
 
@@ -117,6 +117,23 @@ protected:
     virtual void buildBusStop(MSNet& net, const std::string& id,
                               const std::vector<std::string>& lines, MSLane* lane,
                               SUMOReal frompos, SUMOReal topos);
+
+
+    /** @brief Builds a container stop
+     *
+     * Simply calls the GUIContainerStop constructor.
+     *
+     * @param[in] net The net the container stop belongs to
+     * @param[in] id The id of the container stop
+     * @param[in] lines Names of the lines that halt on this container stop
+     * @param[in] lane The lane the container stop is placed on
+     * @param[in] frompos Begin position of the container stop on the lane
+     * @param[in] topos End position of the container stop on the lane
+     * @exception InvalidArgument If the container stop can not be added to the net (is duplicate)
+     */
+    virtual void buildContainerStop(MSNet& net, const std::string& id,
+                                    const std::vector<std::string>& lines, MSLane* lane,
+                                    SUMOReal frompos, SUMOReal topos);
 
 
     /** @brief builds a microscopic calibrator

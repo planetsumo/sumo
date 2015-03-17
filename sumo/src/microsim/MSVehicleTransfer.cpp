@@ -9,7 +9,7 @@
 // A mover of vehicles that got stucked due to grid locks
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,7 +36,7 @@
 #include "MSLane.h"
 #include "MSEdge.h"
 #include "MSVehicle.h"
-#include "MSAbstractLaneChangeModel.h"
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include "MSVehicleControl.h"
 #include "MSVehicleTransfer.h"
 
@@ -127,8 +127,8 @@ MSVehicleTransfer::checkInsertions(SUMOTime time) {
                 i++;
             }
         } else {
-            // handle teleporting vehicles
-            if (l->freeInsertion(*(desc.myVeh), MIN2(l->getSpeedLimit(), desc.myVeh->getMaxSpeed()), MSMoveReminder::NOTIFICATION_TELEPORT)) {
+            // handle teleporting vehicles, lane may be 0 because permissions were modified by a closing rerouter or TraCI
+            if (l != 0 && l->freeInsertion(*(desc.myVeh), MIN2(l->getSpeedLimit(), desc.myVeh->getMaxSpeed()), MSMoveReminder::NOTIFICATION_TELEPORT)) {
                 WRITE_WARNING("Vehicle '" + desc.myVeh->getID() + "' ends teleporting on edge '" + e->getID() + "', time " + time2string(MSNet::getInstance()->getCurrentTimeStep()) + ".");
                 MSNet::getInstance()->informVehicleStateListener(desc.myVeh, MSNet::VEHICLE_STATE_ENDING_TELEPORT);
                 i = myVehicles.erase(i);

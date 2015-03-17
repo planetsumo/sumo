@@ -10,7 +10,7 @@
 // Data collector for edges/lanes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -119,6 +119,11 @@ MSMeanData::MeanDataValues::notifyMove(SUMOVehicle& veh, SUMOReal oldPos, SUMORe
 
 bool
 MSMeanData::MeanDataValues::notifyLeave(SUMOVehicle& /*veh*/, SUMOReal /*lastPos*/, MSMoveReminder::Notification reason) {
+#ifdef HAVE_INTERNAL
+    if (MSGlobals::gUseMesoSim) {
+        return false; // reminder is re-added on every segment (@recheck for performance)
+    }
+#endif
     return reason == MSMoveReminder::NOTIFICATION_JUNCTION;
 }
 
@@ -277,8 +282,8 @@ MSMeanData::MSMeanData(const std::string& id,
 
 void
 MSMeanData::init() {
-    const std::vector<MSEdge*>& edges = MSNet::getInstance()->getEdgeControl().getEdges();
-    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    const MSEdgeVector& edges = MSNet::getInstance()->getEdgeControl().getEdges();
+    for (MSEdgeVector::const_iterator e = edges.begin(); e != edges.end(); ++e) {
         if (myDumpInternal || (*e)->getPurpose() != MSEdge::EDGEFUNCTION_INTERNAL) {
             myEdges.push_back(*e);
             myMeasures.push_back(std::vector<MeanDataValues*>());
@@ -291,6 +296,7 @@ MSMeanData::init() {
                 } else {
                     data = createValues(0, lanes[0]->getLength(), false);
                 }
+                data->setDescription("meandata_" + (*e)->getID());
                 myMeasures.back().push_back(data);
                 MESegment* s = MSGlobals::gMesoNet->getSegmentForEdge(**e);
                 while (s != 0) {
@@ -336,7 +342,7 @@ MSMeanData::resetOnly(SUMOTime stopTime) {
     UNUSED_PARAMETER(stopTime);
 #ifdef HAVE_INTERNAL
     if (MSGlobals::gUseMesoSim) {
-        std::vector<MSEdge*>::iterator edge = myEdges.begin();
+        MSEdgeVector::iterator edge = myEdges.begin();
         for (std::vector<std::vector<MeanDataValues*> >::const_iterator i = myMeasures.begin(); i != myMeasures.end(); ++i, ++edge) {
             MESegment* s = MSGlobals::gMesoNet->getSegmentForEdge(**edge);
             MeanDataValues* data = i->front();
@@ -375,7 +381,7 @@ MSMeanData::writeEdge(OutputDevice& dev,
             s->prepareDetectorForWriting(*data);
             s = s->getNextSegment();
         }
-        if (writePrefix(dev, *data, SUMO_TAG_EDGE, edge->getID())) {
+        if (writePrefix(dev, *data, SUMO_TAG_EDGE, getEdgeID(edge))) {
             data->write(dev, stopTime - startTime,
                         (SUMOReal)edge->getLanes().size(),
                         myPrintDefaults ? edge->getLength() / edge->getSpeedLimit() : -1.);
@@ -478,7 +484,7 @@ MSMeanData::writeXMLOutput(OutputDevice& dev,
             myPendingIntervals.pop_front();
         }
         openInterval(dev, startTime, stopTime);
-        std::vector<MSEdge*>::iterator edge = myEdges.begin();
+        MSEdgeVector::iterator edge = myEdges.begin();
         for (std::vector<std::vector<MeanDataValues*> >::const_iterator i = myMeasures.begin(); i != myMeasures.end(); ++i, ++edge) {
             writeEdge(dev, (*i), *edge, startTime, stopTime);
         }

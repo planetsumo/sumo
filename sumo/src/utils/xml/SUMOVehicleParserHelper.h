@@ -10,7 +10,7 @@
 // Helper methods for parsing vehicle attributes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2008-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -75,12 +75,13 @@ public:
      * @param[in] attr The SAX-attributes to get vehicle parameter from
      * @param[in] optionalID Whether the id shall be skipped
      * @param[in] skipDepart Whether parsing the departure time shall be skipped
+     * @param[in] isPerson   Whether a person is parsed
      * @return The parsed attribute structure if no error occured, 0 otherwise
      * @exception ProcessError If an attribute's value is invalid
      * @note: the caller is responsible for deleting the returned pointer
      */
     static SUMOVehicleParameter* parseVehicleAttributes(const SUMOSAXAttributes& attrs,
-            bool optionalID = false, bool skipDepart = false);
+            const bool optionalID = false, const bool skipDepart = false, const bool isPerson = false);
 
 
     /** @brief Starts to parse a vehicle type
@@ -122,7 +123,7 @@ public:
      * When given, the vehicle class is parsed using getVehicleClassID.
      *  Exceptions occuring within this process are catched and reported.
      *
-     * If no vehicle class is available in the attributes, the default class (SVC_UNKNOWN)
+     * If no vehicle class is available in the attributes, the default class (SVC_IGNORING)
      *  is returned.
      *
      * @param[in] attrs The attributes to read the class from

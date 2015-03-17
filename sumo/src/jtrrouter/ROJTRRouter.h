@@ -8,7 +8,7 @@
 // Computes routes using junction turning percentages
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -83,7 +83,7 @@ public:
      * @param[filled] into The list of edges to store the route into
      */
     void compute(const ROEdge* from, const ROEdge* to, const ROVehicle* const vehicle,
-                 SUMOTime time, std::vector<const ROEdge*>& into);
+                 SUMOTime time, ConstROEdgeVector& into);
 
 
     /** @brief Recomputes the costs of a route
@@ -92,7 +92,7 @@ public:
      * @param[in] time The departure time of the vehicle
      * @return The route costs
      */
-    SUMOReal recomputeCosts(const std::vector<const ROEdge*>& edges, const ROVehicle* const v, SUMOTime time) const;
+    SUMOReal recomputeCosts(const ConstROEdgeVector& edges, const ROVehicle* const v, SUMOTime time) const;
     /// @}
 
 

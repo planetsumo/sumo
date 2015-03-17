@@ -10,7 +10,7 @@
 // Message and object IDs used by the FOX-version of the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -73,6 +73,8 @@ enum {
     MID_OPEN_CONFIG,
     /// Open network - ID
     MID_OPEN_NETWORK,
+    /// Load additional file with poi and polygons
+    MID_OPEN_SHAPES,
     /// Reload the previously loaded simulation
     MID_RELOAD,
     /// Loads a file previously loaded
@@ -135,6 +137,8 @@ enum {
     MID_APPSETTINGS,
     /// Gaming mode - menu entry
     MID_GAMING,
+    /// Fullscreen mode - menu entry
+    MID_FULLSCREEN,
     /// Locator configuration - menu entry
     MID_LISTINTERNAL,
     /// The Simulation delay control
@@ -159,6 +163,8 @@ enum {
     MID_LOCATEEDGE,
     /// Locate vehicle - button
     MID_LOCATEVEHICLE,
+    /// Locate person - button
+    MID_LOCATEPERSON,
     /// Locate TLS - button
     MID_LOCATETLS,
     /// Locate addtional structure - button
@@ -251,6 +257,10 @@ enum {
     MID_SHOW_FOES,
     MID_SHOW_LFLINKITEMS,
     MID_HIDE_LFLINKITEMS,
+    /// Show persons's path on walkingarea
+    MID_SHOW_WALKINGAREA_PATH,
+    /// Hide persons's path on walkingarea
+    MID_HIDE_WALKINGAREA_PATH,
     //@}
 
 

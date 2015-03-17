@@ -10,7 +10,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -137,10 +137,16 @@ inline std::string toString<LaneChangeModel>(const LaneChangeModel& model, std::
 
 template <typename V>
 inline std::string toString(const std::vector<V*>& v, std::streamsize accuracy = OUTPUT_ACCURACY) {
+    return toString<V>(v.begin(), v.end(), accuracy);
+}
+
+
+template <typename V>
+inline std::string toString(const typename std::vector<V*>::const_iterator& b, const typename std::vector<V*>::const_iterator& e, std::streamsize accuracy = OUTPUT_ACCURACY) {
     UNUSED_PARAMETER(accuracy);
     std::ostringstream oss;
-    for (typename std::vector<V*>::const_iterator it = v.begin(); it != v.end(); ++it) {
-        if (it != v.begin()) {
+    for (typename std::vector<V*>::const_iterator it = b; it != e; ++it) {
+        if (it != b) {
             oss << " ";
         }
         oss << (*it)->getID();

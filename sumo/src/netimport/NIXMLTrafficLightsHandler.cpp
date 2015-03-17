@@ -9,7 +9,7 @@
 // Importer for traffic lights stored in XML
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2011-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -177,6 +177,10 @@ NIXMLTrafficLightsHandler::initTrafficLightLogic(const SUMOSAXAttributes& attrs,
             myTLLCont.removeProgram(id, NBTrafficLightDefinition::DefaultProgramID);
         }
         myTLLCont.insert(loadedDef);
+    } else {
+        // case 1
+        loadedDef->setOffset(offset);
+        loadedDef->setType(type);
     }
     if (ok) {
         myResetPhases = true;

@@ -9,7 +9,7 @@
 // Interface for building edges
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -108,7 +108,7 @@ NLEdgeControlBuilder::closeEdge() {
 
 MSEdgeControl*
 NLEdgeControlBuilder::build() {
-    for (EdgeCont::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
+    for (MSEdgeVector::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
         (*i1)->closeBuilding();
 #ifdef HAVE_INTERNAL
         if (MSGlobals::gUseMesoSim) {
@@ -118,12 +118,13 @@ NLEdgeControlBuilder::build() {
     }
     // mark internal edges belonging to a roundabout (after all edges are build)
     if (MSGlobals::gUsingInternalLanes) {
-        for (EdgeCont::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
+        for (MSEdgeVector::iterator i1 = myEdges.begin(); i1 != myEdges.end(); i1++) {
             MSEdge* edge = *i1;
             if (edge->isInternal()) {
-                assert(edge->getNumSuccessors() == 1);
-                assert(edge->getIncomingEdges().size() == 1);
-                if (edge->getSuccessor(0)->isRoundabout() || edge->getIncomingEdges()[0]->isRoundabout()) {
+                if (edge->getNumSuccessors() != 1 || edge->getIncomingEdges().size() != 1) {
+                    throw ProcessError("Internal edge '" + edge->getID() + "' is not properly connected (probably a manually modified net.xml).");
+                }
+                if (edge->getSuccessors()[0]->isRoundabout() || edge->getIncomingEdges()[0]->isRoundabout()) {
                     edge->markAsRoundabout();
                 }
             }

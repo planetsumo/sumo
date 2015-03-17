@@ -9,7 +9,7 @@
 // Some static methods for string processing
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -144,6 +144,22 @@ StringUtils::toTimeString(int time) {
     sprintf(buffer, "%02i", time);
     oss << buffer;
     return oss.str();
+}
+
+
+bool
+StringUtils::startsWith(const std::string& str, const std::string prefix) {
+    return str.compare(0, prefix.length(), prefix) == 0;
+}
+
+
+bool
+StringUtils::endsWith(const std::string& str, const std::string suffix) {
+    if (str.length() >= suffix.length()) {
+        return str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0;
+    } else {
+        return false;
+    }
 }
 
 

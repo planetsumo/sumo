@@ -9,7 +9,7 @@
 // Scalable model based on Krauﬂ by Peter Wagner
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -20,7 +20,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFModel_PWag2009_h
-#define	MSCFModel_PWag2009_h
+#define MSCFModel_PWag2009_h
 
 // ===========================================================================
 // included modules
@@ -164,4 +164,4 @@ private:
 
 };
 
-#endif	/* MSCFModel_PWag2009_H */
+#endif /* MSCFModel_PWag2009_H */

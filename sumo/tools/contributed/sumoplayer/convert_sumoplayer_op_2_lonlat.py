@@ -15,7 +15,7 @@ IMP-->Makesure you have installed python and pyproj package to run this code
 command : python convert_sumoplayer_op_2_lonlat.py sumoplayer_output.txt
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2015 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -27,27 +27,27 @@ the Free Software Foundation; either version 3 of the License, or
 import sys
 from pyproj import Proj
 from string import split
-if __name__=="__main__":
+if __name__ == "__main__":
 
-    f=open(sys.argv[1],'r')
+    f = open(sys.argv[1], 'r')
     while True:
-        
-        x=f.readline()
+
+        x = f.readline()
         if x is None:
             break
         else:
-            r=split(x,' ')
-            player_x=r[2]
-            player_y=r[3]
-            time_=r[0]
-            vid=r[1]
-            speed=r[4]
-            offset_x=-342498.94
-            offset_y=-5630725.14
-            actual_x= float(player_x) - offset_x
-            actual_y= float(player_y) - offset_y
+            r = split(x, ' ')
+            player_x = r[2]
+            player_y = r[3]
+            time_ = r[0]
+            vid = r[1]
+            speed = r[4]
+            offset_x = -342498.94
+            offset_y = -5630725.14
+            actual_x = float(player_x) - offset_x
+            actual_y = float(player_y) - offset_y
 
-            p=Proj(proj='utm',zone=32,ellps='WGS84')
-            lat,lon=p(actual_x,actual_y,inverse=True)
-            print time_,vid,lon,lat,speed
+            p = Proj(proj='utm', zone=32, ellps='WGS84')
+            lat, lon = p(actual_x, actual_y, inverse=True)
+            print time_, vid, lon, lat, speed
     exit

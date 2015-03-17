@@ -9,7 +9,7 @@
 // An output device for TCP/IP Network connections
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2006-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2006-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -30,6 +30,11 @@
 #include <config.h>
 #endif // #ifdef _MSC_VER
 
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 #include <vector>
 #include "OutputDevice_Network.h"
 #include "foreign/tcpip/socket.h"
@@ -46,10 +51,20 @@
 OutputDevice_Network::OutputDevice_Network(const std::string& host,
         const int port) {
     mySocket = new tcpip::Socket(host, port);
-    try {
-        mySocket->connect();
-    } catch (tcpip::SocketException& e) {
-        throw IOError(toString(e.what()) + " (host: " + host + ", port: " + toString(port) + ")");
+    for (int wait = 1000; true; wait += 1000) {
+        try {
+            mySocket->connect();
+            break;
+        } catch (tcpip::SocketException& e) {
+            if (wait == 9000) {
+                throw IOError(toString(e.what()) + " (host: " + host + ", port: " + toString(port) + ")");
+            }
+#ifdef WIN32
+            Sleep(wait);
+#else
+            usleep(wait * 1000);
+#endif
+        }
     }
 }
 

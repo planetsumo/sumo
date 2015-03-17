@@ -9,7 +9,7 @@
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -84,6 +84,13 @@ public:
     }
 
     static GUIMainWindow* getInstance();
+
+    /** @brief Returns the delay (should be overwritten by subclasses if applicable)
+     * @return parsed delay in milliseconds
+     */
+    virtual SUMOReal getDelay() const {
+        return 0;
+    }
 
 protected:
     std::vector<FXMDIChild*> mySubWindows;

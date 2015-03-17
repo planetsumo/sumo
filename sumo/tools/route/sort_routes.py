@@ -9,7 +9,7 @@
 
 This script sorts the vehicles in the given route file by their depart time
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2007-2015 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -26,68 +26,81 @@ from xml.sax import make_parser
 from xml.sax import handler
 from optparse import OptionParser
 
+DEPART_ATTRS = {'vehicle': 'depart', 'flow': 'begin', 'person': 'depart'}
+
+
 def get_options(args=None):
     USAGE = "Usage: " + sys.argv[0] + " <routefile>"
     optParser = OptionParser()
     optParser.add_option("-o", "--outfile", help="name of output file")
-    optParser.add_option("-b", "--big", action="store_true", default=False, 
-            help="Use alternative sortign strategy for large files (slower but more memory efficient)")
+    optParser.add_option("-b", "--big", action="store_true", default=False,
+                         help="Use alternative sorting strategy for large files (slower but more memory efficient)")
     options, args = optParser.parse_args(args=args)
     if len(args) != 1:
         sys.exit(USAGE)
     options.routefile = args[0]
     if options.outfile is None:
         options.outfile = options.routefile + ".sorted"
-    return options 
+    return options
 
 
 def sort_departs(routefilename, outfile):
     routes_doc = pulldom.parse(sys.argv[1])
     vehicles = []
+    root = None
     for event, parsenode in routes_doc:
-        if event == pulldom.START_ELEMENT and (parsenode.localName == 'vehicle' or parsenode.localName == 'flow'):
-            vehicle = parsenode # now we know it's a vehicle or a flow
-            routes_doc.expandNode(vehicle)
-            if (parsenode.localName == 'vehicle'):
-                depart = int(float(vehicle.getAttribute('depart')))
-                vehicles.append((depart, vehicle.toprettyxml(indent="", newl="")))
-            elif (parsenode.localName == 'flow'):
-                begin = int(float(vehicle.getAttribute('begin')))
-                vehicles.append((begin, vehicle.toprettyxml(indent="", newl="")))
+        if event == pulldom.START_ELEMENT:
+            if root is None:
+                root = parsenode.localName
+                outfile.write("<%s>\n" % root)
+                continue
+            routes_doc.expandNode(parsenode)
+            departAttr = DEPART_ATTRS.get(parsenode.localName)
+            if departAttr is not None:
+                start = float(parsenode.getAttribute(departAttr))
+                vehicles.append(
+                    (start, parsenode.toprettyxml(indent="", newl="")))
+            else:
+                # copy to output
+                outfile.write(
+                    " " * 4 + parsenode.toprettyxml(indent="", newl="") + "\n")
+
     print('read %s elements.' % len(vehicles))
-    vehicles.sort()
+    vehicles.sort(key=lambda v: v[0])
     for depart, vehiclexml in vehicles:
-        outfile.write(" "*4)
+        outfile.write(" " * 4)
         outfile.write(vehiclexml)
         outfile.write("\n")
+    outfile.write("</%s>\n" % root)
     print('wrote %s elements.' % len(vehicles))
 
 
 class RouteHandler(handler.ContentHandler):
+
     def __init__(self, elements_with_depart):
-        self.DEPART_ATTR = {'vehicle' : 'depart', 'flow' : 'begin'}
         self.elements_with_depart = elements_with_depart
         self._depart = None
 
-    def setDocumentLocator(self,locator):
+    def setDocumentLocator(self, locator):
         self.locator = locator
 
-    def startElement(self,name,attrs):
-        if name in self.DEPART_ATTR.keys():
-            self._depart = attrs[self.DEPART_ATTR[name]]
+    def startElement(self, name, attrs):
+        if name in DEPART_ATTRS.keys():
+            self._depart = float(attrs[DEPART_ATTRS[name]])
             self._start_line = self.locator.getLineNumber()
 
-    def endElement(self,name):
-        if name in self.DEPART_ATTR.keys():
+    def endElement(self, name):
+        if name in DEPART_ATTRS.keys():
             end_line = self.locator.getLineNumber()
-            self.elements_with_depart.append((self._depart, self._start_line, end_line))
+            self.elements_with_depart.append(
+                (self._depart, self._start_line, end_line))
 
 
 def create_line_index(file):
     print "Building line offset index for %s" % file
     result = []
     offset = 0
-    with open(file, 'rb') as f: # need to read binary here for correct offsets
+    with open(file, 'rb') as f:  # need to read binary here for correct offsets
         for line in f:
             result.append(offset)
             offset += len(line)
@@ -107,14 +120,15 @@ def get_element_lines(routefilename):
 
 def copy_elements(routefilename, outfilename, element_lines, line_offsets):
     print "Copying elements from %s to %s sorted by departure" % (
-            routefilename, outfilename)
+        routefilename, outfilename)
     outfile = open(outfilename, 'w')
     # copy header
     for line in open(routefilename):
         outfile.write(line)
         if '<routes' in line:
             break
-    with open(routefilename) as f: # don't read binary here for line end conversion
+    # don't read binary here for line end conversion
+    with open(routefilename) as f:
         for depart, start, end in element_lines:
             # convert from 1-based to 0-based indices
             f.seek(line_offsets[start - 1])
@@ -130,20 +144,18 @@ def main(args=None):
         line_offsets = create_line_index(options.routefile)
         element_lines = get_element_lines(options.routefile)
         element_lines.sort()
-        copy_elements(options.routefile, options.outfile, element_lines, line_offsets)
+        copy_elements(
+            options.routefile, options.outfile, element_lines, line_offsets)
     else:
         outfile = open(options.outfile, 'w')
-        close_line = ''
+        # copy header
         for line in open(options.routefile):
-            if '<routes' in line:
-                close_line = '</routes>'
-            if '<additional' in line:
-                close_line = '</additional>'
-            if '<vehicle ' in line or '<flow ' in line:
+            if (line.find('<routes') == 0
+                    or line.find('<additional') == 0):
                 break
-            outfile.write(line)
+            else:
+                outfile.write(line)
         sort_departs(options.routefile, outfile)
-        outfile.write(close_line)
         outfile.close()
 
 

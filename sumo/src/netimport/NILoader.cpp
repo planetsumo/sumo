@@ -10,7 +10,7 @@
 // Perfoms network import
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -156,7 +156,7 @@ NILoader::loadXML(OptionsCont& oc) {
         WRITE_WARNING("Deprecated vehicle class(es) '" + toString(deprecatedVehicleClassesSeen) + "' in input edge files.");
     }
     // load the connections
-    loadXMLType(new NIXMLConnectionsHandler(myNetBuilder.getEdgeCont(), myNetBuilder.getTLLogicCont()),
+    loadXMLType(new NIXMLConnectionsHandler(myNetBuilder.getEdgeCont(), myNetBuilder.getNodeCont(), myNetBuilder.getTLLogicCont()),
                 oc.getStringVector("connection-files"), "connections");
     // load traffic lights (needs to come last, references loaded edges and connections)
     loadXMLType(new NIXMLTrafficLightsHandler(

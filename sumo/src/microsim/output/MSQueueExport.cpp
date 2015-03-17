@@ -10,7 +10,7 @@
 // Export the queueing length in front of a junction (very experimental!)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -65,8 +65,8 @@ void
 MSQueueExport::writeEdge(OutputDevice& of) {
     of.openTag("lanes");
     MSEdgeControl& ec = MSNet::getInstance()->getEdgeControl();
-    const std::vector<MSEdge*>& edges = ec.getEdges();
-    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    const MSEdgeVector& edges = ec.getEdges();
+    for (MSEdgeVector::const_iterator e = edges.begin(); e != edges.end(); ++e) {
         MSEdge& edge = **e;
         const std::vector<MSLane*>& lanes = edge.getLanes();
         for (std::vector<MSLane*>::const_iterator lane = lanes.begin(); lane != lanes.end(); ++lane) {

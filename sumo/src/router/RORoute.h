@@ -10,7 +10,7 @@
 // A complete router's route
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -47,6 +47,7 @@ class ROEdge;
 class ROVehicle;
 class OutputDevice;
 
+typedef std::vector<const ROEdge*> ConstROEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -71,7 +72,7 @@ public:
      * @todo Are costs/prob really mandatory?
      */
     RORoute(const std::string& id, SUMOReal costs, SUMOReal prob,
-            const std::vector<const ROEdge*>& route, const RGBColor* const color,
+            const ConstROEdgeVector& route, const RGBColor* const color,
             const std::vector<SUMOVehicleParameter::Stop>& stops);
 
 
@@ -151,7 +152,7 @@ public:
      *
      * @return The edges this route consists of
      */
-    const std::vector<const ROEdge*>& getEdgeVector() const {
+    const ConstROEdgeVector& getEdgeVector() const {
         return myRoute;
     }
 
@@ -192,7 +193,7 @@ private:
     SUMOReal myProbability;
 
     /// @brief The edges the route consists of
-    std::vector<const ROEdge*> myRoute;
+    ConstROEdgeVector myRoute;
 
     /// @brief The color of the route
     const RGBColor* myColor;

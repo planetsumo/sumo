@@ -9,7 +9,7 @@
 // Dijkstra shortest path algorithm using travel time
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -151,6 +151,7 @@ public:
                          SUMOTime msTime, std::vector<const E*>& into) {
         assert(from != 0 && (vehicle == 0 || to != 0));
         this->startQuery();
+        const SUMOVehicleClass vClass = vehicle == 0 ? SVC_IGNORING : vehicle->getVClass();
         const SUMOReal time = STEPS2TIME(msTime);
         init();
         // add begin node
@@ -187,10 +188,9 @@ public:
             minimumInfo->visited = true;
             const SUMOReal traveltime = minimumInfo->traveltime + this->getEffort(minEdge, vehicle, time + minimumInfo->traveltime);
             // check all ways from the node with the minimal length
-            unsigned int i = 0;
-            const unsigned int length_size = minEdge->getNumSuccessors();
-            for (i = 0; i < length_size; i++) {
-                const E* const follower = minEdge->getSuccessor(i);
+            const std::vector<E*>& successors = minEdge->getSuccessors(vClass);
+            for (typename std::vector<E*>::const_iterator it = successors.begin(); it != successors.end(); ++it) {
+                const E* const follower = *it;
                 EdgeInfo* const followerInfo = &(myEdgeInfos[follower->getNumericalID()]);
                 // check whether it can be used
                 if (PF::operator()(follower, vehicle)) {

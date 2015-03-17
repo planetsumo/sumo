@@ -9,7 +9,7 @@
 // Helper for icons loading and usage
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -38,6 +38,7 @@
 #include "filesave.xpm"
 #include "fileopen.xpm"
 #include "netopen.xpm"
+#include "shapeopen.xpm"
 #include "play.xpm"
 #include "stop.xpm"
 #include "step.xpm"
@@ -55,6 +56,7 @@
 #include "locate_junction.xpm"
 #include "locate_edge.xpm"
 #include "locate_vehicle.xpm"
+#include "locate_person.xpm"
 #include "locate_tls.xpm"
 #include "locate_add.xpm"
 #include "locate_poi.xpm"
@@ -141,6 +143,7 @@ GUIIconSubSys::GUIIconSubSys(FXApp* a) {
     myIcons[ICON_EMPTY] = new FXXPMIcon(a, empty_xpm);
     myIcons[ICON_OPEN_CONFIG] = new FXXPMIcon(a, fileopen_xpm);
     myIcons[ICON_OPEN_NET] = new FXXPMIcon(a, netopen_xpm);
+    myIcons[ICON_OPEN_SHAPES] = new FXXPMIcon(a, shapeopen_xpm);
     myIcons[ICON_RELOAD] = new FXXPMIcon(a, reload_xpm);
     myIcons[ICON_SAVE] = new FXXPMIcon(a, filesave_xpm);
     myIcons[ICON_CLOSE] = 0;//new FXXPMIcon(a, close);
@@ -165,6 +168,7 @@ GUIIconSubSys::GUIIconSubSys(FXApp* a) {
     myIcons[ICON_LOCATEJUNCTION] = new FXXPMIcon(a, locate_junction_xpm);
     myIcons[ICON_LOCATEEDGE] = new FXXPMIcon(a, locate_edge_xpm);
     myIcons[ICON_LOCATEVEHICLE] = new FXXPMIcon(a, locate_vehicle_xpm);
+    myIcons[ICON_LOCATEPERSON] = new FXXPMIcon(a, locate_person_xpm);
     myIcons[ICON_LOCATETLS] = new FXXPMIcon(a, locate_tls_xpm);
     myIcons[ICON_LOCATEADD] = new FXXPMIcon(a, locate_add_xpm);
     myIcons[ICON_LOCATEPOI] = new FXXPMIcon(a, locate_poi_xpm);

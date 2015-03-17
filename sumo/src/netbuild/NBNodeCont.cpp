@@ -13,7 +13,7 @@
 // Container for nodes during the netbuilding process
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -370,6 +370,13 @@ NBNodeCont::removeUnwishedNodes(NBDistrictCont& dc, NBEdgeCont& ec,
     return no;
 }
 
+
+void
+NBNodeCont::avoidOverlap() {
+    for (NodeCont::iterator i = myNodes.begin(); i != myNodes.end(); i++) {
+        (*i).second->avoidOverlap();
+    }
+}
 
 // ----------- (Helper) methods for joining nodes
 void
@@ -1051,6 +1058,7 @@ NBNodeCont::printBuiltNodesStatistics() const {
     int numPriorityJunctions = 0;
     int numRightBeforeLeftJunctions = 0;
     int numAllWayStopJunctions = 0;
+    int numRailSignals = 0;
     for (NodeCont::const_iterator i = myNodes.begin(); i != myNodes.end(); i++) {
         switch ((*i).second->getType()) {
             case NODETYPE_NOJUNCTION:
@@ -1076,6 +1084,9 @@ NBNodeCont::printBuiltNodesStatistics() const {
                 break;
             case NODETYPE_UNKNOWN:
                 break;
+            case NODETYPE_RAIL_SIGNAL:
+                ++numRailSignals;
+                break;
             default:
                 break;
         }
@@ -1089,6 +1100,9 @@ NBNodeCont::printBuiltNodesStatistics() const {
     WRITE_MESSAGE("  Right-before-left junctions : " + toString(numRightBeforeLeftJunctions));
     if (numAllWayStopJunctions > 0) {
         WRITE_MESSAGE("  All-way stop junctions      : " + toString(numAllWayStopJunctions));
+    }
+    if (numRailSignals > 0) {
+        WRITE_MESSAGE("  Rail signal junctions      : " + toString(numRailSignals));
     }
 }
 

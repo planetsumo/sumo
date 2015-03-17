@@ -10,7 +10,7 @@
 // Krauss car-following model, changing accel and speed by slope
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -21,7 +21,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFModel_KraussPS_h
-#define	MSCFModel_KraussPS_h
+#define MSCFModel_KraussPS_h
 
 // ===========================================================================
 // included modules
@@ -96,5 +96,5 @@ public:
 
 };
 
-#endif	/* MSCFModel_KraussPS_H */
+#endif /* MSCFModel_KraussPS_H */
 

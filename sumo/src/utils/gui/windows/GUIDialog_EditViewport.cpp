@@ -9,7 +9,7 @@
 // A dialog to change the viewport
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -80,43 +80,21 @@ GUIDialog_EditViewport::GUIDialog_EditViewport(GUISUMOAbstractView* parent,
                      ICON_ABOVE_TEXT | BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
     }
     FXMatrix* m1 = new FXMatrix(f1, 2, MATRIX_BY_COLUMNS);
-    {
-        new FXLabel(m1, "Zoom:", 0, LAYOUT_CENTER_Y);
-        myZoom = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
-        myZoom->setRange(0.0001, 100000);
-        myZoom->setNumberFormat(4);
-    }
-    {
-        new FXLabel(m1, "X:", 0, LAYOUT_CENTER_Y);
-        myXOff = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
-        myXOff->setRange(-1000000, 1000000);
-        myXOff->setNumberFormat(4);
-    }
-    {
-        new FXLabel(m1, "Y:", 0, LAYOUT_CENTER_Y);
-        myYOff = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
-        myYOff->setRange(-1000000, 1000000);
-        myYOff->setNumberFormat(4);
-    }
+    new FXLabel(m1, "Zoom:", 0, LAYOUT_CENTER_Y);
+    myZoom = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
+    myZoom->setRange(0.0001, 100000);
+    myZoom->setNumberFormat(4);
+    new FXLabel(m1, "X:", 0, LAYOUT_CENTER_Y);
+    myXOff = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | SPINDIAL_NOMIN | SPINDIAL_NOMAX);
+    new FXLabel(m1, "Y:", 0, LAYOUT_CENTER_Y);
+    myYOff = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | SPINDIAL_NOMIN | SPINDIAL_NOMAX);
 #ifdef HAVE_OSG
-    {
-        new FXLabel(m1, "LookAtX:", 0, LAYOUT_CENTER_Y);
-        myLookAtX = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
-        myLookAtX->setRange(-1000000, 100000);
-        myLookAtX->setNumberFormat(4);
-    }
-    {
-        new FXLabel(m1, "LookAtY:", 0, LAYOUT_CENTER_Y);
-        myLookAtY = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
-        myLookAtY->setRange(-1000000, 1000000);
-        myLookAtY->setNumberFormat(4);
-    }
-    {
-        new FXLabel(m1, "LookAtZ:", 0, LAYOUT_CENTER_Y);
-        myLookAtZ = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK);
-        myLookAtZ->setRange(-1000000, 1000000);
-        myLookAtZ->setNumberFormat(4);
-    }
+    new FXLabel(m1, "LookAtX:", 0, LAYOUT_CENTER_Y);
+    myLookAtX = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | SPINDIAL_NOMIN | SPINDIAL_NOMAX);
+    new FXLabel(m1, "LookAtY:", 0, LAYOUT_CENTER_Y);
+    myLookAtY = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | SPINDIAL_NOMIN | SPINDIAL_NOMAX);
+    new FXLabel(m1, "LookAtZ:", 0, LAYOUT_CENTER_Y);
+    myLookAtZ = new FXRealSpinDial(m1, 16, this, MID_CHANGED, LAYOUT_CENTER_Y | LAYOUT_TOP | FRAME_SUNKEN | FRAME_THICK | SPINDIAL_NOMIN | SPINDIAL_NOMAX);
 #endif
     // ok/cancel
     new FXHorizontalSeparator(f1, SEPARATOR_GROOVE | LAYOUT_FILL_X);
@@ -202,12 +180,9 @@ GUIDialog_EditViewport::onCmdSave(FXObject*, FXSelector, void* /*data*/) {
     }
     try {
         OutputDevice& dev = OutputDevice::getDevice(file.text());
-        dev << "<viewsettings>\n";
-        dev << "    <viewport zoom=\"" << myZoom->getValue() << "\" x=\"" << myXOff->getValue() << "\" y=\"" << myYOff->getValue();
-#ifdef HAVE_OSG
-        dev << "\" centerX=\"" << myLookAtX->getValue() << "\" centerY=\"" << myLookAtY->getValue() << "\" centerZ=\"" << myLookAtZ->getValue();
-#endif
-        dev << "\"/>\n</viewsettings>\n";
+        dev.openTag(SUMO_TAG_VIEWSETTINGS);
+        writeXML(dev);
+        dev.closeTag();
         dev.close();
     } catch (IOError& e) {
         FXMessageBox::error(this, MBOX_OK, "Storing failed!", "%s", e.what());
@@ -215,6 +190,20 @@ GUIDialog_EditViewport::onCmdSave(FXObject*, FXSelector, void* /*data*/) {
     return 1;
 }
 
+
+void
+GUIDialog_EditViewport::writeXML(OutputDevice& dev) {
+    dev.openTag(SUMO_TAG_VIEWPORT);
+    dev.writeAttr(SUMO_ATTR_ZOOM, myZoom->getValue());
+    dev.writeAttr(SUMO_ATTR_X, myXOff->getValue());
+    dev.writeAttr(SUMO_ATTR_Y, myYOff->getValue());
+#ifdef HAVE_OSG
+    dev.writeAttr(SUMO_ATTR_CENTER_X, myLookAtX->getValue());
+    dev.writeAttr(SUMO_ATTR_CENTER_Y, myLookAtY->getValue());
+    dev.writeAttr(SUMO_ATTR_CENTER_Z, myLookAtZ->getValue());
+#endif
+    dev.closeTag();
+}
 
 void
 GUIDialog_EditViewport::setValues(SUMOReal zoom, SUMOReal xoff, SUMOReal yoff) {

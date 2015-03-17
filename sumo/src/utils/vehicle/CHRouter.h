@@ -9,7 +9,7 @@
 // Shortest Path search using a Contraction Hierarchy
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -664,9 +664,10 @@ private:
             return;
         }
         const SUMOReal cost = this->getEffort(edge, vehicle, time);
-        const unsigned int numFollowers = edge->getNumSuccessors();
-        for (unsigned int i = 0; i < numFollowers; i++) {
-            const E* fEdge = edge->getSuccessor(i);
+
+        const std::vector<E*>& successors = edge->getSuccessors(mySVC);
+        for (typename std::vector<E*>::const_iterator it = successors.begin(); it != successors.end(); ++it) {
+            const E* fEdge = *it;
             if (prune && ((fEdge->getPermissions() & mySVC) != mySVC)) {
                 continue;
             }

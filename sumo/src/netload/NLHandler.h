@@ -10,7 +10,7 @@
 // The XML-Handler for network loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -39,6 +39,7 @@
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Parameterised.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
+#include <utils/shapes/ShapeHandler.h>
 #include <microsim/MSLink.h>
 #include <microsim/MSRouteHandler.h>
 #include <microsim/traffic_lights/MSSimpleTrafficLightLogic.h>
@@ -61,6 +62,26 @@ class MSTrafficLightLogic;
 // ===========================================================================
 // class definitions
 // ===========================================================================
+
+
+/**
+ * @class NLShapeHandler
+ * @brief The XML-Handler for shapes loading network loading
+ *
+ * This subclasses ShapeHandler with MSLane specific function
+ */
+class NLShapeHandler : public ShapeHandler {
+public:
+    NLShapeHandler(const std::string& file, ShapeContainer& sc) :
+        ShapeHandler(file, sc) {}
+
+    /// @brief Destructor
+    virtual ~NLShapeHandler() {}
+
+    Position getLanePos(const std::string& poiID, const std::string& laneID, SUMOReal lanePos);
+};
+
+
 /**
  * @class NLHandler
  * @brief The XML-Handler for network loading
@@ -309,6 +330,9 @@ protected:
     /// @brief whether the loaded network contains internal lanes
     bool myHaveSeenInternalEdge;
 
+    /// @brief whether the location element was already loadee
+    bool myNetIsLoaded;
+
     /// @brief temporary data for building the junction graph after network parsing is finished
     typedef std::map<std::string, std::pair<std::string, std::string> > JunctionGraph;
     JunctionGraph myJunctionGraph;
@@ -321,6 +345,8 @@ private:
     NLHandler& operator=(const NLHandler& s);
 
 };
+
+
 
 
 #endif

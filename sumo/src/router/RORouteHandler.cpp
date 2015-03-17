@@ -10,7 +10,7 @@
 // Parser and container for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -66,7 +66,9 @@ RORouteHandler::RORouteHandler(RONet& net, const std::string& file,
     myPedestrianRouter(0),
     myNet(net),
     myActivePlan(0),
+    myActiveContainerPlan(0),
     myActivePlanSize(0),
+    myActiveContainerPlanSize(0),
     myTryRepair(tryRepair),
     myEmptyDestinationsAllowed(emptyDestinationsAllowed),
     myErrorOutput(ignoreErrors ? MsgHandler::getWarningInstance() : MsgHandler::getErrorInstance()),
@@ -84,15 +86,14 @@ RORouteHandler::~RORouteHandler() {
 void
 RORouteHandler::parseFromViaTo(std::string element,
                                const SUMOSAXAttributes& attrs) {
+    myActiveRoute.clear();
     bool useTaz = OptionsCont::getOptions().getBool("with-taz");
-    if (useTaz && !myVehicleParameter->wasSet(VEHPARS_TAZ_SET)) {
+    if (useTaz && !myVehicleParameter->wasSet(VEHPARS_FROM_TAZ_SET) && !myVehicleParameter->wasSet(VEHPARS_TO_TAZ_SET)) {
         WRITE_WARNING("Taz usage was requested but no taz present in " + element + " '" + myVehicleParameter->id + "'!");
         useTaz = false;
-    } else if (!useTaz && !attrs.hasAttribute(SUMO_ATTR_FROM) && myVehicleParameter->wasSet(VEHPARS_TAZ_SET)) {
-        WRITE_WARNING("'from' attribute missing using taz for " + element + " '" + myVehicleParameter->id + "'!");
-        useTaz = true;
     }
-    if (useTaz) {
+    bool ok = true;
+    if ((useTaz || !attrs.hasAttribute(SUMO_ATTR_FROM)) && myVehicleParameter->wasSet(VEHPARS_FROM_TAZ_SET)) {
         const ROEdge* fromTaz = myNet.getEdge(myVehicleParameter->fromTaz + "-source");
         if (fromTaz == 0) {
             myErrorOutput->inform("Source taz '" + myVehicleParameter->fromTaz + "' not known for " + element + " '" + myVehicleParameter->id + "'!");
@@ -101,28 +102,33 @@ RORouteHandler::parseFromViaTo(std::string element,
         } else {
             myActiveRoute.push_back(fromTaz);
         }
+    } else {
+        parseEdges(attrs.getOpt<std::string>(SUMO_ATTR_FROM, myVehicleParameter->id.c_str(), ok, "", true),
+                   myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
+    }
+    if (!attrs.hasAttribute(SUMO_ATTR_VIA)) {
+        myInsertStopEdgesAt = (int)myActiveRoute.size();
+    }
+    parseEdges(attrs.getOpt<std::string>(SUMO_ATTR_VIA, myVehicleParameter->id.c_str(), ok, "", true),
+               myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
+    if ((useTaz || !attrs.hasAttribute(SUMO_ATTR_TO)) && myVehicleParameter->wasSet(VEHPARS_TO_TAZ_SET)) {
         const ROEdge* toTaz = myNet.getEdge(myVehicleParameter->toTaz + "-sink");
         if (toTaz == 0) {
             myErrorOutput->inform("Sink taz '" + myVehicleParameter->toTaz + "' not known for " + element + " '" + myVehicleParameter->id + "'!");
+        } else if (toTaz->getNumPredecessors() == 0) {
+            myErrorOutput->inform("Sink taz '" + myVehicleParameter->toTaz + "' has no incoming edges for " + element + " '" + myVehicleParameter->id + "'!");
         } else {
             myActiveRoute.push_back(toTaz);
         }
     } else {
-        bool ok = true;
-        parseEdges(attrs.get<std::string>(SUMO_ATTR_FROM, myVehicleParameter->id.c_str(), ok),
-                   myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
-        parseEdges(attrs.getOpt<std::string>(SUMO_ATTR_VIA, myVehicleParameter->id.c_str(), ok, "", true),
-                   myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
-        parseEdges(attrs.get<std::string>(SUMO_ATTR_TO, myVehicleParameter->id.c_str(), ok, !myEmptyDestinationsAllowed),
+        parseEdges(attrs.getOpt<std::string>(SUMO_ATTR_TO, myVehicleParameter->id.c_str(), ok, "", true),
                    myActiveRoute, "for " + element + " '" + myVehicleParameter->id + "'");
     }
     myActiveRouteID = "!" + myVehicleParameter->id;
     if (myVehicleParameter->routeid == "") {
         myVehicleParameter->routeid = myActiveRouteID;
     }
-    closeRoute(true);
 }
-
 
 
 void
@@ -156,6 +162,32 @@ RORouteHandler::myStartElement(int element,
             }
             break;
         }
+        case SUMO_TAG_CONTAINER:
+            myActiveContainerPlan = new OutputDevice_String(false, 1);
+            myActiveContainerPlanSize = 0;
+            myActiveContainerPlan->openTag(SUMO_TAG_CONTAINER);
+            (*myActiveContainerPlan) << attrs;
+            break;
+        case SUMO_TAG_TRANSPORT: {
+            myActiveContainerPlan->openTag(SUMO_TAG_TRANSPORT);
+            (*myActiveContainerPlan) << attrs;
+            myActiveContainerPlan->closeTag();
+            myActiveContainerPlanSize++;
+            break;
+        }
+        case SUMO_TAG_TRANSHIP: {
+            if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
+                // copy walk as it is
+                // XXX allow --repair?
+                myActiveContainerPlan->openTag(SUMO_TAG_TRANSHIP);
+                (*myActiveContainerPlan) << attrs;
+                myActiveContainerPlan->closeTag();
+                myActiveContainerPlanSize++;
+            } else {
+                routePedestrian(attrs, *myActiveContainerPlan);
+            }
+            break;
+        }
         case SUMO_TAG_FLOW:
             myActiveRouteProbability = DEFAULT_VEH_PROB;
             parseFromViaTo("flow", attrs);
@@ -163,7 +195,6 @@ RORouteHandler::myStartElement(int element,
         case SUMO_TAG_TRIP: {
             myActiveRouteProbability = DEFAULT_VEH_PROB;
             parseFromViaTo("trip", attrs);
-            closeVehicle();
         }
         break;
         default:
@@ -212,6 +243,8 @@ RORouteHandler::closeVehicleTypeDistribution() {
 
 void
 RORouteHandler::openRoute(const SUMOSAXAttributes& attrs) {
+    myActiveRoute.clear();
+    myInsertStopEdgesAt = -1;
     // check whether the id is really necessary
     std::string rid;
     if (myCurrentAlternatives != 0) {
@@ -263,15 +296,21 @@ void
 RORouteHandler::myEndElement(int element) {
     SUMORouteHandler::myEndElement(element);
     switch (element) {
-        case SUMO_TAG_VTYPE: {
+        case SUMO_TAG_VTYPE:
             if (myNet.addVehicleType(myCurrentVType)) {
                 if (myCurrentVTypeDistribution != 0) {
                     myCurrentVTypeDistribution->add(myCurrentVType->defaultProbability, myCurrentVType);
                 }
             }
             myCurrentVType = 0;
-        }
-        break;
+            break;
+        case SUMO_TAG_TRIP:
+            closeRoute(true);
+            closeVehicle();
+            delete myVehicleParameter;
+            myVehicleParameter = 0;
+            myInsertStopEdgesAt = -1;
+            break;
         default:
             break;
     }
@@ -288,10 +327,16 @@ RORouteHandler::closeRoute(const bool mayBeDisconnected) {
             return;
         }
         if (myVehicleParameter != 0) {
-            myErrorOutput->inform("Vehicle's '" + myVehicleParameter->id + "' route has no edges.");
+            myErrorOutput->inform("The route for vehicle '" + myVehicleParameter->id + "' has no edges.");
         } else {
             myErrorOutput->inform("Route '" + myActiveRouteID + "' has no edges.");
         }
+        myActiveRouteID = "";
+        myActiveRouteStops.clear();
+        return;
+    }
+    if (myActiveRoute.size() == 1 && myActiveRoute.front()->getType() == ROEdge::ET_DISTRICT) {
+        myErrorOutput->inform("The routing information for vehicle '" + myVehicleParameter->id + "' is insufficient.");
         myActiveRouteID = "";
         myActiveRouteStops.clear();
         return;
@@ -405,8 +450,9 @@ RORouteHandler::closeVehicle() {
     // build the vehicle
     if (!MsgHandler::getErrorInstance()->wasInformed()) {
         ROVehicle* veh = new ROVehicle(*myVehicleParameter, route, type, &myNet);
-        myNet.addVehicle(myVehicleParameter->id, veh);
-        registerLastDepart();
+        if (myNet.addVehicle(myVehicleParameter->id, veh)) {
+            registerLastDepart();
+        }
     }
 }
 
@@ -425,6 +471,22 @@ RORouteHandler::closePerson() {
     delete myActivePlan;
     myActivePlan = 0;
     myActivePlanSize = 0;
+}
+
+void
+RORouteHandler::closeContainer() {
+    myActiveContainerPlan->closeTag();
+    if (myActiveContainerPlanSize > 0) {
+        myNet.addContainer(myVehicleParameter->depart, myActiveContainerPlan->getString());
+        registerLastDepart();
+    } else {
+        WRITE_WARNING("Discarding container '" + myVehicleParameter->id + "' because it's plan is empty");
+    }
+    delete myVehicleParameter;
+    myVehicleParameter = 0;
+    delete myActiveContainerPlan;
+    myActiveContainerPlan = 0;
+    myActiveContainerPlanSize = 0;
 }
 
 
@@ -447,24 +509,28 @@ RORouteHandler::closeFlow() {
             return;
         }
     }
-    SUMOVTypeParameter* type = myNet.getVehicleTypeSecure(myVehicleParameter->vtypeid);
-    RORouteDef* route = myNet.getRouteDef(myVehicleParameter->routeid);
-    if (type == 0) {
-        myErrorOutput->inform("The vehicle type '" + myVehicleParameter->vtypeid + "' for vehicle '" + myVehicleParameter->id + "' is not known.");
-        delete myVehicleParameter;
-        myVehicleParameter = 0;
-        return;
+    if (myNet.getVehicleTypeSecure(myVehicleParameter->vtypeid) == 0) {
+        myErrorOutput->inform("The vehicle type '" + myVehicleParameter->vtypeid + "' for flow '" + myVehicleParameter->id + "' is not known.");
     }
-    if (route == 0) {
-        myErrorOutput->inform("Vehicle '" + myVehicleParameter->id + "' has no route.");
+    if (myVehicleParameter->routeid[0] == '!' && myNet.getRouteDef(myVehicleParameter->routeid) == 0) {
+        closeRoute(true);
+    }
+    if (myNet.getRouteDef(myVehicleParameter->routeid) == 0) {
+        myErrorOutput->inform("The route '" + myVehicleParameter->routeid + "' for flow '" + myVehicleParameter->id + "' is not known.");
         delete myVehicleParameter;
         myVehicleParameter = 0;
         return;
     }
     myActiveRouteID = "";
-    myNet.addFlow(myVehicleParameter, OptionsCont::getOptions().getBool("randomize-flows"));
-    registerLastDepart();
+    if (!MsgHandler::getErrorInstance()->wasInformed()) {
+        if (myNet.addFlow(myVehicleParameter, OptionsCont::getOptions().getBool("randomize-flows"))) {
+            registerLastDepart();
+        } else {
+            myErrorOutput->inform("Another flow with the id '" + myVehicleParameter->id + "' exists.");
+        }
+    }
     myVehicleParameter = 0;
+    myInsertStopEdgesAt = -1;
 }
 
 
@@ -477,11 +543,18 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         myActivePlanSize++;
         return;
     }
+    if (myActiveContainerPlan) {
+        myActiveContainerPlan->openTag(SUMO_TAG_STOP);
+        (*myActiveContainerPlan) << attrs;
+        myActiveContainerPlan->closeTag();
+        myActiveContainerPlanSize++;
+        return;
+    }
     std::string errorSuffix;
-    if (myActiveRouteID != "") {
-        errorSuffix = " in route '" + myActiveRouteID + "'.";
-    } else {
+    if (myVehicleParameter != 0) {
         errorSuffix = " in vehicle '" + myVehicleParameter->id + "'.";
+    } else {
+        errorSuffix = " in route '" + myActiveRouteID + "'.";
     }
     SUMOVehicleParameter::Stop stop;
     bool ok = parseStop(stop, attrs, errorSuffix, myErrorOutput);
@@ -489,23 +562,35 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
         return;
     }
     // try to parse the assigned bus stop
+    ROEdge* edge = 0;
     if (stop.busstop != "") {
         const SUMOVehicleParameter::Stop* busstop = myNet.getBusStop(stop.busstop);
         if (busstop == 0) {
             myErrorOutput->inform("Unknown bus stop '" + stop.busstop + "'" + errorSuffix);
-        } else {
-            stop.lane = busstop->lane;
-            stop.endPos = busstop->endPos;
-            stop.startPos = busstop->startPos;
+            return;
         }
+        stop.lane = busstop->lane;
+        stop.endPos = busstop->endPos;
+        stop.startPos = busstop->startPos;
+        edge = myNet.getEdge(stop.lane.substr(0, stop.lane.rfind('_')));
+    } // try to parse the assigned container stop
+    else if (stop.containerstop != "") {
+        const SUMOVehicleParameter::Stop* containerstop = myNet.getContainerStop(stop.containerstop);
+        if (containerstop == 0) {
+            myErrorOutput->inform("Unknown container stop '" + stop.containerstop + "'" + errorSuffix);
+        }
+        stop.lane = containerstop->lane;
+        stop.endPos = containerstop->endPos;
+        stop.startPos = containerstop->startPos;
+        edge = myNet.getEdge(stop.lane.substr(0, stop.lane.rfind('_')));
     } else {
         // no, the lane and the position should be given
         stop.lane = attrs.getOpt<std::string>(SUMO_ATTR_LANE, 0, ok, "");
         if (!ok || stop.lane == "") {
-            myErrorOutput->inform("A stop must be placed on a bus stop or a lane" + errorSuffix);
+            myErrorOutput->inform("A stop must be placed on a bus stop, a container stop or a lane" + errorSuffix);
             return;
         }
-        ROEdge* edge = myNet.getEdge(stop.lane.substr(0, stop.lane.rfind('_')));
+        edge = myNet.getEdge(stop.lane.substr(0, stop.lane.rfind('_')));
         if (edge == 0) {
             myErrorOutput->inform("The lane '" + stop.lane + "' for a stop is not known" + errorSuffix);
             return;
@@ -523,11 +608,15 @@ RORouteHandler::addStop(const SUMOSAXAttributes& attrs) {
     } else {
         myActiveRouteStops.push_back(stop);
     }
+    if (myInsertStopEdgesAt >= 0) {
+        myActiveRoute.insert(myActiveRoute.begin() + myInsertStopEdgesAt, edge);
+        myInsertStopEdgesAt++;
+    }
 }
 
 
 void
-RORouteHandler::parseEdges(const std::string& desc, std::vector<const ROEdge*>& into,
+RORouteHandler::parseEdges(const std::string& desc, ConstROEdgeVector& into,
                            const std::string& rid) {
     if (desc[0] == BinaryFormatter::BF_ROUTE) {
         std::istringstream in(desc, std::ios::binary);
@@ -605,7 +694,6 @@ RORouteHandler::routePedestrian(const SUMOSAXAttributes& attrs, OutputDevice& pl
     myActiveRoute.clear();
     return ok;
 }
-
 
 
 /****************************************************************************/

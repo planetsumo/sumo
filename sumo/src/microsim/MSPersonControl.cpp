@@ -10,7 +10,7 @@
 // Stores all persons in the net and handles their waiting for cars.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -35,7 +35,7 @@
 #include <algorithm>
 #include "MSNet.h"
 #include "MSEdge.h"
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
 #include "MSVehicle.h"
 #include "MSPersonControl.h"
 #include <utils/iodevices/OutputDevice.h>
@@ -68,6 +68,16 @@ MSPersonControl::add(const std::string& id, MSPerson* person) {
         return true;
     }
     return false;
+}
+
+
+MSPerson*
+MSPersonControl::get(const std::string& id) const {
+    std::map<std::string, MSPerson*>::const_iterator i = myPersons.find(id);
+    if (i == myPersons.end()) {
+        return 0;
+    }
+    return (*i).second;
 }
 
 
@@ -156,15 +166,25 @@ MSPersonControl::isWaiting4Vehicle(const MSEdge* const edge, MSPerson* /* p */) 
 
 
 bool
-MSPersonControl::boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle) {
+MSPersonControl::boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop) {
     bool ret = false;
     if (myWaiting4Vehicle.find(edge) != myWaiting4Vehicle.end()) {
         PersonVector& waitPersons = myWaiting4Vehicle[edge];
+        const std::string& line = vehicle->getParameter().line == "" ? vehicle->getParameter().id : vehicle->getParameter().line;
+        SUMOTime currentTime =  MSNet::getInstance()->getCurrentTimeStep();
         for (PersonVector::iterator i = waitPersons.begin(); i != waitPersons.end();) {
-            const std::string& line = vehicle->getParameter().line == "" ? vehicle->getParameter().id : vehicle->getParameter().line;
-            if ((*i)->isWaitingFor(line)) {
+            if ((*i)->isWaitingFor(line) && vehicle->getVehicleType().getPersonCapacity() > vehicle->getPersonNumber() && stop->timeToBoardNextPerson <= currentTime && stop->startPos <= (*i)->getEdgePos() && (*i)->getEdgePos() <= stop->endPos) {
                 edge->removePerson(*i);
                 vehicle->addPerson(*i);
+                //if the time a person needs to enter the vehicle extends the duration of the stop of the vehicle extend
+                //the duration by setting it to the boarding duration of the person
+                const SUMOTime boardingDuration = vehicle->getVehicleType().getBoardingDuration();
+                if (boardingDuration >= stop->duration) {
+                    stop->duration = boardingDuration;
+                }
+                //update the time point at which the next person can board the vehicle
+                stop->timeToBoardNextPerson = currentTime + boardingDuration;
+
                 static_cast<MSPerson::MSPersonStage_Driving*>((*i)->getCurrentStage())->setVehicle(vehicle);
                 i = waitPersons.erase(i);
                 ret = true;
@@ -178,7 +198,6 @@ MSPersonControl::boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle) {
     }
     return ret;
 }
-
 
 bool
 MSPersonControl::hasPersons() const {

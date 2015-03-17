@@ -10,7 +10,7 @@
 // Stores all persons in the net and handles their waiting for cars.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -35,7 +35,8 @@
 
 #include <vector>
 #include <map>
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
+#include "MSVehicle.h"
 
 
 // ===========================================================================
@@ -57,17 +58,36 @@ class MSVehicle;
  */
 class MSPersonControl {
 public:
-
+    /// @brief Definition of a list of persons
     typedef std::vector<MSPerson*> PersonVector;
 
-    /// constructor
+    /// @brief Definition of the internal persons map iterator
+    typedef std::map<std::string, MSPerson*>::const_iterator constVehIt;
+
+
+public:
+    /// @brief Constructor
     MSPersonControl();
 
-    /// destructor
+
+    /// @brief Destructor
     virtual ~MSPersonControl();
 
-    /// adds a single person, returns false if an id clash occured
+
+    /** @brief Adds a single person, returns false if an id clash occured
+     * @param[in] id The id of the person
+     * @param[in] person The person to add
+     * @return Whether the person could be added (none with the same id existed before)
+     */
     bool add(const std::string& id, MSPerson* person);
+
+
+    /** @brief Returns the named person, if existing
+     * @param[in] id The id of the person
+     * @return The named person, if existing, otherwise 0
+     */
+    MSPerson* get(const std::string& id) const;
+
 
     /// removes a single person
     virtual void erase(MSPerson* person);
@@ -88,9 +108,10 @@ public:
      * Boards any people who wait on that edge for the given vehicle and removes them from myWaiting
      * @param[in] the edge on which the boarding should take place
      * @param[in] the vehicle which is taking on passengers
+     * @param[in] the stop at which the vehicle is stopping
      * @return Whether any persons have been boarded
      */
-    bool boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle);
+    bool boardAnyWaiting(MSEdge* edge, MSVehicle* vehicle, MSVehicle::Stop* stop);
 
     /// checks whether any person waits to finish her plan
     bool hasPersons() const;
@@ -115,11 +136,32 @@ public:
     /// @brief returns whether the the given person is waiting for a vehicle on the given edge
     bool isWaiting4Vehicle(const MSEdge* const edge, MSPerson* p) const;
 
-    const std::map<std::string, MSPerson*>& getPersons() const {
-        return myPersons;
+
+    /** @brief Returns the begin of the internal persons map
+     * @return The begin of the internal persons map
+     */
+    constVehIt loadedPersonsBegin() const {
+        return myPersons.begin();
     }
 
-private:
+
+    /** @brief Returns the end of the internal persons map
+     * @return The end of the internal persons map
+     */
+    constVehIt loadedPersonsEnd() const {
+        return myPersons.end();
+    }
+
+
+    /** @brief Returns the number of known persons
+     * @return The number of stored persons
+     */
+    unsigned int size() const {
+        return (unsigned int) myPersons.size();
+    }
+
+
+protected:
     /// all persons by id
     std::map<std::string, MSPerson*> myPersons;
 

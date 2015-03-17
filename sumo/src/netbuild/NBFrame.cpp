@@ -9,7 +9,7 @@
 // Sets and checks options for netbuild
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -162,9 +162,11 @@ NBFrame::fillOptions(bool forNetgen) {
         oc.addDescription("speed.offset", "Processing", "Modifies all edge speeds by adding FLOAT");
 
         oc.doRegister("speed.factor", new Option_Float(1));
-        oc.addDescription("speed.factor", "Processing", "Modifies all edge speeds by multiplying FLOAT");
+        oc.addDescription("speed.factor", "Processing", "Modifies all edge speeds by multiplying by FLOAT");
     }
 
+    oc.doRegister("junctions.corner-detail", new Option_Integer(0));
+    oc.addDescription("junctions.corner-detail", "Processing", "Generate INT intermediate points to smooth out intersection corners");
 
     oc.doRegister("check-lane-foes.roundabout", new Option_Bool(true));
     oc.addDescription("check-lane-foes.roundabout", "Processing",
@@ -185,6 +187,10 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.doRegister("sidewalks.guess.min-speed", new Option_Float((SUMOReal) 5.8));
     oc.addDescription("sidewalks.guess.min-speed", "Processing",
                       "Add sidewalks for edges with a speed above the given limit");
+
+    oc.doRegister("sidewalks.guess.from-permissions", new Option_Bool(false));
+    oc.addDescription("sidewalks.guess.from-permissions", "Processing",
+                      "Add sidewalks for edges that allow pedestrians on any of their lanes regardless of speed");
 
     oc.doRegister("crossings.guess", new Option_Bool(false));
     oc.addDescription("crossings.guess", "Processing",

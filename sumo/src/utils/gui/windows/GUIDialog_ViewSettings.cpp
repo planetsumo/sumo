@@ -10,7 +10,7 @@
 // The dialog to change the view (gui) settings.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -46,6 +46,7 @@
 #include <utils/importio/LineReader.h>
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/gui/settings/GUISettingsHandler.h>
+#include "GUIDialog_EditViewport.h"
 #include "GUIDialog_ViewSettings.h"
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -125,6 +126,12 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
                      GUIIconSubSys::getIcon(ICON_OPEN_CONFIG), this, MID_SIMPLE_VIEW_IMPORT,
                      ICON_ABOVE_TEXT | BUTTON_TOOLBAR | FRAME_RAISED | LAYOUT_TOP | LAYOUT_LEFT);
 
+        new FXVerticalSeparator(frame0);
+        new FXLabel(frame0, "Export includes:", 0, LAYOUT_CENTER_Y);
+        mySaveViewPort = new FXCheckButton(frame0, "Viewport");
+        mySaveDelay = new FXCheckButton(frame0, "Delay");
+        mySaveDecals = new FXCheckButton(frame0, "Decals");
+
     }
     //
     FXTabBook* tabbook =
@@ -198,7 +205,6 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
                          0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
         new FXLabel(m21, "Color", 0, LAYOUT_CENTER_Y);
         myLaneEdgeColorMode = new FXComboBox(m21, 30, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
-        myLaneEdgeColorMode->setNumVisible(21);
         myLaneColorInterpolation = new FXCheckButton(m21, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
         myLaneColorSettingFrame = new FXVerticalFrame(frame22, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
 
@@ -211,7 +217,6 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
                          0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
         new FXLabel(m23, "Scale width", 0, LAYOUT_CENTER_Y);
         myLaneEdgeScaleMode = new FXComboBox(m23, 30, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
-        myLaneEdgeScaleMode->setNumVisible(21);
         myLaneScaleInterpolation = new FXCheckButton(m23, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
         myLaneScaleSettingFrame = new FXVerticalFrame(frame23, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
 
@@ -219,10 +224,14 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         if (GUIVisualizationSettings::UseMesoSim) {
             mySettings->edgeColorer.fill(*myLaneEdgeColorMode);
             mySettings->edgeScaler.fill(*myLaneEdgeScaleMode);
+            myLaneEdgeColorMode->setNumVisible((int)mySettings->edgeColorer.size());
+            myLaneEdgeScaleMode->setNumVisible((int)mySettings->edgeScaler.size());
         } else {
 #endif
             mySettings->laneColorer.fill(*myLaneEdgeColorMode);
             mySettings->laneScaler.fill(*myLaneEdgeScaleMode);
+            myLaneEdgeColorMode->setNumVisible((int)mySettings->laneColorer.size());
+            myLaneEdgeScaleMode->setNumVisible((int)mySettings->laneScaler.size());
 #ifdef HAVE_INTERNAL
         }
 #endif
@@ -283,7 +292,7 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         new FXLabel(m32, "Color", 0, LAYOUT_CENTER_Y);
         myVehicleColorMode = new FXComboBox(m32, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
         mySettings->vehicleColorer.fill(*myVehicleColorMode);
-        myVehicleColorMode->setNumVisible(24);
+        myVehicleColorMode->setNumVisible((int)mySettings->vehicleColorer.size());
         myVehicleColorInterpolation = new FXCheckButton(m32, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
 
         myVehicleColorSettingFrame =
@@ -351,7 +360,7 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
         new FXLabel(m102, "Color", 0, LAYOUT_CENTER_Y);
         myPersonColorMode = new FXComboBox(m102, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
         mySettings->personColorer.fill(*myPersonColorMode);
-        myPersonColorMode->setNumVisible(9);
+        myPersonColorMode->setNumVisible(10);
         myPersonColorInterpolation = new FXCheckButton(m102, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
 
         myPersonColorSettingFrame =
@@ -370,6 +379,54 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
             new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_BOTTOM | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
                          0, 0, 0, 0, 10, 10, 10, 10, 5, 5);
         myPersonSizePanel = new SizePanel(m104, this, mySettings->personSize);
+    }
+
+    {
+        // containers
+        new FXTabItem(tabbook, "Containers", NULL, TAB_LEFT_NORMAL, 0, 0, 0, 0, 4, 8, 4, 4);
+        FXScrollWindow* genScroll = new FXScrollWindow(tabbook);
+        FXVerticalFrame* frame3 =
+            new FXVerticalFrame(genScroll, FRAME_THICK | FRAME_RAISED | LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2);
+
+        FXMatrix* m101 =
+            new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
+        new FXLabel(m101, "Show As", 0, LAYOUT_CENTER_Y);
+        myContainerShapeDetail = new FXComboBox(m101, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
+        myContainerShapeDetail->appendItem("'triangles'");
+        myContainerShapeDetail->appendItem("'boxes'");
+        myContainerShapeDetail->appendItem("'simple shapes'");
+        myContainerShapeDetail->appendItem("'raster images'");
+        myContainerShapeDetail->setNumVisible(4);
+        myContainerShapeDetail->setCurrentItem(settings->containerQuality);
+
+        new FXHorizontalSeparator(frame3, SEPARATOR_GROOVE | LAYOUT_FILL_X);
+
+        FXMatrix* m102 =
+            new FXMatrix(frame3, 3, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 2, 5, 5);
+        new FXLabel(m102, "Color", 0, LAYOUT_CENTER_Y);
+        myContainerColorMode = new FXComboBox(m102, 20, this, MID_SIMPLE_VIEW_COLORCHANGE, FRAME_SUNKEN | LAYOUT_LEFT | LAYOUT_TOP | COMBOBOX_STATIC);
+        mySettings->containerColorer.fill(*myContainerColorMode);
+        myContainerColorMode->setNumVisible(9);
+        myContainerColorInterpolation = new FXCheckButton(m102, "Interpolate", this, MID_SIMPLE_VIEW_COLORCHANGE, LAYOUT_CENTER_Y | CHECKBUTTON_NORMAL);
+
+        myContainerColorSettingFrame =
+            new FXVerticalFrame(frame3, LAYOUT_FILL_X | LAYOUT_FILL_Y,  0, 0, 0, 0, 10, 10, 2, 8, 5, 2);
+
+        new FXHorizontalSeparator(frame3, SEPARATOR_GROOVE | LAYOUT_FILL_X);
+
+        FXMatrix* m103 =
+            new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_TOP | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 10, 5, 5);
+        myContainerNamePanel = new NamePanel(m103, this, "Show container name", mySettings->containerName);
+
+        new FXHorizontalSeparator(frame3, SEPARATOR_GROOVE | LAYOUT_FILL_X);
+
+        FXMatrix* m104 =
+            new FXMatrix(frame3, 2, LAYOUT_FILL_X | LAYOUT_BOTTOM | LAYOUT_LEFT | MATRIX_BY_COLUMNS,
+                         0, 0, 0, 0, 10, 10, 10, 10, 5, 5);
+        myContainerSizePanel = new SizePanel(m104, this, mySettings->containerSize);
     }
     {
         // nodes
@@ -500,10 +557,11 @@ GUIDialog_ViewSettings::GUIDialog_ViewSettings(GUISUMOAbstractView* parent,
     rebuildColorMatrices(false);
     setIcon(GUIIconSubSys::getIcon(ICON_EMPTY));
 
-    setX(getApp()->reg().readIntEntry("VIEWSETTINGS", "x", 150));
-    setY(getApp()->reg().readIntEntry("VIEWSETTINGS", "y", 150));
-    setWidth(getApp()->reg().readIntEntry("VIEWSETTINGS", "width", 700));
-    setHeight(getApp()->reg().readIntEntry("VIEWSETTINGS", "height", 500));
+    const FXint minSize = 400;
+    setX(MIN2(getApp()->reg().readIntEntry("VIEWSETTINGS", "x", 150), getApp()->getRootWindow()->getWidth() - minSize));
+    setY(MIN2(getApp()->reg().readIntEntry("VIEWSETTINGS", "y", 150), getApp()->getRootWindow()->getHeight() - minSize));
+    setWidth(MAX2(getApp()->reg().readIntEntry("VIEWSETTINGS", "width", 700), minSize));
+    setHeight(MAX2(getApp()->reg().readIntEntry("VIEWSETTINGS", "height", 500), minSize));
 }
 
 
@@ -600,6 +658,11 @@ GUIDialog_ViewSettings::onCmdNameChange(FXObject*, FXSelector, void* data) {
     myPersonShapeDetail->setCurrentItem(mySettings->personQuality);
     myPersonNamePanel->update(mySettings->personName);
     myPersonSizePanel->update(mySettings->personSize);
+
+    myContainerColorMode->setCurrentItem((FXint) mySettings->containerColorer.getActive());
+    myContainerShapeDetail->setCurrentItem(mySettings->containerQuality);
+    myContainerNamePanel->update(mySettings->containerName);
+    myContainerSizePanel->update(mySettings->containerSize);
 
     myJunctionColorMode->setCurrentItem((FXint) mySettings->junctionColorer.getActive());
     myShowTLIndex->setCheck(mySettings->drawLinkTLIndex);
@@ -742,6 +805,7 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
     size_t prevLaneScaleMode = mySettings->getLaneEdgeScaleMode();
     size_t prevVehicleMode = mySettings->vehicleColorer.getActive();
     size_t prevPersonMode = mySettings->personColorer.getActive();
+    size_t prevContainerMode = mySettings->containerColorer.getActive();
     size_t prevJunctionMode = mySettings->junctionColorer.getActive();
     bool doRebuildColorMatrices = false;
 
@@ -787,6 +851,11 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
     tmpSettings.personQuality = myPersonShapeDetail->getCurrentItem();
     tmpSettings.personName = myPersonNamePanel->getSettings();
     tmpSettings.personSize = myPersonSizePanel->getSettings();
+
+    tmpSettings.containerColorer.setActive(myContainerColorMode->getCurrentItem());
+    tmpSettings.containerQuality = myContainerShapeDetail->getCurrentItem();
+    tmpSettings.containerName = myContainerNamePanel->getSettings();
+    tmpSettings.containerSize = myContainerSizePanel->getSettings();
 
     tmpSettings.junctionColorer.setActive(myJunctionColorMode->getCurrentItem());
     tmpSettings.drawLinkTLIndex = (myShowTLIndex->getCheck() != FALSE);
@@ -865,6 +934,20 @@ GUIDialog_ViewSettings::onCmdColorChange(FXObject* sender, FXSelector, void* /*v
     } else {
         doRebuildColorMatrices = true;
     }
+    // containers
+    if (tmpSettings.containerColorer.getActive() == prevContainerMode) {
+        if (updateColorRanges(sender, myContainerColors.begin(), myContainerColors.end(),
+                              myContainerThresholds.begin(), myContainerThresholds.end(), myContainerButtons.begin(),
+                              tmpSettings.containerColorer.getScheme())) {
+            doRebuildColorMatrices = true;
+        }
+        if (sender == myContainerColorInterpolation) {
+            tmpSettings.containerColorer.getScheme().setInterpolated(myContainerColorInterpolation->getCheck() != FALSE);
+            doRebuildColorMatrices = true;
+        }
+    } else {
+        doRebuildColorMatrices = true;
+    }
     // junctions
     if (tmpSettings.junctionColorer.getActive() == prevJunctionMode) {
         if (updateColorRanges(sender, myJunctionColors.begin(), myJunctionColors.end(),
@@ -925,35 +1008,40 @@ GUIDialog_ViewSettings::loadSettings(const std::string& file) {
         mySchemeName->setCurrentItem(index);
         mySettings = &gSchemeStorage.get(settingsName);
     }
+    if (handler.hasDecals()) {
+        myDecalsLock->lock();
+        (*myDecals) = handler.getDecals();
+        rebuildList();
+        myParent->update();
+        myDecalsLock->unlock();
+    }
+    Position lookFrom, lookAt;
+    handler.setViewport(lookFrom, lookAt);
+    if (lookFrom.z() > 0) {
+        myParent->setViewport(lookFrom, lookAt);
+    }
     rebuildColorMatrices(true);
 }
 
 
 void
-GUIDialog_ViewSettings::saveDecals(const std::string& file) const {
-    try {
-        OutputDevice& dev = OutputDevice::getDevice(file);
-        dev << "<decals>\n";
-        std::vector<GUISUMOAbstractView::Decal>::iterator j;
-        for (j = myDecals->begin(); j != myDecals->end(); ++j) {
-            GUISUMOAbstractView::Decal& d = *j;
-            dev << "    <decal filename=\"" << d.filename
-                << "\" centerX=\"" << d.centerX
-                << "\" centerY=\"" << d.centerY
-                << "\" centerZ=\"" << d.centerZ
-                << "\" width=\"" << d.width
-                << "\" height=\"" << d.height
-                << "\" altitude=\"" << d.altitude
-                << "\" rotation=\"" << d.rot
-                << "\" tilt=\"" << d.tilt
-                << "\" roll=\"" << d.roll
-                << "\" layer=\"" << d.layer
-                << "\"/>\n";
-        }
-        dev << "</decals>\n";
-        dev.close();
-    } catch (IOError& e) {
-        FXMessageBox::error(myParent, MBOX_OK, "Storing failed!", "%s", e.what());
+GUIDialog_ViewSettings::saveDecals(OutputDevice& dev) const {
+    std::vector<GUISUMOAbstractView::Decal>::iterator j;
+    for (j = myDecals->begin(); j != myDecals->end(); ++j) {
+        GUISUMOAbstractView::Decal& d = *j;
+        dev.openTag(SUMO_TAG_VIEWSETTINGS_DECAL);
+        dev.writeAttr("filename", d.filename);
+        dev.writeAttr(SUMO_ATTR_CENTER_X, d.centerX);
+        dev.writeAttr(SUMO_ATTR_CENTER_Y, d.centerY);
+        dev.writeAttr(SUMO_ATTR_CENTER_Z, d.centerZ);
+        dev.writeAttr(SUMO_ATTR_WIDTH, d.width);
+        dev.writeAttr(SUMO_ATTR_HEIGHT, d.height);
+        dev.writeAttr("altitude", d.altitude);
+        dev.writeAttr("rotation", d.rot);
+        dev.writeAttr("tilt", d.tilt);
+        dev.writeAttr("roll", d.roll);
+        dev.writeAttr(SUMO_ATTR_LAYER, d.layer);
+        dev.closeTag();
     }
 }
 
@@ -1058,7 +1146,20 @@ GUIDialog_ViewSettings::onCmdExportSetting(FXObject*, FXSelector, void* /*data*/
     }
     try {
         OutputDevice& dev = OutputDevice::getDevice(file.text());
+        dev.openTag(SUMO_TAG_VIEWSETTINGS);
         mySettings->save(dev);
+        if (mySaveViewPort->getCheck()) {
+            myParent->getViewportEditor()->writeXML(dev);
+        }
+        if (mySaveDelay->getCheck()) {
+            dev.openTag(SUMO_TAG_DELAY);
+            dev.writeAttr(SUMO_ATTR_VALUE, myParent->getDelay());
+            dev.closeTag();
+        }
+        if (mySaveDecals->getCheck()) {
+            saveDecals(dev);
+        }
+        dev.closeTag();
         dev.close();
     } catch (IOError& e) {
         FXMessageBox::error(this, MBOX_OK, "Storing failed!", "%s", e.what());
@@ -1070,8 +1171,9 @@ GUIDialog_ViewSettings::onCmdExportSetting(FXObject*, FXSelector, void* /*data*/
 long
 GUIDialog_ViewSettings::onUpdExportSetting(FXObject* sender, FXSelector, void* ptr) {
     sender->handle(this,
-                   mySchemeName->getCurrentItem() < (int) gSchemeStorage.getNumInitialSettings()
-                   ? FXSEL(SEL_COMMAND, ID_DISABLE) : FXSEL(SEL_COMMAND, ID_ENABLE),
+                   (mySchemeName->getCurrentItem() < (int) gSchemeStorage.getNumInitialSettings()
+                    && !mySaveViewPort->getCheck() && !mySaveDelay->getCheck() && !mySaveDecals->getCheck()) ?
+                   FXSEL(SEL_COMMAND, ID_DISABLE) : FXSEL(SEL_COMMAND, ID_ENABLE),
                    ptr);
     return 1;
 }
@@ -1117,7 +1219,15 @@ GUIDialog_ViewSettings::onCmdSaveDecals(FXObject*, FXSelector, void* /*data*/) {
     if (file == "") {
         return 1;
     }
-    saveDecals(file.text());
+    try {
+        OutputDevice& dev = OutputDevice::getDevice(file.text());
+        dev.openTag("decals");
+        saveDecals(dev);
+        dev.closeTag();
+        dev.close();
+    } catch (IOError& e) {
+        FXMessageBox::error(myParent, MBOX_OK, "Storing failed!", "%s", e.what());
+    }
     return 1;
 }
 
@@ -1324,14 +1434,18 @@ GUIDialog_ViewSettings::rebuildColorMatrices(bool doCreate) {
     if (doCreate) {
         m->create();
     }
-    myPersonColorSettingFrame->getParent()->recalc();
+    myVehicleColorSettingFrame->getParent()->recalc();
 
     m = rebuildColorMatrix(myPersonColorSettingFrame, myPersonColors, myPersonThresholds, myPersonButtons, myPersonColorInterpolation, mySettings->personColorer.getScheme());
     if (doCreate) {
         m->create();
     }
     myPersonColorSettingFrame->getParent()->recalc();
-
+    m = rebuildColorMatrix(myContainerColorSettingFrame, myContainerColors, myContainerThresholds, myContainerButtons, myContainerColorInterpolation, mySettings->containerColorer.getScheme());
+    if (doCreate) {
+        m->create();
+    }
+    myContainerColorSettingFrame->getParent()->recalc();
     m = rebuildColorMatrix(myJunctionColorSettingFrame, myJunctionColors, myJunctionThresholds, myJunctionButtons, myJunctionColorInterpolation, mySettings->junctionColorer.getScheme());
     if (doCreate) {
         m->create();

@@ -10,7 +10,7 @@
 // The car-following model abstraction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -21,7 +21,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFModel_h
-#define	MSCFModel_h
+#define MSCFModel_h
 
 // ===========================================================================
 // included modules
@@ -352,5 +352,5 @@ protected:
 };
 
 
-#endif	/* MSCFModel_h */
+#endif /* MSCFModel_h */
 

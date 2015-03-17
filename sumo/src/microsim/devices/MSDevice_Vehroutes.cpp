@@ -10,7 +10,7 @@
 // A device which collects info on the vehicle trip
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2009-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2009-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -141,7 +141,7 @@ MSDevice_Vehroutes::notifyLeave(SUMOVehicle& veh, SUMOReal /*lastPos*/, MSMoveRe
     if (mySaveExits && reason != NOTIFICATION_LANE_CHANGE) {
         if (reason != NOTIFICATION_TELEPORT && myLastSavedAt == veh.getEdge()) { // need to check this for internal lanes
             myExits.back() = MSNet::getInstance()->getCurrentTimeStep();
-        } else {
+        } else if (myLastSavedAt != veh.getEdge()) {
             myExits.push_back(MSNet::getInstance()->getCurrentTimeStep());
             myLastSavedAt = veh.getEdge();
         }

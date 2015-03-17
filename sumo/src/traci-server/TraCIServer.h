@@ -14,7 +14,7 @@
 /// TraCI server used to control sumo by a remote TraCI client
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -109,11 +109,10 @@ public:
     /// @brief process all commands until a simulation step is wanted
     static void processCommandsUntilSimStep(SUMOTime step);
 
-    void setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, MSEdgeVector route);
+    void setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, ConstMSEdgeVector route,
+                          SUMOTime t);
 
     void postProcessVTD();
-
-    bool vtdDebug() const;
 
 
 
@@ -258,6 +257,7 @@ public:
      */
     bool readTypeCheckingPolygon(tcpip::Storage& inputStorage, PositionVector& into);
     /// @}
+
 
 private:
     /** @brief Constructor

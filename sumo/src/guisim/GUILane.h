@@ -9,7 +9,7 @@
 // Representation of a lane in the micro simulation (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -41,7 +41,7 @@
 #include <utils/geom/Position.h>
 #include <utils/geom/PositionVector.h>
 #include <utils/gui/globjects/GUIGlObject.h>
-#include <utils/gui/settings/GUIColorer.h>
+#include <utils/gui/settings/GUIPropertySchemeStorage.h>
 
 
 // ===========================================================================
@@ -197,6 +197,9 @@ public:
     /// @brief draw lane borders and white markings
     void drawMarkings(const GUIVisualizationSettings& s, SUMOReal scale) const;
 
+    /// @brief bike lane markings on top of an intersection
+    void drawBikeMarkings() const;
+
     /// @brief draw crossties for railroads or pedestrian crossings
     void drawCrossties(SUMOReal length, SUMOReal spacing, SUMOReal halfWidth) const;
 
@@ -246,8 +249,8 @@ private:
     void drawLinkNo() const;
     void drawTLSLinkNo(const GUINet& net) const;
     void drawTextAtEnd(const std::string& text, const PositionVector& shape, SUMOReal x) const;
-    void drawLinkRules(const GUINet& net) const;
-    void drawLinkRule(const GUINet& net, MSLink* link, const PositionVector& shape, SUMOReal x1, SUMOReal x2) const;
+    void drawLinkRules(const GUIVisualizationSettings& s, const GUINet& net) const;
+    void drawLinkRule(const GUIVisualizationSettings& s, const GUINet& net, MSLink* link, const PositionVector& shape, SUMOReal x1, SUMOReal x2) const;
     void drawArrows() const;
     void drawLane2LaneConnections() const;
 
@@ -263,14 +266,26 @@ private:
     /// @brief sets the color according to the current scheme index and some lane function
     bool setFunctionalColor(size_t activeScheme) const;
 
+    /// @brief sets multiple colors according to the current scheme index and some lane function
+    bool setMultiColor(const GUIColorer& c) const;
+
     /// @brief sets the color according to the currente settings
     void setColor(const GUIVisualizationSettings& s) const;
+
+    /// @brief whether to draw this lane as a railway
+    bool drawAsRailway(const GUIVisualizationSettings& s) const;
+
+    /// @brief whether to draw this lane as a waterway
+    bool drawAsWaterway(const GUIVisualizationSettings& s) const;
 
     /// The rotations of the shape parts
     std::vector<SUMOReal> myShapeRotations;
 
     /// The lengths of the shape parts
     std::vector<SUMOReal> myShapeLengths;
+
+    /// The color of the shape parts (cached)
+    mutable std::vector<RGBColor> myShapeColors;
 
     /// @brief Half of lane width, for speed-up
     SUMOReal myHalfLaneWidth;

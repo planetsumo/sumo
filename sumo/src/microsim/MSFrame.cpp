@@ -13,7 +13,7 @@
 // Sets and checks options for microsim; inits global outputs and settings
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -38,7 +38,6 @@
 #include <iomanip>
 #include <fstream>
 #include <ctime>
-#include <stdlib.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/options/Option.h>
 #include <utils/common/MsgHandler.h>
@@ -51,7 +50,7 @@
 #include <microsim/MSRoute.h>
 #include <microsim/MSNet.h>
 #include <microsim/MSGlobals.h>
-#include <microsim/MSAbstractLaneChangeModel.h>
+#include <microsim/lcmodels/MSAbstractLaneChangeModel.h>
 #include <microsim/devices/MSDevice.h>
 #include <microsim/devices/MSDevice_Vehroutes.h>
 #include <utils/common/RandHelper.h>
@@ -79,6 +78,7 @@ MSFrame::fillOptions() {
     oc.addOptionSubTopic("Output");
     oc.addOptionSubTopic("Time");
     oc.addOptionSubTopic("Processing");
+    oc.addOptionSubTopic("Routing");
     SystemFrame::addReportOptions(oc); // fill this subtopic, too
 
 
@@ -119,6 +119,11 @@ MSFrame::fillOptions() {
     oc.addSynonyme("netstate-dump.empty-edges", "netstate-output.empty-edges");
     oc.addSynonyme("netstate-dump.empty-edges", "dump-empty-edges", true);
     oc.addDescription("netstate-dump.empty-edges", "Output", "Write also empty edges completely when dumping");
+    oc.doRegister("netstate-dump.precision", new Option_Integer(OUTPUT_ACCURACY));
+    oc.addSynonyme("netstate-dump.precision", "netstate.precision");
+    oc.addSynonyme("netstate-dump.precision", "netstate-output.precision");
+    oc.addSynonyme("netstate-dump.precision", "dump-precision", true);
+    oc.addDescription("netstate-dump.precision", "Output", "Write positions and speeds with the given precision (default 2)");
 
 
     oc.doRegister("emission-output", new Option_FileName());
@@ -141,8 +146,6 @@ MSFrame::fillOptions() {
 
     oc.doRegister("summary-output", new Option_FileName());
     oc.addSynonyme("summary-output", "summary");
-    oc.addSynonyme("summary-output", "emissions-output", true);
-    oc.addSynonyme("summary-output", "emissions", true);
     oc.addDescription("summary-output", "Output", "Save aggregated vehicle departure info into FILE");
 
     oc.doRegister("tripinfo-output", new Option_FileName());
@@ -226,7 +229,7 @@ MSFrame::fillOptions() {
 #endif
 
     oc.doRegister("ignore-accidents", new Option_Bool(false));
-    oc.addDescription("ignore-accidents", "Processing", "Do not check whether accidents occure more deeply");
+    oc.addDescription("ignore-accidents", "Processing", "Do not check whether accidents occur");
 
     oc.doRegister("ignore-route-errors", new Option_Bool(false));
     oc.addDescription("ignore-route-errors", "Processing", "Do not check whether routes are connected");
@@ -264,9 +267,6 @@ MSFrame::fillOptions() {
     oc.doRegister("lanechange.overtake-right", new Option_Bool(false));
     oc.addDescription("lanechange.overtake-right", "Processing", "Whether overtaking on the right on motorways is permitted");
 
-    oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
-    oc.addDescription("routing-algorithm", "Processing",
-                      "Select among routing algorithms ['dijkstra', 'astar', 'CH', 'CHWrapper']");
     // pedestrian model
     oc.doRegister("pedestrian.model", new Option_String("striping"));
     oc.addDescription("pedestrian.model", "Processing", "Select among pedestrian models ['nonInteracting', 'striping']");
@@ -277,10 +277,19 @@ MSFrame::fillOptions() {
     oc.doRegister("pedestrian.striping.dawdling", new Option_Float(0.2));
     oc.addDescription("pedestrian.striping.dawdling", "Processing", "factor for random slow-downs [0,1] for use with model 'striping'");
 
+    oc.doRegister("pedestrian.striping.jamtime", new Option_String("300", "TIME"));
+    oc.addDescription("pedestrian.striping.jamtime", "Processing", "Time in seconds after which pedestrians start squeezing through a jam when using model 'striping' (non-positive values disable squeezing)");
+
+    // generic routing options
+    oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
+    oc.addDescription("routing-algorithm", "Routing",
+                      "Select among routing algorithms ['dijkstra', 'astar', 'CH', 'CHWrapper']");
+    oc.doRegister("weights.random-factor", new Option_Float());
+    oc.addDescription("weights.random-factor", "Routing", "Edge weights for routing are dynamically disturbed by a random factor between [1-FLOAT,1+FLOAT]");
+
     // devices
     oc.addOptionSubTopic("Emissions");
-    std::string plp = getenv("PHEMLIGHT_PATH") == 0 ? "./PHEMlight/" : std::string(getenv("PHEMLIGHT_PATH"));
-    oc.doRegister("phemlight-path", new Option_FileName(plp));
+    oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
     oc.addDescription("phemlight-path", "Emissions", "Determines where to load PHEMlight definitions from.");
 
     oc.addOptionSubTopic("Communication");

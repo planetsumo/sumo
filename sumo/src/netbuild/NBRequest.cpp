@@ -10,7 +10,7 @@
 // This class computes the logic of a junction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,8 +45,6 @@
 #include <utils/iodevices/OutputDevice.h>
 #include "NBEdge.h"
 #include "NBContHelper.h"
-#include "NBTrafficLightLogic.h"
-#include "NBTrafficLightLogicCont.h"
 #include "NBNode.h"
 #include "NBRequest.h"
 
@@ -237,11 +235,11 @@ NBRequest::setBlocking(bool leftHanded,
     }
     // check if one of the links is a turn; this link is always not priorised
     //  true for right-before-left and priority
-    if (from1->isTurningDirectionAt(myJunction, to1)) {
+    if (from1->isTurningDirectionAt(to1)) {
         myForbids[idx2][idx1] = true;
         return;
     }
-    if (from2->isTurningDirectionAt(myJunction, to2)) {
+    if (from2->isTurningDirectionAt(to2)) {
         myForbids[idx1][idx2] = true;
         return;
     }
@@ -637,8 +635,8 @@ NBRequest::laneConflict(const NBEdge* from, const NBEdge* to, int toLane,
     }
     const SUMOReal prohibitorAngle = NBHelpers::relAngle(
                                          prohibitorFrom->getAngleAtNode(prohibitorFrom->getToNode()), to->getAngleAtNode(to->getFromNode()));
-    const bool rightOfProhibitor = prohibitorFrom->isTurningDirectionAt(prohibitorFrom->getToNode(), to)
-                                   || (angle > prohibitorAngle && !from->isTurningDirectionAt(from->getToNode(), to));
+    const bool rightOfProhibitor = prohibitorFrom->isTurningDirectionAt(to)
+                                   || (angle > prohibitorAngle && !from->isTurningDirectionAt(to));
     return rightOfProhibitor ? toLane >= prohibitorToLane : toLane <= prohibitorToLane;
 }
 
@@ -649,7 +647,8 @@ NBRequest::rightTurnConflict(const NBEdge* from, const NBEdge* to, int fromLane,
     if (from != prohibitorFrom) {
         return false;
     }
-    if (from->isTurningDirectionAt(from->getToNode(), to)) {
+    if (from->isTurningDirectionAt(to)
+            || prohibitorFrom->isTurningDirectionAt(prohibitorTo)) {
         // XXX should warn if there are any non-turning connections left of this
         return false;
     }
@@ -702,7 +701,7 @@ operator<<(std::ostream& os, const NBRequest& r) {
 
 
 bool
-NBRequest::mustBrake(const NBEdge* const from, const NBEdge* const to) const {
+NBRequest::mustBrake(const NBEdge* const from, const NBEdge* const to, int fromLane, bool includePedCrossings) const {
     // vehicles which do not have a following lane must always decelerate to the end
     if (to == 0) {
         return true;
@@ -722,9 +721,23 @@ NBRequest::mustBrake(const NBEdge* const from, const NBEdge* const to) const {
         }
     }
     // maybe we need to brake for a pedestrian crossing
-    for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
-        if (mustBrakeForCrossing(from, to, *i)) {
-            return true;
+    if (includePedCrossings) {
+        for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
+            if (mustBrakeForCrossing(from, to, *i)) {
+                return true;
+            }
+        }
+    }
+    // maybe we need to brake due to a right-turn conflict with straight-going
+    // bicycles
+    LinkDirection dir = myJunction->getDirection(from, to);
+    if (dir == LINKDIR_RIGHT || dir == LINKDIR_PARTRIGHT) {
+        const std::vector<NBEdge::Connection>& cons = from->getConnections();
+        for (std::vector<NBEdge::Connection>::const_iterator i = cons.begin(); i != cons.end(); i++) {
+            if (rightTurnConflict(from, to, fromLane,
+                                  from, (*i).toEdge, (*i).fromLane)) {
+                return true;
+            }
         }
     }
     return false;

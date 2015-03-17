@@ -10,7 +10,7 @@
 // The dialog to change the view (gui) settings.
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -138,6 +138,7 @@ GUISettingsHandler::myStartElement(int element,
             mySettings.cwaEdgeName = parseTextSettings("cwaEdgeName", attrs, mySettings.cwaEdgeName);
             mySettings.streetName = parseTextSettings("streetName", attrs, mySettings.streetName);
             mySettings.hideConnectors = TplConvert::_2bool(attrs.getStringSecure("hideConnectors", toString(mySettings.hideConnectors)).c_str());
+            mySettings.laneWidthExaggeration = TplConvert::_2SUMOReal(attrs.getStringSecure("widthExaggeration", toString(mySettings.laneWidthExaggeration)).c_str());
             myCurrentColorer = element;
 #ifdef HAVE_INTERNAL
             mySettings.edgeColorer.setActive(laneEdgeMode);
@@ -223,6 +224,13 @@ GUISettingsHandler::myStartElement(int element,
             mySettings.personQuality = TplConvert::_2int(attrs.getStringSecure("personQuality", toString(mySettings.personQuality)).c_str());
             mySettings.personSize = parseSizeSettings("person", attrs, mySettings.personSize);
             mySettings.personName = parseTextSettings("personName", attrs, mySettings.personName);
+            myCurrentColorer = element;
+            break;
+        case SUMO_TAG_VIEWSETTINGS_CONTAINERS:
+            mySettings.containerColorer.setActive(TplConvert::_2int(attrs.getStringSecure("containerMode", "0").c_str()));
+            mySettings.containerQuality = TplConvert::_2int(attrs.getStringSecure("containerQuality", toString(mySettings.containerQuality)).c_str());
+            mySettings.containerSize = parseSizeSettings("container", attrs, mySettings.containerSize);
+            mySettings.containerName = parseTextSettings("containerName", attrs, mySettings.containerName);
             myCurrentColorer = element;
             break;
         case SUMO_TAG_VIEWSETTINGS_JUNCTIONS:

@@ -8,7 +8,7 @@
 // Data collector for edges/lanes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -48,6 +48,7 @@ class MSEdge;
 class MSLane;
 class SUMOVehicle;
 
+typedef std::vector<MSEdge*> MSEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -448,7 +449,7 @@ private:
     const SUMOTime myDumpBegin, myDumpEnd;
 
     /// @brief The corresponding first edges
-    std::vector<MSEdge*> myEdges;
+    MSEdgeVector myEdges;
 
     /// @brief Whether empty lanes/edges shall be written
     const bool myPrintDefaults;

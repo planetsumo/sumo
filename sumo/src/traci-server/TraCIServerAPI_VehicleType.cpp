@@ -10,7 +10,7 @@
 // APIs for getting/setting vehicle type values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -58,7 +58,8 @@ TraCIServerAPI_VehicleType::processGet(TraCIServer& server, tcpip::Storage& inpu
     if (variable != ID_LIST && variable != VAR_LENGTH && variable != VAR_MAXSPEED && variable != VAR_ACCEL && variable != VAR_DECEL
             && variable != VAR_TAU && variable != VAR_VEHICLECLASS && variable != VAR_EMISSIONCLASS && variable != VAR_SHAPECLASS
             && variable != VAR_SPEED_FACTOR && variable != VAR_SPEED_DEVIATION && variable != VAR_IMPERFECTION
-            && variable != VAR_MINGAP && variable != VAR_WIDTH && variable != VAR_COLOR && variable != ID_COUNT) {
+            && variable != VAR_MINGAP && variable != VAR_WIDTH && variable != VAR_COLOR && variable != ID_COUNT
+            && variable != VAR_PARAMETER) {
         return server.writeErrorStatusCmd(CMD_GET_VEHICLETYPE_VARIABLE, "Get Vehicle Type Variable: unsupported variable specified", outputStorage);
     }
     // begin response building
@@ -83,7 +84,20 @@ TraCIServerAPI_VehicleType::processGet(TraCIServer& server, tcpip::Storage& inpu
         if (v == 0) {
             return server.writeErrorStatusCmd(CMD_GET_VEHICLETYPE_VARIABLE, "Vehicle type '" + id + "' is not known", outputStorage);
         }
-        getVariable(variable, *v, tempMsg);
+        switch (variable) {
+            case VAR_PARAMETER: {
+                std::string paramName = "";
+                if (!server.readTypeCheckingString(inputStorage, paramName)) {
+                    return server.writeErrorStatusCmd(CMD_GET_VEHICLETYPE_VARIABLE, "Retrieval of a parameter requires its name.", outputStorage);
+                }
+                tempMsg.writeUnsignedByte(TYPE_STRING);
+                tempMsg.writeString(v->getParameter().getParameter(paramName, ""));
+            }
+            break;
+            default:
+                getVariable(variable, *v, tempMsg);
+                break;
+        }
     }
     server.writeStatusCmd(CMD_GET_VEHICLETYPE_VARIABLE, RTYPE_OK, "", outputStorage);
     server.writeResponseWithLength(outputStorage, tempMsg);
@@ -168,7 +182,7 @@ TraCIServerAPI_VehicleType::processSet(TraCIServer& server, tcpip::Storage& inpu
             && variable != VAR_SPEED_FACTOR && variable != VAR_SPEED_DEVIATION && variable != VAR_EMISSIONCLASS
             && variable != VAR_WIDTH && variable != VAR_MINGAP && variable != VAR_SHAPECLASS
             && variable != VAR_ACCEL && variable != VAR_DECEL && variable != VAR_IMPERFECTION
-            && variable != VAR_TAU && variable != VAR_COLOR
+            && variable != VAR_TAU && variable != VAR_COLOR && variable != VAR_PARAMETER
        ) {
         return server.writeErrorStatusCmd(CMD_SET_VEHICLETYPE_VARIABLE, "Change Vehicle Type State: unsupported variable specified", outputStorage);
     }
@@ -348,6 +362,23 @@ TraCIServerAPI_VehicleType::setVariable(const int cmd, const int variable,
                 return server.writeErrorStatusCmd(cmd, "The color must be given using the according type.", outputStorage);
             }
             v.setColor(col);
+        }
+        break;
+        case VAR_PARAMETER: {
+            if (inputStorage.readUnsignedByte() != TYPE_COMPOUND) {
+                return server.writeErrorStatusCmd(cmd, "A compound object is needed for setting a parameter.", outputStorage);
+            }
+            //readt itemNo
+            inputStorage.readInt();
+            std::string name;
+            if (!server.readTypeCheckingString(inputStorage, name)) {
+                return server.writeErrorStatusCmd(cmd, "The name of the parameter must be given as a string.", outputStorage);
+            }
+            std::string value;
+            if (!server.readTypeCheckingString(inputStorage, value)) {
+                return server.writeErrorStatusCmd(cmd, "The value of the parameter must be given as a string.", outputStorage);
+            }
+            ((SUMOVTypeParameter&) v.getParameter()).addParameter(name, value);
         }
         break;
         default:

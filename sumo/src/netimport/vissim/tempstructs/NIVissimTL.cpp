@@ -9,7 +9,7 @@
 // -------------------
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -383,12 +383,12 @@ NIVissimTL::dict_SetSignals(NBTrafficLightLogicCont& tlc,
     size_t no_groups = 0;
     for (DictType::iterator i = myDict.begin(); i != myDict.end(); i++) {
         NIVissimTL* tl = (*i).second;
-        /*		if(tl->myType!="festzeit") {
-        			cout << " Warning: The traffic light '" << tl->myID
-        				<< "' could not be assigned to a node." << endl;
-        			ref++;
-        			continue;
-        		}*/
+        /*  if(tl->myType!="festzeit") {
+           cout << " Warning: The traffic light '" << tl->myID
+            << "' could not be assigned to a node." << endl;
+           ref++;
+           continue;
+          }*/
         std::string id = toString<int>(tl->myID);
         TrafficLightType type = ((tl->getType() == "festzeit" || tl->getType() == "festzeit_fake") ?
                                  TLTYPE_STATIC : TLTYPE_ACTUATED);

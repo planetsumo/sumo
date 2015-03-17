@@ -9,7 +9,7 @@
 // A base class for vehicle implementations
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -139,6 +139,14 @@ public:
     }
 
 
+    /** @brief Returns an iterator pointing to the current edge in this vehicles route
+     * @return The current route pointer
+     */
+    const MSRouteIterator& getCurrentRouteEdge() const {
+        return myCurrEdge;
+    }
+
+
     /** @brief Performs a rerouting using the given router
      *
      * Tries to find a new route between the current edge and the destination edge, first.
@@ -148,7 +156,7 @@ public:
      * @param[in] router The router to use
      * @see replaceRoute
      */
-    void reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, bool withTaz = false);
+    void reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, const bool onInit = false, const bool withTaz = false);
 
 
     /** @brief Replaces the current route by the given edges
@@ -161,7 +169,7 @@ public:
      * @param[in] simTime The time at which the route was replaced
      * @return Whether the new route was accepted
      */
-    bool replaceRouteEdges(MSEdgeVector& edges, bool onInit = false);
+    bool replaceRouteEdges(ConstMSEdgeVector& edges, bool onInit = false);
 
 
     /** @brief Returns the vehicle's acceleration
@@ -235,6 +243,15 @@ public:
      */
     virtual void addPerson(MSPerson* person);
 
+
+    /** @brief Adds a container to this vehicle
+     *
+     * The default implementation does nothing since containers are not supported by default
+     *
+     * @param[in] container The person to add
+     */
+    virtual void addContainer(MSContainer* container);
+
     /** @brief Validates the current route
      * @param[out] msg Description why the route is not valid (if it is the case)
      * @return Whether the vehicle's current route is valid
@@ -307,6 +324,10 @@ protected:
     /** @brief (Re-)Calculates the arrival position from the vehicle parameters
      */
     void calculateArrivalPos();
+
+    /** @brief Returns the list of still pending stop edges
+     */
+    virtual const ConstMSEdgeVector getStopEdges() const = 0;
 
 protected:
     /// @brief This Vehicle's parameter.

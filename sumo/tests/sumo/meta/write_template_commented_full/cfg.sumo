@@ -45,11 +45,17 @@
     </input>
 
     <output>
+        <!-- Prefix which is applied to all output files. The special string &apos;TIME&apos; is replaced by the current time. -->
+        <output-prefix value="" type="FILE"/>
+
         <!-- Save complete network states into FILE -->
         <netstate-dump value="" synonymes="ndump netstate netstate-output" type="FILE"/>
 
         <!-- Write also empty edges completely when dumping -->
         <netstate-dump.empty-edges value="false" synonymes="dump-empty-edges netstate-output.empty-edges netstate.empty-edges" type="BOOL"/>
+
+        <!-- Write positions and speeds with the given precision (default 2) -->
+        <netstate-dump.precision value="2" synonymes="dump-precision netstate-output.precision netstate.precision" type="INT"/>
 
         <!-- Save the emission values of each vehicle -->
         <emission-output value="" type="FILE"/>
@@ -76,7 +82,7 @@
         <amitran-output value="" type="FILE"/>
 
         <!-- Save aggregated vehicle departure info into FILE -->
-        <summary-output value="" synonymes="emissions emissions-output summary" type="FILE"/>
+        <summary-output value="" synonymes="summary" type="FILE"/>
 
         <!-- Save single vehicle trip info into FILE -->
         <tripinfo-output value="" synonymes="tripinfo" type="FILE"/>
@@ -144,7 +150,7 @@
         <!-- Ignore vehicles which block the junction after they have been standing for SECONDS (-1 means never ignore) -->
         <ignore-junction-blocker value="-1" type="TIME"/>
 
-        <!-- Do not check whether accidents occure more deeply -->
+        <!-- Do not check whether accidents occur -->
         <ignore-accidents value="false" type="BOOL"/>
 
         <!-- Do not check whether routes are connected -->
@@ -183,9 +189,6 @@
         <!-- Whether overtaking on the right on motorways is permitted -->
         <lanechange.overtake-right value="false" type="BOOL"/>
 
-        <!-- Select among routing algorithms [&apos;dijkstra&apos;, &apos;astar&apos;, &apos;CH&apos;, &apos;CHWrapper&apos;] -->
-        <routing-algorithm value="dijkstra" type="STR"/>
-
         <!-- Select among pedestrian models [&apos;nonInteracting&apos;, &apos;striping&apos;] -->
         <pedestrian.model value="striping" type="STR"/>
 
@@ -195,7 +198,55 @@
         <!-- factor for random slow-downs [0,1] for use with model &apos;striping&apos; -->
         <pedestrian.striping.dawdling value="0.2" type="FLOAT"/>
 
+        <!-- Time in seconds after which pedestrians start squeezing through a jam when using model &apos;striping&apos; (non-positive values disable squeezing) -->
+        <pedestrian.striping.jamtime value="300" type="TIME"/>
+
     </processing>
+
+    <routing>
+        <!-- Select among routing algorithms [&apos;dijkstra&apos;, &apos;astar&apos;, &apos;CH&apos;, &apos;CHWrapper&apos;] -->
+        <routing-algorithm value="dijkstra" type="STR"/>
+
+        <!-- Edge weights for routing are dynamically disturbed by a random factor between [1-FLOAT,1+FLOAT] -->
+        <weights.random-factor value="" type="FLOAT"/>
+
+        <!-- The probability for a vehicle to have a &apos;rerouting&apos; device -->
+        <device.rerouting.probability value="0" type="FLOAT"/>
+
+        <!-- Assign a &apos;rerouting&apos; device to named vehicles -->
+        <device.rerouting.explicit value="" synonymes="device.rerouting.knownveh" type="STR"/>
+
+        <!-- The &apos;rerouting&apos; devices are set deterministic using a fraction of 1000 -->
+        <device.rerouting.deterministic value="false" type="BOOL"/>
+
+        <!-- The period with which the vehicle shall be rerouted -->
+        <device.rerouting.period value="0" synonymes="device.routing.period" type="TIME"/>
+
+        <!-- The rerouting period before depart -->
+        <device.rerouting.pre-period value="1" synonymes="device.routing.pre-period" type="TIME"/>
+
+        <!-- The weight of prior edge weights -->
+        <device.rerouting.adaptation-weight value="0.5" synonymes="device.routing.adaptation-weight" type="FLOAT"/>
+
+        <!-- The interval for updating the edge weights -->
+        <device.rerouting.adaptation-interval value="1" synonymes="device.routing.adaptation-interval" type="TIME"/>
+
+        <!-- Use zones (districts) as routing end points -->
+        <device.rerouting.with-taz value="false" synonymes="device.routing.with-taz with-taz" type="BOOL"/>
+
+        <!-- Use given weight files for initializing edge weights -->
+        <device.rerouting.init-with-loaded-weights value="false" type="BOOL"/>
+
+        <!-- Initialize lookup table for astar from the given distance matrix -->
+        <device.rerouting.shortest-path-file value="" type="FILE"/>
+
+        <!-- The number of parallel execution threads used for rerouting -->
+        <device.rerouting.threads value="0" type="INT"/>
+
+        <!-- Save adapting weights to FILE -->
+        <device.rerouting.output value="" type="FILE"/>
+
+    </routing>
 
     <report>
         <!-- Switches to verbose output -->
@@ -280,42 +331,6 @@
         <device.btsender.deterministic value="false" type="BOOL"/>
 
     </communication>
-
-    <routing>
-        <!-- The probability for a vehicle to have a &apos;rerouting&apos; device -->
-        <device.rerouting.probability value="0" type="FLOAT"/>
-
-        <!-- Assign a &apos;rerouting&apos; device to named vehicles -->
-        <device.rerouting.explicit value="" synonymes="device.rerouting.knownveh" type="STR"/>
-
-        <!-- The &apos;rerouting&apos; devices are set deterministic using a fraction of 1000 -->
-        <device.rerouting.deterministic value="false" type="BOOL"/>
-
-        <!-- The period with which the vehicle shall be rerouted -->
-        <device.rerouting.period value="0" synonymes="device.routing.period" type="TIME"/>
-
-        <!-- The rerouting period before depart -->
-        <device.rerouting.pre-period value="1" synonymes="device.routing.pre-period" type="TIME"/>
-
-        <!-- The weight of prior edge weights -->
-        <device.rerouting.adaptation-weight value="0.5" synonymes="device.routing.adaptation-weight" type="FLOAT"/>
-
-        <!-- The interval for updating the edge weights -->
-        <device.rerouting.adaptation-interval value="1" synonymes="device.routing.adaptation-interval" type="TIME"/>
-
-        <!-- Use zones (districts) as routing end points -->
-        <device.rerouting.with-taz value="false" synonymes="device.routing.with-taz" type="BOOL"/>
-
-        <!-- Use given weight files for initializing edge weights -->
-        <device.rerouting.init-with-loaded-weights value="false" type="BOOL"/>
-
-        <!-- Initialize lookup table for astar from the given distance matrix -->
-        <device.rerouting.shortest-path-file value="" type="FILE"/>
-
-        <!-- The number of parallel execution threads used for rerouting -->
-        <device.rerouting.threads value="0" type="INT"/>
-
-    </routing>
 
     <example_device>
         <!-- Assign a device to named vehicles -->

@@ -10,7 +10,7 @@
 // A traffic light logics which must be computed (only nodes/edges are given)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -169,7 +169,7 @@ NBOwnTLDef::getBestPair(EdgeVector& incoming) {
     used.push_back(*incoming.begin()); // the first will definitely be used
     // get the ones with the same priority
     int prio = getToPrio(*used.begin());
-    for (EdgeVector::iterator i = incoming.begin() + 1; i != incoming.end() && prio != getToPrio(*i); ++i) {
+    for (EdgeVector::iterator i = incoming.begin() + 1; i != incoming.end() && prio == getToPrio(*i); ++i) {
         used.push_back(*i);
     }
     //  if there only lower priorised, use these, too
@@ -182,15 +182,21 @@ NBOwnTLDef::getBestPair(EdgeVector& incoming) {
     return ret;
 }
 
-
 NBTrafficLightLogic*
 NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
+    return computeLogicAndConts(brakingTimeSeconds);
+}
+
+NBTrafficLightLogic*
+NBOwnTLDef::computeLogicAndConts(unsigned int brakingTimeSeconds, bool onlyConts) {
+    myNeedsContRelation.clear();
     const SUMOTime brakingTime = TIME2STEPS(brakingTimeSeconds);
     const SUMOTime leftTurnTime = TIME2STEPS(6); // make configurable
     // build complete lists first
     const EdgeVector& incoming = getIncomingEdges();
     EdgeVector fromEdges, toEdges;
-    std::vector<bool> isLeftMoverV, isTurnaround;
+    std::vector<bool> isTurnaround;
+    std::vector<int> fromLanes;
     unsigned int noLanesAll = 0;
     unsigned int noLinksAll = 0;
     for (unsigned int i1 = 0; i1 < incoming.size(); i1++) {
@@ -208,19 +214,11 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
                 assert(i3 < approached.size());
                 NBEdge* toEdge = approached[i3].toEdge;
                 fromEdges.push_back(fromEdge);
-                //myFromLanes.push_back(i2);
+                fromLanes.push_back((int)i2);
                 toEdges.push_back(toEdge);
                 if (toEdge != 0) {
-                    isLeftMoverV.push_back(
-                        isLeftMover(fromEdge, toEdge)
-                        ||
-                        fromEdge->isTurningDirectionAt(fromEdge->getToNode(), toEdge));
-
-                    isTurnaround.push_back(
-                        fromEdge->isTurningDirectionAt(
-                            fromEdge->getToNode(), toEdge));
+                    isTurnaround.push_back(fromEdge->isTurningDirectionAt(toEdge));
                 } else {
-                    isLeftMoverV.push_back(true);
                     isTurnaround.push_back(true);
                 }
             }
@@ -230,8 +228,10 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
     std::vector<NBNode::Crossing> crossings;
     for (std::vector<NBNode*>::iterator i = myControlledNodes.begin(); i != myControlledNodes.end(); i++) {
         const std::vector<NBNode::Crossing>& c = (*i)->getCrossings();
-        // set tl indices for crossings
-        (*i)->setCrossingTLIndices(noLinksAll);
+        if (!onlyConts) {
+            // set tl indices for crossings
+            (*i)->setCrossingTLIndices(noLinksAll);
+        }
         copy(c.begin(), c.end(), std::back_inserter(crossings));
         noLinksAll += (unsigned int)c.size();
     }
@@ -243,8 +243,16 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
     while (toProc.size() > 0) {
         std::pair<NBEdge*, NBEdge*> chosen;
         if (incoming.size() == 2) {
-            chosen = std::pair<NBEdge*, NBEdge*>(toProc[0], static_cast<NBEdge*>(0));
-            toProc.erase(toProc.begin());
+            // if there are only 2 incoming edges we need to decide whether they are a crossing or a "continuation"
+            // @node: this heuristic could be extended to also check the number of outgoing edges
+            SUMOReal angle = fabs(NBHelpers::relAngle(toProc[0]->getAngleAtNode(toProc[0]->getToNode()), toProc[1]->getAngleAtNode(toProc[1]->getToNode())));
+            // angle would be 180 for straight opposing incoming edges
+            if (angle < 135) {
+                chosen = std::pair<NBEdge*, NBEdge*>(toProc[0], static_cast<NBEdge*>(0));
+                toProc.erase(toProc.begin());
+            } else {
+                chosen = getBestPair(toProc);
+            }
         } else {
             chosen = getBestPair(toProc);
         }
@@ -282,25 +290,34 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
                     isForbidden = true;
                 }
             }
-            if (!isForbidden) {
+            if (!isForbidden && !hasCrossing(fromEdges[i1], toEdges[i1], crossings)) {
                 state[i1] = 'G';
             }
         }
         // correct behaviour for those that have to wait (mainly left-mover)
         bool haveForbiddenLeftMover = false;
+        std::vector<bool> rightTurnConflicts(pos, false);
         for (unsigned int i1 = 0; i1 < pos; ++i1) {
             if (state[i1] != 'G') {
                 continue;
             }
             for (unsigned int i2 = 0; i2 < pos; ++i2) {
-                if ((state[i2] == 'G' || state[i2] == 'g') && forbids(fromEdges[i2], toEdges[i2], fromEdges[i1], toEdges[i1], true)) {
-                    state[i1] = 'g';
-                    if (!isTurnaround[i1]) {
-                        haveForbiddenLeftMover = true;
+                if ((state[i2] == 'G' || state[i2] == 'g')) {
+                    if (fromEdges[i2]->getToNode()->rightTurnConflict(
+                                fromEdges[i1], toEdges[i1], fromLanes[i1], fromEdges[i2], toEdges[i2], fromLanes[i2])) {
+                        rightTurnConflicts[i1] = true;
+                    }
+                    if (forbids(fromEdges[i2], toEdges[i2], fromEdges[i1], toEdges[i1], true) || rightTurnConflicts[i1]) {
+                        state[i1] = 'g';
+                        myNeedsContRelation.insert(StreamPair(fromEdges[i1], toEdges[i1], fromEdges[i2], toEdges[i2]));
+                        if (!isTurnaround[i1]) {
+                            haveForbiddenLeftMover = true;
+                        }
                     }
                 }
             }
         }
+        const std::string vehicleState = state; // backup state before pedestrian modifications
         state = addPedestrianPhases(logic, greenTime, state, crossings, fromEdges, toEdges);
         // pedestrians have 'r' from here on
         for (unsigned int i1 = pos; i1 < pos + crossings.size(); ++i1) {
@@ -313,7 +330,7 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
                 if (state[i1] != 'G' && state[i1] != 'g') {
                     continue;
                 }
-                if ((state[i1] >= 'a' && state[i1] <= 'z') && haveForbiddenLeftMover) {
+                if ((vehicleState[i1] >= 'a' && vehicleState[i1] <= 'z') && haveForbiddenLeftMover && !rightTurnConflicts[i1]) {
                     continue;
                 }
                 state[i1] = 'y';
@@ -350,6 +367,8 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
         }
     }
     const SUMOTime totalDuration = logic->getDuration();
+    // this computation only makes sense for single nodes
+    myNeedsContRelationReady = (myControlledNodes.size() == 1);
     if (totalDuration > 0) {
         if (totalDuration > 3 * (greenTime + 2 * brakingTime + leftTurnTime)) {
             WRITE_WARNING("The traffic light '" + getID() + "' has a high cycle time of " + time2string(totalDuration) + ".");
@@ -360,6 +379,26 @@ NBOwnTLDef::myCompute(const NBEdgeCont&, unsigned int brakingTimeSeconds) {
         delete logic;
         return 0;
     }
+}
+
+
+bool
+NBOwnTLDef::hasCrossing(const NBEdge* from, const NBEdge* to, const std::vector<NBNode::Crossing>& crossings) {
+    assert(from != 0);
+    assert(to != 0);
+    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+        const NBNode::Crossing& cross = *it;
+        // only check connections at this crossings node
+        if (from->getToNode() == cross.node) {
+            for (EdgeVector::const_iterator it_e = cross.edges.begin(); it_e != cross.edges.end(); ++it_e) {
+                const NBEdge* edge = *it_e;
+                if (edge == from || edge == to) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 
@@ -481,5 +520,31 @@ NBOwnTLDef::replaceRemoved(NBEdge* /*removed*/, int /*removedLane*/,
                            NBEdge* /*by*/, int /*byLane*/) {}
 
 
+void
+NBOwnTLDef::initNeedsContRelation() const {
+    if (!myNeedsContRelationReady) {
+        assert(myControlledNodes.size() > 0);
+        // there are basically 2 cases for controlling multiple nodes
+        // a) a complex (unjoined) intersection. Here, internal junctions should
+        // not be needed since real nodes are used instead
+        // b) two far-away junctions which shall be coordinated
+        // This is likely to mess up the bestPair computation for each
+        // individual node and thus generate incorrect needsCont data
+        //
+        // Therefore we compute needsCont for individual nodes which doesn't
+        // matter for a) and is better for b)
+        myNeedsContRelation.clear();
+        for (std::vector<NBNode*>::const_iterator i = myControlledNodes.begin(); i != myControlledNodes.end(); i++) {
+            NBNode* n = *i;
+            NBOwnTLDef dummy("dummy", n, 0, TLTYPE_STATIC);
+            dummy.setParticipantsInformation();
+            dummy.computeLogicAndConts(0, true);
+            myNeedsContRelation.insert(dummy.myNeedsContRelation.begin(), dummy.myNeedsContRelation.end());
+            n->removeTrafficLight(&dummy);
+        }
+        myNeedsContRelationReady = true;
+    }
+
+}
 
 /****************************************************************************/

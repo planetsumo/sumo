@@ -8,7 +8,7 @@
 // Abstract in-vehicle device
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2013-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2013-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,6 +36,7 @@
 #include "MSDevice_Tripinfo.h"
 #include "MSDevice_Routing.h"
 #include "MSDevice_Person.h"
+#include "MSDevice_Container.h"
 #include "MSDevice_Emissions.h"
 #include "MSDevice_BTreceiver.h"
 #include "MSDevice_BTsender.h"

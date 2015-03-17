@@ -9,7 +9,7 @@
 // Set z-values for all network positions based on data from a height map
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2011-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2011-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -30,6 +30,12 @@
 #include <windows_config.h>
 #else
 #include <config.h>
+#endif
+
+#ifdef _MSC_VER
+typedef __int16 int16_t;
+#else
+#include <stdint.h>
 #endif
 
 #include <string>
@@ -134,6 +140,12 @@ private:
     /// @brief The RTree for spatial queries
     TRIANGLE_RTREE_QUAL myRTree;
 
+    /// @brief raster height information in m
+    int16_t* myRaster;
+
+    /// @brief dimensions of one pixel in raster data
+    Position mySizeOfPixel;
+
     /// @brief convex boundary of all known triangles;
     Boundary myBoundary;
 
@@ -145,11 +157,17 @@ private:
     /// @brief adds one triangles worth of height data
     void addTriangle(PositionVector corners);
 
-    /** @brief load height data from Arcgis-shape file and returns the number of
-     * @return The number of parsed featuers
+    /** @brief load height data from Arcgis-shape file and returns the number of parsed features
+     * @return The number of parsed features
      * @throws ProcessError
      */
     int loadShapeFile(const std::string& file);
+
+    /** @brief load height data from GeoTIFF file and returns the number of non void pixels
+     * @return The number of valid pixels
+     * @throws ProcessError
+     */
+    int loadTiff(const std::string& file);
 
     /// @brief clears loaded data
     void clearData();

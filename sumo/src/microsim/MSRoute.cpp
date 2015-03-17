@@ -10,7 +10,7 @@
 // A vehicle route
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -58,7 +58,7 @@ MSRoute::RouteDistDict MSRoute::myDistDict;
 // member method definitions
 // ===========================================================================
 MSRoute::MSRoute(const std::string& id,
-                 const MSEdgeVector& edges,
+                 const ConstMSEdgeVector& edges,
                  const bool isPermanent, const RGBColor* const c,
                  const std::vector<SUMOVehicleParameter::Stop>& stops)
     : Named(id), myEdges(edges), myAmPermanent(isPermanent),
@@ -198,7 +198,7 @@ MSRoute::insertIDs(std::vector<std::string>& into) {
 int
 MSRoute::writeEdgeIDs(OutputDevice& os, const MSEdge* const from, const MSEdge* const upTo) const {
     int numWritten = 0;
-    MSEdgeVector::const_iterator i = myEdges.begin();
+    ConstMSEdgeVector::const_iterator i = myEdges.begin();
     if (from != 0) {
         i = std::find(myEdges.begin(), myEdges.end(), from);
     }
@@ -217,8 +217,8 @@ MSRoute::writeEdgeIDs(OutputDevice& os, const MSEdge* const from, const MSEdge* 
 
 
 bool
-MSRoute::containsAnyOf(const std::vector<MSEdge*>& edgelist) const {
-    std::vector<MSEdge*>::const_iterator i = edgelist.begin();
+MSRoute::containsAnyOf(const MSEdgeVector& edgelist) const {
+    MSEdgeVector::const_iterator i = edgelist.begin();
     for (; i != edgelist.end(); ++i) {
         if (contains(*i)) {
             return true;
@@ -252,37 +252,47 @@ MSRoute::dict_saveState(OutputDevice& out) {
 
 
 SUMOReal
-MSRoute::getLength() const {
-    SUMOReal ret = 0;
-    for (MSEdgeVector::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
-        ret += (*i)->getLength();
+MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos,
+                            const MSEdge* fromEdge, const MSEdge* toEdge, bool includeInternal) const {
+    ConstMSEdgeVector::const_iterator it = std::find(myEdges.begin(), myEdges.end(), fromEdge);
+    if (it == myEdges.end() || std::find(it, myEdges.end(), toEdge) == myEdges.end()) {
+        // start or destination not contained in route
+        return std::numeric_limits<SUMOReal>::max();
     }
-    return ret;
+    ConstMSEdgeVector::const_iterator it2 = std::find(it + 1, myEdges.end(), toEdge);
+
+    if (fromEdge == toEdge) {
+        if (fromPos < toPos) {
+            return toPos - fromPos;
+        } else if (it2 == myEdges.end()) {
+            // we don't visit the edge again
+            return std::numeric_limits<SUMOReal>::max();
+        }
+    }
+    return getDistanceBetween(fromPos, toPos, it, it2, includeInternal);
 }
 
 
 SUMOReal
 MSRoute::getDistanceBetween(SUMOReal fromPos, SUMOReal toPos,
-                            const MSEdge* fromEdge, const MSEdge* toEdge, bool includeInternal) const {
+                            const MSRouteIterator& fromEdge, const MSRouteIterator& toEdge, bool includeInternal) const {
     bool isFirstIteration = true;
     SUMOReal distance = -fromPos;
-    MSEdgeVector::const_iterator it = std::find(myEdges.begin(), myEdges.end(), fromEdge);
-
-    if (it == myEdges.end() || std::find(it, myEdges.end(), toEdge) == myEdges.end()) {
-        // start or destination not contained in route
-        return std::numeric_limits<SUMOReal>::max();
-    }
+    MSRouteIterator it = fromEdge;
     if (fromEdge == toEdge) {
         // destination position is on start edge
         if (fromPos <= toPos) {
             return toPos - fromPos;
-        } else if (std::find(it + 1, myEdges.end(), toEdge) == myEdges.end()) {
-            // we don't visit the edge again
+        } else {
+            // we cannot go backwards. Something is wrong here
             return std::numeric_limits<SUMOReal>::max();
         }
+    } else if (fromEdge > toEdge) {
+        // we don't visit the edge again
+        return std::numeric_limits<SUMOReal>::max();
     }
     for (; it != end(); ++it) {
-        if ((*it) == toEdge && !isFirstIteration) {
+        if (it == toEdge && !isFirstIteration) {
             distance += toPos;
             break;
         } else {

@@ -10,7 +10,7 @@
 // Stores edges and lanes, performs moving of vehicle
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -179,7 +179,7 @@ MSEdgeControl::detectCollisions(SUMOTime timestep, const std::string& stage) {
 std::vector<std::string>
 MSEdgeControl::getEdgeNames() const {
     std::vector<std::string> ret;
-    for (std::vector<MSEdge*>::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
+    for (MSEdgeVector::const_iterator i = myEdges.begin(); i != myEdges.end(); ++i) {
         ret.push_back((*i)->getID());
     }
     return ret;

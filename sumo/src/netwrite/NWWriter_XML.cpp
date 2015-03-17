@@ -9,7 +9,7 @@
 // Exporter writing networks using XML (native input) format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -89,7 +89,7 @@ NWWriter_XML::writeNodes(const OptionsCont& oc, NBNodeCont& nc) {
 
     // write network offsets and projection to allow reconstruction of original coordinates
     if (!useGeo) {
-        NWWriter_SUMO::writeLocation(device);
+        GeoConvHelper::writeLocation(device);
     }
 
     // write nodes
@@ -133,6 +133,9 @@ NWWriter_XML::writeNodes(const OptionsCont& oc, NBNodeCont& nc) {
         }
         if (n->hasCustomShape()) {
             device.writeAttr(SUMO_ATTR_SHAPE, n->getShape());
+        }
+        if (n->getRadius() != NBNode::UNSPECIFIED_RADIUS) {
+            device.writeAttr(SUMO_ATTR_RADIUS, n->getRadius());
         }
         device.closeTag();
     }
@@ -259,6 +262,17 @@ NWWriter_XML::writeEdgesAndConnections(const OptionsCont& oc, NBNodeCont& nc, NB
             cdevice.closeTag();
         }
     }
+    // write customShapes to the connection-file
+    for (std::map<std::string, NBNode*>::const_iterator it_node = nc.begin(); it_node != nc.end(); ++it_node) {
+        NBNode::CustomShapeMap customShapes = (*it_node).second->getCustomLaneShapes();
+        for (NBNode::CustomShapeMap::const_iterator it = customShapes.begin(); it != customShapes.end(); ++it) {
+            cdevice.openTag(SUMO_TAG_CUSTOMSHAPE);
+            cdevice.writeAttr(SUMO_ATTR_ID, (*it).first);
+            cdevice.writeAttr(SUMO_ATTR_SHAPE, (*it).second);
+            cdevice.closeTag();
+        }
+    }
+
     edevice.close();
     cdevice.close();
 }

@@ -9,7 +9,7 @@
 // Abstract base class for vehicle representations
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -49,9 +49,10 @@ class MSEdge;
 class MSLane;
 class MSDevice;
 class MSPerson;
+class MSContainer;
 class SUMOSAXAttributes;
 
-typedef std::vector<const MSEdge*> MSEdgeVector;
+typedef std::vector<const MSEdge*> ConstMSEdgeVector;
 
 
 // ===========================================================================
@@ -75,6 +76,20 @@ public:
      * @return The position of the vehicle (in m from the lane's begin)
      */
     virtual SUMOReal getPositionOnLane() const = 0;
+
+    /** @brief Get the vehicle's angle
+     * @return The angle of the vehicle (in degree)
+     */
+    virtual SUMOReal getAngle() const = 0;
+
+    /** @brief Return current position (x/y, cartesian)
+     *
+     * If the vehicle is not in the net, Position::INVALID.
+     * @param[in] offset optional offset in longitudinal direction
+     * @return The current position (in cartesian coordinates)
+     * @see myLane
+     */
+    virtual Position getPosition(const SUMOReal offset = 0) const = 0;
 
     /** @brief Returns the vehicle's maximum speed
      * @return The vehicle's maximum speed
@@ -109,7 +124,7 @@ public:
     virtual const MSEdge* succEdge(unsigned int nSuccs) const = 0;
 
     /// Replaces the current route by the given edges
-    virtual bool replaceRouteEdges(MSEdgeVector& edges, bool onInit = false) = 0;
+    virtual bool replaceRouteEdges(ConstMSEdgeVector& edges, bool onInit = false) = 0;
 
     /// Replaces the current route by the given one
     virtual bool replaceRoute(const MSRoute* route, bool onInit = false, int offset = 0) = 0;
@@ -123,7 +138,13 @@ public:
      * @param[in] router The router to use
      * @see replaceRoute
      */
-    virtual void reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, bool withTaz = false) = 0;
+    virtual void reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, const bool onInit = false, const bool withTaz = false) = 0;
+
+
+    /** @brief Returns an iterator pointing to the current edge in this vehicles route
+     * @return The current route pointer
+     */
+    virtual const ConstMSEdgeVector::const_iterator& getCurrentRouteEdge() const = 0;
 
     /** @brief Returns the vehicle's acceleration
      * @return The acceleration
@@ -196,6 +217,14 @@ public:
      */
     virtual void addPerson(MSPerson* person) = 0;
 
+    /** @brief Adds a container to this vehicle
+     *
+     * May do nothing since containers are not supported by default
+     *
+     * @param[in] container The container to add
+     */
+    virtual void addContainer(MSContainer* container) = 0;
+
     /** @brief Adds a stop
      *
      * The stop is put into the sorted list.
@@ -208,6 +237,11 @@ public:
      * @return Whether the has stopped
      */
     virtual bool isStopped() const = 0;
+
+
+    /** @brief Returns whether the vehicle is at a stop and waiting for a person or container to continue
+     */
+    virtual bool isStoppedTriggered() const = 0;
 
     /// @brief Returns a device of the given type if it exists or 0
     virtual MSDevice* getDevice(const std::type_info& type) const = 0;

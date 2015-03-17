@@ -9,7 +9,7 @@
 // The router's network representation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -92,6 +92,45 @@ RONet::addEdge(ROEdge* edge) {
 }
 
 
+bool
+RONet::addDistrict(const std::string id, ROEdge* source, ROEdge* sink) {
+    if (myDistricts.count(id) > 0) {
+        WRITE_ERROR("The TAZ '" + id + "' occurs at least twice.");
+        delete source;
+        delete sink;
+        return false;
+    }
+    sink->setType(ROEdge::ET_DISTRICT);
+    addEdge(sink);
+    source->setType(ROEdge::ET_DISTRICT);
+    addEdge(source);
+    myDistricts[id] = std::make_pair(std::vector<std::string>(), std::vector<std::string>());
+    return true;
+}
+
+
+bool
+RONet::addDistrictEdge(const std::string tazID, const std::string edgeID, const bool isSource) {
+    if (myDistricts.count(tazID) == 0) {
+        WRITE_ERROR("The TAZ '" + tazID + "' is unknown.");
+        return false;
+    }
+    ROEdge* edge = getEdge(edgeID);
+    if (edge == 0) {
+        WRITE_ERROR("The edge '" + edgeID + "' for TAZ '" + tazID + "' is unknown.");
+        return false;
+    }
+    if (isSource) {
+        getEdge(tazID + "-source")->addSuccessor(edge);
+        myDistricts[tazID].first.push_back(edgeID);
+    } else {
+        edge->addSuccessor(getEdge(tazID + "-sink"));
+        myDistricts[tazID].second.push_back(edgeID);
+    }
+    return true;
+}
+
+
 void
 RONet::addNode(RONode* node) {
     if (!myNodes.add(node->getID(), node)) {
@@ -109,6 +148,17 @@ RONet::addBusStop(const std::string& id, SUMOVehicleParameter::Stop* stop) {
         delete stop;
     }
     myBusStops[id] = stop;
+}
+
+
+void
+RONet::addContainerStop(const std::string& id, SUMOVehicleParameter::Stop* stop) {
+    std::map<std::string, SUMOVehicleParameter::Stop*>::const_iterator it = myContainerStops.find(id);
+    if (it != myContainerStops.end()) {
+        WRITE_ERROR("The container stop '" + id + "' occurs at least twice.");
+        delete stop;
+    }
+    myContainerStops[id] = stop;
 }
 
 
@@ -164,7 +214,7 @@ RONet::cleanup(SUMOAbstractRouter<ROEdge, ROVehicle>* router) {
 
 
 SUMOVTypeParameter*
-RONet::getVehicleTypeSecure(const std::string& id) {
+RONet::getVehicleTypeSecure(const std::string& id, bool defaultIfMissing) {
     // check whether the type was already known
     SUMOVTypeParameter* type = myVehicleTypes.get(id);
     if (id == DEFAULT_VTYPE_ID) {
@@ -177,8 +227,8 @@ RONet::getVehicleTypeSecure(const std::string& id) {
     if (it2 != myVTypeDistDict.end()) {
         return it2->second->get();
     }
-    if (id == "") {
-        // ok, no vehicle type was given within the user input
+    if (id == "" || defaultIfMissing) {
+        // ok, no vehicle type or an unknown type was given within the user input
         //  return the default type
         myDefaultVTypeMayBeDeleted = false;
         return myVehicleTypes.get(DEFAULT_VTYPE_ID);
@@ -235,7 +285,7 @@ RONet::addVehicle(const std::string& id, ROVehicle* veh) {
         myReadRouteNo++;
         return true;
     }
-    WRITE_ERROR("The vehicle '" + id + "' occurs at least twice.");
+    WRITE_ERROR("Another vehicle with the id '" + id + "' exists.");
     return false;
 }
 
@@ -257,6 +307,11 @@ RONet::addFlow(SUMOVehicleParameter* flow, const bool randomize) {
 void
 RONet::addPerson(const SUMOTime depart, const std::string desc) {
     myPersons.insert(std::pair<const SUMOTime, const std::string>(depart, desc));
+}
+
+void
+RONet::addContainer(const SUMOTime depart, const std::string desc) {
+    myContainers.insert(std::pair<const SUMOTime, const std::string>(depart, desc));
 }
 
 
@@ -304,15 +359,14 @@ RONet::checkFlows(SUMOTime time) {
                     toRemove.push_back(i->first);
                     break;
                 }
-                if (
-                        // only call rand if all other conditions are met
-                        RandHelper::rand() < (pars->repetitionProbability * TS)) {
+                // only call rand if all other conditions are met
+                if (RandHelper::rand() < (pars->repetitionProbability * TS)) {
                     SUMOVehicleParameter* newPars = new SUMOVehicleParameter(*pars);
                     newPars->id = pars->id + "." + toString(pars->repetitionsDone);
                     newPars->depart = pars->depart;
                     pars->repetitionsDone++;
                     // try to build the vehicle
-                    SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid);
+                    SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid, true);
                     RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
                     ROVehicle* veh = new ROVehicle(*newPars, route, type, this);
                     addVehicle(newPars->id, veh);
@@ -337,7 +391,7 @@ RONet::checkFlows(SUMOTime time) {
                 newPars->depart = depart;
                 pars->repetitionsDone++;
                 // try to build the vehicle
-                SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid);
+                SUMOVTypeParameter* type = getVehicleTypeSecure(pars->vtypeid, true);
                 RORouteDef* route = getRouteDef(pars->routeid)->copy("!" + newPars->id);
                 ROVehicle* veh = new ROVehicle(*newPars, route, type, this);
                 addVehicle(newPars->id, veh);
@@ -390,18 +444,21 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
 #endif
     }
     // write all vehicles (and additional structures)
-    while (myVehicles.size() != 0 || myPersons.size() != 0) {
-        // get the next vehicle and person
+    while (myVehicles.size() != 0 || myPersons.size() != 0 || myContainers.size() != 0) {
+        // get the next vehicle, person or container
         const ROVehicle* const veh = myVehicles.getTopVehicle();
         const SUMOTime vehicleTime = veh == 0 ? SUMOTime_MAX : veh->getDepart();
         PersonMap::iterator person = myPersons.begin();
         const SUMOTime personTime = person == myPersons.end() ? SUMOTime_MAX : person->first;
+        ContainerMap::iterator container = myContainers.begin();
+        const SUMOTime containerTime = container == myContainers.end() ? SUMOTime_MAX : container->first;
         // check whether it shall not yet be computed
-        if (vehicleTime >= time && personTime >= time) {
-            lastTime = MIN2(vehicleTime, personTime);
+        if (vehicleTime >= time && personTime >= time && containerTime >= time) {
+            lastTime = MIN3(vehicleTime, personTime, containerTime);
             break;
         }
-        if (vehicleTime < personTime) {
+        SUMOTime minTime = MIN3(vehicleTime, personTime, containerTime);
+        if (vehicleTime == minTime) {
             // check whether to print the output
             if (lastTime != vehicleTime && lastTime != -1) {
                 // report writing progress
@@ -426,12 +483,20 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
                 }
             }
             myVehicles.erase(veh->getID());
-        } else {
+        }
+        if (personTime == minTime) {
             myRoutesOutput->writePreformattedTag(person->second);
             if (myRouteAlternativesOutput != 0) {
                 myRouteAlternativesOutput->writePreformattedTag(person->second);
             }
             myPersons.erase(person);
+        }
+        if (containerTime == minTime) {
+            myRoutesOutput->writePreformattedTag(container->second);
+            if (myRouteAlternativesOutput != 0) {
+                myRouteAlternativesOutput->writePreformattedTag(container->second);
+            }
+            myContainers.erase(container);
         }
     }
     return lastTime;
@@ -440,7 +505,7 @@ RONet::saveAndRemoveRoutesUntil(OptionsCont& options, SUMOAbstractRouter<ROEdge,
 
 bool
 RONet::furtherStored() {
-    return myVehicles.size() > 0 || myFlows.size() > 0 || myPersons.size() > 0;
+    return myVehicles.size() > 0 || myFlows.size() > 0 || myPersons.size() > 0 || myContainers.size() > 0;
 }
 
 

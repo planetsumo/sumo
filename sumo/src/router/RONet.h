@@ -10,7 +10,7 @@
 // The router's network representation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -96,6 +96,37 @@ public:
     virtual bool addEdge(ROEdge* edge);
 
 
+    /* @brief Adds a district and connecting edges to the network
+     *
+     * If the district is already known (another one with the same id exists),
+     *  an error is generated and given to msg-error-handler. The edges
+     *  are deleted in this case and false is returned.
+     *
+     * @param[in] id The district to add
+     * @return Whether the district was added
+     */
+    bool addDistrict(const std::string id, ROEdge* source, ROEdge* sink);
+
+
+    /* @brief Adds a district and connecting edges to the network
+     *
+     * If the district is already known (another one with the same id exists),
+     *  an error is generated and given to msg-error-handler. The edges
+     *  are deleted in this case and false is returned.
+     *
+     * @param[in] id The district to add
+     * @return Whether the district was added
+     */
+    bool addDistrictEdge(const std::string tazID, const std::string edgeID, const bool isSource);
+
+    /** @brief Retrieves all TAZ (districts) from the network
+     *
+     * @return The map of all districts
+     */
+    const std::map<std::string, std::pair<std::vector<std::string>, std::vector<std::string> > >& getDistricts() const {
+        return myDistricts;
+    }
+
     /** @brief Retrieves an edge from the network
      *
      * This is not very pretty, but necessary, though, as routes run
@@ -142,6 +173,17 @@ public:
     void addBusStop(const std::string& id, SUMOVehicleParameter::Stop* stop);
 
 
+    /* @brief Adds a read container stop to the network
+     *
+     * If the container stop is already known (another one with the same id exists),
+     *  an error is generated and given to msg-error-handler. The stop
+     *  is deleted in this case
+     *
+     * @param[in] node The stop to add
+     */
+    void addContainerStop(const std::string& id, SUMOVehicleParameter::Stop* stop);
+
+
     /** @brief Retrieves a bus stop from the network
      *
      * @param[in] name The name of the stop to retrieve
@@ -150,6 +192,20 @@ public:
     const SUMOVehicleParameter::Stop* getBusStop(const std::string& id) const {
         std::map<std::string, SUMOVehicleParameter::Stop*>::const_iterator it = myBusStops.find(id);
         if (it == myBusStops.end()) {
+            return 0;
+        }
+        return it->second;
+    }
+
+
+    /** @brief Retrieves a container stop from the network
+     *
+     * @param[in] name The name of the stop to retrieve
+     * @return The named stop if known, otherwise 0
+     */
+    const SUMOVehicleParameter::Stop* getContainerStop(const std::string& id) const {
+        std::map<std::string, SUMOVehicleParameter::Stop*>::const_iterator it = myContainerStops.find(id);
+        if (it == myContainerStops.end()) {
             return 0;
         }
         return it->second;
@@ -200,17 +256,18 @@ public:
 
     /** @brief Retrieves the named vehicle type
      *
-     * If the named vehicle type was not added to the net before, a default
-     *  vehicle type which consists of the id only is generated, added to the net
-     *  and returned.
-     *
-     * Only if the name is "", 0 is returned.
+     * If the name is "" the default type is returned.
+     * If the named vehicle type (or typeDistribution) was not added to the net before
+     * the behavior depends on the value of defaultIfMissing
+     * If defaultIfMissing is true, the default type is returned,
+     * otherwise 0 is returned
      *
      * @param[in] id The id of the vehicle type to return
+     * @param[in] default Whether to return the default type in case of an unknown type
      * @return The named vehicle type
      * @todo Check whether a const pointer may be returned
      */
-    SUMOVTypeParameter* getVehicleTypeSecure(const std::string& id);
+    SUMOVTypeParameter* getVehicleTypeSecure(const std::string& id, bool defaultIfMissing = false);
 
 
     /* @brief Adds a route definition to the network
@@ -271,6 +328,14 @@ public:
      * @param[in] desc   The xml description of the person
      */
     void addPerson(const SUMOTime depart, const std::string desc);
+
+
+    /* @brief Adds a container to the network
+     *
+     * @param[in] depart The departure time of the container
+     * @param[in] desc   The xml description of the container
+     */
+    void addContainer(const SUMOTime depart, const std::string desc);
     // @}
 
 
@@ -292,7 +357,7 @@ public:
                                       SUMOAbstractRouter<ROEdge, ROVehicle>& router, SUMOTime time);
 
 
-    /// Returns the information whether further vehicles are stored
+    /// Returns the information whether further vehicles, persons or containers are stored
     virtual bool furtherStored();
     //@}
 
@@ -363,6 +428,9 @@ protected:
     /// @brief Known bus stops
     std::map<std::string, SUMOVehicleParameter::Stop*> myBusStops;
 
+    /// @brief Known container stops
+    std::map<std::string, SUMOVehicleParameter::Stop*> myContainerStops;
+
     /// @brief Known vehicle types
     NamedObjectCont<SUMOVTypeParameter*> myVehicleTypes;
 
@@ -387,8 +455,15 @@ protected:
     typedef std::multimap<const SUMOTime, const std::string> PersonMap;
     PersonMap myPersons;
 
+    /// @brief Known containers
+    typedef std::multimap<const SUMOTime, const std::string> ContainerMap;
+    ContainerMap myContainers;
+
     /// @brief Departure times for randomized flows
     std::map<std::string, std::vector<SUMOTime> > myDepartures;
+
+    /// @brief traffic assignment zones with sources and sinks
+    std::map<std::string, std::pair<std::vector<std::string>, std::vector<std::string> > > myDistricts;
 
     /// @brief The file to write the computed routes into
     OutputDevice* myRoutesOutput;

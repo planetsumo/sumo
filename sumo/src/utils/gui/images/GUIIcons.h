@@ -9,7 +9,7 @@
 // An enumeration of icons used by the gui applications
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,6 +45,7 @@ enum GUIIcon {
     ICON_EMPTY,
     ICON_OPEN_CONFIG,
     ICON_OPEN_NET,
+    ICON_OPEN_SHAPES,
     ICON_RELOAD,
     ICON_SAVE,
     ICON_CLOSE,
@@ -63,6 +64,7 @@ enum GUIIcon {
     ICON_LOCATEJUNCTION,
     ICON_LOCATEEDGE,
     ICON_LOCATEVEHICLE,
+    ICON_LOCATEPERSON,
     ICON_LOCATETLS,
     ICON_LOCATEADD,
     ICON_LOCATEPOI,

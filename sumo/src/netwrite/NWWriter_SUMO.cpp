@@ -9,7 +9,7 @@
 // Exporter writing networks using the SUMO format
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -75,7 +75,7 @@ NWWriter_SUMO::writeNetwork(const OptionsCont& oc, NBNetBuilder& nb) {
     const NBDistrictCont& dc = nb.getDistrictCont();
 
     // write network offsets and projection
-    writeLocation(device);
+    GeoConvHelper::writeLocation(device);
 
     // write inner lanes
     bool origNames = oc.getBool("output.original-names");
@@ -253,7 +253,7 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                 writeLane(into, internalEdgeID, (*k).getInternalLaneID(), (*k).vmax,
                           successor.permissions, successor.preferred,
                           NBEdge::UNSPECIFIED_OFFSET, successor.width, (*k).shape, (*k).origID,
-                          length, (*k).internalLaneIndex, origNames);
+                          length, (*k).internalLaneIndex, origNames, &n);
                 haveVia = haveVia || (*k).haveVia;
             }
             ret = true;
@@ -275,7 +275,7 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
                     writeLane(into, (*k).viaID, (*k).viaID + "_0", (*k).viaVmax, SVCAll, SVCAll,
                               NBEdge::UNSPECIFIED_OFFSET, successor.width, (*k).viaShape, (*k).origID,
                               MAX2((*k).viaShape.length(), POSITION_EPS), // microsim needs positive length
-                              0, origNames);
+                              0, origNames, &n);
                     into.closeTag();
                 }
             }
@@ -289,7 +289,7 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
         into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_CROSSING);
         into.writeAttr(SUMO_ATTR_CROSSING_EDGES, (*it).edges);
         writeLane(into, (*it).id, (*it).id + "_0", 1, SVC_PEDESTRIAN, 0,
-                  NBEdge::UNSPECIFIED_OFFSET, (*it).width, (*it).shape, "", (*it).shape.length(), 0, false);
+                  NBEdge::UNSPECIFIED_OFFSET, (*it).width, (*it).shape, "", (*it).shape.length(), 0, false, &n);
         into.closeTag();
     }
     // write pedestrian walking areas
@@ -300,7 +300,7 @@ NWWriter_SUMO::writeInternalEdges(OutputDevice& into, const NBNode& n, bool orig
         into.writeAttr(SUMO_ATTR_ID, wa.id);
         into.writeAttr(SUMO_ATTR_FUNCTION, EDGEFUNC_WALKINGAREA);
         writeLane(into, wa.id, wa.id + "_0", 1, SVC_PEDESTRIAN, 0,
-                  NBEdge::UNSPECIFIED_OFFSET, wa.width, wa.shape, "", wa.length, 0, false);
+                  NBEdge::UNSPECIFIED_OFFSET, wa.width, wa.shape, "", wa.length, 0, false, &n);
         into.closeTag();
     }
     return ret;
@@ -361,8 +361,9 @@ NWWriter_SUMO::writeEdge(OutputDevice& into, const NBEdge& e, bool noNames, bool
 void
 NWWriter_SUMO::writeLane(OutputDevice& into, const std::string& eID, const std::string& lID,
                          SUMOReal speed, SVCPermissions permissions, SVCPermissions preferred,
-                         SUMOReal endOffset, SUMOReal width, const PositionVector& shape,
-                         const std::string& origID, SUMOReal length, unsigned int index, bool origNames) {
+                         SUMOReal endOffset, SUMOReal width, PositionVector shape,
+                         const std::string& origID, SUMOReal length, unsigned int index, bool origNames,
+                         const NBNode* node) {
     // output the lane's attributes
     into.openTag(SUMO_TAG_LANE).writeAttr(SUMO_ATTR_ID, lID);
     // the first lane of an edge will be the depart lane
@@ -386,6 +387,14 @@ NWWriter_SUMO::writeLane(OutputDevice& into, const std::string& eID, const std::
     }
     if (width != NBEdge::UNSPECIFIED_WIDTH) {
         into.writeAttr(SUMO_ATTR_WIDTH, width);
+    }
+    if (node != 0) {
+        const NBNode::CustomShapeMap& cs = node->getCustomLaneShapes();
+        NBNode::CustomShapeMap::const_iterator it = cs.find(lID);
+        if (it != cs.end()) {
+            shape = it->second;
+            into.writeAttr(SUMO_ATTR_CUSTOMSHAPE, true);
+        }
     }
     into.writeAttr(SUMO_ATTR_SHAPE, endOffset > 0 ?
                    shape.getSubpart(0, shape.length() - endOffset) : shape);
@@ -446,12 +455,22 @@ NWWriter_SUMO::writeJunction(OutputDevice& into, const NBNode& n, const bool che
             }
         }
     }
-    for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
-        intLanes += ' ' + (*it).id + "_0";
+    if (n.getType() != NODETYPE_DEAD_END && n.getType() != NODETYPE_NOJUNCTION) {
+        for (std::vector<NBNode::Crossing>::const_iterator it = crossings.begin(); it != crossings.end(); it++) {
+            intLanes += ' ' + (*it).id + "_0";
+        }
     }
     into.writeAttr(SUMO_ATTR_INTLANES, intLanes);
     // close writing
     into.writeAttr(SUMO_ATTR_SHAPE, n.getShape());
+    // write optional radius
+    if (n.getRadius() != NBNode::UNSPECIFIED_RADIUS) {
+        into.writeAttr(SUMO_ATTR_RADIUS, n.getRadius());
+    }
+    // specify whether a custom shape was used
+    if (n.hasCustomShape()) {
+        into.writeAttr(SUMO_ATTR_CUSTOMSHAPE, true);
+    }
     if (n.getType() == NODETYPE_DEAD_END) {
         into.closeTag();
     } else {
@@ -538,7 +557,7 @@ NWWriter_SUMO::writeConnection(OutputDevice& into, const NBEdge& from, const NBE
             into.writeAttr(SUMO_ATTR_DIR, toString(dir));
             // write the state information
             const LinkState linkState = from.getToNode()->getLinkState(
-                                            &from, c.toEdge, c.toLane, c.mayDefinitelyPass, c.tlID);
+                                            &from, c.toEdge, c.fromLane, c.mayDefinitelyPass, c.tlID);
             into.writeAttr(SUMO_ATTR_STATE, linkState);
         }
     }
@@ -736,25 +755,6 @@ NWWriter_SUMO::writeTrafficLights(OutputDevice& into, const NBTrafficLightLogicC
     if (logics.size() > 0) {
         into.lf();
     }
-}
-
-
-void
-NWWriter_SUMO::writeLocation(OutputDevice& into) {
-    const GeoConvHelper& geoConvHelper = GeoConvHelper::getFinal();
-    into.openTag(SUMO_TAG_LOCATION);
-    into.writeAttr(SUMO_ATTR_NET_OFFSET, geoConvHelper.getOffsetBase());
-    into.writeAttr(SUMO_ATTR_CONV_BOUNDARY, geoConvHelper.getConvBoundary());
-    if (geoConvHelper.usingGeoProjection()) {
-        into.setPrecision(GEO_OUTPUT_ACCURACY);
-    }
-    into.writeAttr(SUMO_ATTR_ORIG_BOUNDARY, geoConvHelper.getOrigBoundary());
-    if (geoConvHelper.usingGeoProjection()) {
-        into.setPrecision();
-    }
-    into.writeAttr(SUMO_ATTR_ORIG_PROJ, geoConvHelper.getProjString());
-    into.closeTag();
-    into.lf();
 }
 
 

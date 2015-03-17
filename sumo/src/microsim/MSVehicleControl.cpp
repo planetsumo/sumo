@@ -9,7 +9,7 @@
 // The class responsible for building and deletion of vehicles
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -33,6 +33,7 @@
 #include "MSVehicleControl.h"
 #include "MSVehicle.h"
 #include "MSLane.h"
+#include "MSEdge.h"
 #include "MSNet.h"
 #include "MSRouteHandler.h"
 #include <microsim/devices/MSDevice.h>
@@ -65,9 +66,15 @@ MSVehicleControl::MSVehicleControl() :
     myTotalTravelTime(0),
     myDefaultVTypeMayBeDeleted(true),
     myWaitingForPerson(0),
-    myScale(-1) {
+    myScale(-1),
+    myMaxSpeedFactor(1),
+    myWaitingForContainer(0),
+    myMinDeceleration(SUMOVTypeParameter::getDefaultDecel(SVC_IGNORING)) {
     SUMOVTypeParameter defType(DEFAULT_VTYPE_ID, SVC_IGNORING);
     myVTypeDict[DEFAULT_VTYPE_ID] = MSVehicleType::build(defType);
+    SUMOVTypeParameter defPedType(DEFAULT_PEDTYPE_ID, SVC_PEDESTRIAN);
+    defPedType.setParameter |= VTYPEPARS_VEHICLECLASS_SET;
+    myVTypeDict[DEFAULT_PEDTYPE_ID] = MSVehicleType::build(defPedType);
     OptionsCont& oc = OptionsCont::getOptions();
     if (oc.isSet("scale")) {
         myScale = oc.getFloat("scale");
@@ -142,6 +149,8 @@ MSVehicleControl::vehicleDeparted(const SUMOVehicle& v) {
     ++myRunningVehNo;
     myTotalDepartureDelay += STEPS2TIME(v.getDeparture() - STEPFLOOR(v.getParameter().depart));
     MSNet::getInstance()->informVehicleStateListener(&v, MSNet::VEHICLE_STATE_DEPARTED);
+    myMaxSpeedFactor = MAX2(myMaxSpeedFactor, v.getChosenSpeedFactor());
+    myMinDeceleration = MIN2(myMinDeceleration, v.getVehicleType().getCarFollowModel().getMaxDecel());
 }
 
 
@@ -202,20 +211,10 @@ MSVehicleControl::deleteVehicle(SUMOVehicle* veh, bool discard) {
     if (discard) {
         myDiscarded++;
     }
-    myVehicleDict.erase(veh->getID());
+    if (veh != 0) {
+        myVehicleDict.erase(veh->getID());
+    }
     delete veh;
-}
-
-
-MSVehicleControl::constVehIt
-MSVehicleControl::loadedVehBegin() const {
-    return myVehicleDict.begin();
-}
-
-
-MSVehicleControl::constVehIt
-MSVehicleControl::loadedVehEnd() const {
-    return myVehicleDict.end();
 }
 
 
@@ -226,6 +225,14 @@ MSVehicleControl::checkVType(const std::string& id) {
             delete myVTypeDict[id];
             myVTypeDict.erase(myVTypeDict.find(id));
             myDefaultVTypeMayBeDeleted = false;
+        } else {
+            return false;
+        }
+    } else if (id == DEFAULT_PEDTYPE_ID) {
+        if (myDefaultPedTypeMayBeDeleted) {
+            delete myVTypeDict[id];
+            myVTypeDict.erase(myVTypeDict.find(id));
+            myDefaultPedTypeMayBeDeleted = false;
         } else {
             return false;
         }
@@ -275,6 +282,8 @@ MSVehicleControl::getVType(const std::string& id, MTRand* rng) {
     }
     if (id == DEFAULT_VTYPE_ID) {
         myDefaultVTypeMayBeDeleted = false;
+    } else if (id == DEFAULT_PEDTYPE_ID) {
+        myDefaultPedTypeMayBeDeleted = false;
     }
     return it->second;
 }
@@ -313,13 +322,32 @@ MSVehicleControl::removeWaiting(const MSEdge* const edge, SUMOVehicle* vehicle) 
 
 
 SUMOVehicle*
-MSVehicleControl::getWaitingVehicle(const MSEdge* const edge, const std::set<std::string>& lines) {
+MSVehicleControl::getWaitingVehicle(const MSEdge* const edge, const std::set<std::string>& lines, const SUMOReal position, const std::string ridingID) {
     if (myWaiting.find(edge) != myWaiting.end()) {
+        // for every vehicle waiting vehicle at this edge
+        std::vector<SUMOVehicle*> waitingTooFarAway;
         for (std::vector<SUMOVehicle*>::const_iterator it = myWaiting[edge].begin(); it != myWaiting[edge].end(); ++it) {
             const std::string& line = (*it)->getParameter().line == "" ? (*it)->getParameter().id : (*it)->getParameter().line;
+            SUMOReal vehiclePosition = (*it)->getPositionOnLane();
+            // if the line of the vehicle is contained in the set of given lines and the vehicle is stopped and is positioned
+            // in the interval [position - t, position + t] for a tolerance t=10
             if (lines.count(line)) {
-                return (*it);
+                if ((position - 10 <= vehiclePosition) && (vehiclePosition <= position + 10)) {
+                    return (*it);
+                } else if ((*it)->isStoppedTriggered() ||
+                           (*it)->getParameter().departProcedure == DEPART_TRIGGERED) {
+                    // maybe we are within the range of the stop
+                    MSVehicle* veh = static_cast<MSVehicle*>(*it);
+                    if (veh->isStoppedInRange(position)) {
+                        return (*it);
+                    } else {
+                        waitingTooFarAway.push_back(*it);
+                    }
+                }
             }
+        }
+        for (std::vector<SUMOVehicle*>::iterator it = waitingTooFarAway.begin(); it != waitingTooFarAway.end(); ++it) {
+            WRITE_WARNING(ridingID + " at edge '" + edge->getID() + "' position " + toString(position) + " cannot use waiting vehicle '" + (*it)->getID() + "' at position " + toString((*it)->getPositionOnLane()) + " because it is too far away.");
         }
     }
     return 0;
@@ -329,7 +357,7 @@ MSVehicleControl::getWaitingVehicle(const MSEdge* const edge, const std::set<std
 void
 MSVehicleControl::abortWaiting() {
     for (VehicleDictType::iterator i = myVehicleDict.begin(); i != myVehicleDict.end(); ++i) {
-        WRITE_WARNING("Vehicle " + i->first + " aborted waiting for a person that will never come.");
+        WRITE_WARNING("Vehicle " + i->first + " aborted waiting for a person or a container that will never come.");
     }
 }
 

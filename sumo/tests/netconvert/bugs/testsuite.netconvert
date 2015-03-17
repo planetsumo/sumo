@@ -63,3 +63,17 @@ ticket1037
 ticket1177
 ticket1437
 ticket1483
+
+# remove edges from a sumo net which contains pedestrian crossings
+ticket1557
+ticket1586
+
+# a non-pedestrian network with allowAll which falls under the special cases of connection building
+ticket1586b
+
+# all lanes allow pedestrians only
+ticket1586c
+
+# computing node shape with corner detail failed
+ticket1674
+ticket1678

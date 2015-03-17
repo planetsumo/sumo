@@ -10,7 +10,7 @@
 // Main class that handles City, Activities and Trips
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2015 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -29,15 +29,21 @@
 // ===========================================================================
 // included modules
 // ===========================================================================
-#include <iostream>
-#include <list>
-#include <string>
-#include <router/RONet.h>
+#ifdef _MSC_VER
+#include <windows_config.h>
+#else
+#include <config.h>
+#endif
+
 #include "city/AGCity.h"
-#include "activities/AGTrip.h"
-#include "activities/AGActivities.h"
-#include "city/AGStreet.h"
-#include "city/AGPosition.h"
+
+
+// ===========================================================================
+// class declarations
+// ===========================================================================
+class OutputDevice;
+class RONet;
+class AGTrip;
 
 
 // ===========================================================================
@@ -105,7 +111,7 @@ protected:
      * @returns whether the trip is compatible with the time boundaries or not.
      * for this begin, end and duration of the simulation must be defined
      */
-    bool timeTripValidation(AGTrip);
+    bool timeTripValidation(const AGTrip& trip) const;
     /**
      * @brief generate the output file (trips or routes) using a trip list
      *
@@ -117,7 +123,7 @@ protected:
      *
      * @param[in] trip on which a random (normally distributed) variation will be tried
      */
-    void varDepTime(AGTrip& trip);
+    void varDepTime(AGTrip& trip) const;
 
 private:
     /// @brief invalidated assignment operator

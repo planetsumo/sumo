@@ -10,5 +10,8 @@ _deprecated_
 connections
 
 # Only keep edges with the given type
-# 
 by-type
+
+# keep edge ids from input file
+input-file
+input-file_postload

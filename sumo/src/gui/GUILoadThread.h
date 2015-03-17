@@ -10,7 +10,7 @@
 // Class describing the thread that performs the loading of a simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -67,6 +67,9 @@ public:
         the thread ends after the net has been loaded */
     FXint run();
 
+    /// reloads according to the given input options
+    void reloadConfigOrNet();
+
     /// begins the loading of the given file
     void loadConfigOrNet(const std::string& file, bool isNet);
 
@@ -91,6 +94,9 @@ protected:
 
     /// the path to load the simulation from
     std::string myFile;
+
+    /// the title string for the application
+    std::string myTitle;
 
     /** @brief The instances of message retriever encapsulations
         Needed to be deleted from the handler later on */

@@ -9,7 +9,7 @@
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2007-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2007-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -38,12 +38,12 @@
 #include <utils/common/AbstractMutex.h>
 
 #ifndef WIN32
-typedef void*		FXThreadMutex;        // handle to a mutex
+typedef void* FXThreadMutex;        // handle to a mutex
 #else
 #define NOMINMAX
 #include <windows.h>
 #undef NOMINMAX
-typedef HANDLE	 	FXThreadMutex;        // handle to a mutex
+typedef HANDLE FXThreadMutex;        // handle to a mutex
 #endif
 
 

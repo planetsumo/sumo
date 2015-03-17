@@ -9,7 +9,7 @@
 // Sets and checks options for routing
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -94,8 +94,7 @@ ROFrame::fillOptions(OptionsCont& oc, bool forDuarouter) {
         oc.addSynonyme("weight-attribute", "measure", true);
         oc.addDescription("weight-attribute", "Input", "Name of the xml attribute which gives the edge weight");
 
-        std::string plp = getenv("PHEMLIGHT_PATH") == 0 ? "./PHEMlight/" : std::string(getenv("PHEMLIGHT_PATH"));
-        oc.doRegister("phemlight-path", new Option_FileName(plp));
+        oc.doRegister("phemlight-path", new Option_FileName("./PHEMlight/"));
         oc.addDescription("phemlight-path", "Input", "Determines where to load PHEMlight definitions from.");
     }
 

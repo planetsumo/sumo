@@ -9,7 +9,7 @@
 // Sets and checks options for netimport
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -132,6 +132,9 @@ NIFrame::fillOptions() {
 
     oc.doRegister("heightmap.shapefiles", new Option_FileName());
     oc.addDescription("heightmap.shapefiles", "Input", "Read heightmap from ArcGIS shapefile");
+
+    oc.doRegister("heightmap.geotiff", new Option_FileName());
+    oc.addDescription("heightmap.geotiff", "Input", "Read heightmap from GeoTIFF");
 
     // register basic processing options
     oc.doRegister("ignore-errors", new Option_Bool(false));

@@ -9,7 +9,7 @@
 // Something on a lane to be noticed about vehicle movement
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2008-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -50,7 +50,8 @@ MSMoveReminder::MSMoveReminder(const std::string& description, MSLane* const lan
 #ifdef HAVE_INTERNAL
 void
 MSMoveReminder::updateDetector(SUMOVehicle& veh, SUMOReal entryPos, SUMOReal leavePos,
-                               SUMOTime entryTime, SUMOTime currentTime, SUMOTime leaveTime) {
+                               SUMOTime entryTime, SUMOTime currentTime, SUMOTime leaveTime,
+                               bool cleanUp) {
     // each vehicle is tracked linearly across its segment. For each vehicle,
     // the time and position of the previous call are maintained and only
     // the increments are sent to notifyMoveInternal
@@ -67,7 +68,6 @@ MSMoveReminder::updateDetector(SUMOVehicle& veh, SUMOReal entryPos, SUMOReal lea
             entryTime = previousEntryTime;
             entryPos = j->second.second;
         }
-        myLastVehicleUpdateValues.erase(j);
     }
     assert(entryTime <= currentTime);
     if ((entryTime < leaveTime) && (entryPos < leavePos)) {
@@ -84,7 +84,16 @@ MSMoveReminder::updateDetector(SUMOVehicle& veh, SUMOReal entryPos, SUMOReal lea
         // However, in the presence of calibrators, vehicles may jump a bit
         myLastVehicleUpdateValues[&veh] = std::pair<SUMOTime, SUMOReal>(leaveTime, leavePos);
     }
+    if (cleanUp) {
+        // clean up after the vehicle has left the area of this reminder
+        removeFromVehicleUpdateValues(veh);
+    }
+}
 
+
+void
+MSMoveReminder::removeFromVehicleUpdateValues(SUMOVehicle& veh) {
+    myLastVehicleUpdateValues.erase(&veh);
 }
 #endif
 /****************************************************************************/

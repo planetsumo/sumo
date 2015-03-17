@@ -3,11 +3,13 @@ binary:$TEXTTEST_HOME/toolrunner.py
 copy_test_path:routes.rou.xml
 copy_test_path:routes2.rou.xml
 copy_test_path:net.net.xml
+copy_test_path:net2.net.xml
 copy_test_path:input_additional.add.xml
 copy_test_path:three_split.net.xml
 copy_test_path:input_net.net.xml
 copy_test_path:input_trips.trips.xml
 copy_test_path:input_routes.rou.xml
+copy_test_path:input_routes2.rou.xml
 copy_test_path:input_flows.flows.xml
 copy_test_path:input_detectors.det.xml
 copy_test_path:tracefile.xml
@@ -51,6 +53,7 @@ copy_test_path:fcd.xml
 copy_test_path:data.txt
 copy_test_path:source.csv
 copy_test_path:osm.xml
+copy_test_path:osm_bbox.osm.xml
 copy_test_path:weights.src.xml
 copy_test_path:weights.dst.xml
 copy_test_path:weights.via.xml
@@ -75,6 +78,7 @@ pois:pois.add.xml
 trips:trips.trips.xml
 flows:out.flows.xml
 routes:out.rou.xml
+additional:out.add.xml
 diff_nod:diff.nod.xml
 diff_edg:diff.edg.xml
 diff_con:diff.con.xml
@@ -97,6 +101,8 @@ source_weights:weights.src.xml
 dest_weights:weights.dst.xml
 via_weights:weights.via.xml
 selection:selection.txt
+histogram:histogram.dat
+fullstats:fullstats.dat
 
 [run_dependent_text]
 output:Begin time
@@ -105,6 +111,10 @@ output:uration:
 output:<!-- generated on
 output:.* files checked{REPLACE <number> files checked}
 output:^calling.*duarouter
+output:Parsing network projection
+output:Parsing types from
+output:^Performance:{->}^Vehicles:
+output:instance at 0x[0-9A-Fa-f]+{REPLACE instance at <ADDRESS>}
 trips:<!-- generated on
 pois:<!--
 routes:<!-- generated on
@@ -114,6 +124,9 @@ errors:*** 9 leaks found
 errors:delete: freed
 errors:Traceback{->}XMLSyntaxError
 errors:Traceback{->}IOError
+errors:.*RuntimeWarning: divide{REPLACE RuntimeWarning: divide}
+errors:Ran [0-9]+ tests in [0-9]+\.[0-9]+s{REPLACE Ran <COUNT> tests in <TIME>}
+errors:No imaging
 omnet:<!-- generated on
 shawn:<!-- generated on
 net:<!--{[->]}-->

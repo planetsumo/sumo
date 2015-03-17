@@ -12,7 +12,7 @@
 // Instance responsible for building networks
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -72,25 +72,6 @@ NBNetBuilder::~NBNetBuilder() {}
 
 void
 NBNetBuilder::applyOptions(OptionsCont& oc) {
-    // we possibly have to load the edges to keep
-    if (oc.isSet("keep-edges.input-file")) {
-        std::ifstream strm(oc.getString("keep-edges.input-file").c_str());
-        if (!strm.good()) {
-            throw ProcessError("Could not load names of edges too keep from '" + oc.getString("keep-edges.input-file") + "'.");
-        }
-        std::ostringstream oss;
-        bool first = true;
-        while (strm.good()) {
-            if (!first) {
-                oss << ',';
-            }
-            std::string name;
-            strm >> name;
-            oss << name;
-            first = false;
-        }
-        oc.set("keep-edges.explicit", oss.str());
-    }
     // apply options to type control
     myTypeCont.setDefaults(oc.getInt("default.lanenumber"), oc.getFloat("default.speed"), oc.getInt("default.priority"));
     // apply options to edge control
@@ -121,7 +102,7 @@ NBNetBuilder::compute(OptionsCont& oc,
     }
     //
     if (oc.exists("keep-edges.postload") && oc.getBool("keep-edges.postload")) {
-        if (oc.isSet("keep-edges.explicit")) {
+        if (oc.isSet("keep-edges.explicit") || oc.isSet("keep-edges.input-file")) {
             PROGRESS_BEGIN_MESSAGE("Removing unwished edges");
             myEdgeCont.removeUnwishedEdges(myDistrictCont);
             PROGRESS_DONE_MESSAGE();
@@ -208,6 +189,12 @@ NBNetBuilder::compute(OptionsCont& oc,
         myEdgeCont.splitGeometry(myNodeCont);
         PROGRESS_DONE_MESSAGE();
     }
+    // turning direction
+    PROGRESS_BEGIN_MESSAGE("Computing turning directions");
+    NBTurningDirectionsComputer::computeTurnDirections(myNodeCont);
+    PROGRESS_DONE_MESSAGE();
+    // correct edge geometries to avoid overlap
+    myNodeCont.avoidOverlap();
     // guess ramps
     if ((oc.exists("ramps.guess") && oc.getBool("ramps.guess")) || (oc.exists("ramps.set") && oc.isSet("ramps.set"))) {
         PROGRESS_BEGIN_MESSAGE("Guessing and setting on-/off-ramps");
@@ -216,10 +203,11 @@ NBNetBuilder::compute(OptionsCont& oc,
         PROGRESS_DONE_MESSAGE();
     }
     // guess sidewalks
-    if (oc.getBool("sidewalks.guess")) {
+    if (oc.getBool("sidewalks.guess") || oc.getBool("sidewalks.guess.from-permissions")) {
         const int sidewalks = myEdgeCont.guessSidewalks(oc.getFloat("default.sidewalk-width"),
                               oc.getFloat("sidewalks.guess.min-speed"),
-                              oc.getFloat("sidewalks.guess.max-speed"));
+                              oc.getFloat("sidewalks.guess.max-speed"),
+                              oc.getBool("sidewalks.guess.from-permissions"));
         WRITE_MESSAGE("Guessed " + toString(sidewalks) + " sidewalks.");
     }
 
@@ -234,10 +222,6 @@ NBNetBuilder::compute(OptionsCont& oc,
     }
 
     // GEOMETRY COMPUTATION
-    //
-    PROGRESS_BEGIN_MESSAGE("Computing turning directions");
-    NBTurningDirectionsComputer::computeTurnDirections(myNodeCont);
-    PROGRESS_DONE_MESSAGE();
     //
     PROGRESS_BEGIN_MESSAGE("Sorting nodes' edges");
     NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"));
@@ -255,6 +239,9 @@ NBNetBuilder::compute(OptionsCont& oc,
     PROGRESS_BEGIN_MESSAGE("Computing edge shapes");
     myEdgeCont.computeEdgeShapes();
     PROGRESS_DONE_MESSAGE();
+    // resort edges based on the node and edge shapes
+    NBNodesEdgesSorter::sortNodesEdges(myNodeCont, oc.getBool("lefthand"), true);
+    NBTurningDirectionsComputer::computeTurnDirections(myNodeCont);
 
     // APPLY SPEED MODIFICATIONS
     if (oc.exists("speed.offset")) {
@@ -358,7 +345,7 @@ NBNetBuilder::compute(OptionsCont& oc,
     // COMPUTING RIGHT-OF-WAY AND TRAFFIC LIGHT PROGRAMS
     //
     PROGRESS_BEGIN_MESSAGE("Computing traffic light control information");
-    myTLLCont.setTLControllingInformation(myEdgeCont);
+    myTLLCont.setTLControllingInformation(myEdgeCont, myNodeCont);
     PROGRESS_DONE_MESSAGE();
     //
     PROGRESS_BEGIN_MESSAGE("Computing node logics");

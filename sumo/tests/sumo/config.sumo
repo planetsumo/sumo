@@ -1,6 +1,7 @@
 import_config_file:../config_all
 binary:$SUMO_BINARY
 copy_test_path:net.net.xml
+copy_test_path:net2.net.xml
 copy_test_path:three_split.net.xml
 copy_test_path:motorway.net.xml
 copy_test_path:input_routes.rou.xml
@@ -61,6 +62,10 @@ state2:state2.xml
 binstate:state.sbx
 calibrator_log:calibrator.log.xml
 links:linkstate.xml
+aggregated60Prefixed:pre_aggregated_60.xml
+tripinfosPrefix:pre_tripinfos.xml
+logPrefixed:pre_log.txt
+weights:weights.xml
 
 [run_dependent_text]
 output:^Performance:{->}^Vehicles:
@@ -74,11 +79,13 @@ aggregated1:<!--{[->]}-->
 aggregated15:<!--{[->]}-->
 aggregated25:<!--{[->]}-->
 aggregated60:<!--{[->]}-->
+aggregated60Prefixed:<!--{[->]}-->
 aggregated300:<!--{[->]}-->
 aggregated900:<!--{[->]}-->
 rawdump:<!--{[->]}-->
 bt:<!--{[->]}-->
 tripinfos:<!--{[->]}-->
+tripinfosPrefix:<!--{[->]}-->
 vtypeprobe:<!--{[->]}-->
 vehroutes:<!--{[->]}-->
 fcd:<!--{[->]}-->
@@ -110,9 +117,11 @@ errors:delete: freed
 errors:warning: debug_new used with placement new
 errors:Warning: State was written with sumo version
 errors:Cannot find local schema '[^']*'{REPLACE Cannot find local schema}
+errors:Could not find connection between
 output:movereminder-output{LINES 2}
 cfg:<movereminder{LINES 2}
 cfg:movereminder
+weights:<!--{[->]}-->
 
 [floating_point_tolerance]
 detector:0.0101
@@ -129,6 +138,8 @@ tripinfos:0.0101
 rawdump:0.0101
 errors:0.0101
 full:0.0101
+vtypeprobe:0.0101
+weights:0.0101
 
 [relative_float_tolerance]
 aggregated1:0.00001

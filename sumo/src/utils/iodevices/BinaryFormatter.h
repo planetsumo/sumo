@@ -9,7 +9,7 @@
 // Output formatter for plain XML output
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -279,7 +279,7 @@ bool BinaryFormatter::writeHeader(std::ostream& into, const SumoXMLTag& rootElem
             FileHelpers::writeInt(into, e->getNumSuccessors());
             for (unsigned int j = 0; j < e->getNumSuccessors(); j++) {
                 FileHelpers::writeByte(into, BF_INTEGER);
-                FileHelpers::writeInt(into, e->getSuccessor(j)->getNumericalID());
+                FileHelpers::writeInt(into, e->getSuccessors()[j]->getNumericalID());
             }
         }
         openTag(into, rootElement);

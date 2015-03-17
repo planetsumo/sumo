@@ -13,7 +13,7 @@
 // The simulated network and simulation perfomer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -50,6 +50,7 @@
 #include <utils/geom/Position.h>
 #include <utils/common/SUMOTime.h>
 #include <microsim/trigger/MSBusStop.h>
+#include <microsim/trigger/MSContainerStop.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/NamedObjectCont.h>
 #include <utils/vehicle/SUMOAbstractRouter.h>
@@ -70,6 +71,7 @@ class MSJunctionControl;
 class MSInsertionControl;
 class SUMORouteLoaderControl;
 class MSPersonControl;
+class MSContainerControl;
 class MSVehicle;
 class MSRoute;
 class MSLane;
@@ -80,6 +82,7 @@ class BinaryInputDevice;
 class MSEdgeWeightsStorage;
 class SUMOVehicle;
 
+typedef std::vector<MSEdge*> MSEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -153,11 +156,13 @@ public:
      * @param[in] tlc The control of traffic lights which belong to this network
      * @param[in] stateDumpTimes List of time steps at which state shall be written
      * @param[in] stateDumpFiles Filenames for states
+     * @param[in] hasInternalLinks Whether the network actually contains internal links
      * @todo Try to move all this to the constructor?
      */
     void closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
                        SUMORouteLoaderControl* routeLoaders, MSTLLogicControl* tlc,
-                       std::vector<SUMOTime> stateDumpTimes, std::vector<std::string> stateDumpFiles);
+                       std::vector<SUMOTime> stateDumpTimes, std::vector<std::string> stateDumpFiles,
+                       bool hasInternalLinks);
 
 
     /** @brief Returns whether the network has vehicle class restrictions
@@ -295,6 +300,16 @@ public:
      */
     virtual MSPersonControl& getPersonControl();
 
+    /** @brief Returns the container control
+     *
+     * If the container control does not exist, yet, it is created.
+     *
+     * @return The container control
+     * @see MSContainerControl
+     * @see myContainerControl
+     */
+    virtual MSContainerControl& getContainerControl();
+
 
     /** @brief Returns the edge control
      * @return The edge control
@@ -429,6 +444,37 @@ public:
     /// @}
 
 
+    /// @name Insertion and retrieval of container stops
+    /// @{
+
+    /** @brief Adds a container stop
+     *
+     * If another container stop with the same id exists, false is returned.
+     *  Otherwise, the container stop is added to the internal container stop
+     *  container "myContainerStopDict".
+     *
+     * This control gets responsible for deletion of the added container stop.
+     *
+     * @param[in] containerStop The container stop to add
+     * @return Whether the container stop could be added
+     */
+    bool addContainerStop(MSContainerStop* containerStop);
+
+    /** @brief Returns the named container stop
+     * @param[in] id The id of the container stop to return.
+     * @return The named container stop, or 0 if no such stop exists
+     */
+    MSContainerStop* getContainerStop(const std::string& id) const;
+
+    /** @brief Returns the container stop close to the given position
+     * @param[in] lane the lane of the container stop to return.
+     * @param[in] pos the position of the container stop to return.
+     * @return The container stop id on the location, or "" if no such stop exists
+     */
+    std::string getContainerStopID(const MSLane* lane, const SUMOReal pos) const;
+    /// @}
+
+
 
     /// @name Notification about vehicle state changes
     /// @{
@@ -524,10 +570,10 @@ public:
      * @param[in] prohibited The vector of forbidden edges (optional)
      */
     SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouterTT(
-        const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
+        const MSEdgeVector& prohibited = MSEdgeVector()) const;
     SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouterEffort(
-        const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
-    MSPedestrianRouterDijkstra& getPedestrianRouter(const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
+        const MSEdgeVector& prohibited = MSEdgeVector()) const;
+    MSPedestrianRouterDijkstra& getPedestrianRouter(const MSEdgeVector& prohibited = MSEdgeVector()) const;
 
 
     /** @brief Returns an RTree that contains lane IDs
@@ -535,6 +581,10 @@ public:
      */
     const NamedRTree& getLanesRTree() const;
 
+    /// @brief return whether the network contains internal links
+    bool hasInternalLinks() const {
+        return myHasInternalLinks;
+    }
 
 protected:
     /// @brief Unique instance of MSNet
@@ -555,6 +605,8 @@ protected:
     MSVehicleControl* myVehicleControl;
     /// @brief Controls person building and deletion; @see MSPersonControl
     MSPersonControl* myPersonControl;
+    /// @brief Controls container building and deletion; @see MSContainerControl
+    MSContainerControl* myContainerControl;
     /// @brief Controls edges, performs vehicle movement; @see MSEdgeControl
     MSEdgeControl* myEdges;
     /// @brief Controls junctions, realizes right-of-way rules; @see MSJunctionControl
@@ -614,11 +666,17 @@ protected:
     /// @brief Whether the network contains edges which not all vehicles may pass
     bool myHaveRestrictions;
 
+    /// @brief Whether the network contains internal links/lanes/edges
+    bool myHasInternalLinks;
+
     /// @brief Storage for maximum vehicle number
     int myTooManyVehicles;
 
     /// @brief Dictionary of bus stops
     NamedObjectCont<MSBusStop*> myBusStopDict;
+
+    /// @brief Dictionary of container stops
+    NamedObjectCont<MSContainerStop*> myContainerStopDict;
 
     /// @brief Container for vehicle state listener
     std::vector<VehicleStateListener*> myVehicleStateListeners;

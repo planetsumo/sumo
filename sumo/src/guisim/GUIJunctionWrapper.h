@@ -9,7 +9,7 @@
 // Holds geometrical values for a junction
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -162,6 +162,9 @@ private:
 
     /// @brief whether this wraps an instance of MSInternalJunction
     bool myIsInner;
+
+    /// @brief whether this junction has only waterways as incoming and outgoing edges
+    bool myAmWaterway;
 
 #ifdef HAVE_OSG
     osg::Geometry* myGeom;

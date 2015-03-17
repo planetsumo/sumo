@@ -8,7 +8,7 @@
 // car-following model by B. Kerner
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -19,7 +19,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFModel_Kerner_h
-#define	MSCFModel_Kerner_h
+#define MSCFModel_Kerner_h
 
 // ===========================================================================
 // included modules
@@ -138,5 +138,5 @@ private:
 
 };
 
-#endif	/* MSCFModel_Kerner_H */
+#endif /* MSCFModel_Kerner_H */
 

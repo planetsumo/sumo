@@ -8,7 +8,7 @@
 
 
 SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+Copyright (C) 2008-2015 DLR (http://www.dlr.de/) and contributors
 
 This file is part of SUMO.
 SUMO is free software; you can redistribute it and/or modify
@@ -17,9 +17,13 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 
-import os, sys, smtplib, re
+import os
+import sys
+import smtplib
+import re
 from os.path import basename, join, commonprefix
 from datetime import datetime
+
 
 def printStatus(makeLog, makeAllLog, textTestTmp, smtpServer, out):
     failed = ""

@@ -11,7 +11,7 @@
 // Helper methods for parsing vehicle attributes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2008-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2008-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -189,7 +189,7 @@ SUMOVehicleParserHelper::parseFlowAttributes(const SUMOSAXAttributes& attrs, con
 
 SUMOVehicleParameter*
 SUMOVehicleParserHelper::parseVehicleAttributes(const SUMOSAXAttributes& attrs,
-        bool optionalID, bool skipDepart) {
+        const bool optionalID, const bool skipDepart, const bool isPerson) {
     bool ok = true;
     std::string id, errorMsg;
     if (optionalID) {
@@ -199,6 +199,9 @@ SUMOVehicleParserHelper::parseVehicleAttributes(const SUMOSAXAttributes& attrs,
     }
     SUMOVehicleParameter* ret = new SUMOVehicleParameter();
     ret->id = id;
+    if (isPerson) {
+        ret->vtypeid = DEFAULT_PEDTYPE_ID;
+    }
     try {
         parseCommonAttributes(attrs, ret, "vehicle");
         if (!skipDepart) {
@@ -236,9 +239,12 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
         ret->line = attrs.get<std::string>(SUMO_ATTR_LINE, ret->id.c_str(), ok);
     }
     // parse zone information
-    if (attrs.hasAttribute(SUMO_ATTR_FROM_TAZ) && attrs.hasAttribute(SUMO_ATTR_TO_TAZ)) {
-        ret->setParameter |= VEHPARS_TAZ_SET;
+    if (attrs.hasAttribute(SUMO_ATTR_FROM_TAZ)) {
+        ret->setParameter |= VEHPARS_FROM_TAZ_SET;
         ret->fromTaz = attrs.get<std::string>(SUMO_ATTR_FROM_TAZ, ret->id.c_str(), ok);
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_TO_TAZ)) {
+        ret->setParameter |= VEHPARS_TO_TAZ_SET;
         ret->toTaz = attrs.get<std::string>(SUMO_ATTR_TO_TAZ, ret->id.c_str(), ok);
     }
     // parse reroute information
@@ -304,15 +310,15 @@ SUMOVehicleParserHelper::parseCommonAttributes(const SUMOSAXAttributes& attrs,
     } else {
         ret->color = RGBColor::DEFAULT_COLOR;
     }
-    // parse person capacity
-    if (attrs.hasAttribute(SUMO_ATTR_PERSON_CAPACITY)) {
-        ret->setParameter |= VEHPARS_PERSON_CAPACITY_SET;
-        ret->personCapacity = attrs.get<int>(SUMO_ATTR_PERSON_CAPACITY, ret->id.c_str(), ok);
-    }
     // parse person number
     if (attrs.hasAttribute(SUMO_ATTR_PERSON_NUMBER)) {
         ret->setParameter |= VEHPARS_PERSON_NUMBER_SET;
         ret->personNumber = attrs.get<int>(SUMO_ATTR_PERSON_NUMBER, ret->id.c_str(), ok);
+    }
+    // parse container number
+    if (attrs.hasAttribute(SUMO_ATTR_CONTAINER_NUMBER)) {
+        ret->setParameter |= VEHPARS_CONTAINER_NUMBER_SET;
+        ret->containerNumber = attrs.get<int>(SUMO_ATTR_CONTAINER_NUMBER, ret->id.c_str(), ok);
     }
 }
 
@@ -326,6 +332,9 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
         vClass = parseVehicleClass(attrs, id);
     }
     SUMOVTypeParameter* vtype = new SUMOVTypeParameter(id, vClass);
+    if (attrs.hasAttribute(SUMO_ATTR_VCLASS)) {
+        vtype->setParameter |= VTYPEPARS_VEHICLECLASS_SET;
+    }
     if (attrs.hasAttribute(SUMO_ATTR_LENGTH)) {
         vtype->length = attrs.get<SUMOReal>(SUMO_ATTR_LENGTH, vtype->id.c_str(), ok);
         vtype->setParameter |= VTYPEPARS_LENGTH_SET;
@@ -357,9 +366,6 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
             vtype->impatience = attrs.get<SUMOReal>(SUMO_ATTR_IMPATIENCE, vtype->id.c_str(), ok);
         }
         vtype->setParameter |= VTYPEPARS_IMPATIENCE_SET;
-    }
-    if (attrs.hasAttribute(SUMO_ATTR_VCLASS)) {
-        vtype->setParameter |= VTYPEPARS_VEHICLECLASS_SET;
     }
     if (attrs.hasAttribute(SUMO_ATTR_WIDTH)) {
         vtype->width = attrs.get<SUMOReal>(SUMO_ATTR_WIDTH, vtype->id.c_str(), ok);
@@ -403,6 +409,22 @@ SUMOVehicleParserHelper::beginVTypeParsing(const SUMOSAXAttributes& attrs, const
             WRITE_ERROR("Unknown lane change model '" + lcmS + "' when parsing vtype '" + vtype->id + "'");
             throw ProcessError();
         }
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_PERSON_CAPACITY)) {
+        vtype->personCapacity = attrs.get<int>(SUMO_ATTR_PERSON_CAPACITY, vtype->id.c_str(), ok);
+        vtype->setParameter |= VTYPEPARS_PERSON_CAPACITY;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_CONTAINER_CAPACITY)) {
+        vtype->containerCapacity = attrs.get<int>(SUMO_ATTR_CONTAINER_CAPACITY, vtype->id.c_str(), ok);
+        vtype->setParameter |= VTYPEPARS_CONTAINER_CAPACITY;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_BOARDING_DURATION)) {
+        vtype->boardingDuration = attrs.getSUMOTimeReporting(SUMO_ATTR_BOARDING_DURATION, vtype->id.c_str(), ok);
+        vtype->setParameter |= VTYPEPARS_BOARDING_DURATION;
+    }
+    if (attrs.hasAttribute(SUMO_ATTR_LOADING_DURATION)) {
+        vtype->loadingDuration = attrs.getSUMOTimeReporting(SUMO_ATTR_LOADING_DURATION, vtype->id.c_str(), ok);
+        vtype->setParameter |= VTYPEPARS_LOADING_DURATION;
     }
     try {
         parseVTypeEmbedded(*vtype, SUMO_TAG_CF_KRAUSS, attrs, true);
@@ -468,6 +490,7 @@ SUMOVehicleParserHelper::getAllowedCFModelAttrs() {
         allowedCFModelAttrs[SUMO_TAG_CF_KRAUSS] = krausParams;
         allowedCFModelAttrs[SUMO_TAG_CF_KRAUSS_ORIG1] = krausParams;
         allowedCFModelAttrs[SUMO_TAG_CF_KRAUSS_PLUS_SLOPE] = krausParams;
+        allowedCFModelAttrs[SUMO_TAG_CF_KRAUSS_ACCEL_BOUND] = krausParams;
 
         std::set<SumoXMLAttr> smartSKParams;
         smartSKParams.insert(SUMO_ATTR_ACCEL);

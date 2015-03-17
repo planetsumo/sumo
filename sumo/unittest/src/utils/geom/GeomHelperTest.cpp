@@ -9,7 +9,7 @@
 // Tests the class GeomHelper
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -91,7 +91,7 @@ TEST(GeomHelper, test_method_closestDistancePointLine_basic) {
     Position start(0,0);
     Position end(2,0);
     Position closestPoint;
-    SUMOReal result = GeomHelper::closestDistancePointLine(point, start, end, closestPoint);
+    SUMOReal result = GeomHelper::closestDistancePointLine2D(point, start, end, closestPoint);
 	EXPECT_FLOAT_EQ(expected.x(), closestPoint.x());
 	EXPECT_FLOAT_EQ(expected.y(), closestPoint.y());
 	EXPECT_FLOAT_EQ(expected.z(), closestPoint.z());
@@ -104,7 +104,7 @@ TEST(GeomHelper, test_method_closestDistancePointLine_onLine) {
     Position start(0,0);
     Position end(2,0);
     Position closestPoint;
-    SUMOReal result = GeomHelper::closestDistancePointLine(point, start, end, closestPoint);
+    SUMOReal result = GeomHelper::closestDistancePointLine2D(point, start, end, closestPoint);
 	EXPECT_FLOAT_EQ(expected.x(), closestPoint.x());
 	EXPECT_FLOAT_EQ(expected.y(), closestPoint.y());
 	EXPECT_FLOAT_EQ(expected.z(), closestPoint.z());
@@ -117,7 +117,7 @@ TEST(GeomHelper, test_method_closestDistancePointLine_outside_after) {
     Position start(0,0);
     Position end(2,0);
     Position closestPoint;
-    SUMOReal result = GeomHelper::closestDistancePointLine(point, start, end, closestPoint);
+    SUMOReal result = GeomHelper::closestDistancePointLine2D(point, start, end, closestPoint);
 	EXPECT_FLOAT_EQ(expected.x(), closestPoint.x());
 	EXPECT_FLOAT_EQ(expected.y(), closestPoint.y());
 	EXPECT_FLOAT_EQ(expected.z(), closestPoint.z());
@@ -130,7 +130,7 @@ TEST(GeomHelper, test_method_closestDistancePointLine_outside_before) {
     Position start(0,0);
     Position end(2,0);
     Position closestPoint;
-    SUMOReal result = GeomHelper::closestDistancePointLine(point, start, end, closestPoint);
+    SUMOReal result = GeomHelper::closestDistancePointLine2D(point, start, end, closestPoint);
 	EXPECT_FLOAT_EQ(expected.x(), closestPoint.x());
 	EXPECT_FLOAT_EQ(expected.y(), closestPoint.y());
 	EXPECT_FLOAT_EQ(expected.z(), closestPoint.z());

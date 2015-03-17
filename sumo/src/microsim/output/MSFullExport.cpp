@@ -10,7 +10,7 @@
 // Dumping a hugh List of Parameters available in the Simulation
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -33,6 +33,7 @@
 
 #include <utils/iodevices/OutputDevice.h>
 #include <utils/emissions/PollutantsInterface.h>
+#include <utils/emissions/HelpersHarmonoise.h>
 #include <microsim/MSEdge.h>
 #include <microsim/MSEdgeControl.h>
 #include <microsim/MSNet.h>
@@ -65,21 +66,24 @@ void
 MSFullExport::writeVehicles(OutputDevice& of) {
     of.openTag("vehicles");
     MSVehicleControl& vc = MSNet::getInstance()->getVehicleControl();
-    MSVehicleControl::constVehIt it = vc.loadedVehBegin();
-    MSVehicleControl::constVehIt end = vc.loadedVehEnd();
-    for (; it != end; ++it) {
-        const MSVehicle* veh = static_cast<const MSVehicle*>((*it).second);
+    for (MSVehicleControl::constVehIt it = vc.loadedVehBegin(); it != vc.loadedVehEnd(); ++it) {
+        const SUMOVehicle* veh = it->second;
+        const MSVehicle* microVeh = dynamic_cast<const MSVehicle*>(veh);
         if (veh->isOnRoad()) {
             std::string fclass = veh->getVehicleType().getID();
             fclass = fclass.substr(0, fclass.find_first_of("@"));
-            Position pos = veh->getLane()->getShape().positionAtOffset(veh->getPositionOnLane());
+            PollutantsInterface::Emissions emiss = PollutantsInterface::computeAll(veh->getVehicleType().getEmissionClass(), veh->getSpeed(), veh->getAcceleration(), veh->getSlope());
             of.openTag("vehicle").writeAttr("id", veh->getID()).writeAttr("eclass", PollutantsInterface::getName(veh->getVehicleType().getEmissionClass()));
-            of.writeAttr("CO2", veh->getCO2Emissions()).writeAttr("CO", veh->getCOEmissions()).writeAttr("HC", veh->getHCEmissions());
-            of.writeAttr("NOx", veh->getNOxEmissions()).writeAttr("PMx", veh->getPMxEmissions()).writeAttr("noise", veh->getHarmonoise_NoiseEmissions());
-            of.writeAttr("route", veh->getRoute().getID()).writeAttr("type", fclass).writeAttr("waiting", veh->getWaitingSeconds());
-            of.writeAttr("lane", veh->getLane()->getID()).writeAttr("pos_lane", veh->getPositionOnLane()).writeAttr("speed", veh->getSpeed());
-            of.writeAttr("angle", veh->getAngle()).writeAttr("x", pos.x()).writeAttr("y", pos.y());
-            // !!! fuel is missing here
+            of.writeAttr("CO2", emiss.CO2).writeAttr("CO", emiss.CO).writeAttr("HC", emiss.HC).writeAttr("NOx", emiss.NOx);
+            of.writeAttr("PMx", emiss.PMx).writeAttr("fuel", emiss.fuel);
+            of.writeAttr("noise", HelpersHarmonoise::computeNoise(veh->getVehicleType().getEmissionClass(), veh->getSpeed(), veh->getAcceleration()));
+            of.writeAttr("route", veh->getRoute().getID()).writeAttr("type", fclass);
+            if (microVeh != 0) {
+                of.writeAttr("waiting", microVeh->getWaitingSeconds());
+                of.writeAttr("lane", microVeh->getLane()->getID());
+            }
+            of.writeAttr("pos", veh->getPositionOnLane()).writeAttr("speed", veh->getSpeed());
+            of.writeAttr("angle", veh->getAngle()).writeAttr("x", veh->getPosition().x()).writeAttr("y", veh->getPosition().y());
             of.closeTag();
         }
     }
@@ -90,8 +94,8 @@ void
 MSFullExport::writeEdge(OutputDevice& of) {
     of.openTag("edges");
     MSEdgeControl& ec = MSNet::getInstance()->getEdgeControl();
-    const std::vector<MSEdge*>& edges = ec.getEdges();
-    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    const MSEdgeVector& edges = ec.getEdges();
+    for (MSEdgeVector::const_iterator e = edges.begin(); e != edges.end(); ++e) {
         MSEdge& edge = **e;
         of.openTag("edge").writeAttr("id", edge.getID()).writeAttr("traveltime", edge.getCurrentTravelTime());
         const std::vector<MSLane*>& lanes = edge.getLanes();

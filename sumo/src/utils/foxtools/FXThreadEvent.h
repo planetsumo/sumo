@@ -9,7 +9,7 @@
 //
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -58,8 +58,8 @@ namespace FXEX {
  *
  *    // message IDs
  *    enum {
- *  	ID_THREAD_EVENT = FXWhatEver::ID_LAST,
- *  	ID_LAST };
+ *    ID_THREAD_EVENT = FXWhatEver::ID_LAST,
+ *    ID_LAST };
  *
  *    // message handler
  *    long onThreadEvent(FXObject*, FXSelector, void*);

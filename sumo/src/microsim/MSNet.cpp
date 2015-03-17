@@ -15,7 +15,7 @@
 // The simulated network and simulation perfomer
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -47,6 +47,7 @@
 #include <utils/common/UtilExceptions.h>
 #include "MSNet.h"
 #include "MSPersonControl.h"
+#include "MSContainerControl.h"
 #include "MSEdgeControl.h"
 #include "MSJunctionControl.h"
 #include "MSInsertionControl.h"
@@ -87,9 +88,11 @@
 #include <utils/options/OptionsCont.h>
 #include <utils/vehicle/PedestrianRouter.h>
 #include "MSGlobals.h"
-#include "MSPModel.h"
+#include <microsim/pedestrians/MSPModel.h>
+#include <microsim/MSCModel_NonInteracting.h>
 #include <utils/geom/GeoConvHelper.h>
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
+#include "MSContainer.h"
 #include "MSEdgeWeightsStorage.h"
 #include "MSStateHandler.h"
 
@@ -166,6 +169,7 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
              ShapeContainer* shapeCont):
     myVehiclesMoved(0),
     myHaveRestrictions(false),
+    myHasInternalLinks(false),
     myRouterTTInitialized(false),
     myRouterTTDijkstra(0),
     myRouterTTAStar(0),
@@ -187,6 +191,7 @@ MSNet::MSNet(MSVehicleControl* vc, MSEventControl* beginOfTimestepEvents,
     myRouteLoaders = 0;
     myLogics = 0;
     myPersonControl = 0;
+    myContainerControl = 0;
     myEdgeWeights = 0;
     myShapeContainer = shapeCont == 0 ? new ShapeContainer() : shapeCont;
 
@@ -211,7 +216,8 @@ MSNet::closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
                      SUMORouteLoaderControl* routeLoaders,
                      MSTLLogicControl* tlc,
                      std::vector<SUMOTime> stateDumpTimes,
-                     std::vector<std::string> stateDumpFiles) {
+                     std::vector<std::string> stateDumpFiles,
+                     bool hasInternalLinks) {
     myEdges = edges;
     myJunctions = junctions;
     myRouteLoaders = routeLoaders;
@@ -227,6 +233,7 @@ MSNet::closeBuilding(MSEdgeControl* edges, MSJunctionControl* junctions,
     if (myLogExecutionTime) {
         mySimBeginMillis = SysUtils::getCurrentMillis();
     }
+    myHasInternalLinks = hasInternalLinks;
 }
 
 
@@ -249,6 +256,9 @@ MSNet::~MSNet() {
     delete myVehicleControl;
     if (myPersonControl != 0) {
         delete myPersonControl;
+    }
+    if (myContainerControl != 0) {
+        delete myContainerControl;
     }
     delete myShapeContainer;
     delete myEdgeWeights;
@@ -437,7 +447,10 @@ MSNet::simulationStep() {
         myPersonControl->checkWaitingPersons(this, myStep);
     }
     // insert vehicles
-    myInserter->determineCandidates(myStep);
+    myInserter->determineCandidates(myStep);    // containers
+    if (myContainerControl != 0) {
+        myContainerControl->checkWaitingContainers(this, myStep);
+    }
     myInsertionEvents->execute(myStep);
 #ifdef HAVE_FOX
     MSDevice_Routing::waitForAll();
@@ -484,9 +497,13 @@ MSNet::simulationState(SUMOTime stopTime) const {
         if (myInsertionEvents->isEmpty()
                 && (myVehicleControl->getActiveVehicleCount() == 0)
                 && (myInserter->getPendingFlowCount() == 0)
-                && (myPersonControl == 0 || !myPersonControl->hasNonWaiting())) {
+                && (myPersonControl == 0 || !myPersonControl->hasNonWaiting())
+                && (myContainerControl == 0 || !myContainerControl->hasNonWaiting())) {
             if (myPersonControl) {
                 myPersonControl->abortWaiting();
+            }
+            if (myContainerControl) {
+                myContainerControl->abortWaiting();
             }
             myVehicleControl->abortWaiting();
             return SIMSTATE_NO_FURTHER_VEHICLES;
@@ -531,6 +548,7 @@ MSNet::clearAll() {
     MSTrigger::cleanup();
     MSCalibrator::cleanup();
     MSPModel::cleanup();
+    MSCModel_NonInteracting::cleanup();
     PedestrianEdge<MSEdge, MSLane, MSJunction>::cleanup();
 }
 
@@ -539,10 +557,12 @@ void
 MSNet::writeOutput() {
     // update detector values
     myDetectorControl->updateDetectors(myStep);
+    const OptionsCont& oc = OptionsCont::getOptions();
 
     // check state dumps
-    if (OptionsCont::getOptions().isSet("netstate-dump")) {
-        MSXMLRawOut::write(OutputDevice::getDeviceByOption("netstate-dump"), *myEdges, myStep);
+    if (oc.isSet("netstate-dump")) {
+        MSXMLRawOut::write(OutputDevice::getDeviceByOption("netstate-dump"), *myEdges, myStep,
+                           oc.getInt("netstate-dump.precision"));
     }
 
     // check fcd dumps
@@ -613,8 +633,8 @@ MSNet::writeOutput() {
         OutputDevice& od = OutputDevice::getDeviceByOption("link-output");
         od.openTag("timestep");
         od.writeAttr(SUMO_ATTR_ID, STEPS2TIME(myStep));
-        const std::vector<MSEdge*>& edges = myEdges->getEdges();
-        for (std::vector<MSEdge*>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
+        const MSEdgeVector& edges = myEdges->getEdges();
+        for (MSEdgeVector::const_iterator i = edges.begin(); i != edges.end(); ++i) {
             const std::vector<MSLane*>& lanes = (*i)->getLanes();
             for (std::vector<MSLane*>::const_iterator j = lanes.begin(); j != lanes.end(); ++j) {
                 const std::vector<MSLink*>& links = (*j)->getLinkCont();
@@ -640,6 +660,14 @@ MSNet::getPersonControl() {
         myPersonControl = new MSPersonControl();
     }
     return *myPersonControl;
+}
+
+MSContainerControl&
+MSNet::getContainerControl() {
+    if (myContainerControl == 0) {
+        myContainerControl = new MSContainerControl();
+    }
+    return *myContainerControl;
 }
 
 
@@ -734,9 +762,32 @@ MSNet::getBusStopID(const MSLane* lane, const SUMOReal pos) const {
     return "";
 }
 
+// ------ Insertion and retrieval of container stops ------
+bool
+MSNet::addContainerStop(MSContainerStop* containerStop) {
+    return myContainerStopDict.add(containerStop->getID(), containerStop);
+}
+
+MSContainerStop*
+MSNet::getContainerStop(const std::string& id) const {
+    return myContainerStopDict.get(id);
+}
+
+std::string
+MSNet::getContainerStopID(const MSLane* lane, const SUMOReal pos) const {
+    const std::map<std::string, MSContainerStop*>& vals = myContainerStopDict.getMyMap();
+    for (std::map<std::string, MSContainerStop*>::const_iterator it = vals.begin(); it != vals.end(); ++it) {
+        MSContainerStop* stop = it->second;
+        if (&stop->getLane() == lane && fabs(stop->getEndLanePosition() - pos) < POSITION_EPS) {
+            return stop->getID();
+        }
+    }
+    return "";
+}
+
 
 SUMOAbstractRouter<MSEdge, SUMOVehicle>&
-MSNet::getRouterTT(const std::vector<MSEdge*>& prohibited) const {
+MSNet::getRouterTT(const MSEdgeVector& prohibited) const {
     if (!myRouterTTInitialized) {
         myRouterTTInitialized = true;
         const std::string routingAlgorithm = OptionsCont::getOptions().getString("routing-algorithm");
@@ -763,7 +814,7 @@ MSNet::getRouterTT(const std::vector<MSEdge*>& prohibited) const {
 
 
 SUMOAbstractRouter<MSEdge, SUMOVehicle>&
-MSNet::getRouterEffort(const std::vector<MSEdge*>& prohibited) const {
+MSNet::getRouterEffort(const MSEdgeVector& prohibited) const {
     if (myRouterEffort == 0) {
         myRouterEffort = new DijkstraRouterEffort<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >(
             MSEdge::numericalDictSize(), true, &MSNet::getEffort, &MSNet::getTravelTime);
@@ -774,7 +825,7 @@ MSNet::getRouterEffort(const std::vector<MSEdge*>& prohibited) const {
 
 
 MSNet::MSPedestrianRouterDijkstra&
-MSNet::getPedestrianRouter(const std::vector<MSEdge*>& prohibited) const {
+MSNet::getPedestrianRouter(const MSEdgeVector& prohibited) const {
     if (myPedestrianRouter == 0) {
         myPedestrianRouter = new MSPedestrianRouterDijkstra();
     }

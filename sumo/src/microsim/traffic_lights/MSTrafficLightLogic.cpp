@@ -9,7 +9,7 @@
 // The parent class for traffic light logics
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -45,6 +45,10 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
+// ===========================================================================
+// static value definitions
+// ===========================================================================
+const MSTrafficLightLogic::LaneVector MSTrafficLightLogic::myEmptyLaneVector;
 
 // ===========================================================================
 // member method definitions
@@ -69,9 +73,9 @@ MSTrafficLightLogic::SwitchCommand::execute(SUMOTime t) {
         return 0;
     }
     //
-    bool isActive = myTLControl.isActive(myTLLogic);
+    const bool isActive = myTLControl.isActive(myTLLogic);
     size_t step1 = myTLLogic->getCurrentPhaseIndex();
-    SUMOTime next = myTLLogic->trySwitch(isActive);
+    SUMOTime next = myTLLogic->trySwitch();
     size_t step2 = myTLLogic->getCurrentPhaseIndex();
     if (step1 != step2) {
         if (isActive) {
@@ -116,13 +120,20 @@ void
 MSTrafficLightLogic::init(NLDetectorBuilder&) {
     const Phases& phases = getPhases();
     if (phases.size() > 1) {
+        bool haveWarnedAboutUnusedStates = false;
         // warn about transistions from green to red without intermediate yellow
         for (int i = 0; i < (int)phases.size(); ++i) {
             const int iNext = (i + 1) % phases.size();
             const std::string& state1 = phases[i]->getState();
             const std::string& state2 = phases[iNext]->getState();
             assert(state1.size() == state2.size());
-            for (int j = 0; j < (int)MIN2(state1.size(), state2.size()); ++j) {
+            if (!haveWarnedAboutUnusedStates && state1.size() > myLanes.size()) {
+                WRITE_WARNING("Unused states in tlLogic '" + getID()
+                              + "', program '" + getProgramID() + "' in phase " + toString(i)
+                              + " after tl-index " + toString((int)myLanes.size() - 1));
+                haveWarnedAboutUnusedStates = true;
+            }
+            for (int j = 0; j < (int)MIN3(state1.size(), state2.size(), myLanes.size()); ++j) {
                 if ((LinkState)state2[j] == LINKSTATE_TL_RED
                         && ((LinkState)state1[j] == LINKSTATE_TL_GREEN_MAJOR
                             || (LinkState)state1[j] == LINKSTATE_TL_GREEN_MINOR)) {

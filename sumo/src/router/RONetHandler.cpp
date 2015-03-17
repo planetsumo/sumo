@@ -11,7 +11,7 @@
 // The handler for SUMO-Networks
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -89,6 +89,9 @@ RONetHandler::myStartElement(int element,
             break;
         case SUMO_TAG_BUS_STOP:
             parseBusStop(attrs);
+            break;
+        case SUMO_TAG_CONTAINER_STOP:
+            parseContainerStop(attrs);
             break;
         case SUMO_TAG_TAZ:
             parseDistrict(attrs);
@@ -322,6 +325,32 @@ RONetHandler::parseBusStop(const SUMOSAXAttributes& attrs) {
 
 
 void
+RONetHandler::parseContainerStop(const SUMOSAXAttributes& attrs) {
+    bool ok = true;
+    SUMOVehicleParameter::Stop* stop = new SUMOVehicleParameter::Stop();
+    // get the id, throw if not given or empty...
+    std::string id = attrs.get<std::string>(SUMO_ATTR_ID, "containerStop", ok);
+    // get the lane
+    stop->lane = attrs.get<std::string>(SUMO_ATTR_LANE, "containerStop", ok);
+    if (!ok) {
+        throw ProcessError();
+    }
+    const ROEdge* edge = myNet.getEdge(stop->lane.substr(0, stop->lane.rfind("_")));
+    if (edge == 0) {
+        throw InvalidArgument("Unknown lane '" + stop->lane + "' for container stop '" + id + "'.");
+    }
+    // get the positions
+    stop->startPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_STARTPOS, id.c_str(), ok, 0);
+    stop->endPos = attrs.getOpt<SUMOReal>(SUMO_ATTR_ENDPOS, id.c_str(), ok, edge->getLength());
+    const bool friendlyPos = attrs.getOpt<bool>(SUMO_ATTR_FRIENDLY_POS, id.c_str(), ok, false);
+    if (!ok || !SUMORouteHandler::checkStopPos(stop->startPos, stop->endPos, edge->getLength(), POSITION_EPS, friendlyPos)) {
+        throw InvalidArgument("Invalid position for container stop '" + id + "'.");
+    }
+    myNet.addContainerStop(id, stop);
+}
+
+
+void
 RONetHandler::parseDistrict(const SUMOSAXAttributes& attrs) {
     myCurrentEdge = 0;
     bool ok = true;
@@ -329,22 +358,12 @@ RONetHandler::parseDistrict(const SUMOSAXAttributes& attrs) {
     if (!ok) {
         return;
     }
-    ROEdge* sink = myEdgeBuilder.buildEdge(myCurrentName + "-sink", 0, 0, 0);
-    sink->setType(ROEdge::ET_DISTRICT);
-    myNet.addEdge(sink);
-    ROEdge* source = myEdgeBuilder.buildEdge(myCurrentName + "-source", 0, 0, 0);
-    source->setType(ROEdge::ET_DISTRICT);
-    myNet.addEdge(source);
+    myNet.addDistrict(myCurrentName, myEdgeBuilder.buildEdge(myCurrentName + "-source", 0, 0, 0), myEdgeBuilder.buildEdge(myCurrentName + "-sink", 0, 0, 0));
     if (attrs.hasAttribute(SUMO_ATTR_EDGES)) {
         std::vector<std::string> desc = attrs.getStringVector(SUMO_ATTR_EDGES);
         for (std::vector<std::string>::const_iterator i = desc.begin(); i != desc.end(); ++i) {
-            ROEdge* edge = myNet.getEdge(*i);
-            // check whether the edge exists
-            if (edge == 0) {
-                throw ProcessError("The edge '" + *i + "' within district '" + myCurrentName + "' is not known.");
-            }
-            source->addSuccessor(edge);
-            edge->addSuccessor(sink);
+            myNet.addDistrictEdge(myCurrentName, *i, true);
+            myNet.addDistrictEdge(myCurrentName, *i, false);
         }
     }
 }
@@ -354,17 +373,7 @@ void
 RONetHandler::parseDistrictEdge(const SUMOSAXAttributes& attrs, bool isSource) {
     bool ok = true;
     std::string id = attrs.get<std::string>(SUMO_ATTR_ID, myCurrentName.c_str(), ok);
-    ROEdge* succ = myNet.getEdge(id);
-    if (succ != 0) {
-        // connect edge
-        if (isSource) {
-            myNet.getEdge(myCurrentName + "-source")->addSuccessor(succ);
-        } else {
-            succ->addSuccessor(myNet.getEdge(myCurrentName + "-sink"));
-        }
-    } else {
-        WRITE_ERROR("At district '" + myCurrentName + "': succeeding edge '" + id + "' does not exist.");
-    }
+    myNet.addDistrictEdge(myCurrentName, id, isSource);
 }
 
 

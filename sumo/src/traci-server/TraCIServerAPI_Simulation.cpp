@@ -10,7 +10,7 @@
 // APIs for getting/setting edge values via TraCI
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -415,7 +415,7 @@ TraCIServerAPI_Simulation::commandDistanceRequest(TraCIServer& server, tcpip::St
             pos1.set(p1x, p1y);
         }
         if (posType == POSITION_3D) {
-            inputStorage.readDouble();		// z value is ignored
+            inputStorage.readDouble();// z value is ignored
         }
         roadPos1 = convertCartesianToRoadMap(pos1);
         break;
@@ -445,7 +445,7 @@ TraCIServerAPI_Simulation::commandDistanceRequest(TraCIServer& server, tcpip::St
             pos2.set(p2x, p2y);
         }
         if (posType == POSITION_3D) {
-            inputStorage.readDouble();		// z value is ignored
+            inputStorage.readDouble();// z value is ignored
         }
         roadPos2 = convertCartesianToRoadMap(pos2);
         break;
@@ -464,7 +464,7 @@ TraCIServerAPI_Simulation::commandDistanceRequest(TraCIServer& server, tcpip::St
             // same edge
             distance = roadPos2.second - roadPos1.second;
         } else {
-            MSEdgeVector newRoute;
+            ConstMSEdgeVector newRoute;
             MSNet::getInstance()->getRouterTT().compute(
                 &roadPos1.first->getEdge(), &roadPos2.first->getEdge(), 0, MSNet::getInstance()->getCurrentTimeStep(), newRoute);
             MSRoute route("", newRoute, false, 0, std::vector<SUMOVehicleParameter::Stop>());

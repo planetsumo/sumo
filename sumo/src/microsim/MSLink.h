@@ -9,7 +9,7 @@
 // A connnection between lanes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -250,6 +250,12 @@ public:
     }
 
 
+    //@brief Returns the time of the last state change
+    inline SUMOTime getLastStateChange() const {
+        return myLastStateChange;
+    }
+
+
     /** @brief Returns the direction the vehicle passing this link take
      *
      * @return The direction of this link
@@ -260,6 +266,7 @@ public:
     /** @brief Sets the current tl-state
      *
      * @param[in] state The current state of the link
+     * @param[in] t The time of the state change
      */
     void setTLState(LinkState state, SUMOTime t);
 
@@ -269,6 +276,13 @@ public:
      * @return The lane approached by this link
      */
     MSLane* getLane() const;
+
+
+    /** @brief Returns the lane leading to this link
+     *
+     * @return The lane leading to this link
+     */
+    MSLane* getApproachingLane() const;
 
 
     /** @brief Returns the respond index (for visualization)
@@ -365,7 +379,7 @@ private:
     static bool maybeOccupied(MSLane* lane);
 
 private:
-    /// @brief The lane approached by this link
+    /// @brief The lane (but the internal one) approached by this link
     MSLane* myLane;
 
     std::map<const SUMOVehicle*, ApproachingVehicleInformation> myApproachingVehicles;
@@ -376,6 +390,9 @@ private:
 
     /// @brief The state of the link
     LinkState myState;
+
+    /// @brief The time of the last state change
+    SUMOTime myLastStateChange;
 
     /// @brief An abstract (hopefully human readable) definition of the link's direction
     LinkDirection myDirection;
@@ -392,6 +409,9 @@ private:
     /// @brief The following junction-internal lane if used
     MSLane* const myJunctionInlane;
 
+    /// @brief The preceding junction-internal lane if used
+    const MSLane* myInternalLaneBefore;
+
     /* @brief lengths after the crossing point with foeLane
      * (lengthOnThis, lengthOnFoe)
      * (index corresponds to myFoeLanes)
@@ -404,7 +424,7 @@ private:
     const MSJunction* myJunction;
 
     std::vector<MSLink*> myFoeLinks;
-    std::vector<MSLane*> myFoeLanes;
+    std::vector<const MSLane*> myFoeLanes;
     static SUMOTime myLookaheadTime;
 
 

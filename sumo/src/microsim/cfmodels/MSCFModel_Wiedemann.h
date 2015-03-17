@@ -8,7 +8,7 @@
 // The psycho-physical model of Wiedemann
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -19,7 +19,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFModel_Wiedemann_H
-#define	MSCFModel_Wiedemann_H
+#define MSCFModel_Wiedemann_H
 
 // ===========================================================================
 // included modules
@@ -187,4 +187,4 @@ private:
     MSCFModel_Wiedemann& operator=(const MSCFModel_Wiedemann& s);
 };
 
-#endif	/* MSCFModel_Wiedemann_H */
+#endif /* MSCFModel_Wiedemann_H */

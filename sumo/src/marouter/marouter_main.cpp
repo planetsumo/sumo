@@ -10,7 +10,7 @@
 // Main for MAROUTER
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -67,11 +67,11 @@
 #include <utils/options/Option.h>
 #include <utils/options/OptionsCont.h>
 #include <utils/options/OptionsIO.h>
-#include <od2trips/ODCell.h>
-#include <od2trips/ODDistrict.h>
-#include <od2trips/ODDistrictCont.h>
-#include <od2trips/ODDistrictHandler.h>
-#include <od2trips/ODMatrix.h>
+#include <od/ODCell.h>
+#include <od/ODDistrict.h>
+#include <od/ODDistrictCont.h>
+#include <od/ODDistrictHandler.h>
+#include <od/ODMatrix.h>
 #include <utils/distribution/Distribution_Points.h>
 
 #include "ROMAFrame.h"
@@ -123,7 +123,7 @@ computeAllPairs(RONet& net, OptionsCont& oc) {
     // build the router
     typedef DijkstraRouterTT<ROEdge, ROVehicle, prohibited_noRestrictions<ROEdge, ROVehicle> > Dijkstra;
     Dijkstra router(net.getEdgeNo(), oc.getBool("ignore-errors"), &getTravelTime);
-    std::vector<const ROEdge*> into;
+    ConstROEdgeVector into;
     const int numInternalEdges = net.getInternalEdgeNumber();
     const int numTotalEdges = (int)net.getEdgeNo();
     for (int i = numInternalEdges; i < numTotalEdges; i++) {
@@ -344,7 +344,7 @@ main(int argc, char** argv) {
         initNet(*net, loader, oc);
         if (oc.isSet("all-pairs-output")) {
             computeAllPairs(*net, oc);
-            if (!oc.isSet("additional-files")) {
+            if (net->getDistricts().empty()) {
                 delete net;
                 SystemFrame::close();
                 if (ret == 0) {
@@ -353,12 +353,12 @@ main(int argc, char** argv) {
                 return ret;
             }
         }
-        // load districts
-        ODDistrictCont districts;
-        districts.loadDistricts(oc.getString("additional-files"));
-        if (districts.size() == 0) {
+        if (net->getDistricts().empty()) {
             throw ProcessError("No districts loaded.");
         }
+        // load districts
+        ODDistrictCont districts;
+        districts.makeDistricts(net->getDistricts());
         // load the matrix
         ODMatrix matrix(districts);
         matrix.loadMatrix(oc);

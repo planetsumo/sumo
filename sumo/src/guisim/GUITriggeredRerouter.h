@@ -9,7 +9,7 @@
 // Reroutes vehicles passing an edge (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -64,7 +64,7 @@ public:
      * @param[in] off Whether the rerouter is off (not working) initially
      */
     GUITriggeredRerouter(const std::string& id,
-                         const std::vector<MSEdge*>& edges, SUMOReal prob,
+                         const MSEdgeVector& edges, SUMOReal prob,
                          const std::string& aXMLFilename, bool off,
                          SUMORTree& rtree);
 
@@ -72,6 +72,14 @@ public:
     /// @brief Destructor
     ~GUITriggeredRerouter();
 
+
+    /** @brief Called when a closing tag occurs
+     *
+     * @param[in] element ID of the currently opened element
+     * @exception ProcessError If something fails
+     * @see GenericSAXHandler::myEndElement
+     */
+    void myEndElement(int element);
 
     /// @name inherited from GUIGlObject
     //@{

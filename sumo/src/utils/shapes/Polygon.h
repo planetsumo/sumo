@@ -10,7 +10,7 @@
 // A 2D- or 3D-polygon
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,6 +36,8 @@
 #include <utils/geom/PositionVector.h>
 #include <utils/common/Parameterised.h>
 #include "Shape.h"
+
+class OutputDevice;
 
 // we need to put this into a namespace to avoid clashing with wingdi.h::Polygon function
 namespace SUMO {
@@ -111,6 +113,10 @@ public:
     }
     /// @}
 
+    /* @brief polygon definition to the given device
+     * @param[in] geo  Whether to write the output in geo-coordinates
+     */
+    void writeXML(OutputDevice& out, bool geo = false);
 
 protected:
     /// @brief The positions of the polygon

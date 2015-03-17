@@ -9,7 +9,7 @@
 // Assignment methods
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,7 +36,7 @@
 #include <router/RONet.h>
 #include <router/RORoute.h>
 #include <utils/distribution/Distribution_Points.h>
-#include <od2trips/ODMatrix.h>
+#include <od/ODMatrix.h>
 #include <utils/common/SUMOTime.h>
 #include <utils/vehicle/SUMOAbstractRouter.h>
 #include "ROMAEdge.h"
@@ -77,7 +77,10 @@ ROMAAssignments::capacityConstraintFunction(const ROEdge* edge, const SUMOReal f
     }
     const int roadClass = -edge->getPriority();
     // TODO: differ road class 1 from the unknown road class 1!!!
-    if (roadClass == 0 || roadClass == 1)  {
+    if (edge->getLaneNo() == 0) {
+        // TAZ have no cost
+        return 0;
+    } else if (roadClass == 0 || roadClass == 1)  {
         return edge->getLength() / edge->getSpeed() * (1. + 1.*(flow / (edge->getLaneNo() * 2000.*1.3)) * 2.); //CR13 in table.py
     } else if (roadClass == 2 && edge->getSpeed() <= 11.) {
         return edge->getLength() / edge->getSpeed() * (1. + 1.*(flow / (edge->getLaneNo() * 1333.33 * 0.9)) * 3.); //CR5 in table.py
@@ -119,7 +122,7 @@ ROMAAssignments::capacityConstraintFunction(const ROEdge* edge, const SUMOReal f
 
 
 bool
-ROMAAssignments::addRoute(std::vector<const ROEdge*>& edges, std::vector<RORoute*>& paths, std::string routeId, SUMOReal costs, SUMOReal prob) {
+ROMAAssignments::addRoute(ConstROEdgeVector& edges, std::vector<RORoute*>& paths, std::string routeId, SUMOReal costs, SUMOReal prob) {
     RORoute* dup = 0;
     for (std::vector<RORoute*>::const_iterator p = paths.begin(); p != paths.end(); p++) {
         if (edges == (*p)->getEdgeVector()) {
@@ -142,9 +145,9 @@ ROMAAssignments::getKPaths(const int kPaths, const SUMOReal penalty) {
         ODCell* c = *i;
         myPenalties.clear();
         for (int k = 0; k < kPaths; k++) {
-            std::vector<const ROEdge*> edges;
+            ConstROEdgeVector edges;
             myRouter.compute(myNet.getEdge(c->origin + "-source"), myNet.getEdge(c->destination + "-sink"), myDefaultVehicle, 0, edges);
-            for (std::vector<const ROEdge*>::iterator e = edges.begin(); e != edges.end(); e++) {
+            for (ConstROEdgeVector::iterator e = edges.begin(); e != edges.end(); e++) {
                 myPenalties[*e] = penalty;
             }
             addRoute(edges, c->pathsVector, c->origin + c->destination + toString(c->pathsVector.size()), 0, 0);
@@ -159,11 +162,11 @@ ROMAAssignments::incremental(const int numIter) {
     for (int t = 0; t < numIter; t++) {
         for (std::vector<ODCell*>::const_iterator i = myMatrix.getCells().begin(); i != myMatrix.getCells().end(); i++) {
             ODCell* c = *i;
-            std::vector<const ROEdge*> edges;
+            ConstROEdgeVector edges;
             SUMOReal linkFlow = c->vehicleNumber / numIter;
             myRouter.compute(myNet.getEdge(c->origin + "-source"), myNet.getEdge(c->destination + "-sink"), myDefaultVehicle, 0, edges);
             SUMOReal costs = 0.;
-            for (std::vector<const ROEdge*>::iterator e = edges.begin(); e != edges.end(); e++) {
+            for (ConstROEdgeVector::iterator e = edges.begin(); e != edges.end(); e++) {
                 ROEdge* edge = myNet.getEdge((*e)->getID());
                 edge->addEffort(linkFlow, STEPS2TIME(myBegin), STEPS2TIME(myEnd));
                 const SUMOReal travelTime = capacityConstraintFunction(edge, linkFlow);
@@ -187,6 +190,7 @@ ROMAAssignments::sue(const int maxOuterIteration, const int maxInnerIteration, c
                 for (std::vector<RORoute*>::const_iterator j = c->pathsVector.begin(); j != c->pathsVector.end(); ++j) {
                     RORoute* r = *j;
                     r->setCosts(myRouter.recomputeCosts(r->getEdgeVector(), myDefaultVehicle, 0));
+//                    std::cout << std::setprecision(20) << r->getID() << ":" << r->getCosts() << std::endl;
                 }
                 // calculate route utilities and probabilities
                 RouteCostCalculator<RORoute, ROEdge, ROVehicle>::getCalculator().calculateProbabilities(c->pathsVector, myDefaultVehicle, 0);
@@ -195,7 +199,7 @@ ROMAAssignments::sue(const int maxOuterIteration, const int maxInnerIteration, c
                     RORoute* r = *j;
                     const SUMOReal pathFlow = r->getProbability() * c->vehicleNumber;
                     // assign edge flow deltas
-                    for (std::vector<const ROEdge*>::const_iterator e = r->getEdgeVector().begin(); e != r->getEdgeVector().end(); e++) {
+                    for (ConstROEdgeVector::const_iterator e = r->getEdgeVector().begin(); e != r->getEdgeVector().end(); e++) {
                         ROMAEdge* edge = static_cast<ROMAEdge*>(myNet.getEdge((*e)->getID()));
                         edge->setHelpFlow(edge->getHelpFlow() + pathFlow);
                     }
@@ -241,7 +245,7 @@ ROMAAssignments::sue(const int maxOuterIteration, const int maxInnerIteration, c
         bool newRoute = false;
         for (std::vector<ODCell*>::const_iterator i = myMatrix.getCells().begin(); i != myMatrix.getCells().end(); ++i) {
             ODCell* c = *i;
-            std::vector<const ROEdge*> edges;
+            ConstROEdgeVector edges;
             myRouter.compute(myNet.getEdge(c->origin + "-source"), myNet.getEdge(c->destination + "-sink"), myDefaultVehicle, 0, edges);
             newRoute |= addRoute(edges, c->pathsVector, c->origin + c->destination + toString(c->pathsVector.size()), 0, 0);
         }

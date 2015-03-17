@@ -9,7 +9,7 @@
 // Structure representing possible vehicle parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -53,14 +53,14 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
       defaultProbability(DEFAULT_VEH_PROB),
       speedFactor(1.0), speedDev(0.0),
       emissionClass(PollutantsInterface::getClassByName("unknown", vclass)), color(RGBColor::DEFAULT_COLOR),
-      vehicleClass(vclass), impatience(0.0),
-      width(1.8), height(1.5), shape(SVS_UNKNOWN),
+      vehicleClass(vclass), impatience(0.0), personCapacity(5), containerCapacity(0), boardingDuration(500),
+      loadingDuration(90000), width(1.8), height(1.5), shape(SVS_UNKNOWN),
       cfModel(SUMO_TAG_CF_KRAUSS), lcModel(LCM_LC2013),
       setParameter(0), saved(false), onlyReferenced(false) {
     switch (vclass) {
         case SVC_PEDESTRIAN:
             length = 0.215;
-            minGap = 0.5;
+            minGap = 0.25;
             maxSpeed = DEFAULT_PEDESTRIAN_SPEED;
             width = 0.478;
             height = 1.719;
@@ -73,6 +73,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 0.65;
             height = 1.7;
             shape = SVS_BICYCLE;
+            personCapacity = 1;
             break;
         case SVC_MOPED:
             length = 2.1;
@@ -80,12 +81,14 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 0.8;
             height = 1.7;
             shape = SVS_MOPED;
+            personCapacity = 2;
             break;
         case SVC_MOTORCYCLE:
             length = 2.2;
             width = 0.9;
             height = 1.5;
             shape = SVS_MOTORCYCLE;
+            personCapacity = 2;
             break;
         case SVC_TRUCK:
             length = 7.1;
@@ -93,6 +96,8 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 2.4;
             height = 2.4;
             shape = SVS_TRUCK;
+            personCapacity = 3;
+            containerCapacity = 1;
             break;
         case SVC_TRAILER:
             length = 16.5;
@@ -100,6 +105,8 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 2.55;
             height = 4.;
             shape = SVS_TRUCK_SEMITRAILER;
+            personCapacity = 3;
+            containerCapacity = 2;
             break;
         case SVC_BUS:
             length = 12.;
@@ -107,6 +114,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 2.5;
             height = 3.4;
             shape = SVS_BUS;
+            personCapacity = 85;
             break;
         case SVC_COACH:
             length = 14.;
@@ -114,6 +122,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 2.6;
             height = 4.;
             shape = SVS_BUS_COACH;
+            personCapacity = 70;
             break;
         case SVC_TRAM:
             length = 22.;
@@ -121,6 +130,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 2.4;
             height = 3.2;
             shape = SVS_RAIL_CAR;
+            personCapacity = 120;
             break;
         case SVC_RAIL_URBAN:
             length = 36.5 * 3;
@@ -128,6 +138,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 3.0;
             height = 3.6;
             shape = SVS_RAIL_CAR;
+            personCapacity = 300;
             break;
         case SVC_RAIL:
             length = 67.5 * 2;
@@ -135,6 +146,7 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 2.84;
             height = 3.75;
             shape = SVS_RAIL;
+            personCapacity = 434;
             break;
         case SVC_RAIL_ELECTRIC:
             length = 25. * 8;
@@ -142,24 +154,34 @@ SUMOVTypeParameter::SUMOVTypeParameter(const std::string& vtid, const SUMOVehicl
             width = 2.95;
             height = 3.89;
             shape = SVS_RAIL;
+            personCapacity = 425;
             break;
         case SVC_DELIVERY:
             length = 6.5;
             width = 2.16;
             height = 2.86;
             shape = SVS_DELIVERY;
+            personCapacity = 3;
             break;
         case SVC_EMERGENCY:
             length = 6.5;
             width = 2.16;
             height = 2.86;
             shape = SVS_DELIVERY;
+            personCapacity = 3;
             break;
         case SVC_PASSENGER:
             shape = SVS_PASSENGER;
             break;
         case SVC_E_VEHICLE:
             shape = SVS_E_VEHICLE;
+            break;
+        case SVC_SHIP:
+            length = 17;
+            width = 4;
+            maxSpeed = 8 / 1.94; // 8 knots
+            height = 4;
+            shape = SVS_SHIP;
             break;
         default:
             break;
@@ -226,6 +248,18 @@ SUMOVTypeParameter::write(OutputDevice& dev) const {
     if (wasSet(VTYPEPARS_LANE_CHANGE_MODEL_SET)) {
         dev.writeAttr(SUMO_ATTR_LANE_CHANGE_MODEL, lcModel);
     }
+    if (wasSet(VTYPEPARS_PERSON_CAPACITY)) {
+        dev.writeAttr(SUMO_ATTR_PERSON_CAPACITY, personCapacity);
+    }
+    if (wasSet(VTYPEPARS_CONTAINER_CAPACITY)) {
+        dev.writeAttr(SUMO_ATTR_CONTAINER_CAPACITY, containerCapacity);
+    }
+    if (wasSet(VTYPEPARS_BOARDING_DURATION)) {
+        dev.writeAttr(SUMO_ATTR_BOARDING_DURATION, boardingDuration);
+    }
+    if (wasSet(VTYPEPARS_LOADING_DURATION)) {
+        dev.writeAttr(SUMO_ATTR_LOADING_DURATION, loadingDuration);
+    }
 
     if (cfParameter.size() != 0) {
         dev.openTag(cfModel);
@@ -238,10 +272,8 @@ SUMOVTypeParameter::write(OutputDevice& dev) const {
             dev.writeAttr(*i, cfParameter.find(*i)->second);
         }
         dev.closeTag();
-        dev.closeTag();
-    } else {
-        dev.closeTag();
     }
+    dev.closeTag();
 }
 
 
@@ -282,6 +314,8 @@ SUMOVTypeParameter::getDefaultAccel(const SUMOVehicleClass vc) {
             return 0.25;
         case SVC_RAIL_ELECTRIC:
             return 0.5;
+        case SVC_SHIP:
+            return 0.1;
         default:
             return 2.6;//2.9;
     }
@@ -315,6 +349,8 @@ SUMOVTypeParameter::getDefaultDecel(const SUMOVehicleClass vc) {
             return 1.3;
         case SVC_RAIL_ELECTRIC:
             return 1.3;
+        case SVC_SHIP:
+            return 0.15;
         default:
             return 4.5;//7.5;
     }
@@ -328,6 +364,7 @@ SUMOVTypeParameter::getDefaultImperfection(const SUMOVehicleClass vc) {
         case SVC_RAIL_URBAN:
         case SVC_RAIL:
         case SVC_RAIL_ELECTRIC:
+        case SVC_SHIP:
             return 0.;
         default:
             return 0.5;

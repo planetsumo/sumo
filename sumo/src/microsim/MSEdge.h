@@ -11,7 +11,7 @@
 // A road/street connecting two junctions
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -60,6 +60,8 @@ class MSVehicle;
 class MSLane;
 class MSPerson;
 class MSJunction;
+class MSEdge;
+class MSContainer;
 
 
 // ===========================================================================
@@ -72,6 +74,10 @@ class MSJunction;
  * A single connection between two junctions.
  * Holds lanes which are reponsible for vehicle movements.
  */
+
+typedef std::vector<MSEdge*> MSEdgeVector;
+typedef std::vector<const MSEdge*> ConstMSEdgeVector;
+
 class MSEdge : public Named, public Parameterised {
 public:
     /**
@@ -188,6 +194,13 @@ public:
      */
     std::vector<MSPerson*> getSortedPersons(SUMOTime timestep) const;
 
+
+    /** @brief Returns this edge's containers sorted by pos
+     *
+     * @return This edge's containers sorted by pos
+     */
+    std::vector<MSContainer*> getSortedContainers(SUMOTime timestep) const;
+
     /** @brief Get the allowed lanes to reach the destination-edge.
      *
      * If there is no such edge, get 0. Then you are on the wrong edge.
@@ -270,18 +283,21 @@ public:
     /// @name Access to succeeding/predecessing edges
     /// @{
 
-    /** @brief Returns the list of edges which may be reached from this edge
-     * @return Edges reachable from this edge
+    /** @brief Adds an edge to the list of edges which may be reached from this edge and to the incoming of the other edge
+     *
+     * This is mainly used by the taz (district) parsing
+     * @param[in] edge The edge to add
      */
     void addSuccessor(MSEdge* edge) {
         mySuccessors.push_back(edge);
+        edge->myPredecessors.push_back(this);
     }
 
 
     /** @brief Returns the list of edges from which this edge may be reached
      * @return Edges from which this edge may be reached
      */
-    const std::vector<MSEdge*>& getIncomingEdges() const {
+    const MSEdgeVector& getIncomingEdges() const {
         return myPredecessors;
     }
 
@@ -294,13 +310,18 @@ public:
     }
 
 
-    /** @brief Returns the n-th of the following edges
-     * @param[in] n The index within following edges of the edge to return
-     * @return The n-th of the following edges
+    /** @brief Returns the following edges
      */
-    const MSEdge* getSuccessor(unsigned int n) const {
-        return mySuccessors[n];
+    const MSEdgeVector& getSuccessors() const {
+        return mySuccessors;
     }
+
+
+    /** @brief Returns the following edges, restricted by vClass
+     * @param[in] vClass The vClass for which to restrict the successors
+     * @return The eligible following edges
+     */
+    const MSEdgeVector& getSuccessors(SUMOVehicleClass vClass) const;
 
 
     /** @brief Returns the number of edges this edge is connected to
@@ -316,8 +337,8 @@ public:
      * @param[in] pos The position of the list within the list of approached
      * @return The following edge, stored at position pos
      */
-    MSEdge* getPredecessor(unsigned int pos) const {
-        return myPredecessors[pos];
+    const MSEdgeVector& getPredecessors() const {
+        return myPredecessors;
     }
 
 
@@ -543,6 +564,19 @@ public:
         }
     }
 
+    /// @brief Add a container to myContainers
+    virtual void addContainer(MSContainer* container) const {
+        myContainers.insert(container);
+    }
+
+    /// @brief Remove container from myContainers
+    virtual void removeContainer(MSContainer* container) const {
+        std::set<MSContainer*>::iterator i = myContainers.find(container);
+        if (i != myContainers.end()) {
+            myContainers.erase(i);
+        }
+    }
+
     inline bool isRoundabout() const {
         return myAmRoundabout;
     }
@@ -591,7 +625,7 @@ public:
      * @param[in] rid The id of the route these description belongs to; used for error message generation
      * @exception ProcessError If one of the strings contained is not a known edge id
      */
-    static void parseEdgesList(const std::string& desc, std::vector<const MSEdge*>& into,
+    static void parseEdgesList(const std::string& desc, ConstMSEdgeVector& into,
                                const std::string& rid);
 
 
@@ -601,7 +635,7 @@ public:
      * @param[in] rid The id of the route these description belongs to; used for error message generation
      * @exception ProcessError If one of the strings contained is not a known edge id
      */
-    static void parseEdgesList(const std::vector<std::string>& desc, std::vector<const MSEdge*>& into,
+    static void parseEdgesList(const std::vector<std::string>& desc, ConstMSEdgeVector& into,
                                const std::string& rid);
     /// @}
 
@@ -623,7 +657,7 @@ protected:
     };
 
     /** @class person_by_offset_sorter
-     * @brief Sorts edges by their ids
+     * @brief Sorts persons by their positions
      */
     class person_by_offset_sorter {
     public:
@@ -632,6 +666,20 @@ protected:
 
         /// @brief comparing operator
         int operator()(const MSPerson* const p1, const MSPerson* const p2) const;
+    private:
+        SUMOTime myTime;
+    };
+
+    /** @class container_by_position_sorter
+     * @brief Sorts containers by their positions
+     */
+    class container_by_position_sorter {
+    public:
+        /// @brief constructor
+        explicit container_by_position_sorter(SUMOTime timestep): myTime(timestep) { }
+
+        /// @brief comparing operator
+        int operator()(const MSContainer* const c1, const MSContainer* const c2) const;
     private:
         SUMOTime myTime;
     };
@@ -672,10 +720,10 @@ protected:
     mutable SUMOTime myLastFailedInsertionTime;
 
     /// @brief The succeeding edges
-    std::vector<MSEdge*> mySuccessors;
+    MSEdgeVector mySuccessors;
 
     /// @brief The preceeding edges
-    std::vector<MSEdge*> myPredecessors;
+    MSEdgeVector myPredecessors;
 
     /// @brief the junctions for this edge
     MSJunction* myFromJunction;
@@ -683,6 +731,9 @@ protected:
 
     /// @brief Persons on the edge (only for drawing)
     mutable std::set<MSPerson*> myPersons;
+
+    /// @brief Containers on the edge
+    mutable std::set<MSContainer*> myContainers;
 
     /// @name Storages for allowed lanes (depending on vehicle classes)
     /// @{
@@ -735,10 +786,13 @@ protected:
     /** @brief Static list of edges
      * @deprecated Move to MSEdgeControl, make non-static
      */
-    static std::vector<MSEdge*> myEdges;
+    static MSEdgeVector myEdges;
     /// @}
 
 
+    /// @brief The successors available for a given vClass
+    typedef std::map<SUMOVehicleClass, MSEdgeVector> ClassesSuccesorMap;
+    mutable ClassesSuccesorMap myClassesSuccessorMap;
 
 private:
     /// @brief Invalidated copy constructor.

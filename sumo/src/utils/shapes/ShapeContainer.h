@@ -9,7 +9,7 @@
 // Storage for geometrical objects, sorted by the layers they are in
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2005-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2005-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -62,7 +62,7 @@ public:
     /// @brief Destructor
     virtual ~ShapeContainer();
 
-    typedef NamedObjectCont<Polygon*> Polygons;
+    typedef NamedObjectCont< SUMO::Polygon* > Polygons;
     typedef NamedObjectCont< PointOfInterest*> POIs;
 
     /** @brief Builds a polygon using the given values and adds it to the container

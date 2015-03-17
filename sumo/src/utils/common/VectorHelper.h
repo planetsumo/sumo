@@ -9,7 +9,7 @@
 // A simple vector of SUMOReals
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -33,6 +33,7 @@
 #endif
 
 #include <vector>
+#include <limits>
 #include <algorithm>
 #include <iostream>
 
@@ -95,8 +96,8 @@ public:
     }
 
     static T maxValue(const std::vector<T>& v) {
-        SUMOReal m = *(v.begin());
-        for (typename std::vector<T>::const_iterator j = v.begin() + 1; j != v.end(); j++) {
+        T m = -std::numeric_limits<T>::max();
+        for (typename std::vector<T>::const_iterator j = v.begin() ; j != v.end(); j++) {
             if ((*j) > m) {
                 m = *j;
             }
@@ -105,8 +106,8 @@ public:
     }
 
     static T minValue(const std::vector<T>& v) {
-        SUMOReal m = *(v.begin());
-        for (typename std::vector<T>::const_iterator j = v.begin() + 1; j != v.end(); j++) {
+        T m = std::numeric_limits<T>::max();
+        for (typename std::vector<T>::const_iterator j = v.begin(); j != v.end(); j++) {
             if ((*j) < m) {
                 m = *j;
             }

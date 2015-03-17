@@ -27,13 +27,14 @@
         <matsim-files value="" synonymes="matsim" type="FILE" help="Read MATsim-net from FILE"/>
         <itsumo-files value="" synonymes="itsumo" type="FILE" help="Read ITSUMO-net from FILE"/>
         <heightmap.shapefiles value="" type="FILE" help="Read heightmap from ArcGIS shapefile"/>
+        <heightmap.geotiff value="" type="FILE" help="Read heightmap from GeoTIFF"/>
     </input>
 
     <output>
+        <output-prefix value="" type="FILE" help="Prefix which is applied to all output files. The special string &apos;TIME&apos; is replaced by the current time."/>
         <output-file value="" synonymes="o output sumo-output" type="FILE" help="The generated net will be written to FILE"/>
         <plain-output-prefix value="" synonymes="plain plain-output" type="FILE" help="Prefix of files to write plain xml nodes, edges and connections to"/>
         <junctions.join-output value="" type="FILE" help="Writes information about joined junctions to FILE (can be loaded as additional node-file to reproduce joins"/>
-        <map-output value="" synonymes="M" type="FILE" help="Writes joined edges information to FILE"/>
         <amitran-output value="" type="FILE" help="The generated net will be written to FILE using Amitran format"/>
         <matsim-output value="" type="FILE" help="The generated net will be written to FILE using MATsim format"/>
         <opendrive-output value="" type="FILE" help="The generated net will be written to FILE using OpenDRIVE format"/>
@@ -159,12 +160,14 @@
         <junctions.join-dist value="10" type="FLOAT" help="Determines the maximal distance for joining junctions (defaults to 10)"/>
         <junctions.join-exclude value="" type="STR" help="Interprets STR as list of junctions to exclude from joining"/>
         <speed.offset value="0" type="FLOAT" help="Modifies all edge speeds by adding FLOAT"/>
-        <speed.factor value="1" type="FLOAT" help="Modifies all edge speeds by multiplying FLOAT"/>
+        <speed.factor value="1" type="FLOAT" help="Modifies all edge speeds by multiplying by FLOAT"/>
+        <junctions.corner-detail value="0" type="INT" help="Generate INT intermediate points to smooth out intersection corners"/>
         <check-lane-foes.roundabout value="true" type="BOOL" help="Allow driving onto a multi-lane road if there are foes on other lanes (at roundabouts)"/>
         <check-lane-foes.all value="false" type="BOOL" help="Allow driving onto a multi-lane road if there are foes on other lanes (everywhere)"/>
         <sidewalks.guess value="false" type="BOOL" help="Guess pedestrian sidewalks based on edge speed"/>
         <sidewalks.guess.max-speed value="13.89" type="FLOAT" help="Add sidewalks for edges with a speed equal or below the given limit"/>
         <sidewalks.guess.min-speed value="5.8" type="FLOAT" help="Add sidewalks for edges with a speed above the given limit"/>
+        <sidewalks.guess.from-permissions value="false" type="BOOL" help="Add sidewalks for edges that allow pedestrians on any of their lanes regardless of speed"/>
         <crossings.guess value="false" type="BOOL" help="Guess pedestrian crossings based on the presence of sidewalks"/>
         <tls.join-dist value="20" type="FLOAT" help="Determines the maximal distance for joining traffic lights (defaults to 20)"/>
         <tls.guess-signals value="false" type="BOOL" help="Interprets tls nodes surrounding an intersection as signal positions for a larger TLS. This is typical pattern for OSM-derived networks"/>

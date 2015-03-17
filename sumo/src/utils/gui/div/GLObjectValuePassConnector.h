@@ -10,7 +10,7 @@
 // Class passing values from a GUIGlObject to another object
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <vector>
 #include <map>
+#include <functional>
 #include <utils/common/ValueSource.h>
 #include <utils/common/ValueRetriever.h>
 #include <utils/gui/globjects/GUIGlObject.h>

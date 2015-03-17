@@ -10,7 +10,7 @@
 // Krauss car-following model, with acceleration decrease and faster start
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -21,7 +21,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFModel_Krauss_h
-#define	MSCFModel_Krauss_h
+#define MSCFModel_Krauss_h
 
 // ===========================================================================
 // included modules
@@ -109,5 +109,5 @@ private:
 
 };
 
-#endif	/* MSCFMODEL_KRAUSS_H */
+#endif /* MSCFMODEL_KRAUSS_H */
 

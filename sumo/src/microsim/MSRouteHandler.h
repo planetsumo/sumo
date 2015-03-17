@@ -9,7 +9,7 @@
 // Parser and container for routes during their loading
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -33,7 +33,8 @@
 #endif
 
 #include <string>
-#include "MSPerson.h"
+#include <microsim/pedestrians/MSPerson.h>
+#include "MSContainer.h"
 #include "MSVehicle.h"
 #include <utils/xml/SUMORouteHandler.h>
 #include <utils/common/SUMOTime.h>
@@ -95,6 +96,16 @@ protected:
     //@}
 
 
+    /** @brief Called for parsing from and to and the corresponding taz attributes
+     *
+     * @param[in] element description of the currently opened element
+     * @param[in] attrs Attributes within the currently opened element
+     * @exception ProcessError If something fails
+     */
+    void parseFromViaTo(std::string element,
+                        const SUMOSAXAttributes& attrs);
+
+
     /** opens a type distribution for reading */
     void openVehicleTypeDistribution(const SUMOSAXAttributes& attrs);
 
@@ -123,6 +134,9 @@ protected:
     /// Ends the processing of a person
     void closePerson();
 
+    /// Ends the processing of a container
+    void closeContainer();
+
     /// Ends the processing of a flow
     void closeFlow();
 
@@ -131,10 +145,13 @@ protected:
 
 protected:
     /// @brief The current route
-    MSEdgeVector myActiveRoute;
+    ConstMSEdgeVector myActiveRoute;
 
     /// @brief The plan of the current person
     MSPerson::MSPersonPlan* myActivePlan;
+
+    /// @brief The plan of the current container
+    MSContainer::MSContainerPlan* myActiveContainerPlan;
 
     /// @brief Information whether vehicles shall be directly added to the network or kept within the buffer
     bool myAddVehiclesDirectly;

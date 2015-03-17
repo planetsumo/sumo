@@ -9,7 +9,7 @@
 // Stores the information about how to visualize structures
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -37,7 +37,7 @@
 #include <map>
 #include <utils/common/RGBColor.h>
 #include <utils/common/ToString.h>
-#include "GUIColorer.h"
+#include "GUIPropertySchemeStorage.h"
 
 
 // ===========================================================================
@@ -71,10 +71,10 @@ struct GUIVisualizationTextSettings {
         return !((*this) == other);
     }
 
-    std::string print(const std::string& name) const {
-        return name + "_show=\"" + toString(show) + "\" " +
-               name + "_size=\"" + toString(size) + "\" " +
-               name + "_color=\"" + toString(color) + "\" ";
+    void print(OutputDevice& dev, const std::string& name) const {
+        dev.writeAttr(name + "_show", show);
+        dev.writeAttr(name + "_size", size);
+        dev.writeAttr(name + "_color", color);
     }
 };
 
@@ -99,10 +99,10 @@ struct GUIVisualizationSizeSettings {
         return !((*this) == other);
     }
 
-    std::string print(const std::string& name) const {
-        return name + "_minSize=\"" + toString(minSize) + "\" " +
-               name + "_exaggeration=\"" + toString(exaggeration) + "\" " +
-               name + "_constantSize=\"" + toString(constantSize) + "\" ";
+    void print(OutputDevice& dev, const std::string& name) const {
+        dev.writeAttr(name + "_minSize", minSize);
+        dev.writeAttr(name + "_exaggeration", exaggeration);
+        dev.writeAttr(name + "_constantSize", constantSize);
     }
 
     /// @brief return the drawing size including exaggeration and constantSize values
@@ -204,6 +204,20 @@ public:
     GUIVisualizationSizeSettings personSize;
     // Setting bundles for optional drawing person names
     GUIVisualizationTextSettings personName;
+    //@}
+
+
+    /// @name container visualization settings
+    //@{
+
+    /// @brief The container colorer
+    GUIColorer containerColorer;
+    /// @brief The quality of container drawing
+    int containerQuality;
+    // Setting bundles for controling the size of the drawn containers
+    GUIVisualizationSizeSettings containerSize;
+    // Setting bundles for optional drawing person names
+    GUIVisualizationTextSettings containerName;
     //@}
 
 

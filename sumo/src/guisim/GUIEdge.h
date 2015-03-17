@@ -10,7 +10,7 @@
 // A road/street connecting two junctions (gui-version)
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -78,6 +78,12 @@ public:
      * @param[in] includeInternal Whether to include ids of internal edges
      */
     static std::vector<GUIGlID> getIDs(bool includeInternal);
+
+    /* @brief Returns the combined length of all edges
+     * @param[in] includeInternal Whether to include lengths of internal edges
+     * @param[in] eachLane Whether to count each lane separately
+     */
+    static SUMOReal getTotalLength(bool includeInternal, bool eachLane);
 
     /// Returns the street's geometry
     Boundary getBoundary() const;
@@ -149,6 +155,16 @@ public:
     }
 
 
+    void addContainer(MSContainer* c) const {
+        AbstractMutex::ScopedLocker locker(myLock);
+        MSEdge::addContainer(c);
+    }
+
+    void removeContainer(MSContainer* c) const {
+        AbstractMutex::ScopedLocker locker(myLock);
+        MSEdge::removeContainer(c);
+    }
+
 #ifdef HAVE_INTERNAL
     unsigned int getVehicleNo() const;
     std::string getVehicleIDs() const;
@@ -192,7 +208,7 @@ private:
 
 
 private:
-    /// The mutex used to avoid concurrent updates of myPersons
+    /// The mutex used to avoid concurrent updates of myPersons/ myContainers
     mutable MFXMutex myLock;
 
 };

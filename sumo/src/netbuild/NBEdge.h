@@ -9,7 +9,7 @@
 // The representation of a single edge during network building
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -201,11 +201,14 @@ public:
     static const SUMOReal UNSPECIFIED_WIDTH;
     /// @brief unspecified lane offset
     static const SUMOReal UNSPECIFIED_OFFSET;
-    /// @brief unspecified signal offset
-    static const SUMOReal UNSPECIFIED_SIGNAL_OFFSET;
+    /// @brief unspecified lane speed
+    static const SUMOReal UNSPECIFIED_SPEED;
+
     /// @brief no length override given
     static const SUMOReal UNSPECIFIED_LOADED_LENGTH;
-    /// @brief the distance at which to take the default anglen
+    /// @brief unspecified signal offset
+    static const SUMOReal UNSPECIFIED_SIGNAL_OFFSET;
+    /// @brief the distance at which to take the default angle
     static const SUMOReal ANGLE_LOOKAHEAD;
 
 public:
@@ -453,6 +456,10 @@ public:
     SUMOReal getLaneWidth(int lane) const;
 
 
+    /** @brief Returns the combined width of all lanes of this edge
+     */
+    SUMOReal getTotalWidth() const;
+
     /** @brief Returns the street name of this edge
      */
     const std::string& getStreetName() const {
@@ -505,8 +512,11 @@ public:
     }
     //@}
 
-    /// @brief return the first lane with permissions other than SVC_PEDESTRIAN
-    int getFirstNonPedestrianLaneIndex(int direction) const;
+    /** @brief return the first lane with permissions other than SVC_PEDESTRIAN and 0
+     * @param[in] direction The direction in which the lanes shall be checked
+     * @param[in] exclusive Whether lanes that allow pedestrians along with other classes shall be counted as non-pedestrian
+     */
+    int getFirstNonPedestrianLaneIndex(int direction, bool exclusive = false) const;
     NBEdge::Lane getFirstNonPedestrianLane(int direction) const;
 
     /// @brief return the angle for computing pedestrian crossings at the given node
@@ -564,6 +574,10 @@ public:
      */
     void addGeometryPoint(int index, const Position& p);
 
+    /** @brief shift geometry at the given node
+     * to avoid overlap
+     */
+    void shiftPositionAtNode(NBNode* node, NBEdge* opposite);
 
     /** @brief Recomputeds the lane shapes to terminate at the node shape
      * For every lane the intersection with the fromNode and toNode is
@@ -814,12 +828,18 @@ public:
 
 
     /** @brief Returns whether the given edge is the opposite direction to this edge
-     * @param[in] n The node at which this may be turnaround direction
      * @param[in] edge The edge which may be the turnaround direction
      * @return Whether the given edge is this edge's turnaround direction
+     * (regardless of whether a connection exists)
      */
-    bool isTurningDirectionAt(const NBNode* n, const NBEdge* const edge) const;
-    void setTurningDestination(NBEdge* e);
+    bool isTurningDirectionAt(const NBEdge* const edge) const;
+
+
+    /** @brief Sets the turing destination at the given edge
+     * @param[in] e The turn destination
+     * @param[in] onlyPossible If true, only sets myPossibleTurnDestination
+     */
+    void setTurningDestination(NBEdge* e, bool onlyPossible = false);
 
 
 
@@ -947,10 +967,11 @@ public:
     void addCrossingPointsAsIncomingWithGivenOutgoing(NBEdge* o,
             PositionVector& into);
 
-    SUMOReal width() const;
+    /// @brief get the outer boundary of this edge when going clock-wise around the given node
+    PositionVector getCWBoundaryLine(const NBNode& n) const;
 
-    PositionVector getCWBoundaryLine(const NBNode& n, SUMOReal offset) const;
-    PositionVector getCCWBoundaryLine(const NBNode& n, SUMOReal offset) const;
+    /// @brief get the outer boundary of this edge when going counter-clock-wise around the given node
+    PositionVector getCCWBoundaryLine(const NBNode& n) const;
 
     bool expandableBy(NBEdge* possContinuation) const;
     void append(NBEdge* continuation);
@@ -960,7 +981,11 @@ public:
 
     void moveOutgoingConnectionsFrom(NBEdge* e, unsigned int laneOff);
 
-    NBEdge* getTurnDestination() const;
+    /* @brief return the turn destination if it exists
+     * @param[in] possibleDestination Wether myPossibleTurnDestination should be returned if no turnaround connection
+     * exists
+     */
+    NBEdge* getTurnDestination(bool possibleDestination = false) const;
 
     std::string getLaneID(unsigned int lane) const;
 
@@ -979,6 +1004,17 @@ public:
      * @return This edge's angle at the given node
      */
     SUMOReal getAngleAtNode(const NBNode* const node) const;
+
+
+    /** @brief Returns the angle of from the node shape center to where the edge meets
+     * the node shape
+     *
+     * The angle is signed, disregards direction, and starts at 12 o'clock
+     *  (north->south), proceeds positive clockwise.
+     * @param[in] node The node for which the edge's angle shall be returned
+     * @return This edge's angle at the given node shape
+     */
+    SUMOReal getAngleAtNodeToCenter(const NBNode* const node) const;
 
 
     void incLaneNo(unsigned int by);
@@ -1197,6 +1233,11 @@ private:
     /// @brief computes the angle of this edge and stores it in myAngle
     void computeAngle();
 
+
+    /* @brief compute the first intersection point between the given lane
+     * geometries considering their rspective widths */
+    static SUMOReal firstIntersection(const PositionVector& v1, const PositionVector& v2, SUMOReal width2);
+
 private:
     /** @brief The building step
      * @see EdgeBuildingStep
@@ -1232,8 +1273,10 @@ private:
      */
     std::vector<Connection> myConnectionsToDelete;
 
-    /// @brief The turn destination edge
+    /// @brief The turn destination edge (if a connection exists)
     NBEdge* myTurnDestination;
+    /// @brief The edge that would be the turn destination if there was one
+    NBEdge* myPossibleTurnDestination;
 
     /// @brief The priority normalised for the node the edge is outgoing of
     int myFromJunctionPriority;

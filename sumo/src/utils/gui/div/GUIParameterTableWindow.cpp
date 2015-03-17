@@ -10,7 +10,7 @@
 // The window that holds the table of an object's parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -61,6 +61,12 @@ FXIMPLEMENT(GUIParameterTableWindow, FXMainWindow, GUIParameterTableWindowMap, A
 
 
 // ===========================================================================
+// static value definitions
+// ===========================================================================
+MFXMutex GUIParameterTableWindow::myGlobalContainerLock;
+std::vector<GUIParameterTableWindow*> GUIParameterTableWindow::myContainer;
+
+// ===========================================================================
 // method definitions
 // ===========================================================================
 GUIParameterTableWindow::GUIParameterTableWindow(GUIMainWindow& app,
@@ -89,6 +95,8 @@ GUIParameterTableWindow::GUIParameterTableWindow(GUIMainWindow& app,
     myLock.lock();
     myObject->addParameterTable(this);
     myLock.unlock();
+    AbstractMutex::ScopedLocker locker(myGlobalContainerLock);
+    myContainer.push_back(this);
 }
 
 
@@ -102,6 +110,11 @@ GUIParameterTableWindow::~GUIParameterTableWindow() {
         myObject->removeParameterTable(this);
     }
     myLock.unlock();
+    AbstractMutex::ScopedLocker locker(myGlobalContainerLock);
+    std::vector<GUIParameterTableWindow*>::iterator i = std::find(myContainer.begin(), myContainer.end(), this);
+    if (i != myContainer.end()) {
+        myContainer.erase(i);
+    }
 }
 
 
@@ -114,6 +127,7 @@ GUIParameterTableWindow::removeObject(GUIGlObject* /*i*/) {
 
 long
 GUIParameterTableWindow::onSimStep(FXObject*, FXSelector, void*) {
+    // table values are updated in GUINet::guiSimulationStep()
     updateTable();
     update();
     return 1;

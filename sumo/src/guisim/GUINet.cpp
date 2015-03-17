@@ -10,7 +10,7 @@
 // A MSNet extended by some values for usage within the gui
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -38,6 +38,7 @@
 #include <utils/gui/globjects/GUIPointOfInterest.h>
 #include <utils/gui/globjects/GUIGLObjectPopupMenu.h>
 #include <utils/gui/div/GUIParameterTableWindow.h>
+#include <utils/gui/globjects/GUIShapeContainer.h>
 #include <utils/common/StringUtils.h>
 #include <utils/common/RGBColor.h>
 #include <utils/gui/div/GLObjectValuePassConnector.h>
@@ -45,7 +46,7 @@
 #include <microsim/MSJunction.h>
 #include <microsim/output/MSDetectorControl.h>
 #include <microsim/MSEdge.h>
-#include <microsim/MSPModel.h>
+#include <microsim/pedestrians/MSPModel.h>
 #include <microsim/MSInsertionControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSTLLogicControl.h>
@@ -53,6 +54,7 @@
 #include <guisim/GUIEdge.h>
 #include <guisim/GUILane.h>
 #include <guisim/GUIPersonControl.h>
+#include <guisim/GUIContainerControl.h>
 #include <guisim/GUILaneSpeedTrigger.h>
 #include <guisim/GUIDetectorWrapper.h>
 #include <guisim/GUITrafficLightLogicWrapper.h>
@@ -60,7 +62,6 @@
 #include <guisim/GUIVehicleControl.h>
 #include <gui/GUIGlobals.h>
 #include "GUINet.h"
-#include "GUIShapeContainer.h"
 
 #ifdef HAVE_INTERNAL
 #include <mesogui/GUIMEVehicleControl.h>
@@ -128,6 +129,15 @@ GUINet::getPersonControl() {
         myPersonControl = new GUIPersonControl();
     }
     return *myPersonControl;
+}
+
+
+MSContainerControl&
+GUINet::getContainerControl() {
+    if (myContainerControl == 0) {
+        myContainerControl = new GUIContainerControl();
+    }
+    return *myContainerControl;
 }
 
 
@@ -216,6 +226,7 @@ void
 GUINet::guiSimulationStep() {
     GLObjectValuePassConnector<SUMOReal>::updateAll();
     GLObjectValuePassConnector<std::pair<SUMOTime, MSPhaseDefinition> >::updateAll();
+    GUIParameterTableWindow::updateAll();
 }
 
 
@@ -417,7 +428,7 @@ GUIParameterTableWindow*
 GUINet::getParameterWindow(GUIMainWindow& app,
                            GUISUMOAbstractView&) {
     GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 15);
+        new GUIParameterTableWindow(app, *this, 19);
     // add items
     ret->mkItem("loaded vehicles [#]", true,
                 new FunctionBinding<MSVehicleControl, unsigned int>(&getVehicleControl(), &MSVehicleControl::getLoadedVehicleNo));
@@ -454,6 +465,11 @@ GUINet::getParameterWindow(GUIMainWindow& app,
         ret->mkItem("ups [#]", true, new FunctionBinding<GUINet, SUMOReal>(this, &GUINet::getUPS));
         ret->mkItem("mean ups [#]", true, new FunctionBinding<GUINet, SUMOReal>(this, &GUINet::getMeanUPS));
     }
+    ret->mkItem("nodes [#]", false, (int)myJunctions->size());
+    ret->mkItem("edges [#]", false, (int)GUIEdge::getIDs(false).size());
+    ret->mkItem("total edge length [km]", false, GUIEdge::getTotalLength(false, false) / 1000);
+    ret->mkItem("total lane length [km]", false, GUIEdge::getTotalLength(false, true) / 1000);
+
     // close building
     ret->closeBuilding();
     return ret;

@@ -9,7 +9,7 @@
 // Network state mean data collector for edges/lanes
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2004-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2004-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -128,7 +128,7 @@ MSMeanData_Net::MSLaneMeanDataValues::notifyLeave(SUMOVehicle& veh, SUMOReal /*l
     if (vehicleApplies(veh) && (getLane() == 0 || getLane() == static_cast<MSVehicle&>(veh).getLane())) {
 #ifdef HAVE_INTERNAL
         if (MSGlobals::gUseMesoSim) {
-            myLastVehicleUpdateValues.erase(&veh);
+            removeFromVehicleUpdateValues(veh);
         }
 #endif
         if (reason == MSMoveReminder::NOTIFICATION_ARRIVED) {

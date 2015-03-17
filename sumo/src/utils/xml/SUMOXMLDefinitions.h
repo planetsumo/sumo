@@ -12,7 +12,7 @@
 // Definitions of elements and attributes known by SUMO
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -90,6 +90,8 @@ enum SumoXMLTag {
     SUMO_TAG_REROUTER,
     /// @brief A bus stop
     SUMO_TAG_BUS_STOP,
+    /// @brief A container stop
+    SUMO_TAG_CONTAINER_STOP,
     /** a vtypeprobe detector */
     SUMO_TAG_VTYPEPROBE,
     /** a routeprobe detector */
@@ -156,6 +158,7 @@ enum SumoXMLTag {
     SUMO_TAG_JOIN,
     SUMO_TAG_JOINEXCLUDE,
     SUMO_TAG_CROSSING,
+    SUMO_TAG_CUSTOMSHAPE,
 
     SUMO_TAG_WAY,
     SUMO_TAG_ND,
@@ -172,6 +175,7 @@ enum SumoXMLTag {
     SUMO_TAG_VIEWSETTINGS_EDGES,
     SUMO_TAG_VIEWSETTINGS_VEHICLES,
     SUMO_TAG_VIEWSETTINGS_PERSONS,
+    SUMO_TAG_VIEWSETTINGS_CONTAINERS,
     SUMO_TAG_VIEWSETTINGS_JUNCTIONS,
     SUMO_TAG_VIEWSETTINGS_ADDITIONALS,
     SUMO_TAG_VIEWSETTINGS_POIS,
@@ -191,6 +195,7 @@ enum SumoXMLTag {
 
     SUMO_TAG_CF_KRAUSS,
     SUMO_TAG_CF_KRAUSS_PLUS_SLOPE,
+    SUMO_TAG_CF_KRAUSS_ACCEL_BOUND,
     SUMO_TAG_CF_KRAUSS_ORIG1,
     SUMO_TAG_CF_SMART_SK,
     SUMO_TAG_CF_DANIEL1,
@@ -204,6 +209,9 @@ enum SumoXMLTag {
     SUMO_TAG_RIDE,
     SUMO_TAG_WALK,
 
+    SUMO_TAG_CONTAINER,
+    SUMO_TAG_TRANSPORT,
+    SUMO_TAG_TRANSHIP,
     SUMO_TAG_TRAJECTORIES,
     SUMO_TAG_TIMESTEP,
     SUMO_TAG_TIMESLICE,
@@ -312,6 +320,8 @@ enum SumoXMLAttr {
     SUMO_ATTR_SPEEDDEV,
     SUMO_ATTR_LANE_CHANGE_MODEL,
     SUMO_ATTR_MINGAP,
+    SUMO_ATTR_BOARDING_DURATION,
+    SUMO_ATTR_LOADING_DURATION,
     /* Car following model attributes */
     SUMO_ATTR_SIGMA,    // used by: Krauss
     SUMO_ATTR_TAU,      // Krauss
@@ -337,7 +347,9 @@ enum SumoXMLAttr {
     SUMO_ATTR_TO_TAZ,
     SUMO_ATTR_REROUTE,
     SUMO_ATTR_PERSON_CAPACITY,
+    SUMO_ATTR_CONTAINER_CAPACITY,
     SUMO_ATTR_PERSON_NUMBER,
+    SUMO_ATTR_CONTAINER_NUMBER,
     /* source definitions */
     SUMO_ATTR_FUNCTION,
     SUMO_ATTR_POSITION,
@@ -367,6 +379,10 @@ enum SumoXMLAttr {
     SUMO_ATTR_SHAPE,
     /// The information about how to spread the lanes from the given position
     SUMO_ATTR_SPREADTYPE,
+    /// The turning radius at an intersection in m
+    SUMO_ATTR_RADIUS,
+    /// whether a given shape is user-defined
+    SUMO_ATTR_CUSTOMSHAPE,
     /// A color information
     SUMO_ATTR_COLOR,
     /// The abstract direction of a link
@@ -415,6 +431,7 @@ enum SumoXMLAttr {
     SUMO_ATTR_UNCONTROLLED,
     SUMO_ATTR_PASS,
     SUMO_ATTR_BUS_STOP,
+    SUMO_ATTR_CONTAINER_STOP,
     SUMO_ATTR_LINE,
     SUMO_ATTR_LINES,
     SUMO_ATTR_VALUE,
@@ -436,8 +453,10 @@ enum SumoXMLAttr {
     SUMO_ATTR_STARTPOS,
     SUMO_ATTR_ENDPOS,
     SUMO_ATTR_TRIGGERED,
+    SUMO_ATTR_CONTAINER_TRIGGERED,
     SUMO_ATTR_PARKING,
     SUMO_ATTR_EXPECTED,
+    SUMO_ATTR_EXPECTED_CONTAINERS,
     SUMO_ATTR_INDEX,
 
     SUMO_ATTR_ENTERING,
@@ -449,6 +468,7 @@ enum SumoXMLAttr {
 
     SUMO_ATTR_LON,
     SUMO_ATTR_LAT,
+    SUMO_ATTR_GEO,
     SUMO_ATTR_K,
     SUMO_ATTR_V,
     SUMO_ATTR_REF,
@@ -566,7 +586,8 @@ enum SumoXMLAttr {
 enum SumoXMLNodeType {
     NODETYPE_UNKNOWN, // terminator
     NODETYPE_TRAFFIC_LIGHT,
-    NODETYPE_TRAFFIC_LIGHT_NOJUNCTION, // junction controlled only by traffic light but without other prohibitions
+    NODETYPE_TRAFFIC_LIGHT_NOJUNCTION, // junction controlled only by traffic light but without other prohibitions,
+    NODETYPE_RAIL_SIGNAL,
     NODETYPE_PRIORITY,
     NODETYPE_PRIORITY_STOP, // like priority but all minor links have stop signs
     NODETYPE_RIGHT_BEFORE_LEFT,
@@ -682,8 +703,8 @@ enum LinkDirection {
  */
 enum TrafficLightType {
     TLTYPE_STATIC,
-    TLTYPE_ACTUATED,
-    TLTYPE_AGENT
+    TLTYPE_RAIL,
+    TLTYPE_ACTUATED
 };
 
 

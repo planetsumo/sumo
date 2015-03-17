@@ -11,7 +11,7 @@
 // Container for nodes during the netbuilding process
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -187,6 +187,11 @@ public:
      * @post No two edges with same geometry connecting same nodes exist
      */
     void joinSimilarEdges(NBDistrictCont& dc, NBEdgeCont& ec, NBTrafficLightLogicCont& tlc);
+
+
+    /** @brief fix overlap
+     */
+    void avoidOverlap();
 
 
     /** @brief Removes sequences of edges that are not connected with a junction.

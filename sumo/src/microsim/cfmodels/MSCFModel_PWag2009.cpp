@@ -10,7 +10,7 @@
 // Scalable model based on Krauß by Peter Wagner
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2010-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2010-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -119,19 +119,19 @@ MSCFModel_PWag2009::dawdle(SUMOReal speed) const {
 //        return 0;
 //    }
 //    const SUMOReal vsafe = -myTauLastDecel + sqrt(myTauLastDecel * myTauLastDecel + predSpeed * predSpeed + 2.0 * myDecel * gap);
-//	const SUMOReal asafe = SPEED2ACCEL(vsafe - speed);
+//  const SUMOReal asafe = SPEED2ACCEL(vsafe - speed);
 //    VehicleVariables* vars = (VehicleVariables*)veh->getCarFollowVariables();
-//	SUMOReal apref = vars->aOld;
-//	if (apref <= asafe && RandHelper::rand() <= myActionPointProbability * TS) {
-//		apref = myDecelDivTau * (gap + (predSpeed - speed) * myHeadwayTime - speed * myHeadwayTime) / (speed + myTauDecel);
-//		if (apref>myAccel)
-//			apref = myAccel;
-//		if (apref<-myDecel)
-//			apref = -myDecel;
-//		apref += myDawdle * RandHelper::rand((SUMOReal) - 1., (SUMOReal)1.);
-//	}
-//	if (apref > asafe)
-//		apref = asafe;
+//  SUMOReal apref = vars->aOld;
+//  if (apref <= asafe && RandHelper::rand() <= myActionPointProbability * TS) {
+//    apref = myDecelDivTau * (gap + (predSpeed - speed) * myHeadwayTime - speed * myHeadwayTime) / (speed + myTauDecel);
+//    if (apref>myAccel)
+//      apref = myAccel;
+//    if (apref<-myDecel)
+//      apref = -myDecel;
+//    apref += myDawdle * RandHelper::rand((SUMOReal) - 1., (SUMOReal)1.);
+//  }
+//  if (apref > asafe)
+//    apref = asafe;
 //    return MAX2((SUMOReal)0, vsafe+ACCEL2SPEED(apref));
 //}
 //

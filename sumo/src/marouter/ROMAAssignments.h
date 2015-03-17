@@ -9,7 +9,7 @@
 // Assignment methods
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -116,7 +116,7 @@ public:
 
 private:
     /// @brief add a route and check for duplicates
-    bool addRoute(std::vector<const ROEdge*>& edges, std::vector<RORoute*>& paths, std::string routeId, SUMOReal costs, SUMOReal prob);
+    bool addRoute(ConstROEdgeVector& edges, std::vector<RORoute*>& paths, std::string routeId, SUMOReal costs, SUMOReal prob);
 
     /// @brief get the k shortest paths
     void getKPaths(const int kPaths, const SUMOReal penalty);

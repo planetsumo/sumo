@@ -8,7 +8,7 @@
 // The original Krauss (1998) car-following model and parameter
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2012-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -19,7 +19,7 @@
 //
 /****************************************************************************/
 #ifndef MSCFModel_Daniel1_h
-#define	MSCFModel_Daniel1_h
+#define MSCFModel_Daniel1_h
 
 // ===========================================================================
 // included modules
@@ -170,5 +170,5 @@ protected:
 
 };
 
-#endif	/* MSCFModel_Daniel1_H */
+#endif /* MSCFModel_Daniel1_H */
 

@@ -13,7 +13,7 @@
 // A class that stores and controls tls and switching of their programs
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -427,7 +427,7 @@ MSTLLogicControl::WAUTSwitchProcedure_Stretch::cutLogic(SUMOTime step, SUMOTime 
         SUMOTime begin = TIME2STEPS(def.begin);
         unsigned int end = TIME2STEPS(def.end);
         size_t stepOfBegin = myTo->getIndexFromOffset(begin);
-        if (stepOfBegin == actStep)	{
+        if (stepOfBegin == actStep) {
             if (begin < startPos) {
                 toCut = end - startPos;
             } else {

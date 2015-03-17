@@ -9,7 +9,7 @@
 // The handler that parses a SUMO-network for its usage in a router
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -145,6 +145,13 @@ protected:
      * @param[in] attrs The attributes (of the "busStop"-element) to parse
      */
     void parseBusStop(const SUMOSAXAttributes& attrs);
+
+
+    /** @begin Parses a container stop
+     * Called on the occurence of a "containerStop" element
+     * @param[in] attrs The attributes (of the "containerStop"-element) to parse
+     */
+    void parseContainerStop(const SUMOSAXAttributes& attrs);
 
 
     /** @begin Parses a district and creates a pseudo edge for it

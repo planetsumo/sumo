@@ -9,7 +9,7 @@
 // The main interface for loading a microsim
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -162,7 +162,7 @@ NLBuilder::build() {
         //  the measure to use, then
         EdgeFloatTimeLineRetriever_EdgeEffort eRetriever(myNet);
         std::string measure = myOptions.getString("weight-attribute");
-        if (measure != "traveltime") {
+        if (!myOptions.isDefault("weight-attribute")) {
             if (measure == "CO" || measure == "CO2" || measure == "HC" || measure == "PMx" || measure == "NOx" || measure == "fuel") {
                 measure += "_perVeh";
             }
@@ -190,6 +190,11 @@ NLBuilder::build() {
     // load additional net elements (sources, detectors, ...)
     if (myOptions.isSet("additional-files")) {
         if (!load("additional-files")) {
+            return false;
+        }
+        // load shapes with separate handler
+        NLShapeHandler sh("", myNet.getShapeContainer());
+        if (!ShapeHandler::loadFiles(myOptions.getStringVector("additional-files"), sh)) {
             return false;
         }
     }
@@ -227,7 +232,8 @@ NLBuilder::buildNet() {
                 stateDumpFiles.push_back(prefix + "_" + time2string(*i) + ".sbx");
             }
         }
-        myNet.closeBuilding(edges, junctions, routeLoaders, tlc, stateDumpTimes, stateDumpFiles);
+        myNet.closeBuilding(edges, junctions, routeLoaders, tlc, stateDumpTimes, stateDumpFiles,
+                            myXMLHandler.haveSeenInternalEdge());
     } catch (IOError& e) {
         delete edges;
         delete junctions;

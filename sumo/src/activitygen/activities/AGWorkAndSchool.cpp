@@ -10,7 +10,7 @@
 // Generates trips to work and to school
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 // activitygen module
 // Copyright 2010 TUM (Technische Universitaet Muenchen, http://www.tum.de/)
 /****************************************************************************/
@@ -154,11 +154,19 @@ AGWorkAndSchool::carAllocation() {
 
 bool
 AGWorkAndSchool::carsToTrips() {
+    // check if the starting edge allows cars
+    if (!myHousehold->getPosition().getStreet().allows(SVC_PASSENGER)) {
+        return false;
+    }
     std::list<AGAdult>::const_iterator itDriA;
     std::list<AGCar>::const_iterator itCar = myHousehold->getCars().begin();
     for (itDriA = personsDrivingCars.begin(); itDriA != personsDrivingCars.end(); ++itDriA) {
         //check if the number of cars is lower than the number of drivers
         if (itCar == myHousehold->getCars().end()) {
+            return false;
+        }
+        // check if the destination edge allows cars
+        if (!itDriA->getWorkPosition().getPosition().getStreet().allows(SVC_PASSENGER)) {
             return false;
         }
         AGTrip trip(myHousehold->getPosition(), itDriA->getWorkPosition().getPosition(), *itCar, depHour(myHousehold->getPosition(), itDriA->getWorkPosition().getPosition(), itDriA->getWorkPosition().getOpening()));
@@ -280,8 +288,8 @@ AGWorkAndSchool::generateListTrips() {
                     if (itAccT->getRideBackArrTime(this->timePerKm) < itDriT->getTime()) {
                         //there is enough time to accompany people and go back home before going to work
                         itAccT->setVehicleName(itDriT->getVehicleName());
-                        itAccT->addLayOver(itAccT->getArr());	//final destination is the last accompaniment stop: not the destination of the course
-                        itAccT->setArr(myHousehold->getPosition());		//final destination of the whole trip: home
+                        itAccT->addLayOver(itAccT->getArr());//final destination is the last accompaniment stop: not the destination of the course
+                        itAccT->setArr(myHousehold->getPosition());//final destination of the whole trip: home
                         myPartialActivityTrips.push_back(*itAccT);
                         alreadyDone = true;
                     } else {

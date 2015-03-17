@@ -11,7 +11,7 @@
 // A single child window which contains a view of the simulation area
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2001-2014 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2001-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -34,7 +34,6 @@
 
 #include <string>
 #include <vector>
-#include <guisim/GUIShapeContainer.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/geom/Position.h>
 #include <utils/geom/Boundary.h>
@@ -43,6 +42,7 @@
 #include <utils/foxtools/MFXImageHelper.h>
 #include <utils/gui/globjects/GUIGlObjectTypes.h>
 #include <utils/gui/globjects/GUIGlObjectStorage.h>
+#include <utils/gui/globjects/GUIShapeContainer.h>
 #include <utils/gui/images/GUIIcons.h>
 #include <utils/gui/images/GUIIconSubSys.h>
 #include <utils/gui/div/GUIGlobalSelection.h>
@@ -50,10 +50,12 @@
 #include <utils/gui/windows/GUIAppEnum.h>
 #include <utils/gui/windows/GUIDialog_GLObjChooser.h>
 #include <guisim/GUIVehicle.h>
+#include <guisim/GUIPerson.h>
 #include <guisim/GUIEdge.h>
 #include <guisim/GUILane.h>
 #include <guisim/GUINet.h>
 #include <guisim/GUIVehicleControl.h>
+#include <guisim/GUIPersonControl.h>
 #include <microsim/MSJunction.h>
 #include "GUIGlobals.h"
 #include "GUIViewTraffic.h"
@@ -78,6 +80,7 @@ FXDEFMAP(GUISUMOViewParent) GUISUMOViewParentMap[] = {
     FXMAPFUNC(SEL_COMMAND,  MID_LOCATEJUNCTION, GUISUMOViewParent::onCmdLocate),
     FXMAPFUNC(SEL_COMMAND,  MID_LOCATEEDGE,     GUISUMOViewParent::onCmdLocate),
     FXMAPFUNC(SEL_COMMAND,  MID_LOCATEVEHICLE,  GUISUMOViewParent::onCmdLocate),
+    FXMAPFUNC(SEL_COMMAND,  MID_LOCATEPERSON,   GUISUMOViewParent::onCmdLocate),
     FXMAPFUNC(SEL_COMMAND,  MID_LOCATETLS,      GUISUMOViewParent::onCmdLocate),
     FXMAPFUNC(SEL_COMMAND,  MID_LOCATEADD,      GUISUMOViewParent::onCmdLocate),
     FXMAPFUNC(SEL_COMMAND,  MID_LOCATEPOI,      GUISUMOViewParent::onCmdLocate),
@@ -130,11 +133,11 @@ GUISUMOViewParent::~GUISUMOViewParent() {
 
 
 void
-GUISUMOViewParent::toggleGaming() {
-    if (myParent->isGaming()) {
-        myNavigationToolBar->hide();
-    } else {
+GUISUMOViewParent::setToolBarVisibility(const bool value) {
+    if (value) {
         myNavigationToolBar->show();
+    } else {
+        myNavigationToolBar->hide();
     }
 }
 
@@ -188,6 +191,11 @@ GUISUMOViewParent::onCmdLocate(FXObject*, FXSelector sel, void*) {
             static_cast<GUIVehicleControl&>(MSNet::getInstance()->getVehicleControl()).insertVehicleIDs(ids);
             icon = ICON_LOCATEVEHICLE;
             title = "Vehicle Chooser";
+            break;
+        case MID_LOCATEPERSON:
+            static_cast<GUIPersonControl&>(MSNet::getInstance()->getPersonControl()).insertPersonIDs(ids);
+            icon = ICON_LOCATEPERSON;
+            title = "Person Chooser";
             break;
         case MID_LOCATETLS:
             ids = static_cast<GUINet*>(GUINet::getInstance())->getTLSIDs();
