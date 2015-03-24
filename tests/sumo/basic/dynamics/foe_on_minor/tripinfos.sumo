@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 03/23/15 15:07:16 by SUMO Version dev-SVN-r18113
+<!-- generated on 03/24/15 16:19:04 by SUMO Version dev-SVN-r18127
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
@@ -11,15 +11,10 @@
     </input>
 
     <output>
-        <tripinfo-output value="tripinfo.xml"/>
+        <tripinfo-output value="tripinfos.xml"/>
     </output>
 
-    <processing>
-        <time-to-teleport value="-1"/>
-    </processing>
-
     <report>
-        <verbose value="true"/>
         <xml-validation value="never"/>
         <no-step-log value="true"/>
     </report>
