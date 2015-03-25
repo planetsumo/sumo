@@ -2823,9 +2823,12 @@ def getScenarioSet(name, params):
     return ScenarioSet_BasicRiLSANet(params)
   if name=="BasicRiLSANet2x2":
     return ScenarioSet_BasicRiLSANet2x2(params)
+  if name=="BasicRiLSANet2x2_24":
+    return ScenarioSet_BasicRiLSANet2x2(params)
   if name=="BasicRiLSACorridor3":
     return ScenarioSet_BasicRiLSACorridor3(params)
-    
+  if name=="BasicRiLSACorridor3_24":
+    return ScenarioSet_BasicRiLSACorridor3(params)    
     
   raise "unknown scenario '%s'" % name
 
