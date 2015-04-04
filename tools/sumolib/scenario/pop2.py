@@ -2211,8 +2211,8 @@ class ScenarioSet_RiLSA1LoadCurvesBothTLS24(ScenarioSet):
       sID = "RiLSA1LoadCurvesBothTLS24(%s-%s-%s-%s)" % (iWE, iNS, iEW, iSN)
     else:
       sID = "RiLSA1LoadCurvesBothTLS24(%s)" % (uID)
-    s = getScenario("RiLSA1BothTLS", "RiLSA1LoadCurvesBothTLS24", self.params)
-    s.demandName = s.sandboxPath("routes_%s.rou.xml" % sID)
+    s = getScenario("RiLSA1BothTLS", "RiLSA1LoadCurvesBothTLS24", self.params)    
+    s.demandName = s.sandboxPath("routes_%s.rou.xml" % sID)    
     if True:#fileNeedsRebuild(s.demandName, "duarouter"):
       nStreams = []
       for stream in s.demand.streams:
@@ -2232,6 +2232,7 @@ class ScenarioSet_RiLSA1LoadCurvesBothTLS24(ScenarioSet):
       sampleFactor = None
       if "sample-factor" in self.params:
         sampleFactor = self.params["sample-factor"]
+      print '%s %s %s' % (s.netName, s.demandName, sampleFactor)
       s.demand.build(0, end, s.netName, s.demandName, sampleFactor)
       desc = {"scenario":"RiLSA1LoadCurvesBothTLS24", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
       return s, desc, sID
@@ -2522,7 +2523,10 @@ class ScenarioSet_BasicRiLSANet2x2(ScenarioSet):
           raise "Hmmm, unknown stream??"
       s.demand.streams = nStreams 
       end = 86400
-      s.demand.build(0, end, s.netName, s.demandName, None)
+      sampleFactor = None
+      if "sample-factor" in self.params:
+        sampleFactor = self.params["sample-factor"]
+      s.demand.build(0, end, s.netName, s.demandName, sampleFactor)
       desc = {"scenario":"BasicRiLSANet2x2", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
       return s, desc, sID
   def getRunsMatrix(self):
@@ -2669,7 +2673,10 @@ class ScenarioSet_BasicRiLSACorridor3(ScenarioSet):
           raise "Hmmm, unknown stream??" 
       s.demand.streams = nStreams 
       end = 86400
-      s.demand.build(0, end, s.netName, s.demandName, None)
+      sampleFactor = None
+      if "sample-factor" in self.params:
+        sampleFactor = self.params["sample-factor"]
+      s.demand.build(0, end, s.netName, s.demandName, sampleFactor)
       desc = {"scenario":"BasicRiLSACorridor3", "iWE":str(iWE), "iNS":str(iNS), "iEW":str(iEW), "iSN":str(iSN)}
       return s, desc, sID
   def getRunsMatrix(self):
