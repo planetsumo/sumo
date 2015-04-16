@@ -162,6 +162,7 @@ print "step", step()
 print traci.vehicle.getSubscriptionResults(vehID)
 print "step", step()
 print traci.vehicle.getSubscriptionResults(vehID)
+# test different departure options
 traci.vehicle.add("departInThePast", "horizontal", depart=5)
 print "step", step()
 print "vehicles", traci.vehicle.getIDList()
@@ -169,6 +170,7 @@ traci.vehicle.add("departInTheFuture", "horizontal", depart=30)
 for i in range(9):
     print "step", step()
     print "vehicles", traci.vehicle.getIDList()
+# XXX this doesn't work. see #1721
 traci.vehicle.add("departTriggered", "horizontal", depart=traci.vehicle.DEPART_TRIGGERED)
 print "step", step()
 print "vehicles", traci.vehicle.getIDList()
@@ -180,7 +182,16 @@ print "vehicle '%s' routeID=%s" % (routeTestVeh, traci.vehicle.getRouteID(routeT
 traci.vehicle.setRouteID(routeTestVeh, "withStop")
 print "step", step()
 print "vehicle '%s' routeID=%s" % (routeTestVeh, traci.vehicle.getRouteID(routeTestVeh))
-for i in range(9):
+for i in range(14):
+    print "step", step()
+    print "vehicle '%s' lane=%s lanePos=%s stopped=%s" % (routeTestVeh,
+            traci.vehicle.getLaneID(routeTestVeh),
+            traci.vehicle.getLanePosition(routeTestVeh),
+            traci.vehicle.isStopped(routeTestVeh))
+# test for adding a new vehicle with a route with busstop
+routeTestVeh = "routeTest2"
+traci.vehicle.add(routeTestVeh, "withStop")
+for i in range(14):
     print "step", step()
     print "vehicle '%s' lane=%s lanePos=%s stopped=%s" % (routeTestVeh,
             traci.vehicle.getLaneID(routeTestVeh),
