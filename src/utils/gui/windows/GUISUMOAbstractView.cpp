@@ -124,7 +124,10 @@ GUISUMOAbstractView::GUISUMOAbstractView(FXComposite* p,
     myUseToolTips(false),
     myAmInitialised(false),
     myViewportChooser(0),
-    myVisualizationChanger(0) {
+    myVisualizationChanger(0),
+    myWindowCursorPositionX(getWidth()/2),
+    myWindowCursorPositionY(getHeight()/2)
+{
     setTarget(this);
     enable();
     flags |= FLAG_ENABLED;
@@ -587,6 +590,7 @@ GUISUMOAbstractView::destroyPopup() {
 long
 GUISUMOAbstractView::onLeftBtnPress(FXObject*, FXSelector , void* data) {
     destroyPopup();
+    setFocus();
     FXEvent* e = (FXEvent*) data;
     // check whether the selection-mode is activated
     if (e->state & CONTROLMASK) {
@@ -705,41 +709,15 @@ GUISUMOAbstractView::openObjectDialog() {
 
 long
 GUISUMOAbstractView::onKeyPress(FXObject* o, FXSelector sel, void* data) {
-    FXEvent* e = (FXEvent*) data;
-    if ((e->state & ALTMASK) != 0) {
-        setDefaultCursor(getApp()->getDefaultCursor(DEF_CROSSHAIR_CURSOR));
-        grabKeyboard();
-    }
-    /*
-    switch(e->code) {
-    case KEY_Left:
-        myChanger->move((SUMOReal) -p2m((SUMOReal) getWidth()/10), 0);
-        break;
-    case KEY_Right:
-        myChanger->move((SUMOReal) p2m((SUMOReal) getWidth()/10), 0);
-        break;
-    case KEY_Up:
-        myChanger->move(0, (SUMOReal) -p2m((SUMOReal) getHeight()/10));
-        break;
-    case KEY_Down:
-        myChanger->move(0, (SUMOReal) p2m((SUMOReal) getHeight()/10));
-        break;
-    default:
-        break;
-    }
-    */
-    return FXGLCanvas::onKeyPress(o, sel, data);
+    FXGLCanvas::onKeyPress(o, sel, data);
+    return myChanger->onKeyPress(data);
 }
 
 
 long
 GUISUMOAbstractView::onKeyRelease(FXObject* o, FXSelector sel, void* data) {
-    FXEvent* e = (FXEvent*) data;
-    if ((e->state & ALTMASK) == 0) {
-        ungrabKeyboard();
-        setDefaultCursor(getApp()->getDefaultCursor(DEF_ARROW_CURSOR));
-    }
-    return FXGLCanvas::onKeyRelease(o, sel, data);
+    FXGLCanvas::onKeyRelease(o, sel, data);
+    return myChanger->onKeyRelease(data);
 }
 
 
