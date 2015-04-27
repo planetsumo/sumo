@@ -282,7 +282,10 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.addDescription("keep-edges.explicit", "Edge Removal", "Only keep edges in STR");
 
     oc.doRegister("keep-edges.input-file", new Option_FileName());
-    oc.addDescription("keep-edges.input-file", "Edge Removal", "Only keep edges in FILE");
+    oc.addDescription("keep-edges.input-file", "Edge Removal", "Only keep edges in FILE (Each id on a single line. Selection files from SUMO-GUI are also supported)");
+
+    oc.doRegister("remove-edges.input-file", new Option_FileName());
+    oc.addDescription("remove-edges.input-file", "Edge Removal", "Remove edges in FILE. (Each id on a single line. Selection files from SUMO-GUI are also supported)");
 
     if (!forNetgen) {
         oc.doRegister("keep-edges.postload", new Option_Bool(false));
@@ -311,6 +314,7 @@ NBFrame::fillOptions(bool forNetgen) {
         oc.doRegister("remove-edges.isolated", new Option_Bool(false));
         oc.addSynonyme("remove-edges.isolated", "remove-isolated", true);
         oc.addDescription("remove-edges.isolated", "Edge Removal", "Removes isolated edges");
+
     }
 
 
