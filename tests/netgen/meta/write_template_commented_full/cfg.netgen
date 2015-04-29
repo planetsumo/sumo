@@ -162,6 +162,9 @@
         <!-- Tries to cluster tls-controlled nodes -->
         <tls.join value="false" synonymes="try-join-tls" type="BOOL"/>
 
+        <!-- Determines the maximal distance for joining traffic lights (defaults to 20) -->
+        <tls.join-dist value="20" type="FLOAT"/>
+
         <!-- Use INT as green phase duration -->
         <tls.green.time value="31" synonymes="traffic-light-green" type="INT"/>
 
@@ -282,9 +285,6 @@
         <!-- Guess pedestrian crossings based on the presence of sidewalks -->
         <crossings.guess value="false" type="BOOL"/>
 
-        <!-- Determines the maximal distance for joining traffic lights (defaults to 20) -->
-        <tls.join-dist value="20" type="FLOAT"/>
-
     </processing>
 
     <building_defaults>
@@ -299,6 +299,9 @@
 
         <!-- The default width of added sidewalks -->
         <default.sidewalk-width value="2" type="FLOAT"/>
+
+        <!-- Whether junctions should be kept clear by default -->
+        <default.junctions.keep-clear value="true" type="BOOL"/>
 
         <!-- [traffic_light|priority|right_before_left] Determines the type of the build junctions -->
         <default-junction-type value="" synonymes="j junctions" type="STR"/>
