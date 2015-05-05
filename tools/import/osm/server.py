@@ -20,6 +20,7 @@ the Free Software Foundation; either version 3 of the License, or
 import struct
 import SocketServer
 import webbrowser
+import optparse
 import os
 import sys
 import datetime
@@ -124,44 +125,37 @@ def build(handler, prefix, bbox=False):
         # routenames stores all routefiles and will join the items later, will
         # be used by sumo-gui
         routenames = []
+        randomTripsCalls = []
 
-        if handler.vehicles.enable:
-            routename = prefix + ".vehicles.rou.xml"
-            tripname = prefix + ".vehicles.trips.xml"
-            routenames.append(tripname)
-            randomTrips.main(randomTrips.get_options(
-                handler.vehicles.parseTripOpts(netname, routename, areaFactor)))
-            route2trips.main([routename], outfile=tripname)
+        for modeOpts, modeName in [
+                (handler.vehicles, "vehicles"),
+                (handler.bicycles, "bicycles"),
+                (handler.rails, "rails"),
+                (handler.ships, "ships")
+                ]:
+            if modeOpts.enable:
+                routename = "%s.%s.rou.xml" % (prefix, modeName)
+                tripname = "%s.%s.trips.xml" % (prefix, modeName)
+                routenames.append(tripname)
+                opts = modeOpts.parseTripOpts(netname, routename, areaFactor)
+                randomTrips.main(randomTrips.get_options(opts))
+                route2trips.main([routename], outfile=tripname)
+                randomTripsCalls.append(opts)
 
-        if handler.bicycles.enable:
-            routename = prefix + ".bicycles.rou.xml"
-            tripname = prefix + ".bicycles.trips.xml"
-            routenames.append(tripname)
-            randomTrips.main(randomTrips.get_options(
-                handler.bicycles.parseTripOpts(netname, routename, areaFactor)))
-            route2trips.main([routename], outfile=tripname)
-
+        # route2trips is not called for pedestrians
         if handler.pedestrians.enable:
             routename = prefix + ".pedestrians.rou.xml"
             routenames.append(routename)
-            randomTrips.main(randomTrips.get_options(
-                handler.pedestrians.parseTripOpts(netname, routename, areaFactor)))
+            opts = handler.pedestrians.parseTripOpts(netname, routename, areaFactor)
+            randomTrips.main(randomTrips.get_options(opts))
+            randomTripsCalls.append(opts)
 
-        if handler.rails.enable:
-            routename = prefix + ".rails.rou.xml"
-            tripname = prefix + ".rails.trips.xml"
-            routenames.append(tripname)
-            randomTrips.main(randomTrips.get_options(
-                handler.rails.parseTripOpts(netname, routename, areaFactor)))
-            route2trips.main([routename], outfile=tripname)
-
-        if handler.ships.enable:
-            routename = prefix + ".ships.rou.xml"
-            tripname = prefix + ".ships.trips.xml"
-            routenames.append(tripname)
-            randomTrips.main(randomTrips.get_options(
-                handler.ships.parseTripOpts(netname, routename, areaFactor)))
-            route2trips.main([routename], outfile=tripname)
+        # create a batch file for reproducing calls to randomTrips.py
+        randomTripsPath = os.path.join(SUMO_HOME, "tools", "randomTrips.py")
+        batchFile = "%s.%s" % (prefix, ("bat" if os.name == "nt" else "sh"))
+        with open(batchFile, 'w') as f:
+            for opts in randomTripsCalls:
+                f.write("python %s %s\n" % (randomTripsPath, " ".join(map(str, opts))))
 
         callSumo(["-r", ",".join(routenames), "--ignore-route-errors"])
 
