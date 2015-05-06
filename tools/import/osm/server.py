@@ -126,6 +126,7 @@ def build(handler, prefix, bbox=False):
         # be used by sumo-gui
         routenames = []
         randomTripsCalls = []
+        route2TripsCalls = []
 
         for modeOpts, modeName in [
                 (handler.vehicles, "vehicles"),
@@ -141,6 +142,7 @@ def build(handler, prefix, bbox=False):
                 randomTrips.main(randomTrips.get_options(opts))
                 route2trips.main([routename], outfile=tripname)
                 randomTripsCalls.append(opts)
+                route2TripsCalls.append([routename, tripname])
 
         # route2trips is not called for pedestrians
         if handler.pedestrians.enable:
@@ -150,12 +152,15 @@ def build(handler, prefix, bbox=False):
             randomTrips.main(randomTrips.get_options(opts))
             randomTripsCalls.append(opts)
 
-        # create a batch file for reproducing calls to randomTrips.py
+        # create a batch file for reproducing calls to randomTrips.py and route2trips
         randomTripsPath = os.path.join(SUMO_HOME, "tools", "randomTrips.py")
+        route2TripsPath = os.path.join(SUMO_HOME, "tools", "route2trips.py")
         batchFile = "%s.%s" % (prefix, ("bat" if os.name == "nt" else "sh"))
         with open(batchFile, 'w') as f:
             for opts in randomTripsCalls:
                 f.write("python %s %s\n" % (randomTripsPath, " ".join(map(str, opts))))
+            for route, trips in route2TripsCalls:
+                f.write("python %s %s > %s\n" % (route2TripsPath, route, trips))
 
         callSumo(["-r", ",".join(routenames), "--ignore-route-errors"])
 
@@ -342,6 +347,14 @@ if __name__ == "__main__":
         dh.pedestrians.period = 4
         dh.rails.period = 10
         dh.ships.period = 200
+
+        # shorter running time
+        TIME = 900
+        dh.vehicles.time = 900
+        dh.bicycles.time = 900
+        dh.rails.time = 900
+        dh.ships.time = 900
+        dh.pedestrians.time = 900
         build(dh, *sys.argv[1:])
     else:
         main()
