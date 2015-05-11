@@ -345,7 +345,8 @@ MSPModel_Striping::getNextLane(const PState& ped, const MSLane* currentLane, con
                     std::cout << "  next walkingArea " << (nextDir == FORWARD ? "forward" : "backward") << "\n";
                 }
             } else {
-                nextDir = junction == nextRouteEdge->getFromJunction() ? FORWARD : BACKWARD;
+                // walk forward by default
+                nextDir = junction == nextRouteEdge->getToJunction() ? BACKWARD : FORWARD;
                 // try to use a direct link as fallback
                 // direct links only exist if built explicitly. They are used to model tl-controlled links if there are no crossings
                 if (ped.myDir == FORWARD) {
@@ -621,8 +622,11 @@ MSPModel_Striping::moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& ch
             PState* p = *it;
             if (p->myDir != dir) {
                 ++it;
-            } else if (p->moveToNextLane(currentTime)) {
+            } else if (p->distToLaneEnd() < 0) {
+                // moveToNextLane may trigger re-insertion (for consecutive
+                // walks) so erase must be called first
                 it = pedestrians.erase(it);
+                p->moveToNextLane(currentTime);
                 if (p->myLane != 0) {
                     changedLane.insert(p->myPerson);
                     myActiveLanes[p->myLane].push_back(p);
