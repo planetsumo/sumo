@@ -483,6 +483,7 @@ MSPModel_Striping::getNextLaneObstacles(NextLanesObstacles& nextLanesObs, const
         }
         Pedestrians& pedestrians = getPedestrians(nextLane);
         if (nextLane->getEdge().isWalkingArea()) {
+            const SUMOReal minY = stripeWidth * - 0.5 + NUMERICAL_EPS;
             const SUMOReal maxY = stripeWidth * (stripes - 0.5) - NUMERICAL_EPS;
             // complex transformation into the coordinate system of the current lane
             // (pedestrians on next lane may walk at arbitrary angles relative to the current lane)
@@ -493,7 +494,7 @@ MSPModel_Striping::getNextLaneObstacles(NextLanesObstacles& nextLanesObs, const
                 PState& p = *pedestrians[ii];
                 Position relPos =  lane->getShape().transformToVectorCoordinates(p.getPosition(*p.myStage, -1), true);
                 const SUMOReal newY = relPos.y() + lateral_offset;
-                if (newY >= 0 && newY <= maxY) {
+                if (newY >= minY && newY <= maxY) {
                     addCloserObstacle(obs, relPos.x(), p.stripe(newY), p.myPerson->getID(), stripes, currentDir);
                     addCloserObstacle(obs, relPos.x(), p.otherStripe(newY), p.myPerson->getID(), stripes, currentDir);
                 }
@@ -555,6 +556,8 @@ MSPModel_Striping::moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& ch
         //std::cout << SIMTIME << ">>> lane=" << lane->getID() << " numPeds=" << pedestrians.size() << "\n";
         if (lane->getEdge().isWalkingArea()) {
             const SUMOReal lateral_offset = (lane->getWidth() - stripeWidth) * 0.5;
+            const SUMOReal minY = stripeWidth * - 0.5 + NUMERICAL_EPS;
+            const SUMOReal maxY = stripeWidth * (numStripes(lane) - 0.5) - NUMERICAL_EPS;
             const WalkingAreaPath* debugPath = 0;
             // need to handle each walkingAreaPath seperately and transform
             // coordinates beforehand
@@ -586,8 +589,7 @@ MSPModel_Striping::moveInDirection(SUMOTime currentTime, std::set<MSPerson*>& ch
                     } else {
                         const Position relPos = path->shape.transformToVectorCoordinates(p->getPosition(*p->myStage, -1));
                         const SUMOReal newY = relPos.y() + lateral_offset;
-                        if (relPos != Position::INVALID &&
-                                newY >= 0 && newY <= lane->getWidth()) {
+                        if (relPos != Position::INVALID && newY >= minY && newY <= maxY) {
                             PState* tp = new PState(*p);
                             tp->myRelX = relPos.x();
                             tp->myRelY = newY;
