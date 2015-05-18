@@ -70,11 +70,15 @@ class OutputDevice;
  * @todo Vehicle ids are not tracked; it may happen that the same id is added twice...
  */
 class RONet {
-    friend class RORouteAggregator;
-
 public:
     /// @brief Constructor
     RONet();
+
+
+    /** @brief Returns the pointer to the unique instance of RONet (singleton).
+     * @return Pointer to the unique RONet-instance
+     */
+    static RONet* getInstance();
 
 
     /// @brief Destructor
@@ -398,6 +402,17 @@ public:
         return myRoutesOutput;
     }
 
+#ifdef HAVE_FOX
+    void lock() {
+        myThreadPool.lock();
+    }
+
+    void unlock() {
+        myThreadPool.unlock();
+    }
+#endif
+
+
 private:
     static bool computeRoute(SUMOAbstractRouter<ROEdge, ROVehicle>& router,
                              const ROVehicle* const veh, const bool removeLoops,
@@ -414,6 +429,9 @@ private:
     void createBulkRouteRequests(SUMOAbstractRouter<ROEdge, ROVehicle>& router, const SUMOTime time, const bool removeLoops, const std::map<std::string, ROVehicle*>& mmap);
 
 private:
+    /// @brief Unique instance of RONet
+    static RONet* myInstance;
+
     /// @brief Known vehicle ids
     std::set<std::string> myVehIDs;
 
