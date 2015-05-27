@@ -657,7 +657,7 @@ MSVehicle::getAngle() const {
         p2 = myFurtherLanes.size() > 0
              ? myFurtherLanes.back()->geometryPositionAtOffset(myFurtherLanes.back()->getPartialOccupatorEnd())
              : myLane->getShape().front();
-        if (getLaneChangeModel().isChangingLanes() && getLaneChangeModel().getShadowLane(myFurtherLanes.back()) == 0) {
+        if (getLaneChangeModel().isChangingLanes() && myFurtherLanes.size() > 0 && getLaneChangeModel().getShadowLane(myFurtherLanes.back()) == 0) {
             // special case where there target lane has no predecessor
             p2 = myLane->getShape().front();
         }
@@ -1023,7 +1023,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, const MSVehicle* pred, DriveItemVe
             // also slow down for leaders on the shadowLane
             const MSLane* shadowLane = getLaneChangeModel().getShadowLane(lane);
             if (shadowLane != 0) {
-                std::pair<const MSVehicle*, SUMOReal> shadowLeaderInfo = shadowLane->getLeader(this);
+                std::pair<const MSVehicle*, SUMOReal> shadowLeaderInfo = shadowLane->getLeader(this, lane->getLength() - seen, false);
                 adaptToLeader(shadowLeaderInfo, seen, lastLink, shadowLane, v, vLinkPass);
             }
         }
