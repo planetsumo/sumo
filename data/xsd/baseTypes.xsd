@@ -191,8 +191,8 @@
     <xsd:simpleType name="tlTypeType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="actuated"/>
-            <xsd:enumeration value="agentbased"/>
             <xsd:enumeration value="static"/>
+            <!--xsd:enumeration value="rail"/  only for internal use -->
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -212,6 +212,27 @@
     <xsd:complexType name="paramType">
         <xsd:attribute name="key" type="xsd:string" use="required"/>
         <xsd:attribute name="value" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="typeType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="restriction" type="restrictionType"/>
+        </xsd:choice>
+        <xsd:attribute name="id" type="xsd:string" use="required"/>
+        <xsd:attribute name="allow" type="xsd:string"/>
+        <xsd:attribute name="disallow" type="xsd:string"/>
+        <xsd:attribute name="priority" type="xsd:int"/>
+        <xsd:attribute name="numLanes" type="xsd:int"/>
+        <xsd:attribute name="speed" type="xsd:float"/>
+        <xsd:attribute name="discard" type="boolType"/>
+        <xsd:attribute name="oneway" type="boolType"/>
+        <xsd:attribute name="width" type="xsd:float"/>
+        <xsd:attribute name="sidewalkWidth" type="xsd:float"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="restrictionType">
+        <xsd:attribute name="vClass" type="xsd:string" use="required"/>
+        <xsd:attribute name="speed" type="xsd:float" use="required"/>
     </xsd:complexType>
 
 </xsd:schema>

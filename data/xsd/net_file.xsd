@@ -21,6 +21,7 @@
     <xsd:complexType name="netType">
         <xsd:sequence>
             <xsd:element name="location" type="locationType" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="type" type="typeType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="edge" type="edgeType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="tlLogic" type="tlLogicType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="junction" type="junctionType" minOccurs="0" maxOccurs="unbounded"/>
@@ -87,6 +88,7 @@
         <xsd:attribute name="endOffset" type="positiveFloatType" use="optional"/>
         <xsd:attribute name="width" type="positiveFloatType" use="optional"/>
         <xsd:attribute name="shape" type="shapeTypeTwo" use="required"/>
+        <xsd:attribute name="customShape" type="boolType" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="junctionType">
@@ -108,6 +110,7 @@
                     <xsd:enumeration value="traffic_light_unregulated"/>
                     <xsd:enumeration value="allway_stop"/>
                     <xsd:enumeration value="priority_stop"/>
+                    <xsd:enumeration value="rail_signal"/>
                     <xsd:enumeration value="internal"/>
                 </xsd:restriction>
             </xsd:simpleType>
@@ -115,6 +118,8 @@
         <xsd:attribute name="incLanes" type="xsd:string" use="required"/>
         <xsd:attribute name="intLanes" type="xsd:string" use="required"/>
         <xsd:attribute name="shape" type="shapeType" use="optional"/>
+        <xsd:attribute name="radius" type="positiveFloatType" use="optional"/>
+        <xsd:attribute name="customShape" type="boolType" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="requestType">
@@ -146,6 +151,7 @@
         <xsd:attribute name="fromLane" type="xsd:nonNegativeInteger" use="required"/>
         <xsd:attribute name="toLane" type="xsd:nonNegativeInteger" use="required"/>
         <xsd:attribute name="pass" type="boolType" use="optional"/>
+        <xsd:attribute name="keepClear" type="boolType" use="optional"/>
         <xsd:attribute name="via" type="xsd:string" use="optional"/>
         <xsd:attribute name="tl" type="xsd:string" use="optional"/>
         <xsd:attribute name="linkIndex" type="xsd:nonNegativeInteger" use="optional"/>

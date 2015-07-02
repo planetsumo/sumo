@@ -8,6 +8,7 @@
     
     <xsd:complexType name="additionalType">
         <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="location" type="locationType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="vTypeProbe" type="vTypeProbeType" minOccurs="0"/>
             <xsd:element name="e1Detector" type="e1DetectorType" minOccurs="0"/>
             <xsd:element name="inductionLoop" type="e1DetectorType" minOccurs="0"/>
@@ -26,6 +27,7 @@
             <xsd:element name="rerouter" type="rerouterType" minOccurs="0"/>
             <xsd:element name="instantInductionLoop" type="instantInductionLoopType" minOccurs="0"/>
             <xsd:element name="busStop" type="busStopType" minOccurs="0"/>
+            <xsd:element name="containerStop" type="containerStopType" minOccurs="0"/>
             <xsd:element name="calibrator" type="calibratorType" minOccurs="0"/>
             <xsd:element name="vaporizer" type="vaporizerType" minOccurs="0"/>
 
@@ -248,6 +250,15 @@
         <xsd:attribute name="lines" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
+    <xsd:complexType name="containerStopType">
+        <xsd:attribute name="id" type="xsd:string" use="required"/>
+        <xsd:attribute name="lane" type="xsd:string" use="required"/>
+        <xsd:attribute name="startPos" type="xsd:float"/>
+        <xsd:attribute name="endPos" type="xsd:float"/>
+        <xsd:attribute name="friendlyPos" type="boolType" use="optional"/>
+        <xsd:attribute name="lines" type="xsd:string" use="optional"/>
+    </xsd:complexType>
+
     <xsd:complexType name="calibratorType">
         <xsd:choice maxOccurs="unbounded">
             <xsd:element name="route" type="routeType" minOccurs="0"/>
@@ -276,6 +287,7 @@
         <xsd:attribute name="type" type="xsd:string" use="optional"/>
         <xsd:attribute name="color" type="colorType" use="required"/>
         <xsd:attribute name="fill" type="boolType" use="optional"/>
+        <xsd:attribute name="geo" type="boolType" use="optional"/>
         <xsd:attribute name="layer" type="xsd:float" use="optional"/>
         <xsd:attribute name="shape" type="shapeType" use="required"/>
         <xsd:attribute name="angle" type="xsd:float" use="optional"/>
