@@ -26,11 +26,11 @@ on("ready", function(){
      * @param de: the display string
      * @param en: the internal string
      */
-    function Settings(de, en){
-        this._init(de, en);
+    function Settings(de, en, fringeFactor){
+        this._init(de, en, fringeFactor);
     }
     Settings.prototype = {
-        _init: function(de, en){
+        _init: function(de, en, fringeFactor){
             var node = elem("<span>", {className: "container", textContent: de});
             var checkbox = elem("<input>", {type: "checkbox"});
             checkbox.on("click", function(evt){
@@ -39,15 +39,15 @@ on("ready", function(){
             node.append(checkbox);
 
             var options = elem("<div>", {className: "options"});
-            var label = elem("<label>", {textContent: "Durchgangsverkehr"});
-            var input = elem("<input>", {type: "number", min: .5, max: 100, step: .1, value: 1});
+            var label = elem("<label>", {textContent: "Through Traffic Factor"});
+            var input = elem("<input>", {type: "number", min: .5, max: 100, step: .1, value: fringeFactor});
             input.on("input", function(evt){
                 socket.send(en + "FringeFactor: " + evt.target.value);
             });
             label.append(input);
             options.append(label);
 
-            label = elem("<label>", {textContent: "Frequenz"});
+            label = elem("<label>", {textContent: "Insertion Period (s)"});
             input = elem("<input>", {type: "number", min: .2, max: 100, step: .1, value: 10});
             input.on("input", function(evt){
                 socket.send(en + "Period: " + evt.target.value);
@@ -55,7 +55,7 @@ on("ready", function(){
             label.append(input);
             options.append(label);
 
-            label = elem("<label>", {textContent: "Dauer"});
+            label = elem("<label>", {textContent: "End time (s)"});
             input = elem("<input>", {type: "number", min: 60, max: 36000, step: 60, value: 3600});
             input.on("input", function(evt){
                 socket.send(en + "Time: " + evt.target.value);
@@ -68,10 +68,10 @@ on("ready", function(){
         }
     };
 
-    new Settings("Fahrzeuge", "vehicles");
-    new Settings("Fahrradfahrer", "bicycles");
-    new Settings("Fußgänger", "pedestrians");
-    new Settings("Züge", "rails");
+    new Settings("Cars", "vehicles", 5);
+    new Settings("Bicycles", "bicycles", 2);
+    new Settings("Pedestrians", "pedestrians", 1);
+    new Settings("Trains", "rails", 40);
 
     var canvas = elem("canvas");
     var canvasActive = false,

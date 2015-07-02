@@ -23,7 +23,8 @@ from .. import color
 
 
 class Polygon:
-    def __init__(self, id, type, color, layer, fill, shape):
+
+    def __init__(self, id, type=None, color=None, layer=None, fill=None, shape=None):
         self.id = id
         self.type = type
         self.color = color
@@ -49,8 +50,18 @@ class Polygon:
         s = []
         for e in self.shape:
             s.append("%s,%s" % (e[0], e[1]))
-        ret = '<poly id="%s" type="%s" color="%s" layer="%s" fill="%s" shape="%s"' % (self.id, self.type, self.color.toXML(), self.layer, self.fill, " ".join(s))
-        if len(self.attributes)==0:
+        ret = '<poly id="%s"' % self.id
+        if type is not None:
+            ret += ' type="%s"' % self.type
+        if color is not None:
+            ret += ' color="%s"' % self.color.toXML()
+        if layer is not None:
+            ret += ' layer="%s"' % self.layer
+        if fill is not None:
+            ret += ' fill="%s"' % self.fill
+        if shape is not None:
+            ret += ' shape="%s"' % (" ".join(s))
+        if len(self.attributes) == 0:
             ret += '/>'
         else:
             ret += '>'
@@ -59,34 +70,42 @@ class Polygon:
             ret += '</poly>'
         return ret
 
-        
+
 class PolygonReader(handler.ContentHandler):
-    def __init__(self):
+
+    def __init__(self, includeTaz=False):
+        self._includeTaz = includeTaz
         self._id2poly = {}
         self._polys = []
         self._lastPoly = None
 
     def startElement(self, name, attrs):
-        if name == 'poly':
-            c = color.decodeXML(attrs['color'])
-            s1 = attrs['shape'].strip().split(" ")
+        if name == 'poly' or (self._includeTaz and name == 'taz'):
             cshape = []
-            for e in s1:
+            for e in attrs['shape'].split():
                 p = e.split(",")
                 cshape.append((float(p[0]), float(p[1])))
-            poly = Polygon(attrs['id'], attrs['type'], c, float(attrs['layer']), attrs['fill'], cshape)
+            if name == 'poly' and not self._includeTaz:
+                c = color.decodeXML(attrs['color'])
+                poly = Polygon(attrs['id'], attrs['type'], c, float(
+                               attrs['layer']), attrs['fill'], cshape)
+            else:
+                poly = Polygon(attrs['id'], shape=cshape)
             self._id2poly[poly.id] = poly
             self._polys.append(poly)
             self._lastPoly = poly
-        if name == 'param' and self._lastPoly!=None:
+        if name == 'param' and self._lastPoly != None:
             self._lastPoly.attributes[attrs['key']] = attrs['value']
 
     def endElement(self, name):
         if name == 'poly':
             self._lastPoly = None
+            
+    def getPolygons(self):
+        return self._polys
 
-    
-def read(filename):
-    polys = PolygonReader()
+
+def read(filename, includeTaz=False):
+    polys = PolygonReader(includeTaz)
     parse(filename, polys)
-    return polys._polys
+    return polys.getPolygons()
