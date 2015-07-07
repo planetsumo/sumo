@@ -108,7 +108,7 @@ public:
 	 * SOTL politics are implementated through decidePhase() member
 	 * @see MSTrafficLightLogic::trySwitch
 	 */
-	SUMOTime trySwitch(bool);
+	SUMOTime trySwitch();
 
 protected:
 

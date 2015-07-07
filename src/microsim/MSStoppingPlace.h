@@ -1,5 +1,5 @@
 /****************************************************************************/
-/// @file    MSBusStop.h
+/// @file    MSStoppingPlace.h
 /// @author  Daniel Krajzewicz
 /// @author  Michael Behrisch
 /// @date    Mon, 13.12.2005
@@ -18,8 +18,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
-#ifndef MSBusStop_h
-#define MSBusStop_h
+#ifndef MSStoppingPlace_h
+#define MSStoppingPlace_h
 
 
 // ===========================================================================
@@ -43,17 +43,17 @@
 // ===========================================================================
 class MSLane;
 class SUMOVehicle;
-class MSPerson;
+class MSTransportable;
 
 
 // ===========================================================================
 // class definitions
 // ===========================================================================
 /**
- * @class MSBusStop
+ * @class MSStoppingPlace
  * @brief A lane area vehicles can halt at
  *
- * The bus stops tracks the last free space a vehicle may halt at by being
+ * The stop tracks the last free space a vehicle may halt at by being
  *  informed about a vehicle's entering and depart. It keeps the information
  *  about entered vehicles' begin and end position within an internal
  *  container ("myEndPositions") and is so able to compute the last free space.
@@ -61,43 +61,43 @@ class MSPerson;
  * Please note that using the last free space disallows vehicles to enter a
  *  free space in between other vehicles.
  */
-class MSBusStop : public Named {
+class MSStoppingPlace : public Named {
 public:
     /** @brief Constructor
      *
-     * @param[in] id The id of the bus stop
-     * @param[in] net The net the bus stop belongs to
-     * @param[in] lines Names of the bus lines that halt on this bus stop
-     * @param[in] lane The lane the bus stop is placed on
-     * @param[in] begPos Begin position of the bus stop on the lane
-     * @param[in] endPos End position of the bus stop on the lane
+     * @param[in] id The id of the stop
+     * @param[in] net The net the stop belongs to
+     * @param[in] lines Names of the lines that halt on this stop
+     * @param[in] lane The lane the stop is placed on
+     * @param[in] begPos Begin position of the stop on the lane
+     * @param[in] endPos End position of the stop on the lane
      */
-    MSBusStop(const std::string& id,
+    MSStoppingPlace(const std::string& id,
               const std::vector<std::string>& lines, MSLane& lane,
               SUMOReal begPos, SUMOReal endPos);
 
 
     /// @brief Destructor
-    virtual ~MSBusStop();
+    virtual ~MSStoppingPlace();
 
 
-    /** @brief Returns the lane this bus stop is located at
+    /** @brief Returns the lane this stop is located at
      *
-     * @return Reference to the lane the bus stop is located at
+     * @return Reference to the lane the stop is located at
      */
     const MSLane& getLane() const;
 
 
-    /** @brief Returns the begin position of this bus stop
+    /** @brief Returns the begin position of this stop
      *
-     * @return The position the bus stop begins at
+     * @return The position the stop begins at
      */
     SUMOReal getBeginLanePosition() const;
 
 
-    /** @brief Returns the end position of this bus stop
+    /** @brief Returns the end position of this stop
      *
-     * @return The position the bus stop ends at
+     * @return The position the stop ends at
      */
     SUMOReal getEndLanePosition() const;
 
@@ -135,20 +135,22 @@ public:
     SUMOReal getLastFreePos(const SUMOVehicle& forVehicle) const;
 
 
-    /** @brief Returns the number of persons waiting on this stop
+    /** @brief Returns the number of transportables waiting on this stop
     */
-    unsigned int getPersonNumber() const {
-        return static_cast<unsigned int>(myWaitingPersons.size());
+    unsigned int getTransportableNumber() const {
+        return static_cast<unsigned int>(myWaitingTransportables.size());
     }
 
-    void addPerson(MSPerson* p) {
-        myWaitingPersons.push_back(p);
+    /// @brief adds a transportable to this stop
+    void addTransportable(MSTransportable* p) {
+        myWaitingTransportables.push_back(p);
     }
 
-    void removePerson(MSPerson* p) {
-        std::vector<MSPerson*>::iterator i = std::find(myWaitingPersons.begin(), myWaitingPersons.end(), p);
-        if (i != myWaitingPersons.end()) {
-            myWaitingPersons.erase(i);
+    /// @brief Removes a transportable from this stop
+    void removeTransportable(MSTransportable* p) {
+        std::vector<MSTransportable*>::iterator i = std::find(myWaitingTransportables.begin(), myWaitingTransportables.end(), p);
+        if (i != myWaitingTransportables.end()) {
+            myWaitingTransportables.erase(i);
         }
     }
 
@@ -182,15 +184,15 @@ protected:
     SUMOReal myLastFreePos;
 
     /// @brief Persons waiting at this stop
-    std::vector<MSPerson*> myWaitingPersons;
+    std::vector<MSTransportable*> myWaitingTransportables;
 
 
 private:
     /// @brief Invalidated copy constructor.
-    MSBusStop(const MSBusStop&);
+    MSStoppingPlace(const MSStoppingPlace&);
 
     /// @brief Invalidated assignment operator.
-    MSBusStop& operator=(const MSBusStop&);
+    MSStoppingPlace& operator=(const MSStoppingPlace&);
 
 
 };

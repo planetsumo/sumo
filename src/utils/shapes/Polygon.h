@@ -37,6 +37,8 @@
 #include <utils/common/Parameterised.h>
 #include "Shape.h"
 
+class OutputDevice;
+
 // we need to put this into a namespace to avoid clashing with wingdi.h::Polygon function
 namespace SUMO {
 
@@ -111,6 +113,10 @@ public:
     }
     /// @}
 
+    /* @brief polygon definition to the given device
+     * @param[in] geo  Whether to write the output in geo-coordinates
+     */
+    void writeXML(OutputDevice& out, bool geo = false);
 
 protected:
     /// @brief The positions of the polygon

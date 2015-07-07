@@ -133,7 +133,7 @@ loadJTRDefinitions(RONet& net, OptionsCont& oc) {
             if (edge == 0) {
                 throw ProcessError("The edge '" + *i + "' declared as a sink is not known.");
             }
-            edge->setType(ROEdge::ET_SINK);
+            edge->setFunc(ROEdge::ET_SINK);
         }
     }
 }
@@ -174,7 +174,8 @@ main(int argc, char** argv) {
         // initialise the application system (messaging, xml, options)
         XMLSubSys::init();
         ROJTRFrame::fillOptions();
-        OptionsIO::getOptions(true, argc, argv);
+        OptionsIO::setArgs(argc, argv);
+        OptionsIO::getOptions();
         if (oc.processMetaOptions(argc < 2)) {
             SystemFrame::close();
             return 0;

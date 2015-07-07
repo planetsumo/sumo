@@ -232,6 +232,14 @@ GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
 
 
 void
+GUIParameterTableWindow::mkItem(const char* name, bool dynamic,
+                                long long int value) {
+    GUIParameterTableItemInterface* i = new GUIParameterTableItem<long long int>(myTable, myCurrentPos++, name, dynamic, value);
+    myItems.push_back(i);
+}
+
+
+void
 GUIParameterTableWindow::updateTable() {
     AbstractMutex::ScopedLocker locker(myLock);
     if (myObject == 0) {

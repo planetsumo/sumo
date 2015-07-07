@@ -358,18 +358,25 @@ NBNodeCont::removeUnwishedNodes(NBDistrictCont& dc, NBEdgeCont& ec,
             continuation->getToNode()->replaceIncoming(continuation, begin, 0);
             tlc.replaceRemoved(continuation, -1, begin, -1);
             je.appended(begin->getID(), continuation->getID());
-            ec.erase(dc, continuation);
+            ec.extract(dc, continuation, true);
         }
         toRemove.push_back(current);
         no++;
     }
     // erase all
     for (std::vector<NBNode*>::iterator j = toRemove.begin(); j != toRemove.end(); ++j) {
-        erase(*j);
+        extract(*j, true);
     }
     return no;
 }
 
+
+void
+NBNodeCont::avoidOverlap() {
+    for (NodeCont::iterator i = myNodes.begin(); i != myNodes.end(); i++) {
+        (*i).second->avoidOverlap();
+    }
+}
 
 // ----------- (Helper) methods for joining nodes
 void
@@ -832,6 +839,7 @@ NBNodeCont::guessTLs(OptionsCont& oc, NBTrafficLightLogicCont& tlc) {
         for (std::map<std::string, NBNode*>::const_iterator i = myNodes.begin(); i != myNodes.end(); ++i) {
             NBNode* node = i->second;
             const EdgeVector& incoming = node->getIncomingEdges();
+            const EdgeVector& outgoing = node->getOutgoingEdges();
             if (!node->isTLControlled() && incoming.size() > 1 && !node->geometryLike()) {
                 std::vector<NBNode*> signals;
                 bool isTLS = true;
@@ -845,10 +853,19 @@ NBNodeCont::guessTLs(OptionsCont& oc, NBTrafficLightLogicCont& tlc) {
                         signals.push_back(inEdge->getFromNode());
                     }
                 }
+                // outgoing edges may be tagged with pedestrian crossings. These
+                // should also be morged into the main TLS
+                for (EdgeVector::const_iterator it_i = outgoing.begin(); it_i != outgoing.end(); ++it_i) {
+                    const NBEdge* outEdge = *it_i;
+                    NBNode* cand = outEdge->getToNode();
+                    if (cand->isTLControlled() && cand->geometryLike() && outEdge->getLength() <= signalDist) {
+                        signals.push_back(cand);
+                    }
+                }
                 if (isTLS) {
                     for (std::vector<NBNode*>::iterator j = signals.begin(); j != signals.end(); ++j) {
                         std::set<NBTrafficLightDefinition*> tls = (*j)->getControllingTLS();
-                        (*j)->removeTrafficLights();
+                        (*j)->reinit((*j)->getPosition(), NODETYPE_PRIORITY);
                         for (std::set<NBTrafficLightDefinition*>::iterator k = tls.begin(); k != tls.end(); ++k) {
                             tlc.removeFully((*j)->getID());
                         }
@@ -1051,6 +1068,7 @@ NBNodeCont::printBuiltNodesStatistics() const {
     int numPriorityJunctions = 0;
     int numRightBeforeLeftJunctions = 0;
     int numAllWayStopJunctions = 0;
+    int numRailSignals = 0;
     for (NodeCont::const_iterator i = myNodes.begin(); i != myNodes.end(); i++) {
         switch ((*i).second->getType()) {
             case NODETYPE_NOJUNCTION:
@@ -1076,6 +1094,9 @@ NBNodeCont::printBuiltNodesStatistics() const {
                 break;
             case NODETYPE_UNKNOWN:
                 break;
+            case NODETYPE_RAIL_SIGNAL:
+                ++numRailSignals;
+                break;
             default:
                 break;
         }
@@ -1089,6 +1110,9 @@ NBNodeCont::printBuiltNodesStatistics() const {
     WRITE_MESSAGE("  Right-before-left junctions : " + toString(numRightBeforeLeftJunctions));
     if (numAllWayStopJunctions > 0) {
         WRITE_MESSAGE("  All-way stop junctions      : " + toString(numAllWayStopJunctions));
+    }
+    if (numRailSignals > 0) {
+        WRITE_MESSAGE("  Rail signal junctions      : " + toString(numRailSignals));
     }
 }
 

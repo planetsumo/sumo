@@ -39,6 +39,7 @@
 #include <utils/common/SUMOTime.h>
 #include <utils/common/Parameterised.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
+#include <utils/shapes/ShapeHandler.h>
 #include <microsim/MSLink.h>
 #include <microsim/MSRouteHandler.h>
 #include <microsim/traffic_lights/MSSimpleTrafficLightLogic.h>
@@ -61,6 +62,26 @@ class MSTrafficLightLogic;
 // ===========================================================================
 // class definitions
 // ===========================================================================
+
+
+/**
+ * @class NLShapeHandler
+ * @brief The XML-Handler for shapes loading network loading
+ *
+ * This subclasses ShapeHandler with MSLane specific function
+ */
+class NLShapeHandler : public ShapeHandler {
+public:
+    NLShapeHandler(const std::string& file, ShapeContainer& sc) :
+        ShapeHandler(file, sc) {}
+
+    /// @brief Destructor
+    virtual ~NLShapeHandler() {}
+
+    Position getLanePos(const std::string& poiID, const std::string& laneID, SUMOReal lanePos);
+};
+
+
 /**
  * @class NLHandler
  * @brief The XML-Handler for network loading
@@ -294,6 +315,9 @@ protected:
     /// The id of the currently processed WAUT
     std::string myCurrentWAUTID;
 
+    /// The id of the currently processed edge type
+    std::string myCurrentTypeID;
+
     /// The network offset
     Position myNetworkOffset;
 
@@ -309,6 +333,9 @@ protected:
     /// @brief whether the loaded network contains internal lanes
     bool myHaveSeenInternalEdge;
 
+    /// @brief whether the location element was already loadee
+    bool myNetIsLoaded;
+
     /// @brief temporary data for building the junction graph after network parsing is finished
     typedef std::map<std::string, std::pair<std::string, std::string> > JunctionGraph;
     JunctionGraph myJunctionGraph;
@@ -321,6 +348,8 @@ private:
     NLHandler& operator=(const NLHandler& s);
 
 };
+
+
 
 
 #endif

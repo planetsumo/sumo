@@ -61,6 +61,14 @@ public:
 			const std::map<std::string, std::string>& parameters,
 			MSSOTLSensors *sensors) throw ();
 
+	/** @brief Returns the type of the logic as a string
+     * @return The type of the logic
+     */
+    const std::string getLogicType() const {
+        return "waveTrafficLightLogic";
+    }
+    /// @}
+
 protected:
 
 	/*

@@ -49,17 +49,18 @@
 // ===========================================================================
 bool
 TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStorage,
-                                tcpip::Storage& outputStorage) {
+                                  tcpip::Storage& outputStorage) {
     // variable
     int variable = inputStorage.readUnsignedByte();
     std::string id = inputStorage.readString();
     // check variable
-    if (variable != ID_LIST && variable != VAR_POSITION && variable != VAR_ANGLE
-            && variable != VAR_ROAD_ID && variable != VAR_COLOR && variable != VAR_LANEPOSITION
-            && variable != VAR_WIDTH && variable != VAR_MINGAP && variable != VAR_SHAPECLASS
-            && variable != VAR_ACCEL && variable != VAR_DECEL && variable != VAR_IMPERFECTION
-            && variable != VAR_TAU && variable != VAR_BEST_LANES && variable != DISTANCE_REQUEST
-            && variable != ID_COUNT && variable != VAR_STOPSTATE && variable !=  VAR_WAITING_TIME
+    if (variable != ID_LIST && variable != ID_COUNT
+            && variable != VAR_POSITION && variable != VAR_POSITION3D && variable != VAR_ANGLE && variable != VAR_SPEED
+            && variable != VAR_ROAD_ID && variable != VAR_LANEPOSITION
+            && variable != VAR_WIDTH && variable != VAR_LENGTH && variable != VAR_MINGAP
+            && variable != VAR_TYPE && variable != VAR_SHAPECLASS && variable != VAR_COLOR
+            && variable != VAR_WAITING_TIME && variable != VAR_PARAMETER
+            && variable != VAR_NEXT_EDGE
        ) {
         return server.writeErrorStatusCmd(CMD_GET_PERSON_VARIABLE, "Get Person Variable: unsupported variable specified", outputStorage);
     }
@@ -83,7 +84,7 @@ TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStor
             tempMsg.writeInt((int) c.size());
         }
     } else {
-        MSPerson* p = c.get(id);
+        MSTransportable* p = c.get(id);
         if (p == 0) {
             return server.writeErrorStatusCmd(CMD_GET_PERSON_VARIABLE, "Person '" + id + "' is not known", outputStorage);
         }
@@ -92,11 +93,21 @@ TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStor
                 tempMsg.writeUnsignedByte(POSITION_2D);
                 tempMsg.writeDouble(p->getPosition().x());
                 tempMsg.writeDouble(p->getPosition().y());
-                }
+            }
+            break;
+            case VAR_POSITION3D:
+                tempMsg.writeUnsignedByte(POSITION_3D);
+                tempMsg.writeDouble(p->getPosition().x());
+                tempMsg.writeDouble(p->getPosition().y());
+                tempMsg.writeDouble(p->getPosition().z());
                 break;
             case VAR_ANGLE:
                 tempMsg.writeUnsignedByte(TYPE_DOUBLE);
                 tempMsg.writeDouble(p->getAngle());
+                break;
+            case VAR_SPEED:
+                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
+                tempMsg.writeDouble(p->getSpeed());
                 break;
             case VAR_ROAD_ID:
                 tempMsg.writeUnsignedByte(TYPE_STRING);
@@ -113,6 +124,26 @@ TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStor
                 tempMsg.writeUnsignedByte(p->getParameter().color.blue());
                 tempMsg.writeUnsignedByte(p->getParameter().color.alpha());
                 break;
+            case VAR_WAITING_TIME:
+                tempMsg.writeUnsignedByte(TYPE_DOUBLE);
+                tempMsg.writeDouble(p->getWaitingSeconds());
+                break;
+            case VAR_TYPE:
+                tempMsg.writeUnsignedByte(TYPE_STRING);
+                tempMsg.writeString(p->getVehicleType().getID());
+                break;
+            case VAR_NEXT_EDGE:
+                tempMsg.writeUnsignedByte(TYPE_STRING);
+                tempMsg.writeString(dynamic_cast<MSPerson*>(p)->getNextEdge());
+                break;
+            case VAR_PARAMETER: {
+                std::string paramName = "";
+                if (!server.readTypeCheckingString(inputStorage, paramName)) {
+                    return server.writeErrorStatusCmd(CMD_GET_PERSON_VARIABLE, "Retrieval of a parameter requires its name.", outputStorage);
+                }
+                tempMsg.writeUnsignedByte(TYPE_STRING);
+                tempMsg.writeString(p->getParameter().getParameter(paramName, ""));
+            }
             default:
                 TraCIServerAPI_VehicleType::getVariable(variable, p->getVehicleType(), tempMsg);
                 break;
@@ -126,28 +157,78 @@ TraCIServerAPI_Person::processGet(TraCIServer& server, tcpip::Storage& inputStor
 
 bool
 TraCIServerAPI_Person::processSet(TraCIServer& server, tcpip::Storage& inputStorage,
-                                tcpip::Storage& outputStorage) {
+                                  tcpip::Storage& outputStorage) {
     std::string warning = ""; // additional description for response
     // variable
     int variable = inputStorage.readUnsignedByte();
-    if (true) {
-        return server.writeErrorStatusCmd(CMD_SET_PERSON_VARIABLE, "Change Person State: unsupported variable specified", outputStorage);
+    if (variable != VAR_PARAMETER
+       ) {        return server.writeErrorStatusCmd(CMD_SET_PERSON_VARIABLE, "Change Person State: unsupported variable specified", outputStorage);
     }
     // id
     MSPersonControl& c = MSNet::getInstance()->getPersonControl();
     std::string id = inputStorage.readString();
-    MSPerson* p = c.get(id);
+    MSTransportable* p = c.get(id);
     if (p == 0) {
         return server.writeErrorStatusCmd(CMD_SET_PERSON_VARIABLE, "Person '" + id + "' is not known", outputStorage);
     }
     // process
     switch (variable) {
+        case VAR_PARAMETER: {
+            if (inputStorage.readUnsignedByte() != TYPE_COMPOUND) {
+                return server.writeErrorStatusCmd(CMD_SET_PERSON_VARIABLE, "A compound object is needed for setting a parameter.", outputStorage);
+            }
+            //readt itemNo
+            inputStorage.readInt();
+            std::string name;
+            if (!server.readTypeCheckingString(inputStorage, name)) {
+                return server.writeErrorStatusCmd(CMD_SET_PERSON_VARIABLE, "The name of the parameter must be given as a string.", outputStorage);
+            }
+            std::string value;
+            if (!server.readTypeCheckingString(inputStorage, value)) {
+                return server.writeErrorStatusCmd(CMD_SET_PERSON_VARIABLE, "The value of the parameter must be given as a string.", outputStorage);
+            }
+            ((SUMOVehicleParameter&) p->getParameter()).addParameter(name, value);
+        }
+        break;
         default:
+            /*
+            try {
+                if (!TraCIServerAPI_VehicleType::setVariable(CMD_SET_PERSON_VARIABLE, variable, getSingularType(v), server, inputStorage, outputStorage)) {
+                    return false;
+                }
+            } catch (ProcessError& e) {
+                return server.writeErrorStatusCmd(CMD_SET_VEHICLE_VARIABLE, e.what(), outputStorage);
+            }
+            */
             break;
     }
     server.writeStatusCmd(CMD_SET_PERSON_VARIABLE, RTYPE_OK, warning, outputStorage);
     return true;
 }
+
+
+bool
+TraCIServerAPI_Person::getPosition(const std::string& id, Position& p) {
+    MSPerson* person = dynamic_cast<MSPerson*>(MSNet::getInstance()->getPersonControl().get(id));
+    if (person == 0) {
+        return false;
+    }
+    p = person->getPosition();
+    return true;
+}
+
+
+/*
+MSVehicleType&
+TraCIServerAPI_Person::getSingularType(MSPerson* const person) {
+    const MSVehicleType& oType = person->getVehicleType();
+    std::string newID = oType.getID().find('@') == std::string::npos ? oType.getID() + "@" + person->getID() : oType.getID();
+    MSVehicleType* type = MSVehicleType::build(newID, &oType);
+    person->replaceVehicleType(type);
+    return *type;
+}
+*/
+
 
 
 #endif

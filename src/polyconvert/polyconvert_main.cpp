@@ -203,6 +203,10 @@ fillOptions() {
 
     oc.doRegister("discard", new Option_Bool(false));
     oc.addDescription("discard", "Building Defaults", "Sets default action to discard");
+
+    // projection
+    oc.doRegister("proj.plain-geo", new Option_Bool(false));
+    oc.addDescription("proj.plain-geo", "Projection", "Write geo coordinates in output");
 }
 
 
@@ -216,7 +220,8 @@ main(int argc, char** argv) {
         // initialise subsystems
         XMLSubSys::init();
         fillOptions();
-        OptionsIO::getOptions(true, argc, argv);
+        OptionsIO::setArgs(argc, argv);
+        OptionsIO::getOptions();
         if (oc.processMetaOptions(argc < 2)) {
             SystemFrame::close();
             return 0;
@@ -287,13 +292,14 @@ main(int argc, char** argv) {
         PCLoaderDlrNavteq::loadIfSet(oc, toFill, tm); // Elmar-files
         PCLoaderVisum::loadIfSet(oc, toFill, tm); // VISUM
         PCLoaderArcView::loadIfSet(oc, toFill, tm); // shape-files
+        GeoConvHelper::computeFinal();
         // error processing
         if (MsgHandler::getErrorInstance()->wasInformed() && oc.getBool("ignore-errors")) {
             MsgHandler::getErrorInstance()->clear();
         }
         if (!MsgHandler::getErrorInstance()->wasInformed()) {
             // no? ok, save
-            toFill.save(oc.getString("output-file"));
+            toFill.save(oc.getString("output-file"), oc.getBool("proj.plain-geo"));
         } else {
             throw ProcessError();
         }

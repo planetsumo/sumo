@@ -192,6 +192,11 @@ NLBuilder::build() {
         if (!load("additional-files")) {
             return false;
         }
+        // load shapes with separate handler
+        NLShapeHandler sh("", myNet.getShapeContainer());
+        if (!ShapeHandler::loadFiles(myOptions.getStringVector("additional-files"), sh)) {
+            return false;
+        }
     }
     WRITE_MESSAGE("Loading done.");
     return true;
@@ -228,7 +233,7 @@ NLBuilder::buildNet() {
             }
         }
         myNet.closeBuilding(edges, junctions, routeLoaders, tlc, stateDumpTimes, stateDumpFiles,
-                myXMLHandler.haveSeenInternalEdge());
+                            myXMLHandler.haveSeenInternalEdge());
     } catch (IOError& e) {
         delete edges;
         delete junctions;

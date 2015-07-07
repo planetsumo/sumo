@@ -189,6 +189,8 @@ private:
         unsigned int tlLinkNo;
         /// @brief Information about being definitely free to drive (on-ramps)
         bool mayDefinitelyPass;
+        /// @brief Whether the junction must be kept clear coming from this connection
+        bool keepClear;
     };
 
 
@@ -315,6 +317,12 @@ private:
 
     /// @brief loaded roundabout edges
     std::vector<std::vector<std::string> > myRoundabouts;
+
+    /// @brief customLaneShape (cannot be added to the NBNode when parsed since the node doesn't yet exist
+    std::map<std::string, NBNode::CustomShapeMap> myCustomShapeMaps;
+
+    /// @brief list of node id with rail signals (no NBTrafficLightDefinition exists)
+    std::set<std::string> myRailSignals;
 
     /** @brief Parses lane index from lane ID an retrieve lane from EdgeAttrs
      * @param[in] edge The EdgeAttrs* which should contain the lane

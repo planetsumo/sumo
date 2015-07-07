@@ -40,6 +40,13 @@
 #include <utils/common/StringBijection.h>
 #include <utils/xml/SUMOXMLDefinitions.h>
 
+
+// ===========================================================================
+// class declarations
+// ===========================================================================
+class OutputDevice;
+
+
 // ===========================================================================
 // enum definitions
 // ===========================================================================
@@ -93,7 +100,9 @@ enum SUMOVehicleShape {
     /// @brief render as a (futuristic) e-vehicle
     SVS_E_VEHICLE,
     /// @brief render as a giant ant
-    SVS_ANT
+    SVS_ANT,
+    /// @brief render as a arbitrary ship
+    SVS_SHIP
 };
 
 
@@ -176,10 +185,12 @@ enum SUMOVehicleClass {
     SVC_PEDESTRIAN = 1 << 20,
     /// @brief is an electric vehicle
     SVC_E_VEHICLE = 1 << 21,
+    /// @brief is an arbitrary ship
+    SVC_SHIP = 1 << 22,
     /// @brief is a user-defined type
-    SVC_CUSTOM1 = 1 << 22,
+    SVC_CUSTOM1 = 1 << 23,
     /// @brief is a user-defined type
-    SVC_CUSTOM2 = 1 << 23
+    SVC_CUSTOM2 = 1 << 24
                   //@}
 };
 
@@ -191,7 +202,8 @@ extern StringBijection<SUMOVehicleShape> SumoVehicleShapeStrings;
 /* @brief bitset where each bit declares whether a certain SVC may use this edge/lane
  */
 typedef int SVCPermissions;
-extern const SVCPermissions SVCAll;
+extern const SVCPermissions SVCAll; // everything allowed
+extern const SVCPermissions SVC_UNSPECIFIED; // permissions not specified
 
 
 /**
@@ -209,14 +221,6 @@ typedef int SUMOEmissionClass;
 // ---------------------------------------------------------------------------
 // abstract vehicle class / purpose
 // ---------------------------------------------------------------------------
-/* @brief SUMOVehicleClass is meant to be OR'ed to combine information about vehicle
- * ownership and vehicle "size" into one int.
- * These OR'ed values cannot be translated directly into strings with toString().
- * The names of all base values are concatenated with '|' as a separator.
- */
-extern std::string getVehicleClassCompoundName(int id);
-
-
 /** @brief Returns the ids of the given classes, divided using a ' '
  * @param[in] the permissions to encode
  * @return The string representation of these classes
@@ -272,6 +276,12 @@ extern SVCPermissions parseVehicleClasses(const std::string& allowedS, const std
 extern SVCPermissions parseVehicleClasses(const std::vector<std::string>& allowedS);
 
 
+/// @brief writes allowed disallowed attributes if needed;
+extern void writePermissions(OutputDevice& into, SVCPermissions permissions);
+
+/// @brief writes allowed disallowed attributes if needed;
+extern void writePreferences(OutputDevice& into, SVCPermissions preferred);
+
 // ---------------------------------------------------------------------------
 // vehicle shape class
 // ---------------------------------------------------------------------------
@@ -295,6 +305,12 @@ extern SUMOVehicleShape getVehicleShapeID(const std::string& name);
  */
 extern bool isRailway(SVCPermissions permissions);
 
+/** @brief Returns whether an edge with the given permission is a waterway edge
+ * @param[in] permissions The permissions of the edge
+ * @return Whether the edge is a waterway edge
+ */
+extern bool isWaterway(SVCPermissions permissions);
+
 /** @brief Returns whether an edge with the given permission is a forbidden edge
  * @param[in] permissions The permissions of the edge
  * @return Whether the edge is forbidden
@@ -310,6 +326,8 @@ extern const std::string DEFAULT_PEDTYPE_ID;
 extern const SUMOReal DEFAULT_VEH_PROB; // !!! does this belong here?
 
 extern const SUMOReal DEFAULT_PEDESTRIAN_SPEED;
+
+extern const SUMOReal DEFAULT_CONTAINER_TRANSHIP_SPEED;
 
 #endif
 

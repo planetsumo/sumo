@@ -88,7 +88,7 @@ OutputDevice::getDevice(const std::string& name) {
         const size_t len = name.length();
         std::string name2 = name;
         if (OptionsCont::getOptions().isSet("output-prefix")) {
-            std::string prefix = OptionsCont::getOptions().getString("output-prefix"); 
+            std::string prefix = OptionsCont::getOptions().getString("output-prefix");
             size_t metaTimeIndex = prefix.find("TIME");
             if (metaTimeIndex != std::string::npos) {
                 time_t rawtime;
@@ -97,7 +97,7 @@ OutputDevice::getDevice(const std::string& name) {
                 strftime(buffer, 80, "%F-%H-%M-%S", localtime(&rawtime));
                 prefix.replace(metaTimeIndex, 4, std::string(buffer));
             }
-            name2 = prefix + name;
+            name2 = FileHelpers::prependToLastPathComponent(prefix, name);
         }
         dev = new OutputDevice_File(name2, len > 4 && name.substr(len - 4) == ".sbx");
     }

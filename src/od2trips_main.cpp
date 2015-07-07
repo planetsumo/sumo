@@ -6,7 +6,7 @@
 /// @author  Laura Bieker
 /// @author  Yun-Pang Floetteroed
 /// @date    Thu, 12 September 2002
-/// @version $Id$
+/// @version $Id: od2trips_main.cpp 18486 2015-06-11 11:10:09Z behrisch $
 ///
 // Main for OD2TRIPS
 /****************************************************************************/
@@ -53,9 +53,9 @@
 #include <utils/common/ToString.h>
 #include <utils/xml/XMLSubSys.h>
 #include <utils/common/StringUtils.h>
-#include <od2trips/ODDistrictCont.h>
-#include <od2trips/ODDistrictHandler.h>
-#include <od2trips/ODMatrix.h>
+#include <od/ODDistrictCont.h>
+#include <od/ODDistrictHandler.h>
+#include <od/ODMatrix.h>
 #include <utils/common/TplConvert.h>
 #include <utils/common/SUMOTime.h>
 #include <utils/common/StringTokenizer.h>
@@ -88,9 +88,11 @@ fillOptions() {
 
 
     // register the file input options
-    oc.doRegister("net-file", 'n', new Option_FileName());
-    oc.addSynonyme("net-file", "net");
-    oc.addDescription("net-file", "Input", "Loads network (districts) from FILE");
+    oc.doRegister("taz-files", 'n', new Option_FileName());
+    oc.addSynonyme("taz-files", "taz");
+    oc.addSynonyme("taz-files", "net-file");
+    oc.addSynonyme("taz-files", "net");
+    oc.addDescription("taz-files", "Input", "Loads TAZ (districts; also from networks) from FILE(s)");
 
     oc.doRegister("od-matrix-files", 'd', new Option_FileName());
     oc.addSynonyme("od-matrix-files", "od-files");
@@ -178,8 +180,8 @@ bool
 checkOptions() {
     OptionsCont& oc = OptionsCont::getOptions();
     bool ok = true;
-    if (!oc.isSet("net-file")) {
-        WRITE_ERROR("No net input file (-n) specified.");
+    if (!oc.isSet("taz-files")) {
+        WRITE_ERROR("No TAZ input file (-n) specified.");
         ok = false;
     }
     if (!oc.isSet("od-matrix-files") && !oc.isSet("od-amitran-files")) {
@@ -237,7 +239,8 @@ main(int argc, char** argv) {
         // initialise subsystems
         XMLSubSys::init();
         fillOptions();
-        OptionsIO::getOptions(true, argc, argv);
+        OptionsIO::setArgs(argc, argv);
+        OptionsIO::getOptions();
         if (oc.processMetaOptions(argc < 2)) {
             SystemFrame::close();
             return 0;
@@ -250,12 +253,12 @@ main(int argc, char** argv) {
         RandHelper::initRandGlobal();
         // load the districts
         // check whether the user gave a net filename
-        if (!oc.isSet("net-file")) {
-            throw ProcessError("You must supply a network or districts file ('-n').");
+        if (!oc.isSet("taz-files")) {
+            throw ProcessError("You must supply a TAZ, network or districts file ('-n').");
         }
         // get the file name and set it
         ODDistrictCont districts;
-        districts.loadDistricts(oc.getString("net-file"));
+        districts.loadDistricts(oc.getStringVector("taz-files"));
         if (districts.size() == 0) {
             throw ProcessError("No districts loaded.");
         }

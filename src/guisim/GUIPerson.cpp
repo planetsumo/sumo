@@ -62,7 +62,7 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
-#define GUIPerson_DEBUG_DRAW_WALKINGAREA_PATHS false
+//#define GUIPerson_DEBUG_DRAW_WALKINGAREA_PATHS 1
 
 // ===========================================================================
 // FOX callback mapping
@@ -114,7 +114,7 @@ GUIPerson::GUIPersonPopupMenu::onCmdHideWalkingareaPath(FXObject*, FXSelector, v
 /* -------------------------------------------------------------------------
  * GUIPerson - methods
  * ----------------------------------------------------------------------- */
-GUIPerson::GUIPerson(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSPerson::MSPersonPlan* plan) :
+GUIPerson::GUIPerson(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSTransportable::MSTransportablePlan* plan) :
     MSPerson(pars, vtype, plan),
     GUIGlObject(GLO_PERSON, pars->id)
 { }
@@ -202,14 +202,14 @@ GUIPerson::drawGL(const GUIVisualizationSettings& s) const {
             break;
     }
     glPopMatrix();
-    if (GUIPerson_DEBUG_DRAW_WALKINGAREA_PATHS) {
-        drawAction_drawWalkingareaPath(s);
-    }
+#ifdef GUIPerson_DEBUG_DRAW_WALKINGAREA_PATHS
+    drawAction_drawWalkingareaPath(s);
+#endif
     drawName(p1, s.scale, s.personName);
     glPopName();
 }
 
-void 
+void
 GUIPerson::drawAction_drawWalkingareaPath(const GUIVisualizationSettings& s) const {
     MSPersonStage_Walking* stage = dynamic_cast<MSPersonStage_Walking*>(getCurrentStage());
     if (stage != 0) {

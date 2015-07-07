@@ -53,7 +53,11 @@
  * @brief Some static methods performing geometrical operations
  */
 class GeomHelper {
+
 public:
+    /// @brief a value to signify offsets outside the range of [0, Line.length()]
+    static const SUMOReal INVALID_OFFSET;
+
     /** @brief return whether given lines intersect
      * @param[in] p11 The begin position of the first line
      * @param[in] p12 The end position of the first line
@@ -118,7 +122,7 @@ public:
      * Return the distance from point to line as well as the intersection point.
      * If intersection does not lie within the line segment, the  start or end point of the segment is returned
      */
-    static SUMOReal closestDistancePointLine(const Position& point,
+    static SUMOReal closestDistancePointLine2D(const Position& point,
             const Position& lineStart, const Position& lineEnd,
             Position& outIntersection);
 

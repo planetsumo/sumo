@@ -41,7 +41,7 @@
 #include <utils/geom/Position.h>
 #include <utils/geom/PositionVector.h>
 #include <utils/gui/globjects/GUIGlObject.h>
-#include <utils/gui/settings/GUIColorer.h>
+#include <utils/gui/settings/GUIPropertySchemeStorage.h>
 
 
 // ===========================================================================
@@ -197,6 +197,9 @@ public:
     /// @brief draw lane borders and white markings
     void drawMarkings(const GUIVisualizationSettings& s, SUMOReal scale) const;
 
+    /// @brief bike lane markings on top of an intersection
+    void drawBikeMarkings() const;
+
     /// @brief draw crossties for railroads or pedestrian crossings
     void drawCrossties(SUMOReal length, SUMOReal spacing, SUMOReal halfWidth) const;
 
@@ -271,6 +274,9 @@ private:
 
     /// @brief whether to draw this lane as a railway
     bool drawAsRailway(const GUIVisualizationSettings& s) const;
+
+    /// @brief whether to draw this lane as a waterway
+    bool drawAsWaterway(const GUIVisualizationSettings& s) const;
 
     /// The rotations of the shape parts
     std::vector<SUMOReal> myShapeRotations;

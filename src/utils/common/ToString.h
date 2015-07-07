@@ -197,6 +197,12 @@ inline std::string toString(const std::vector<int>& v, std::streamsize accuracy)
 
 
 template <>
+inline std::string toString(const std::vector<long long int>& v, std::streamsize accuracy) {
+    return joinToString(v, " ", accuracy);
+}
+
+
+template <>
 inline std::string toString(const std::vector<SUMOReal>& v, std::streamsize accuracy) {
     return joinToString(v, " ", accuracy);
 }

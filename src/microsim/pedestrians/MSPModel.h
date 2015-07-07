@@ -84,7 +84,7 @@ public:
     static const SUMOReal SIDEWALK_OFFSET;
 
     /// @brief return whether the route may traversed with the given starting direction
-    static bool canTraverse(int dir, const std::vector<const MSEdge*>& route);
+    static bool canTraverse(int dir, const ConstMSEdgeVector& route);
 
 private:
     static MSPModel* myModel;
@@ -111,6 +111,9 @@ public:
 
     /// @brief return the current speed of the person
     virtual SUMOReal getSpeed(const MSPerson::MSPersonStage_Walking& stage) const = 0;
+
+    /// @brief return the list of internal edges if the pedestrian is on an intersection
+    virtual const MSEdge* getNextEdge(const MSPerson::MSPersonStage_Walking& stage) const = 0;
 };
 
 

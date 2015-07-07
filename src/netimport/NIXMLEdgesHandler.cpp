@@ -81,6 +81,7 @@ NIXMLEdgesHandler::NIXMLEdgesHandler(NBNodeCont& nc,
       myDistrictCont(dc),
       myTLLogicCont(tlc),
       myCurrentEdge(0), myHaveReportedAboutOverwriting(false),
+      myHaveReportedAboutTypeOverride(false),
       myHaveWarnedAboutDeprecatedLaneId(false),
       myKeepEdgeShape(!options.getBool("plain.extend-edge-shape"))
 {}
@@ -129,12 +130,21 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     myCurrentEdge = myEdgeCont.retrieve(myCurrentID);
     // check deprecated (unused) attributes
     // use default values, first
-    myCurrentSpeed = myTypeCont.getSpeed("");
     myCurrentPriority = myTypeCont.getPriority("");
     myCurrentLaneNo = myTypeCont.getNumLanes("");
-    myPermissions = myTypeCont.getPermissions("");
-    myCurrentWidth = myTypeCont.getWidth("");
     myCurrentEndOffset = NBEdge::UNSPECIFIED_OFFSET;
+    if (myCurrentEdge != 0) {
+        // update existing edge. only update lane-specific settings when explicitly requested
+        myIsUpdate = true;
+        myCurrentSpeed = NBEdge::UNSPECIFIED_SPEED;
+        myPermissions = SVC_UNSPECIFIED;
+        myCurrentWidth = NBEdge::UNSPECIFIED_WIDTH;
+    } else {
+        // this is a completely new edge. get the type specific defaults
+        myCurrentSpeed = myTypeCont.getSpeed("");
+        myPermissions = myTypeCont.getPermissions("");
+        myCurrentWidth = myTypeCont.getWidth("");
+    }
     myCurrentType = "";
     myShape = PositionVector();
     myLanesSpread = LANESPREAD_RIGHT;
@@ -160,28 +170,28 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
         mySidewalkWidth = myTypeCont.getSidewalkWidth(myCurrentType);
     }
     // use values from the edge to overwrite if existing, then
-    if (myCurrentEdge != 0) {
-        myIsUpdate = true;
+    if (myIsUpdate) {
         if (!myHaveReportedAboutOverwriting) {
-            WRITE_MESSAGE("Duplicate edge id occured ('" + myCurrentID + "'); assuming overwriting is wished.");
+            WRITE_MESSAGE("Duplicate edge id occurred ('" + myCurrentID + "'); assuming overwriting is wished.");
             myHaveReportedAboutOverwriting = true;
+        }
+        if (attrs.hasAttribute(SUMO_ATTR_TYPE) && myCurrentType != myCurrentEdge->getTypeID()) {
+            if (!myHaveReportedAboutTypeOverride) {
+                WRITE_MESSAGE("Edge '" + myCurrentID + "' changed it's type; assuming type override is wished.");
+                myHaveReportedAboutTypeOverride = true;
+            }
         }
         if (attrs.getOpt<bool>(SUMO_ATTR_REMOVE, myCurrentID.c_str(), ok, false)) {
             myEdgeCont.erase(myDistrictCont, myCurrentEdge);
             myCurrentEdge = 0;
             return;
         }
-        myCurrentSpeed = myCurrentEdge->getSpeed();
         myCurrentPriority = myCurrentEdge->getPriority();
         myCurrentLaneNo = myCurrentEdge->getNumLanes();
-        myCurrentType = myCurrentEdge->getTypeID();
-        myPermissions = myCurrentEdge->getPermissions();
         if (!myCurrentEdge->hasDefaultGeometry()) {
             myShape = myCurrentEdge->getGeometry();
             myReinitKeepEdgeShape = true;
         }
-        myCurrentWidth = myCurrentEdge->getLaneWidth();
-        myCurrentEndOffset = myCurrentEdge->getEndOffset();
         myLanesSpread = myCurrentEdge->getLaneSpreadFunction();
         if (myCurrentEdge->hasLoadedLength()) {
             myLength = myCurrentEdge->getLoadedLength();
@@ -193,7 +203,7 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     if (attrs.hasAttribute(SUMO_ATTR_SPEED)) {
         myCurrentSpeed = attrs.get<SUMOReal>(SUMO_ATTR_SPEED, myCurrentID.c_str(), ok);
     }
-    if (myOptions.getBool("speed-in-kmh")) {
+    if (myOptions.getBool("speed-in-kmh") && myCurrentSpeed != NBEdge::UNSPECIFIED_SPEED) {
         myCurrentSpeed = myCurrentSpeed / (SUMOReal) 3.6;
     }
     // try to get the number of lanes
@@ -208,7 +218,7 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
     if (attrs.hasAttribute(SUMO_ATTR_WIDTH)) {
         myCurrentWidth = attrs.get<SUMOReal>(SUMO_ATTR_WIDTH, myCurrentID.c_str(), ok);
     }
-    // try to get the width
+    // try to get the offset of the stop line from the intersection
     if (attrs.hasAttribute(SUMO_ATTR_ENDOFFSET)) {
         myCurrentEndOffset = attrs.get<SUMOReal>(SUMO_ATTR_ENDOFFSET, myCurrentID.c_str(), ok);
     }
@@ -265,7 +275,9 @@ NIXMLEdgesHandler::addEdge(const SUMOSAXAttributes& attrs) {
         }
     }
     myCurrentEdge->setLoadedLength(myLength);
-    myCurrentEdge->setPermissions(myPermissions);
+    if (myPermissions != SVC_UNSPECIFIED) {
+        myCurrentEdge->setPermissions(myPermissions);
+    }
 }
 
 
@@ -469,7 +481,7 @@ NIXMLEdgesHandler::myEndElement(int element) {
     if (element == SUMO_TAG_EDGE && myCurrentEdge != 0) {
         // add sidewalk, wait until lanes are loaded to avoid building if it already exists
         if (mySidewalkWidth != NBEdge::UNSPECIFIED_WIDTH) {
-            myCurrentEdge->addSidewalk(myTypeCont.getSidewalkWidth(myCurrentType));
+            myCurrentEdge->addSidewalk(mySidewalkWidth);
         }
         if (!myIsUpdate) {
             try {
@@ -573,10 +585,16 @@ NIXMLEdgesHandler::myEndElement(int element) {
             }
             // patch lane offsets
             e = myEdgeCont.retrieve(edgeid);
-            i = mySplits.begin();
-            if ((*i).pos != 0) {
-                e = e->getToNode()->getOutgoingEdges()[0];
+            if (mySplits.front().pos != 0) {
+                // add a dummy split at the beginning to ensure correct offset
+                Split start;
+                start.pos = 0;
+                for (int lane = 0; lane < (int)e->getNumLanes(); ++lane) {
+                    start.lanes.push_back(lane);
+                }
+                mySplits.insert(mySplits.begin(), start);
             }
+            i = mySplits.begin();
             for (; i != mySplits.end(); ++i) {
                 unsigned int maxLeft = (*i).lanes.back();
                 SUMOReal offset = 0;

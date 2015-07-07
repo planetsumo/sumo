@@ -39,6 +39,7 @@
 #include <microsim/MSVehicle.h>
 #include <microsim/pedestrians/MSPModel.h>
 #include <microsim/MSGlobals.h>
+#include <microsim/MSContainer.h>
 #include <utils/iodevices/OutputDevice.h>
 #include "MSXMLRawOut.h"
 
@@ -57,12 +58,14 @@
 // ===========================================================================
 void
 MSXMLRawOut::write(OutputDevice& of, const MSEdgeControl& ec,
-                   SUMOTime timestep) {
+                   SUMOTime timestep, int precision) {
     of.openTag("timestep") << " time=\"" << time2string(timestep) << "\"";
-    const std::vector<MSEdge*>& edges = ec.getEdges();
-    for (std::vector<MSEdge*>::const_iterator e = edges.begin(); e != edges.end(); ++e) {
+    of.setPrecision(precision);
+    const MSEdgeVector& edges = ec.getEdges();
+    for (MSEdgeVector::const_iterator e = edges.begin(); e != edges.end(); ++e) {
         writeEdge(of, **e, timestep);
     }
+    of.setPrecision(OUTPUT_ACCURACY);
     of.closeTag();
 }
 
@@ -96,8 +99,9 @@ MSXMLRawOut::writeEdge(OutputDevice& of, const MSEdge& edge, SUMOTime timestep) 
 #endif
     }
     //en
-    const std::vector<MSPerson*>& persons = edge.getSortedPersons(timestep);
-    if (dump || persons.size() > 0) {
+    const std::vector<MSTransportable*>& persons = edge.getSortedPersons(timestep);
+    const std::vector<MSTransportable*>& containers = edge.getSortedContainers(timestep);
+    if (dump || persons.size() > 0 || containers.size() > 0) {
         of.openTag("edge") << " id=\"" << edge.getID() << "\"";
         if (dump) {
 #ifdef HAVE_INTERNAL
@@ -118,12 +122,21 @@ MSXMLRawOut::writeEdge(OutputDevice& of, const MSEdge& edge, SUMOTime timestep) 
 #endif
         }
         // write persons
-        for (std::vector<MSPerson*>::const_iterator it_p = persons.begin(); it_p != persons.end(); ++it_p) {
+        for (std::vector<MSTransportable*>::const_iterator it_p = persons.begin(); it_p != persons.end(); ++it_p) {
             of.openTag(SUMO_TAG_PERSON);
             of.writeAttr(SUMO_ATTR_ID, (*it_p)->getID());
             of.writeAttr(SUMO_ATTR_POSITION, (*it_p)->getEdgePos());
             of.writeAttr(SUMO_ATTR_ANGLE, (*it_p)->getAngle());
             of.writeAttr("stage", (*it_p)->getCurrentStageDescription());
+            of.closeTag();
+        }
+        // write containers
+        for (std::vector<MSTransportable*>::const_iterator it_c = containers.begin(); it_c != containers.end(); ++it_c) {
+            of.openTag(SUMO_TAG_CONTAINER);
+            of.writeAttr(SUMO_ATTR_ID, (*it_c)->getID());
+            of.writeAttr(SUMO_ATTR_POSITION, (*it_c)->getEdgePos());
+            of.writeAttr(SUMO_ATTR_ANGLE, (*it_c)->getAngle());
+            of.writeAttr("stage", (*it_c)->getCurrentStageDescription());
             of.closeTag();
         }
         of.closeTag();
@@ -151,8 +164,21 @@ MSXMLRawOut::writeLane(OutputDevice& of, const MSLane& lane) {
 void
 MSXMLRawOut::writeVehicle(OutputDevice& of, const MSBaseVehicle& veh) {
     if (veh.isOnRoad()) {
-        of.openTag("vehicle") << " id=\"" << veh.getID() << "\" pos=\""
-                              << veh.getPositionOnLane() << "\" speed=\"" << veh.getSpeed() << "\"";
+        of.openTag("vehicle");
+        of.writeAttr(SUMO_ATTR_ID, veh.getID());
+        of.writeAttr(SUMO_ATTR_POSITION, veh.getPositionOnLane());
+        of.writeAttr(SUMO_ATTR_SPEED, veh.getSpeed());
+        if (!MSGlobals::gUseMesoSim) {
+            // microsim-specific stuff
+            const unsigned int personNumber = static_cast<const MSVehicle&>(veh).getPersonNumber();
+            if (personNumber > 0) {
+                of.writeAttr(SUMO_ATTR_PERSON_NUMBER, personNumber);
+            }
+            const unsigned int containerNumber = static_cast<const MSVehicle&>(veh).getContainerNumber();
+            if (containerNumber > 0) {
+                of.writeAttr(SUMO_ATTR_CONTAINER_NUMBER, containerNumber);
+            }
+        }
         of.closeTag();
     }
 }

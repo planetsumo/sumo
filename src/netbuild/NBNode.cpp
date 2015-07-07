@@ -78,6 +78,8 @@
 // do not build uncontrolled crossings across edges with a speed above the threshold
 #define UNCONTROLLED_CROSSING_SPEED_THRESHOLD 13.89 // meters/second
 
+#define DEBUGID "C"
+
 // ===========================================================================
 // static members
 // ===========================================================================
@@ -85,6 +87,8 @@ const int NBNode::MAX_CONNECTIONS(64);
 const int NBNode::FORWARD(1);
 const int NBNode::BACKWARD(-1);
 const SUMOReal NBNode::DEFAULT_CROSSING_WIDTH(4);
+const SUMOReal NBNode::UNSPECIFIED_RADIUS = -1;
+const SUMOReal NBNode::DEFAULT_RADIUS = 1.5;
 
 // ===========================================================================
 // method definitions
@@ -232,7 +236,11 @@ NBNode::NBNode(const std::string& id, const Position& position,
     myType(type),
     myDistrict(0),
     myHaveCustomPoly(false),
-    myRequest(0)
+    myRequest(0),
+    myRadius(UNSPECIFIED_RADIUS),
+    myKeepClear(OptionsCont::getOptions().getBool("default.junctions.keep-clear")),
+    myDiscardAllCrossings(false),
+    myCrossingsLoadedFromSumoNet(0)
 { }
 
 
@@ -242,7 +250,11 @@ NBNode::NBNode(const std::string& id, const Position& position, NBDistrict* dist
     myType(district == 0 ? NODETYPE_UNKNOWN : NODETYPE_DISTRICT),
     myDistrict(district),
     myHaveCustomPoly(false),
-    myRequest(0)
+    myRequest(0),
+    myRadius(UNSPECIFIED_RADIUS),
+    myKeepClear(OptionsCont::getOptions().getBool("default.junctions.keep-clear")),
+    myDiscardAllCrossings(false),
+    myCrossingsLoadedFromSumoNet(0)
 { }
 
 
@@ -288,7 +300,7 @@ NBNode::reshiftPosition(SUMOReal xoff, SUMOReal yoff) {
 void
 NBNode::addTrafficLight(NBTrafficLightDefinition* tlDef) {
     myTrafficLights.insert(tlDef);
-    if (myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION) {
+    if (myType != NODETYPE_TRAFFIC_LIGHT_NOJUNCTION && myType != NODETYPE_RAIL_SIGNAL) {
         myType = NODETYPE_TRAFFIC_LIGHT;
     }
 }
@@ -427,7 +439,7 @@ NBNode::isSimpleContinuation() const {
     if (myIncomingEdges.size() == 2 && myOutgoingEdges.size() == 2) {
         for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
             NBEdge* in = *i;
-            EdgeVector::const_iterator opposite = find_if(myOutgoingEdges.begin(), myOutgoingEdges.end(), NBContHelper::opposite_finder(in, this));
+            EdgeVector::const_iterator opposite = find_if(myOutgoingEdges.begin(), myOutgoingEdges.end(), NBContHelper::opposite_finder(in));
             // must have an opposite edge
             if (opposite == myOutgoingEdges.end()) {
                 return false;
@@ -446,32 +458,30 @@ NBNode::isSimpleContinuation() const {
 
 
 PositionVector
-NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
-                                 NBEdge* toE, int toL, int numPoints) const {
-    if (fromL >= (int) fromE->getNumLanes()) {
-        throw ProcessError("Connection '" + fromE->getID() + "_" + toString(fromL) + "->" + toE->getID() + "_" + toString(toL) + "' starts at a not existing lane.");
-    }
-    if (toL >= (int) toE->getNumLanes()) {
-        throw ProcessError("Connection '" + fromE->getID() + "_" + toString(fromL) + "->" + toE->getID() + "_" + toString(toL) + "' yields in a not existing lane.");
-    }
-    bool noSpline = false;
+NBNode::computeSmoothShape(const PositionVector& begShape,
+                           const PositionVector& endShape,
+                           int numPoints,
+                           bool isTurnaround,
+                           SUMOReal extrapolateBeg,
+                           SUMOReal extrapolateEnd) const {
+
+    const Position beg = begShape.back();
+    const Position end = endShape.front();
     PositionVector ret;
     PositionVector init;
-    Position beg = fromE->getLaneShape(fromL).back();
-    Position end = toE->getLaneShape(toL).front();
-    Position intersection;
     unsigned int noInitialPoints = 0;
+    bool noSpline = false;
     if (beg.distanceTo(end) <= POSITION_EPS) {
         noSpline = true;
     } else {
-        if (fromE->getTurnDestination() == toE) {
+        if (isTurnaround) {
             // turnarounds:
             //  - end of incoming lane
             //  - position between incoming/outgoing end/begin shifted by the distance orthogonally
             //  - begin of outgoing lane
             noInitialPoints = 3;
             init.push_back(beg);
-            Line straightConn(fromE->getLaneShape(fromL)[-1], toE->getLaneShape(toL)[0]);
+            Line straightConn(begShape[-1], endShape[0]);
             Position straightCenter = straightConn.getPositionAtDistance((SUMOReal) straightConn.length() / (SUMOReal) 2.);
             Position center = straightCenter;//.add(straightCenter);
             Line cross(straightConn);
@@ -481,25 +491,25 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
             init.push_back(center);
             init.push_back(end);
         } else {
-            const SUMOReal angle = fabs(fromE->getLaneShape(fromL).getEndLine().atan2Angle() - toE->getLaneShape(toL).getBegLine().atan2Angle());
+            const SUMOReal angle = fabs(begShape.getEndLine().atan2Angle() - endShape.getBegLine().atan2Angle());
             if (angle < M_PI / 4. || angle > 7. / 4.*M_PI) {
                 // very low angle: almost straight
                 noInitialPoints = 4;
                 init.push_back(beg);
-                Line begL = fromE->getLaneShape(fromL).getEndLine();
+                Line begL = begShape.getEndLine();
                 begL.extrapolateSecondBy(100);
-                Line endL = toE->getLaneShape(toL).getBegLine();
+                Line endL = endShape.getBegLine();
                 endL.extrapolateFirstBy(100);
                 SUMOReal distance = beg.distanceTo(end);
                 if (distance > 10) {
                     {
-                        SUMOReal off1 = fromE->getLaneShape(fromL).getEndLine().length() + (SUMOReal) 5. * (SUMOReal) fromE->getNumLanes();
-                        off1 = MIN2(off1, (SUMOReal)(fromE->getLaneShape(fromL).getEndLine().length() + distance / 2.));
+                        SUMOReal off1 = begShape.getEndLine().length() + extrapolateBeg;
+                        off1 = MIN2(off1, (SUMOReal)(begShape.getEndLine().length() + distance / 2.));
                         Position tmp = begL.getPositionAtDistance(off1);
                         init.push_back(tmp);
                     }
                     {
-                        SUMOReal off1 = (SUMOReal) 100. - (SUMOReal) 5. * (SUMOReal) toE->getNumLanes();
+                        SUMOReal off1 = (SUMOReal) 100. - extrapolateEnd;
                         off1 = MAX2(off1, (SUMOReal)(100. - distance / 2.));
                         Position tmp = endL.getPositionAtDistance(off1);
                         init.push_back(tmp);
@@ -516,8 +526,8 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
                 // attention: if there is no intersection, use a straight line
                 noInitialPoints = 3;
                 init.push_back(beg);
-                Line begL = fromE->getLaneShape(fromL).getEndLine();
-                Line endL = toE->getLaneShape(toL).getBegLine();
+                Line begL = begShape.getEndLine();
+                Line endL = endShape.getBegLine();
                 bool check = !begL.p1().almostSame(begL.p2()) && !endL.p1().almostSame(endL.p2());
                 if (check) {
                     begL.extrapolateSecondBy(100);
@@ -536,8 +546,8 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
     }
     //
     if (noSpline) {
-        ret.push_back(fromE->getLaneShape(fromL).back());
-        ret.push_back(toE->getLaneShape(toL).front());
+        ret.push_back(begShape.back());
+        ret.push_back(endShape.front());
     } else {
         SUMOReal* def = new SUMOReal[1 + noInitialPoints * 3];
         for (int i = 0; i < (int) init.size(); ++i) {
@@ -552,14 +562,49 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
         Position prev;
         for (int i = 0; i < (int) numPoints; i++) {
             Position current(ret_buf[i * 3 + 1], ret_buf[i * 3 + 3], myPosition.z());
-            if (prev != current) {
+            if (prev != current && !ISNAN(current.x()) && !ISNAN(current.y())) {
                 ret.push_back(current);
             }
             prev = current;
         }
         delete[] ret_buf;
     }
-    const NBEdge::Lane& lane = fromE->getLaneStruct(fromL);
+    return ret;
+}
+
+
+PositionVector
+NBNode::computeInternalLaneShape(NBEdge* fromE, const NBEdge::Connection& con, int numPoints) const {
+    if (con.fromLane >= (int) fromE->getNumLanes()) {
+        throw ProcessError("Connection '" + fromE->getID() + "_" + toString(con.fromLane) + "->" + con.toEdge->getID() + "_" + toString(con.toLane) + "' starts at a non-existant lane.");
+    }
+    if (con.toLane >= (int) con.toEdge->getNumLanes()) {
+        throw ProcessError("Connection '" + fromE->getID() + "_" + toString(con.fromLane) + "->" + con.toEdge->getID() + "_" + toString(con.toLane) + "' targets a non-existant lane.");
+    }
+    PositionVector ret;
+    if (myCustomLaneShapes.size() > 0 && con.id != "") {
+        // this is the second pass (ids and shapes are already set
+        assert(con.shape.size() > 0);
+        CustomShapeMap::const_iterator it = myCustomLaneShapes.find(con.getInternalLaneID());
+        if (it != myCustomLaneShapes.end()) {
+            ret = it->second;
+        } else {
+            ret = con.shape;
+        }
+        it = myCustomLaneShapes.find(con.viaID + "_0");
+        if (it != myCustomLaneShapes.end()) {
+            ret.append(it->second);
+        } else {
+            ret.append(con.viaShape);
+        }
+        return ret;
+    }
+
+    ret = computeSmoothShape(fromE->getLaneShape(con.fromLane), con.toEdge->getLaneShape(con.toLane),
+                             numPoints, fromE->getTurnDestination() == con.toEdge,
+                             (SUMOReal) 5. * (SUMOReal) fromE->getNumLanes(),
+                             (SUMOReal) 5. * (SUMOReal) con.toEdge->getNumLanes());
+    const NBEdge::Lane& lane = fromE->getLaneStruct(con.fromLane);
     if (lane.endOffset > 0) {
         PositionVector beg = lane.shape.getSubpart(lane.shape.length() - lane.endOffset, lane.shape.length());;
         beg.append(ret);
@@ -570,29 +615,45 @@ NBNode::computeInternalLaneShape(NBEdge* fromE, int fromL,
 
 
 bool
-NBNode::needsCont(NBEdge* fromE, NBEdge* toE, NBEdge* otherFromE, NBEdge* otherToE, const NBEdge::Connection& c) const {
-    if (myType == NODETYPE_RIGHT_BEFORE_LEFT) {
-        return false;
-    }
-    if (fromE == otherFromE) {
-        // ignore same edge links
-        return false;
-    }
-    if (!foes(otherFromE, otherToE, fromE, toE)) {
-        // if they do not cross, no waiting place is needed
+NBNode::needsCont(const NBEdge* fromE, const NBEdge* otherFromE,
+                  const NBEdge::Connection& c, const NBEdge::Connection& otherC) const {
+    const NBEdge* toE = c.toEdge;
+    const NBEdge* otherToE = otherC.toEdge;
+
+    if (myType == NODETYPE_RIGHT_BEFORE_LEFT || myType == NODETYPE_ALLWAY_STOP) {
         return false;
     }
     LinkDirection d1 = getDirection(fromE, toE);
+    const bool thisRight = (d1 == LINKDIR_RIGHT || d1 == LINKDIR_PARTRIGHT);
+    const bool rightTurnConflict = (thisRight &&
+                                    NBNode::rightTurnConflict(fromE, toE, c.fromLane, otherFromE, otherToE, otherC.fromLane));
+    if (thisRight && !rightTurnConflict) {
+        return false;
+    }
+    if (!(foes(otherFromE, otherToE, fromE, toE) || myRequest == 0 || rightTurnConflict)) {
+        // if they do not cross, no waiting place is needed
+        return false;
+    }
     LinkDirection d2 = getDirection(otherFromE, otherToE);
-    bool thisLeft = (d1 == LINKDIR_LEFT || d1 == LINKDIR_TURN);
-    bool otherLeft = (d2 == LINKDIR_LEFT || d2 == LINKDIR_TURN);
-    bool bothLeft = thisLeft && otherLeft;
+    if (d2 == LINKDIR_TURN) {
+        return false;
+    }
+    const bool thisLeft = (d1 == LINKDIR_LEFT || d1 == LINKDIR_TURN);
+    const bool otherLeft = (d2 == LINKDIR_LEFT || d2 == LINKDIR_TURN);
+    const bool bothLeft = thisLeft && otherLeft;
+    if (fromE == otherFromE && !thisRight) {
+        // ignore same edge links except for right-turns
+        return false;
+    }
+    if (thisRight && d2 != LINKDIR_STRAIGHT) {
+        return false;
+    }
     if (c.tlID != "" && !bothLeft) {
-        // tls-controlled links will have space
-        return true;
+        assert(myTrafficLights.size() > 0);
+        return (*myTrafficLights.begin())->needsCont(fromE, toE, otherFromE, otherToE);
     }
     if (fromE->getJunctionPriority(this) > 0 && otherFromE->getJunctionPriority(this) > 0) {
-        return mustBrake(fromE, toE, c.toLane);
+        return mustBrake(fromE, toE, c.fromLane, false);
     }
     return false;
 }
@@ -605,6 +666,12 @@ NBNode::computeLogic(const NBEdgeCont& ec, OptionsCont& oc) {
     if (myIncomingEdges.size() == 0 || myOutgoingEdges.size() == 0) {
         // no logic if nothing happens here
         myType = NODETYPE_NOJUNCTION;
+        std::set<NBTrafficLightDefinition*> trafficLights = myTrafficLights; // make a copy because we will modify the original
+        removeTrafficLights();
+        for (std::set<NBTrafficLightDefinition*>::const_iterator i = trafficLights.begin(); i != trafficLights.end(); ++i) {
+            (*i)->setParticipantsInformation();
+            (*i)->setTLControllingInformation(ec);
+        }
         return;
     }
     // check whether the node was set to be unregulated by the user
@@ -621,10 +688,15 @@ NBNode::computeLogic(const NBEdgeCont& ec, OptionsCont& oc) {
         unsigned int numConnections = numNormalConnections();
         if (numConnections >= MAX_CONNECTIONS) {
             // yep -> make it untcontrolled, warn
-            WRITE_WARNING("Junction '" + getID() + "' is too complicated (#links>64); will be set to unregulated.");
             delete myRequest;
             myRequest = 0;
-            myType = NODETYPE_NOJUNCTION;
+            if (myType == NODETYPE_TRAFFIC_LIGHT) {
+                myType = NODETYPE_TRAFFIC_LIGHT_NOJUNCTION;
+            } else {
+                myType = NODETYPE_NOJUNCTION;
+            }
+            WRITE_WARNING("Junction '" + getID() + "' is too complicated (" + toString(numConnections) 
+                    + " connections, max 64); will be set to " + toString(myType));
         } else if (numConnections == 0) {
             delete myRequest;
             myRequest = 0;
@@ -704,53 +776,59 @@ NBNode::computeLanes2Lanes(const bool buildCrossingsAndWalkingAreas) {
     // special case b):
     //  two in, one out, the outgoing has the same number of lanes as the sum of the incoming
     //  --> highway on-ramp
-    bool check = false;
     if (myIncomingEdges.size() == 2 && myOutgoingEdges.size() == 1) {
-        check = myIncomingEdges[0]->getNumLanes() + myIncomingEdges[1]->getNumLanes() == myOutgoingEdges[0]->getNumLanes();
-        check &= (myIncomingEdges[0]->getStep() <= NBEdge::LANES2EDGES);
-        check &= (myIncomingEdges[1]->getStep() <= NBEdge::LANES2EDGES);
-        check &= myIncomingEdges[0] != myOutgoingEdges[0];
-        check &= myIncomingEdges[1] != myOutgoingEdges[0];
-        check &= myIncomingEdges[0]->isConnectedTo(myOutgoingEdges[0]);
-        check &= myIncomingEdges[1]->isConnectedTo(myOutgoingEdges[0]);
-    }
-    if (check) {
-        NBEdge* inc1 = myIncomingEdges[0];
-        NBEdge* inc2 = myIncomingEdges[1];
-        // for internal: check which one is the rightmost
-        SUMOReal a1 = inc1->getAngleAtNode(this);
-        SUMOReal a2 = inc2->getAngleAtNode(this);
-        SUMOReal ccw = GeomHelper::getCCWAngleDiff(a1, a2);
-        SUMOReal cw = GeomHelper::getCWAngleDiff(a1, a2);
-        if (ccw > cw) {
-            std::swap(inc1, inc2);
+        NBEdge* out = myOutgoingEdges[0];
+        NBEdge* in1 = myIncomingEdges[0];
+        NBEdge* in2 = myIncomingEdges[1];
+        const int outOffset = MAX2(0, out->getFirstNonPedestrianLaneIndex(FORWARD, true));
+        int in1Offset = MAX2(0, in1->getFirstNonPedestrianLaneIndex(FORWARD, true));
+        int in2Offset = MAX2(0, in2->getFirstNonPedestrianLaneIndex(FORWARD, true));
+        if (in1->getNumLanes() + in2->getNumLanes() - in1Offset - in2Offset == out->getNumLanes() - outOffset
+                && (in1->getStep() <= NBEdge::LANES2EDGES)
+                && (in2->getStep() <= NBEdge::LANES2EDGES)
+                && in1 != out
+                && in2 != out
+                && in1->isConnectedTo(out)
+                && in2->isConnectedTo(out)) {
+            // for internal: check which one is the rightmost
+            SUMOReal a1 = in1->getAngleAtNode(this);
+            SUMOReal a2 = in2->getAngleAtNode(this);
+            SUMOReal ccw = GeomHelper::getCCWAngleDiff(a1, a2);
+            SUMOReal cw = GeomHelper::getCWAngleDiff(a1, a2);
+            if (ccw > cw) {
+                std::swap(in1, in2);
+                std::swap(in1Offset, in2Offset);
+            }
+            in1->addLane2LaneConnections(in1Offset, out, outOffset, in1->getNumLanes() - in1Offset, NBEdge::L2L_VALIDATED, true, true);
+            in2->addLane2LaneConnections(in2Offset, out, in1->getNumLanes() + outOffset - in1Offset, in2->getNumLanes() - in2Offset, NBEdge::L2L_VALIDATED, true, true);
+            return;
         }
-        inc1->addLane2LaneConnections(0, myOutgoingEdges[0], 0, inc1->getNumLanes(), NBEdge::L2L_VALIDATED, true, true);
-        inc2->addLane2LaneConnections(0, myOutgoingEdges[0], inc1->getNumLanes(), inc2->getNumLanes(), NBEdge::L2L_VALIDATED, true, true);
-        return;
     }
     // special case c):
     //  one in, two out, the incoming has the same number of lanes as the sum of the outgoing
     //  --> highway off-ramp
-    check = false;
     if (myIncomingEdges.size() == 1 && myOutgoingEdges.size() == 2) {
-        check = myIncomingEdges[0]->getNumLanes() == myOutgoingEdges[1]->getNumLanes() + myOutgoingEdges[0]->getNumLanes();
-        check &= (myIncomingEdges[0]->getStep() <= NBEdge::LANES2EDGES);
-        check &= myIncomingEdges[0] != myOutgoingEdges[0];
-        check &= myIncomingEdges[0] != myOutgoingEdges[1];
-        check &= myIncomingEdges[0]->isConnectedTo(myOutgoingEdges[0]);
-        check &= myIncomingEdges[0]->isConnectedTo(myOutgoingEdges[1]);
-    }
-    if (check) {
+        NBEdge* in = myIncomingEdges[0];
         NBEdge* out1 = myOutgoingEdges[0];
         NBEdge* out2 = myOutgoingEdges[1];
-        // for internal: check which one is the rightmost
-        if (NBContHelper::relative_outgoing_edge_sorter(myIncomingEdges[0])(out2, out1)) {
-            std::swap(out1, out2);
+        const int inOffset = MAX2(0, in->getFirstNonPedestrianLaneIndex(FORWARD, true));
+        int out1Offset = MAX2(0, out1->getFirstNonPedestrianLaneIndex(FORWARD, true));
+        int out2Offset = MAX2(0, out2->getFirstNonPedestrianLaneIndex(FORWARD, true));
+        if (in->getNumLanes() - inOffset == out2->getNumLanes() + out1->getNumLanes() - out1Offset - out2Offset
+                && (in->getStep() <= NBEdge::LANES2EDGES)
+                && in != out1
+                && in != out2
+                && in->isConnectedTo(out1)
+                && in->isConnectedTo(out2)) {
+            // for internal: check which one is the rightmost
+            if (NBContHelper::relative_outgoing_edge_sorter(in)(out2, out1)) {
+                std::swap(out1, out2);
+                std::swap(out1Offset, out2Offset);
+            }
+            in->addLane2LaneConnections(inOffset, out1, out1Offset, out1->getNumLanes() - out1Offset, NBEdge::L2L_VALIDATED, true, true);
+            in->addLane2LaneConnections(out1->getNumLanes() + inOffset - out1Offset, out2, out2Offset, out2->getNumLanes() - out2Offset, NBEdge::L2L_VALIDATED, false, true);
+            return;
         }
-        myIncomingEdges[0]->addLane2LaneConnections(0, out1, 0, out1->getNumLanes(), NBEdge::L2L_VALIDATED, true, true);
-        myIncomingEdges[0]->addLane2LaneConnections(out1->getNumLanes(), out2, 0, out2->getNumLanes(), NBEdge::L2L_VALIDATED, false, true);
-        return;
     }
 
     // go through this node's outgoing edges
@@ -1099,16 +1177,7 @@ NBNode::invalidateOutgoingConnections() {
 
 
 bool
-NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int /* toLane */) const {
-    // check whether it is participant to a traffic light
-    //  - controlled links are set by the traffic lights, not the normal
-    //    right-of-way rules
-    //  - uncontrolled participants (spip lanes etc.) should always break
-    if (myTrafficLights.size() != 0) {
-        // ok, we have a traffic light, return true by now, it will be later
-        //  controlled by the tls
-        return true;
-    }
+NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int fromLane, bool includePedCrossings) const {
     // unregulated->does not need to brake
     if (myRequest == 0) {
         return false;
@@ -1118,12 +1187,40 @@ NBNode::mustBrake(const NBEdge* const from, const NBEdge* const to, int /* toLan
         return true;
     }
     // check whether any other connection on this node prohibits this connection
-    return myRequest->mustBrake(from, to);
+    return myRequest->mustBrake(from, to, fromLane, includePedCrossings);
 }
 
 bool
 NBNode::mustBrakeForCrossing(const NBEdge* const from, const NBEdge* const to, const NBNode::Crossing& crossing) const {
-    return myRequest->mustBrakeForCrossing(from, to, crossing);
+    return NBRequest::mustBrakeForCrossing(this, from, to, crossing);
+}
+
+
+bool
+NBNode::rightTurnConflict(const NBEdge* from, const NBEdge* to, int fromLane,
+                          const NBEdge* prohibitorFrom, const NBEdge* prohibitorTo, int prohibitorFromLane) {
+    if (from != prohibitorFrom) {
+        return false;
+    }
+    if (from->isTurningDirectionAt(to)
+            || prohibitorFrom->isTurningDirectionAt(prohibitorTo)) {
+        // XXX should warn if there are any non-turning connections left of this
+        return false;
+    }
+    const bool lefthand = OptionsCont::getOptions().getBool("lefthand");
+    if ((!lefthand && fromLane <= prohibitorFromLane) ||
+            (lefthand && fromLane >= prohibitorFromLane)) {
+        return false;
+    }
+    // conflict if to is between prohibitorTo and from when going clockwise
+    if (to->getStartAngle() == prohibitorTo->getStartAngle()) {
+        // reduce rounding errors
+        return false;
+    }
+    const SUMOReal toAngleAtNode = fmod(to->getStartAngle() + 180, (SUMOReal)360.0);
+    const SUMOReal prohibitorToAngleAtNode = fmod(prohibitorTo->getStartAngle() + 180, (SUMOReal)360.0);
+    return (lefthand != (GeomHelper::getCWAngleDiff(from->getEndAngle(), toAngleAtNode) <
+                         GeomHelper::getCWAngleDiff(from->getEndAngle(), prohibitorToAngleAtNode)));
 }
 
 
@@ -1141,7 +1238,7 @@ NBNode::isLeftMover(const NBEdge* const from, const NBEdge* const to) const {
     std::vector<NBEdge*>::const_iterator i = std::find(myAllEdges.begin(), myAllEdges.end(), from);
     do {
         NBContHelper::nextCW(myAllEdges, i);
-    } while ((!hasOutgoing(*i) || from->isTurningDirectionAt(this, *i)) && *i != from);
+    } while ((!hasOutgoing(*i) || from->isTurningDirectionAt(*i)) && *i != from);
     return cw < ccw && (*i) == to && myOutgoingEdges.size() > 2;
 }
 
@@ -1251,7 +1348,7 @@ NBNode::getDirection(const NBEdge* const incoming, const NBEdge* const outgoing)
         return LINKDIR_NODIR;
     }
     // turning direction
-    if (incoming->isTurningDirectionAt(this, outgoing)) {
+    if (incoming->isTurningDirectionAt(outgoing)) {
         return LINKDIR_TURN;
     }
     // get the angle between incoming/outgoing at the junction
@@ -1281,7 +1378,7 @@ NBNode::getDirection(const NBEdge* const incoming, const NBEdge* const outgoing)
         find(myAllEdges.begin(), myAllEdges.end(), outgoing);
     NBContHelper::nextCCW(myAllEdges, i);
     while ((*i) != incoming) {
-        if ((*i)->getFromNode() == this && !incoming->isTurningDirectionAt(this, *i)) {
+        if ((*i)->getFromNode() == this && !incoming->isTurningDirectionAt(*i)) {
             return LINKDIR_PARTLEFT;
         }
         NBContHelper::nextCCW(myAllEdges, i);
@@ -1305,7 +1402,7 @@ NBNode::getLinkState(const NBEdge* incoming, NBEdge* outgoing, int fromlane,
     if (myType == NODETYPE_ALLWAY_STOP) {
         return LINKSTATE_ALLWAY_STOP; // all drive, first one to arrive may drive first
     }
-    if ((!incoming->isInnerEdge() && mustBrake(incoming, outgoing, fromlane)) && !mayDefinitelyPass) {
+    if ((!incoming->isInnerEdge() && mustBrake(incoming, outgoing, fromlane, true)) && !mayDefinitelyPass) {
         return myType == NODETYPE_PRIORITY_STOP ? LINKSTATE_STOP : LINKSTATE_MINOR; // minor road
     }
     // traffic lights are not regarded here
@@ -1315,8 +1412,8 @@ NBNode::getLinkState(const NBEdge* incoming, NBEdge* outgoing, int fromlane,
 
 bool
 NBNode::checkIsRemovable() const {
-    // check whether this node is included in a traffic light
-    if (myTrafficLights.size() != 0) {
+    // check whether this node is included in a traffic light or crossing
+    if (myTrafficLights.size() != 0 || myCrossings.size() != 0) {
         return false;
     }
     EdgeVector::const_iterator i;
@@ -1327,7 +1424,7 @@ NBNode::checkIsRemovable() const {
             return false;
         }
         //
-        return myIncomingEdges[0]->getFromNode() != myOutgoingEdges[0]->getToNode();
+        return myIncomingEdges[0]->getTurnDestination(true) != myOutgoingEdges[0];
     }
     // two in, two out -> may be something else
     if (myOutgoingEdges.size() == 2 && myIncomingEdges.size() == 2) {
@@ -1342,19 +1439,13 @@ NBNode::checkIsRemovable() const {
         // check whether this node is an intermediate node of
         //  a two-directional street
         for (i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
-            // try to find the opposite direction
-            NBNode* origin = (*i)->getFromNode();
-            // find the back direction of the current edge
-            EdgeVector::const_iterator j =
-                find_if(myOutgoingEdges.begin(), myOutgoingEdges.end(),
-                        NBContHelper::edge_with_destination_finder(origin));
-            // check whether the back direction exists
-            if (j != myOutgoingEdges.end()) {
-                // check whether the edge from the backdirection (must be
-                //  the counter-clockwise one) may be joined with the current
-                NBContHelper::nextCCW(myOutgoingEdges, j);
+            // each of the edges must have an opposite direction edge
+            NBEdge* opposite = (*i)->getTurnDestination(true);
+            if (opposite != 0) {
+                // the other outgoing edges must be the continuation of the current
+                NBEdge* continuation = opposite == myOutgoingEdges.front() ? myOutgoingEdges.back() : myOutgoingEdges.front();
                 // check whether the types allow joining
-                if (!(*i)->expandableBy(*j)) {
+                if (!(*i)->expandableBy(continuation)) {
                     return false;
                 }
             } else {
@@ -1383,12 +1474,11 @@ NBNode::getEdgesToJoin() const {
     }
     // two in, two out-case
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
-        NBNode* origin = (*i)->getFromNode();
-        EdgeVector::const_iterator j =
-            find_if(myOutgoingEdges.begin(), myOutgoingEdges.end(),
-                    NBContHelper::edge_with_destination_finder(origin));
-        NBContHelper::nextCCW(myOutgoingEdges, j);
-        ret.push_back(std::pair<NBEdge*, NBEdge*>(*i, *j));
+        // join with the edge that is not a turning direction
+        NBEdge* opposite = (*i)->getTurnDestination(true);
+        assert(opposite != 0);
+        NBEdge* continuation = opposite == myOutgoingEdges.front() ? myOutgoingEdges.back() : myOutgoingEdges.front();
+        ret.push_back(std::pair<NBEdge*, NBEdge*>(*i, continuation));
     }
     return ret;
 }
@@ -1404,6 +1494,16 @@ void
 NBNode::setCustomShape(const PositionVector& shape) {
     myPoly = shape;
     myHaveCustomPoly = (myPoly.size() > 1);
+}
+
+
+void
+NBNode::setCustomLaneShape(const std::string& laneID, const PositionVector& shape) {
+    if (shape.size() > 1) {
+        myCustomLaneShapes[laneID] = shape;
+    } else {
+        myCustomLaneShapes.erase(laneID);
+    }
 }
 
 
@@ -1457,21 +1557,19 @@ NBNode::isDistrict() const {
 
 int
 NBNode::guessCrossings() {
-    //gDebugFlag1 = getID() == "C";
+    //gDebugFlag1 = getID() == DEBUGID;
     int numGuessed = 0;
-    if (myCrossings.size() > 0) {
+    if (myCrossings.size() > 0 || myDiscardAllCrossings) {
         // user supplied crossings, do not guess
         return numGuessed;
     }
     if (gDebugFlag1) {
         std::cout << "guess crossings for " << getID() << "\n";
     }
-    if (gDebugFlag1) {
-        std::cout << "ordering of myAllEdges=" << toString(myAllEdges) << "\n";
-    }
+    EdgeVector allEdges = getEdgesSortedByAngleAtNodeCenter();
     // check for pedestrial lanes going clockwise around the node
     std::vector<std::pair<NBEdge*, bool> > normalizedLanes;
-    for (EdgeVector::const_iterator it = myAllEdges.begin(); it != myAllEdges.end(); ++it) {
+    for (EdgeVector::const_iterator it = allEdges.begin(); it != allEdges.end(); ++it) {
         NBEdge* edge = *it;
         const std::vector<NBEdge::Lane>& lanes = edge->getLanes();
         if (edge->getFromNode() == this) {
@@ -1492,6 +1590,8 @@ NBNode::guessCrossings() {
             break;
         }
     }
+    int hadCandidates = 0;
+    std::vector<int> connectedCandidates; // number of crossings that were built for each connected candidate
     if (firstSidewalk != -1) {
         // rotate lanes to ensure that the first one allows pedestrians
         std::vector<std::pair<NBEdge*, bool> > tmp;
@@ -1500,7 +1600,6 @@ NBNode::guessCrossings() {
         normalizedLanes = tmp;
         // find candidates
         EdgeVector candidates;
-        bool hadCandidates = false;
         for (int i = 0; i < (int)normalizedLanes.size(); ++i) {
             NBEdge* edge = normalizedLanes[i].first;
             const bool allowsPed = normalizedLanes[i].second;
@@ -1511,20 +1610,49 @@ NBNode::guessCrossings() {
                 candidates.push_back(edge);
             } else if (allowsPed) {
                 if (candidates.size() > 0) {
-                    if (hadCandidates || forbidsPedestriansAfter(normalizedLanes, i)) {
-                        hadCandidates = true;
-                        numGuessed += checkCrossing(candidates);
+                    if (hadCandidates > 0 || forbidsPedestriansAfter(normalizedLanes, i)) {
+                        hadCandidates++;
+                        const int n = checkCrossing(candidates);
+                        numGuessed += n;
+                        if (n > 0) {
+                            connectedCandidates.push_back(n);
+                        }
                     }
                     candidates.clear();
                 }
             }
         }
-        if (hadCandidates) {
+        if (hadCandidates > 0 && candidates.size() > 0) {
             // avoid wrapping around to the same sidewalk
-            numGuessed += checkCrossing(candidates);
+            hadCandidates++;
+            const int n = checkCrossing(candidates);
+            numGuessed += n;
+            if (n > 0) {
+                connectedCandidates.push_back(n);
+            }
         }
     }
-    std::sort(myCrossings.begin(), myCrossings.end(), NBNodesEdgesSorter::crossing_by_junction_angle_sorter(myAllEdges));
+    // Avoid duplicate crossing between the same pair of walkingareas 
+    if (gDebugFlag1) {
+        std::cout << "  hadCandidates=" << hadCandidates << "  connectedCandidates=" << toString(connectedCandidates) << "\n";
+    }
+    if (hadCandidates == 2 && connectedCandidates.size() == 2) {
+        // One or both of them might be split: remove the one with less splits
+        if (connectedCandidates.back() <= connectedCandidates.front()) {
+            numGuessed -= connectedCandidates.back();
+            myCrossings.erase(myCrossings.end() - connectedCandidates.back(), myCrossings.end());
+        } else {
+            numGuessed -= connectedCandidates.front();
+            myCrossings.erase(myCrossings.begin(), myCrossings.begin() + connectedCandidates.front());
+        }
+    }
+    std::sort(myCrossings.begin(), myCrossings.end(), NBNodesEdgesSorter::crossing_by_junction_angle_sorter(this, myAllEdges));
+    if (gDebugFlag1) {
+        std::cout << "guessedCrossings:\n";
+        for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
+            std::cout << "  edges=" << toString((*it).edges) << "\n";
+        }
+    }
     return numGuessed;
 }
 
@@ -1633,6 +1761,19 @@ NBNode::forbidsPedestriansAfter(std::vector<std::pair<NBEdge*, bool> > normalize
 
 void
 NBNode::buildInnerEdges(bool buildCrossingsAndWalkingAreas) {
+    if (buildCrossingsAndWalkingAreas) {
+        buildCrossings();
+        buildWalkingAreas(OptionsCont::getOptions().getInt("junctions.corner-detail"));
+        // ensure that all crossings are properly connected
+        for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
+            if ((*it).prevWalkingArea == "" || (*it).nextWalkingArea == "") {
+                // there is no way to check this apart from trying to build all
+                // walkingAreas and there is no way to recover because the junction
+                // logic assumes that the crossing can be built.
+                throw ProcessError("Invalid crossing '" + (*it).id + "' at node '" + getID() + "' with edges '" + toString((*it).edges) + "'.");
+            }
+        }
+    }
     // build inner edges for vehicle movements across the junction
     unsigned int noInternalNoSplits = 0;
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
@@ -1649,37 +1790,71 @@ NBNode::buildInnerEdges(bool buildCrossingsAndWalkingAreas) {
     for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
         (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
     }
-    if (buildCrossingsAndWalkingAreas) {
-        buildCrossings();
-        buildWalkingAreas();
-        // ensure that all crossings are properly connected
-        for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
-            if ((*it).prevWalkingArea == "" || (*it).nextWalkingArea == "") {
-                // there is no way to check this apart from trying to build all
-                // walkingAreas and there is no way to recover because the junction
-                // logic assumes that the crossing can be built.
-                throw ProcessError("Invalid crossing at node '" + getID() + "' with edges '" + toString((*it).edges) + "'.");
-            }
+    // if there are custom lane shapes we need to built twice:
+    // first to set the ids then to build intersections with the custom geometries
+    if (myCustomLaneShapes.size() > 0) {
+        unsigned int lno = 0;
+        unsigned int splitNo = 0;
+        for (EdgeVector::const_iterator i = myIncomingEdges.begin(); i != myIncomingEdges.end(); i++) {
+            (*i)->buildInnerEdges(*this, noInternalNoSplits, lno, splitNo);
         }
     }
-
 }
 
 
 unsigned int
 NBNode::buildCrossings() {
-    //gDebugFlag1 = getID() == "C";
+    //gDebugFlag1 = getID() == DEBUGID;
+    if (gDebugFlag1) {
+        std::cout << "build crossings for " << getID() << ":\n";
+    }
+    if (myDiscardAllCrossings) {
+        myCrossings.clear();
+    }
     unsigned int index = 0;
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); it++) {
         (*it).id = ":" + getID() + "_c" + toString(index++);
-        if ((*it).edges.size() > 2) {
-            WRITE_ERROR("Crossings across more than 2 edges not yet implemented (" + toString((*it).edges) + ")");
-            continue;
+        EdgeVector& edges = (*it).edges;
+        if (gDebugFlag1) {
+            std::cout << "  crossing=" << (*it).id << " edges=" << toString(edges);
+        }
+        // sorting the edges in the right way is imperative. We want to sort
+        // them by getAngleAtNodeToCenter() but need to be extra carefull to avoid wrapping around 0 somewhere in between
+        std::sort(edges.begin(), edges.end(), NBContHelper::edge_by_angle_to_nodeShapeCentroid_sorter(this));
+        if (gDebugFlag1) {
+            std::cout << " sortedEdges=" << toString(edges) << "\n";
+        };
+        // rotate the edges so that the largest relative angle difference comes at the end
+        SUMOReal maxAngleDiff = 0;
+        int maxAngleDiffIndex = 0; // index before maxDist
+        for (int i = 0; i < (int) edges.size(); i++) {
+            SUMOReal diff = NBHelpers::relAngle(edges[i]->getAngleAtNodeToCenter(this),
+                                                edges[(i + 1) % edges.size()]->getAngleAtNodeToCenter(this));
+            if (diff < 0) {
+                diff += 360;
+            }
+            if (gDebugFlag1) {
+                std::cout << "   i=" << i << " a1=" << edges[i]->getAngleAtNodeToCenter(this) << " a2=" << edges[(i + 1) % edges.size()]->getAngleAtNodeToCenter(this) << " diff=" << diff << "\n";
+            }
+            if (diff > maxAngleDiff) {
+                maxAngleDiff = diff;
+                maxAngleDiffIndex = i;
+            }
+        }
+        if (maxAngleDiff > 2 && maxAngleDiff < 360 - 2) {
+            // if the angle differences is too small, we better not rotate
+            std::rotate(edges.begin(), edges.begin() + (maxAngleDiffIndex + 1) % edges.size(), edges.end());
+            if (gDebugFlag1) {
+                std::cout << " rotatedEdges=" << toString(edges);
+            }
+        }
+        // reverse to get them in CCW order (walking direction around the node)
+        std::reverse(edges.begin(), edges.end());
+        if (gDebugFlag1) {
+            std::cout << " finalEdges=" << toString(edges) << "\n";
         }
         // compute shape
-        EdgeVector& edges = (*it).edges;
         (*it).shape.clear();
-        std::sort(edges.begin(), edges.end(), edge_by_direction_sorter(this));
         const int begDir = (edges.front()->getFromNode() == this ? FORWARD : BACKWARD);
         const int endDir = (edges.back()->getToNode() == this ? FORWARD : BACKWARD);
         NBEdge::Lane crossingBeg = edges.front()->getFirstNonPedestrianLane(begDir);
@@ -1698,22 +1873,27 @@ NBNode::buildCrossings() {
 
 
 void
-NBNode::buildWalkingAreas() {
-    //gDebugFlag1 = getID() == "C";
+NBNode::buildWalkingAreas(int cornerDetail) {
+    //gDebugFlag1 = getID() == DEBUGID;
     unsigned int index = 0;
     myWalkingAreas.clear();
     if (gDebugFlag1) {
         std::cout << "build walkingAreas for " << getID() << ":\n";
     }
-    // get begin shapes of all lanes in outgoing direction ordered clockwise
+    if (myAllEdges.size() == 0) {
+        return;
+    }
+    EdgeVector allEdges = getEdgesSortedByAngleAtNodeCenter();
+    // shapes are all pointing away from the intersection
     std::vector<std::pair<NBEdge*, NBEdge::Lane> > normalizedLanes;
-    for (EdgeVector::const_iterator it = myAllEdges.begin(); it != myAllEdges.end(); ++it) {
+    for (EdgeVector::const_iterator it = allEdges.begin(); it != allEdges.end(); ++it) {
         NBEdge* edge = *it;
         const std::vector<NBEdge::Lane>& lanes = edge->getLanes();
         if (edge->getFromNode() == this) {
             for (std::vector<NBEdge::Lane>::const_reverse_iterator it_l = lanes.rbegin(); it_l != lanes.rend(); ++it_l) {
                 NBEdge::Lane l = *it_l;
                 l.shape = l.shape.getSubpartByIndex(0, 2);
+                l.width = (l.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : l.width);
                 normalizedLanes.push_back(std::make_pair(edge, l));
             }
         } else {
@@ -1721,12 +1901,13 @@ NBNode::buildWalkingAreas() {
                 NBEdge::Lane l = *it_l;
                 l.shape = l.shape.reverse();
                 l.shape = l.shape.getSubpartByIndex(0, 2);
+                l.width = (l.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : l.width);
                 normalizedLanes.push_back(std::make_pair(edge, l));
             }
         }
     }
     //if (gDebugFlag1) std::cout << "  normalizedLanes=" << normalizedLanes.size() << "\n";
-    // collect [start,cound[ indices in normalizedLanes that belong to a walkingArea
+    // collect [start,count[ indices in normalizedLanes that belong to a walkingArea
     std::vector<std::pair<int, int> > waIndices;
     int start = -1;
     NBEdge* prevEdge = normalizedLanes.back().first;
@@ -1805,14 +1986,17 @@ NBNode::buildWalkingAreas() {
         if (gDebugFlag1) {
             std::cout << "build walkingArea " << wa.id << " start=" << start << " end=" << end << " count=" << count << " prev=" << prev << ":\n";
         }
-        SUMOReal endCrossingWidth = DEFAULT_CROSSING_WIDTH;
-        SUMOReal startCrossingWidth = DEFAULT_CROSSING_WIDTH;
+        SUMOReal endCrossingWidth = 0;
+        SUMOReal startCrossingWidth = 0;
         PositionVector endCrossingShape;
         PositionVector startCrossingShape;
         // check for connected crossings
         bool connectsCrossing = false;
         std::vector<Position> connectedPoints;
         for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); ++it) {
+            if (gDebugFlag1) {
+                std::cout << "  crossing=" << (*it).id << " sortedEdges=" << toString((*it).edges) << "\n";
+            }
             if ((*it).edges.back() == normalizedLanes[end].first
                     && (normalizedLanes[end].second.permissions & SVC_PEDESTRIAN) == 0) {
                 // crossing ends
@@ -1859,7 +2043,6 @@ NBNode::buildWalkingAreas() {
             const int nlI = (start + j) % normalizedLanes.size();
             NBEdge* edge = normalizedLanes[nlI].first;
             NBEdge::Lane l = normalizedLanes[nlI].second;
-            l.width = (l.width == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : l.width);
             wa.width = MAX2(wa.width, l.width);
             if (connected.count(edge) == 0) {
                 if (edge->getFromNode() == this) {
@@ -1879,20 +2062,24 @@ NBNode::buildWalkingAreas() {
         if (buildExtensions) {
             // extension at starting crossing
             if (startCrossingShape.size() > 0) {
-                if (gDebugFlag1) std::cout << "  extension at startCrossing shape=" << startCrossingShape << "\n";
+                if (gDebugFlag1) {
+                    std::cout << "  extension at startCrossing shape=" << startCrossingShape << "\n";
+                }
                 startCrossingShape.move2side(startCrossingWidth / 2);
                 wa.shape.push_front_noDoublePos(startCrossingShape[0]); // right corner
                 startCrossingShape.move2side(-startCrossingWidth);
                 wa.shape.push_front_noDoublePos(startCrossingShape[0]); // left corner goes first
-            } 
+            }
             // extension at ending crossing
             if (endCrossingShape.size() > 0) {
-                if (gDebugFlag1) std::cout << "  extension at endCrossing shape=" << endCrossingShape << "\n";
+                if (gDebugFlag1) {
+                    std::cout << "  extension at endCrossing shape=" << endCrossingShape << "\n";
+                }
                 endCrossingShape.move2side(endCrossingWidth / 2);
                 wa.shape.push_back_noDoublePos(endCrossingShape[-1]);
                 endCrossingShape.move2side(-endCrossingWidth);
                 wa.shape.push_back_noDoublePos(endCrossingShape[-1]);
-            } 
+            }
         }
         if (connected.size() == 2 && !connectsCrossing && wa.nextSidewalks.size() == 1 && wa.prevSidewalks.size() == 1) {
             // do not build a walkingArea since a normal connection exists
@@ -1900,6 +2087,45 @@ NBNode::buildWalkingAreas() {
             NBEdge* e2 = *(++connected.begin());
             if (e1->hasConnectionTo(e2, 0, 0) || e2->hasConnectionTo(e1, 0, 0)) {
                 continue;
+            }
+        }
+        // build smooth inner curve (optional)
+        if (cornerDetail > 0) {
+            int smoothEnd = end;
+            int smoothPrev = prev;
+            // extend to green verge
+            if (endCrossingWidth > 0 && normalizedLanes[smoothEnd].second.permissions == 0) {
+                smoothEnd = (smoothEnd + 1) % normalizedLanes.size();
+            }
+            if (startCrossingWidth > 0 && normalizedLanes[smoothPrev].second.permissions == 0) {
+                if (smoothPrev == 0) {
+                    smoothPrev = (int)normalizedLanes.size() - 1;
+                } else {
+                    smoothPrev--;
+                }
+            }
+            PositionVector begShape = normalizedLanes[smoothEnd].second.shape;
+            begShape = begShape.reverse();
+            //begShape.extrapolate(endCrossingWidth);
+            begShape.move2side(normalizedLanes[smoothEnd].second.width / 2);
+            PositionVector endShape = normalizedLanes[smoothPrev].second.shape;
+            endShape.move2side(normalizedLanes[smoothPrev].second.width / 2);
+            //endShape.extrapolate(startCrossingWidth);
+            PositionVector curve = computeSmoothShape(begShape, endShape, cornerDetail + 2, false, 25, 25);
+            if (gDebugFlag1) std::cout
+                        << " end=" << smoothEnd << " prev=" << smoothPrev
+                        << " endCrossingWidth=" << endCrossingWidth << " startCrossingWidth=" << startCrossingWidth
+                        << "  begShape=" << begShape << " endShape=" << endShape << " smooth curve=" << curve << "\n";
+            if (curve.size() > 2) {
+                curve.eraseAt(0);
+                curve.eraseAt(-1);
+                if (endCrossingWidth > 0) {
+                    wa.shape.eraseAt(-1);
+                }
+                if (startCrossingWidth > 0) {
+                    wa.shape.eraseAt(0);
+                }
+                wa.shape.append(curve, 0);
             }
         }
         // determine length (average of all possible connections)
@@ -1928,6 +2154,9 @@ NBNode::buildWalkingAreas() {
     for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end(); ++it) {
         Crossing& prev = *it;
         Crossing& next = (it !=  myCrossings.begin() ? * (it - 1) : * (myCrossings.end() - 1));
+        if (gDebugFlag1) {
+            std::cout << "  checkIntermediate: prev=" << prev.id << " next=" << next.id << " prev.nextWA=" << prev.nextWalkingArea << "\n";
+        }
         if (prev.nextWalkingArea == "") {
             WalkingArea wa(":" + getID() + "_w" + toString(index++), prev.width);
             prev.nextWalkingArea = wa.id;
@@ -1951,6 +2180,9 @@ NBNode::buildWalkingAreas() {
             // length (special case)
             wa.length = MAX2(POSITION_EPS, prev.shape.back().distanceTo2D(next.shape.front()));
             myWalkingAreas.push_back(wa);
+            if (gDebugFlag1) {
+                std::cout << "     build wa=" << wa.id << "\n";
+            }
         }
     }
 }
@@ -2023,8 +2255,25 @@ NBNode::setRoundabout() {
 
 
 void
-NBNode::addCrossing(EdgeVector edges, SUMOReal width, bool priority) {
+NBNode::addCrossing(EdgeVector edges, SUMOReal width, bool priority, bool fromSumoNet) {
     myCrossings.push_back(Crossing(this, edges, width, priority));
+    if (fromSumoNet) {
+        myCrossingsLoadedFromSumoNet += 1;
+    }
+}
+
+
+void
+NBNode::removeCrossing(const EdgeVector& edges) {
+    EdgeSet edgeSet(edges.begin(), edges.end());
+    for (std::vector<Crossing>::iterator it = myCrossings.begin(); it != myCrossings.end();) {
+        EdgeSet edgeSet2((*it).edges.begin(), (*it).edges.end());
+        if (edgeSet == edgeSet2) {
+            it = myCrossings.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 
@@ -2069,6 +2318,63 @@ NBNode::getCenter() const {
     }
 }
 
+
+EdgeVector
+NBNode::getEdgesSortedByAngleAtNodeCenter() const {
+    EdgeVector result = myAllEdges;
+    if (gDebugFlag1) {
+        std::cout << "  angles:\n";
+        for (EdgeVector::const_iterator it = result.begin(); it != result.end(); ++it) {
+            std::cout << "    edge=" << (*it)->getID() << " edgeAngle=" << (*it)->getAngleAtNode(this) << " angleToShape=" << (*it)->getAngleAtNodeToCenter(this) << "\n";
+        }
+        std::cout << "  allEdges before: " << toString(result) << "\n";
+    }
+    sort(result.begin(), result.end(), NBContHelper::edge_by_angle_to_nodeShapeCentroid_sorter(this));
+    // let the first edge in myAllEdges remain the first
+    if (gDebugFlag1) {
+        std::cout << "  allEdges sorted: " << toString(result) << "\n";
+    }
+    rotate(result.begin(), std::find(result.begin(), result.end(), *myAllEdges.begin()), result.end());
+    if (gDebugFlag1) {
+        std::cout << "  allEdges rotated: " << toString(result) << "\n";
+    }
+    return result;
+}
+
+
+std::string
+NBNode::getNodeIDFromInternalLane(const std::string id) {
+    // this relies on the fact that internal ids always have the form
+    // :<nodeID>_<part1>_<part2>
+    // i.e. :C_3_0, :C_c1_0 :C_w0_0
+    assert(id[0] == ':');
+    size_t sep_index = id.rfind('_');
+    if (sep_index == std::string::npos) {
+        WRITE_ERROR("Invalid lane id '" + id + "' (missing '_').");
+        return "";
+    }
+    sep_index = id.substr(0, sep_index).rfind('_');
+    if (sep_index == std::string::npos) {
+        WRITE_ERROR("Invalid lane id '" + id + "' (missing '_').");
+        return "";
+    }
+    return id.substr(1, sep_index - 1);
+}
+
+
+void
+NBNode::avoidOverlap() {
+    // simple case: edges with LANESPREAD_CENTER and a (possible) turndirection at the same node
+    for (EdgeVector::iterator it = myIncomingEdges.begin(); it != myIncomingEdges.end(); it++) {
+        NBEdge* edge = *it;
+        NBEdge* turnDest = edge->getTurnDestination(true);
+        if (turnDest != 0) {
+            edge->shiftPositionAtNode(this, turnDest);
+            turnDest->shiftPositionAtNode(this, edge);
+        }
+    }
+    // @todo: edges in the same direction with sharp angles starting/ending at the same position
+}
 
 /****************************************************************************/
 

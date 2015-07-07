@@ -1,15 +1,14 @@
 /****************************************************************************/
-/// @file    ODDistrict.cpp
-/// @author  Daniel Krajzewicz
-/// @author  Michael Behrisch
-/// @author  Yun-Pang Floetteroed
-/// @date    Sept 2002
+/// @file    GUIContainerControl.h
+/// @author  Melanie Weber
+/// @author  Andreas Kendziorra
+/// @date    Wed, 01.08.2014
 /// @version $Id$
 ///
-// A district (origin/destination)
+// GUI-version of the container control for building gui containers
 /****************************************************************************/
 // SUMO, Simulation of Urban MObility; see http://sumo.dlr.de/
-// Copyright (C) 2002-2015 DLR (http://www.dlr.de/) and contributors
+// Copyright (C) 2012-2015 DLR (http://www.dlr.de/) and contributors
 /****************************************************************************/
 //
 //   This file is part of SUMO.
@@ -19,6 +18,8 @@
 //   (at your option) any later version.
 //
 /****************************************************************************/
+#ifndef GUIContainerControl_h
+#define GUIContainerControl_h
 
 
 // ===========================================================================
@@ -31,65 +32,35 @@
 #endif
 
 #include <vector>
-#include <string>
-#include <utility>
-#include <utils/common/UtilExceptions.h>
-#include <utils/common/Named.h>
-#include <utils/common/MsgHandler.h>
-#include "ODDistrict.h"
-
-
-#ifdef CHECK_MEMORY_LEAKS
-#include <foreign/nvwa/debug_new.h>
-#endif // CHECK_MEMORY_LEAKS
+#include <microsim/MSContainerControl.h>
 
 
 // ===========================================================================
-// method definitions
+// class definitions
 // ===========================================================================
-ODDistrict::ODDistrict(const std::string& id)
-    : Named(id) {}
+/** @class GUIContainerControl
+ * @brief GUI-version of the container control for building gui containers
+ */
+class GUIContainerControl : public MSContainerControl {
+public:
+    /// constructor
+    GUIContainerControl();
 
 
-ODDistrict::~ODDistrict() {}
+    /// destructor
+    virtual ~GUIContainerControl();
 
 
-void
-ODDistrict::addSource(const std::string& id, SUMOReal weight) {
-    mySources.add(weight, id);
-}
+    /** @brief Builds a new container
+     * @param[in] pars The parameter
+     * @param[in] vtype The type (reusing vehicle type container here)
+     * @param[in] plan This container's plan
+     */
+    virtual MSContainer* buildContainer(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSTransportable::MSTransportablePlan* plan) const;
+
+};
 
 
-void
-ODDistrict::addSink(const std::string& id, SUMOReal weight) {
-    mySinks.add(weight, id);
-}
-
-
-std::string
-ODDistrict::getRandomSource() const {
-    return mySources.get();
-}
-
-
-std::string
-ODDistrict::getRandomSink() const {
-    return mySinks.get();
-}
-
-
-unsigned int
-ODDistrict::sinkNumber() const {
-    return (unsigned int) mySinks.getVals().size();
-}
-
-
-unsigned int
-ODDistrict::sourceNumber() const {
-    return (unsigned int) mySources.getVals().size();
-}
-
-
+#endif
 
 /****************************************************************************/
-

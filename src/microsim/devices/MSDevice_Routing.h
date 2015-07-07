@@ -116,6 +116,9 @@ public:
     static void unlock() {
         myThreadPool.unlock();
     }
+    static bool isParallel() {
+        return myThreadPool.size() > 0;
+    }
 #endif
 
 
@@ -324,6 +327,9 @@ private:
 
     /// @brief The router to use
     static SUMOAbstractRouter<MSEdge, SUMOVehicle>* myRouter;
+
+    /// @brief Whether to disturb edge weights dynamically
+    static SUMOReal myRandomizeWeightsFactor;
 
 #ifdef HAVE_FOX
     static FXWorkerThread::Pool myThreadPool;

@@ -139,7 +139,7 @@ MSAgentbasedTrafficLightLogic::~MSAgentbasedTrafficLightLogic() {}
 
 // ------------ Switching and setting current rows
 SUMOTime
-MSAgentbasedTrafficLightLogic::trySwitch(bool) {
+MSAgentbasedTrafficLightLogic::trySwitch() {
     assert(getCurrentPhaseDef().minDuration >= 0);
     assert(getCurrentPhaseDef().minDuration <= getCurrentPhaseDef().duration);
 	if (getCurrentPhaseDef().isGreenPhase()) {

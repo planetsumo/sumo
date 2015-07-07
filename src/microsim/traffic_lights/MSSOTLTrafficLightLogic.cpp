@@ -377,7 +377,7 @@ MSSOTLTrafficLightLogic::decideNextPhase() {
 }
 
 SUMOTime 
-MSSOTLTrafficLightLogic::trySwitch(bool) {
+MSSOTLTrafficLightLogic::trySwitch() {
 	// To check if decideNextPhase changes the step
 	unsigned int previousStep = getCurrentPhaseIndex() ;
 	// Update CTS according to sensors

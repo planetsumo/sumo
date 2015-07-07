@@ -33,6 +33,7 @@
 #include <cassert>
 #include <utils/options/OptionsCont.h>
 #include <utils/common/MsgHandler.h>
+#include <utils/common/ToString.h>
 #include "NBNetBuilder.h"
 #include "NBNodeCont.h"
 #include "NBNode.h"
@@ -64,28 +65,34 @@ NBRampsComputer::computeRamps(NBNetBuilder& nb, OptionsCont& oc) {
     std::set<NBEdge*> incremented;
     // check whether on-off ramps shall be guessed
     if (oc.getBool("ramps.guess")) {
+        std::set<std::string> noramps;
+        if (oc.isSet("ramps.unset")) {
+            std::vector<std::string> edges = oc.getStringVector("ramps.unset");
+            noramps.insert(edges.begin(), edges.end());
+        }
         NBNodeCont& nc = nb.getNodeCont();
         NBEdgeCont& ec = nb.getEdgeCont();
         NBDistrictCont& dc = nb.getDistrictCont();
-        std::set<NBNode*> potOnRamps;
-        std::set<NBNode*> potOffRamps;
+        // if an edge is part of two ramps, ordering is important
+        std::set<NBNode*, Named::ComparatorIdLess> potOnRamps;
+        std::set<NBNode*, Named::ComparatorIdLess> potOffRamps;
         for (std::map<std::string, NBNode*>::const_iterator i = nc.begin(); i != nc.end(); ++i) {
             NBNode* cur = (*i).second;
-            if (mayNeedOnRamp(cur, minHighwaySpeed, maxRampSpeed)) {
+            if (mayNeedOnRamp(cur, minHighwaySpeed, maxRampSpeed, noramps)) {
                 potOnRamps.insert(cur);
             }
-            if (mayNeedOffRamp(cur, minHighwaySpeed, maxRampSpeed)) {
+            if (mayNeedOffRamp(cur, minHighwaySpeed, maxRampSpeed, noramps)) {
                 potOffRamps.insert(cur);
             }
         }
-        for (std::set<NBNode*>::const_iterator i = potOnRamps.begin(); i != potOnRamps.end(); ++i) {
+        for (std::set<NBNode*, Named::ComparatorIdLess>::const_iterator i = potOnRamps.begin(); i != potOnRamps.end(); ++i) {
             buildOnRamp(*i, nc, ec, dc, rampLength, dontSplit, incremented);
         }
-        for (std::set<NBNode*>::const_iterator i = potOffRamps.begin(); i != potOffRamps.end(); ++i) {
+        for (std::set<NBNode*, Named::ComparatorIdLess>::const_iterator i = potOffRamps.begin(); i != potOffRamps.end(); ++i) {
             buildOffRamp(*i, nc, ec, dc, rampLength, dontSplit, incremented);
         }
     }
-    // check whether on-off ramps shall be guessed
+    // check whether on-off ramps are specified
     if (oc.isSet("ramps.set")) {
         std::vector<std::string> edges = oc.getStringVector("ramps.set");
         NBNodeCont& nc = nb.getNodeCont();
@@ -117,26 +124,26 @@ NBRampsComputer::computeRamps(NBNetBuilder& nb, OptionsCont& oc) {
 
 
 bool
-NBRampsComputer::mayNeedOnRamp(NBNode* cur, SUMOReal minHighwaySpeed, SUMOReal maxRampSpeed) {
+NBRampsComputer::mayNeedOnRamp(NBNode* cur, SUMOReal minHighwaySpeed, SUMOReal maxRampSpeed, const std::set<std::string>& noramps) {
     if (cur->getOutgoingEdges().size() != 1 || cur->getIncomingEdges().size() != 2) {
         return false;
     }
     NBEdge* potHighway, *potRamp, *cont;
     getOnRampEdges(cur, &potHighway, &potRamp, &cont);
     // may be an on-ramp
-    return fulfillsRampConstraints(potHighway, potRamp, cont, minHighwaySpeed, maxRampSpeed);
+    return fulfillsRampConstraints(potHighway, potRamp, cont, minHighwaySpeed, maxRampSpeed, noramps);
 }
 
 
 bool
-NBRampsComputer::mayNeedOffRamp(NBNode* cur, SUMOReal minHighwaySpeed, SUMOReal maxRampSpeed) {
+NBRampsComputer::mayNeedOffRamp(NBNode* cur, SUMOReal minHighwaySpeed, SUMOReal maxRampSpeed, const std::set<std::string>& noramps) {
     if (cur->getIncomingEdges().size() != 1 || cur->getOutgoingEdges().size() != 2) {
         return false;
     }
     // may be an off-ramp
     NBEdge* potHighway, *potRamp, *prev;
     getOffRampEdges(cur, &potHighway, &potRamp, &prev);
-    return fulfillsRampConstraints(potHighway, potRamp, prev, minHighwaySpeed, maxRampSpeed);
+    return fulfillsRampConstraints(potHighway, potRamp, prev, minHighwaySpeed, maxRampSpeed, noramps);
 }
 
 
@@ -167,7 +174,7 @@ NBRampsComputer::buildOnRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDist
                 if (curr->getNumLanes() != firstLaneNumber) {
                     // the number of lanes changes along the computation; we'll stop...
                     curr = 0;
-                } else if (curr->isTurningDirectionAt(nextN, last)) {
+                } else if (curr->isTurningDirectionAt(last)) {
                     // turnarounds certainly should not be included in a ramp
                     curr = 0;
                 } else if (curr == potHighway || curr == potRamp) {
@@ -249,7 +256,7 @@ NBRampsComputer::buildOffRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDis
                 if (curr->getNumLanes() != firstLaneNumber) {
                     // the number of lanes changes along the computation; we'll stop...
                     curr = 0;
-                } else if (last->isTurningDirectionAt(prevN, curr)) {
+                } else if (last->isTurningDirectionAt(curr)) {
                     // turnarounds certainly should not be included in a ramp
                     curr = 0;
                 } else if (curr == potHighway || curr == potRamp) {
@@ -268,12 +275,12 @@ NBRampsComputer::buildOffRamp(NBNode* cur, NBNodeCont& nc, NBEdgeCont& ec, NBDis
             Position pos = curr->getGeometry().positionAtOffset(curr->getGeometry().length() - (rampLength  - currLength));
             NBNode* rn = new NBNode(curr->getID() + "-AddedOffRampNode", pos);
             if (!nc.insert(rn)) {
-                throw ProcessError("Ups - could not build on-ramp for edge '" + curr->getID() + "' (node could not be build)!");
+                throw ProcessError("Ups - could not build off-ramp for edge '" + curr->getID() + "' (node could not be build)!");
             }
             std::string name = curr->getID();
             bool ok = ec.splitAt(dc, curr, rn, curr->getID(), curr->getID() + "-AddedOffRampEdge", curr->getNumLanes(), curr->getNumLanes() + toAdd);
             if (!ok) {
-                WRITE_ERROR("Ups - could not build on-ramp for edge '" + curr->getID() + "'!");
+                WRITE_ERROR("Ups - could not build off-ramp for edge '" + curr->getID() + "'!");
                 return;
             }
             curr = ec.retrieve(name + "-AddedOffRampEdge");
@@ -311,8 +318,8 @@ NBRampsComputer::moveRampRight(NBEdge* ramp, int addedLanes) {
     }
     try {
         PositionVector g = ramp->getGeometry();
-        const SUMOReal offset = (0.5 * addedLanes * 
-                (ramp->getLaneWidth() == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : ramp->getLaneWidth()));
+        const SUMOReal offset = (0.5 * addedLanes *
+                                 (ramp->getLaneWidth() == NBEdge::UNSPECIFIED_WIDTH ? SUMO_const_laneWidth : ramp->getLaneWidth()));
         g.move2side(offset);
         ramp->setGeometry(g);
     } catch (InvalidArgument&) {
@@ -401,7 +408,9 @@ NBRampsComputer::getOffRampEdges(NBNode* n, NBEdge** potHighway, NBEdge** potRam
 
 bool
 NBRampsComputer::fulfillsRampConstraints(
-    NBEdge* potHighway, NBEdge* potRamp, NBEdge* other, SUMOReal minHighwaySpeed, SUMOReal maxRampSpeed) {
+    NBEdge* potHighway, NBEdge* potRamp, NBEdge* other, SUMOReal minHighwaySpeed, SUMOReal maxRampSpeed,
+    const std::set<std::string>& noramps) 
+{
     // do not build ramps on rail edges
     if (isRailway(potHighway->getPermissions()) || isRailway(potRamp->getPermissions())) {
         return false;
@@ -422,14 +431,14 @@ NBRampsComputer::fulfillsRampConstraints(
     // is any of the connections a turnaround?
     if (other->getToNode() == potHighway->getFromNode()) {
         // off ramp
-        if (other->isTurningDirectionAt(other->getToNode(), potHighway) ||
-                other->isTurningDirectionAt(other->getToNode(), potRamp)) {
+        if (other->isTurningDirectionAt(potHighway) ||
+                other->isTurningDirectionAt(potRamp)) {
             return false;
         }
     } else {
         // on ramp
-        if (other->isTurningDirectionAt(other->getFromNode(), potHighway) ||
-                other->isTurningDirectionAt(other->getFromNode(), potRamp)) {
+        if (other->isTurningDirectionAt(potHighway) ||
+                other->isTurningDirectionAt(potRamp)) {
             return false;
         }
     }
@@ -440,6 +449,9 @@ NBRampsComputer::fulfillsRampConstraints(
     */
     // is it really a ramp?
     if (maxRampSpeed > 0 && maxRampSpeed < potRamp->getSpeed()) {
+        return false;
+    }
+    if (noramps.find(other->getID()) != noramps.end()) {
         return false;
     }
     return true;

@@ -45,8 +45,6 @@
 #include <utils/iodevices/OutputDevice.h>
 #include "NBEdge.h"
 #include "NBContHelper.h"
-#include "NBTrafficLightLogic.h"
-#include "NBTrafficLightLogicCont.h"
 #include "NBNode.h"
 #include "NBRequest.h"
 
@@ -237,11 +235,11 @@ NBRequest::setBlocking(bool leftHanded,
     }
     // check if one of the links is a turn; this link is always not priorised
     //  true for right-before-left and priority
-    if (from1->isTurningDirectionAt(myJunction, to1)) {
+    if (from1->isTurningDirectionAt(to1)) {
         myForbids[idx2][idx1] = true;
         return;
     }
-    if (from2->isTurningDirectionAt(myJunction, to2)) {
+    if (from2->isTurningDirectionAt(to2)) {
         myForbids[idx1][idx2] = true;
         return;
     }
@@ -521,7 +519,7 @@ NBRequest::writeCrossingResponse(OutputDevice& od, const NBNode::Crossing& cross
                     }
                 }
                 foes += foe ? '1' : '0';
-                response += mustBrakeForCrossing(from, to, crossing) || !foe ? '0' : '1';
+                response += mustBrakeForCrossing(myJunction, from, to, crossing) || !foe ? '0' : '1';
             }
         }
     }
@@ -545,7 +543,7 @@ NBRequest::getResponseString(const NBEdge* const from, const NBEdge* const to,
     std::string result;
     // crossings
     for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
-        result += mustBrakeForCrossing(from, to, *i) ? '1' : '0';
+        result += mustBrakeForCrossing(myJunction, from, to, *i) ? '1' : '0';
     }
     // normal connections
     for (EdgeVector::const_reverse_iterator i = myIncoming.rbegin(); i != myIncoming.rend(); i++) {
@@ -568,7 +566,7 @@ NBRequest::getResponseString(const NBEdge* const from, const NBEdge* const to,
                     // check whether the connection is prohibited by another one
                     if ((myForbids[getIndex(*i, connected[k].toEdge)][idx] &&
                             (!checkLaneFoes || laneConflict(from, to, toLane, *i, connected[k].toEdge, connected[k].toLane)))
-                            || rightTurnConflict(from, to, fromLane, *i, connected[k].toEdge, connected[k].fromLane)) {
+                            || NBNode::rightTurnConflict(from, to, fromLane, *i, connected[k].toEdge, connected[k].fromLane)) {
                         result += '1';
                     } else {
                         result += '0';
@@ -609,7 +607,7 @@ NBRequest::getFoesString(NBEdge* from, NBEdge* to, int fromLane, int toLane, con
             for (int k = size; k-- > 0;) {
                 if ((foes(from, to, (*i), connected[k].toEdge) &&
                         (!checkLaneFoes || laneConflict(from, to, toLane, *i, connected[k].toEdge, connected[k].toLane)))
-                        || rightTurnConflict(from, to, fromLane, *i, connected[k].toEdge, connected[k].fromLane)) {
+                        || NBNode::rightTurnConflict(from, to, fromLane, *i, connected[k].toEdge, connected[k].fromLane)) {
                     result += '1';
                 } else {
                     result += '0';
@@ -637,36 +635,9 @@ NBRequest::laneConflict(const NBEdge* from, const NBEdge* to, int toLane,
     }
     const SUMOReal prohibitorAngle = NBHelpers::relAngle(
                                          prohibitorFrom->getAngleAtNode(prohibitorFrom->getToNode()), to->getAngleAtNode(to->getFromNode()));
-    const bool rightOfProhibitor = prohibitorFrom->isTurningDirectionAt(prohibitorFrom->getToNode(), to)
-                                   || (angle > prohibitorAngle && !from->isTurningDirectionAt(from->getToNode(), to));
+    const bool rightOfProhibitor = prohibitorFrom->isTurningDirectionAt(to)
+                                   || (angle > prohibitorAngle && !from->isTurningDirectionAt(to));
     return rightOfProhibitor ? toLane >= prohibitorToLane : toLane <= prohibitorToLane;
-}
-
-
-bool
-NBRequest::rightTurnConflict(const NBEdge* from, const NBEdge* to, int fromLane,
-                             const NBEdge* prohibitorFrom, const NBEdge* prohibitorTo, int prohibitorFromLane) const {
-    if (from != prohibitorFrom) {
-        return false;
-    }
-    if (from->isTurningDirectionAt(from->getToNode(), to)) {
-        // XXX should warn if there are any non-turning connections left of this
-        return false;
-    }
-    const bool lefthand = OptionsCont::getOptions().getBool("lefthand");
-    if ((!lefthand && fromLane <= prohibitorFromLane) ||
-            (lefthand && fromLane >= prohibitorFromLane)) {
-        return false;
-    }
-    // conflict if to is between prohibitorTo and from when going clockwise
-    if (to->getStartAngle() == prohibitorTo->getStartAngle()) {
-        // reduce rounding errors
-        return false;
-    }
-    const SUMOReal toAngleAtNode = fmod(to->getStartAngle() + 180, (SUMOReal)360.0);
-    const SUMOReal prohibitorToAngleAtNode = fmod(prohibitorTo->getStartAngle() + 180, (SUMOReal)360.0);
-    return (lefthand != (GeomHelper::getCWAngleDiff(from->getEndAngle(), toAngleAtNode) <
-                         GeomHelper::getCWAngleDiff(from->getEndAngle(), prohibitorToAngleAtNode)));
 }
 
 
@@ -702,7 +673,7 @@ operator<<(std::ostream& os, const NBRequest& r) {
 
 
 bool
-NBRequest::mustBrake(const NBEdge* const from, const NBEdge* const to) const {
+NBRequest::mustBrake(const NBEdge* const from, const NBEdge* const to, int fromLane, bool includePedCrossings) const {
     // vehicles which do not have a following lane must always decelerate to the end
     if (to == 0) {
         return true;
@@ -722,17 +693,31 @@ NBRequest::mustBrake(const NBEdge* const from, const NBEdge* const to) const {
         }
     }
     // maybe we need to brake for a pedestrian crossing
-    for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
-        if (mustBrakeForCrossing(from, to, *i)) {
-            return true;
+    if (includePedCrossings) {
+        for (std::vector<NBNode::Crossing>::const_reverse_iterator i = myCrossings.rbegin(); i != myCrossings.rend(); i++) {
+            if (mustBrakeForCrossing(myJunction, from, to, *i)) {
+                return true;
+            }
+        }
+    }
+    // maybe we need to brake due to a right-turn conflict with straight-going
+    // bicycles
+    LinkDirection dir = myJunction->getDirection(from, to);
+    if (dir == LINKDIR_RIGHT || dir == LINKDIR_PARTRIGHT) {
+        const std::vector<NBEdge::Connection>& cons = from->getConnections();
+        for (std::vector<NBEdge::Connection>::const_iterator i = cons.begin(); i != cons.end(); i++) {
+            if (NBNode::rightTurnConflict(from, to, fromLane,
+                                  from, (*i).toEdge, (*i).fromLane)) {
+                return true;
+            }
         }
     }
     return false;
 }
 
 bool
-NBRequest::mustBrakeForCrossing(const NBEdge* const from, const NBEdge* const to, const NBNode::Crossing& crossing) const {
-    const LinkDirection dir = myJunction->getDirection(from, to);
+NBRequest::mustBrakeForCrossing(const NBNode* node, const NBEdge* const from, const NBEdge* const to, const NBNode::Crossing& crossing) {
+    const LinkDirection dir = node->getDirection(from, to);
     const bool mustYield = dir == LINKDIR_LEFT || dir == LINKDIR_RIGHT;
     if (crossing.priority || mustYield) {
         for (EdgeVector::const_iterator it_e = crossing.edges.begin(); it_e != crossing.edges.end(); ++it_e) {

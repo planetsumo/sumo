@@ -70,7 +70,15 @@ public:
                            tcpip::Storage& outputStorage);
 
 
+    /** @brief Returns the named persons's position
+     * @param[in] id The id of the searched person
+     * @param[out] p The position, if the person is on the network
+     * @return Whether the person is known
+     */
+    static bool getPosition(const std::string& id, Position& p);
 
+private:
+    //static MSVehicleType& getSingularType(MSPerson* const person);
 
 private:
     /// @brief invalidated copy constructor

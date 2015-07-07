@@ -34,7 +34,7 @@
 
 #include <string>
 #include <vector>
-#include <guisim/GUIShapeContainer.h>
+#include <fxkeys.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/geom/Position.h>
 #include <utils/geom/Boundary.h>
@@ -43,6 +43,7 @@
 #include <utils/foxtools/MFXImageHelper.h>
 #include <utils/gui/globjects/GUIGlObjectTypes.h>
 #include <utils/gui/globjects/GUIGlObjectStorage.h>
+#include <utils/gui/globjects/GUIShapeContainer.h>
 #include <utils/gui/images/GUIIcons.h>
 #include <utils/gui/images/GUIIconSubSys.h>
 #include <utils/gui/div/GUIGlobalSelection.h>
@@ -133,11 +134,11 @@ GUISUMOViewParent::~GUISUMOViewParent() {
 
 
 void
-GUISUMOViewParent::toggleGaming() {
-    if (myParent->isGaming()) {
-        myNavigationToolBar->hide();
-    } else {
+GUISUMOViewParent::setToolBarVisibility(const bool value) {
+    if (value) {
         myNavigationToolBar->show();
+    } else {
+        myNavigationToolBar->hide();
     }
 }
 
@@ -261,6 +262,20 @@ GUISUMOViewParent::isSelected(GUIGlObject* o) const {
     } else {
         return false;
     }
+}
+
+
+long
+GUISUMOViewParent::onKeyPress(FXObject* o, FXSelector sel, void* data) {
+    myView->onKeyPress(o, sel, data);
+    return 0;
+}
+
+
+long
+GUISUMOViewParent::onKeyRelease(FXObject* o, FXSelector sel, void* data) {
+    myView->onKeyRelease(o, sel, data);
+    return 0;
 }
 
 

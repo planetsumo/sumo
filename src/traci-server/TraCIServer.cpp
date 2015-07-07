@@ -189,7 +189,7 @@ TraCIServer::openSocket(const std::map<int, CmdExecutor>& execs) {
     }
     if (!myDoCloseConnection && OptionsCont::getOptions().getInt("remote-port") != 0) {
         myInstance = new TraCIServer(string2time(OptionsCont::getOptions().getString("begin")),
-            OptionsCont::getOptions().getInt("remote-port"));
+                                     OptionsCont::getOptions().getInt("remote-port"));
         for (std::map<int, CmdExecutor>::const_iterator i = execs.begin(); i != execs.end(); ++i) {
             myInstance->myExecutors[i->first] = i->second;
         }
@@ -215,9 +215,10 @@ TraCIServer::wasClosed() {
 
 
 void
-TraCIServer::setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, MSEdgeVector route) {
+TraCIServer::setVTDControlled(MSVehicle* v, MSLane* l, SUMOReal pos, int edgeOffset, ConstMSEdgeVector route,
+                              SUMOTime t) {
     myVTDControlledVehicles[v->getID()] = v;
-    v->getInfluencer().setVTDControlled(true, l, pos, edgeOffset, route);
+    v->getInfluencer().setVTDControlled(true, l, pos, edgeOffset, route, t);
 }
 
 
@@ -231,12 +232,6 @@ TraCIServer::postProcessVTD() {
         }
     }
     myVTDControlledVehicles.clear();
-}
-
-
-bool
-TraCIServer::vtdDebug() const {
-    return true;
 }
 
 
@@ -441,10 +436,12 @@ TraCIServer::dispatchCommand() {
                 success = commandCloseConnection();
                 break;
             case CMD_SUBSCRIBE_INDUCTIONLOOP_VARIABLE:
+            case CMD_SUBSCRIBE_AREAL_DETECTOR_VARIABLE:
             case CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_VARIABLE:
             case CMD_SUBSCRIBE_TL_VARIABLE:
             case CMD_SUBSCRIBE_LANE_VARIABLE:
             case CMD_SUBSCRIBE_VEHICLE_VARIABLE:
+            case CMD_SUBSCRIBE_PERSON_VARIABLE:
             case CMD_SUBSCRIBE_VEHICLETYPE_VARIABLE:
             case CMD_SUBSCRIBE_ROUTE_VARIABLE:
             case CMD_SUBSCRIBE_POI_VARIABLE:
@@ -456,10 +453,12 @@ TraCIServer::dispatchCommand() {
                 success = addObjectVariableSubscription(commandId, false);
                 break;
             case CMD_SUBSCRIBE_INDUCTIONLOOP_CONTEXT:
+            case CMD_SUBSCRIBE_AREAL_DETECTOR_CONTEXT:
             case CMD_SUBSCRIBE_MULTI_ENTRY_EXIT_DETECTOR_CONTEXT:
             case CMD_SUBSCRIBE_TL_CONTEXT:
             case CMD_SUBSCRIBE_LANE_CONTEXT:
             case CMD_SUBSCRIBE_VEHICLE_CONTEXT:
+            case CMD_SUBSCRIBE_PERSON_CONTEXT:
             case CMD_SUBSCRIBE_VEHICLETYPE_CONTEXT:
             case CMD_SUBSCRIBE_ROUTE_CONTEXT:
             case CMD_SUBSCRIBE_POI_CONTEXT:
@@ -645,6 +644,12 @@ TraCIServer::findObjectShape(int domain, const std::string& id, PositionVector& 
             break;
         case CMD_SUBSCRIBE_VEHICLE_CONTEXT:
             if (TraCIServerAPI_Vehicle::getPosition(id, p)) {
+                shape.push_back(p);
+                return true;
+            }
+            break;
+        case CMD_SUBSCRIBE_PERSON_CONTEXT:
+            if (TraCIServerAPI_Person::getPosition(id, p)) {
                 shape.push_back(p);
                 return true;
             }

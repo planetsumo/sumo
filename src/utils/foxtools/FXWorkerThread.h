@@ -125,13 +125,18 @@ public:
             myWorkers.push_back(w);
         }
 
-        /** @brief Gives a number to the given task and assigns it to a randomly chosen worker.
+        /** @brief Gives a number to the given task and assigns it to the worker with the given index.
+         * If the index is negative, assign to the next (round robin) one.
          *
          * @param[in] t the task to add
+         * @param[in] index index of the worker thread to use or -1 for an arbitrary one
          */
-        void add(Task* const t) {
+        void add(Task* const t, int index=-1) {
             t->setIndex(myRunningIndex++);
-            myWorkers[myRunningIndex % myWorkers.size()]->add(t);
+            if (index < 0) {
+                index = myRunningIndex % myWorkers.size();
+            }
+            myWorkers[index]->add(t);
         }
 
         /** @brief Adds the given task to the list of finished tasks and assigns it to a randomly chosen worker.

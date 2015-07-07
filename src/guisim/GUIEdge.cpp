@@ -57,6 +57,7 @@
 #include "GUINet.h"
 #include "GUILane.h"
 #include "GUIPerson.h"
+#include "GUIContainer.h"
 
 #ifdef HAVE_INTERNAL
 #include <mesogui/GUIMEVehicleControl.h>
@@ -99,14 +100,28 @@ std::vector<GUIGlID>
 GUIEdge::getIDs(bool includeInternal) {
     std::vector<GUIGlID> ret;
     ret.reserve(MSEdge::myDict.size());
-    for (MSEdge::DictType::iterator i = MSEdge::myDict.begin(); i != MSEdge::myDict.end(); ++i) {
-        GUIEdge* edge = dynamic_cast<GUIEdge*>(i->second);
+    for (MSEdge::DictType::const_iterator i = MSEdge::myDict.begin(); i != MSEdge::myDict.end(); ++i) {
+        const GUIEdge* edge = dynamic_cast<const GUIEdge*>(i->second);
         assert(edge);
         if (edge->getPurpose() != EDGEFUNCTION_INTERNAL || includeInternal) {
             ret.push_back(edge->getGlID());
         }
     }
     return ret;
+}
+
+
+SUMOReal
+GUIEdge::getTotalLength(bool includeInternal, bool eachLane) {
+    SUMOReal result = 0;
+    for (MSEdge::DictType::const_iterator i = MSEdge::myDict.begin(); i != MSEdge::myDict.end(); ++i) {
+        const MSEdge* edge = i->second;
+        if (edge->getPurpose() != EDGEFUNCTION_INTERNAL || includeInternal) {
+            // @note needs to be change once lanes may have different length
+            result += edge->getLength() * (eachLane ? edge->getLanes().size() : 1);
+        }
+    }
+    return result;
 }
 
 
@@ -253,10 +268,19 @@ GUIEdge::drawGL(const GUIVisualizationSettings& s) const {
     }
     if (s.scale * s.personSize.getExaggeration(s) > s.personSize.minSize) {
         myLock.lock();
-        for (std::set<MSPerson*>::const_iterator i = myPersons.begin(); i != myPersons.end(); ++i) {
+        for (std::set<MSTransportable*>::const_iterator i = myPersons.begin(); i != myPersons.end(); ++i) {
             GUIPerson* person = dynamic_cast<GUIPerson*>(*i);
             assert(person != 0);
             person->drawGL(s);
+        }
+        myLock.unlock();
+    }
+    if (s.scale * s.containerSize.getExaggeration(s) > s.containerSize.minSize) {
+        myLock.lock();
+        for (std::set<MSTransportable*>::const_iterator i = myContainers.begin(); i != myContainers.end(); ++i) {
+            GUIContainer* container = dynamic_cast<GUIContainer*>(*i);
+            assert(container != 0);
+            container->drawGL(s);
         }
         myLock.unlock();
     }
@@ -276,13 +300,7 @@ GUIEdge::drawMesoVehicles(const GUIVisualizationSettings& s) const {
         MESegment::Queue queue;
         for (std::vector<MSLane*>::const_iterator msl = myLanes->begin(); msl != myLanes->end(); ++msl, ++laneIndex) {
             GUILane* l = static_cast<GUILane*>(*msl);
-            const PositionVector& shape = l->getShape();
-            const std::vector<SUMOReal>& shapeRotations = l->getShapeRotations();
-            const std::vector<SUMOReal>& shapeLengths = l->getShapeLengths();
-            const Position& laneBeg = shape[0];
             // go through the vehicles
-            int shapeIndex = 0;
-            SUMOReal shapeOffset = 0; // offset at start of current shape
             SUMOReal segmentOffset = 0; // offset at start of current segment
             for (MESegment* segment = MSGlobals::gMesoNet->getSegmentForEdge(*this);
                     segment != 0; segment = segment->getNextSegment()) {
@@ -326,8 +344,8 @@ GUIEdge::drawMesoVehicles(const GUIVisualizationSettings& s) const {
                             glTranslated(xOff, 0, 0);
                             glRotated(-angle, 0, 0, 1);
                             GLHelper::drawText(veh->getID(),
-                                    l->geometryPositionAtOffset(vehiclePosition - 0.5 * vehLength),
-                                    GLO_MAX, nameSettings.size / s.scale, nameSettings.color); 
+                                               l->geometryPositionAtOffset(vehiclePosition - 0.5 * vehLength),
+                                               GLO_MAX, nameSettings.size / s.scale, nameSettings.color);
                             glPopMatrix();
                         }
                         vehiclePosition -= vehLength;
@@ -491,7 +509,7 @@ GUIEdge::getVehicleColorValue(size_t activeScheme, MSBaseVehicle* veh) const {
         case 10:
             return 0; // invalid getLastLaneChangeOffset();
         case 11:
-            return MIN2(veh->getMaxSpeed(), getVehicleMaxSpeed(veh));
+            return getVehicleMaxSpeed(veh);
         case 12:
             return 0; // invalid getCO2Emissions();
         case 13:

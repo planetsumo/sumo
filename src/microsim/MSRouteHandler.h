@@ -34,6 +34,7 @@
 
 #include <string>
 #include <microsim/pedestrians/MSPerson.h>
+#include "MSContainer.h"
 #include "MSVehicle.h"
 #include <utils/xml/SUMORouteHandler.h>
 #include <utils/common/SUMOTime.h>
@@ -95,6 +96,16 @@ protected:
     //@}
 
 
+    /** @brief Called for parsing from and to and the corresponding taz attributes
+     *
+     * @param[in] element description of the currently opened element
+     * @param[in] attrs Attributes within the currently opened element
+     * @exception ProcessError If something fails
+     */
+    void parseFromViaTo(std::string element,
+                        const SUMOSAXAttributes& attrs);
+
+
     /** opens a type distribution for reading */
     void openVehicleTypeDistribution(const SUMOSAXAttributes& attrs);
 
@@ -123,18 +134,30 @@ protected:
     /// Ends the processing of a person
     void closePerson();
 
+    /// Ends the processing of a container
+    void closeContainer();
+
     /// Ends the processing of a flow
     void closeFlow();
 
     /// Processing of a stop
     void addStop(const SUMOSAXAttributes& attrs);
 
+    ///@ brief parse depart- and arrival positions of a walk
+    void parseWalkPositions(const SUMOSAXAttributes& attrs, const std::string& personID, 
+            const MSEdge* fromEdge, const MSEdge* toEdge, 
+            SUMOReal& departPos, SUMOReal& arrivalPos, MSStoppingPlace*& bs, bool& ok);
+    SUMOReal parseWalkPos(SumoXMLAttr attr, const std::string& id, const MSEdge* edge, const std::string& val);
+
 protected:
     /// @brief The current route
-    MSEdgeVector myActiveRoute;
+    ConstMSEdgeVector myActiveRoute;
 
     /// @brief The plan of the current person
-    MSPerson::MSPersonPlan* myActivePlan;
+    MSTransportable::MSTransportablePlan* myActivePlan;
+
+    /// @brief The plan of the current container
+    MSTransportable::MSTransportablePlan* myActiveContainerPlan;
 
     /// @brief Information whether vehicles shall be directly added to the network or kept within the buffer
     bool myAddVehiclesDirectly;

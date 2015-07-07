@@ -48,6 +48,7 @@ class OutputDevice;
 class ROEdge;
 class RONet;
 
+typedef std::vector<const ROEdge*> ConstROEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -109,7 +110,7 @@ public:
      * @return The vehicle's depart time
      */
     SUMOTime getDepartureTime() const {
-        return MAX2(0, myParameter.depart);
+        return MAX2(SUMOTime(0), myParameter.depart);
     }
 
     /** @brief Returns the time the vehicle starts at, -1 for triggered vehicles
@@ -120,7 +121,7 @@ public:
         return myParameter.depart;
     }
 
-    const std::vector<const ROEdge*>& getStopEdges() const {
+    const ConstROEdgeVector& getStopEdges() const {
         return myStopEdges;
     }
 
@@ -141,20 +142,26 @@ public:
     }
 
 
-    /** @brief Saves the complete vehicle description.
-     *
-     * Saves the vehicle type if it was not saved before.
-     * Saves the vehicle route if it was not saved before.
-     * Saves the vehicle itself.
+    /** @brief  Saves the vehicle type if it was not saved before.
      *
      * @param[in] os The routes - output device to store the vehicle's description into
      * @param[in] altos The route alternatives - output device to store the vehicle's description into
      * @param[in] typeos The types - output device to store the vehicle types into
+     * @exception IOError If something fails (not yet implemented)
+     */
+    void saveTypeAsXML(OutputDevice& os, OutputDevice* const altos,
+                       OutputDevice* const typeos) const;
+
+    /** @brief Saves the complete vehicle description.
+     *
+     * Saves the vehicle itself including the route and stops.
+     *
+     * @param[in] os The routes or alternatives output device to store the vehicle's description into
+     * @param[in] asAlternatives Whether the route shall be saved as route alternatives
      * @param[in] withExitTimes whether exit times for the edges shall be written
      * @exception IOError If something fails (not yet implemented)
      */
-    void saveAllAsXML(OutputDevice& os, OutputDevice* const altos,
-                      OutputDevice* const typeos, bool withExitTimes) const;
+    void saveAllAsXML(OutputDevice& os, bool asAlternatives, bool withExitTimes) const;
 
     inline void setRoutingSuccess(const bool val) {
         myRoutingSuccess = val;
@@ -183,7 +190,7 @@ protected:
     RORouteDef* const myRoute;
 
     /// @brief The edges where the vehicle stops
-    std::vector<const ROEdge*> myStopEdges;
+    ConstROEdgeVector myStopEdges;
 
     /// @brief Whether the last routing was successful
     bool myRoutingSuccess;

@@ -34,7 +34,7 @@
 // ****************************************
 // VERSION
 // ****************************************
-#define TRACI_VERSION 9
+#define TRACI_VERSION 10
 
 
 // ****************************************
@@ -383,6 +383,16 @@
 // vehicle finished route during teleport
 #define REMOVE_TELEPORT_ARRIVED 0x04
 
+// ****************************************
+// PERSON/CONTAINER STAGES
+// ****************************************
+// person walking / container transhiping
+#define STAGE_WALKING 0x00
+// person riding / container being transported
+#define STAGE_DRIVING 0x01
+// person / container stopping
+#define STAGE_WAITING 0x02
+
 
 // ****************************************
 // VARIABLE TYPES (for CMD_GET_*_VARIABLE)
@@ -405,7 +415,7 @@
 // last step vehicle number (get: induction loops, multi-entry/multi-exit detector, lanes, edges)
 #define LAST_STEP_MEAN_SPEED 0x11
 
-// last step vehicle number (get: induction loops, multi-entry/multi-exit detector, lanes, edges)
+// last step vehicle list (get: induction loops, multi-entry/multi-exit detector, lanes, edges)
 #define LAST_STEP_VEHICLE_ID_LIST 0x12
 
 // last step occupancy (get: induction loops, lanes, edges)
@@ -428,6 +438,9 @@
 
 // last step jam length in meters
 #define JAM_LENGTH_METERS 0x19
+
+// last step person list (get: edges)
+#define LAST_STEP_PERSON_ID_LIST 0x1a
 
 
 // traffic light states, encoded as rRgGyYoO tuple (get: traffic lights)
@@ -466,6 +479,9 @@
 // assumed time to next switch (get: traffic lights)
 #define TL_NEXT_SWITCH 0x2d
 
+// current state, using external signal names (get: traffic lights)
+#define TL_EXTERNAL_STATE 0x2e
+
 
 
 // outgoing link number (get: lanes)
@@ -490,7 +506,7 @@
 // maximum allowed/possible speed (get: vehicle types, lanes, set: edges, lanes)
 #define VAR_MAXSPEED 0x41
 
-// position (2D) (get: vehicle, poi, set: poi)
+// position (2D) (get: vehicle, poi, inductionloop, areadetector; set: poi)
 #define VAR_POSITION 0x42
 
 // position (3D) (get: vehicle, poi, set: poi)
@@ -499,7 +515,7 @@
 // angle (get: vehicle)
 #define VAR_ANGLE 0x43
 
-// angle (get: vehicle types, lanes, set: lanes)
+// angle (get: vehicle types, lanes, arealdetector, set: lanes)
 #define VAR_LENGTH 0x44
 
 // color (get: vehicles, vehicle types, polygons, pois)
@@ -538,7 +554,7 @@
 // road id (get: vehicles)
 #define VAR_ROAD_ID 0x50
 
-// lane id (get: vehicles)
+// lane id (get: vehicles, inductionloop, arealdetector)
 #define VAR_LANE_ID 0x51
 
 // lane index (get: vehicles)
@@ -637,6 +653,9 @@
 
 // current leader together with gap (get: vehicle)
 #define VAR_LEADER 0x68
+
+// edge index in current route (get: vehicle)
+#define VAR_ROUTE_INDEX 0x69
 
 //current waiting time (get: vehicle, lane)
 #define VAR_WAITING_TIME 0x7a
@@ -742,6 +761,14 @@
 // validates current route (vehicles)
 #define VAR_ROUTE_VALID 0x92
 
+// retrieve information regarding the current person/container stage
+#define VAR_STAGE 0xc0
+
+// retrieve information regarding the next edge including crossings and walkingAreas (pedestrians only)
+#define VAR_NEXT_EDGE 0xc1
+
+// retrieve the number of stages (person, container)
+#define VAR_NUM_STAGES 0xc2
 
 // zoom
 #define VAR_VIEW_ZOOM 0xa0

@@ -85,6 +85,14 @@ public:
 		return myPolicy;
 	}
 
+	    /** @brief Returns the type of the logic as a string
+     * @return The type of the logic
+     */
+    const std::string getLogicType() const {
+        return "policyBasedTrafficLightLogic";
+    }
+    /// @}
+
 //	virtual bool canRelease(int elapsed, bool thresholdPassed, const MSPhaseDefinition* stage, int vehicleCount) throw ()=0;
 
 protected:

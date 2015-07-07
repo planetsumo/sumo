@@ -83,7 +83,9 @@ MSBaseVehicle::MSBaseVehicle(SUMOVehicleParameter* pars, const MSRoute* route,
         myMoveReminders.push_back(std::make_pair(*dev, 0.));
     }
     myRoute->addReference();
-    calculateArrivalPos();
+    if (!pars->wasSet(VEHPARS_FORCE_REROUTE)) {
+        calculateArrivalPos();
+    }
 }
 
 MSBaseVehicle::~MSBaseVehicle() {
@@ -133,28 +135,43 @@ MSBaseVehicle::getEdge() const {
 
 
 void
-MSBaseVehicle::reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, bool withTaz) {
+MSBaseVehicle::reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, const bool onInit, const bool withTaz) {
     // check whether to reroute
-    std::vector<const MSEdge*> edges;
-    if (withTaz && MSEdge::dictionary(myParameter->fromTaz + "-source") && MSEdge::dictionary(myParameter->toTaz + "-sink")) {
-        router.compute(MSEdge::dictionary(myParameter->fromTaz + "-source"), MSEdge::dictionary(myParameter->toTaz + "-sink"), this, t, edges);
-        if (edges.size() >= 2) {
-            edges.erase(edges.begin());
+    const MSEdge* source = withTaz && onInit ? MSEdge::dictionary(myParameter->fromTaz + "-source") : getRerouteOrigin();
+    if (source == 0) {
+        source = getRerouteOrigin();
+    }
+    const MSEdge* sink = withTaz ? MSEdge::dictionary(myParameter->toTaz + "-sink") : myRoute->getLastEdge();
+    if (sink == 0) {
+        sink = myRoute->getLastEdge();
+    }
+    ConstMSEdgeVector edges;
+    const ConstMSEdgeVector stops = getStopEdges();
+    for (MSRouteIterator s = stops.begin(); s != stops.end(); ++s) {
+        if (*s != source) {
+            // !!! need to adapt t here
+            router.compute(source, *s, this, t, edges);
+            source = *s;
             edges.pop_back();
         }
-    } else {
-        router.compute(getRerouteOrigin(), myRoute->getLastEdge(), this, t, edges);
     }
-    if (edges.empty()) {
-        WRITE_WARNING("No route for vehicle '" + getID() + "' found.");
-        return;
+    router.compute(source, sink, this, t, edges);
+    if (!edges.empty() && edges.front()->getPurpose() == MSEdge::EDGEFUNCTION_DISTRICT) {
+        edges.erase(edges.begin());
     }
-    replaceRouteEdges(edges, withTaz);
+    if (!edges.empty() && edges.back()->getPurpose() == MSEdge::EDGEFUNCTION_DISTRICT) {
+        edges.pop_back();
+    }
+    replaceRouteEdges(edges, onInit);
 }
 
 
 bool
-MSBaseVehicle::replaceRouteEdges(MSEdgeVector& edges, bool onInit) {
+MSBaseVehicle::replaceRouteEdges(ConstMSEdgeVector& edges, bool onInit) {
+    if (edges.empty()) {
+        WRITE_WARNING("No route for vehicle '" + getID() + "' found" + (onInit ? " (skipping vehicle)." : "."));
+        return false;
+    }
     // build a new id, first
     std::string id = getID();
     if (id[0] != '!') {
@@ -165,13 +182,20 @@ MSBaseVehicle::replaceRouteEdges(MSEdgeVector& edges, bool onInit) {
     } else {
         id = id + "!var#1";
     }
-    const MSEdge* const origin = getRerouteOrigin();
-    if (origin != *myCurrEdge && edges.front() == origin) {
-        edges.insert(edges.begin(), *myCurrEdge);
+    int oldSize = (int)edges.size();
+    if (!onInit) {
+        const MSEdge* const origin = getRerouteOrigin();
+        if (origin != *myCurrEdge && edges.front() == origin) {
+            edges.insert(edges.begin(), *myCurrEdge);
+            oldSize = (int)edges.size();
+        }
+        edges.insert(edges.begin(), myRoute->begin(), myCurrEdge);
     }
-    const int oldSize = (int)edges.size();
-    edges.insert(edges.begin(), myRoute->begin(), myCurrEdge);
     if (edges == myRoute->getEdges()) {
+        if (onInit) {
+            // if edges = 'from to' we still need to calculate the arrivalPos once
+            calculateArrivalPos();
+        }
         return true;
     }
     const RGBColor& c = myRoute->getColor();
@@ -200,6 +224,7 @@ MSBaseVehicle::replaceRouteEdges(MSEdgeVector& edges, bool onInit) {
 #endif
         return false;
     }
+    calculateArrivalPos();
     return true;
 }
 
@@ -235,9 +260,12 @@ MSBaseVehicle::hasArrived() const {
 }
 
 void
-MSBaseVehicle::addPerson(MSPerson* /*person*/) {
+MSBaseVehicle::addPerson(MSTransportable* /*person*/) {
 }
 
+void
+MSBaseVehicle::addContainer(MSTransportable* /*container*/) {
+}
 
 bool
 MSBaseVehicle::hasValidRoute(std::string& msg) const {
@@ -355,7 +383,7 @@ MSBaseVehicle::getDevice(const std::type_info& type) const {
 void
 MSBaseVehicle::saveState(OutputDevice& out) {
     out.openTag(SUMO_TAG_VEHICLE).writeAttr(SUMO_ATTR_ID, myParameter->id);
-    out.writeAttr(SUMO_ATTR_DEPART, myParameter->depart);
+    out.writeAttr(SUMO_ATTR_DEPART, time2string(myParameter->depart));
     out.writeAttr(SUMO_ATTR_ROUTE, myRoute->getID());
     out.writeAttr(SUMO_ATTR_TYPE, myType->getID());
     // here starts the vehicle internal part (see loading)

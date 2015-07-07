@@ -38,8 +38,7 @@
 #include <map>
 #include <microsim/MSEventControl.h>
 #include <microsim/traffic_lights/MSTrafficLightLogic.h>
-// #include "MSSimpleTrafficLightLogic.h"
-#include "MSPhasedTrafficLightLogic.h"
+#include "MSSimpleTrafficLightLogic.h"
 #include <microsim/output/MSInductLoop.h>
 
 
@@ -56,8 +55,7 @@ class NLDetectorBuilder;
  * @class MSActuatedTrafficLightLogic
  * @brief An actuated (adaptive) traffic light logic
  */
-// class MSActuatedTrafficLightLogic : public MSSimpleTrafficLightLogic {
-class MSActuatedTrafficLightLogic : public MSPhasedTrafficLightLogic {
+class MSActuatedTrafficLightLogic : public MSSimpleTrafficLightLogic {
 public:
     /// @brief Definition of a map from lanes to induct loops lying on them
     typedef std::map<MSLane*, MSInductLoop*> InductLoopMap;
@@ -74,8 +72,7 @@ public:
      */
     MSActuatedTrafficLightLogic(MSTLLogicControl& tlcontrol,
                                 const std::string& id, const std::string& programID,
-                                //const MSSimpleTrafficLightLogic::Phases& phases,
-								const MSPhasedTrafficLightLogic::Phases& phases,
+                                const MSSimpleTrafficLightLogic::Phases& phases,
                                 unsigned int step, SUMOTime delay,
                                 const std::map<std::string, std::string>& parameter);
 
@@ -96,11 +93,10 @@ public:
     /// @{
 
     /** @brief Switches to the next phase
-     * @param[in] isActive Whether this program is the currently used one
      * @return The time of the next switch
      * @see MSTrafficLightLogic::trySwitch
      */
-    SUMOTime trySwitch(bool isActive);
+    SUMOTime trySwitch();
     /// @}
 
 
@@ -124,9 +120,6 @@ protected:
 protected:
     /// A map from lanes to induct loops lying on them
     InductLoopMap myInductLoops;
-
-    /// information whether the current phase should be lenghtend
-    bool myContinue;
 
     /// The maximum gap to check in seconds
     SUMOReal myMaxGap;

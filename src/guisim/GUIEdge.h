@@ -79,6 +79,12 @@ public:
      */
     static std::vector<GUIGlID> getIDs(bool includeInternal);
 
+    /* @brief Returns the combined length of all edges
+     * @param[in] includeInternal Whether to include lengths of internal edges
+     * @param[in] eachLane Whether to count each lane separately
+     */
+    static SUMOReal getTotalLength(bool includeInternal, bool eachLane);
+
     /// Returns the street's geometry
     Boundary getBoundary() const;
 
@@ -138,16 +144,26 @@ public:
     //@}
 
 
-    void addPerson(MSPerson* p) const {
+    void addPerson(MSTransportable* p) const {
         AbstractMutex::ScopedLocker locker(myLock);
         MSEdge::addPerson(p);
     }
 
-    void removePerson(MSPerson* p) const {
+    void removePerson(MSTransportable* p) const {
         AbstractMutex::ScopedLocker locker(myLock);
         MSEdge::removePerson(p);
     }
 
+
+    void addContainer(MSTransportable* c) const {
+        AbstractMutex::ScopedLocker locker(myLock);
+        MSEdge::addContainer(c);
+    }
+
+    void removeContainer(MSTransportable* c) const {
+        AbstractMutex::ScopedLocker locker(myLock);
+        MSEdge::removeContainer(c);
+    }
 
 #ifdef HAVE_INTERNAL
     unsigned int getVehicleNo() const;
@@ -192,7 +208,7 @@ private:
 
 
 private:
-    /// The mutex used to avoid concurrent updates of myPersons
+    /// The mutex used to avoid concurrent updates of myPersons/ myContainers
     mutable MFXMutex myLock;
 
 };

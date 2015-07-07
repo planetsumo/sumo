@@ -189,8 +189,11 @@ public:
     /// @}
 
 
+    /// @brief get the viewport and create it on first access
+    GUIDialog_EditViewport* getViewportEditor();
 
     virtual void showViewportEditor();
+
     void showViewschemeEditor();
     void showToolTips(bool val);
     virtual bool setColorScheme(const std::string&) {
@@ -306,6 +309,10 @@ public:
         return myVisualizationSettings;
     }
 
+    /** @brief Returns the delay of the parent application
+     * @return delay in milliseconds
+     */
+    SUMOReal getDelay() const;
 
 protected:
     /// performs the painting of the simulation
@@ -377,9 +384,6 @@ protected:
     /// @brief Information whether too-tip informations shall be generated
     bool myInEditMode;
 
-    /// @brief Position of the cursor relative to the window
-    FXint myWindowCursorPositionX, myWindowCursorPositionY;
-
     /// @brief Offset to the mouse-hotspot from the mouse position
     int myMouseHotspotX, myMouseHotspotY;
 
@@ -393,8 +397,11 @@ protected:
     /// Internal information whether doInit() was called
     bool myAmInitialised;
 
-
     GUIDialog_EditViewport* myViewportChooser;
+
+    /// @brief Position of the cursor relative to the window
+    FXint myWindowCursorPositionX, myWindowCursorPositionY;
+
     GUIDialog_ViewSettings* myVisualizationChanger;
 
 

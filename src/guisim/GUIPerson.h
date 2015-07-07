@@ -41,7 +41,7 @@
 #include <microsim/pedestrians/MSPerson.h>
 #include <utils/gui/globjects/GUIGLObjectPopupMenu.h>
 #include <utils/foxtools/MFXMutex.h>
-#include <utils/gui/settings/GUIColorer.h>
+#include <utils/gui/settings/GUIPropertySchemeStorage.h>
 
 
 // ===========================================================================
@@ -62,7 +62,7 @@ class GUIPerson : public MSPerson, public GUIGlObject {
 public:
     /** @brief Constructor
      */
-    GUIPerson(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSPerson::MSPersonPlan* plan);
+    GUIPerson(const SUMOVehicleParameter* pars, const MSVehicleType* vtype, MSTransportable::MSTransportablePlan* plan);
 
 
     /// @brief destructor

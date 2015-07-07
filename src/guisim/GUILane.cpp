@@ -71,10 +71,9 @@
 GUILane::GUILane(const std::string& id, SUMOReal maxSpeed, SUMOReal length,
                  MSEdge* const edge, unsigned int numericalID,
                  const PositionVector& shape, SUMOReal width,
-                 SVCPermissions permissions, unsigned int index) : 
+                 SVCPermissions permissions, unsigned int index) :
     MSLane(id, maxSpeed, length, edge, numericalID, shape, width, permissions),
-    GUIGlObject(GLO_LANE, id)
-{
+    GUIGlObject(GLO_LANE, id) {
     myShapeRotations.reserve(myShape.size() - 1);
     myShapeLengths.reserve(myShape.size() - 1);
     myShapeColors.reserve(myShape.size() - 1);
@@ -235,7 +234,7 @@ GUILane::drawTextAtEnd(const std::string& text, const PositionVector& shape, SUM
     const SUMOReal rot = RAD2DEG(atan2((end.x() - f.x()), (f.y() - end.y())));
     glTranslated(end.x(), end.y(), 0);
     glRotated(rot, 0, 0, 1);
-    GLHelper::drawText(text, Position(x, 0), 0, .6, RGBColor(128, 128, 255, 255), 180);
+    GLHelper::drawText(text, Position(x, 0.26), 0, .6, RGBColor(128, 128, 255, 255), 180);
     glPopMatrix();
 }
 
@@ -308,9 +307,9 @@ GUILane::drawLinkRule(const GUIVisualizationSettings& s, const GUINet& net, MSLi
                 break;
         }
         GLHelper::setColor(getLinkColor(link->getState()));
-        if (!drawAsRailway(s) || link->getState() != LINKSTATE_MAJOR) {
-            // THE WHITE BAR SHOULD BE THE DEFAULT FOR MOST RAILWAY
-            // LINKS AND LOOKS UGLY SO WE DO NOT DRAW IT
+        if (!(drawAsRailway(s) || drawAsWaterway(s)) || link->getState() != LINKSTATE_MAJOR) {
+            // the white bar should be the default for most railway
+            // links and looks ugly so we do not draw it
             glBegin(GL_QUADS);
             glVertex2d(x1 - myHalfLaneWidth, 0.0);
             glVertex2d(x1 - myHalfLaneWidth, 0.5);
@@ -422,6 +421,9 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
     if (isCrossing || isWalkingArea) {
         // draw internal lanes on top of junctions
         glTranslated(0, 0, GLO_JUNCTION + 0.1);
+    } else if (isWaterway(myPermissions)) {
+        // draw waterways below normal roads
+        glTranslated(0, 0, getType() - 0.2);
     } else {
         glTranslated(0, 0, getType());
     }
@@ -479,18 +481,12 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
                 }
                 glTranslated(0, 0, -.2);
 #ifdef GUILane_DEBUG_DRAW_WALKING_AREA_VERTICES
-                RGBColor color = RGBColor::fromHSV(RandHelper::rand(360), 1, 1);
-                glTranslated(0, 0, .4);
-                for (int i = 0; i < (int)myShape.size(); ++i) {
-                    GLHelper::drawText(toString(i), myShape[i], GLO_JUNCTION,
-                            80 / s.scale, color, 0);
-                }
-                glTranslated(0, 0, -.4);
+                GLHelper::debugVertices(myShape, 80 / s.scale);
 #endif
             } else {
                 const SUMOReal halfWidth = isInternal ? myQuarterLaneWidth : myHalfLaneWidth;
-                mustDrawMarkings = !isInternal && myPermissions != 0 && myPermissions != SVC_PEDESTRIAN && exaggeration == 1.0; 
-                const int cornerDetail = drawDetails ? s.scale * exaggeration : 0;
+                mustDrawMarkings = !isInternal && myPermissions != 0 && myPermissions != SVC_PEDESTRIAN && exaggeration == 1.0 && !isWaterway(myPermissions);
+                const int cornerDetail = drawDetails && !isInternal ? s.scale * exaggeration : 0;
                 const SUMOReal offset = halfWidth * MAX2((SUMOReal)0, (exaggeration - 1));
                 if (myShapeColors.size() > 0) {
                     GLHelper::drawBoxLines(myShape, myShapeRotations, myShapeLengths, myShapeColors, halfWidth * exaggeration, cornerDetail, offset);
@@ -505,7 +501,7 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
                 glTranslated(0, 0, GLO_JUNCTION); // must draw on top of junction shape
                 glTranslated(0, 0, .5);
                 drawLinkRules(s, *net);
-                if (s.showLinkDecals && !drawAsRailway(s) && myPermissions != SVC_PEDESTRIAN) {
+                if (s.showLinkDecals && !drawAsRailway(s) && !drawAsWaterway(s) && myPermissions != SVC_PEDESTRIAN) {
                     drawArrows();
                 }
                 if (s.showLane2Lane) {
@@ -525,6 +521,9 @@ GUILane::drawGL(const GUIVisualizationSettings& s) const {
         }
         if (mustDrawMarkings && drawDetails) { // needs matrix reset
             drawMarkings(s, exaggeration);
+        }
+        if (drawDetails && isInternal && myPermissions == SVC_BICYCLE && exaggeration == 1.0 && s.showLinkDecals) {
+            drawBikeMarkings();
         }
     } else {
         glPopMatrix();
@@ -567,10 +566,11 @@ GUILane::drawMarkings(const GUIVisualizationSettings& s, SUMOReal scale) const {
             glTranslated(getShape()[i].x(), getShape()[i].y(), 0.1);
             glRotated(myShapeRotations[i], 0, 0, 1);
             for (SUMOReal t = 0; t < myShapeLengths[i]; t += 6) {
+                const SUMOReal length = MIN2((SUMOReal)3, myShapeLengths[i] - t);
                 glBegin(GL_QUADS);
                 glVertex2d(-mw, -t);
-                glVertex2d(-mw, -t - 3.);
-                glVertex2d(myQuarterLaneWidth * scale, -t - 3.);
+                glVertex2d(-mw, -t - length);
+                glVertex2d(myQuarterLaneWidth * scale, -t - length);
                 glVertex2d(myQuarterLaneWidth * scale, -t);
                 glEnd();
             }
@@ -587,6 +587,31 @@ GUILane::drawMarkings(const GUIVisualizationSettings& s, SUMOReal scale) const {
     glPopMatrix();
 }
 
+
+void
+GUILane::drawBikeMarkings() const {
+    // draw bike lane markings onto the intersection
+    glColor3d(1, 1, 1);
+    int e = (int) getShape().size() - 1;
+    SUMOReal mw = (myHalfLaneWidth + SUMO_const_laneOffset);
+    for (int i = 0; i < e; ++i) {
+        glPushMatrix();
+        glTranslated(getShape()[i].x(), getShape()[i].y(), GLO_JUNCTION + 0.1);
+        glRotated(myShapeRotations[i], 0, 0, 1);
+        for (SUMOReal t = 0; t < myShapeLengths[i]; t += 0.5) {
+            // left and right marking
+            for (int side = -1; side <= 1; side += 2) {
+                glBegin(GL_QUADS);
+                glVertex2d(side * mw, -t);
+                glVertex2d(side * mw, -t - 0.35);
+                glVertex2d(side * (mw + SUMO_const_laneOffset), -t - 0.35);
+                glVertex2d(side * (mw + SUMO_const_laneOffset), -t);
+                glEnd();
+            }
+        }
+        glPopMatrix();
+    }
+}
 
 void
 GUILane::drawCrossties(SUMOReal length, SUMOReal spacing, SUMOReal halfWidth) const {
@@ -635,11 +660,11 @@ GUILane::getPopUpMenu(GUIMainWindow& app,
 GUIParameterTableWindow*
 GUILane::getParameterWindow(GUIMainWindow& app,
                             GUISUMOAbstractView&) {
-    GUIParameterTableWindow* ret =
-        new GUIParameterTableWindow(app, *this, 11);
+    GUIParameterTableWindow* ret = new GUIParameterTableWindow(app, *this, 11);
     // add items
     ret->mkItem("maxspeed [m/s]", false, getSpeedLimit());
     ret->mkItem("length [m]", false, myLength);
+    ret->mkItem("width [m]", false, myWidth);
     ret->mkItem("street name", false, myEdge->getStreetName());
     ret->mkItem("stored traveltime [s]", true, new FunctionBinding<GUILane, SUMOReal>(this, &GUILane::getStoredEdgeTravelTime));
     ret->mkItem("loaded weight", true, new FunctionBinding<GUILane, SUMOReal>(this, &GUILane::getLoadedEdgeWeight));
@@ -754,21 +779,20 @@ GUILane::setMultiColor(const GUIColorer& c) const {
     const size_t activeScheme = c.getActive();
     myShapeColors.clear();
     switch (activeScheme) {
-        case 22: { // color by height at segment start
-            for (int ii = 0; ii < (int)myShape.size() - 1; ++ii) {
-                myShapeColors.push_back(c.getScheme().getColor(myShape[ii].z()));
+        case 22: // color by height at segment start
+            for (PositionVector::const_iterator ii = myShape.begin(); ii != myShape.end() - 1; ++ii) {
+                myShapeColors.push_back(c.getScheme().getColor(ii->z()));
             }
-        }
-        case 24: { // color by inclination  at segment start
+            return true;
+        case 24: // color by inclination  at segment start
             for (int ii = 1; ii < (int)myShape.size(); ++ii) {
-                const SUMOReal inc =  (myShape[ii].z() - myShape[ii-1].z()) / myShape[ii].distanceTo2D(myShape[ii-1]);
+                const SUMOReal inc = (myShape[ii].z() - myShape[ii - 1].z()) / MAX2(POSITION_EPS, myShape[ii].distanceTo2D(myShape[ii - 1]));
                 myShapeColors.push_back(c.getScheme().getColor(inc));
             }
-        }
+            return true;
         default:
             return false;
     }
-    return true;
 }
 
 
@@ -783,8 +807,15 @@ GUILane::getColorValue(size_t activeScheme) const {
                     return 2;
                 case 0:
                     return 3;
+                case SVC_SHIP:
+                    return 4;
                 default:
-                    return 0;
+                    break;
+            }
+            if ((myPermissions & SVC_PASSENGER) != 0 || isRailway(myPermissions)) {
+                return 0;
+            } else {
+                return 5;
             }
         case 1:
             return gSelected.isSelected(getType(), getGlID()) ||
@@ -925,9 +956,15 @@ GUILane::getScaleValue(size_t activeScheme) const {
 }
 
 
-bool 
+bool
 GUILane::drawAsRailway(const GUIVisualizationSettings& s) const {
     return isRailway(myPermissions) && s.showRails;
+}
+
+
+bool
+GUILane::drawAsWaterway(const GUIVisualizationSettings& s) const {
+    return isWaterway(myPermissions) && s.showRails; // reusing the showRails setting
 }
 
 

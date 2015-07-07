@@ -41,6 +41,7 @@
 #include <utils/geom/PositionVector.h>
 #include <microsim/traffic_lights/MSSimpleTrafficLightLogic.h>
 #include <microsim/traffic_lights/MSActuatedTrafficLightLogic.h>
+#include <microsim/traffic_lights/MSRailSignal.h>
 #include <microsim/MSBitSetLogic.h>
 #include <microsim/traffic_lights/MSTLLogicControl.h>
 #include <utils/common/UtilExceptions.h>
@@ -178,8 +179,8 @@ public:
      * @todo min/max is used only by one junction type. Recheck
      * @todo min/max: maybe only one type of a phase definition should be built
      */
-    void addPhase(SUMOTime duration, const std::string &state, int min, int max);
-
+    void addPhase(SUMOTime duration, const std::string& state,
+                  SUMOTime min, SUMOTime max);
 
 	/** @brief Adds a phase to the currently built traffic lights logic
      *

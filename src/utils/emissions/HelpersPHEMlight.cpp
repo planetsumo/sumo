@@ -232,13 +232,16 @@ HelpersPHEMlight::getWeight(const SUMOEmissionClass c) const {
 
 SUMOReal
 HelpersPHEMlight::compute(const SUMOEmissionClass c, const PollutantsInterface::EmissionType e, const double v, const double a, const double slope) const {
+    if (c == PHEMLIGHT_BASE) { // zero emission class
+        return 0.;
+    }
     const PHEMCEP* const currCep = PHEMCEPHandler::getHandlerInstance().GetCep(c);
-	const double corrSpeed = MAX2((double) 0.0, v);
-	const double decelCoast = currCep->GetDecelCoast(corrSpeed, a, slope, 0);
-	if(a < decelCoast) {
-		return 0;
-	}
-	double power = currCep->CalcPower(corrSpeed, a, slope);
+    const double corrSpeed = MAX2((double) 0.0, v);
+    const double decelCoast = currCep->GetDecelCoast(corrSpeed, a, slope, 0);
+    if (a < decelCoast) {
+        return 0;
+    }
+    double power = currCep->CalcPower(corrSpeed, a, slope);
     switch (e) {
         case PollutantsInterface::CO:
             return currCep->GetEmission("CO", power, corrSpeed) / SECONDS_PER_HOUR * 1000.;

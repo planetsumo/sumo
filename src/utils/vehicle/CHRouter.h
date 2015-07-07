@@ -63,7 +63,7 @@
  * The template parameters are:
  * @param E The edge class to use (MSEdge/ROEdge)
  * @param V The vehicle class to use (MSVehicle/ROVehicle)
- * @param PF The prohibition function to use (prohibited_withRestrictions/prohibited_noRestrictions)
+ * @param PF The prohibition function to use (prohibited_withPermissions/noProhibitions)
  *
  * The router is edge-based. It must know the number of edges for internal reasons
  *  and whether a missing connection between two given edges (unbuild route) shall
@@ -664,9 +664,10 @@ private:
             return;
         }
         const SUMOReal cost = this->getEffort(edge, vehicle, time);
-        const unsigned int numFollowers = edge->getNumSuccessors();
-        for (unsigned int i = 0; i < numFollowers; i++) {
-            const E* fEdge = edge->getSuccessor(i);
+
+        const std::vector<E*>& successors = edge->getSuccessors(mySVC);
+        for (typename std::vector<E*>::const_iterator it = successors.begin(); it != successors.end(); ++it) {
+            const E* fEdge = *it;
             if (prune && ((fEdge->getPermissions() & mySVC) != mySVC)) {
                 continue;
             }

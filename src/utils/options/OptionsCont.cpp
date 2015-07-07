@@ -38,6 +38,8 @@
 #include <cstdlib>
 #include <cassert>
 #include <ctime>
+#include <cstring>
+#include <cerrno>
 #include <iterator>
 #include "Option.h"
 #include "OptionsCont.h"
@@ -316,7 +318,7 @@ OptionsCont::relocateFiles(const std::string& configuration) const {
                 if (!FileHelpers::isAbsolute(tmp)) {
                     tmp = FileHelpers::getConfigurationRelative(configuration, tmp);
                 }
-                conv += tmp;
+                conv += StringUtils::urlDecode(tmp);
             }
             if (conv != (*i)->getString()) {
                 (*i)->set(conv);
@@ -344,7 +346,7 @@ OptionsCont::isUsableFileList(const std::string& name) const {
     for (std::vector<std::string>::const_iterator fileIt = files.begin(); fileIt != files.end(); ++fileIt) {
         if (!FileHelpers::isReadable(*fileIt)) {
             if (*fileIt != "") {
-                WRITE_ERROR("File '" + *fileIt + "' is not accessible.");
+                WRITE_ERROR("File '" + *fileIt + "' is not accessible (" + std::strerror(errno) +").");
                 ok = false;
             } else {
                 WRITE_WARNING("Empty file name given; ignoring.");

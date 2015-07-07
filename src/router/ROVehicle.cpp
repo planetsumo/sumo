@@ -77,7 +77,7 @@ ROVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, const RONet* net) 
     }
     // where to insert the stop
     std::vector<SUMOVehicleParameter::Stop>::iterator iter = myParameter.stops.begin();
-    std::vector<const ROEdge*>::iterator edgeIter = myStopEdges.begin();
+    ConstROEdgeVector::iterator edgeIter = myStopEdges.begin();
     if (stopPar.index == STOP_INDEX_END || stopPar.index >= static_cast<int>(myParameter.stops.size())) {
         if (myParameter.stops.size() > 0) {
             iter = myParameter.stops.end();
@@ -85,8 +85,8 @@ ROVehicle::addStop(const SUMOVehicleParameter::Stop& stopPar, const RONet* net) 
         }
     } else {
         if (stopPar.index == STOP_INDEX_FIT) {
-            const std::vector<const ROEdge*> edges = myRoute->getFirstRoute()->getEdgeVector();
-            std::vector<const ROEdge*>::const_iterator stopEdgeIt = std::find(edges.begin(), edges.end(), stopEdge);
+            const ConstROEdgeVector edges = myRoute->getFirstRoute()->getEdgeVector();
+            ConstROEdgeVector::const_iterator stopEdgeIt = std::find(edges.begin(), edges.end(), stopEdge);
             if (stopEdgeIt == edges.end()) {
                 iter = myParameter.stops.end();
                 edgeIter = myStopEdges.end();
@@ -113,8 +113,8 @@ ROVehicle::~ROVehicle() {}
 
 
 void
-ROVehicle::saveAllAsXML(OutputDevice& os, OutputDevice* const altos,
-                        OutputDevice* const typeos, bool withExitTimes) const {
+ROVehicle::saveTypeAsXML(OutputDevice& os, OutputDevice* const altos,
+                         OutputDevice* const typeos) const {
     // check whether the vehicle's type was saved before
     if (myType != 0 && !myType->saved) {
         // ... save if not
@@ -128,26 +128,24 @@ ROVehicle::saveAllAsXML(OutputDevice& os, OutputDevice* const altos,
         }
         myType->saved = true;
     }
+}
 
+
+void
+ROVehicle::saveAllAsXML(OutputDevice& os, bool asAlternatives, bool withExitTimes) const {
     // write the vehicle (new style, with included routes)
     myParameter.write(os, OptionsCont::getOptions());
-    if (altos != 0) {
-        myParameter.write(*altos, OptionsCont::getOptions());
-    }
 
     // save the route
-    myRoute->writeXMLDefinition(os, this, false, withExitTimes);
-    if (altos != 0) {
-        myRoute->writeXMLDefinition(*altos, this, true, withExitTimes);
-    }
+    myRoute->writeXMLDefinition(os, this, asAlternatives, withExitTimes);
     myParameter.writeStops(os);
-    if (altos != 0) {
-        myParameter.writeStops(*altos);
+    for (std::map<std::string, std::string>::const_iterator j = myParameter.getMap().begin(); j != myParameter.getMap().end(); ++j) {
+        os.openTag(SUMO_TAG_PARAM);
+        os.writeAttr(SUMO_ATTR_KEY, (*j).first);
+        os.writeAttr(SUMO_ATTR_VALUE, (*j).second);
+        os.closeTag();
     }
     os.closeTag();
-    if (altos != 0) {
-        altos->closeTag();
-    }
 }
 
 

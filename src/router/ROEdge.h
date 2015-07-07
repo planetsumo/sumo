@@ -53,7 +53,10 @@
 // class declarations
 // ===========================================================================
 class ROLane;
+class ROEdge;
 
+typedef std::vector<ROEdge*> ROEdgeVector;
+typedef std::vector<const ROEdge*> ConstROEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -70,10 +73,10 @@ class ROLane;
 class ROEdge : public Named {
 public:
     /**
-     * @enum EdgeType
-     * @brief Possible types of edges
+     * @enum EdgeFunc
+     * @brief Possible functions of edges
      */
-    enum EdgeType {
+    enum EdgeFunc {
         /// @brief A normal edge
         ET_NORMAL,
         /// @brief An edge representing a whole district
@@ -128,24 +131,35 @@ public:
     virtual void addSuccessor(ROEdge* s, std::string dir = "");
 
 
-    /** @brief Sets the type of te edge
-     * @param[in] type The new type for the edge
+    /** @brief Sets the function of the edge
+     * @param[in] func The new function for the edge
      */
-    void setType(EdgeType type);
+    inline void setFunc(EdgeFunc func) {
+        myFunc = func;
+    }
+
+
+    /** @brief Sets the vehicle class specific speed limits of the edge
+     * @param[in] restrictions The restrictions for the edge
+     */
+    inline void setRestrictions(const std::map<SUMOVehicleClass, SUMOReal>* restrictions) {
+        myRestrictions = restrictions;
+    }
+
 
     /// @brief return whether this edge is an internal edge
     inline bool isInternal() const {
-        return myType == ET_INTERNAL;
+        return myFunc == ET_INTERNAL;
     }
 
     /// @brief return whether this edge is a pedestrian crossing
     inline bool isCrossing() const {
-        return myType == ET_CROSSING;
+        return myFunc == ET_CROSSING;
     }
 
     /// @brief return whether this edge is walking area
     inline bool isWalkingArea() const {
-        return myType == ET_WALKINGAREA;
+        return myFunc == ET_WALKINGAREA;
     }
 
     /** @brief Builds the internal representation of the travel time/effort
@@ -165,12 +179,12 @@ public:
     /// @name Getter methods
     //@{
 
-    /** @brief Returns the type of the edge
-     * @return This edge's type
-     * @see EdgeType
+    /** @brief Returns the function of the edge
+     * @return This edge's basic function
+     * @see EdgeFunc
      */
-    EdgeType getType() const {
-        return myType;
+    EdgeFunc getFunc() const {
+        return myFunc;
     }
 
 
@@ -224,11 +238,10 @@ public:
     /** @brief returns the information whether this edge is directly connected to the given
      *
      * @param[in] e The edge which may be connected
+     * @param[in] vehicle The vehicle for which the connectivity is checked
      * @return Whether the given edge is a direct successor to this one
      */
-    bool isConnectedTo(const ROEdge* const e) const {
-        return std::find(myFollowingEdges.begin(), myFollowingEdges.end(), e) != myFollowingEdges.end();
-    }
+    bool isConnectedTo(const ROEdge* const e, const ROVehicle* const vehicle) const;
 
 
     /** @brief Returns whether this edge prohibits the given vehicle to pass it
@@ -285,13 +298,18 @@ public:
     unsigned int getNumSuccessors() const;
 
 
-    /** @brief Returns the edge at the given position from the list of reachable edges
-     * @param[in] pos The position of the list within the list of following
-     * @return The following edge, stored at position pos
+    /** @brief Returns the following edges
      */
-    ROEdge* getSuccessor(unsigned int pos) const {
-        return myFollowingEdges[pos];
+    const ROEdgeVector& getSuccessors() const {
+        return myFollowingEdges;
     }
+
+
+    /** @brief Returns the following edges, restricted by vClass
+     * @param[in] vClass The vClass for which to restrict the successors
+     * @return The eligible following edges
+     */
+    const ROEdgeVector& getSuccessors(SUMOVehicleClass vClass) const;
 
 
     /** @brief Returns the number of edges connected to this edge
@@ -308,8 +326,8 @@ public:
      * @param[in] pos The position of the list within the list of incoming
      * @return The incoming edge, stored at position pos
      */
-    ROEdge* getPredecessor(unsigned int pos) const {
-        return myApproachingEdges[pos];
+    const ROEdgeVector& getPredecessors() const {
+        return myApproachingEdges;
     }
 
 
@@ -396,13 +414,15 @@ public:
         return myEdges.size();
     };
 
-    static void setTimeLineOptions(
+    static void setGlobalOptions(
         bool useBoundariesOnOverrideTT,
         bool useBoundariesOnOverrideE,
-        bool interpolate) {
+        bool interpolate,
+        bool isParallel) {
         myUseBoundariesOnOverrideTT = useBoundariesOnOverrideTT;
         myUseBoundariesOnOverrideE = useBoundariesOnOverrideE;
         myInterpolate = interpolate;
+        myAmParallel = isParallel;
     }
 
     /// @brief get edge priority (road class)
@@ -476,19 +496,25 @@ protected:
     /// @brief Information whether to interpolate at interval boundaries
     static bool myInterpolate;
 
+    /// @brief Information whether we are routing multi-threaded
+    static bool myAmParallel;
+
     /// @brief Information whether the edge has reported missing weights
     static bool myHaveEWarned;
     /// @brief Information whether the edge has reported missing weights
     static bool myHaveTTWarned;
 
     /// @brief List of edges that may be approached from this edge
-    std::vector<ROEdge*> myFollowingEdges;
+    ROEdgeVector myFollowingEdges;
 
     /// @brief List of edges that approached this edge
-    std::vector<ROEdge*> myApproachingEdges;
+    ROEdgeVector myApproachingEdges;
 
-    /// @brief The type of the edge
-    EdgeType myType;
+    /// @brief The function of the edge
+    EdgeFunc myFunc;
+
+    /// The vClass speed restrictions for this edge
+    const std::map<SUMOVehicleClass, SUMOReal>* myRestrictions;
 
     /// @brief This edge's lanes
     std::vector<ROLane*> myLanes;
@@ -496,12 +522,14 @@ protected:
     /// @brief The list of allowed vehicle classes combined across lanes
     SVCPermissions myCombinedPermissions;
 
-    static std::vector<ROEdge*> myEdges;
+    static ROEdgeVector myEdges;
 
     /// @brief the junctions for this edge
     RONode* myFromJunction;
     RONode* myToJunction;
 
+    /// @brief The successors available for a given vClass
+    mutable std::map<SUMOVehicleClass, ROEdgeVector> myClassesSuccessorMap;
 
 private:
     /// @brief Invalidated copy constructor

@@ -73,6 +73,8 @@ enum {
     MID_OPEN_CONFIG,
     /// Open network - ID
     MID_OPEN_NETWORK,
+    /// Load additional file with poi and polygons
+    MID_OPEN_SHAPES,
     /// Reload the previously loaded simulation
     MID_RELOAD,
     /// Loads a file previously loaded
@@ -135,6 +137,8 @@ enum {
     MID_APPSETTINGS,
     /// Gaming mode - menu entry
     MID_GAMING,
+    /// Fullscreen mode - menu entry
+    MID_FULLSCREEN,
     /// Locator configuration - menu entry
     MID_LISTINTERNAL,
     /// The Simulation delay control
@@ -427,6 +431,8 @@ enum {
     MID_GNE_ADD_REVERSE_EDGE,
     /** edit junction shape */
     MID_GNE_NODE_SHAPE,
+    /** turn junction into geometry node */
+    MID_GNE_NODE_REPLACE,
     /** set non-default geometry endpoint */
     MID_GNE_SET_EDGE_ENDPOINT,
     /** restore geometry endpoint to node position */

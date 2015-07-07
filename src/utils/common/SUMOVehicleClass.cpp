@@ -38,6 +38,7 @@
 #include <utils/common/ToString.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StringTokenizer.h>
+#include <utils/iodevices/OutputDevice.h>
 
 
 #ifdef CHECK_MEMORY_LEAKS
@@ -81,6 +82,7 @@ StringBijection<SUMOVehicleClass>::Entry sumoVehicleClassStringInitializer[] = {
     {"bicycle",           SVC_BICYCLE},
     {"pedestrian",        SVC_PEDESTRIAN},
     {"evehicle",          SVC_E_VEHICLE},
+    {"ship",              SVC_SHIP},
     {"custom1",           SVC_CUSTOM1},
     {"custom2",           SVC_CUSTOM2}
 };
@@ -123,6 +125,7 @@ StringBijection<SUMOVehicleShape>::Entry sumoVehicleShapeStringInitializer[] = {
     {"rail/cargo",            SVS_RAIL_CARGO},
     {"evehicle",              SVS_E_VEHICLE},
     {"ant",                   SVS_ANT},
+    {"ship",                  SVS_SHIP},
     {"",                      SVS_UNKNOWN}
 };
 
@@ -137,29 +140,13 @@ StringBijection<SUMOVehicleShape> SumoVehicleShapeStrings(
 
 const int SUMOVehicleClass_MAX = SVC_CUSTOM2;
 const SVCPermissions SVCAll = 2 * SUMOVehicleClass_MAX - 1; // all relevant bits set to 1
+const SVCPermissions SVC_UNSPECIFIED = -1;
 
 
 // ===========================================================================
 // method definitions
 // ===========================================================================
 // ------------ Conversion of SUMOVehicleClass
-
-std::string
-getVehicleClassCompoundName(int id) {
-    std::string ret;
-    const std::vector<std::string> names = SumoVehicleClassStrings.getStrings();
-    for (std::vector<std::string>::const_iterator it = names.begin(); it != names.end(); it++) {
-        if ((id & SumoVehicleClassStrings.get(*it))) {
-            ret += ("|" + *it);
-        }
-    }
-    if (ret.length() > 0) {
-        return ret.substr(1);
-    } else {
-        return ret;
-    }
-}
-
 
 std::string
 getVehicleClassNames(SVCPermissions permissions) {
@@ -271,6 +258,39 @@ parseVehicleClasses(const std::vector<std::string>& allowedS) {
 }
 
 
+void
+writePermissions(OutputDevice& into, SVCPermissions permissions) {
+    if (permissions == SVCAll) {
+        return;
+    } else if (permissions == 0) {
+        into.writeAttr(SUMO_ATTR_DISALLOW, "all");
+        return;
+    } else {
+        size_t num_allowed = 0;
+        for (int mask = 1; mask <= SUMOVehicleClass_MAX; mask = mask << 1) {
+            if ((mask & permissions) == mask) {
+                ++num_allowed;
+            }
+        }
+        if (num_allowed <= (SumoVehicleClassStrings.size() - num_allowed) && num_allowed > 0) {
+            into.writeAttr(SUMO_ATTR_ALLOW, getVehicleClassNames(permissions));
+        } else {
+            into.writeAttr(SUMO_ATTR_DISALLOW, getVehicleClassNames(~permissions));
+        }
+    }
+}
+
+
+void
+writePreferences(OutputDevice& into, SVCPermissions preferred) {
+    if (preferred == SVCAll || preferred == 0) {
+        return;
+    } else {
+        into.writeAttr(SUMO_ATTR_PREFER, getVehicleClassNames(preferred));
+    }
+}
+
+
 SUMOVehicleShape
 getVehicleShapeID(const std::string& name) {
     if (SumoVehicleShapeStrings.hasString(name)) {
@@ -292,6 +312,11 @@ bool isRailway(SVCPermissions permissions) {
 }
 
 
+bool isWaterway(SVCPermissions permissions) {
+    return permissions == SVC_SHIP;
+}
+
+
 bool isForbidden(SVCPermissions permissions) {
     return (permissions & SVCAll) == 0;
 }
@@ -303,6 +328,8 @@ const std::string DEFAULT_PEDTYPE_ID("DEFAULT_PEDTYPE");
 const SUMOReal DEFAULT_VEH_PROB(1.);
 
 const SUMOReal DEFAULT_PEDESTRIAN_SPEED(5. / 3.6);
+
+const SUMOReal DEFAULT_CONTAINER_TRANSHIP_SPEED(5. / 3.6);
 
 /****************************************************************************/
 

@@ -40,6 +40,7 @@
 #include <iostream>
 #include "ROLane.h"
 #include "ROEdge.h"
+#include "RONet.h"
 #include "ROVehicle.h"
 #include <utils/vehicle/SUMOVTypeParameter.h>
 #include <utils/emissions/PollutantsInterface.h>
@@ -56,9 +57,10 @@
 bool ROEdge::myUseBoundariesOnOverrideTT = false;
 bool ROEdge::myUseBoundariesOnOverrideE = false;
 bool ROEdge::myInterpolate = false;
+bool ROEdge::myAmParallel = false;
 bool ROEdge::myHaveTTWarned = false;
 bool ROEdge::myHaveEWarned = false;
-std::vector<ROEdge*> ROEdge::myEdges;
+ROEdgeVector ROEdge::myEdges;
 
 
 // ===========================================================================
@@ -205,7 +207,7 @@ ROEdge::getStoredEffort(SUMOReal time, SUMOReal& ret) const {
 
 unsigned int
 ROEdge::getNumSuccessors() const {
-    if (getType() == ET_SINK) {
+    if (getFunc() == ET_SINK) {
         return 0;
     }
     return (unsigned int) myFollowingEdges.size();
@@ -214,16 +216,10 @@ ROEdge::getNumSuccessors() const {
 
 unsigned int
 ROEdge::getNumPredecessors() const {
-    if (getType() == ET_SOURCE) {
+    if (getFunc() == ET_SOURCE) {
         return 0;
     }
     return (unsigned int) myApproachingEdges.size();
-}
-
-
-void
-ROEdge::setType(ROEdge::EdgeType type) {
-    myType = type;
 }
 
 
@@ -260,7 +256,7 @@ ROEdge::buildTimeLines(const std::string& measure) {
 
 bool
 ROEdge::allFollowersProhibit(const ROVehicle* const vehicle) const {
-    for (std::vector<ROEdge*>::const_iterator i = myFollowingEdges.begin(); i != myFollowingEdges.end(); ++i) {
+    for (ROEdgeVector::const_iterator i = myFollowingEdges.begin(); i != myFollowingEdges.end(); ++i) {
         if (!(*i)->prohibits(vehicle)) {
             return false;
         }
@@ -276,6 +272,59 @@ ROEdge::dictionary(size_t id) {
 }
 
 
+const ROEdgeVector&
+ROEdge::getSuccessors(SUMOVehicleClass vClass) const {
+    if (vClass == SVC_IGNORING || !RONet::getInstance()->hasPermissions()) {
+        return myFollowingEdges;
+    }
+#ifdef HAVE_FOX
+    if (myAmParallel) {
+        RONet::getInstance()->lock();
+    }
+#endif
+    std::map<SUMOVehicleClass, ROEdgeVector>::const_iterator i = myClassesSuccessorMap.find(vClass);
+    if (i != myClassesSuccessorMap.end()) {
+        // can use cached value
+#ifdef HAVE_FOX
+        if (myAmParallel) {
+            RONet::getInstance()->unlock();
+        }
+#endif
+        return i->second;
+    } else {
+        // this vClass is requested for the first time. rebuild all successors
+        std::set<ROEdge*> followers;
+        for (std::vector<ROLane*>::const_iterator it = myLanes.begin(); it != myLanes.end(); ++it) {
+            ROLane* lane = *it;
+            if ((lane->getPermissions() & vClass) != 0) {
+                const std::vector<const ROLane*>& outgoing = lane->getOutgoingLanes();
+                for (std::vector<const ROLane*>::const_iterator it2 = outgoing.begin(); it2 != outgoing.end(); ++it2) {
+                    const ROLane* next = *it2;
+                    if ((next->getPermissions() & vClass) != 0) {
+                        followers.insert(&next->getEdge());
+                    }
+                }
+            }
+        }
+        myClassesSuccessorMap[vClass].insert(myClassesSuccessorMap[vClass].begin(),
+                                             followers.begin(), followers.end());
+#ifdef HAVE_FOX
+        if (myAmParallel) {
+            RONet::getInstance()->unlock();
+        }
+#endif
+        return myClassesSuccessorMap[vClass];
+    }
+
+}
+
+
+bool
+ROEdge::isConnectedTo(const ROEdge* const e, const ROVehicle* const vehicle) const {
+    const SUMOVehicleClass vClass = (vehicle == 0 ? SVC_IGNORING : vehicle->getVClass());
+    const ROEdgeVector& followers = getSuccessors(vClass);
+    return std::find(followers.begin(), followers.end(), e) != followers.end();
+}
 
 /****************************************************************************/
 

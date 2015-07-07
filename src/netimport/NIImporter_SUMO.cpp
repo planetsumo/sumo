@@ -184,10 +184,10 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
                 }
                 nbe->addLane2LaneConnection(
                     fromLaneIndex, toEdge, c.toLaneIdx, NBEdge::L2L_VALIDATED,
-                    true, c.mayDefinitelyPass);
+                    true, c.mayDefinitelyPass, c.keepClear);
 
                 // maybe we have a tls-controlled connection
-                if (c.tlID != "") {
+                if (c.tlID != "" && myRailSignals.count(c.tlID) == 0) {
                     const std::map<std::string, NBTrafficLightDefinition*>& programs = myTLLCont.getPrograms(c.tlID);
                     if (programs.size() > 0) {
                         std::map<std::string, NBTrafficLightDefinition*>::const_iterator it;
@@ -231,8 +231,8 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
                 NBConnection(prohibitedFrom, myEdges[it->prohibitedTo]->builtEdge));
         }
     }
-    if (!myHaveSeenInternalEdge && oc.isDefault("no-internal-links")) {
-        oc.set("no-internal-links", "true");
+    if (!myHaveSeenInternalEdge) {
+        myNetBuilder.haveLoadedNetworkWithoutInternalEdges();
     }
     if (!deprecatedVehicleClassesSeen.empty()) {
         WRITE_WARNING("Deprecated vehicle class(es) '" + toString(deprecatedVehicleClassesSeen) + "' in input network.");
@@ -252,7 +252,7 @@ NIImporter_SUMO::_loadNetwork(OptionsCont& oc) {
                 }
             }
             if (edges.size() > 0) {
-                node->addCrossing(edges, crossing.width, crossing.priority);
+                node->addCrossing(edges, crossing.width, crossing.priority, true);
             }
         }
     }
@@ -436,6 +436,10 @@ NIImporter_SUMO::addLane(const SUMOSAXAttributes& attrs) {
         WRITE_ERROR("Found lane '" + id  + "' not within edge element");
         return;
     }
+    if (attrs.getOpt<bool>(SUMO_ATTR_CUSTOMSHAPE, 0, ok, false)) {
+        const std::string nodeID = NBNode::getNodeIDFromInternalLane(id);
+        myCustomShapeMaps[nodeID][id] = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok);
+    }
     myCurrentLane = new LaneAttrs;
     if (myCurrentEdge->func == EDGEFUNC_CROSSING) {
         // save the width and the lane id of the crossing but don't do anything else
@@ -503,6 +507,23 @@ NIImporter_SUMO::addJunction(const SUMOSAXAttributes& attrs) {
     }
     myCurrentJunction.node = node;
     SUMOSAXAttributes::parseStringVector(attrs.get<std::string>(SUMO_ATTR_INTLANES, 0, ok, false), myCurrentJunction.intLanes);
+    // set optional radius
+    if (attrs.hasAttribute(SUMO_ATTR_RADIUS)) {
+        node->setRadius(attrs.get<SUMOReal>(SUMO_ATTR_RADIUS, id.c_str(), ok));
+    }
+    // handle custom shape
+    if (attrs.getOpt<bool>(SUMO_ATTR_CUSTOMSHAPE, 0, ok, false)) {
+        node->setCustomShape(attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok));
+    }
+    if (myCustomShapeMaps.count(id) > 0) {
+        NBNode::CustomShapeMap customShapes = myCustomShapeMaps[id];
+        for (NBNode::CustomShapeMap::const_iterator it = customShapes.begin(); it != customShapes.end(); ++it) {
+            node->setCustomLaneShape(it->first, it->second);
+        }
+    }
+    if (type == NODETYPE_RAIL_SIGNAL) {
+        myRailSignals.insert(id);
+    }
 }
 
 
@@ -530,6 +551,7 @@ NIImporter_SUMO::addConnection(const SUMOSAXAttributes& attrs) {
     conn.toLaneIdx = attrs.get<int>(SUMO_ATTR_TO_LANE, 0, ok);
     conn.tlID = attrs.getOpt<std::string>(SUMO_ATTR_TLID, 0, ok, "");
     conn.mayDefinitelyPass = attrs.getOpt<bool>(SUMO_ATTR_PASS, 0, ok, false);
+    conn.keepClear = attrs.getOpt<bool>(SUMO_ATTR_KEEP_CLEAR, 0, ok, true);
     if (conn.tlID != "") {
         conn.tlLinkNo = attrs.get<int>(SUMO_ATTR_TLLINKINDEX, 0, ok);
     }

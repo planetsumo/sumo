@@ -49,7 +49,7 @@
 #include <utils/geom/Boundary.h>
 #include <utils/geom/Position.h>
 #include <utils/common/SUMOTime.h>
-#include <microsim/trigger/MSBusStop.h>
+#include <microsim/MSStoppingPlace.h>
 #include <utils/common/UtilExceptions.h>
 #include <utils/common/NamedObjectCont.h>
 #include <utils/vehicle/SUMOAbstractRouter.h>
@@ -70,6 +70,7 @@ class MSJunctionControl;
 class MSInsertionControl;
 class SUMORouteLoaderControl;
 class MSPersonControl;
+class MSContainerControl;
 class MSVehicle;
 class MSRoute;
 class MSLane;
@@ -80,6 +81,7 @@ class BinaryInputDevice;
 class MSEdgeWeightsStorage;
 class SUMOVehicle;
 
+typedef std::vector<MSEdge*> MSEdgeVector;
 
 // ===========================================================================
 // class definitions
@@ -162,18 +164,34 @@ public:
                        bool hasInternalLinks);
 
 
-    /** @brief Returns whether the network has vehicle class restrictions
-     * @return whether restrictions are present
+    /** @brief Returns whether the network has specific vehicle class permissions
+     * @return whether permissions are present
      */
-    bool hasRestrictions() const {
-        return myHaveRestrictions;
+    bool hasPermissions() const {
+        return myHavePermissions;
     }
 
 
-    /// @brief Labels the network to contain vehicle class restrictions
-    void setRestrictionFound() {
-        myHaveRestrictions = true;
+    /// @brief Labels the network to contain vehicle class permissions
+    void setPermissionsFound() {
+        myHavePermissions = true;
     }
+
+
+    /** @brief Adds a restriction for an edge type
+     * @param[in] id The id of the type
+     * @param[in] svc The vehicle class the restriction refers to
+     * @param[in] speed The restricted speed
+     */
+    void addRestriction(const std::string& id, const SUMOVehicleClass svc, const SUMOReal speed);
+
+
+    /** @brief Returns the restrictions for an edge type
+     * If no restrictions are present, 0 is returned.
+     * @param[in] id The id of the type
+     * @return The mapping of vehicle classes to maximum speeds
+     */
+    const std::map<SUMOVehicleClass, SUMOReal>* getRestrictions(const std::string& id) const;
 
 
     /** @brief Clears all dictionaries
@@ -297,6 +315,16 @@ public:
      */
     virtual MSPersonControl& getPersonControl();
 
+    /** @brief Returns the container control
+     *
+     * If the container control does not exist, yet, it is created.
+     *
+     * @return The container control
+     * @see MSContainerControl
+     * @see myContainerControl
+     */
+    virtual MSContainerControl& getContainerControl();
+
 
     /** @brief Returns the edge control
      * @return The edge control
@@ -412,14 +440,14 @@ public:
      * @param[in] busStop The bus stop to add
      * @return Whether the bus stop could be added
      */
-    bool addBusStop(MSBusStop* busStop);
+    bool addBusStop(MSStoppingPlace* busStop);
 
 
     /** @brief Returns the named bus stop
      * @param[in] id The id of the bus stop to return.
      * @return The named bus stop, or 0 if no such stop exists
      */
-    MSBusStop* getBusStop(const std::string& id) const;
+    MSStoppingPlace* getBusStop(const std::string& id) const;
 
 
     /** @brief Returns the bus stop close to the given position
@@ -428,6 +456,37 @@ public:
      * @return The bus stop id on the location, or "" if no such stop exists
      */
     std::string getBusStopID(const MSLane* lane, const SUMOReal pos) const;
+    /// @}
+
+
+    /// @name Insertion and retrieval of container stops
+    /// @{
+
+    /** @brief Adds a container stop
+     *
+     * If another container stop with the same id exists, false is returned.
+     *  Otherwise, the container stop is added to the internal container stop
+     *  container "myContainerStopDict".
+     *
+     * This control gets responsible for deletion of the added container stop.
+     *
+     * @param[in] containerStop The container stop to add
+     * @return Whether the container stop could be added
+     */
+    bool addContainerStop(MSStoppingPlace* containerStop);
+
+    /** @brief Returns the named container stop
+     * @param[in] id The id of the container stop to return.
+     * @return The named container stop, or 0 if no such stop exists
+     */
+    MSStoppingPlace* getContainerStop(const std::string& id) const;
+
+    /** @brief Returns the container stop close to the given position
+     * @param[in] lane the lane of the container stop to return.
+     * @param[in] pos the position of the container stop to return.
+     * @return The container stop id on the location, or "" if no such stop exists
+     */
+    std::string getContainerStopID(const MSLane* lane, const SUMOReal pos) const;
     /// @}
 
 
@@ -526,10 +585,10 @@ public:
      * @param[in] prohibited The vector of forbidden edges (optional)
      */
     SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouterTT(
-        const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
+        const MSEdgeVector& prohibited = MSEdgeVector()) const;
     SUMOAbstractRouter<MSEdge, SUMOVehicle>& getRouterEffort(
-        const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
-    MSPedestrianRouterDijkstra& getPedestrianRouter(const std::vector<MSEdge*>& prohibited = std::vector<MSEdge*>()) const;
+        const MSEdgeVector& prohibited = MSEdgeVector()) const;
+    MSPedestrianRouterDijkstra& getPedestrianRouter(const MSEdgeVector& prohibited = MSEdgeVector()) const;
 
 
     /** @brief Returns an RTree that contains lane IDs
@@ -541,6 +600,15 @@ public:
     bool hasInternalLinks() const {
         return myHasInternalLinks;
     }
+
+    /// @brief return whether the network contains internal links
+    bool hasElevation() const {
+        return myHasElevation;
+    }
+
+protected:
+    /// @brief check all lanes for elevation data
+    bool checkElevation();
 
 protected:
     /// @brief Unique instance of MSNet
@@ -561,6 +629,8 @@ protected:
     MSVehicleControl* myVehicleControl;
     /// @brief Controls person building and deletion; @see MSPersonControl
     MSPersonControl* myPersonControl;
+    /// @brief Controls container building and deletion; @see MSContainerControl
+    MSContainerControl* myContainerControl;
     /// @brief Controls edges, performs vehicle movement; @see MSEdgeControl
     MSEdgeControl* myEdges;
     /// @brief Controls junctions, realizes right-of-way rules; @see MSJunctionControl
@@ -601,7 +671,7 @@ protected:
     long mySimBeginMillis;
 
     /// @brief The overall number of vehicle movements
-    SUMOLong myVehiclesMoved;
+    long long int myVehiclesMoved;
     //}
 
 
@@ -618,16 +688,25 @@ protected:
 
 
     /// @brief Whether the network contains edges which not all vehicles may pass
-    bool myHaveRestrictions;
+    bool myHavePermissions;
+
+    /// @brief The vehicle class specific speed restrictions
+    std::map<std::string, std::map<SUMOVehicleClass, SUMOReal> > myRestrictions;
 
     /// @brief Whether the network contains internal links/lanes/edges
     bool myHasInternalLinks;
+
+    /// @brief Whether the network contains elevation data
+    bool myHasElevation;
 
     /// @brief Storage for maximum vehicle number
     int myTooManyVehicles;
 
     /// @brief Dictionary of bus stops
-    NamedObjectCont<MSBusStop*> myBusStopDict;
+    NamedObjectCont<MSStoppingPlace*> myBusStopDict;
+
+    /// @brief Dictionary of container stops
+    NamedObjectCont<MSStoppingPlace*> myContainerStopDict;
 
     /// @brief Container for vehicle state listener
     std::vector<VehicleStateListener*> myVehicleStateListeners;
@@ -638,9 +717,9 @@ protected:
      * @note we provide one member for every switchable router type
      * because the class structure makes it inconvenient to use a superclass*/
     mutable bool myRouterTTInitialized;
-    mutable DijkstraRouterTT<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTDijkstra;
-    mutable AStarRouter<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
-    mutable DijkstraRouterEffort<MSEdge, SUMOVehicle, prohibited_withRestrictions<MSEdge, SUMOVehicle> >* myRouterEffort;
+    mutable DijkstraRouterTT<MSEdge, SUMOVehicle, prohibited_withPermissions<MSEdge, SUMOVehicle> >* myRouterTTDijkstra;
+    mutable AStarRouter<MSEdge, SUMOVehicle, prohibited_withPermissions<MSEdge, SUMOVehicle> >* myRouterTTAStar;
+    mutable DijkstraRouterEffort<MSEdge, SUMOVehicle, prohibited_withPermissions<MSEdge, SUMOVehicle> >* myRouterEffort;
     mutable MSPedestrianRouterDijkstra* myPedestrianRouter;
 
 

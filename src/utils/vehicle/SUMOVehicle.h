@@ -49,9 +49,10 @@ class MSEdge;
 class MSLane;
 class MSDevice;
 class MSPerson;
+class MSTransportable;
 class SUMOSAXAttributes;
 
-typedef std::vector<const MSEdge*> MSEdgeVector;
+typedef std::vector<const MSEdge*> ConstMSEdgeVector;
 
 
 // ===========================================================================
@@ -123,7 +124,7 @@ public:
     virtual const MSEdge* succEdge(unsigned int nSuccs) const = 0;
 
     /// Replaces the current route by the given edges
-    virtual bool replaceRouteEdges(MSEdgeVector& edges, bool onInit = false) = 0;
+    virtual bool replaceRouteEdges(ConstMSEdgeVector& edges, bool onInit = false) = 0;
 
     /// Replaces the current route by the given one
     virtual bool replaceRoute(const MSRoute* route, bool onInit = false, int offset = 0) = 0;
@@ -137,13 +138,13 @@ public:
      * @param[in] router The router to use
      * @see replaceRoute
      */
-    virtual void reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, bool withTaz = false) = 0;
+    virtual void reroute(SUMOTime t, SUMOAbstractRouter<MSEdge, SUMOVehicle>& router, const bool onInit = false, const bool withTaz = false) = 0;
 
 
     /** @brief Returns an iterator pointing to the current edge in this vehicles route
      * @return The current route pointer
      */
-    virtual const MSEdgeVector::const_iterator& getCurrentRouteEdge() const = 0;
+    virtual const ConstMSEdgeVector::const_iterator& getCurrentRouteEdge() const = 0;
 
     /** @brief Returns the vehicle's acceleration
      * @return The acceleration
@@ -214,7 +215,15 @@ public:
      *
      * @param[in] person The person to add
      */
-    virtual void addPerson(MSPerson* person) = 0;
+    virtual void addPerson(MSTransportable* person) = 0;
+
+    /** @brief Adds a container to this vehicle
+     *
+     * May do nothing since containers are not supported by default
+     *
+     * @param[in] container The container to add
+     */
+    virtual void addContainer(MSTransportable* container) = 0;
 
     /** @brief Adds a stop
      *
@@ -228,6 +237,11 @@ public:
      * @return Whether the has stopped
      */
     virtual bool isStopped() const = 0;
+
+
+    /** @brief Returns whether the vehicle is at a stop and waiting for a person or container to continue
+     */
+    virtual bool isStoppedTriggered() const = 0;
 
     /// @brief Returns a device of the given type if it exists or 0
     virtual MSDevice* getDevice(const std::type_info& type) const = 0;

@@ -185,7 +185,7 @@ SUMOSAXAttributesImpl_Binary::getInt(int id) const {
 }
 
 
-SUMOLong
+long long int
 SUMOSAXAttributesImpl_Binary::getLong(int /* id */) const {
     throw NumberFormatException();
 }

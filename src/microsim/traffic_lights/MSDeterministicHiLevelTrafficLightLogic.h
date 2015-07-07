@@ -68,6 +68,13 @@ public:
 	 */
 	void init(NLDetectorBuilder &nb) throw (ProcessError);
 
+	    /** @brief Returns the type of the logic as a string
+     * @return The type of the logic
+     */
+    const std::string getLogicType() const {
+        return "DeterministicHighLevelTrafficLightLogic";
+    }
+    /// @}
 
 protected:
 

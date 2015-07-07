@@ -101,7 +101,7 @@ public:
     void loadOnStartup();
 
 
-    void dependentBuild(bool game);
+    void dependentBuild();
 
     void setStatusBarText(const std::string&);
 
@@ -134,6 +134,9 @@ public:
     /// @brief Called on menu File->Open Network
     long onCmdOpenNetwork(FXObject*, FXSelector, void*);
 
+    /// @brief Called on menu File->Load Shapes
+    long onCmdOpenShapes(FXObject*, FXSelector, void*);
+
     /// @brief Called on reload
     long onCmdReload(FXObject*, FXSelector, void*);
 
@@ -159,6 +162,9 @@ public:
 
     /// @brief Toggle gaming mode
     long onCmdGaming(FXObject*, FXSelector, void*);
+
+    /// @brief Toggle full screen mode
+    long onCmdFullScreen(FXObject*, FXSelector, void*);
 
     /// @brief Toggle listing of internal structures
     long onCmdListInternal(FXObject*, FXSelector, void*);
@@ -227,14 +233,26 @@ public:
 
     /// @brief Somebody wants our clipped text
     long onClipboardRequest(FXObject* sender, FXSelector sel, void* ptr);
+
+    /// @brief handle keys
+    long onKeyPress(FXObject* o, FXSelector sel, void* data);
+    long onKeyRelease(FXObject* o, FXSelector sel, void* data);
     /// @}
+
+
+    /** @brief Returns the simulation delay
+     * @return delay in milliseconds
+     */
+    virtual SUMOReal getDelay() const {
+        return mySimDelayTarget->getValue();
+    }
 
 protected:
     virtual void addToWindowsMenu(FXMenuPane*) { }
 
 private:
     /** starts to load a simulation */
-    void loadConfigOrNet(const std::string& file, bool isNet, bool isReload = false);
+    void loadConfigOrNet(const std::string& file, bool isNet);
 
     /** this method closes all windows and deletes the current simulation */
     void closeAllWindows();
@@ -334,6 +352,11 @@ protected:
     /// @brief whether to show time as hour:minute:second
     bool myShowTimeAsHMS;
 
+    /// @brief whether to show the window in full screen mode
+    bool myAmFullScreen;
+
+    /// @brief whether the simulation end was already announced
+    bool myHaveNotifiedAboutSimEnd;
 
     /// @name game related things
     /// {

@@ -49,13 +49,6 @@
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
-//#define DEBUG_VEHICLE_GUI_SELECTION 1
-#ifdef DEBUG_VEHICLE_GUI_SELECTION
-#include <utils/gui/div/GUIGlobalSelection.h>
-#include <guisim/GUIVehicle.h>
-#include <guisim/GUILane.h>
-#endif
-
 
 // ===========================================================================
 // member method definitions
@@ -136,7 +129,7 @@ MSLaneChanger::change() {
     myCandi = findCandidate();
     MSVehicle* vehicle = veh(myCandi);
 #ifdef DEBUG_VEHICLE_GUI_SELECTION
-    if (gSelected.isSelected(GLO_VEHICLE, static_cast<const GUIVehicle*>(vehicle)->getGlID())) {
+    if (gDebugSelectedVehicle == vehicle->getID()) {
         int bla = 0;
     }
 #endif
@@ -399,7 +392,7 @@ MSLaneChanger::updateChanger(bool vehHasChanged) {
     // "Push" the vehicles to the back, i.e. follower becomes vehicle,
     // vehicle becomes leader, and leader becomes predecessor of vehicle,
     // if it exists.
-    if (!vehHasChanged) {
+    if (!vehHasChanged || MSGlobals::gLaneChangeDuration > DELTA_T) {
         myCandi->lead = veh(myCandi);
     }
     myCandi->veh    = myCandi->veh + 1;
@@ -513,6 +506,81 @@ MSLaneChanger::checkChange(
                             vehicle->getSpeed(), neighLead2.first->getSpeed(), neighLead2.first->getCarFollowModel().getMaxDecel()))) {
                 state |= blockedByLeader;
             }
+        }
+    }
+    if ((state & LCA_BLOCKED) == 0 && (state & LCA_WANTS_LANECHANGE) != 0 && MSGlobals::gLaneChangeDuration > DELTA_T) {
+        // ensure that a continuous lane change manoeuvre can be completed
+        // before the next turning movement
+        SUMOReal seen = myCandi->lane->getLength() - vehicle->getPositionOnLane();
+        const SUMOReal decel = vehicle->getCarFollowModel().getMaxDecel() * STEPS2TIME(MSGlobals::gLaneChangeDuration);
+        const SUMOReal avgSpeed = 0.5 * (vehicle->getSpeed() + MAX2((SUMOReal)0, vehicle->getSpeed() - decel));
+        const SUMOReal space2change = avgSpeed * STEPS2TIME(MSGlobals::gLaneChangeDuration);
+        // for finding turns it doesn't matter whether we look along the current lane or the target lane
+        const std::vector<MSLane*>& bestLaneConts = vehicle->getBestLanesContinuation();
+        unsigned int view = 1;
+        MSLane* nextLane = vehicle->getLane();
+        do {
+            // get the next link used
+            MSLinkCont::const_iterator link = MSLane::succLinkSec(*vehicle, view, *nextLane, bestLaneConts);
+            if (nextLane->isLinkEnd(link) || seen > space2change) {
+                break;
+            }
+            if ((*link)->getDirection() == LINKDIR_LEFT || (*link)->getDirection() == LINKDIR_RIGHT 
+                    // the lanes after an internal junction are on different
+                    // edges and do not allow lane-changing
+                    || (nextLane->getEdge().isInternal() && (*link)->getViaLaneOrLane()->getEdge().isInternal())
+                    ) {
+                state |= LCA_INSUFFICIENT_SPACE;
+                break;
+            }
+#ifdef HAVE_INTERNAL_LANES
+            if ((*link)->getViaLane() == 0) {
+                view++;
+            }
+#else
+            view++;
+#endif
+            nextLane = (*link)->getViaLaneOrLane();
+            seen += nextLane->getLength();
+        } while (true);
+
+        if ((state & LCA_BLOCKED) == 0) {
+            // check for dangerous leaders in case the target lane changes laterally between
+            // now and the lane-changing midpoint
+            const SUMOReal speed = vehicle->getSpeed();
+            seen = myCandi->lane->getLength() - vehicle->getPositionOnLane();
+            nextLane = vehicle->getLane();
+            view = 1;
+            const SUMOReal dist = vehicle->getCarFollowModel().brakeGap(speed) + vehicle->getVehicleType().getMinGap();
+            do {
+                // get the next link used
+                MSLinkCont::const_iterator link = MSLane::succLinkSec(*vehicle, view, *nextLane, bestLaneConts);
+                if (nextLane->isLinkEnd(link) || seen > space2change || seen > dist) {
+                    break;
+                }
+                nextLane = (*link)->getViaLaneOrLane();
+                MSLane* targetLane = nextLane->getParallelLane(laneOffset);
+                if (targetLane == 0) {
+                    state |= LCA_INSUFFICIENT_SPACE;
+                    break;
+                } else {
+                    std::pair<MSVehicle* const, SUMOReal> neighLead2 = targetLane->getLeader(vehicle,  -seen, true);
+                    if (neighLead2.first != 0 && neighLead2.first != neighLead.first
+                            && (neighLead2.second < vehicle->getCarFollowModel().getSecureGap(
+                                    vehicle->getSpeed(), neighLead2.first->getSpeed(), neighLead2.first->getCarFollowModel().getMaxDecel()))) {
+                        state |= blockedByLeader;
+                        break;
+                    }
+                }
+#ifdef HAVE_INTERNAL_LANES
+                if ((*link)->getViaLane() == 0) {
+                    view++;
+                }
+#else
+                view++;
+#endif
+                seen += nextLane->getLength();
+            } while (true);
         }
     }
 #ifndef NO_TRACI

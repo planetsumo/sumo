@@ -138,11 +138,14 @@ ROFrame::fillOptions(OptionsCont& oc, bool forDuarouter) {
 
     if (forDuarouter) {
         oc.doRegister("routing-algorithm", new Option_String("dijkstra"));
-        oc.addDescription("routing-algorithm", "Processing", "Select among routing algorithms ['dijkstra', 'astar', 'bulkstar', 'CH', 'CHWrapper']");
+        oc.addDescription("routing-algorithm", "Processing", "Select among routing algorithms ['dijkstra', 'astar', 'CH', 'CHWrapper']");
 
         oc.doRegister("weight-period", new Option_String("3600", "TIME"));
         oc.addDescription("weight-period", "Processing", "Aggregation period for the given weight files; triggers rebuilding of Contraction Hierarchy");
     }
+
+    oc.doRegister("bulk-routing", new Option_Bool(false));
+    oc.addDescription("bulk-routing", "Processing", "Aggregate routing queries with the same origin");
 
 #ifdef HAVE_FOX
     oc.doRegister("routing-threads", new Option_Integer(0));

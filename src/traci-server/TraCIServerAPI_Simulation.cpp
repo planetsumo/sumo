@@ -86,7 +86,7 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
     switch (variable) {
         case VAR_TIME_STEP:
             tempMsg.writeUnsignedByte(TYPE_INTEGER);
-            tempMsg.writeInt(MSNet::getInstance()->getCurrentTimeStep());
+            tempMsg.writeInt((int)MSNet::getInstance()->getCurrentTimeStep());
             break;
         case VAR_LOADED_VEHICLES_NUMBER:
             writeVehicleStateNumber(server, tempMsg, MSNet::VEHICLE_STATE_BUILT);
@@ -147,7 +147,7 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
             break;
         case VAR_DELTA_T:
             tempMsg.writeUnsignedByte(TYPE_INTEGER);
-            tempMsg.writeInt(DELTA_T);
+            tempMsg.writeInt((int)DELTA_T);
             break;
         case VAR_NET_BOUNDING_BOX: {
             tempMsg.writeUnsignedByte(TYPE_BOUNDINGBOX);
@@ -190,12 +190,12 @@ TraCIServerAPI_Simulation::processGet(TraCIServer& server, tcpip::Storage& input
             if (!server.readTypeCheckingString(inputStorage, id)) {
                 return server.writeErrorStatusCmd(CMD_GET_SIM_VARIABLE, "Retrieval of persons at busstop requires a string.", outputStorage);
             }
-            MSBusStop* s = MSNet::getInstance()->getBusStop(id);
+            MSStoppingPlace* s = MSNet::getInstance()->getBusStop(id);
             if (s == 0) {
                 return server.writeErrorStatusCmd(CMD_GET_SIM_VARIABLE, "Unknown bus stop '" + id + "'.", outputStorage);
             }
             tempMsg.writeUnsignedByte(TYPE_INTEGER);
-            tempMsg.writeInt(s->getPersonNumber());
+            tempMsg.writeInt(s->getTransportableNumber());
             break;
         }
         default:
@@ -464,7 +464,7 @@ TraCIServerAPI_Simulation::commandDistanceRequest(TraCIServer& server, tcpip::St
             // same edge
             distance = roadPos2.second - roadPos1.second;
         } else {
-            MSEdgeVector newRoute;
+            ConstMSEdgeVector newRoute;
             MSNet::getInstance()->getRouterTT().compute(
                 &roadPos1.first->getEdge(), &roadPos2.first->getEdge(), 0, MSNet::getInstance()->getCurrentTimeStep(), newRoute);
             MSRoute route("", newRoute, false, 0, std::vector<SUMOVehicleParameter::Stop>());

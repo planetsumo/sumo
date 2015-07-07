@@ -119,7 +119,7 @@ NIXMLNodesHandler::addNode(const SUMOSAXAttributes& attrs) {
         xOk = yOk = true;
         needConversion = false;
     } else {
-        myPosition.set(0,0,0); // better to reset than to reuse the previous (z)-value
+        myPosition.set(0, 0, 0); // better to reset than to reuse the previous (z)-value
     }
     if (attrs.hasAttribute(SUMO_ATTR_X)) {
         myPosition.set(attrs.get<SUMOReal>(SUMO_ATTR_X, myID.c_str(), ok), myPosition.y());
@@ -190,6 +190,14 @@ NIXMLNodesHandler::addNode(const SUMOSAXAttributes& attrs) {
             shape.closePolygon();
         }
         node->setCustomShape(shape);
+    }
+    // set optional radius
+    if (attrs.hasAttribute(SUMO_ATTR_RADIUS)) {
+        node->setRadius(attrs.get<SUMOReal>(SUMO_ATTR_RADIUS, myID.c_str(), ok));
+    }
+    // set optional keepClear flag
+    if (attrs.hasAttribute(SUMO_ATTR_KEEP_CLEAR)) {
+        node->setKeepClear(attrs.get<bool>(SUMO_ATTR_KEEP_CLEAR, myID.c_str(), ok));
     }
 }
 

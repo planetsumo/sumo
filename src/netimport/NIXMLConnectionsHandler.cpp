@@ -40,6 +40,7 @@
 #include "NIXMLConnectionsHandler.h"
 #include <netbuild/NBEdge.h>
 #include <netbuild/NBEdgeCont.h>
+#include <netbuild/NBNodeCont.h>
 #include <netbuild/NBTrafficLightLogicCont.h>
 #include <netbuild/NBNode.h>
 #include <utils/common/StringTokenizer.h>
@@ -59,9 +60,10 @@
 // ===========================================================================
 // method definitions
 // ===========================================================================
-NIXMLConnectionsHandler::NIXMLConnectionsHandler(NBEdgeCont& ec, NBTrafficLightLogicCont& tlc) :
+NIXMLConnectionsHandler::NIXMLConnectionsHandler(NBEdgeCont& ec, NBNodeCont& nc, NBTrafficLightLogicCont& tlc) :
     SUMOSAXHandler("xml-connection-description"),
     myEdgeCont(ec),
+    myNodeCont(nc),
     myTLLogicCont(tlc),
     myHaveWarnedAboutDeprecatedLanes(false),
     myErrorMsgHandler(OptionsCont::getOptions().getBool("ignore-errors.connections") ?
@@ -164,6 +166,9 @@ NIXMLConnectionsHandler::myStartElement(int element,
     if (element == SUMO_TAG_CROSSING) {
         addCrossing(attrs);
     }
+    if (element == SUMO_TAG_CUSTOMSHAPE) {
+        addCustomShape(attrs);
+    }
 }
 
 
@@ -210,6 +215,7 @@ NIXMLConnectionsHandler::parseLaneBound(const SUMOSAXAttributes& attrs, NBEdge* 
     }
     bool ok = true;
     const bool mayDefinitelyPass = attrs.getOpt<bool>(SUMO_ATTR_PASS, 0, ok, false);
+    const bool keepClear = attrs.getOpt<bool>(SUMO_ATTR_KEEP_CLEAR, 0, ok, true);
     if (!ok) {
         return;
     }
@@ -235,7 +241,7 @@ NIXMLConnectionsHandler::parseLaneBound(const SUMOSAXAttributes& attrs, NBEdge* 
         if (from->hasConnectionTo(to, toLane)) {
             WRITE_WARNING("Target lane '" + to->getLaneID(toLane) + "' is already connected from '" + from->getID() + "'.");
         }
-        if (!from->addLane2LaneConnection(fromLane, to, toLane, NBEdge::L2L_USER, true, mayDefinitelyPass)) {
+        if (!from->addLane2LaneConnection(fromLane, to, toLane, NBEdge::L2L_USER, true, mayDefinitelyPass, keepClear)) {
             NBEdge* nFrom = from;
             while (nFrom->getToNode()->getOutgoingEdges().size() == 1) {
                 NBEdge* t = nFrom->getToNode()->getOutgoingEdges()[0];
@@ -244,12 +250,12 @@ NIXMLConnectionsHandler::parseLaneBound(const SUMOSAXAttributes& attrs, NBEdge* 
                 }
                 nFrom = t;
             }
-            if (nFrom == 0 || !nFrom->addLane2LaneConnection(fromLane, to, toLane, NBEdge::L2L_USER, false, mayDefinitelyPass)) {
+            if (nFrom == 0 || !nFrom->addLane2LaneConnection(fromLane, to, toLane, NBEdge::L2L_USER, false, mayDefinitelyPass, keepClear)) {
                 if (OptionsCont::getOptions().getBool("show-errors.connections-first-try")) {
                     WRITE_WARNING("Could not set loaded connection from '" + from->getLaneID(fromLane) + "' to '" + to->getLaneID(toLane) + "'.");
                 }
                 // set as to be re-applied after network processing
-                myEdgeCont.addPostProcessConnection(nFrom->getID(), fromLane, to->getID(), toLane, mayDefinitelyPass);
+                myEdgeCont.addPostProcessConnection(nFrom->getID(), fromLane, to->getID(), toLane, mayDefinitelyPass, keepClear);
             } else {
                 from = nFrom;
             }
@@ -320,7 +326,22 @@ NIXMLConnectionsHandler::addCrossing(const SUMOSAXAttributes& attrs) {
     EdgeVector edges;
     const std::string nodeID = attrs.get<std::string>(SUMO_ATTR_NODE, 0, ok);
     const SUMOReal width = attrs.getOpt<SUMOReal>(SUMO_ATTR_WIDTH, nodeID.c_str(), ok, NBNode::DEFAULT_CROSSING_WIDTH, true);
+    const bool discard = attrs.getOpt<bool>(SUMO_ATTR_DISCARD, nodeID.c_str(), ok, false, true);
     std::vector<std::string> edgeIDs;
+    if (!attrs.hasAttribute(SUMO_ATTR_EDGES)) {
+        if (discard) {
+            node = myNodeCont.retrieve(nodeID);
+            if (node == 0) {
+                WRITE_ERROR("Node '" + nodeID + "' in crossing is not known.");
+                return;
+            }
+            node->discardAllCrossings();
+            return;
+        } else {
+            WRITE_ERROR("No edges specified for crossing at node '" + nodeID + "'.");
+            return;
+        }
+    }
     SUMOSAXAttributes::parseStringVector(attrs.get<std::string>(SUMO_ATTR_EDGES, 0, ok), edgeIDs);
     if (!ok) {
         return;
@@ -354,7 +375,29 @@ NIXMLConnectionsHandler::addCrossing(const SUMOSAXAttributes& attrs) {
         WRITE_WARNING("Crossing at controlled node '" + nodeID + "' must be prioritized");
         priority = true;
     }
-    node->addCrossing(edges, width, priority);
+    if (discard) {
+        node->removeCrossing(edges);
+    } else {
+        node->addCrossing(edges, width, priority);
+    }
+}
+
+
+void
+NIXMLConnectionsHandler::addCustomShape(const SUMOSAXAttributes& attrs) {
+    bool ok = true;
+    const std::string id = attrs.get<std::string>(SUMO_ATTR_ID, 0, ok);
+    const PositionVector shape = attrs.get<PositionVector>(SUMO_ATTR_SHAPE, id.c_str(), ok);
+    if (!ok) {
+        return;
+    }
+    const std::string nodeID = NBNode::getNodeIDFromInternalLane(id);
+    NBNode* node = myNodeCont.retrieve(nodeID);
+    if (node == 0) {
+        WRITE_ERROR("Node '" + nodeID + "' in customShape is not known.");
+        return;
+    }
+    node->setCustomLaneShape(id, shape);
 }
 
 

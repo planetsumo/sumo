@@ -76,6 +76,9 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.doRegister("default.sidewalk-width", new Option_Float((SUMOReal) 2.0));
     oc.addDescription("default.sidewalk-width", "Building Defaults", "The default width of added sidewalks");
 
+    oc.doRegister("default.junctions.keep-clear", new Option_Bool(true));
+    oc.addDescription("default.junctions.keep-clear", "Building Defaults", "Whether junctions should be kept clear by default");
+
     // register the data processing options
     oc.doRegister("no-internal-links", new Option_Bool(false)); // !!! not described
     oc.addDescription("no-internal-links", "Processing", "Omits internal links");
@@ -165,6 +168,8 @@ NBFrame::fillOptions(bool forNetgen) {
         oc.addDescription("speed.factor", "Processing", "Modifies all edge speeds by multiplying by FLOAT");
     }
 
+    oc.doRegister("junctions.corner-detail", new Option_Integer(0));
+    oc.addDescription("junctions.corner-detail", "Processing", "Generate INT intermediate points to smooth out intersection corners");
 
     oc.doRegister("check-lane-foes.roundabout", new Option_Bool(true));
     oc.addDescription("check-lane-foes.roundabout", "Processing",
@@ -185,6 +190,10 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.doRegister("sidewalks.guess.min-speed", new Option_Float((SUMOReal) 5.8));
     oc.addDescription("sidewalks.guess.min-speed", "Processing",
                       "Add sidewalks for edges with a speed above the given limit");
+
+    oc.doRegister("sidewalks.guess.from-permissions", new Option_Bool(false));
+    oc.addDescription("sidewalks.guess.from-permissions", "Processing",
+                      "Add sidewalks for edges that allow pedestrians on any of their lanes regardless of speed");
 
     oc.doRegister("crossings.guess", new Option_Bool(false));
     oc.addDescription("crossings.guess", "Processing",
@@ -219,15 +228,15 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.addDescription("tls.join", "TLS Building", "Tries to cluster tls-controlled nodes"); // !!! describe
 
     oc.doRegister("tls.join-dist", new Option_Float(20));
-    oc.addDescription("tls.join-dist", "Processing",
+    oc.addDescription("tls.join-dist", "TLS Building",
                       "Determines the maximal distance for joining traffic lights (defaults to 20)");
 
     if (!forNetgen) {
         oc.doRegister("tls.guess-signals", new Option_Bool(false));
-        oc.addDescription("tls.guess-signals", "Processing", "Interprets tls nodes surrounding an intersection as signal positions for a larger TLS. This is typical pattern for OSM-derived networks");
+        oc.addDescription("tls.guess-signals", "TLS Building", "Interprets tls nodes surrounding an intersection as signal positions for a larger TLS. This is typical pattern for OSM-derived networks");
 
         oc.doRegister("tls.guess-signals.dist", new Option_Float(25));
-        oc.addDescription("tls.guess-signals.dist", "Processing", "Distance for interpreting nodes as signal locations");
+        oc.addDescription("tls.guess-signals.dist", "TLS Building", "Distance for interpreting nodes as signal locations");
     }
 
 
@@ -276,7 +285,10 @@ NBFrame::fillOptions(bool forNetgen) {
     oc.addDescription("keep-edges.explicit", "Edge Removal", "Only keep edges in STR");
 
     oc.doRegister("keep-edges.input-file", new Option_FileName());
-    oc.addDescription("keep-edges.input-file", "Edge Removal", "Only keep edges in FILE");
+    oc.addDescription("keep-edges.input-file", "Edge Removal", "Only keep edges in FILE (Each id on a single line. Selection files from SUMO-GUI are also supported)");
+
+    oc.doRegister("remove-edges.input-file", new Option_FileName());
+    oc.addDescription("remove-edges.input-file", "Edge Removal", "Remove edges in FILE. (Each id on a single line. Selection files from SUMO-GUI are also supported)");
 
     if (!forNetgen) {
         oc.doRegister("keep-edges.postload", new Option_Bool(false));
@@ -305,6 +317,7 @@ NBFrame::fillOptions(bool forNetgen) {
         oc.doRegister("remove-edges.isolated", new Option_Bool(false));
         oc.addSynonyme("remove-edges.isolated", "remove-isolated", true);
         oc.addDescription("remove-edges.isolated", "Edge Removal", "Removes isolated edges");
+
     }
 
 
@@ -345,6 +358,9 @@ NBFrame::fillOptions(bool forNetgen) {
         oc.addSynonyme("ramps.set", "ramp-guess.explicite", true);
         oc.addDescription("ramps.set", "Ramp Guessing", "Tries to handle the given edges as ramps");
 
+        oc.doRegister("ramps.unset", new Option_String());
+        oc.addDescription("ramps.unset", "Ramp Guessing", "Do not consider the given edges as ramps");
+
         oc.doRegister("ramps.no-split", new Option_Bool(false));
         oc.addSynonyme("ramps.no-split", "ramp-guess.no-split", true);
         oc.addDescription("ramps.no-split", "Ramp Guessing", "Avoids edge splitting");
@@ -369,6 +385,10 @@ NBFrame::checkOptions() {
     }
     if (oc.isSet("keep-edges.in-boundary") && oc.isSet("keep-edges.in-geo-boundary")) {
         WRITE_ERROR("only one of the options 'keep-edges.in-boundary' or 'keep-edges.in-geo-boundary' may be given");
+        ok = false;
+    }
+    if (oc.getBool("no-internal-links") && oc.getBool("crossings.guess")) {
+        WRITE_ERROR("only one of the options 'no-internal-links' or 'crossings.guess' may be given");
         ok = false;
     }
     return ok;
