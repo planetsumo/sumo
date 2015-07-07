@@ -64,8 +64,8 @@ netgenerate: ../src/netgen/netgenerate
 	if [ ! -e netgenerateD -a -e netgenerateIntD ]; then ln -s netgenerateIntD netgenerateD; fi
 	if [ ! -e netgenerate -a -e netgenerateD ]; then ln -s netgenerateD netgenerate; fi
 	if [ ! -e netgenerateInt -a -e netgenerateIntD ]; then ln -s netgenerateIntD netgenerateInt; fi
-od2trips: ../src/od2trips/od2trips
-	cp ../src/od2trips/od2trips ./`echo od2trips | sed '$(transform)'`
+od2trips: ../src/od2trips
+	cp ../src/od2trips ./`echo od2trips | sed '$(transform)'`
 	if [ ! -e od2trips -a -e od2tripsInt ]; then ln -s od2tripsInt od2trips; fi
 	if [ ! -e od2tripsD -a -e od2tripsIntD ]; then ln -s od2tripsIntD od2tripsD; fi
 	if [ ! -e od2trips -a -e od2tripsD ]; then ln -s od2tripsD od2trips; fi
@@ -99,7 +99,7 @@ marouter: ../src/marouter/marouter
 	if [ ! -e marouter -a -e marouterInt ]; then ln -s marouterInt marouter; fi
 	if [ ! -e marouterD -a -e marouterIntD ]; then ln -s marouterIntD marouterD; fi
 	if [ ! -e marouter -a -e marouterD ]; then ln -s marouterD marouter; fi
-	if [ ! -e marouter -a -e marouterIntD ]; then ln -s marouterIntD marouterInt; fi
+	if [ ! -e marouterInt -a -e marouterIntD ]; then ln -s marouterIntD marouterInt; fi
 $(GUI_APP): ../src/$(GUI_APP)
 	cp ../src/$(GUI_APP) ./`echo $(GUI_APP) | sed '$(transform)'`
 	if [ ! -e $(GUI_APP) -a -e meso-gui ]; then ln -s meso-gui $(GUI_APP); fi

@@ -23,10 +23,10 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSimpleTrafficLightLogic.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTLLogicControl.cpp">
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.cpp">
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSRailSignal.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSPhaseDefinition.cpp">
@@ -98,6 +98,9 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSOTLPolicy5DStimulus.cpp">
       <Filter>Quellcodedateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSTLLogicControl.cpp">
+      <Filter>Quellcodedateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSActuatedTrafficLightLogic.h">
@@ -119,6 +122,9 @@
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSTrafficLightLogic.h">
+      <Filter>Header-Dateien</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSRailSignal.h">
       <Filter>Header-Dateien</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSPhasedTrafficLightLogic.h">

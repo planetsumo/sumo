@@ -143,6 +143,7 @@
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSAgentbasedTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSDeterministicHiLevelTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSOffTrafficLightLogic.cpp" />
+    <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSRailSignal.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSPhaseDefinition.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSPhasedTrafficLightLogic.cpp" />
     <ClCompile Include="..\..\..\src\microsim\traffic_lights\MSSimpleTrafficLightLogic.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSDeterministicHiLevelTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSOffTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSPhaseDefinition.h" />
+    <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSRailSignal.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSPhasedTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSimpleTrafficLightLogic.h" />
     <ClInclude Include="..\..\..\src\microsim\traffic_lights\MSSOTLCongestionPolicy.h" />
