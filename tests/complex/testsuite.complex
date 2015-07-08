@@ -1,3 +1,4 @@
+# whether broken networks are handled correctly
 broken_nets
 
 # complex sumo tests
@@ -9,8 +10,7 @@ traci
 # complex jtrrouter tests
 jtrrouter
 
-# complex netconvert tests
-netconvert
+# netconvert roundtrips with different formatsnetconvert
 
 # complex traffic lights tests
 traffic_lights
@@ -18,7 +18,7 @@ traffic_lights
 # tutorials
 tutorial
 
+# state saving and loading
 state
 
-# emissions-related tests
-emissions
+# emission tools, especially emissionDrivingCycleemissions

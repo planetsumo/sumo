@@ -14,6 +14,7 @@ lane 2fi_0
 laneIndex 0
 type DEFAULT_VEHTYPE
 routeID horizontal
+routeIndex 0
 route ['2fi', '2si', '1o', '1fi', '1si', '3o', '3fi', '3si', '4o', '4fi', '4si']
 lanePos 9.65713596621
 color (255, 255, 0, 255)
@@ -64,6 +65,7 @@ lane 2fi_0
 laneIndex 0
 type DEFAULT_VEHTYPE@horiz
 routeID horizontal
+routeIndex 0
 route ['2fi', '2si', '1o', '1fi', '1si', '3o', '3fi', '3si', '4o', '4fi', '4si']
 lanePos 32.3814093548
 color (255, 0, 0, 255)
@@ -82,7 +84,7 @@ signals 0
 length 1.0
 maxSpeed 9.0
 speedFactor 1.1
-allowedSpeed 12.221
+allowedSpeed 9.0
 accel 1.1
 decel 5.1
 imperfection 0.1
@@ -111,6 +113,7 @@ lane
 laneIndex -1
 type DEFAULT_VEHTYPE
 routeID horizontal
+routeIndex -1
 route ['2fi', '2si', '1o', '1fi', '1si', '3o', '3fi', '3si', '4o', '4fi', '4si']
 lanePos -1001.0
 color (255, 255, 0, 255)
@@ -170,6 +173,7 @@ lane 2fi_0
 laneIndex 0
 type DEFAULT_VEHTYPE
 routeID horizontal
+routeIndex 0
 route ['2fi', '2si', '1o', '1fi', '1si', '3o', '3fi', '3si', '4o', '4fi', '4si']
 lanePos 10.2894243686
 color (255, 255, 0, 255)
@@ -225,3 +229,121 @@ vehicles ['2', 'horiz']
 vehicle count 2
 examining anotherOne
 speed Vehicle 'anotherOne' is not known
+step 19
+{80: '1o', 86: 60.0}
+step 20
+{80: '1o', 86: 80.0}
+step 21
+{80: '1o', 86: 6.160000000000026}
+step 22
+{80: '1o', 86: 26.160000000000025}
+step 23
+vehicles ['2', 'departInThePast', 'horiz']
+step 24
+vehicles ['2', 'departInThePast', 'horiz']
+step 25
+vehicles ['2', 'departInThePast', 'horiz']
+step 26
+vehicles ['2', 'departInThePast', 'horiz']
+step 27
+vehicles ['2', 'departInThePast', 'horiz']
+step 28
+vehicles ['2', 'departInThePast', 'horiz']
+step 29
+vehicles ['2', 'departInThePast', 'horiz']
+step 30
+vehicles ['2', 'departInTheFuture', 'departInThePast', 'horiz']
+step 31
+vehicles ['2', 'departInTheFuture', 'departInThePast', 'horiz']
+step 32
+vehicles ['2', 'departInTheFuture', 'departInThePast', 'horiz']
+step 33
+vehicles ['2', 'departInTheFuture', 'departInThePast', 'departTriggered', 'horiz']
+step 34
+vehicle 'routeTest' routeID=horizontal
+step 35
+vehicle 'routeTest' routeID=withStop
+step 36
+vehicle 'routeTest' lane=2fi_0 lanePos=0.0 stopped=False
+step 37
+vehicle 'routeTest' lane=2fi_0 lanePos=2.46386594328 stopped=False
+step 38
+vehicle 'routeTest' lane=2fi_0 lanePos=6.60375909933 stopped=False
+step 39
+vehicle 'routeTest' lane=2fi_0 lanePos=12.809248253 stopped=False
+step 40
+vehicle 'routeTest' lane=2fi_0 lanePos=20.5994359856 stopped=False
+step 41
+vehicle 'routeTest' lane=2fi_0 lanePos=26.4026205762 stopped=False
+step 42
+vehicle 'routeTest' lane=2fi_0 lanePos=28.7273224488 stopped=False
+step 43
+vehicle 'routeTest' lane=2fi_0 lanePos=29.7250437202 stopped=True
+step 44
+vehicle 'routeTest' lane=2fi_0 lanePos=29.7250437202 stopped=True
+step 45
+vehicle 'routeTest' lane=2fi_0 lanePos=29.7250437202 stopped=True
+step 46
+vehicle 'routeTest' lane=2fi_0 lanePos=29.7250437202 stopped=True
+step 47
+vehicle 'routeTest' lane=2fi_0 lanePos=29.7250437202 stopped=False
+step 48
+vehicle 'routeTest' lane=2fi_0 lanePos=32.1763986043 stopped=False
+step 49
+vehicle 'routeTest' lane=2fi_0 lanePos=36.0107298119 stopped=False
+step 50
+vehicle 'routeTest2' lane=2fi_0 lanePos=0.0 stopped=False
+step 51
+vehicle 'routeTest2' lane=2fi_0 lanePos=2.39510012721 stopped=False
+step 52
+vehicle 'routeTest2' lane=2fi_0 lanePos=7.09412951393 stopped=False
+step 53
+vehicle 'routeTest2' lane=2fi_0 lanePos=14.1454788839 stopped=False
+step 54
+vehicle 'routeTest2' lane=2fi_0 lanePos=23.272511609 stopped=False
+step 55
+vehicle 'routeTest2' lane=2fi_0 lanePos=28.0198186064 stopped=False
+step 56
+vehicle 'routeTest2' lane=2fi_0 lanePos=29.2144092224 stopped=True
+step 57
+vehicle 'routeTest2' lane=2fi_0 lanePos=29.2144092224 stopped=True
+step 58
+vehicle 'routeTest2' lane=2fi_0 lanePos=29.2144092224 stopped=True
+step 59
+vehicle 'routeTest2' lane=2fi_0 lanePos=29.2144092224 stopped=True
+step 60
+vehicle 'routeTest2' lane=2fi_0 lanePos=29.2144092224 stopped=False
+step 61
+vehicle 'routeTest2' lane=2fi_0 lanePos=31.4442368474 stopped=False
+step 62
+vehicle 'routeTest2' lane=2fi_0 lanePos=35.3586165884 stopped=False
+step 63
+vehicle 'routeTest2' lane=2fi_0 lanePos=41.6733420558 stopped=False
+step 64
+vehicle 'bus' lane=2fi_0 lanePos=0.0 stopped=False
+step 65
+vehicle 'bus' lane=2fi_0 lanePos=1.63771466282 stopped=False
+step 66
+vehicle 'bus' lane=2fi_0 lanePos=4.77924554439 stopped=False
+step 67
+vehicle 'bus' lane=2fi_0 lanePos=9.34938673698 stopped=False
+step 68
+vehicle 'bus' lane=2fi_0 lanePos=15.4925440902 stopped=False
+step 69
+vehicle 'bus' lane=2fi_0 lanePos=23.1276302657 stopped=False
+step 70
+vehicle 'bus' lane=2fi_0 lanePos=28.4890675111 stopped=False
+step 71
+vehicle 'bus' lane=2fi_0 lanePos=29.4240421053 stopped=True
+step 72
+vehicle 'bus' lane=2fi_0 lanePos=29.4240421053 stopped=True
+step 73
+vehicle 'bus' lane=2fi_0 lanePos=29.4240421053 stopped=True
+step 74
+vehicle 'bus' lane=2fi_0 lanePos=29.4240421053 stopped=False
+step 75
+vehicle 'bus' lane=2fi_0 lanePos=30.9111051869 stopped=False
+step 76
+vehicle 'bus' lane=2fi_0 lanePos=33.8655616745 stopped=False
+step 77
+vehicle 'bus' lane=2fi_0 lanePos=38.4302879003 stopped=False

@@ -29,7 +29,6 @@ collision
 # collision of long vehicles
 # collision_long_veh (automatically commented due to no test directory being found)
 
-
 # lanechanging in front of crossing
 lanechange_cross
 
@@ -163,5 +162,10 @@ ticket1551
 
 # collision
 ticket1553
+ticket1559
 ticket1560
 ticket1575
+ticket1591
+ticket1641
+ticket1698
+ticket1804

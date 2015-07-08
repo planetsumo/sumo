@@ -75,44 +75,44 @@
         <!-- Defines the probability to build a reverse edge -->
         <rand.bidi-probability value="1" synonymes="bidi rand-bidi-probability" type="FLOAT"/>
 
-        <!--  -->
+        <!-- The maximum distance for each edge -->
         <rand.max-distance value="250" synonymes="max-dist rand-max-distance" type="FLOAT"/>
 
-        <!--  -->
+        <!-- The minimum distance for each edge -->
         <rand.min-distance value="100" synonymes="min-dist rand-min-distance" type="FLOAT"/>
 
-        <!--  -->
+        <!-- The minimum angle for each pair of (bidirectional) roads -->
         <rand.min-angle value="0.785398" synonymes="min-angle rand-min-anglee" type="FLOAT"/>
 
-        <!--  -->
+        <!-- The number of tries for creating each node -->
         <rand.num-tries value="50" synonymes="num-tries rand-num-tries" type="INT"/>
 
-        <!--  -->
+        <!-- Probability for roads to continue at each node -->
         <rand.connectivity value="0.95" synonymes="connectivity rand-connectivity" type="FLOAT"/>
 
-        <!--  -->
+        <!-- Probability for a node having exactly 1 neighbor -->
         <rand.neighbor-dist1 value="0" synonymes="dist1 rand-neighbor-dist1" type="FLOAT"/>
 
-        <!--  -->
+        <!-- Probability for a node having exactly 2 neighbors -->
         <rand.neighbor-dist2 value="0" synonymes="dist2 rand-neighbor-dist2" type="FLOAT"/>
 
-        <!--  -->
+        <!-- Probability for a node having exactly 3 neighbors -->
         <rand.neighbor-dist3 value="10" synonymes="dist3 rand-neighbor-dist3" type="FLOAT"/>
 
-        <!--  -->
+        <!-- Probability for a node having exactly 4 neighbors -->
         <rand.neighbor-dist4 value="10" synonymes="dist4 rand-neighbor-dist4" type="FLOAT"/>
 
-        <!--  -->
+        <!-- Probability for a node having exactly 5 neighbors -->
         <rand.neighbor-dist5 value="2" synonymes="dist5 rand-neighbor-dist5" type="FLOAT"/>
 
-        <!--  -->
+        <!-- Probability for a node having exactly 6 neighbors -->
         <rand.neighbor-dist6 value="1" synonymes="dist6 rand-neighbor-dist6" type="FLOAT"/>
 
     </random_network>
 
     <output>
         <!-- Prefix which is applied to all output files. The special string &apos;TIME&apos; is replaced by the current time. -->
-        <output-prefix value="" type="FILE"/>
+        <output-prefix value="" type="STR"/>
 
         <!-- The generated net will be written to FILE -->
         <output-file value="" synonymes="o output sumo-output" type="FILE"/>
@@ -122,9 +122,6 @@
 
         <!-- Writes information about joined junctions to FILE (can be loaded as additional node-file to reproduce joins -->
         <junctions.join-output value="" type="FILE"/>
-
-        <!-- Writes joined edges information to FILE -->
-        <map-output value="" synonymes="M" type="FILE"/>
 
         <!-- The generated net will be written to FILE using Amitran format -->
         <amitran-output value="" type="FILE"/>
@@ -165,6 +162,9 @@
         <!-- Tries to cluster tls-controlled nodes -->
         <tls.join value="false" synonymes="try-join-tls" type="BOOL"/>
 
+        <!-- Determines the maximal distance for joining traffic lights (defaults to 20) -->
+        <tls.join-dist value="20" type="FLOAT"/>
+
         <!-- Use INT as green phase duration -->
         <tls.green.time value="31" synonymes="traffic-light-green" type="INT"/>
 
@@ -198,8 +198,11 @@
         <!-- Only keep edges in STR -->
         <keep-edges.explicit value="" synonymes="keep-edges" type="STR"/>
 
-        <!-- Only keep edges in FILE -->
+        <!-- Only keep edges in FILE (Each id on a single line. Selection files from SUMO-GUI are also supported) -->
         <keep-edges.input-file value="" type="FILE"/>
+
+        <!-- Remove edges in FILE. (Each id on a single line. Selection files from SUMO-GUI are also supported) -->
+        <remove-edges.input-file value="" type="FILE"/>
 
         <!-- Only keep edges which are located within the given boundary (given either as CARTESIAN corner coordinates &lt;xmin,ymin,xmax,ymax&gt; or as polygon &lt;x0,y0,x1,y1,...&gt;) -->
         <keep-edges.in-boundary value="" type="STR"/>
@@ -258,6 +261,9 @@
         <!-- Determines the maximal distance for joining junctions (defaults to 10) -->
         <junctions.join-dist value="10" type="FLOAT"/>
 
+        <!-- Generate INT intermediate points to smooth out intersection corners -->
+        <junctions.corner-detail value="0" type="INT"/>
+
         <!-- Allow driving onto a multi-lane road if there are foes on other lanes (at roundabouts) -->
         <check-lane-foes.roundabout value="true" type="BOOL"/>
 
@@ -273,11 +279,11 @@
         <!-- Add sidewalks for edges with a speed above the given limit -->
         <sidewalks.guess.min-speed value="5.8" type="FLOAT"/>
 
+        <!-- Add sidewalks for edges that allow pedestrians on any of their lanes regardless of speed -->
+        <sidewalks.guess.from-permissions value="false" type="BOOL"/>
+
         <!-- Guess pedestrian crossings based on the presence of sidewalks -->
         <crossings.guess value="false" type="BOOL"/>
-
-        <!-- Determines the maximal distance for joining traffic lights (defaults to 20) -->
-        <tls.join-dist value="20" type="FLOAT"/>
 
     </processing>
 
@@ -293,6 +299,9 @@
 
         <!-- The default width of added sidewalks -->
         <default.sidewalk-width value="2" type="FLOAT"/>
+
+        <!-- Whether junctions should be kept clear by default -->
+        <default.junctions.keep-clear value="true" type="BOOL"/>
 
         <!-- [traffic_light|priority|right_before_left] Determines the type of the build junctions -->
         <default-junction-type value="" synonymes="j junctions" type="STR"/>

@@ -1,0 +1,4 @@
+<tazs>
+    <taz id="b" edges="absBeg"/>
+    <taz id="e" edges="absBeg absEnd end left2end middle"/>
+</tazs>

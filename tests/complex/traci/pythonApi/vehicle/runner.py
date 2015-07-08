@@ -19,15 +19,24 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 
-import os, subprocess, sys, random
-sys.path.append(os.path.join(os.path.dirname(sys.argv[0]), "..", "..", "..", "..", "..", "tools"))
-import traci, sumolib
+import os
+import subprocess
+import sys
+import random
+sys.path.append(os.path.join(
+    os.path.dirname(sys.argv[0]), "..", "..", "..", "..", "..", "tools"))
+import traci
+import sumolib
 
 sumoBinary = sumolib.checkBinary('sumo')
 
 PORT = sumolib.miscutils.getFreeSocketPort()
-sumoProcess = subprocess.Popen("%s -c sumo.sumocfg --remote-port %s" % (sumoBinary, PORT), shell=True, stdout=sys.stdout)
+sumoProcess = subprocess.Popen([sumoBinary,
+    '-c', 'sumo.sumocfg',
+    '--additional-files', 'input_additional.add.xml',
+    '--remote-port', str(PORT)], stdout=sys.stdout)
 traci.init(PORT)
+
 
 def step():
     s = traci.simulation.getCurrentTime() / 1000
@@ -36,6 +45,7 @@ def step():
 
 for i in range(3):
     print "step", step()
+
 
 def check(vehID):
     print "vehicles", traci.vehicle.getIDList()
@@ -50,6 +60,7 @@ def check(vehID):
     print "laneIndex", traci.vehicle.getLaneIndex(vehID)
     print "type", traci.vehicle.getTypeID(vehID)
     print "routeID", traci.vehicle.getRouteID(vehID)
+    print "routeIndex", traci.vehicle.getRouteIndex(vehID)
     print "route", traci.vehicle.getRoute(vehID)
     print "lanePos", traci.vehicle.getLanePosition(vehID)
     print "color", traci.vehicle.getColor(vehID)
@@ -102,14 +113,16 @@ traci.vehicle.setShapeClass(vehID, "bicycle")
 traci.vehicle.setMinGap(vehID, 1.1)
 traci.vehicle.setWidth(vehID, 1.1)
 traci.vehicle.setColor(vehID, (255, 0, 0, 255))
-traci.vehicle.setStop(vehID, "2fi", pos=50.0, laneIndex=0, duration=2000, flags=1)
+traci.vehicle.setStop(
+    vehID, "2fi", pos=50.0, laneIndex=0, duration=2000, flags=1)
 check(vehID)
 try:
     check("bla")
 except traci.TraCIException:
     print "recovering from exception after asking for unknown vehicle"
 traci.vehicle.add("1", "horizontal")
-traci.vehicle.setStop("1", "2fi", pos=50.0, laneIndex=0, duration=2000, flags=1)
+traci.vehicle.setStop(
+    "1", "2fi", pos=50.0, laneIndex=0, duration=2000, flags=1)
 check("1")
 traci.vehicle.changeTarget("1", "4fi")
 print "routeID", traci.vehicle.getRouteID(vehID)
@@ -123,8 +136,8 @@ for i in range(6):
         traci.vehicle.resume("1")
     print traci.vehicle.getSubscriptionResults(vehID)
 check("2")
-traci.vehicle.setSpeedMode(vehID, 0) # disable all checks
-traci.vehicle.setSpeed(vehID, 20) 
+traci.vehicle.setSpeedMode(vehID, 0)  # disable all checks
+traci.vehicle.setSpeed(vehID, 20)
 print "leader", traci.vehicle.getLeader("2")
 traci.vehicle.subscribeLeader("2")
 for i in range(6):
@@ -140,4 +153,59 @@ try:
     check("anotherOne")
 except traci.TraCIException as e:
     print e
+traci.vehicle.moveTo(vehID, "1o_0", 40)
+print "step", step()
+print traci.vehicle.getSubscriptionResults(vehID)
+print "step", step()
+print traci.vehicle.getSubscriptionResults(vehID)
+traci.vehicle.moveToVTD(vehID, "1o", 0, 482.49, 501.31, 0)
+print "step", step()
+print traci.vehicle.getSubscriptionResults(vehID)
+print "step", step()
+print traci.vehicle.getSubscriptionResults(vehID)
+# test different departure options
+traci.vehicle.add("departInThePast", "horizontal", depart=5)
+print "step", step()
+print "vehicles", traci.vehicle.getIDList()
+traci.vehicle.add("departInTheFuture", "horizontal", depart=30)
+for i in range(9):
+    print "step", step()
+    print "vehicles", traci.vehicle.getIDList()
+# XXX this doesn't work. see #1721
+traci.vehicle.add("departTriggered", "horizontal", depart=traci.vehicle.DEPART_TRIGGERED)
+print "step", step()
+print "vehicles", traci.vehicle.getIDList()
+# test for setting a route with busstops
+routeTestVeh = "routeTest"
+traci.vehicle.add(routeTestVeh, "horizontal")
+print "step", step()
+print "vehicle '%s' routeID=%s" % (routeTestVeh, traci.vehicle.getRouteID(routeTestVeh))
+traci.vehicle.setRouteID(routeTestVeh, "withStop")
+print "step", step()
+print "vehicle '%s' routeID=%s" % (routeTestVeh, traci.vehicle.getRouteID(routeTestVeh))
+for i in range(14):
+    print "step", step()
+    print "vehicle '%s' lane=%s lanePos=%s stopped=%s" % (routeTestVeh,
+            traci.vehicle.getLaneID(routeTestVeh),
+            traci.vehicle.getLanePosition(routeTestVeh),
+            traci.vehicle.isStopped(routeTestVeh))
+# test for adding a new vehicle with a route with busstop
+routeTestVeh = "routeTest2"
+traci.vehicle.add(routeTestVeh, "withStop")
+for i in range(14):
+    print "step", step()
+    print "vehicle '%s' lane=%s lanePos=%s stopped=%s" % (routeTestVeh,
+            traci.vehicle.getLaneID(routeTestVeh),
+            traci.vehicle.getLanePosition(routeTestVeh),
+            traci.vehicle.isStopped(routeTestVeh))
+# test for adding a veh and a busstop
+busVeh = "bus"
+traci.vehicle.add(busVeh, "horizontal")
+traci.vehicle.setBusStop(busVeh, "busstop1", duration=2000)
+for i in range(14):
+    print "step", step()
+    print "vehicle '%s' lane=%s lanePos=%s stopped=%s" % (busVeh,
+            traci.vehicle.getLaneID(busVeh),
+            traci.vehicle.getLanePosition(busVeh),
+            traci.vehicle.isStopped(busVeh))
 traci.close()

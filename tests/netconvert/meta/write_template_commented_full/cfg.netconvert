@@ -76,7 +76,7 @@
 
     <output>
         <!-- Prefix which is applied to all output files. The special string &apos;TIME&apos; is replaced by the current time. -->
-        <output-prefix value="" type="FILE"/>
+        <output-prefix value="" type="STR"/>
 
         <!-- The generated net will be written to FILE -->
         <output-file value="" synonymes="o output sumo-output" type="FILE"/>
@@ -86,9 +86,6 @@
 
         <!-- Writes information about joined junctions to FILE (can be loaded as additional node-file to reproduce joins -->
         <junctions.join-output value="" type="FILE"/>
-
-        <!-- Writes joined edges information to FILE -->
-        <map-output value="" synonymes="M" type="FILE"/>
 
         <!-- The generated net will be written to FILE using Amitran format -->
         <amitran-output value="" type="FILE"/>
@@ -165,6 +162,15 @@
         <!-- Tries to cluster tls-controlled nodes -->
         <tls.join value="false" synonymes="try-join-tls" type="BOOL"/>
 
+        <!-- Determines the maximal distance for joining traffic lights (defaults to 20) -->
+        <tls.join-dist value="20" type="FLOAT"/>
+
+        <!-- Interprets tls nodes surrounding an intersection as signal positions for a larger TLS. This is typical pattern for OSM-derived networks -->
+        <tls.guess-signals value="false" type="BOOL"/>
+
+        <!-- Distance for interpreting nodes as signal locations -->
+        <tls.guess-signals.dist value="25" type="FLOAT"/>
+
         <!-- Use INT as green phase duration -->
         <tls.green.time value="31" synonymes="traffic-light-green" type="INT"/>
 
@@ -204,6 +210,9 @@
         <!-- Tries to handle the given edges as ramps -->
         <ramps.set value="" synonymes="ramp-guess.explicite" type="STR"/>
 
+        <!-- Do not consider the given edges as ramps -->
+        <ramps.unset value="" type="STR"/>
+
         <!-- Avoids edge splitting -->
         <ramps.no-split value="false" synonymes="ramp-guess.no-split" type="BOOL"/>
 
@@ -219,8 +228,11 @@
         <!-- Only keep edges in STR -->
         <keep-edges.explicit value="" synonymes="keep-edges" type="STR"/>
 
-        <!-- Only keep edges in FILE -->
+        <!-- Only keep edges in FILE (Each id on a single line. Selection files from SUMO-GUI are also supported) -->
         <keep-edges.input-file value="" type="FILE"/>
+
+        <!-- Remove edges in FILE. (Each id on a single line. Selection files from SUMO-GUI are also supported) -->
+        <remove-edges.input-file value="" type="FILE"/>
 
         <!-- Remove edges after joining -->
         <keep-edges.postload value="false" type="BOOL"/>
@@ -348,9 +360,6 @@
         <!-- Skips the check for duplicate nodes and edges -->
         <osm.skip-duplicates-check value="false" type="BOOL"/>
 
-        <!-- Imports railway edges as one-way by default -->
-        <osm.railway.oneway-default value="true" type="BOOL"/>
-
         <!-- Imports elevation data -->
         <osm.elevation value="false" type="BOOL"/>
 
@@ -432,6 +441,9 @@
         <!-- Modifies all edge speeds by multiplying by FLOAT -->
         <speed.factor value="1" type="FLOAT"/>
 
+        <!-- Generate INT intermediate points to smooth out intersection corners -->
+        <junctions.corner-detail value="0" type="INT"/>
+
         <!-- Allow driving onto a multi-lane road if there are foes on other lanes (at roundabouts) -->
         <check-lane-foes.roundabout value="true" type="BOOL"/>
 
@@ -447,17 +459,11 @@
         <!-- Add sidewalks for edges with a speed above the given limit -->
         <sidewalks.guess.min-speed value="5.8" type="FLOAT"/>
 
+        <!-- Add sidewalks for edges that allow pedestrians on any of their lanes regardless of speed -->
+        <sidewalks.guess.from-permissions value="false" type="BOOL"/>
+
         <!-- Guess pedestrian crossings based on the presence of sidewalks -->
         <crossings.guess value="false" type="BOOL"/>
-
-        <!-- Determines the maximal distance for joining traffic lights (defaults to 20) -->
-        <tls.join-dist value="20" type="FLOAT"/>
-
-        <!-- Interprets tls nodes surrounding an intersection as signal positions for a larger TLS. This is typical pattern for OSM-derived networks -->
-        <tls.guess-signals value="false" type="BOOL"/>
-
-        <!-- Distance for interpreting nodes as signal locations -->
-        <tls.guess-signals.dist value="25" type="FLOAT"/>
 
     </processing>
 
@@ -473,6 +479,9 @@
 
         <!-- The default width of added sidewalks -->
         <default.sidewalk-width value="2" type="FLOAT"/>
+
+        <!-- Whether junctions should be kept clear by default -->
+        <default.junctions.keep-clear value="true" type="BOOL"/>
 
     </building_defaults>
 
