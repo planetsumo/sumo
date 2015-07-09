@@ -1,10 +1,10 @@
 noinst_LIBRARIES = libmicrosimtls.a
 
 libmicrosimtls_a_SOURCES = \
-MSActuatedTrafficLightLogic.cpp
-MSActuatedTrafficLightLogic.h \
-MSPhaseDefinition.h \MSAgentbasedTrafficLightLogic.cpp MSAgentbasedTrafficLightLogic.h \
-MSPhaseDefinition.h \MSOffTrafficLightLogic.cpp MSOffTrafficLightLogic.h \
+MSActuatedTrafficLightLogic.cpp MSActuatedTrafficLightLogic.h \
+MSAgentbasedTrafficLightLogic.cpp MSAgentbasedTrafficLightLogic.h \
+MSOffTrafficLightLogic.cpp MSOffTrafficLightLogic.h \
+MSRailSignal.cpp MSRailSignal.h \
 MSPhaseDefinition.cpp MSPhaseDefinition.h \
 MSPhasedTrafficLightLogic.cpp MSPhasedTrafficLightLogic.h \
 MSSimpleTrafficLightLogic.cpp MSSimpleTrafficLightLogic.h \
