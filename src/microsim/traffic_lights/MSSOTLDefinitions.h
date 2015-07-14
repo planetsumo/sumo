@@ -27,6 +27,10 @@
 #define INPUT_SENSOR_LENGTH 100.0f
 #define OUTPUT_SENSOR_LENGTH 80.0f
 
+//TODO Check the distances for the count sensors
+#define INPUT_COUNT_SENSOR_LENGTH 15.0f
+#define OUTPUT_COUNT_SENSOR_LENGTH 15.0f
+#define COUNT_SENSOR_START 10000.0f
 ////For MSSOTLE2Sensors
 //E2 Detector parameter: the time in seconds a vehicle's speed must be below haltingSpeedThreshold to be assigned as jammed
 #define HALTING_TIME_THRS 10
@@ -71,6 +75,8 @@
 
 	typedef std::set<std::string> MSLaneID_set;
 
+	typedef std::map<MSLane*, bool> LaneCheckMap;
+	typedef std::vector<std::string> LaneIdVector;
 
 #endif
 /****************************************************************************/

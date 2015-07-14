@@ -30,7 +30,7 @@
 #include <config.h>
 #endif
 
-#define SWARM_DEBUG
+//#define SWARM_DEBUG
 #include <utils/common/SwarmDebug.h>
 #include "MSSOTLPolicy.h"
 #include "MSSOTLTrafficLightLogic.h"

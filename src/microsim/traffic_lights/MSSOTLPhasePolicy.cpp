@@ -19,27 +19,34 @@
 
 #include "MSSOTLPhasePolicy.h"
 
-MSSOTLPhasePolicy::MSSOTLPhasePolicy(
-		const std::map<std::string, std::string>& parameters) :
-		MSSOTLPolicy("Phase", parameters) {
+MSSOTLPhasePolicy::MSSOTLPhasePolicy(const std::map<std::string, std::string>& parameters) :
+		MSSOTLPolicy("Phase", parameters)
+{
 }
 
-MSSOTLPhasePolicy::MSSOTLPhasePolicy(
-		MSSOTLPolicyDesirability *desirabilityAlgorithm) :
-		MSSOTLPolicy("Phase", desirabilityAlgorithm) {
+MSSOTLPhasePolicy::MSSOTLPhasePolicy(MSSOTLPolicyDesirability *desirabilityAlgorithm) :
+		MSSOTLPolicy("Phase", desirabilityAlgorithm)
+{
 	getDesirabilityAlgorithm()->setKeyPrefix("PHASE");
 }
 
-MSSOTLPhasePolicy::MSSOTLPhasePolicy(
-		MSSOTLPolicyDesirability *desirabilityAlgorithm,
+MSSOTLPhasePolicy::MSSOTLPhasePolicy(MSSOTLPolicyDesirability *desirabilityAlgorithm,
 		const std::map<std::string, std::string>& parameters) :
-		MSSOTLPolicy("Phase", desirabilityAlgorithm, parameters) {
+		MSSOTLPolicy("Phase", desirabilityAlgorithm, parameters)
+{
 	getDesirabilityAlgorithm()->setKeyPrefix("PHASE");
 }
 
-bool MSSOTLPhasePolicy::canRelease(int elapsed, bool thresholdPassed,
-		const MSPhaseDefinition* stage, int vehicleCount) {
-	if (elapsed >= stage->minDuration) {
+bool MSSOTLPhasePolicy::canRelease(int elapsed, bool thresholdPassed, bool pushButtonPressed,
+		const MSPhaseDefinition* stage, int vehicleCount)
+{
+	if (elapsed >= stage->minDuration)
+	{
+		if (pushButtonPressed && elapsed >= stage->duration)
+		{
+			WRITE_MESSAGE("MSSOTLPhasePolicy::canRelease returning true because pushButtonPressed")
+			return true;
+		}
 		return thresholdPassed;
 	}
 	return false;

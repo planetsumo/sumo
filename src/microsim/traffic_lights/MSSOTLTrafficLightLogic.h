@@ -44,6 +44,8 @@ using namespace std;
 // class definitions
 // ===========================================================================
 
+class MSPushButton;
+
 /**
  * @class MSSOTLTrafficLightLogic
  * @brief A self-organizing traffic light logic
@@ -112,6 +114,9 @@ public:
 
 protected:
 
+	typedef std::map<const std::string, std::vector<MSPushButton*> > PhasePushButtons;
+	PhasePushButtons m_pushButtons;
+
 	void logStatus();
 	/*
 	 * This member has to contain the switching logic for SOTL policies
@@ -139,6 +144,12 @@ protected:
 	 */
 	bool isThresholdPassed();
 
+	/**
+	 * @breef Checks the if the pushbutton was activated for the current stage
+	 * @return True if at least a push button was pressed
+	 */
+	bool isPushButtonPressed();
+
 	unsigned int getThreshold() {
 		std::ostringstream key;
 		key << "THRESHOLD";
@@ -146,6 +157,7 @@ protected:
 		def << "10";
 		return s2f(getParameter(key.str(), def.str()));
 	}
+	
 	double getSpeedThreshold()
 	{
 			std::ostringstream key;
@@ -170,6 +182,7 @@ protected:
 		def << "80";
 		return s2f(getParameter(key.str(), def.str()));
 	}
+
 	/*void setThreshold(unsigned int val) {
 	 threshold = val;
 	 }*/
@@ -196,6 +209,13 @@ protected:
 		return mySensors;
 	}
 
+	/**
+	 *\brief Return the sensors that count the passage of vehicles in and out of the tl.
+	 */
+	MSSOTLE2Sensors* getCountSensors()
+	{
+		return myCountSensors;
+	}
 	/*
 	 * Computes how much time will pass after decideNextPhase will be executed again
 	 */
@@ -224,6 +244,11 @@ private:
 	MSSOTLSensors *mySensors;
 
 	/*
+	 * Pointer to the sensor logic regarding the count of the vehicles that pass into a tl.
+	 */
+	MSSOTLE2Sensors *myCountSensors;
+
+	/*
 	 * When true means the class has responsibilities to intantiate and delete the SOTLSensors instance,
 	 * otherwise MSSOTLTrafficLightLogic::init and MSSOTLTrafficLightLogic::~MSSOTLTrafficLightLogic have not to affect SOTLSensors instance lifecycle
 	 */
@@ -235,6 +260,7 @@ private:
 	//The map to store the time each target phase have been checked last
 	//This helps to compute the timesteps to get the cars*timesteps value
 	map<size_t, SUMOTime> lastCheckForTargetPhase;
+
 
 	/*
 	 * This member keeps track which is the current steps chain, i.e.

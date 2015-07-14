@@ -350,6 +350,20 @@ NLHandler::beginEdgeParsing(const SUMOSAXAttributes& attrs) {
         WRITE_ERROR(e.what());
         myCurrentIsBroken = true;
     }
+
+    if(funcEnum == MSEdge::EDGEFUNCTION_CROSSING)
+    {
+        //get the crossingEdges attribute (to implement the other side of the road pushbutton)
+        const std::string crossingEdges = attrs.getOpt<std::string>(SUMO_ATTR_CROSSING_EDGES, id.c_str(), ok, "");
+        if(!crossingEdges.empty())
+        {
+            std::vector<std::string> crossingEdgesVector;
+            StringTokenizer edges(crossingEdges);
+            while(edges.hasNext())
+                crossingEdgesVector.push_back(edges.next());
+            myEdgeControlBuilder.addCrossingEdges(crossingEdgesVector);
+        }
+    }
 }
 
 

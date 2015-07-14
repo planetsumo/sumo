@@ -38,7 +38,7 @@ MSSOTLMarchingPolicy::MSSOTLMarchingPolicy(
 	getDesirabilityAlgorithm()->setKeyPrefix("MARCHING");
 }
 
-bool MSSOTLMarchingPolicy::canRelease(int elapsed, bool thresholdPassed,
+bool MSSOTLMarchingPolicy::canRelease(int elapsed, bool thresholdPassed, bool pushButtonPressed,
 		const MSPhaseDefinition* stage, int vehicleCount) {
 	return (elapsed >= stage->duration);
 }

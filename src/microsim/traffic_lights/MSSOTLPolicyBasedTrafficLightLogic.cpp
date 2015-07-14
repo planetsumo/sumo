@@ -54,7 +54,7 @@ size_t MSSOTLPolicyBasedTrafficLightLogic::decideNextPhase() {
 
 	return myPolicy->decideNextPhase(getCurrentPhaseElapsed(),
 			&getCurrentPhaseDef(), getCurrentPhaseIndex(),
-			getPhaseIndexWithMaxCTS(), isThresholdPassed(),
+			getPhaseIndexWithMaxCTS(), isThresholdPassed(), isPushButtonPressed(),
 			countVehicles(getCurrentPhaseDef()));
 }
 
@@ -63,6 +63,6 @@ bool MSSOTLPolicyBasedTrafficLightLogic::canRelease() throw () {
 	DBG(
 			std::ostringstream str; str << "\n" << time2string(MSNet::getInstance()->getCurrentTimeStep()) << " " << getID() << "invoked MSSOTLPolicyBasedTrafficLightLogic::canRelease()"; WRITE_MESSAGE(str.str());)
 
-	return myPolicy->canRelease(getCurrentPhaseElapsed(), isThresholdPassed(),
+	return myPolicy->canRelease(getCurrentPhaseElapsed(), isThresholdPassed(), isPushButtonPressed(),
 			&getCurrentPhaseDef(), countVehicles(getCurrentPhaseDef()));
 }

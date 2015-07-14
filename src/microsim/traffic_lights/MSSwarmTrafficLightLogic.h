@@ -35,14 +35,87 @@
 #include "MSSOTLPlatoonPolicy.h"
 #include "MSSOTLMarchingPolicy.h"
 #include "MSSOTLCongestionPolicy.h"
+#include "MSSOTLPolicy3DStimulus.h"
 #include "MSSOTLPolicy5DFamilyStimulus.h"
+
+template<class T>
+class CircularBuffer
+{
+public:
+  CircularBuffer(unsigned short size) :
+      m_size(size), m_currentIndex(0), m_firstTime(true)
+  {
+    m_buffer = new T[m_size];
+  }
+
+  virtual ~CircularBuffer()
+  {
+    delete m_buffer;
+  }
+
+  bool addValue(const T newValue, T & replacedValue)
+  {
+    bool result = !m_firstTime;
+    if (result)
+      replacedValue = m_buffer[m_currentIndex];
+    insert(newValue);
+    return result;
+  }
+
+  void push_front(const T value)
+  {
+    insert(value);
+  }
+
+  T at(const unsigned short index) const
+  {
+    unsigned short idx = (m_currentIndex - 1 - index + m_size) % m_size;
+    return m_buffer[idx];
+  }
+
+  T front() const
+  {
+    return at(0);
+  }
+
+  T back() const
+  {
+    return at(size()-1);
+  }
+
+  unsigned short size() const
+  {
+    if (m_firstTime)
+      return m_currentIndex;
+    return m_size;
+  }
+
+  void clear()
+  {
+    m_currentIndex = 0;
+    m_firstTime = true;
+  }
+
+private:
+  T * m_buffer;
+  unsigned short m_size;
+  unsigned short m_currentIndex;
+  bool m_firstTime;
+
+  inline void insert(const T & value)
+  {
+    m_buffer[m_currentIndex++] = value;
+    if (m_currentIndex == m_size)
+    {
+      m_currentIndex = 0;
+      m_firstTime = false;
+    }
+  }
+};
 
 class MSSwarmTrafficLightLogic: public MSSOTLHiLevelTrafficLightLogic {
 public:
-
-
 	//****************************************************
-
 	/**
 	 * @brief Constructor without sensors passed
      * @param[in] tlcontrol The tls control responsible for this tls
@@ -167,6 +240,7 @@ public:
 			def << "0.5";
 			return s2f(getParameter(key.str(), def.str()));
 		}
+
 	double getLearningCox() {
 		std::ostringstream key;
 		key << "LEARNING_COX";
@@ -286,6 +360,11 @@ protected:
 	void updatePheromoneLevels();
 
 	/**
+	 * @brief Utility method to avoid code duplication
+	 */
+	void updatePheromoneLevels(MSLaneId_PheromoneMap &, std::string, const double, const double);
+
+	/**
 	 * After a policy has been chosen, for every iteration thresholds has to be updated.
 	 * Thresholds reinforcement lowers the theta_sensitivity for the current policy and raises the ones for currently unused policies.
 	 * Thresholds belongs to the interval [THETA_MIN THETA_MAX]
@@ -298,6 +377,29 @@ protected:
 	 */
 	void decidePolicy();
 
+	/**
+	 * \brief Method that should calculate the valor of phi a coefficient to amplify/attenuate eta based on a factor.
+	 * The factor depends on the situation when the function is called; should be the number of cars in the target lanes
+	 * or the number of cars in the lanes with a red tl.
+	 * @param[in] factor - the value to consider to compute this coefficient.
+	 */
+	double calculatePhi(int factor);
+
+	/**
+	 * \brief Method that should calculate the valor of eta a coefficient to evaluate the current
+	 * policy's work. This eta is based on the difference between the number of vehicles that enters a tl
+	 * and the ones that exit it. It consider vehicles on a lane with a tl set to red as well to determinate
+	 * policy work.
+	 */
+	double calculateEtaDiff();
+
+	double calculateEtaRatio();
+
+	/*
+	 * \brief Method to reset the map that stores if a lane is already been checked during the
+	 * evaluation of eta.
+	 */
+	void resetLaneCheck();
 	void choosePolicy(double phero_in, double phero_out, double dispersion_in, double dispersion_out);
 	void choosePolicy(double phero_in, double phero_out);
 
@@ -307,6 +409,20 @@ protected:
 		std::ostringstream def;
 		def << "Platoon;Phase;Marching;Congestion";
 		return getParameter(key.str(), def.str());
+	}
+
+	/*
+	 * Reinforcement modes:
+	 * 0-> elapsed time
+	 * 1-> diff
+	 * 2-> ratio
+	 */
+	unsigned int getReinforcementMode() {
+		std::ostringstream key;
+		key << "REIMODE";
+		std::ostringstream def;
+		def << "0";
+		return s2f(getParameter(key.str(), def.str()));
 	}
 
 	void initScaleFactorDispersionIn(int lanes_in){
@@ -363,6 +479,14 @@ protected:
 
 				scaleFactorDispersionOut = getPheroMaxVal() / deviation;
 	}
+
+	/**
+	 * @brief Check if a lane is allowed to be added to the maps pheromoneInputLanes and pheromoneOutputLanes
+	 * Control in this function if the lane is a walking area, a crossing, or if only pedestrian are allowed.
+	 * Return true if the lane has to be added, false otherwise.
+	 */
+	bool allowLine(MSLane * );
+
 	bool logData;
 	ofstream swarmLogFile;
 	/**
@@ -373,11 +497,52 @@ protected:
 	unsigned int congestion_steps;
 
 	/**
+	 * \brief Map to check if a lane was already controlled during the elaboration of eta.
+	 */
+	LaneCheckMap laneCheck;
+	/**
+	 * \brief A copy of the target lanes of this phase.
+	 */
+	LaneIdVector targetLanes;
+	/**
+	 * \brief When true indicates that we can skip the evaluation of eta since we've
+	 * a congestion policy that is lasting too much.
+	 */
+	bool skipEta;
+	/**
+	 * \brief When true indicates that we've already acquired the target lanes for this
+	 * particular phase.
+	 */
+	bool gotTargetLane;
+
+	int carsIn;
+	int carsOut;
+	int inTarget;
+	int notTarget;
+	/**
 	 * \factors to scale pheromoneDispersion in range [0, 10]
 	 */
 	double scaleFactorDispersionIn;
 	double scaleFactorDispersionOut;
+
+//	For every lane its index. Esed to get the current lane state for the lane
+	std::map<std::string, std::vector<int> > m_laneIndexMap;
+	std::string getLaneLightState(const std::string & laneId);
+//	store the last message logged. if equal do not log it again
+	std::map<std::string, std::string> m_pheroLevelLog;
+
+	//derivative
+	std::map<std::string, CircularBuffer<double>* > m_meanSpeedHistory;
+	std::map<std::string, CircularBuffer<double>* > m_derivativeHistory;
+	double m_derivativeAlpha;
+	int m_losCounter;//los: loss of signal
+	int m_losMaxLimit;
+
+//	double pheroBegin;
 };
+
+
+
 
 #endif
 /****************************************************************************/

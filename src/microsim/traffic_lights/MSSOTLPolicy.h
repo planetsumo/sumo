@@ -94,10 +94,10 @@ public:
 			const std::map<std::string, std::string>& parameters);
 	virtual ~MSSOTLPolicy();
 
-	virtual bool canRelease(int elapsed, bool thresholdPassed,
+	virtual bool canRelease(int elapsed, bool thresholdPassed, bool pushButtonPressed,
 			const MSPhaseDefinition* stage, int vehicleCount) = 0;
 	virtual size_t decideNextPhase(int elapsed, const MSPhaseDefinition* stage,
-			size_t currentPhaseIndex, size_t phaseMaxCTS, bool thresholdPassed,
+			size_t currentPhaseIndex, size_t phaseMaxCTS, bool thresholdPassed, bool pushButtonPressed,
 			int vehicleCount);
 
 	virtual double getThetaSensitivity() {

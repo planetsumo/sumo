@@ -49,10 +49,10 @@ public:
 			const std::map<std::string, std::string>& parameters);
 
 	size_t decideNextPhase(int elapsed, const MSPhaseDefinition* stage,
-			size_t currentPhaseIndex, size_t phaseMaxCTS, bool thresholdPassed,
+			size_t currentPhaseIndex, size_t phaseMaxCTS, bool thresholdPassed, bool pushButtonPressed,
 			int vehicleCount);
 
-	bool canRelease(int elapsed, bool thresholdPassed,
+	bool canRelease(int elapsed, bool thresholdPassed, bool pushButtonPressed,
 			const MSPhaseDefinition* stage, int vehicleCount);
 
 };

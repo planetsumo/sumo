@@ -64,7 +64,7 @@ MSE2Collector::MSE2Collector(const std::string& id, DetectorUsage usage,
     myCurrentOccupancy(0), myCurrentMeanSpeed(-1), myCurrentJamNo(0),
     myCurrentMaxJamLengthInMeters(0), myCurrentMaxJamLengthInVehicles(0),
     myCurrentJamLengthInMeters(0), myCurrentJamLengthInVehicles(0), myCurrentStartedHalts(0),
-    myCurrentHaltingsNumber(0)
+	myCurrentHaltingsNumber(0), myPassedVeh(0)
 
 {
     assert(myLane != 0);
@@ -89,8 +89,18 @@ MSE2Collector::notifyMove(SUMOVehicle& veh, SUMOReal oldPos,
     if (newPos > myStartPos && oldPos <= myStartPos) {
         if(find(myKnownVehicles.begin(), myKnownVehicles.end(), &veh) == myKnownVehicles.end()) {
 			std::string type = veh.getVehicleType().getID(); // get vehicle's type
-			if(type.find("COLOMBO_undetectable") == std::string::npos) {
-				myKnownVehicles.push_back(&veh);
+			if(type.find("COLOMBO_undetectable") == std::string::npos){
+        		myKnownVehicles.push_back(&veh);
+            	//Detection entering the sensor
+            	myPassedVeh++;
+            	DBG(
+            			std::ostringstream str;
+            			str << time2string(MSNet::getInstance()->getCurrentTimeStep())
+            					<< " MSE2Collector::notifyMove::"
+            					<< " lane " << myLane->getID()
+            					<< " passedVeh " << myPassedVeh ;
+            			WRITE_MESSAGE(str.str());
+            	)
 			}
 		}
     }
@@ -134,7 +144,22 @@ MSE2Collector::notifyEnter(SUMOVehicle& veh, MSMoveReminder::Notification reason
 		std::string type = veh.getVehicleType().getID(); // get vehicle's type
 		if(type.find("COLOMBO_undetectable") == std::string::npos) {
 	        myKnownVehicles.push_back(&veh);
+        	//Detection entering the sensor
+        	myPassedVeh++;
+        	DBG(
+        	     std::ostringstream str;
+        	     str << time2string(MSNet::getInstance()->getCurrentTimeStep())
+        	     			<< " MSE2Collector::notifyEnter::"
+        	     			<< " lane " << myLane->getID()
+        	     			<< " passedVeh " << myPassedVeh ;
+        	     WRITE_MESSAGE(str.str());
+        	     )
+        return true;
 		}
+    }
+    if (veh.getPositionOnLane() - veh.getVehicleType().getLength() > myEndPos) {
+        // vehicle is beyond detector
+        return false;
     }
     // vehicle is in front of the detector
     return true;
@@ -162,6 +187,7 @@ MSE2Collector::reset() {
     }
     myPastStandingDurations.clear();
     myPastIntervalStandingDurations.clear();
+    myPassedVeh = 0;
 }
 
 

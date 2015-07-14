@@ -58,6 +58,44 @@ void MSSOTLE2Sensors::buildSensors(
 		}
 	}
 }
+/****************************************************************************/
+/*
+ * Count Sensors. Should be refactor to make a new class.
+ */
+void MSSOTLE2Sensors::buildCountSensors(
+		MSTrafficLightLogic::LaneVectorVector controlledLanes,
+		NLDetectorBuilder &nb) {
+	//for each lane build an appropriate sensor on it
+	MSLane *currentLane = NULL;
+	//input and ouput lanes
+	for (MSTrafficLightLogic::LaneVectorVector::const_iterator laneVector =
+			controlledLanes.begin(); laneVector != controlledLanes.end();
+			laneVector++) {
+		for (MSTrafficLightLogic::LaneVector::const_iterator lane =
+				laneVector->begin(); lane != laneVector->end(); lane++) {
+			currentLane = (*lane);
+			buildCountSensorForLane(currentLane, nb);
+		}
+	}
+}
+
+void MSSOTLE2Sensors::buildCountOutSensors(
+		MSTrafficLightLogic::LaneVectorVector controlledLanes,
+		NLDetectorBuilder &nb) {
+	//for each lane build an appropriate sensor on it
+	MSLane *currentLane = NULL;
+
+	//input and ouput lanes
+	for (MSTrafficLightLogic::LaneVectorVector::const_iterator laneVector =
+			controlledLanes.begin(); laneVector != controlledLanes.end();
+			laneVector++) {
+		for (MSTrafficLightLogic::LaneVector::const_iterator lane =
+				laneVector->begin(); lane != laneVector->end(); lane++) {
+			currentLane = (*lane);
+			buildCountSensorForOutLane(currentLane, nb);
+		}
+	}
+}
 
 void MSSOTLE2Sensors::buildOutSensors(
 		MSTrafficLightLogic::LaneVectorVector controlledLanes,
@@ -82,6 +120,140 @@ void MSSOTLE2Sensors::buildOutSensors(
 	}
 }
 
+void MSSOTLE2Sensors::buildCountSensorForLane(MSLane* lane, NLDetectorBuilder &nb) {
+	float sensorPos;
+	double lensorLength;
+	MSE2Collector *newSensor = NULL;
+	//Check not to have more than a sensor for lane
+	if (mySensorsMap_InLanes.find(lane) == mySensorsMap_InLanes.end()) {
+
+		//Check and set zero if the lane is not long enough for the specified sensor start
+		sensorPos = COUNT_SENSOR_START <= lane->getLength() ? COUNT_SENSOR_START : 0;
+
+		//Original:
+		double sensorLength = INPUT_COUNT_SENSOR_LENGTH;
+
+		//Check and trim if the lane is not long enough for the specified sensor lenght
+		lensorLength =
+				sensorLength <= (lane->getLength() - sensorPos) ?
+						sensorLength : (lane->getLength() - sensorPos);
+
+		//TODO check this lengths
+		DBG(
+		std::ostringstream phero_str;
+		phero_str << " lane " << lane->getID() << " sensorPos= " << sensorPos
+				<< " ,SENSOR_START  " << SENSOR_START << "; lane->getLength = "
+				<< lane->getLength() << " ,lensorLength= " << lensorLength
+				<< " ,SENSOR_LENGTH= " << INPUT_SENSOR_LENGTH;
+		WRITE_MESSAGE(
+				"MSSOTLE2Sensors::buildSensorForLane::" + phero_str.str());
+		)
+
+		//Create sensor for lane and insert it into the map<MSLane*, MSE2Collector*>
+		newSensor = nb.buildSingleLaneE2Det(
+				"SOTL_E2_lane:" + lane->getID() + "_tl:" + tlLogicID,
+				DU_TL_CONTROL, lane,
+				(lane->getLength() - sensorPos - lensorLength), lensorLength,
+				HALTING_TIME_THRS, HALTING_SPEED_THRS, DIST_THRS);
+		//newSensor = nb.buildSingleLaneE2Det("SOTL_E2_lane:"+lane->getID()+"_tl:"+tlLogicID, DU_TL_CONTROL, lane, (lane->getLength() - sensorPos- 5), lensorLength, HALTING_TIME_THRS, HALTING_SPEED_THRS, DIST_THRS);
+
+		MSNet::getInstance()->getDetectorControl().add(
+				SUMO_TAG_LANE_AREA_DETECTOR, newSensor);
+
+		mySensorsMap_InLanes.insert(MSLane_MSE2Collector(lane, newSensor));
+		mySensorsIDMap_InLanes.insert(MSLaneID_MSE2Collector(lane->getID(), newSensor));
+		myMaxSpeedMap_InLanes.insert(
+				MSLaneID_MaxSpeed(lane->getID(), lane->getSpeedLimit()));
+	}
+}
+
+void MSSOTLE2Sensors::buildCountSensorForOutLane(MSLane* lane,
+		NLDetectorBuilder &nb) {
+	float sensorPos;
+	double lensorLength;
+	MSE2Collector *newSensor = NULL;
+	//Check not to have more than a sensor for lane
+	if (mySensorsMap_OutLanes.find(lane) == mySensorsMap_OutLanes.end()) {
+
+		//Original:
+		double sensorLength = OUTPUT_COUNT_SENSOR_LENGTH;
+		//Check and set zero if the lane is not long enough for the specified sensor start
+		sensorPos = (lane->getLength() - sensorLength)
+						- (SENSOR_START <= lane->getLength() ? SENSOR_START : 0);
+
+		//Check and trim if the lane is not long enough for the specified sensor lenght
+		lensorLength =
+				sensorLength <= (lane->getLength() - sensorPos) ?
+						sensorLength : (lane->getLength() - sensorPos);
+
+		//TODO check this lengths
+		DBG(
+		std::ostringstream phero_str;
+		phero_str << " lane " << lane->getID() << " sensorPos= " << sensorPos
+				<< " ,SENSOR_START  " << SENSOR_START << "; lane->getLength = "
+				<< lane->getLength() << " ,lensorLength= " << lensorLength
+				<< " ,SENSOR_LENGTH= " << INPUT_SENSOR_LENGTH;
+		WRITE_MESSAGE(
+				"MSSOTLE2Sensors::buildSensorForLane::" + phero_str.str());
+		)
+
+		//Create sensor for lane and insert it into the map<MSLane*, MSE2Collector*>
+		newSensor = nb.buildSingleLaneE2Det(
+				"SOTL_E2_lane:" + lane->getID() + "_tl:" + tlLogicID,
+				DU_TL_CONTROL, lane,
+				(lane->getLength() - sensorPos - lensorLength), lensorLength,
+				HALTING_TIME_THRS, HALTING_SPEED_THRS, DIST_THRS);
+		//newSensor = nb.buildSingleLaneE2Det("SOTL_E2_lane:"+lane->getID()+"_tl:"+tlLogicID, DU_TL_CONTROL, lane, (lane->getLength() - sensorPos- 5), lensorLength, HALTING_TIME_THRS, HALTING_SPEED_THRS, DIST_THRS);
+
+		MSNet::getInstance()->getDetectorControl().add(
+				SUMO_TAG_LANE_AREA_DETECTOR, newSensor);
+
+		mySensorsMap_OutLanes.insert(MSLane_MSE2Collector(lane, newSensor));
+		mySensorsIDMap_OutLanes.insert(
+				MSLaneID_MSE2Collector(lane->getID(), newSensor));
+		myMaxSpeedMap_OutLanes.insert(
+				MSLaneID_MaxSpeed(lane->getID(), lane->getSpeedLimit()));
+	}
+}
+
+unsigned int
+MSSOTLE2Sensors::getPassedVeh(std::string laneId, bool out){
+	MSLaneID_MSE2CollectorMap::const_iterator sensorsIterator;
+	if(out)
+	{
+		sensorsIterator = mySensorsIDMap_OutLanes.find(laneId);
+		if (sensorsIterator == mySensorsIDMap_OutLanes.end()) {
+			assert(0);
+			return 0;
+		} else
+			return sensorsIterator->second->getPassedVeh();
+	}
+	else
+	{
+		sensorsIterator = mySensorsIDMap_InLanes.find(laneId);
+		if (sensorsIterator == mySensorsIDMap_InLanes.end()) {
+			assert(0);
+			return 0;
+		} else
+			return sensorsIterator->second->getPassedVeh();
+	}
+}
+
+void
+MSSOTLE2Sensors::subtractPassedVeh(std::string laneId, int passed){
+	//TODO Ivan: ciclare tutti i sensori di count e resettare passedVeh
+	MSLaneID_MSE2CollectorMap::const_iterator sensorsIterator;
+
+	sensorsIterator = mySensorsIDMap_OutLanes.find(laneId);
+	if (sensorsIterator != mySensorsIDMap_OutLanes.end())
+		sensorsIterator->second->subtractPassedVeh(passed);
+
+	sensorsIterator = mySensorsIDMap_InLanes.find(laneId);
+	if (sensorsIterator != mySensorsIDMap_InLanes.end())
+		sensorsIterator->second->subtractPassedVeh(passed);
+}
+
+/*******************************************************************************/
 /* @brief Builds an e2 detector that lies on only one lane
  *
  * @param[in] id The id the detector shall have
@@ -208,14 +380,19 @@ void MSSOTLE2Sensors::buildSensorForOutLane(MSLane* lane,
 	}
 }
 
-unsigned int MSSOTLE2Sensors::countVehicles(MSLane* lane) {
-	MSLane_MSE2CollectorMap::const_iterator sensorsIterator = mySensorsMap_InLanes.find(
-			lane);
-	if (sensorsIterator == mySensorsMap_InLanes.end()) {
-		assert(0);
-		return 0;
-	} else
-		return sensorsIterator->second->getCurrentVehicleNumber();
+unsigned int MSSOTLE2Sensors::countVehicles(MSLane* lane)
+{
+	MSLane_MSE2CollectorMap::const_iterator sensorsIterator = mySensorsMap_InLanes.find(lane);
+	if (sensorsIterator == mySensorsMap_InLanes.end())
+	{
+		sensorsIterator = mySensorsMap_OutLanes.find(lane);
+		if (sensorsIterator == mySensorsMap_OutLanes.end())
+		{
+			assert(0);
+			return 0;
+		}
+	}
+	return sensorsIterator->second->getCurrentVehicleNumber();
 }
 
 /*
@@ -262,51 +439,56 @@ unsigned int MSSOTLE2Sensors::estimateVehicles (std::string laneId)
 	{
 		return sensorsIterator->second->getEstimatedCurrentVehicleNumber(speedThresholdParam);
 	}
+
 }
 
-unsigned int MSSOTLE2Sensors::countVehicles(std::string laneId) {
-	MSLaneID_MSE2CollectorMap::const_iterator sensorsIterator =
-			mySensorsIDMap_InLanes.find(laneId);
-	if (sensorsIterator == mySensorsIDMap_InLanes.end()) {
-		assert(0);
-		return 0;
-	} else
-		return sensorsIterator->second->getCurrentVehicleNumber();
-}
-
-double MSSOTLE2Sensors::getMaxSpeed(std::string laneId) {
-	MSLaneID_MaxSpeedMap::const_iterator sensorsIteratorIn = myMaxSpeedMap_InLanes.find(
-			laneId);
-
-	if (sensorsIteratorIn == myMaxSpeedMap_InLanes.end()) {
-		MSLaneID_MaxSpeedMap::const_iterator sensorsIteratorOut =
-				myMaxSpeedMap_OutLanes.find(laneId);
-		if (sensorsIteratorOut == myMaxSpeedMap_OutLanes.end()) {
+unsigned int MSSOTLE2Sensors::countVehicles(std::string laneId)
+{
+	MSLaneID_MSE2CollectorMap::const_iterator sensorsIterator = mySensorsIDMap_InLanes.find(laneId);
+	if (sensorsIterator == mySensorsIDMap_InLanes.end())
+	{
+		sensorsIterator = mySensorsIDMap_OutLanes.find(laneId);
+		if (sensorsIterator == mySensorsIDMap_OutLanes.end())
+		{
 			assert(0);
-			WRITE_ERROR(
-					"MSSOTLE2Sensors::meanVehiclesSpeed:: No lane found "
-							+ laneId);
 			return 0;
-		} else {
+		}
+	}
+	return sensorsIterator->second->getCurrentVehicleNumber();
+}
+
+double MSSOTLE2Sensors::getMaxSpeed(std::string laneId)
+{
+	MSLaneID_MaxSpeedMap::const_iterator sensorsIteratorIn = myMaxSpeedMap_InLanes.find(laneId);
+
+	if (sensorsIteratorIn == myMaxSpeedMap_InLanes.end())
+	{
+		MSLaneID_MaxSpeedMap::const_iterator sensorsIteratorOut = myMaxSpeedMap_OutLanes.find(laneId);
+		if (sensorsIteratorOut == myMaxSpeedMap_OutLanes.end())
+		{
+			assert(0);
+			WRITE_ERROR("MSSOTLE2Sensors::meanVehiclesSpeed:: No lane found " + laneId);
+			return 0;
+		} else
+		{
 			return sensorsIteratorOut->second;
 		}
 	} else
 		return sensorsIteratorIn->second;
 }
 
-double MSSOTLE2Sensors::meanVehiclesSpeed(MSLane* lane) {
-	MSLane_MSE2CollectorMap::const_iterator sensorsIteratorOut =
-			mySensorsMap_OutLanes.find(lane);
+double MSSOTLE2Sensors::meanVehiclesSpeed(MSLane* lane)
+{
+	MSLane_MSE2CollectorMap::const_iterator sensorsIteratorOut = mySensorsMap_OutLanes.find(lane);
 
-	if (sensorsIteratorOut == mySensorsMap_OutLanes.end()) {
+	if (sensorsIteratorOut == mySensorsMap_OutLanes.end())
+	{
 
-		MSLane_MSE2CollectorMap::const_iterator sensorsIteratorIn =
-				mySensorsMap_InLanes.find(lane);
-		if (sensorsIteratorIn == mySensorsMap_InLanes.end()) {
+		MSLane_MSE2CollectorMap::const_iterator sensorsIteratorIn = mySensorsMap_InLanes.find(lane);
+		if (sensorsIteratorIn == mySensorsMap_InLanes.end())
+		{
 			assert(0);
-			WRITE_ERROR(
-					"MSSOTLE2Sensors::meanVehiclesSpeed:: No lane found "
-							+ lane->getID());
+			WRITE_ERROR("MSSOTLE2Sensors::meanVehiclesSpeed:: No lane found " + lane->getID());
 			return 0;
 		} else
 			return sensorsIteratorIn->second->getCurrentMeanSpeed();
@@ -314,19 +496,19 @@ double MSSOTLE2Sensors::meanVehiclesSpeed(MSLane* lane) {
 		return sensorsIteratorOut->second->getCurrentMeanSpeed();
 }
 
-double MSSOTLE2Sensors::meanVehiclesSpeed(std::string laneId) {
-	MSLaneID_MSE2CollectorMap::const_iterator sensorsIteratorOut =
-			mySensorsIDMap_OutLanes.find(laneId);
-	if (sensorsIteratorOut == mySensorsIDMap_OutLanes.end()) {
-		MSLaneID_MSE2CollectorMap::const_iterator sensorsIteratorIn =
-				mySensorsIDMap_InLanes.find(laneId);
-		if (sensorsIteratorIn == mySensorsIDMap_InLanes.end()) {
+double MSSOTLE2Sensors::meanVehiclesSpeed(std::string laneId)
+{
+	MSLaneID_MSE2CollectorMap::const_iterator sensorsIteratorOut = mySensorsIDMap_OutLanes.find(laneId);
+	if (sensorsIteratorOut == mySensorsIDMap_OutLanes.end())
+	{
+		MSLaneID_MSE2CollectorMap::const_iterator sensorsIteratorIn = mySensorsIDMap_InLanes.find(laneId);
+		if (sensorsIteratorIn == mySensorsIDMap_InLanes.end())
+		{
 			assert(0);
-			WRITE_ERROR(
-					"MSSOTLE2Sensors::meanVehiclesSpeed:: No lane found "
-							+ laneId);
+			WRITE_ERROR("MSSOTLE2Sensors::meanVehiclesSpeed:: No lane found " + laneId);
 			return 0;
-		} else {
+		} else
+		{
 			return sensorsIteratorIn->second->getCurrentMeanSpeed();
 		}
 	} else

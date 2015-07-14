@@ -28,7 +28,7 @@
 #include <config.h>
 #endif
 
-//#define SWARM_DEBUG
+#define SWARM_DEBUG
 #include <utils/common/SwarmDebug.h>
 #include "MSSOTLPolicy.h"
 /**
@@ -45,10 +45,13 @@ public:
 	MSSOTLPlatoonPolicy(MSSOTLPolicyDesirability *desirabilityAlgorithm,
 			const std::map<std::string, std::string>& parameters);
 
-	bool canRelease(int elapsed, bool thresholdPassed,
+	bool canRelease(int elapsed, bool thresholdPassed, bool pushButtonPressed,
 			const MSPhaseDefinition* stage, int vehicleCount);
 
-
+private:
+	void init();
+	bool m_useSigmoid;
+	double m_k;
 };
 
 #endif

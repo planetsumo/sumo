@@ -28,7 +28,7 @@
 #else
 #include <config.h>
 #endif
-#define SWARM_DEBUG
+//#define SWARM_DEBUG
 #include <utils/common/SwarmDebug.h>
 #include <sstream>
 #include <utils/common/Parameterised.h>

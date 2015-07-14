@@ -73,7 +73,8 @@ double MSSOTLPolicy::computeDesirability(double vehInMeasure,double vehOutMeasur
 
 size_t MSSOTLPolicy::decideNextPhase(int elapsed,
 		const MSPhaseDefinition *stage, size_t currentPhaseIndex,
-		size_t phaseMaxCTS, bool thresholdPassed, int vehicleCount) {
+		size_t phaseMaxCTS, bool thresholdPassed, bool pushButtonPressed, int vehicleCount) {
+
 	//If the junction was in a commit step
 	//=> go to the target step that gives green to the set with the current highest CTS
 	//   and return computeReturnTime()
@@ -88,8 +89,12 @@ size_t MSSOTLPolicy::decideNextPhase(int elapsed,
 	}
 
 	if (stage->isDecisional()) {
-
-		if (canRelease(elapsed, thresholdPassed, stage, vehicleCount)) {
+			DBG(
+			std::ostringstream phero_str;
+			phero_str << "getCurrentPhaseElapsed()=" << time2string(elapsed) << " isThresholdPassed()=" << thresholdPassed << " countVehicles()=" << vehicleCount;
+			WRITE_MESSAGE("MSSOTLPolicy::decideNextPhase: "+phero_str.str());
+			)
+		if (canRelease(elapsed, thresholdPassed, pushButtonPressed, stage, vehicleCount)) {
 			return currentPhaseIndex + 1;
 		}
 	}

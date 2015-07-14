@@ -19,11 +19,19 @@
 /****************************************************************************/
 
 #include "MSSOTLTrafficLightLogic.h"
+#include "../MSLane.h"
+#include "../MSEdge.h"
+#include "MSPushButton.h"
 
 #ifdef CHECK_MEMORY_LEAKS
 #include <foreign/nvwa/debug_new.h>
 #endif // CHECK_MEMORY_LEAKS
 
+#if 1
+	#define ANALYSIS_DBG(X) {X}
+#else
+	#define ANALYSIS_DBG(X) DBG(X)
+#endif
 // ===========================================================================
 // member method definitions
 // ===========================================================================
@@ -37,6 +45,7 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 	const std::map<std::string, std::string>& parameters)
 : MSPhasedTrafficLightLogic(tlcontrol, id, subid, phases, step, delay, parameters) {
 	this->mySensors = NULL;
+	this->myCountSensors = NULL;
 	sensorsSelfBuilt = true;
 	checkPhases();
 	setupCTS();
@@ -61,11 +70,18 @@ MSSOTLTrafficLightLogic::MSSOTLTrafficLightLogic(
 }
 
 MSSOTLTrafficLightLogic::~MSSOTLTrafficLightLogic() {
+	for(PhasePushButtons::iterator mapIt = m_pushButtons.begin(); mapIt != m_pushButtons.end();++mapIt)
+	    for(std::vector<MSPushButton *>::iterator vIt = mapIt->second.begin(); vIt != mapIt->second.end(); ++vIt)
+	        delete *vIt;
+	m_pushButtons.clear();
 	for (size_t i=0; i<myPhases.size(); i++) {
 		delete myPhases[i];
 	}
 	if (sensorsSelfBuilt)
+	{
 		delete mySensors;
+//		delete myCountSensors;
+	}
 }
 
 void MSSOTLTrafficLightLogic::logStatus() {
@@ -105,6 +121,7 @@ MSSOTLTrafficLightLogic::setToATargetPhase() {
 	MsgHandler::getErrorInstance()->inform("No phase of type target found for traffic light logic " + myID + " The logic could malfunction. Check phases declaration.");
 }
 
+
 void 
 MSSOTLTrafficLightLogic::init(NLDetectorBuilder &nb) throw(ProcessError) {
 
@@ -143,8 +160,11 @@ MSSOTLTrafficLightLogic::init(NLDetectorBuilder &nb) throw(ProcessError) {
 				//threshold speed param for tuning with irace
 				((MSSOTLE2Sensors *)mySensors)->setSpeedThresholdParam(getSpeedThreshold());
 
-
-                //Adding Sensors to the outgoing Lanes
+                myCountSensors = new MSSOTLE2Sensors(myID+"Count", &(getPhases()));
+                myCountSensors->buildCountSensors(myLanes,nb);
+                myCountSensors->stepChanged(getCurrentPhaseIndex());
+                
+				//Adding Sensors to the outgoing Lanes
 
                 LinkVectorVector myLinks = getLinks();
 
@@ -171,21 +191,19 @@ MSSOTLTrafficLightLogic::init(NLDetectorBuilder &nb) throw(ProcessError) {
 
                 for (unsigned int i = 0; i<myLinks.size(); i++){
                     LinkVector oneLink = getLinksAt(i);
-
                     for (unsigned int j = 0; j<oneLink.size(); j++){
-
                         MSLane* lane  = oneLink[j]->getLane();
                         outLanes.push_back(lane);
-
-
                     }
                 }
 
                 if(outLanes.size() >0)
                     myLaneVector.push_back(outLanes);
                 if(myLaneVector.size() > 0 )
-                    ((MSSOTLE2Sensors *)mySensors)->buildOutSensors(myLaneVector, nb,getOutputSensorsLength());
-
+				{
+                	((MSSOTLE2Sensors *)mySensors)->buildOutSensors(myLaneVector, nb,getOutputSensorsLength());
+                    myCountSensors->buildCountOutSensors(myLaneVector,nb);
+                }
 
 		}
 	}
@@ -213,10 +231,12 @@ MSSOTLTrafficLightLogic::resetCTS(size_t phaseStep) {
 void
 MSSOTLTrafficLightLogic::updateCTS() {
 	SUMOTime elapsedTimeSteps = 0;
+	SUMOTime now = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
 	//Iterate over the target phase map and update CTS value for every target phase except for the one belonging to the current steps chain
-	for (map<size_t, unsigned int>::iterator mapIterator = targetPhasesCTS.begin(); mapIterator != targetPhasesCTS.end(); mapIterator++) {
+	for (map<size_t, unsigned int>::iterator mapIterator =
+			targetPhasesCTS.begin(); mapIterator != targetPhasesCTS.end();
+			mapIterator++) {
 		unsigned int chain = mapIterator->first;
-		SUMOTime now = STEPS2TIME(MSNet::getInstance()->getCurrentTimeStep());
 
 		if (chain != lastChain) {
 			//Get the number of timesteps since the last check for that phase
@@ -279,6 +299,7 @@ MSSOTLTrafficLightLogic::updateDecayThreshold()
 {
 	if(getCurrentPhaseDef().isGreenPhase())
 		decayThreshold = decayThreshold * exp(getDecayConstant());
+//	ANALYSIS_DBG(
 	DBG(
 		std::stringstream out;
 		out << decayThreshold;
@@ -289,20 +310,26 @@ bool
 MSSOTLTrafficLightLogic::isThresholdPassed() {
 
 	DBG(
-			WRITE_MESSAGE("\n" +time2string(MSNet::getInstance()->getCurrentTimeStep()) +"\tMSSOTLTrafficLightLogic::isThresholdPassed()::  " + " tlsid=" + getID());
+		//	WRITE_MESSAGE("\n" +time2string(MSNet::getInstance()->getCurrentTimeStep()) +"\tMSSOTLTrafficLightLogic::isThresholdPassed()::  " + " tlsid=" + getID());
+
 			std::ostringstream threshold_str;
-			threshold_str << "tlsid=" << getID() << " targetPhaseCTS size=" << targetPhasesCTS.size();
+		//	threshold_str << "tlsid=" << getID() << " targetPhaseCTS size=" << targetPhasesCTS.size();
+//			threshold_str << "\n";
 			WRITE_MESSAGE(threshold_str.str());
 		)
 			/*
-			 * if a dynamic threshold based on the exponential decrease, is passed we force the phase change
+			 * if a dynamic threshold based on the exponential decrease, if passed we force the phase change
 			 */
-	double random = ((double) RandHelper::rand(RAND_MAX) / (RAND_MAX));
+//	double random = ((double) RandHelper::rand(RAND_MAX) / (RAND_MAX));
+	double random = RandHelper::rand();
+//	ANALYSIS_DBG(
 	DBG(
 			if(isDecayThresholdActivated()){
 				std::ostringstream str;
-				str << "\n" << time2string(MSNet::getInstance()->getCurrentTimeStep()) << "\tMSSOTLTrafficLightLogic::isThresholdPassed()::  "
-						<< " tlsid=" << getID() << " decayThreshold=" << decayThreshold << " random=" <<random << ">"<<(1-decayThreshold);
+				str << time2string(MSNet::getInstance()->getCurrentTimeStep()) << "\tMSSOTLTrafficLightLogic::isThresholdPassed()::  "
+						<< " tlsid=" << getID() << " decayThreshold=" << decayThreshold << " random=" <<random << ">"<<(1-decayThreshold)
+						<< (random > (1 - decayThreshold) ? " true" : " false");
+
 				WRITE_MESSAGE(str.str());
 			}
 	)
@@ -311,10 +338,17 @@ MSSOTLTrafficLightLogic::isThresholdPassed() {
 				targetPhasesCTS.begin(); iterator != targetPhasesCTS.end();
 				iterator++) {
 			DBG(
-					std::ostringstream threshold_str; threshold_str << "(getThreshold()= " << getThreshold() << ", targetPhaseCTS= " << iterator->second << " )" << " phase="<<getPhase(iterator->first).getState(); SUMOTime step = MSNet::getInstance()->getCurrentTimeStep(); WRITE_MESSAGE("\tTL " +getID()+" time " +time2string(step)+threshold_str.str());)
+					SUMOTime step = MSNet::getInstance()->getCurrentTimeStep();
+					std::ostringstream threshold_str;
+				//	threshold_str <<"\tTL " +getID()<<" time " +time2string(step)<< "(getThreshold()= " << getThreshold()
+				//		<< ", targetPhaseCTS= " << iterator->second << " )" << " phase="<<getPhase(iterator->first).getState();
+					threshold_str << getCurrentPhaseDef().getState() << ";" << time2string(step) << ";" << getThreshold()
+							<< ";" << iterator->second << ";" << getPhase(iterator->first).getState()<<";"
+							<<iterator->first << "!=" << lastChain;
+					WRITE_MESSAGE(threshold_str.str());
+				);
 			//Note that the current chain is not eligible to be directly targeted again, it would be unfair
-			if ((iterator->first != lastChain)
-					&& (getThreshold() <= iterator->second)) {
+			if ((iterator->first != lastChain) && (getThreshold() <= iterator->second)) {
 				return true;
 			}
 		}
@@ -380,6 +414,7 @@ SUMOTime
 MSSOTLTrafficLightLogic::trySwitch() {
 	// To check if decideNextPhase changes the step
 	unsigned int previousStep = getCurrentPhaseIndex() ;
+	SUMOTime elapsed = getCurrentPhaseElapsed();
 	// Update CTS according to sensors
 	updateCTS();
 
@@ -404,8 +439,23 @@ MSSOTLTrafficLightLogic::trySwitch() {
 		currentPhase.myLastSwitch = MSNet::getInstance()->getCurrentTimeStep();
 		if(isDecayThresholdActivated())
 			decayThreshold = 1;
+		ANALYSIS_DBG(
+			ostringstream oss;
+			oss<< getID() << " from "<<getPhase(previousStep).getState()<<" to " <<currentPhase.getState() <<" after " << time2string(elapsed);
+			WRITE_MESSAGE(time2string(MSNet::getInstance()->getCurrentTimeStep()) + "\tMSSOTLTrafficLightLogic::trySwitch " + oss.str());
+		)
 	}
 
 	return computeReturnTime();
+}
+
+bool MSSOTLTrafficLightLogic::isPushButtonPressed()
+{
+    if (getParameter("USE_PUSH_BUTTON", "1") == "0")
+      return false;
+    const MSPhaseDefinition currentPhase = getCurrentPhaseDef();
+    if(m_pushButtons.find(currentPhase.getState()) == m_pushButtons.end())
+        m_pushButtons[currentPhase.getState()] = MSPedestrianPushButton::loadPushButtons(&currentPhase);
+    return MSPushButton::anyActive(m_pushButtons[currentPhase.getState()]);
 }
 

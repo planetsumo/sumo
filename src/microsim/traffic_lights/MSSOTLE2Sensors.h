@@ -37,6 +37,9 @@ protected :
 	void buildSensorForOutLane(MSLane* lane, NLDetectorBuilder &nb);
 	void buildSensorForOutLane(MSLane* lane, NLDetectorBuilder &nb, double sensorLength);
 
+	void buildCountSensorForLane(MSLane* lane, NLDetectorBuilder &nb);
+	void buildCountSensorForOutLane(MSLane* lane, NLDetectorBuilder &nb);
+
 public:
 	/*
 	* @brief This sensor logic contructor
@@ -52,7 +55,24 @@ public:
 	void buildSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb, double sensorLength);
 	void buildOutSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
 	void buildOutSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb, double sensorLength);
-	
+	void buildCountSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
+	void buildCountOutSensors(MSTrafficLightLogic::LaneVectorVector controlledLanes, NLDetectorBuilder &nb);
+
+	/*
+	 * Returns the number of vehicles that have passed the sensor.
+	 * Vehicles are effectively counted or guessed in the space from the sensor to the junction.
+	 * @param[in] laneId The ID of the lane of which you want to count vehicles.
+	 * @param[in] out boolean that indicate if the lane is an incoming or an outgoing one (@todo review)
+	 */
+	unsigned int getPassedVeh(std::string laneId, bool out);
+
+	/*
+	 * Sets the number of vehicles that have passed the sensor.
+	 * @param[in] laneId The ID of the lane of which you want to set vehicles.
+	 * @param[in] passed int indicating the number of vehicles to subtract.
+	 */
+	void subtractPassedVeh(std::string laneId, int passed);
+
 	void setSpeedThresholdParam(double newThreshold) {speedThresholdParam = newThreshold;}
 
 	/*
@@ -104,6 +124,7 @@ protected:
 	MSLane_MSE2CollectorMap mySensorsMap_OutLanes;
 	MSLaneID_MSE2CollectorMap mySensorsIDMap_OutLanes;
 	MSLaneID_MaxSpeedMap myMaxSpeedMap_OutLanes;
+
 	double speedThresholdParam;
 };
 

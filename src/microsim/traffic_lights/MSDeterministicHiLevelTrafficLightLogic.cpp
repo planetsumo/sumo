@@ -92,7 +92,7 @@ size_t MSDeterministicHiLevelTrafficLightLogic::decideNextPhase() {
 	//Execute current policy. congestion "policy" must maintain the commit phase, and that must be an all-red one
 	return getCurrentPolicy()->decideNextPhase(getCurrentPhaseElapsed(),
 			&getCurrentPhaseDef(), getCurrentPhaseIndex(),
-			getPhaseIndexWithMaxCTS(), isThresholdPassed(),
+			getPhaseIndexWithMaxCTS(), isThresholdPassed(), isPushButtonPressed(),
 			countVehicles(getCurrentPhaseDef()));
 }
 
@@ -182,6 +182,6 @@ bool MSDeterministicHiLevelTrafficLightLogic::canRelease() {
 	DBG(
 			std::ostringstream phero_str; phero_str << "getCurrentPhaseElapsed()=" << time2string(getCurrentPhaseElapsed()) << " isThresholdPassed()=" << isThresholdPassed() << " currentPhase=" << (&getCurrentPhaseDef())->getState() << " countVehicles()=" << countVehicles(getCurrentPhaseDef()); WRITE_MESSAGE("\nMSDeterministicHiLevelTrafficLightLogic::canRelease(): "+phero_str.str());)
 	return getCurrentPolicy()->canRelease(getCurrentPhaseElapsed(),
-			isThresholdPassed(), &getCurrentPhaseDef(),
+			isThresholdPassed(), isPushButtonPressed(), &getCurrentPhaseDef(),
 			countVehicles(getCurrentPhaseDef()));
 }

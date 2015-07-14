@@ -284,6 +284,23 @@ public:
     std::vector<std::string> getCurrentVehicleIDs() const;
     /// @}
 
+    /** \brief Returns the number of vehicles passed over the sensor.
+	 *
+	 * @return number of cars passed over the sensor
+	 */
+    unsigned int getPassedVeh()
+    {
+    	return myPassedVeh;
+    }
+
+    /** \brief Subtract the number of vehicles indicated from passed from the sensor count.
+	 *
+	 * @param[in] passed - int that indicates the number of vehicles to subtract
+	 */
+    void subtractPassedVeh(int passed)
+    {
+    	myPassedVeh -= passed;
+    }
 
 protected:
     /** @brief Internal representation of a jam
@@ -436,6 +453,8 @@ private:
     unsigned myCurrentStartedHalts;
     /// @brief The number of halted vehicles [#]
     int myCurrentHaltingsNumber;
+    /// @brief The number of vehicles passed on the sensor
+    unsigned int myPassedVeh;
     /// @}
 
 
