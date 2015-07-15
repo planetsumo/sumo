@@ -928,8 +928,8 @@ double MSSwarmTrafficLightLogic::calculateEtaRatio() {
 		ratio = ((double) inTarget) / carsOut;
 		normalized = ratio / (inTarget + carsOut);
 	} else {
-		ratio = INFINITY;
-		normalized = INFINITY;
+		ratio = std::numeric_limits<double>::infinity();
+		normalized = std::numeric_limits<double>::infinity();
 	}
 
 	DBG(
