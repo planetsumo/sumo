@@ -22,12 +22,14 @@
 MSSOTLPhasePolicy::MSSOTLPhasePolicy(const std::map<std::string, std::string>& parameters) :
 		MSSOTLPolicy("Phase", parameters)
 {
+  init();
 }
 
 MSSOTLPhasePolicy::MSSOTLPhasePolicy(MSSOTLPolicyDesirability *desirabilityAlgorithm) :
 		MSSOTLPolicy("Phase", desirabilityAlgorithm)
 {
 	getDesirabilityAlgorithm()->setKeyPrefix("PHASE");
+	init();
 }
 
 MSSOTLPhasePolicy::MSSOTLPhasePolicy(MSSOTLPolicyDesirability *desirabilityAlgorithm,
@@ -35,6 +37,7 @@ MSSOTLPhasePolicy::MSSOTLPhasePolicy(MSSOTLPolicyDesirability *desirabilityAlgor
 		MSSOTLPolicy("Phase", desirabilityAlgorithm, parameters)
 {
 	getDesirabilityAlgorithm()->setKeyPrefix("PHASE");
+	init();
 }
 
 bool MSSOTLPhasePolicy::canRelease(int elapsed, bool thresholdPassed, bool pushButtonPressed,
@@ -42,12 +45,14 @@ bool MSSOTLPhasePolicy::canRelease(int elapsed, bool thresholdPassed, bool pushB
 {
 	if (elapsed >= stage->minDuration)
 	{
-		if (pushButtonPressed && elapsed >= stage->duration)
-		{
-			WRITE_MESSAGE("MSSOTLPhasePolicy::canRelease returning true because pushButtonPressed")
-			return true;
-		}
+        if (pushButtonLogic(elapsed, pushButtonPressed, stage))
+          return true;
 		return thresholdPassed;
 	}
 	return false;
+}
+
+void MSSOTLPhasePolicy::init()
+{
+  PushButtonLogic::init("MSSOTLPhasePolicy", this);
 }

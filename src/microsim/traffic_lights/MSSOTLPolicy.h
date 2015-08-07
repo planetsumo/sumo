@@ -43,6 +43,29 @@
 
 using namespace std;
 
+class PushButtonLogic
+{
+  protected:
+    void init(std::string prefix, const Parameterised * parameterised);
+
+    bool pushButtonLogic(int elapsed, bool pushButtonPressed, const MSPhaseDefinition* stage);
+
+    double m_pushButtonScaleFactor;
+    std::string m_prefix;
+};
+
+class SigmoidLogic
+{
+  protected:
+    void init(std::string prefix, const Parameterised * parameterised);
+
+    bool sigmoidLogic(int elapsed, const MSPhaseDefinition* stage, int vehicleCount);
+
+    bool m_useSigmoid;
+    double m_k;
+    std::string m_prefix;
+};
+
 /**
  * @class MSSOTLPolicy
  * @brief Class for a low-level policy.
@@ -72,6 +95,8 @@ protected:
 		buffer >> temp;
 		return temp;
 	}
+
+	virtual void init() {}
 
 public:
 	/** @brief Simple constructor

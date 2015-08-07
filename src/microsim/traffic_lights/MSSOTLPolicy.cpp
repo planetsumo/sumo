@@ -19,12 +19,81 @@
 /****************************************************************************/
 
 #include "MSSOTLPolicy.h"
+#include <math.h>
+#include <typeinfo>
+#include "utils/common/RandHelper.h"
+
+double s2f(string str)
+{
+  istringstream buffer(str);
+  double temp;
+  buffer >> temp;
+  return temp;
+}
+
+void PushButtonLogic::init(std::string prefix, const Parameterised * parameterised)
+{
+  m_prefix = prefix;
+  m_pushButtonScaleFactor = s2f(parameterised->getParameter("PUSH_BUTTON_SCALE_FACTOR", "1"));
+  WRITE_MESSAGE(m_prefix + "::PushButtonLogic::init use " + parameterised->getParameter("USE_PUSH_BUTTON", "0") + " scale " + parameterised->getParameter("PUSH_BUTTON_SCALE_FACTOR", "1"));
+}
+
+bool PushButtonLogic::pushButtonLogic(int elapsed, bool pushButtonPressed, const MSPhaseDefinition* stage)
+{
+  //pushbutton logic
+  if (pushButtonPressed && elapsed >= (stage->duration * m_pushButtonScaleFactor))
+  {
+    //If the stage duration has been passed
+//    DBG(
+        std::ostringstream oss;
+        oss << m_prefix << "::pushButtonLogic pushButtonPressed elapsed " << elapsed << " stage duration " << (stage->duration * m_pushButtonScaleFactor);
+        WRITE_MESSAGE(oss.str());
+//    );
+    return true;
+  }
+  return false;
+}
+
+void SigmoidLogic::init(std::string prefix, const Parameterised * parameterised)
+{
+  m_prefix = prefix;
+  m_useSigmoid = parameterised->getParameter("PLATOON_USE_SIGMOID", "0") != "0";
+  m_k = s2f(parameterised->getParameter("PLATOON_SIGMOID_K_VALUE", "1"));
+//  DBG(
+  WRITE_MESSAGE(m_prefix + "::SigmoidLogic::init use " + parameterised->getParameter("PLATOON_USE_SIGMOID", "0") + " k " + parameterised->getParameter("PLATOON_SIGMOID_K_VALUE", "1"));
+//    for (int elapsed = 10; elapsed < 51; ++elapsed)
+//    {
+//        double sigmoidValue = 1.0 / (1.0 + exp(-m_k * (elapsed - 31)));
+//        std::ostringstream oss;
+//        oss << "elapsed " << elapsed << " value " << sigmoidValue;
+//        WRITE_MESSAGE(oss.str())
+//    }
+//  )
+}
+
+bool SigmoidLogic::sigmoidLogic(int elapsed, const MSPhaseDefinition* stage, int vehicleCount)
+{
+  //use the sigmoid logic
+  if (m_useSigmoid && vehicleCount == 0)
+  {
+    double sigmoidValue = 1.0 / (1.0 + exp(-m_k * (elapsed / 1000 - stage->duration / 1000)));
+    double rnd = RandHelper::rand();
+//    DBG(
+        std::ostringstream oss;
+        oss << m_prefix << "::sigmoidLogic [k=" << m_k << " elapsed " << elapsed << " stage->duration " << stage->duration << " ] value "
+                << sigmoidValue; oss << " rnd " << rnd << " retval " << (rnd < sigmoidValue? "true" : "false");
+        WRITE_MESSAGE(oss.str())
+//    );
+    return rnd < sigmoidValue;
+  }
+  return false;
+}
+
 
 MSSOTLPolicy::MSSOTLPolicy(string name,
 		const std::map<std::string, std::string>& parameters) :
 		Parameterised(parameters), myName(name) {
 	theta_sensitivity = 0;
-
 }
 
 MSSOTLPolicy::MSSOTLPolicy(string name,
@@ -32,7 +101,6 @@ MSSOTLPolicy::MSSOTLPolicy(string name,
 		Parameterised(), myName(name), myDesirabilityAlgorithm(
 				desirabilityAlgorithm) {
 	theta_sensitivity = 0;
-
 }
 
 MSSOTLPolicy::MSSOTLPolicy(string name,
@@ -46,7 +114,6 @@ MSSOTLPolicy::MSSOTLPolicy(string name,
 	std::ostringstream def;
 	def << "0.5";
 	theta_sensitivity = s2f(getParameter(key.str(), def.str()));
-
 }
 
 MSSOTLPolicy::~MSSOTLPolicy(void) {

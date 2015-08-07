@@ -34,7 +34,7 @@
  * @brief Class for low-level phase policy.
  *
  */
-class MSSOTLPhasePolicy: public MSSOTLPolicy {
+class MSSOTLPhasePolicy: public MSSOTLPolicy, public PushButtonLogic{
 
 public:
 	MSSOTLPhasePolicy(const std::map<std::string, std::string>& parameters);
@@ -45,7 +45,8 @@ public:
 
 	bool canRelease(int elapsed, bool thresholdPassed, bool pushButtonPressed,
 			const MSPhaseDefinition* stage, int vehicleCount);
-
+protected:
+	void init();
 };
 
 #endif

@@ -21,6 +21,8 @@
 #define SRC_MICROSIM_TRAFFIC_LIGHTS_MSPUSHBUTTON_H_
 
 #include <vector>
+#include <map>
+#include <string>
 
 class MSEdge;
 class MSPhaseDefinition;
@@ -39,11 +41,11 @@ class MSPushButton
 		 */
 		virtual bool isActivated() const = 0;
 
-		/**
-         * @brief Checks if any pushbutton in the vector is active
-         * @return True if at least one pushbutton is active, false otherwise
-         */
-        static bool anyActive(const std::vector<MSPushButton*> &);
+    /**
+     * @brief Checks if any pushbutton in the vector is active
+     * @return True if at least one pushbutton is active, false otherwise
+     */
+    static bool anyActive(const std::vector<MSPushButton*> &);
 	protected:
 		/**
 		 * Protected constructor
@@ -96,6 +98,12 @@ class MSPedestrianPushButton: MSPushButton
 		 * @return A list of pushbuttons
 		 */
 		static std::vector<MSPushButton*> loadPushButtons(const MSPhaseDefinition*);
+	private:
+//		Map edge id -> list of crossing edges that crosses it
+		static std::map<std::string, std::vector<std::string> > m_crossingEdgeMap;
+		static bool m_crossingEdgeMapLoaded;
+//		Load the crossingEdgeMap
+		static void loadCrossingEdgeMap();
 };
 
 #endif /* SRC_MICROSIM_TRAFFIC_LIGHTS_MSPUSHBUTTON_H_ */

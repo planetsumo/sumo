@@ -63,7 +63,6 @@ class MSJunction;
 class MSEdge;
 class MSContainer;
 
-
 // ===========================================================================
 // class definitions
 // ===========================================================================
@@ -300,6 +299,13 @@ public:
      */
     const std::vector<std::string> & getCrossingEdges() const {
     	return myCrossingEdges;
+    }
+
+    /**@brief Gets the crossed edge ids
+     *@return The list of crossed edge ids in a crossing edge or an empty vector
+     */
+    static const MSEdgeVector & getAllEdges() {
+      return myEdges;
     }
 
 

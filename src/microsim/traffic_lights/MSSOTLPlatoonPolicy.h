@@ -31,12 +31,14 @@
 #define SWARM_DEBUG
 #include <utils/common/SwarmDebug.h>
 #include "MSSOTLPolicy.h"
+
+
 /**
  * @class MSSOTLPlatoonPolicy
  * @brief Class for low-level platoon policy.
  *
  */
-class MSSOTLPlatoonPolicy: public MSSOTLPolicy {
+class MSSOTLPlatoonPolicy: public MSSOTLPolicy, public SigmoidLogic, public PushButtonLogic{
 
 public:
 	MSSOTLPlatoonPolicy(const std::map<std::string, std::string>& parameters);
@@ -48,10 +50,8 @@ public:
 	bool canRelease(int elapsed, bool thresholdPassed, bool pushButtonPressed,
 			const MSPhaseDefinition* stage, int vehicleCount);
 
-private:
+protected:
 	void init();
-	bool m_useSigmoid;
-	double m_k;
 };
 
 #endif
