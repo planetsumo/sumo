@@ -17,9 +17,9 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-import struct
 import traci
 import traci.constants as tc
+from traci import struct_pack
 
 _RETURN_VALUE_FUNC = {tc.ID_LIST:                   traci.Storage.readStringList,
                       tc.ID_COUNT:                  traci.Storage.readInt,
@@ -75,7 +75,7 @@ def getAdaptedTraveltime(edgeID, time):
     """
     traci._beginMessage(tc.CMD_GET_EDGE_VARIABLE, tc.VAR_EDGE_TRAVELTIME,
                         edgeID, 1 + 4)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_INTEGER,
+    traci._message.string += struct_pack("!Bi", tc.TYPE_INTEGER,
                                          traci._TIME2STEPS(time))
     return traci._checkResult(tc.CMD_GET_EDGE_VARIABLE,
                               tc.VAR_EDGE_TRAVELTIME, edgeID).readDouble()
@@ -97,7 +97,7 @@ def getEffort(edgeID, time):
     """
     traci._beginMessage(tc.CMD_GET_EDGE_VARIABLE, tc.VAR_EDGE_EFFORT,
                         edgeID, 1 + 4)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_INTEGER,
+    traci._message.string += struct_pack("!Bi", tc.TYPE_INTEGER,
                                          traci._TIME2STEPS(time))
     return traci._checkResult(tc.CMD_GET_EDGE_VARIABLE,
                               tc.VAR_EDGE_EFFORT, edgeID).readDouble()
@@ -271,7 +271,7 @@ def adaptTraveltime(edgeID, time):
     """
     traci._beginMessage(
         tc.CMD_SET_EDGE_VARIABLE, tc.VAR_EDGE_TRAVELTIME, edgeID, 1 + 4 + 1 + 8)
-    traci._message.string += struct.pack("!BiBd",
+    traci._message.string += struct_pack("!BiBd",
                                          tc.TYPE_COMPOUND, 1, tc.TYPE_DOUBLE, time)
     traci._sendExact()
 
@@ -283,7 +283,7 @@ def setEffort(edgeID, effort):
     """
     traci._beginMessage(
         tc.CMD_SET_EDGE_VARIABLE, tc.VAR_EDGE_EFFORT, edgeID, 1 + 4 + 1 + 8)
-    traci._message.string += struct.pack("!BiBd",
+    traci._message.string += struct_pack("!BiBd",
                                          tc.TYPE_COMPOUND, 1, tc.TYPE_DOUBLE, effort)
     traci._sendExact()
 

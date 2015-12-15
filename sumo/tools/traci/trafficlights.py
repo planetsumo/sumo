@@ -16,9 +16,9 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-import struct
 import traci
 import traci.constants as tc
+from traci import struct_pack
 
 
 class Phase:
@@ -273,23 +273,23 @@ def setCompleteRedYellowGreenDefinition(tlsID, tls):
         itemNo += 4
     traci._beginMessage(
         tc.CMD_SET_TL_VARIABLE, tc.TL_COMPLETE_PROGRAM_RYG, tlsID, length)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, itemNo)
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, itemNo)
     # programID
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi",
                                          tc.TYPE_STRING, len(tls._subID)) + str(tls._subID)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_INTEGER, 0)  # type
+    traci._message.string += struct_pack("!Bi", tc.TYPE_INTEGER, 0)  # type
     # subitems
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 0)
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, 0)
     # index
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi",
                                          tc.TYPE_INTEGER, tls._currentPhaseIndex)
     # phaseNo
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi",
                                          tc.TYPE_INTEGER, len(tls._phases))
     for p in tls._phases:
-        traci._message.string += struct.pack("!BiBiBi", tc.TYPE_INTEGER,
+        traci._message.string += struct_pack("!BiBiBi", tc.TYPE_INTEGER,
                                              p._duration, tc.TYPE_INTEGER, p._duration1, tc.TYPE_INTEGER, p._duration2)
-        traci._message.string += struct.pack("!Bi",
+        traci._message.string += struct_pack("!Bi",
                                              tc.TYPE_STRING, len(p._phaseDef)) + str(p._phaseDef)
     traci._sendExact()
 

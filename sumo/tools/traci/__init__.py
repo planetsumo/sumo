@@ -34,6 +34,24 @@ _RESULTS = {0x00: "OK", 0x01: "Not implemented", 0xFF: "Error"}
 _DEBUG = False
 
 
+import sys
+if sys.version_info < (3,):
+    def b(x):
+        return x
+    def bd(x):
+        return x
+else:
+    import codecs
+    def b(x):
+        return codecs.latin_1_encode(x)[0]
+    def bd(x):
+        return codecs.latin_1_decode(x)[0]
+
+def struct_pack(*args, **kwargs):
+    return bd(struct.pack(*args, **kwargs))
+
+
+
 def isEmbedded():
     return _embedded
 
@@ -92,7 +110,7 @@ class Storage:
     def read(self, format):
         oldPos = self._pos
         self._pos += struct.calcsize(format)
-        return struct.unpack(format, self._content[oldPos:self._pos])
+        return struct.unpack(format, b(self._content[oldPos:self._pos]))
 
     def readInt(self):
         return self.read("!i")[0]
@@ -108,7 +126,7 @@ class Storage:
 
     def readString(self):
         length = self.read("!i")[0]
-        return self.read("!%ss" % length)[0]
+        return bd(self.read("!%ss" % length)[0])
 
     def readStringList(self):
         n = self.read("!i")[0]
@@ -127,7 +145,7 @@ class Storage:
     def printDebug(self):
         if _DEBUG:
             for char in self._content[self._pos:]:
-                print("%03i %02x %s" % (ord(char), ord(char), char))
+                print(("%03i %02x %s" % (ord(char), ord(char), char)))
 
 
 class SubscriptionResults:
@@ -186,7 +204,7 @@ def getParameterAccessors(cmdGetID, cmdSetID):
         """
         _beginMessage(
             cmdGetID, constants.VAR_PARAMETER, objID, 1 + 4 + len(param))
-        _message.string += struct.pack("!Bi",
+        _message.string += struct_pack("!Bi",
                                        constants.TYPE_STRING, len(param)) + param
         result = _checkResult(cmdGetID, constants.VAR_PARAMETER, objID)
         return result.readString()
@@ -198,10 +216,10 @@ def getParameterAccessors(cmdGetID, cmdSetID):
         """
         _beginMessage(cmdSetID, constants.VAR_PARAMETER, objID,
                       1 + 4 + 1 + 4 + len(param) + 1 + 4 + len(value))
-        _message.string += struct.pack("!Bi", constants.TYPE_COMPOUND, 2)
-        _message.string += struct.pack("!Bi",
+        _message.string += struct_pack("!Bi", constants.TYPE_COMPOUND, 2)
+        _message.string += struct_pack("!Bi",
                                        constants.TYPE_STRING, len(param)) + param
-        _message.string += struct.pack("!Bi",
+        _message.string += struct_pack("!Bi",
                                        constants.TYPE_STRING, len(value)) + value
         _sendExact()
 
@@ -272,14 +290,14 @@ def _recvExact():
             t = _connections[""].recv(4 - len(result))
             if not t:
                 return None
-            result += t
-        length = struct.unpack("!i", result)[0] - 4
+            result += bd(t)
+        length = struct.unpack("!i", b(result))[0] - 4
         result = ""
         while len(result) < length:
             t = _connections[""].recv(length - len(result))
             if not t:
                 return None
-            result += t
+            result += bd(t)
         return Storage(result)
     except socket.error:
         return None
@@ -289,8 +307,8 @@ def _sendExact():
     if _embedded:
         result = Storage(traciemb.execute(_message.string))
     else:
-        length = struct.pack("!i", len(_message.string) + 4)
-        _connections[""].send(length + _message.string)
+        length = struct_pack("!i", len(_message.string) + 4)
+        _connections[""].send(b(length + _message.string))
         result = _recvExact()
     if not result:
         _connections[""].close()
@@ -318,10 +336,10 @@ def _beginMessage(cmdID, varID, objID, length=0):
     _message.queue.append(cmdID)
     length += 1 + 1 + 1 + 4 + len(objID)
     if length <= 255:
-        _message.string += struct.pack("!BBBi", length,
+        _message.string += struct_pack("!BBBi", length,
                                        cmdID, varID, len(objID)) + str(objID)
     else:
-        _message.string += struct.pack("!BiBBi", 0, length + 4,
+        _message.string += struct_pack("!BiBBi", 0, length + 4,
                                        cmdID, varID, len(objID)) + str(objID)
 
 
@@ -332,25 +350,25 @@ def _sendReadOneStringCmd(cmdID, varID, objID):
 
 def _sendIntCmd(cmdID, varID, objID, value):
     _beginMessage(cmdID, varID, objID, 1 + 4)
-    _message.string += struct.pack("!Bi", constants.TYPE_INTEGER, value)
+    _message.string += struct_pack("!Bi", constants.TYPE_INTEGER, value)
     _sendExact()
 
 
 def _sendDoubleCmd(cmdID, varID, objID, value):
     _beginMessage(cmdID, varID, objID, 1 + 8)
-    _message.string += struct.pack("!Bd", constants.TYPE_DOUBLE, value)
+    _message.string += struct_pack("!Bd", constants.TYPE_DOUBLE, value)
     _sendExact()
 
 
 def _sendByteCmd(cmdID, varID, objID, value):
     _beginMessage(cmdID, varID, objID, 1 + 1)
-    _message.string += struct.pack("!BB", constants.TYPE_BYTE, value)
+    _message.string += struct_pack("!BB", constants.TYPE_BYTE, value)
     _sendExact()
 
 
 def _sendStringCmd(cmdID, varID, objID, value):
     _beginMessage(cmdID, varID, objID, 1 + 4 + len(value))
-    _message.string += struct.pack("!Bi", constants.TYPE_STRING,
+    _message.string += struct_pack("!Bi", constants.TYPE_STRING,
                                    len(value)) + str(value)
     _sendExact()
 
@@ -381,7 +399,7 @@ def _readSubscription(result):
             varID = result.read("!B")[0]
             status, varType = result.read("!BB")
             if status:
-                print("Error!", result.readString())
+                print(("Error!", result.readString()))
             elif response in _modules:
                 _modules[response].subscriptionResults.add(
                     objectID, varID, result)
@@ -400,7 +418,7 @@ def _readSubscription(result):
                 varID = result.read("!B")[0]
                 status, varType = result.read("!BB")
                 if status:
-                    print("Error!", result.readString())
+                    print(("Error!", result.readString()))
                 elif response in _modules:
                     _modules[response].subscriptionResults.addContext(
                         objectID, _modules[domain].subscriptionResults, oid, varID, result)
@@ -418,14 +436,14 @@ def _subscribe(cmdID, begin, end, objID, varIDs, parameters=None):
             if v in parameters:
                 length += len(parameters[v])
     if length <= 255:
-        _message.string += struct.pack("!B", length)
+        _message.string += struct_pack("!B", length)
     else:
-        _message.string += struct.pack("!Bi", 0, length + 4)
-    _message.string += struct.pack("!Biii",
+        _message.string += struct_pack("!Bi", 0, length + 4)
+    _message.string += struct_pack("!Biii",
                                    cmdID, begin, end, len(objID)) + objID
-    _message.string += struct.pack("!B", len(varIDs))
+    _message.string += struct_pack("!B", len(varIDs))
     for v in varIDs:
-        _message.string += struct.pack("!B", v)
+        _message.string += struct_pack("!B", v)
         if parameters and v in parameters:
             _message.string += parameters[v]
     result = _sendExact()
@@ -439,14 +457,14 @@ def _subscribeContext(cmdID, begin, end, objID, domain, dist, varIDs):
     _message.queue.append(cmdID)
     length = 1 + 1 + 4 + 4 + 4 + len(objID) + 1 + 8 + 1 + len(varIDs)
     if length <= 255:
-        _message.string += struct.pack("!B", length)
+        _message.string += struct_pack("!B", length)
     else:
-        _message.string += struct.pack("!Bi", 0, length + 4)
-    _message.string += struct.pack("!Biii",
+        _message.string += struct_pack("!Bi", 0, length + 4)
+    _message.string += struct_pack("!Biii",
                                    cmdID, begin, end, len(objID)) + objID
-    _message.string += struct.pack("!BdB", domain, dist, len(varIDs))
+    _message.string += struct_pack("!BdB", domain, dist, len(varIDs))
     for v in varIDs:
-        _message.string += struct.pack("!B", v)
+        _message.string += struct_pack("!B", v)
     result = _sendExact()
     objectID, response = _readSubscription(result)
     if response - cmdID != 16 or objectID != objID:
@@ -476,10 +494,10 @@ def simulationStep(step=0):
     Values smaller than or equal to the current sim time result in no action.
     """
     _message.queue.append(constants.CMD_SIMSTEP2)
-    _message.string += struct.pack("!BBi", 1 +
+    _message.string += struct_pack("!BBi", 1 +
                                    1 + 4, constants.CMD_SIMSTEP2, step)
     result = _sendExact()
-    for module in _modules.values():
+    for module in list(_modules.values()):
         module.subscriptionResults.reset()
     numSubs = result.readInt()
     responses = []
@@ -492,7 +510,7 @@ def simulationStep(step=0):
 def getVersion():
     command = constants.CMD_GETVERSION
     _message.queue.append(command)
-    _message.string += struct.pack("!BB", 1 + 1, command)
+    _message.string += struct_pack("!BB", 1 + 1, command)
     result = _sendExact()
     result.readLength()
     response = result.read("!B")[0]
@@ -505,7 +523,7 @@ def getVersion():
 def close():
     if "" in _connections:
         _message.queue.append(constants.CMD_CLOSE)
-        _message.string += struct.pack("!BB", 1 + 1, constants.CMD_CLOSE)
+        _message.string += struct_pack("!BB", 1 + 1, constants.CMD_CLOSE)
         _sendExact()
         _connections[""].close()
         del _connections[""]

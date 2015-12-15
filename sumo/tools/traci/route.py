@@ -18,8 +18,9 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 import traci
-import struct
 import traci.constants as tc
+from traci import struct_pack
+
 
 _RETURN_VALUE_FUNC = {tc.ID_LIST:   traci.Storage.readStringList,
                       tc.ID_COUNT:  traci.Storage.readInt,
@@ -95,9 +96,9 @@ def add(routeID, edges):
     """
     traci._beginMessage(tc.CMD_SET_ROUTE_VARIABLE, tc.ADD, routeID,
                         1 + 4 + sum(map(len, edges)) + 4 * len(edges))
-    traci._message.string += struct.pack("!Bi", tc.TYPE_STRINGLIST, len(edges))
+    traci._message.string += struct_pack("!Bi", tc.TYPE_STRINGLIST, len(edges))
     for e in edges:
-        traci._message.string += struct.pack("!i", len(e)) + str(e)
+        traci._message.string += struct_pack("!i", len(e)) + str(e)
     traci._sendExact()
 
 

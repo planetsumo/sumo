@@ -17,9 +17,10 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-import struct
 import traci
 import traci.constants as tc
+from traci import struct_pack
+
 
 DEFAULT_VIEW = 'View #0'
 _RETURN_VALUE_FUNC = {tc.ID_LIST:           traci.Storage.readStringList,
@@ -122,7 +123,7 @@ def setOffset(viewID, x, y):
     """
     traci._beginMessage(
         tc.CMD_SET_GUI_VARIABLE, tc.VAR_VIEW_OFFSET, viewID, 1 + 8 + 8)
-    traci._message.string += struct.pack("!Bdd", tc.POSITION_2D, x, y)
+    traci._message.string += struct_pack("!Bdd", tc.POSITION_2D, x, y)
     traci._sendExact()
 
 
@@ -142,7 +143,7 @@ def setBoundary(viewID, xmin, ymin, xmax, ymax):
     """
     traci._beginMessage(
         tc.CMD_SET_GUI_VARIABLE, tc.VAR_VIEW_BOUNDARY, viewID, 1 + 8 + 8 + 8 + 8)
-    traci._message.string += struct.pack("!Bdddd",
+    traci._message.string += struct_pack("!Bdddd",
                                          tc.TYPE_BOUNDINGBOX, xmin, ymin, xmax, ymax)
     traci._sendExact()
 

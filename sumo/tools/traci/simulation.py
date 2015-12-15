@@ -19,7 +19,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 import traci
-import struct
+from traci import struct_pack
 import traci.constants as tc
 
 _RETURN_VALUE_FUNC = {tc.VAR_TIME_STEP:                         traci.Storage.readInt,
@@ -248,10 +248,10 @@ def convert2D(edgeID, pos, laneIndex=0, toGeo=False):
         posType = tc.POSITION_LON_LAT
     traci._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION,
                         "", 1 + 4 + 1 + 4 + len(edgeID) + 8 + 1 + 1 + 1)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, 2)
+    traci._message.string += struct_pack("!Bi",
                                          tc.POSITION_ROADMAP, len(edgeID)) + edgeID
-    traci._message.string += struct.pack("!dBBB",
+    traci._message.string += struct_pack("!dBBB",
                                          pos, laneIndex, tc.TYPE_UBYTE, posType)
     return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!dd")
 
@@ -262,10 +262,10 @@ def convert3D(edgeID, pos, laneIndex=0, toGeo=False):
         posType = tc.POSITION_LON_LAT_ALT
     traci._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION,
                         "", 1 + 4 + 1 + 4 + len(edgeID) + 8 + 1 + 1 + 1)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, 2)
+    traci._message.string += struct_pack("!Bi",
                                          tc.POSITION_ROADMAP, len(edgeID)) + edgeID
-    traci._message.string += struct.pack("!dBBB",
+    traci._message.string += struct_pack("!dBBB",
                                          pos, laneIndex, tc.TYPE_UBYTE, posType)
     return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!ddd")
 
@@ -276,9 +276,9 @@ def convertRoad(x, y, isGeo=False):
         posType = tc.POSITION_LON_LAT
     traci._beginMessage(
         tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1 + 4 + 1 + 8 + 8 + 1 + 1)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
-    traci._message.string += struct.pack("!Bdd", posType, x, y)
-    traci._message.string += struct.pack("!BB",
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, 2)
+    traci._message.string += struct_pack("!Bdd", posType, x, y)
+    traci._message.string += struct_pack("!BB",
                                          tc.TYPE_UBYTE, tc.POSITION_ROADMAP)
     result = traci._checkResult(
         tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "")
@@ -293,9 +293,9 @@ def convertGeo(x, y, fromGeo=False):
         toType = tc.POSITION_2D
     traci._beginMessage(
         tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "", 1 + 4 + 1 + 8 + 8 + 1 + 1)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 2)
-    traci._message.string += struct.pack("!Bdd", fromType, x, y)
-    traci._message.string += struct.pack("!BB", tc.TYPE_UBYTE, toType)
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, 2)
+    traci._message.string += struct_pack("!Bdd", fromType, x, y)
+    traci._message.string += struct_pack("!BB", tc.TYPE_UBYTE, toType)
     return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.POSITION_CONVERSION, "").read("!dd")
 
 
@@ -312,9 +312,9 @@ def getDistance2D(x1, y1, x2, y2, isGeo=False, isDriving=False):
         distType = tc.REQUEST_DRIVINGDIST
     traci._beginMessage(
         tc.CMD_GET_SIM_VARIABLE, tc.DISTANCE_REQUEST, "", 1 + 4 + 1 + 8 + 8 + 1 + 8 + 8 + 1)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 3)
-    traci._message.string += struct.pack("!Bdd", posType, x1, y1)
-    traci._message.string += struct.pack("!BddB", posType, x2, y2, distType)
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, 3)
+    traci._message.string += struct_pack("!Bdd", posType, x1, y1)
+    traci._message.string += struct_pack("!BddB", posType, x2, y2, distType)
     return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.DISTANCE_REQUEST, "").readDouble()
 
 
@@ -328,12 +328,12 @@ def getDistanceRoad(edgeID1, pos1, edgeID2, pos2, isDriving=False):
         distType = tc.REQUEST_DRIVINGDIST
     traci._beginMessage(tc.CMD_GET_SIM_VARIABLE, tc.DISTANCE_REQUEST, "",
                         1 + 4 + 1 + 4 + len(edgeID1) + 8 + 1 + 1 + 4 + len(edgeID2) + 8 + 1 + 1)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 3)
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, 3)
+    traci._message.string += struct_pack("!Bi",
                                          tc.POSITION_ROADMAP, len(edgeID1)) + edgeID1
-    traci._message.string += struct.pack("!dBBi", pos1,
+    traci._message.string += struct_pack("!dBBi", pos1,
                                          0, tc.POSITION_ROADMAP, len(edgeID2)) + edgeID2
-    traci._message.string += struct.pack("!dBB", pos2, 0, distType)
+    traci._message.string += struct_pack("!dBB", pos2, 0, distType)
     return traci._checkResult(tc.CMD_GET_SIM_VARIABLE, tc.DISTANCE_REQUEST, "").readDouble()
 
 
@@ -358,6 +358,6 @@ def getSubscriptionResults():
 def clearPending(routeID=""):
     traci._beginMessage(tc.CMD_SET_SIM_VARIABLE, tc.CMD_CLEAR_PENDING_VEHICLES, "",
                         1 + 4 + len(routeID))
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi",
                                          tc.TYPE_STRING, len(routeID)) + str(routeID)
     traci._sendExact()
