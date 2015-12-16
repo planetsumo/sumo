@@ -16,9 +16,10 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
-import struct
 import traci
 import traci.constants as tc
+from traci import struct_pack
+
 
 _RETURN_VALUE_FUNC = {tc.ID_LIST:   traci.Storage.readStringList,
                       tc.ID_COUNT:  traci.Storage.readInt,
@@ -112,7 +113,7 @@ def setType(polygonID, polygonType):
     """
     traci._beginMessage(
         tc.CMD_SET_POLYGON_VARIABLE, tc.VAR_TYPE, polygonID, 1 + 4 + len(polygonType))
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi",
                                          tc.TYPE_STRING, len(polygonType)) + str(polygonType)
     traci._sendExact()
 
@@ -124,9 +125,9 @@ def setShape(polygonID, shape):
     """
     traci._beginMessage(tc.CMD_SET_POLYGON_VARIABLE,
                         tc.VAR_SHAPE, polygonID, 1 + 1 + len(shape) * (8 + 8))
-    traci._message.string += struct.pack("!BB", tc.TYPE_POLYGON, len(shape))
+    traci._message.string += struct_pack("!BB", tc.TYPE_POLYGON, len(shape))
     for p in shape:
-        traci._message.string += struct.pack("!dd", p)
+        traci._message.string += struct_pack("!dd", p)
     traci._sendExact()
 
 
@@ -137,7 +138,7 @@ def setColor(polygonID, color):
     """
     traci._beginMessage(
         tc.CMD_SET_POLYGON_VARIABLE, tc.VAR_COLOR, polygonID, 1 + 1 + 1 + 1 + 1)
-    traci._message.string += struct.pack("!BBBBB", tc.TYPE_COLOR, int(
+    traci._message.string += struct_pack("!BBBBB", tc.TYPE_COLOR, int(
         color[0]), int(color[1]), int(color[2]), int(color[3]))
     traci._sendExact()
 
@@ -145,23 +146,23 @@ def setColor(polygonID, color):
 def add(polygonID, shape, color, fill=False, polygonType="", layer=0):
     traci._beginMessage(tc.CMD_SET_POLYGON_VARIABLE, tc.ADD, polygonID, 1 + 4 + 1 + 4 +
                         len(polygonType) + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 4 + 1 + 1 + len(shape) * (8 + 8))
-    traci._message.string += struct.pack("!Bi", tc.TYPE_COMPOUND, 5)
-    traci._message.string += struct.pack("!Bi",
+    traci._message.string += struct_pack("!Bi", tc.TYPE_COMPOUND, 5)
+    traci._message.string += struct_pack("!Bi",
                                          tc.TYPE_STRING, len(polygonType)) + str(polygonType)
-    traci._message.string += struct.pack("!BBBBB", tc.TYPE_COLOR, int(
+    traci._message.string += struct_pack("!BBBBB", tc.TYPE_COLOR, int(
         color[0]), int(color[1]), int(color[2]), int(color[3]))
-    traci._message.string += struct.pack("!BB", tc.TYPE_UBYTE, int(fill))
-    traci._message.string += struct.pack("!Bi", tc.TYPE_INTEGER, layer)
-    traci._message.string += struct.pack("!BB", tc.TYPE_POLYGON, len(shape))
+    traci._message.string += struct_pack("!BB", tc.TYPE_UBYTE, int(fill))
+    traci._message.string += struct_pack("!Bi", tc.TYPE_INTEGER, layer)
+    traci._message.string += struct_pack("!BB", tc.TYPE_POLYGON, len(shape))
     for p in shape:
-        traci._message.string += struct.pack("!dd", *p)
+        traci._message.string += struct_pack("!dd", *p)
     traci._sendExact()
 
 
 def remove(polygonID, layer=0):
     traci._beginMessage(
         tc.CMD_SET_POLYGON_VARIABLE, tc.REMOVE, polygonID, 1 + 4)
-    traci._message.string += struct.pack("!Bi", tc.TYPE_INTEGER, layer)
+    traci._message.string += struct_pack("!Bi", tc.TYPE_INTEGER, layer)
     traci._sendExact()
 
 

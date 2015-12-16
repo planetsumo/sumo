@@ -18,8 +18,9 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 """
 import traci
-import struct
 import traci.constants as tc
+from traci import struct_pack
+
 
 _RETURN_VALUE_FUNC = {tc.ID_LIST:             traci.Storage.readStringList,
                       tc.ID_COUNT:            traci.Storage.readInt,
@@ -329,7 +330,7 @@ def setColor(typeID, color):
     """
     traci._beginMessage(
         tc.CMD_SET_VEHICLETYPE_VARIABLE, tc.VAR_COLOR, typeID, 1 + 1 + 1 + 1 + 1)
-    traci._message.string += struct.pack("!BBBBB", tc.TYPE_COLOR, int(
+    traci._message.string += struct_pack("!BBBBB", tc.TYPE_COLOR, int(
         color[0]), int(color[1]), int(color[2]), int(color[3]))
     traci._sendExact()
 
