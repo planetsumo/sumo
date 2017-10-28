@@ -1,4 +1,5 @@
-== [SUMO moved to DLR-TS/sumo](https://github.com/DLR-TS/sumo) ==
+[SUMO moved to DLR-TS/sumo](https://github.com/DLR-TS/sumo)
+======
 
 To checkout the new repository use
 
