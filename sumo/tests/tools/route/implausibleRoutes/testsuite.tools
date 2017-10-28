@@ -1,8 +1,0 @@
-default
-
-# standalone routes
-standalone
-restriction-output
-
-# only rate by mininimu distance
-min-dist

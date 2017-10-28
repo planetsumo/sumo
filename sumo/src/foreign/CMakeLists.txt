@@ -1,7 +1,0 @@
-add_subdirectory(PHEMlight)
-add_subdirectory(rtree)
-add_subdirectory(tcpip)
-if (FOX_FOUND)
-    add_subdirectory(eulerspiral)
-    add_subdirectory(gl2ps)
-endif()

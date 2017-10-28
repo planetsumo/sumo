@@ -1,8 +1,0 @@
-# complex test scenario by Mirco
-complex
-
-# test angled roadside parking (including vehicle positions)
-angled_roadside_parking
-
-# test what happens if a queue forms and a vehicle wants to exit the parkingarea
-congestion
