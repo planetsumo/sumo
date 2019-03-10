@@ -1,8 +1,8 @@
-[SUMO moved to DLR-TS/sumo](https://github.com/DLR-TS/sumo)
+[SUMO moved to eclipse/sumo](https://github.com/eclipse/sumo)
 ======
 
 To checkout the new repository use
 
-        git clone --recursive https://github.com/DLR-TS/sumo.git
+        git clone --recursive https://github.com/eclipse/sumo.git
 
-Please also use the [issue tracker](https://github.com/DLR-TS/sumo/issues) there.
+Please also use the [issue tracker](https://github.com/eclipse/sumo/issues) there.
